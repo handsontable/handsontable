@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-18T11:09:20.444Z",
+  "updatedAt": "2026-09-18T11:20:06.592Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-main-min",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "35337372108",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35337372108",
+      "workflow": "Tests",
+      "branch": "feature/DEV-133_Print-selection-hide",
+      "headSha": "59a2a3f2348c3110a82606a73ccc10aeed1d6bfc",
+      "event": "pull_request",
+      "seenAt": "2026-09-18T11:19:14Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-main-min",

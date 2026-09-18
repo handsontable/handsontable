@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T11:09:20.444Z",
+  "generatedAt": "2026-09-18T11:20:06.592Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 30,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 129
+    "entries": 130
   },
   "rows": [
     {
@@ -20,12 +20,12 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 11,
-      "count30": 11,
-      "countAll": 11,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 6,
+      "count7": 12,
+      "count30": 12,
+      "countAll": 12,
+      "runs30": 7,
+      "flakyRuns30": 7,
+      "branches30": 7,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
@@ -39,9 +39,9 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-18T10:58:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35333830419/attempts/2",
-        "branch": "feature/DEV-144_reversedRowCoords-alter-shift",
+        "seenAt": "2026-09-18T11:19:14Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35337372108",
+        "branch": "feature/DEV-133_Print-selection-hide",
         "leg": "e2e-main-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
