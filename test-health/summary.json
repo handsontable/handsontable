@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T15:41:04.524Z",
+  "generatedAt": "2026-09-18T06:49:26.312Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 27,
+    "tests": 28,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 108
+    "entries": 114
   },
   "rows": [
     {
@@ -213,6 +213,44 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/exportFile/__tests__/types/xlsx/cell-types.spec.js|exportFile XLSX type — cell types date type cells should derive the date numFmt from the cell's dateFormat Intl options",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/exportFile/__tests__/types/xlsx/cell-types.spec.js",
+      "line": null,
+      "title": "exportFile XLSX type — cell types date type cells should derive the date numFmt from the cell's dateFormat Intl options",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-18T06:48:41Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35315001650",
+        "branch": "feature/DEV-2135_import_xlsx",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 'mm/dd/yyyy' to be 'mm-dd-yyyy'.",
         "source": "ci"
       },
       "needsTicket": false
