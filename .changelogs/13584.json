@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `editor: false` being ignored by a column `type` and by checkbox cells, and added the `readOnlyStyling` option for making a grid read-only without the dimmed styling.",
+  "type": "fixed",
+  "issueOrPR": 13584,
+  "breaking": true,
+  "framework": "none"
+}
