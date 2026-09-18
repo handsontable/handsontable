@@ -12,6 +12,8 @@ export type Mode = 'colWidths' | 'autosize' | 'wrap' | 'tall';
 export type Dir = 'ltr' | 'rtl';
 export type Align = 'top' | 'middle' | 'bottom';
 export type RowHeightMode = 'min' | 'exact';
+export type ListEllipsis = 'on' | 'off';
+export type SideColumn = 'none' | 'wrap' | 'ellipsis';
 
 interface Box {
   left: number;
@@ -91,12 +93,21 @@ export class ListCellArrowLayoutPage {
    * @param {Align} [options.align] Cell vertical alignment class (`htMiddle` / `htBottom`).
    * @param {RowHeightMode} [options.rowHeightMode] Engine row-height mode; `exact` clips through
    *   `.htCellClip`.
+   * @param {ListEllipsis} [options.listEllipsis] `off` sets `textEllipsis: false` on the list column
+   *   (the per-column opt-out that restores wrapping).
+   * @param {SideColumn} [options.sideColumn] Adds a second `text` column: `wrap` (plain) or
+   *   `ellipsis` (`textEllipsis: true`).
    */
-  async goto({ mode = 'colWidths', dir = 'ltr', align = 'top', rowHeightMode = 'min' }: {
+  async goto({
+    mode = 'colWidths', dir = 'ltr', align = 'top', rowHeightMode = 'min',
+    listEllipsis = 'on', sideColumn = 'none',
+  }: {
     mode?: Mode, dir?: Dir, align?: Align, rowHeightMode?: RowHeightMode,
+    listEllipsis?: ListEllipsis, sideColumn?: SideColumn,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
-      + `&mode=${mode}&dir=${dir}&align=${align}&rowHeightMode=${rowHeightMode}`;
+      + `&mode=${mode}&dir=${dir}&align=${align}&rowHeightMode=${rowHeightMode}`
+      + `&listEllipsis=${listEllipsis}&sideColumn=${sideColumn}`;
 
     await this.page.goto(`/tests/fixtures/demo/list-cell-arrow-layout.html?${query}`);
 

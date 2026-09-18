@@ -70,6 +70,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -1381,6 +1382,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Rows the group names above the first one or past the last one do not exist, so they
+                // are dropped from it rather than translated into rows the caller never named (DEV-117).
+                // The part that does exist is still removed - `normalizeIndexesGroup` above may have
+                // merged a valid group into one that starts above the table. An empty index keeps its
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`. The
+                // rule lives in `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countRows());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1476,6 +1493,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Columns the group names before the first one or past the last one do not exist, so
+                // they are dropped from it rather than translated into columns the caller never named
+                // (DEV-117). The part that does exist is still removed - `normalizeIndexesGroup` above
+                // may have merged a valid group into one that starts before the table. An empty index
+                // keeps its own meaning, "take the columns from the end". The rule lives in
+                // `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countCols());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
                 let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -4660,6 +4693,10 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   *                                For `'remove_row'` and `'remove_col'`, rows and columns that do not exist are
+   *                                never removed. An index that points outside the table (a negative one, or one at
+   *                                or past the last row/column) removes nothing, and in the array format any part of
+   *                                a range that falls outside the table is ignored while the rest is still removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
