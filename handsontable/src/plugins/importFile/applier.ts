@@ -123,21 +123,31 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
   // only for a defined `columns`, and `loadData` has already sized the grid from the old array. An
   // explicit array of empty column settings, one per imported column, takes both paths.
   if (result.columns === undefined && current.columns !== undefined) {
-    settings.columns = emptyColumns(result.data);
+    const width = importedWidth(result);
+
+    // A width of zero (nothing imported at all) must not become `columns: []`, which pins the grid at
+    // zero columns; the previous setting is left alone in that case.
+    if (width > 0) {
+      settings.columns = Array.from({ length: width }, () => ({}));
+    }
   }
 
   return settings;
 }
 
 /**
- * One empty column setting per column of the imported data, the value that makes `updateSettings`
- * rebuild the column meta layer and the column index mapper for a sheet with nothing to say at the
- * column level.
+ * How many columns the result describes: the widest data row, or, for a sheet with no data cells
+ * (a header-only sheet, a `headerRows` that consumed every row, a `range` over headers only), the
+ * width its headers or column widths describe. The empty column settings that reset a previous
+ * import's `columns` are sized from it, so a header-only import does not pin the grid at zero
+ * columns and lose the headers it carries.
  */
-function emptyColumns(data: unknown[][]): Array<Record<string, never>> {
-  const width = data.reduce((max, row) => Math.max(max, row.length), 0);
+function importedWidth(result: ImportResult): number {
+  const dataWidth = result.data.reduce((max, row) => Math.max(max, row.length), 0);
+  const nestedWidth = (result.nestedHeaders?.[0] ?? [])
+    .reduce((sum, header) => sum + (typeof header === 'string' ? 1 : header.colspan ?? 1), 0);
 
-  return Array.from({ length: width }, () => ({}));
+  return Math.max(dataWidth, result.colHeaders?.length ?? 0, result.colWidths?.length ?? 0, nestedWidth);
 }
 
 /**

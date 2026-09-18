@@ -382,6 +382,32 @@ describe('applyImportResult – layout across imports', () => {
     expect(hot.calls[2]).toEqual(['updateSettings', { columns: [{}] }]);
   });
 
+  it('should size the reset from the headers when the sheet has no data cells', () => {
+    // A header-only sheet: `data` is empty, but `colHeaders` says two columns. `columns: []` would
+    // pin the grid at zero columns and the headers would never appear.
+    const hot = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
+
+    applyImportResult(hot, { data: [], colHeaders: ['A', 'B'], sheetNames: ['Head'], dropped: [] });
+
+    expect(hot.calls[2]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
+
+    const nested = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
+
+    applyImportResult(nested, {
+      data: [], nestedHeaders: [[{ label: 'G', colspan: 2 }, 'C'], ['a', 'b', 'c']], sheetNames: ['Head'], dropped: [],
+    });
+
+    expect(nested.calls[2][1].columns).toEqual([{}, {}, {}]);
+  });
+
+  it('should leave columns alone when the result describes no width at all', () => {
+    const hot = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
+
+    applyImportResult(hot, { data: [], sheetNames: ['Empty'], dropped: [] });
+
+    expect(hot.calls.map(call => call[0])).toEqual(['batch:start', 'loadData', 'batch:end']);
+  });
+
   it('should not send columns to a grid that never had any', () => {
     const hot = fakeHot({ gridSettings: {} });
 
