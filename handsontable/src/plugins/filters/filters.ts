@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
@@ -36,6 +37,8 @@ import {
 } from './constants';
 import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
+import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
+import type { CellProperties } from '../../settings';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -611,7 +614,7 @@ export class Filters extends BasePlugin {
         this.hot,
         this.conditionCollection,
         (physicalColumn: number, physicalRows?: number[]) =>
-          this.getDataMapAtColumn(physicalColumn, physicalRows),
+          this._readColumn(physicalColumn, physicalRows),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
@@ -1317,8 +1320,7 @@ export class Filters extends BasePlugin {
 
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(),
-        rowData => (rowData as { row: number }).row);
+      const rowIndexesToShow = dataFilter.filter();
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
       const countSourceRows = this.hot.countSourceRows();
       // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
@@ -1419,8 +1421,8 @@ export class Filters extends BasePlugin {
    *
    * That single exclusion is what keeps pinned rows out of every consumer at once: `DataFilter`, the
    * `ConditionUpdateObserver` memo, and the has-conditions branch of `_getValueListDataAtColumn()`
-   * all read the column through here. A caller that passes `physicalRows` has already chosen its
-   * rows and is left alone.
+   * all read the column through the same read as this method. A caller that passes `physicalRows`
+   * has already chosen its rows and is left alone.
    *
    * @param {number} physicalColumn The physical column index.
    * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
@@ -1430,10 +1432,48 @@ export class Filters extends BasePlugin {
    * the coordinate stamps on `meta` are shared with other readers and may change after this method returns.
    */
   getDataMapAtColumn(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+    return this._readColumn(physicalColumn, physicalRows).toArray();
+  }
+
+  /**
+   * Reads a column into the columnar form the filter scan runs on: the physical row indexes and the
+   * cell values in two parallel arrays, with each entry's cell meta resolved on demand. Every rule
+   * `getDataMapAtColumn()` documents applies here – it is the same read, and that method is this
+   * one plus `toArray()`.
+   *
+   * The read resolves meta only for the rows that store their own and, in a column with a
+   * `valueGetter`, for the rows whose value went through it. The filter scan resolves every other
+   * row's meta inside its own loop and drops it with the row's entry after the row's condition
+   * call, so a filter run never holds a whole column of those objects alive at once. Rows that
+   * already store per-cell meta keep their own object, so per-cell overrides stay exact.
+   *
+   * @private
+   * @param {number} physicalColumn The physical column index.
+   * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
+   * order) instead of every source row.
+   * @returns {ColumnDataMap} The column read.
+   */
+  _readColumn(physicalColumn: number, physicalRows?: number[]): ColumnDataMap {
     const rowsCount = physicalRows ? physicalRows.length : this.hot.countSourceRows();
+
+    if (rowsCount === 0) {
+      return ColumnDataMap.empty();
+    }
+
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const excludedRows = physicalRows ? null : this.#getPinnedRows();
-    const data: Record<string, unknown>[] = [];
+    const metaManager = this.hot._getMetaManager();
+    // A `valueGetter` is declared by the cell type, so it resolves through the column layer for
+    // every row that carries no per-cell meta. Probing it once keeps the whole meta destructure out
+    // of the loop for every column that has none.
+    const columnHasValueGetter = isFunction(metaManager.getColumnMeta(physicalColumn).valueGetter);
+    const hasModifyDataHook = this.hot.hasHook('modifyData');
+    const rows: number[] = [];
+    const values: unknown[] = [];
+    // Indexed by entry position. Holds the rows that store meta of their own, plus every row whose
+    // value went through a `valueGetter` – that getter already got the row's own meta, and the
+    // conditions must get the same object. Sparse unless the column has a `valueGetter`.
+    const resolvedMetas: Array<CellProperties | undefined> = [];
 
     for (let rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
       const physicalRow = physicalRows ? physicalRows[rowIndex] : rowIndex;
@@ -1442,16 +1482,25 @@ export class Filters extends BasePlugin {
         continue; // eslint-disable-line no-continue
       }
 
-      const cellMeta = this.hot._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
-        visualRow: physicalRow,
-        visualColumn: physicalColumn,
-      });
-      let value = getValueGetterValue(
-        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
-        cellMeta
-      );
+      const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+      let value = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
 
-      if (this.hot.hasHook('modifyData')) {
+      if (storedMeta !== undefined) {
+        stampPhysicalCoordinates(storedMeta, physicalRow, physicalColumn);
+        resolvedMetas[rows.length] = storedMeta;
+
+        value = getValueGetterValue(value, storedMeta);
+
+      } else if (columnHasValueGetter) {
+        const cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+
+        stampPhysicalCoordinates(cellMeta, physicalRow, physicalColumn);
+        resolvedMetas[rows.length] = cellMeta;
+
+        value = getValueGetterValue(value, cellMeta);
+      }
+
+      if (hasModifyDataHook) {
         const valueHolder: ObjectPropListener = createObjectPropListener(value);
 
         this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
@@ -1461,14 +1510,12 @@ export class Filters extends BasePlugin {
         }
       }
 
-      data.push({
-        row: physicalRow,
-        meta: cellMeta,
-        value: toEmptyString(value),
-      });
+      rows.push(physicalRow);
+      values.push(toEmptyString(value));
     }
 
-    return data;
+    return new ColumnDataMap(rows, values, physicalColumn,
+      (index: number) => resolvedMetas[index] ?? metaManager.createTransientColumnMeta(physicalColumn));
   }
 
   /**
@@ -1904,12 +1951,10 @@ export class Filters extends BasePlugin {
 
     splitConditionCollection.importAllConditions(conditionsBefore);
 
-    // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
-    // are shared with every other meta reader and may have been overwritten since.
-    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
-    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
-    const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
-      rowData => (rowData as { row: number }).row);
+    // Rows are correlated through their physical index, which `DataFilter.filter()` returns
+    // directly - the coordinate stamps on `meta` are shared with every other meta reader and may
+    // have been overwritten since.
+    const survivingRows = this._createDataFilter(splitConditionCollection).filter();
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();
@@ -1930,7 +1975,7 @@ export class Filters extends BasePlugin {
     }
 
     return new DataFilter(conditionCollection,
-      (physicalColumn: number, physicalRows?: number[]) => this.getDataMapAtColumn(physicalColumn, physicalRows));
+      (physicalColumn: number, physicalRows?: number[]) => this._readColumn(physicalColumn, physicalRows));
   }
 
   /**
