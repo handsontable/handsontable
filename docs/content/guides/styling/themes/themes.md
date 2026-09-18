@@ -418,6 +418,295 @@ const hotSettings = ref({
 
 :::
 
+### Switch between CSS-file themes at runtime
+
+Use [`useTheme()`](@/api/core.md#usetheme) to swap the grid's active theme for another CSS-file theme's class name. Pass the class name as a string -- `useTheme()` only accepts a name, not a theme config object or a `ThemeBuilder` instance.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const hot = new Handsontable(container, {
+  theme: 'ht-theme-main',
+  // ... other options
+});
+
+function toggleTheme(isDarkMode) {
+  hot.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const App = () => {
+  const hotRef = useRef(null);
+
+  const toggleTheme = (isDarkMode) => {
+    hotRef.current?.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+  };
+
+  return (
+    <HotTable
+      ref={hotRef}
+      theme="ht-theme-main"
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component, ViewChild } from '@angular/core';
+import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="{ theme: 'ht-theme-main' }" />`,
+})
+export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
+
+  toggleTheme(isDarkMode: boolean) {
+    this.hotTable.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+  }
+}
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import 'handsontable/styles/ht-theme-main.min.css';
+
+const hotRef = ref(null);
+
+function toggleTheme(isDarkMode) {
+  hotRef.value?.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+}
+```
+
+```html
+<HotTable ref="hotRef" :settings="{ theme: 'ht-theme-main' }" />
+```
+
+:::
+
+Load the matching static stylesheet for every class name you switch to. The dark variant is a separate CSS file (`ht-theme-main.min.css` also carries the `ht-theme-main-dark` rules -- see [Step 1. Load CSS files](#step-1-load-css-files)). Without it, the grid logs a warning that the theme's stylesheets are missing and loses its styling. An unsupported value -- anything other than a registered theme name -- is ignored, and the grid logs a warning and keeps its current theme.
+
+## Switch the color scheme at runtime with the Theme API
+
+When a grid uses the Theme API, call [`setColorScheme()`](@/api/options.md#theme) directly on the `ThemeBuilder` instance returned by `registerTheme()`. The builder notifies the grid on its own -- no `updateSettings()` call is needed.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+const hot = new Handsontable(container, {
+  theme,
+  // ... other options
+});
+
+function toggleTheme(isDarkMode) {
+  theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { HotTable } from '@handsontable/react-wrapper';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+const App = () => {
+  const toggleTheme = (isDarkMode) => {
+    theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+  };
+
+  return (
+    <HotTable
+      theme={theme}
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component } from '@angular/core';
+import { HotTableModule } from '@handsontable/angular-wrapper';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="{ theme: theme }" />`,
+})
+export class AppComponent {
+  toggleTheme(isDarkMode: boolean) {
+    theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+  }
+}
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme);
+
+function toggleTheme(isDarkMode) {
+  theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+}
+```
+
+```html
+<HotTable :settings="{ theme: theme }" />
+```
+
+:::
+
+Don't mix this with [`useTheme()`](#switch-between-css-file-themes-at-runtime): the Theme API only ever generates styles under the plain `ht-theme-{name}` class, never a `-dark` variant of it, so switching to `ht-theme-{name}-dark` on a Theme API grid loses the theme instead of applying its dark mode.
+
+## Switch between two registered themes at runtime
+
+To swap the grid's theme for a genuinely different one -- not a light/dark variant of the same theme -- register both themes up front and pass the target theme to [`updateSettings()`](@/api/core.md#updatesettings) through the `theme` option:
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+const hot = new Handsontable(container, {
+  theme: themeA,
+  // ... other options
+});
+
+function switchTheme(useHorizon) {
+  hot.updateSettings({ theme: useHorizon ? themeB : themeA });
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+const App = () => {
+  const hotRef = useRef(null);
+
+  const switchTheme = (useHorizon) => {
+    hotRef.current?.hotInstance?.updateSettings({ theme: useHorizon ? themeB : themeA });
+  };
+
+  return (
+    <HotTable
+      ref={hotRef}
+      theme={themeA}
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component, ViewChild } from '@angular/core';
+import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [settings]="{ theme: themeA }" />`,
+})
+export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
+
+  themeA = themeA;
+
+  switchTheme(useHorizon: boolean) {
+    this.hotTable.hotInstance?.updateSettings({ theme: useHorizon ? themeB : themeA });
+  }
+}
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
+
+const themeA = registerTheme(mainTheme);
+const themeB = registerTheme(horizonTheme);
+
+const hotSettings = ref({
+  theme: themeA,
+});
+
+function switchTheme(useHorizon) {
+  hotSettings.value.theme = useHorizon ? themeB : themeA;
+}
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## Set the color scheme or density without a theme
 
 If the only thing you want to change is the color scheme or the amount of white space, you don't have to import, register, and configure a theme. Set the [`colorScheme`](@/api/options.md#colorscheme) or [`density`](@/api/options.md#density) option directly, and the grid applies it on top of the theme it already uses.
