@@ -351,10 +351,11 @@ async function clearNativeTextSelection(page: Page) {
  * null `sheet` or an empty rule list, and that is what is asserted — the place the wrong picture is
  * cheapest to catch is before the first capture, with the missing file named.
  *
- * With `HOT_THEME` set the theme link itself must be among them: a demo that rendered a themed run
- * without ever asking for a theme stylesheet is the same wrong picture by another route. A demo that
- * does not use the convention has no such links and passes trivially — the wrapper demos, which render
- * bare, are that case. A cross-origin sheet hides its rules behind a SecurityError; that is reported as
+ * With `HOT_THEME` set the run's own theme file must be among them, by name: a themed run that asked
+ * for no theme stylesheet, or for a different one, is the same wrong picture by another route. A demo
+ * that does not use the convention has no such links and passes trivially — the wrapper demos, which
+ * render bare, are that case, and the day one of them is themed it needs the `dynamic-css` class on its
+ * link (or this query widened) before the check can see it. A cross-origin sheet hides its rules behind a SecurityError; that is reported as
  * unknown, not as empty, so a demo that ever loads a CDN stylesheet is not failed for being unreadable.
  *
  * @param {Page} page The page whose grid has just rendered.
@@ -387,10 +388,22 @@ async function assertStylesheetsLoaded(page: Page) {
       + 'visual-tests/src/test-runner.ts.');
   }
 
-  if (helpers.hotTheme && !links.some(link => /ht-theme-/.test(link.href))) {
-    throw new Error(`HOT_THEME is "${helpers.hotTheme}" but the demo attached no theme stylesheet link, so `
-      + 'the capture would carry the theme\'s name and none of its pixels. See assertStylesheetsLoaded() in '
-      + 'visual-tests/src/test-runner.ts.');
+  // The exact file, not any `ht-theme-` link. The demo maps a theme and its dark variant onto one
+  // stylesheet (`main` and `main-dark` both load `ht-theme-main.css`, and so on for horizon and
+  // classic — `loadThemeCSS()` in examples/next/visual-tests/js/demo/src/index.js), so the name this
+  // run should have asked for is the theme with any `-dark` suffix removed. Matching the prefix alone
+  // would pass a demo that mapped `horizon` onto `ht-theme-main.css` and save main-theme pixels under
+  // the horizon name — the same wrong picture this function exists to refuse, arriving by a route the
+  // loose check cannot see.
+  if (helpers.hotTheme) {
+    const themeFile = `ht-theme-${helpers.hotTheme.replace(/-dark$/, '')}.css`;
+
+    if (!links.some(link => link.href.endsWith(themeFile))) {
+      throw new Error(`HOT_THEME is "${helpers.hotTheme}" but the demo attached no ${themeFile} link `
+        + `(it asked for: ${links.map(link => link.href).join(', ') || 'nothing'}), so the capture would `
+        + 'carry the theme\'s name and none of its pixels. See assertStylesheetsLoaded() in '
+        + 'visual-tests/src/test-runner.ts.');
+    }
   }
 }
 
