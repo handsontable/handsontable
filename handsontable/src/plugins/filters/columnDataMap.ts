@@ -40,11 +40,12 @@ export function stampPhysicalCoordinates(cellMeta: CellProperties, physicalRow: 
  * A columnar read of one column: the physical row indexes and the cell values in two parallel
  * arrays, plus an accessor that resolves each entry's cell meta on demand.
  *
- * The filter scan resolves the meta of each row inside its own loop and releases it once the
- * row's condition call returns, so the scan never holds a whole column of `{ row, meta, value }`
- * objects alive at once – an array of them keeps every one past the young-generation collections
- * for the length of the scan. It is internal: `Filters#getDataMapAtColumn()` materializes it back
- * into that array.
+ * The filter scan builds each row's `{ row, meta, value }` object inside its own loop and drops it
+ * once the row's condition call returns, so the scan never holds a whole column of those objects
+ * alive at once – an array of them keeps every one past the young-generation collections for the
+ * length of the scan. A row that stores no meta of its own gets a fresh one there too, unless the
+ * read already resolved it for a `valueGetter`. It is internal: `Filters#getDataMapAtColumn()`
+ * materializes it back into that array.
  *
  * @private
  * @class ColumnDataMap

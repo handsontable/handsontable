@@ -118,8 +118,8 @@ describe('Filters -> the dataRow a condition receives', () => {
   });
 
   it('should not materialize the column read while the scan runs', () => {
-    // The scan resolves each row's meta inside its own loop and releases it after the row's
-    // condition call. `toArray()` builds every entry up front and keeps them all alive for the whole
+    // The scan builds each row's entry inside its own loop and drops it after the row's condition
+    // call. `toArray()` builds every entry up front and keeps them all alive for the whole
     // scan, so a single call from inside it puts back the cost the columnar read removes – and it
     // does so invisibly, because the filter result stays correct either way.
     const filters = buildGrid().getPlugin('filters');

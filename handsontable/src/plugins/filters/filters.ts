@@ -1441,10 +1441,11 @@ export class Filters extends BasePlugin {
    * `getDataMapAtColumn()` documents applies here – it is the same read, and that method is this
    * one plus `toArray()`.
    *
-   * The read itself resolves no meta for a row that stores none. The filter scan resolves each
-   * row's meta inside its own loop and releases it after the row's condition call, so a filter run
-   * never holds a whole column of meta objects alive at once. Rows that already store per-cell meta
-   * are found during the read and keep their own object, so per-cell overrides stay exact.
+   * The read resolves meta only for the rows that store their own and, in a column with a
+   * `valueGetter`, for the rows whose value went through it. The filter scan resolves every other
+   * row's meta inside its own loop and drops it with the row's entry after the row's condition
+   * call, so a filter run never holds a whole column of those objects alive at once. Rows that
+   * already store per-cell meta keep their own object, so per-cell overrides stay exact.
    *
    * @private
    * @param {number} physicalColumn The physical column index.
