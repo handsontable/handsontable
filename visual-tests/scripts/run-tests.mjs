@@ -121,6 +121,14 @@ console.log(chalk.green('Done.'));
 // The seed tier renders js once and copies it into every wrapper directory, so the golden set keeps its
 // full shape and every other tier is compared against an exact subset of it (the js-copied-baseline
 // gotcha in ../AGENTS.md).
+//
+// The copy is wholesale by directory, and it is equal to the declarations only while every spec under
+// `tests/multi-frameworks/` declares all three wrappers — which is what the declaration codemod wrote and
+// what `lib/__tests__/visual-declarations.test.mjs` pins. The moment one of them declares fewer, this copy
+// writes wrapper goldens the `full` tier then skips, and the nightly reports them deleted every night. So
+// the per-spec copy has to land before any wrapper is trimmed: read each spec's `visual-variants`
+// annotation from `npx playwright test --list --reporter=json` (collection cost, no browser launched) and
+// copy that spec's `<specDir>-N.png` files into only the wrappers it declares.
 if (tier.copyWrappers) {
   if (!fse.existsSync(dirs.screenshots)) {
     throw new Error(`Directory \`${dirs.screenshots}\` doesn't exist.`);

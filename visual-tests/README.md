@@ -173,6 +173,12 @@ Visual tests are divided into:
 
    There is a separate Playwright config for cross-browser tests: `playwright-cross-browser.config.ts`
 
+The directory decides which Playwright config runs a spec and therefore which leg it belongs to. Inside
+that leg, the variants a spec renders on are its own declaration: every spec registers through
+`visualTest(title, { themes, browsers, wrappers, wrappersReason }, fn)`, and a variant it does not declare
+skips at file scope for nothing. A new spec renders two themes on Chromium with no wrapper unless it says
+otherwise. See `AGENTS.md`, *Variant declaration*, for the axes and the invariants.
+
 ## Visual tests demos
 
 All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`

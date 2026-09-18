@@ -16,7 +16,7 @@ A screenshot proves pixels only. Capture one screenshot per distinct visual stat
 
 ## Custom Fixture: `tablePage`
 
-Import the custom test runner instead of the default Playwright `test` (the `visualTest` name is the declaration form described under Screenshot Workflow; until it lands the export is `test`):
+Import the custom test runner instead of the default Playwright `test`. `visualTest` is how a spec registers, and a bare `test(` in a spec is a lint error:
 
 ```typescript
 import { visualTest, expect } from '../../../src/test-runner';
@@ -57,7 +57,7 @@ visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], 
 
 Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 
-The `visualTest()` declaration names the variants the spec renders on and is the shape every spec is moving to (G2 under `visual-tests/AGENTS.md` → Guardrails against bloat and flakes). Until it lands, the call is `test(__filename, …)` from the same module; the assertion between the action and the capture applies either way.
+The `visualTest()` declaration names the variants the spec renders on, and the golden set is the sum of every spec's declaration intersected with the tier. The shape above is the default for a new spec — two themes, one browser, no wrapper — and it is the one to start from: it costs two goldens per capture rather than the five every spec written before the declaration costs. Add `CLASSIC` to `themes` when the spec is about the bare delivery path (where the core inlines the main theme stylesheet), a `horizon` theme when the pixels being judged are theme tokens rather than geometry, and a wrapper only with a `wrappersReason` saying what the wrapper render proves that the js render does not — each wrapper is one more golden per capture. `visual-tests/AGENTS.md` → Variant declaration has the axes and the two invariants.
 
 ## Test Organization
 
@@ -65,7 +65,7 @@ The `visualTest()` declaration names the variants the spec renders on and is the
 - `visual-tests/tests/multi-frameworks/` -- Tests that run against the JS, React, Angular, and Vue demos. They photograph the shared `/` grid and never navigate.
 - `visual-tests/tests/cross-browser/` -- Tests that verify rendering on Chromium, Firefox, and WebKit.
 
-The variants a spec renders on are its declaration: `wrappers: []` keeps it js-only, a non-empty `wrappers` list needs a `wrappersReason`, and `browsers` names the cross-browser leg. Until the declaration lands, `test.skip(helpers.hotWrapper !== 'js', '...')` restricts a spec to a framework — the conditional two-argument form is the one legal `skip`.
+The directory decides which Playwright config runs the spec; the declaration decides which variants it renders inside that config. `wrappers: []` keeps a spec off the wrapper baselines, a non-empty `wrappers` list needs a `wrappersReason`, and `browsers` only ever names more than `chromium` under `cross-browser/`. A spec never calls `test.skip()` to scope itself — that is a lint error, and `visualTest()` emits the skip from the declaration instead.
 
 ## Navigating to Custom Pages
 
