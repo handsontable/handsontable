@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where enabling or disabling the `NestedRows` plugin with `updateSettings()` left the formula engine on the previous row layout, so formulas calculated against the wrong rows.",
+  "type": "fixed",
+  "issueOrPR": 13583,
+  "breaking": false,
+  "framework": "none"
+}
