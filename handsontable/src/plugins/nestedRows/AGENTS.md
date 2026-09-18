@@ -296,14 +296,17 @@ They are written in different places and can drift. Keep this in mind:
   `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
   every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
   leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
-  **Formulas does NOT survive the toggle, and that one is still open (DEV-2978).** The plugin resyncs
-  its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the Core
-  fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout. Measured:
-  after a runtime enable the grid shows four rows while HyperFormula's sheet is still two, so a
-  formula on a row the flatten moved renders as raw text and its value lands on a different row. A
-  grid built with both settings at construction is fine, because the engine is built from the already
-  flattened data. Do not paper over it from here by firing `afterUpdateData` by hand; the fix is for a
-  settings-driven row-count change to notify plugins the way a data replacement does.
+  **Formulas is carried across the toggle by Formulas itself, not from here.** That plugin
+  resyncs its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the
+  Core fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout, so
+  the engine kept the pre-flatten one: measured, the grid showed four rows against a two-row
+  HyperFormula sheet, a formula on a moved row rendered as raw text, and its value landed on another
+  row. The repair is a second `afterUpdateSettings` listener in `formulas.ts`, registered with
+  `orderIndex: 1` so it runs after every plugin has updated, comparing the row count the update ends
+  on against the one the mid-update resync saw. Nothing there names this plugin. Do not add a
+  `nestedRows`-shaped fix on this side, and do not fire `afterUpdateData` by hand — a settings-driven
+  row-count change is a general event, and any other plugin caching a row layout needs the same
+  treatment in its own file.
   **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
   by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
   INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid

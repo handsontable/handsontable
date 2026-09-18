@@ -267,6 +267,27 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
+   * How many source rows the grid held the last time `afterCellMetaReset` resynced the sheet, or
+   * `null` before the first such resync.
+   *
+   * Compared against the count the settings update ends on, which is what tells a settings-driven
+   * row-count change apart from an ordinary `updateSettings()` call.
+   *
+   * @type {number|null}
+   */
+  #sourceRowCountAtLastSync: number | null = null;
+
+  /**
+   * Which engine sheet the count above describes, or `null` before the first resync.
+   *
+   * Compared alongside the count so that a sheet switch performed by this plugin during the same
+   * `updateSettings()` is not mistaken for another plugin reshaping the grid.
+   *
+   * @type {number|null}
+   */
+  #sheetIdAtLastSync: number | null = null;
+
+  /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
    * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
    * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
@@ -756,6 +777,11 @@ export class Formulas extends BasePlugin {
     // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
 
+    // `orderIndex: 1` puts this after every default-order listener, and the plugins' own
+    // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
+    // they have run. See `#onAfterUpdateSettingsRowCount`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
       this.indexSyncer!.setPerformUndo(true);
@@ -848,6 +874,13 @@ export class Formulas extends BasePlugin {
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
+
+    // The recorded layout belongs to the engine session being torn down. Nothing reads it before
+    // `#onAfterCellMetaReset` refreshes it - the Core fires `afterCellMetaReset` before
+    // `afterUpdateSettings`, and a listener registered mid-run does not fire that run - so this is
+    // consistency with the two guard flags `enablePlugin()` clears, not a live defect.
+    this.#sourceRowCountAtLastSync = null;
+    this.#sheetIdAtLastSync = null;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -2227,6 +2260,8 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
       }
 
+      this.#recordSyncedLayout();
+
       return;
     }
 
@@ -2240,6 +2275,64 @@ export class Formulas extends BasePlugin {
     this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
     this.renderDependentSheets(dependentCells);
     this.#internalOperationPending = false;
+
+    this.#recordSyncedLayout();
+  };
+
+  /**
+   * Records which sheet the resync just wrote, and how many source rows it wrote.
+   *
+   * Called at the END of each `#onAfterCellMetaReset` branch, never at its start: the empty-data
+   * branch's own `switchSheet()` runs `loadData()`, which moves the row count itself, so a count
+   * taken beforehand describes a layout that no longer exists and makes
+   * `#onAfterUpdateSettingsRowCount` re-enter the handler for a change the handler had just made.
+   *
+   * A throw inside the handler deliberately leaves the previous values in place, so the late
+   * listener retries the resync rather than recording a sync that never completed.
+   */
+  #recordSyncedLayout() {
+    this.#sourceRowCountAtLastSync = this.hot.countSourceRows();
+    this.#sheetIdAtLastSync = this.sheetId;
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback, registered to run after every other listener.
+   *
+   * The sheet is normally resynced from `afterCellMetaReset`, which the Core fires in the middle of
+   * `updateSettings()` - before the plugins update. A setting that changes how many rows the grid
+   * holds is therefore invisible to that pass: turning `nestedRows` on flattens the tree into twice
+   * as many rows, and the engine kept the layout it was built with, so a formula the flatten moved
+   * rendered as raw text and its value landed on another row (DEV-2978).
+   *
+   * Nothing here knows which plugin did it. The row count the settings update ends on is compared
+   * with the one the mid-update resync saw, so a row-count change that lands before this hook
+   * returns is carried over, and an ordinary `updateSettings()` call - the one a React re-render
+   * sends - pays one integer comparison. `minRows`/`minSpareRows` are NOT in that class: the Core
+   * creates those rows in `adjustRowsAndCols()`, after this hook, and they reach the engine through
+   * `afterCreateRow` instead.
+   *
+   * The sheet id is compared as well as the count, because a count change this plugin caused ITSELF
+   * is not a foreign layout change. `updatePlugin()` switches the sheet from a default-order
+   * `afterUpdateSettings` listener, and `switchSheet()` loads the new sheet's rows into the grid -
+   * so on a switch between sheets of different heights the count differs for a reason that needs no
+   * resync. Re-entering there wrote the grid BACK into the sheet just switched to, through this
+   * grid's visible-column projection: a grid showing one column of a three-column sheet truncated
+   * that sheet to one column, destroying the rest for every grid sharing the engine.
+   */
+  #onAfterUpdateSettingsRowCount = () => {
+    if (!this.engine || this.#sourceRowCountAtLastSync === null) {
+      return;
+    }
+
+    if (this.sheetId !== this.#sheetIdAtLastSync) {
+      return;
+    }
+
+    if (this.hot.countSourceRows() === this.#sourceRowCountAtLastSync) {
+      return;
+    }
+
+    this.#onAfterCellMetaReset();
   };
 
   /**
