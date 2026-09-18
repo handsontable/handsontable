@@ -170,6 +170,7 @@ export class NestedRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#removeRenderedLevelIndicators();
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
@@ -668,6 +669,39 @@ export class NestedRows extends BasePlugin {
    */
   #isOperational(): boolean {
     return this.enabled && !!this.dataManager && !!this.collapsingUI;
+  }
+
+  /**
+   * Strips the level-indicator nodes `HeadersUI#appendLevelIndicators()` leaves behind from every
+   * currently rendered row header. Needed because `afterGetRowHeader` - the only hook that otherwise
+   * clears them - is unregistered right after this runs, and Walkontable recycles `<th>` elements
+   * across renders, so anything left inside one at this moment stays there for the rest of the
+   * instance's life (DEV-2982).
+   *
+   * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
+   * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
+   * name only two of them. The walk also has to work with no grid state at all: `#acceptsData()`
+   * disables the plugin from `beforeLoadData`, which at construction fires before the view exists and
+   * on a later `loadData()` fires after `replaceData()` destroyed the previous DataMap, so anything
+   * that reaches `countRows()` - `getCell()` does, through the `fixedRowsTop` setting - throws there.
+   *
+   * Only this instance's own tables are touched, so a grid rendered inside a cell keeps its headers.
+   * Each table (`ht_master` and every `ht_clone_*`) carries the `handsontable` class, as does the
+   * root, and on a window-scrolled grid an overlay sits inside a rail element that carries neither -
+   * so ownership is "the nearest `handsontable` ancestor above the table is this root", not "the
+   * table is a direct child of it".
+   */
+  #removeRenderedLevelIndicators() {
+    const { rootElement } = this.hot;
+    const rowHeaders = rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
+
+    rowHeaders.forEach((TH) => {
+      const table = TH.closest('.handsontable');
+
+      if (table?.parentElement?.closest('.handsontable') === rootElement) {
+        this.headersUI!.removeLevelIndicators(TH);
+      }
+    });
   }
 
   /**

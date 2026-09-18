@@ -29,6 +29,11 @@
     if (!window.htSize) {
       throw new Error('Unknown ?size= value: ' + JSON.stringify(htParams.get('size')));
     }
+
+    window.htFixed = ({ none: 'none', rows: 'rows' })[htParams.get('fixed') ?? 'none'];
+    if (!window.htFixed) {
+      throw new Error('Unknown ?fixed= value: ' + JSON.stringify(htParams.get('fixed')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -51,6 +56,7 @@
       5  Root B            (leaf,   level 0)
 
     `?data=arrays` seeds an array-of-arrays dataset instead, which the plugin cannot handle.
+    `?fixed=rows` freezes the first row, so its header is painted in the top overlays as well.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -115,6 +121,7 @@
         colHeaders: ['Name'],
         rowHeaders: true,
         nestedRows: false,
+        fixedRowsTop: window.htFixed === 'rows' ? 1 : 0,
         contextMenu: true,
         undo: true,
         renderer: testIdRenderer,

@@ -91,6 +91,44 @@ They are written in different places and can drift. Keep this in mind:
   disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
   `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
   public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
+  The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
+  header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —
+  a hook `disablePlugin()` unregisters. Walkontable recycles `<th>` elements across renders, so whatever
+  was inside one at the moment of the disable stayed there for the rest of the instance's life:
+  measured, `updateSettings({ nestedRows: false })` left a dead button (its `beforeOnCellMouseDown`
+  listener went with the hooks) and the spacers in every rendered header, whether the plugin had been on
+  since construction or switched on at runtime (DEV-2982). Only the INNER nodes leak: Walkontable
+  resets the `<th>`'s `className` and strips every `aria-*` attribute on each paint
+  (`3rdparty/walkontable/src/render/rowHeaders.ts`), so `ht_nestingLevels`, `ht_nestingParent` and
+  `aria-expanded` never survive a repaint — but `TableView#appendRowHeader()` reuses the existing
+  `div.relative` and rewrites only its `.rowHeader` span. `#removeRenderedLevelIndicators()` therefore
+  runs first thing in `disablePlugin()`, before the hooks go, and it **walks the DOM, not
+  coordinates**: every `tbody th` under `rootElement` whose table belongs to this instance, through
+  `HeadersUI#removeLevelIndicators()`. Two earlier cuts show why. Bounding the walk by `countRows()`
+  threw `Cannot read properties of undefined (reading 'getLength')` — `disablePlugin()` is also reached
+  from `#acceptsData()` inside `beforeLoadData`, and at construction that hook fires before `hot.view`
+  and before the first DataMap exist. That took down 7 specs: `initialization.spec.js` (3),
+  `nestedRows.spec.js` (1), `core/destroy.spec.js` (1) and the two sorting a11y `attributes.spec.js`
+  (every grid built with `nestedRows: true` and no or invalid data). Resolving the rendered band
+  through `view.getFirstRenderedVisibleRow()` and `Core#getCell(row, -1, topmost)` fixed that one and
+  broke the mirror case: a later `loadData()` with invalid data reaches the hook AFTER `replaceData()`
+  has destroyed the previous DataMap, and both `getCell()` — through the `fixedRowsTop` setting
+  accessor, `countNotHiddenFixedRowsTop()` — and `getLastRenderedVisibleRow()`'s fallback call
+  `countRows()`, so `loadData([[1, 2]])` on a drawn nested grid threw and left `countRows()` throwing
+  for the rest of the instance's life; released 18.1.1 just logged the error. It also missed copies: a
+  row header is painted in the master table and in every overlay covering its row — four copies for a
+  frozen row — and `getCell()` can name two of them (measured: 2 stale nodes left with
+  `fixedRowsTop: 1`). The DOM walk touches no setting, mapper or DataMap, so it is safe on every path
+  into `disablePlugin()`, and it covers every copy. **Ownership is "the nearest `handsontable` ancestor
+  above the table is this root", never "the table is a direct child of the root"**: `ht_master` and
+  every `ht_clone_*` carry the `handsontable` class, as does the root, but on a window-scrolled grid
+  (`height: 'auto'`) the overlays sit inside a `div.htOverlayRail` that carries neither — a direct-child
+  check skipped the inline-start clone there and left 2 nodes per fixture. The filter is what keeps a
+  grid rendered inside a cell out of the walk. Cost: 30 µs median (n=30) for a 20-row band, ~0.3% of
+  the no-op `updateSettings({ nestedRows: true })` React re-sends on every render, and it scales with
+  the rendered band, not `countRows()`. Pinned by `tests/e2e/nested-rows-runtime-enable.spec.ts`
+  (frozen-row copies, `loadData()` with arrays while on) and `tests/e2e/nested-rows-api.spec.ts`.
 - **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
   `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
   passes must tell those apart, or "already in the right state" reads as "blocked". Use
@@ -479,6 +517,7 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
+| `tests/e2e/nested-rows-runtime-enable.spec.ts` | Playwright: the plugin switched on and off with `updateSettings()`, including the header cleanup on disable and a `loadData()` with invalid data while it is on |
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |

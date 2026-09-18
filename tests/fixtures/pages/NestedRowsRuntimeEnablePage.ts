@@ -25,13 +25,17 @@ export class NestedRowsRuntimeEnablePage {
    * Navigate to the fixture and wait for the grid to render.
    *
    * `data: 'arrays'` seeds an array-of-arrays dataset, which the plugin cannot work with.
+   * `fixed: 'rows'` freezes the first row, so its header is also painted in the top overlays.
    */
-  async goto(options: { data?: 'objects' | 'arrays', size?: 'small' | 'tall' } = {}): Promise<void> {
+  async goto(
+    options: { data?: 'objects' | 'arrays', size?: 'small' | 'tall', fixed?: 'none' | 'rows' } = {}
+  ): Promise<void> {
     const dataShape = options.data ? `&data=${options.data}` : '';
     const size = options.size ? `&size=${options.size}` : '';
+    const fixed = options.fixed ? `&fixed=${options.fixed}` : '';
 
     await this.page.goto(
-      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}${size}`
+      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}${size}${fixed}`
     );
 
     await awaitBundle(this.page);
@@ -45,9 +49,14 @@ export class NestedRowsRuntimeEnablePage {
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
-  /** A single data cell, by visual row/column, via its stable test id. */
+  /**
+   * A single data cell in the master table, by visual row/column, via its stable test id.
+   *
+   * Scoped to the master because a frozen row is painted a second time in the top overlay, and an
+   * unscoped test id then resolves to two elements.
+   */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
   /**
@@ -61,6 +70,20 @@ export class NestedRowsRuntimeEnablePage {
    */
   paintedNames(): Locator {
     return this.page.locator('.ht_master tbody tr td:first-of-type');
+  }
+
+  /**
+   * Every nesting indicator the plugin has drawn into a row header - the collapse/expand buttons and
+   * the indent spacers - across both copies of the headers: the master table and the inline-start
+   * clone painted over it.
+   */
+  nestingIndicators(): Locator {
+    return this.grid.locator('th [class^="ht_nesting"]');
+  }
+
+  /** The collapse/expand button in the visible row header, by visual row index. */
+  collapseButton(row: number): Locator {
+    return this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('.ht_nestingButton');
   }
 
   /** Whether an editor is currently open over the grid. */
@@ -224,5 +247,28 @@ export class NestedRowsRuntimeEnablePage {
   /** Everything the page logged through `console.error`, in order. */
   consoleErrors(): Promise<string[]> {
     return this.page.evaluate(() => window.consoleErrors ?? []);
+  }
+
+  /**
+   * Replaces the whole dataset through `loadData()` and reports the error it threw, or `null`.
+   *
+   * Returned rather than thrown so a spec can assert on the absence of a throw without a
+   * `try`/`catch` of its own, and so the grid stays reachable for the assertions that follow.
+   */
+  loadData(data: unknown[]): Promise<string | null> {
+    return this.page.evaluate((rows) => {
+      try {
+        window.hot.loadData(rows);
+
+        return null;
+      } catch (error) {
+        return error instanceof Error ? error.message : String(error);
+      }
+    }, data);
+  }
+
+  /** How many rows the grid currently holds. */
+  countRows(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countRows());
   }
 }
