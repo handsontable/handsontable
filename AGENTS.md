@@ -31,6 +31,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Performance suite (`performance-tests/`, the PR perf comment, gh-pages goldens) | the `performance-testing` skill; `performance-tests/README.md` |
 | Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
 | Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
+| Self-review before pushing/updating a docs PR | `.claude/skills/docs-bugproof-review` -- run after content looks finished, before requesting human review |
 
 `.ai/` reference locations:
 
