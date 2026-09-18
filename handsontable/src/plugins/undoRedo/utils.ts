@@ -3,6 +3,67 @@ import { rangeEach } from '../../helpers/number';
 import { toMergeAreaRange, type MergeAreaGeometry as MergedCell } from '../../utils/mergeAreas';
 
 /**
+ * The callback an action calls once its undo or redo has landed. Called with no argument, the action
+ * applied. `{ wasUndone: false }` or `{ wasRedone: false }` tells the stack it did not, and puts the
+ * action back on the stack it came from.
+ */
+export type SettleCallback = (result?: { wasUndone?: boolean, wasRedone?: boolean }) => void;
+
+/**
+ * Runs a removal that settles an undo or redo through a remove hook, and settles it anyway when the
+ * removal fires no hook.
+ *
+ * The row and column actions settle on `afterRemoveRow` / `afterRemoveCol`, and a removal that removes
+ * nothing fires neither. `canUndo()` / `canRedo()` already keep a removal that would name no row or
+ * column from starting, so this is the safety net for the one case they cannot see coming: a
+ * `beforeRemoveRow` / `beforeRemoveCol` listener that vetoes the removal. Without it the settle callback
+ * would never run, `ignoreNewActions` would stay on, and every later action would be dropped from the
+ * stack for the rest of the session. It settles with `notAppliedResult` instead, which puts the action
+ * back on the stack it came from.
+ *
+ * The hook listener settles with no argument rather than forwarding the hook's own arguments: those are
+ * the removed index and amount, and a preceding listener's return value can be folded into the first of
+ * them, so reading one as a settle result could wrongly report the action as not applied.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} hookName The remove hook the removal fires when it runs.
+ * @param {Function} settleCallback The undo or redo settle callback.
+ * @param {object} notAppliedResult The result that tells the stack the action did not apply.
+ * @param {Function} removal The callback that runs the removal.
+ */
+export function settleOnRemoveHook(
+  hot: HotInstance,
+  hookName: 'afterRemoveRow' | 'afterRemoveCol',
+  settleCallback: SettleCallback,
+  notAppliedResult: { wasUndone: false } | { wasRedone: false },
+  removal: () => void,
+) {
+  let hasSettled = false;
+  const onRemove = () => {
+    hasSettled = true;
+    settleCallback();
+  };
+
+  hot.addHookOnce(hookName, onRemove);
+
+  try {
+    removal();
+
+  } finally {
+    // A removal that throws is not settled here: `UndoRedo#undo()` / `#redo()` catch it, reset the flag
+    // and discard the action. The listener must still go, or the next real removal would settle that
+    // discarded action onto a stack.
+    if (!hasSettled) {
+      hot.removeHook(hookName, onRemove);
+    }
+  }
+
+  if (!hasSettled) {
+    settleCallback(notAppliedResult);
+  }
+}
+
+/**
  * Gets all cell metas from the provided range.
  *
  * @param {Core} hot The Handsontable instance.

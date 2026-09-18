@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `alter()` method removing the wrong rows or columns when the given index points outside the table.",
+  "type": "fixed",
+  "issueOrPR": 13556,
+  "breaking": false,
+  "framework": "none"
+}

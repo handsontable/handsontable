@@ -521,3 +521,55 @@ describe('Non-HOT based CRUD actions', () => {
     testWrapper.unmount();
   });
 });
+
+describe('Root size options', () => {
+  it('should write `height: "auto"` as inline `height: auto` with no overflow', async() => {
+    const testWrapper = mount(HotTable, {
+      props: {
+        data: createSampleData(3, 3),
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    });
+
+    const { rootElement } = testWrapper.getComponent(HotTable).vm.hotInstance;
+
+    expect(rootElement.style.height).toBe('auto');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+
+    testWrapper.unmount();
+  });
+
+  it('should warn once for an unreadable size, even though later prop changes re-send it', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const testWrapper = mount(HotTable, {
+      props: {
+        data: createSampleData(3, 3),
+        height: 300,
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
+
+    await testWrapper.setProps({ height: 'abc' });
+    // The ignored value is not stored, so the wrapper's diff against `getSettings()` sends it again
+    // with every later change.
+    await testWrapper.setProps({ colHeaders: true });
+    await testWrapper.setProps({ rowHeaders: true });
+
+    const resentHeights = updateSettingsSpy.mock.calls
+      .filter(([settings]) => (settings as { height?: unknown }).height === 'abc');
+    const sizeWarnings = warnSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => typeof message === 'string' && message.includes('cannot be read as a size'));
+
+    expect(resentHeights).toHaveLength(3);
+    expect(hotInstance.rootElement.style.height).toBe('300px');
+    expect(sizeWarnings).toHaveLength(1);
+
+    warnSpy.mockRestore();
+    testWrapper.unmount();
+  });
+});

@@ -242,6 +242,78 @@ They are written in different places and can drift. Keep this in mind:
   `enablePlugin()`. The existing `collapsedRowsStash` cannot carry it — that object dies with the old
   instance. Replay with `shouldRunHooks = false`: it repeats a choice the user already made, and
   firing hooks there reports a collapse on every settings update.
+- **A settings-driven enable arrives with an EMPTY data manager and a stale row count, and the plugin
+  has to repair both itself.** `DataManager#setData()` is called from the `beforeLoadData` and
+  `beforeUpdateData` hooks only, so a grid built with `nestedRows: false` and switched on later reaches
+  `updatePlugin()` with `getData()` still `null` — `rewriteCache()` then died on `this.data.length`
+  (DEV-2938). `updatePlugin()` therefore falls back to `this.hot.getSettings().data`, and that fallback
+  is also where the dataset is validated, because `#acceptsData()` hangs off those same data hooks and
+  an array-of-arrays dataset would otherwise be cached as one node per cell. **It has to be the
+  setting, never `getSourceData()`** — `replaceData()` assigns one array to both `tableMeta.data` and
+  `dataSource.data`, so the setting IS the live source array the data hooks hand over at init, while
+  `DataSource#getData()` returns `this.data.map(cloneRow)`: a fresh outer array of shallow row copies.
+  Caching that copy detaches every top-level row from the array the host still holds — measured on the
+  first cut of this fix, an edit to a parent row landed only in the copy while a child edit still
+  arrived (a shallow clone shares `__children`), and the top-level splices in `addChildAtIndex()` and
+  `filterData()` would never reach the grid's own data. `getSourceData()` cannot even be used to *see*
+  that divergence: with the plugin on it routes through `modifyRowData`, so it reports the plugin's
+  copies back to you. Compare the two grids directly, or hold the array reference the test passed in.
+  The row count is the second
+  half: `modifySourceLength` reports the flattened tree while the plugin runs, but `updateSettings()`
+  resizes the index maps for a payload carrying `data` or `columns` only, so a bare
+  `{ nestedRows: <bool> }` left the maps on the previous length — no children on an enable, and phantom
+  rows reading back as `null` on a disable. `onUpdateSettings()` is overridden to `fitToLength()` when
+  the enabled state actually flipped; the Core renders right after that hook. Do not move that repair
+  into `enablePlugin()`/`disablePlugin()`: `updatePlugin()` calls both on every rebuild, and the
+  intermediate count would be wrong in each direction.
+  **The row header width has to be seeded on that path too.** `HeadersUI`'s `rowHeaderWidthCache`
+  starts empty on the instance `enablePlugin()` builds, and the only startup call to
+  `updateRowHeaderWidth()` hangs off `afterInit` — which fired long before a settings-driven enable.
+  Left empty, `#onModifyRowHeaderWidth` falls back to `?? 0` and `Math.max` keeps the grid default, so
+  the indentation and the collapse button are clipped: measured 50px against the 71px the same
+  three-level tree gets when the plugin is on at construction. `updatePlugin()` seeds it after
+  `updateWithData()`, where the cache knows the tree's depth (found by Bugbot on #13564).
+  **A row-count change owes the selection and the editor the same protocol `updateData` pays**, and
+  `updateSettings()` does not pay it for you: after `afterUpdateSettings` it runs only
+  `adjustRowsAndCols()` and a render, neither of which touches the selection. Measured on the first
+  cut: with the plugin enabled at runtime and rows 0-4 selected, `updateSettings({ nestedRows: false })`
+  left the range at `[0, 0, 4, 0]` in a two-row grid — the shape that appends records on the next fill
+  or paste — and an editor opened on row 4 stayed open over a record that no longer existed. So the
+  override discards an open editor with `cancelChanges()` (never a commit: the value would be written
+  through coordinates the shrink has invalidated) and ends on `selection.refresh()`.
+  **The undo history cannot survive the toggle either.** `DataChangeAction` records `countSourceRows`
+  when the edit happens, and on undo `#collectCreatedRows()` removes every physical row past that
+  baseline as one the change created. After an enable the baseline is two and the grid has six, so one
+  Ctrl+Z deletes real records — measured: edit a cell, enable, undo, and A-3 and Root B are gone. The
+  override drops the history (`getPlugin('undoRedo')?.clear()`), which is what `loadData` does for the
+  same reason. The cost is that an edit made before the toggle stops being undoable, and that is the
+  right trade against deleting records.
+  **Source the `refresh()` as `updateData`, or the toggle scrolls the grid.** `Selection#refresh()`
+  labels itself `refresh`, which is NOT in `core.ts`'s `ignoreScrollSources`, so the clamp scrolls the
+  viewport onto the selected cell: measured, a grid scrolled to row 11 jumped back to the top on a
+  toggle. `updateData` is in that list and is what the operation is from the selection's side.
+  **Seed the header width without its render.** `HeadersUI#updateRowHeaderWidth()` ends with
+  `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
+  every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
+  leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
+  **Formulas does NOT survive the toggle, and that one is still open (DEV-2978).** The plugin resyncs
+  its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the Core
+  fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout. Measured:
+  after a runtime enable the grid shows four rows while HyperFormula's sheet is still two, so a
+  formula on a row the flatten moved renders as raw text and its value lands on a different row. A
+  grid built with both settings at construction is fine, because the engine is built from the already
+  flattened data. Do not paper over it from here by firing `afterUpdateData` by hand; the fix is for a
+  settings-driven row-count change to notify plugins the way a data replacement does.
+  **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
+  by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
+  INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid
+  with `hiddenRows: { rows: [1] }` enabled at runtime paints exactly what the same grid built with both
+  settings paints (measured: `Root A`, `A-2`, `Root B` in both, because physical 1 means `A-1` once the
+  tree is flat). `initToLength()` changes nothing there and would additionally reset the indexes below
+  the boundary, so it is not the better primitive. What does get lost is map state set
+  **imperatively** — a `trimRows()` call, a `manualRowMove` order, a hand-registered IndexMap — across
+  an off/on round trip. That is inherent to the physical space meaning two different things, and it is
+  the reason a runtime toggle is not a free operation to hand a user a button for.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is

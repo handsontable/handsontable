@@ -56,6 +56,7 @@ describe('HandsontableCellType', () => {
         CELL_TYPE,
         editor: getEditor('handsontable'),
         renderer: getRenderer('handsontable'),
+        textEllipsis: true,
       });
     });
   });

@@ -139,7 +139,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   in the sheet — keep that ordering).
 - **The bar does not size the grid; core does — in every layout.** No `beforeHeightChange` hook here.
   With an explicit pixel `height` core subtracts the bar from the height it writes on the root
-  (`reserveEdgeSlotsHeight`), so `{ height: 400, sheetsBar }` is a 400px box, bar included, exactly
+  (`reserveEdgeSlotsHeight` in `core/rootSize.ts`), so `{ height: 400, sheetsBar }` is a 400px box, bar included, exactly
   like pagination. Inside a scrollable ancestor the engine leaves the bar's height out of the table
   (`layoutReservedHeight`); with window scroll or `height: 'auto'` the grid box follows its content
   so the bar sits after the last row. A layout where the bar covers a row, is clipped, or overshoots

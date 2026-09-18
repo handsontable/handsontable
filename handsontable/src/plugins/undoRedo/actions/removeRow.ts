@@ -1,9 +1,15 @@
-import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import type { UndoRedoActionResult } from '../undoRedo';
 import { BaseAction } from './_base';
-import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
+import {
+  getCellMetas,
+  collectAffectedMergedCells,
+  restoreMergedCells,
+  settleOnRemoveHook,
+  type SettleCallback,
+} from '../utils';
 import { deepClone, isPlainObject, stripFunctionValues } from '../../../helpers/object';
+import { clipRemovalRange } from '../../../utils/removalRange';
 import { isDataAccessorFn } from '../../../dataMap/dataSource';
 import type { DataAccessorFn } from '../../../dataMap/dataSource';
 import type { PhysicalRowMergeSnapshot } from '../../mergeCells/mergeCells';
@@ -512,11 +518,35 @@ export class RemoveRowAction extends BaseAction {
   }
 
   /**
+   * Reports whether redoing the removal would remove the rows it recorded.
+   *
+   * UndoRedo must call this before `beforeRedo`. Formulas always calls `engine.redo()` in `beforeRedo`,
+   * so a redo that removes nothing would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * The recorded row is physical, and a trimmed one has no visual index: `toVisualRow()` returns `null`.
+   * `alter()` reads an index that is not an integer as "take the rows from the end", so letting the redo
+   * run would delete rows this action never recorded.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when redo can proceed.
+   */
+  canRedo(hot: HotInstance): boolean {
+    const visualRow = hot.toVisualRow(this.index);
+
+    if (!Number.isInteger(visualRow)) {
+      return false;
+    }
+
+    return clipRemovalRange(visualRow, this.data.length, hot.countRows()) !== null;
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
-  redo(hot: HotInstance, redoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveRow', redoneCallback);
-    hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+  redo(hot: HotInstance, redoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveRow', redoneCallback, { wasRedone: false }, () => {
+      hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+    });
   }
 }

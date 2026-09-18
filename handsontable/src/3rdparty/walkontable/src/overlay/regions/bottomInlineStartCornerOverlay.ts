@@ -57,6 +57,24 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   }
 
   /**
+   * How far the rendered master table reaches past the bottom of its holder.
+   *
+   * At fractional zoom the browser rounds each row's border to a physical pixel, so the table ends
+   * a fraction of a CSS pixel below the holder's integer height. Only meaningful while the holder's
+   * height is the DOM's to decide; against a holder sized in pixels by an element owner this is the
+   * whole clipped remainder of the table, not a rounding error.
+   *
+   * @returns {number}
+   */
+  #masterTableOverflow(): number {
+    const { geometryReader } = this.deps;
+    const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
+    const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+
+    return Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
+  }
+
+  /**
    * Updates the corner overlay position.
    *
    * @returns {boolean}
@@ -98,11 +116,17 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow || inlineOnWindow;
 
     if (anyAxisOnWindow) {
-      const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
-      const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
-      const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
+      const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
+      // The fractional-zoom correction belongs to the VERTICAL axis, and only while the window owns
+      // it - it is the same subtraction `BottomOverlay#resetFixedPosition` makes on its own window
+      // branch, against a holder whose height the DOM decides. When an element owns the vertical
+      // axis the holder has that owner's pixel height, the clipped table reaches far past it, and
+      // subtracting that overflow pushed this corner hundreds of pixels below the grid - reachable
+      // in the reverse split (`preventOverflow: 'vertical'` over a root with a CSS height), where
+      // the corner takes this branch on the strength of the horizontal axis alone.
+      const bottom = this.bottomOverlay.trimmingContainer === rootWindow
+        ? this.bottomOverlay.getOverlayOffset() - this.#masterTableOverflow()
+        : this.bottomOverlay.getOverlayOffset();
 
       if (pinnedInline && rail) {
         rail.pin(this.deps.getWtTable().getTotalWidth(), this.isRtl(), {
@@ -111,7 +135,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
           height: tableHeight,
         });
       } else {
-        overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${this.inlineStartOverlay.getOverlayOffset()}px`;
+        overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
         overlayRoot.style.bottom = `${bottom}px`;
       }
 
@@ -130,9 +154,10 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // The strip is the frozen-bottom-rows overlay's own, read rather than recomputed: this corner is
     // drawn over that overlay, so if the two disagree the band is left half-covered - a notch along
     // the bottom edge where the frozen columns stop and the frozen rows carry on. That overlay keys
-    // the strip on the HORIZONTAL axis owner (the scrollbar it clears is the horizontal one; its own
-    // `trimmingContainer` is the vertical owner, and in split mode that is the window) and on
-    // whether it rests on the holder's bottom edge, and the draw cycle positions it before this corner.
+    // the strip on the element that scrolls the COLUMNS (the scrollbar it clears is the horizontal
+    // one; its own `trimmingContainer` is the vertical owner, and in split mode that is the window)
+    // and on whether it rests on the holder's bottom edge, and the draw cycle positions it before
+    // this corner.
     const bottomClearance = this.needFullRender ? this.bottomOverlay.getBottomClearance() : 0;
 
     overlayRoot.style.height = `${tableHeight}px`;

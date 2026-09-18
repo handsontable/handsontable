@@ -336,6 +336,17 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
+    type RedoableAction = {
+      canRedo?: (hot: HotInstance) => boolean
+    };
+    const pendingAction = this.undoneActions[this.undoneActions.length - 1] as RedoableAction;
+
+    // A redo whose removal would name no row or column changes nothing. Formulas always calls
+    // `engine.redo()` in `beforeRedo`, so that check has to win first - same as `canUndo()` in `undo()`.
+    if (pendingAction.canRedo?.(this.hot) === false) {
+      return;
+    }
+
     const undoneActionsCopy = this.undoneActions.slice();
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);

@@ -76,6 +76,13 @@ ${prefix}.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after 
   ${icon(icons, 'check')}
 }
 
+${prefix}.htDropdownMenu table tbody tr td .htItemWrapper span.htMixed::after,
+${prefix}.htContextMenu table tbody tr td .htItemWrapper span.htMixed::after,
+${prefix}.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.htMixed::after,
+${prefix}.htSheetsBarMenu table tbody tr td .htItemWrapper span.htMixed::after {
+  ${icon(icons, 'collapseOff')}
+}
+
 ${prefix}.htCheckboxRendererInput {
   appearance: none;
 }

@@ -1,5 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import { clipRemovalRange } from '../../../utils/removalRange';
+import { settleOnRemoveHook, type SettleCallback } from '../utils';
 import { BaseAction } from './_base';
 import { FIXED_COLUMN_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
@@ -40,14 +42,28 @@ export class CreateColumnAction extends BaseAction {
   }
 
   /**
+   * Reports whether undoing the insertion would remove any column.
+   *
+   * UndoRedo must call this before `beforeUndo`. Formulas always calls `engine.undo()` in `beforeUndo`,
+   * so an undo whose removal names no column any more - the grid changed shape outside the stack since
+   * the columns were created - would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when undo can proceed.
+   */
+  canUndo(hot: HotInstance): boolean {
+    return clipRemovalRange(this.index, this.amount, hot.countCols()) !== null;
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
-  undo(hot: HotInstance, undoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveCol', undoneCallback);
-
-    removeAndKeepFixedCounts(hot, FIXED_COLUMN_COUNTS, () => {
-      hot.alter('remove_col', this.index, this.amount, 'UndoRedo.undo');
+  undo(hot: HotInstance, undoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveCol', undoneCallback, { wasUndone: false }, () => {
+      removeAndKeepFixedCounts(hot, FIXED_COLUMN_COUNTS, () => {
+        hot.alter('remove_col', this.index, this.amount, 'UndoRedo.undo');
+      });
     });
   }
 

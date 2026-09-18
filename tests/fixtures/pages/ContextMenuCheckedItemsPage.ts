@@ -9,6 +9,17 @@ export interface CheckedItemState {
   ariaChecked: string | null;
   ariaLabel: string | null;
   checkMarks: number;
+  mixedMarks: number;
+}
+
+/**
+ * How the theme paints one item's mark: which element carries it, and the icon mask on its
+ * `::after`. The element alone proves the DOM; the mask proves the stylesheet maps a glyph to it.
+ */
+export interface MarkGlyph {
+  className: string | null;
+  maskImage: string;
+  width: number;
 }
 
 /**
@@ -75,10 +86,75 @@ export class ContextMenuCheckedItemsPage {
   }
 
   /**
+   * DEV-124. Put cell (0, 1) into the opposite state to (0, 0), so the two together are partly on.
+   */
+  async markNeighborUnchecked(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      markNeighborUnchecked: () => void;
+    }).markNeighborUnchecked());
+  }
+
+  /**
+   * Put cell (0, 1) into the same state as (0, 0), so the two together are fully on.
+   */
+  async markNeighborChecked(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      markNeighborChecked: () => void;
+    }).markNeighborChecked());
+  }
+
+  /**
+   * Merge (2, 0) through (3, 1) with only its top-left cell read-only.
+   */
+  async mergeReadOnlyBlock(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      mergeReadOnlyBlock: () => void;
+    }).mergeReadOnlyBlock());
+  }
+
+  /**
+   * Select cells (0, 0) through (0, 1).
+   */
+  async selectFirstTwoCells(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      selectFirstTwoCells: () => void;
+    }).selectFirstTwoCells());
+  }
+
+  /**
+   * The grid's last selection layer as `[row, col, row2, col2]`. Read after the menu opens, because a
+   * right-click outside the selection replaces it - and a two-cell selection collapsed to (0, 0)
+   * would still read as fully checked, passing a test that meant to check two cells.
+   */
+  async selectedRange(): Promise<number[] | undefined> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getSelectedLast: () => number[] | undefined };
+    }).hot.getSelectedLast());
+  }
+
+  /**
+   * Close the context menu with Escape and wait until it is gone.
+   */
+  async closeMenu(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.page.locator('.htContextMenu:visible')).toHaveCount(0);
+  }
+
+  /**
    * Right-click cell (0, 0) to open the context menu, and wait for it to be on screen.
    */
   async openMenuOnFirstCell(): Promise<void> {
-    await this.cell(0, 0).click({ button: 'right' });
+    await this.openMenuOnCell(0, 0);
+  }
+
+  /**
+   * Right-click a data cell to open the context menu, and wait for it to be on screen.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openMenuOnCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
     await expect(this.page.locator('.htContextMenu:visible').last()).toBeVisible();
   }
 
@@ -104,23 +180,68 @@ export class ContextMenuCheckedItemsPage {
    * @param {boolean} [inBordersSubmenu] Read from the "Borders" submenu instead of the main menu.
    */
   async itemState(label: string, inBordersSubmenu = false): Promise<CheckedItemState> {
-    const scope = inBordersSubmenu
-      ? this.page.locator('.htContextMenuSub_Borders')
-      : this.page.locator('.htContextMenu:visible').last();
-    // The check mark is a `span.selected` INSIDE the item, so a checked item's text reads
-    // `\u2713Top`, not `Top`. Anchoring on the label alone would silently match nothing in exactly
-    // the state these tests care about - which is how the first version of this page object failed.
-    const cell = scope.locator('td')
-      .filter({ hasText: new RegExp(`^\\s*\u2713?\\s*${label}\\s*$`) })
-      .first();
-
-    await expect(cell).toBeVisible();
+    const cell = await this.#item(label, inBordersSubmenu);
 
     return {
       role: await cell.getAttribute('role'),
       ariaChecked: await cell.getAttribute('aria-checked'),
       ariaLabel: await cell.getAttribute('aria-label'),
       checkMarks: await cell.locator('.htItemWrapper span.selected').count(),
+      mixedMarks: await cell.locator('.htItemWrapper span.htMixed').count(),
     };
+  }
+
+  /**
+   * Click a main-menu item by its visible label, and wait for the menu to close.
+   *
+   * @param {string} label The item's visible text.
+   */
+  async clickItem(label: string): Promise<void> {
+    await (await this.#item(label)).click();
+    await expect(this.page.locator('.htContextMenu:visible')).toHaveCount(0);
+  }
+
+  /**
+   * Read how the theme paints one item's mark - the first mark span in it, whichever kind.
+   *
+   * @param {string} label The item's visible text.
+   */
+  async markGlyph(label: string): Promise<MarkGlyph> {
+    const mark = (await this.#item(label)).locator('.htItemWrapper span').first();
+
+    await expect(mark).toBeAttached();
+
+    return mark.evaluate((element) => {
+      const after = getComputedStyle(element, '::after');
+
+      return {
+        className: element.getAttribute('class'),
+        maskImage: after.getPropertyValue('mask-image') || after.getPropertyValue('-webkit-mask-image'),
+        width: parseFloat(after.width) || 0,
+      };
+    });
+  }
+
+  /**
+   * One menu item's `<td>`, found by its visible label.
+   *
+   * @param {string} label The item's visible text.
+   * @param {boolean} [inBordersSubmenu] Read from the "Borders" submenu instead of the main menu.
+   */
+  async #item(label: string, inBordersSubmenu = false): Promise<Locator> {
+    const scope = inBordersSubmenu
+      ? this.page.locator('.htContextMenuSub_Borders')
+      : this.page.locator('.htContextMenu:visible').last();
+    // The mark is a span INSIDE the item, so a checked item's text reads `\u2713Top` and a partly
+    // checked one `\u2013Top`, not `Top`. Anchoring on the label alone would silently match nothing
+    // in exactly the states these tests care about - which is how the first version of this page
+    // object failed.
+    const cell = scope.locator('td')
+      .filter({ hasText: new RegExp(`^\\s*[\u2713\u2013]?\\s*${label}\\s*$`) })
+      .first();
+
+    await expect(cell).toBeVisible();
+
+    return cell;
   }
 }

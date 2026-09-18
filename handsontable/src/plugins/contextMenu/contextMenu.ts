@@ -9,6 +9,7 @@ import {
 } from './menu';
 import type { MenuAnchorRectProvider } from './menu';
 import { getDocumentOffsetByElement } from './utils';
+import type { MenuItemCheckedState } from './utils';
 import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -39,7 +40,12 @@ export interface MenuItemConfig {
   name: string | (() => string);
   hidden?: boolean | (() => boolean);
   disabled?: boolean | (() => boolean);
-  checked?: boolean | (() => boolean);
+  /**
+   * Whether the item is marked as checked. `true` draws a check mark, `false` draws none, and
+   * `'mixed'` draws a dash for a state that applies to only part of the selection. The value also
+   * sets the item's `aria-checked` attribute.
+   */
+  checked?: MenuItemCheckedState | (() => MenuItemCheckedState);
   callback?: (key: string, selection: unknown[], clickEvent: MouseEvent) => void;
   renderer?: (
     hot: unknown, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: string
