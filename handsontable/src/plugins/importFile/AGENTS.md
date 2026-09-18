@@ -103,6 +103,38 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   worksheet (every row, every cell) on each access. Merges are collected inside the row pass
   (`trackMerge`, keyed by the master cell) and sheet protection is `worksheet.sheetProtection`, which the
   reader sets straight from the XML.
+- **Meta follows the `cell → column` cascade, dominant type first.** `placeMeta` lifts the meta MOST cells
+  of a column share to `columns[c]` (the cached object itself, by reference) and emits `cellsMeta` only for
+  the cells that differ; `readOnly` and `className` are lifted the same way when every row of the column
+  agrees (`placeColumnWide`). One footer row or one stray `n/a` used to send a whole column through
+  `setCellMetaObject` — a million retained meta objects on a million-cell sheet. `columns` is omitted
+  when every entry is `{}`, because an array `columns` pins the grid's column count. A one-row sheet
+  therefore lifts everything to the column level; that is the intended reading, not a bug.
+- **Inference is memoized per `numFmt` + value kind on the pass** (`inferForCell`,
+  `CollectContext.inferredByFormat`), so a million-cell sheet with three formats parses each once and
+  every cell of one format shares one meta object. Do not call `inferCellType` per cell from the mapper.
+- **A blank cell on a protected sheet is locked.** OOXML treats a cell with no `<protection>` as locked,
+  and an empty cell has none; `collectCells`' `null` branch records `readOnly` under protection too.
+- **Every option that sizes a loop is clamped to the sheet.** `resolveImportOptions` validates `range`
+  (four non-negative integers, start ≤ end; a short array used to destructure to `undefined`, the row
+  loop never ran, and `loadData([])` wiped the grid), `computeWindow` clamps `lastRow`/`lastCol` to the
+  sheet extent, `clampToSheet` caps `headerRows` at the rows the range holds (`headerRows: 1e9` used to
+  hang `mapNestedHeaders`), and `mapLayout` clamps frozen panes to the window like merges and hidden
+  indexes already were.
+- **The applier resets the layout a previous import left, and merges into options objects.** With
+  `importLayout` on, every `RESETTABLE_LAYOUT_KEYS` entry the result omits and the grid currently has is
+  cleared (`mergeCells`/`hiddenRows`/`hiddenColumns` keep their options object with an empty list,
+  `fixedRowsTop`/`fixedColumnsStart` go to `0`, `customBorders` to `[]`); widths and heights are not on
+  the list because `updateSettings` skips `undefined` and there is no empty shape for them. A list the
+  result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
+  `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
+  ALWAYS the object shape; only `mergeCells` may be a bare array.
+- **The result is in sheet coordinates; the grid API takes visual ones.** `applyImportResult` runs every
+  `cellsMeta` and comment coordinate through `toVisualRow`/`toVisualColumn`, because a `manualRowMove`
+  array reorders rows inside `loadData`.
+- **The generated stylesheet is mounted in `hot.rootWrapperElement`, not `document.head`**, the way the
+  theme engine mounts its per-instance `<style>`: a rule in the outer head never reaches a grid inside a
+  shadow root. `removeImportedStyles` queries the same element.
 - **`applyImportResult` relies on `hot.batch` resuming in `finally`.** The callback runs host hooks
   (`beforeLoadData`, `afterUpdateSettings`) that can throw, and before #13551 the core helpers
   resumed only on the happy path, leaving the grid render-suspended for good. The fix lives in

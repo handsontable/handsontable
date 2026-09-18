@@ -337,6 +337,13 @@ describe('date format round trip (export derivation inverted by the import)', ()
 });
 
 describe('serial conversions', () => {
+  it('should round a date-time serial once, so a second short of midnight does not lose a day', () => {
+    // 2024-01-01 23:59:59.7 is serial 45292 + 86399.7 / 86400. Rounding the fraction on its own gave
+    // 86400 s → `00:00:00` on a date half that still said 2024-01-01: a full day off.
+    expect(serialToIsoDateTime(45292 + (86399.7 / 86400))).toBe('2024-01-02 00:00:00');
+    expect(serialToIsoDateTime(45292 + (86399.4 / 86400))).toBe('2024-01-01 23:59:59');
+  });
+
   it('should invert the export\'s ISO date parser', () => {
     expect(serialToIsoDate(parseIsoStringToSerial('2024-01-01'))).toBe('2024-01-01');
     expect(serialToIsoDate(parseIsoStringToSerial('1999-12-31'))).toBe('1999-12-31');

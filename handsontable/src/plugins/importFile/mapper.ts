@@ -6,6 +6,7 @@ import { parseMultiRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
 import {
   excelWidthToPx,
+  cellDisplayValue,
   inferCellType,
   pointsToPx,
   resolveListSource,
@@ -89,8 +90,20 @@ export interface ResolvedImportOptions {
 export type MappedResult = Omit<ImportResult, 'engine'>;
 
 /**
- * Fills the documented defaults into user options, and rejects a `headerRows` the mapper cannot
- * build a header band from. It is validated here rather than at the call site because this is the
+ * Whether `range` is the documented `[startRow, startCol, endRow, endCol]` shape: four non-negative
+ * integers, each start at or before its end. A short array used to destructure into `undefined`,
+ * the row loop then never ran, and the import resolved with `data: []` - which the applier handed
+ * to `loadData`, wiping the grid with no error.
+ */
+function isValidRange(range: unknown): range is [number, number, number, number] {
+  return Array.isArray(range) && range.length === 4
+    && range.every(bound => Number.isInteger(bound) && bound >= 0)
+    && range[0] <= range[2] && range[1] <= range[3];
+}
+
+/**
+ * Fills the documented defaults into user options, and rejects a `headerRows` or `range` the mapper
+ * cannot build a window from. It is validated here rather than at the call site because this is the
  * one funnel both public entry points go through.
  */
 export function resolveImportOptions(options: ImportOptions | undefined): ResolvedImportOptions {
@@ -103,12 +116,21 @@ export function resolveImportOptions(options: ImportOptions | undefined): Resolv
     );
   }
 
+  const range = options?.range ?? null;
+
+  if (range !== null && !isValidRange(range)) {
+    throwWithCause(
+      'The "range" import option has to be four non-negative integers, [startRow, startCol, endRow, endCol], ' +
+        `with each start at or before its end. Received: ${JSON.stringify(range)}.`
+    );
+  }
+
   return {
     sheet: options?.sheet ?? 0,
     colHeaders: options?.colHeaders ?? false,
     rowHeaders: options?.rowHeaders ?? false,
     headerRows,
-    range: options?.range ?? null,
+    range,
     inferCellTypes: options?.inferCellTypes ?? true,
     importFormulas: options?.importFormulas ?? true,
     importLayout: options?.importLayout ?? true,
@@ -170,9 +192,25 @@ function computeWindow(sheet: SheetSnapshot, options: ResolvedImportOptions): Sh
   return {
     firstRow: rangeStartRow + (options.colHeaders === 'firstRow' ? options.headerRows : 0),
     firstCol: rangeStartCol + (options.rowHeaders ? 1 : 0),
-    lastRow: rangeEndRow,
-    lastCol: rangeEndCol,
+    // Clamped to the sheet's extent: `range: [0, 0, 999, 999]` on a 3x3 sheet must not invent a
+    // thousand empty rows, and a formula shift or a merge crop must never see a window larger than
+    // the sheet.
+    lastRow: Math.min(rangeEndRow, sheet.rows.length - 1),
+    lastCol: Math.min(rangeEndCol, usedCols - 1),
   };
+}
+
+/**
+ * Caps `headerRows` at the rows the range actually holds, so a header band can never be taller than
+ * the sheet: `headerRows: 1e9` used to loop `mapNestedHeaders` a billion times. `range` is clamped
+ * to the sheet's extent for the same reason `computeWindow` clamps the window.
+ */
+function clampToSheet(sheet: SheetSnapshot, options: ResolvedImportOptions): ResolvedImportOptions {
+  const lastSheetRow = Math.max(sheet.rows.length - 1, 0);
+  const [rangeStartRow, , rangeEndRow] = options.range ?? [0, 0, lastSheetRow, 0];
+  const rowsInRange = Math.min(rangeEndRow, lastSheetRow) - rangeStartRow + 1;
+
+  return { ...options, headerRows: Math.max(Math.min(options.headerRows, rowsInRange), 1) };
 }
 
 /**
@@ -277,11 +315,12 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
 }
 
 /**
- * Resolves the meta of one cell: dropdown from its list validation, else the inferred type.
+ * Resolves the meta of one cell: dropdown from its list validation, else the inferred type's meta,
+ * shared with every other cell of the same number format.
  */
-function resolveCellMeta(
-  cell: CellSnapshot, inferred: InferredType | null, scope: CollectContext
-): ImportColumn | null {
+function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
+  const { inferred, meta } = inferredMeta;
+
   if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
     scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
   }
@@ -294,7 +333,7 @@ function resolveCellMeta(
     }
   }
 
-  return inferred ? toMeta(inferred) : null;
+  return meta;
 }
 
 /**
@@ -448,6 +487,40 @@ interface CollectContext {
    * marks a formula that could not be resolved.
    */
   listMetaByFormula: Map<string, ImportColumn | null>;
+  /**
+   * The inferred type and its meta object per distinct number format and value kind, so a sheet
+   * with a handful of formats parses each once rather than once per cell, and every cell of a
+   * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
+   */
+  inferredByFormat: Map<string, InferredMeta>;
+}
+
+/**
+ * What one number format infers to, cached per pass.
+ */
+interface InferredMeta {
+  inferred: InferredType | null;
+  meta: ImportColumn | null;
+}
+
+/**
+ * Infers a cell's type through the pass cache. The key is the number format plus the kind of value,
+ * which is everything `inferCellType` reads.
+ */
+function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
+  const key = `${cell.numFmt ?? ''}\u0000${typeof cellDisplayValue(cell)}`;
+  const cached = scope.inferredByFormat.get(key);
+
+  if (cached) {
+    return cached;
+  }
+
+  const inferred = inferCellType(cell);
+  const entry: InferredMeta = { inferred, meta: inferred ? toMeta(inferred) : null };
+
+  scope.inferredByFormat.set(key, entry);
+
+  return entry;
 }
 
 /**
@@ -455,8 +528,9 @@ interface CollectContext {
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
   const { sheet, options, context, shift, dropped } = scope;
-  const inferred = options.inferCellTypes ? inferCellType(cell) : null;
-  const meta = options.inferCellTypes ? resolveCellMeta(cell, inferred, scope) : null;
+  const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
+  const inferred = inferredMeta?.inferred ?? null;
+  const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
 
   if (meta) {
     pass.metaByCell.set(`${row}:${col}`, meta);
@@ -515,6 +589,7 @@ function collectCells(
       : null,
     dropped,
     listMetaByFormula: new Map(),
+    inferredByFormat: new Map(),
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -525,6 +600,12 @@ function collectCells(
 
       if (cell === null) {
         pass.data[pass.data.length - 1].push(null);
+
+        // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
+        // none, so under sheet protection a blank imports read-only like its filled neighbours.
+        if (sheet.protection?.enabled === true) {
+          pass.readOnly.push({ row: row - window.firstRow, col: col - window.firstCol });
+        }
       } else {
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
       }
@@ -586,75 +667,150 @@ function cellMetaEntryAt(
 }
 
 /**
- * Whether every cell of one column derived the same meta, which is what lets it be lifted to
- * `columns`. Reference-equal entries agree at once; otherwise the first entry is serialized once
- * and compared against each of the others, so a column that disagrees on its second cell costs two
- * serializations rather than one per cell.
+ * The meta most cells of a column derived, with the entries that disagree with it. Reference-equal
+ * entries (every cell of one number format shares one meta object, every cell of one list formula
+ * one dropdown meta) are counted without serializing; a structurally equal object that is not the
+ * same reference still counts as the same meta.
  */
-function columnMetaAgrees(entries: Array<[number, ImportColumn]>): boolean {
-  if (entries.length === 0) {
-    return false;
-  }
-
-  let first: string | null = null;
-
-  for (let index = 1; index < entries.length; index++) {
-    // A dropdown column shares one cached meta object across its cells, so the reference check
-    // settles it without serializing a source list per cell.
-    if (entries[index][1] === entries[0][1]) {
-      continue;
+function dominantMeta(
+  entries: Array<[number, ImportColumn]>
+): { meta: ImportColumn; outliers: Array<[number, ImportColumn]> } {
+  const counts = new Map<ImportColumn, number>();
+  const canonical = new Map<string, ImportColumn>();
+  const resolve = (meta: ImportColumn): ImportColumn => {
+    if (counts.has(meta)) {
+      return meta;
     }
 
-    first = first ?? JSON.stringify(entries[0][1]);
+    const key = JSON.stringify(meta);
+    const seen = canonical.get(key);
 
-    if (JSON.stringify(entries[index][1]) !== first) {
-      return false;
+    if (seen) {
+      return seen;
     }
-  }
 
-  return true;
+    canonical.set(key, meta);
+
+    return meta;
+  };
+  const resolved = entries.map(([row, meta]): [number, ImportColumn] => {
+    const same = resolve(meta);
+
+    counts.set(same, (counts.get(same) ?? 0) + 1);
+
+    return [row, same];
+  });
+  let dominant = resolved[0][1];
+
+  counts.forEach((count, meta) => {
+    if (count > (counts.get(dominant) ?? 0)) {
+      dominant = meta;
+    }
+  });
+
+  return { meta: dominant, outliers: resolved.filter(([, meta]) => meta !== dominant) };
 }
 
 /**
- * Lifts per-cell meta to `columns` where a whole column agrees, and leaves the rest as `cellsMeta`.
- * `columns` is included only when `includeTypes` is set, so `inferCellTypes: false` can still land
- * `readOnly` entries without producing column types.
+ * Lifts per-cell facts to `columns` where a whole column agrees, and leaves the rest as `cellsMeta`.
+ *
+ * For each column the dominant inferred meta becomes the column's, and only the cells that differ
+ * get a `cellsMeta` entry - one footer row or one stray `n/a` used to send every cell of the column
+ * through `setCellMetaObject`, a million retained meta objects on a million-cell sheet. `readOnly`
+ * and `className` follow the same `cell → column` cascade: a column whose every row is locked, or
+ * whose every row wears the same classes, carries them once. `columns` is omitted altogether when
+ * no column has anything to say, because passing an array pins the grid's column count.
  */
 function placeMeta(
-  pass: CellPass, colCount: number, includeTypes: boolean
+  pass: CellPass, rowCount: number, colCount: number, includeTypes: boolean
 ): Pick<ImportResult, 'columns' | 'cellsMeta'> {
-  const columns: ImportColumn[] = [];
+  const columns: ImportColumn[] = Array.from({ length: colCount }, () => ({}));
   const cellsMeta: NonNullable<ImportResult['cellsMeta']> = [];
   const byCoords = new Map<string, CellMetaEntry>();
   const metaByColumn = groupMetaByColumn(pass.metaByCell);
 
-  for (let c = 0; c < colCount; c++) {
-    const entries = metaByColumn.get(c) ?? [];
+  if (includeTypes) {
+    for (let c = 0; c < colCount; c++) {
+      const entries = metaByColumn.get(c) ?? [];
 
-    if (columnMetaAgrees(entries)) {
-      columns.push(entries[0][1]);
-    } else {
-      columns.push({});
-      entries.forEach(([row, meta]) => {
-        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = { ...meta };
+      if (entries.length === 0) {
+        continue;
+      }
+
+      const { meta, outliers } = dominantMeta(entries);
+
+      // The dominant meta object itself, not a copy: every column of one number format or one list
+      // formula then shares it, which is what keeps a wide sheet from allocating one per column.
+      columns[c] = meta;
+      outliers.forEach(([row, outlier]) => {
+        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = { ...outlier };
       });
     }
   }
 
-  pass.readOnly.forEach(({ row, col }) => {
-    cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = true;
-  });
+  placeColumnWide(
+    pass.readOnly.map(({ row, col }): [number, number, true] => [row, col, true]), rowCount, colCount,
+    (col, value) => {
+      columns[col] = { ...columns[col], readOnly: value };
+    },
+    (row, col, value) => {
+      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.readOnly = value;
+    },
+  );
+
+  const classEntries: Array<[number, number, string]> = [];
 
   pass.classNames.forEach((classes, key) => {
     const { row, col } = parseCellKey(key);
 
-    cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.className = classes.join(' ');
+    classEntries.push([row, col, classes.join(' ')]);
   });
+  placeColumnWide(
+    classEntries, rowCount, colCount,
+    (col, value) => {
+      columns[col] = { ...columns[col], className: value };
+    },
+    (row, col, value) => {
+      cellMetaEntryAt(cellsMeta, byCoords, row, col).meta.className = value;
+    },
+  );
 
   return {
-    columns: includeTypes && columns.length > 0 ? columns : undefined,
+    columns: columns.some(column => Object.keys(column).length > 0) ? columns : undefined,
     cellsMeta: cellsMeta.length > 0 ? cellsMeta : undefined,
   };
+}
+
+/**
+ * Places one per-cell fact (`readOnly`, `className`) at the column level when every row of the
+ * column carries the same value, and per cell otherwise.
+ */
+function placeColumnWide<T>(
+  entries: Array<[number, number, T]>, rowCount: number, colCount: number,
+  onColumn: (col: number, value: T) => void, onCell: (row: number, col: number, value: T) => void
+): void {
+  const byColumn = new Map<number, Array<[number, T]>>();
+
+  entries.forEach(([row, col, value]) => {
+    const list = byColumn.get(col);
+
+    if (list) {
+      list.push([row, value]);
+    } else {
+      byColumn.set(col, [[row, value]]);
+    }
+  });
+
+  byColumn.forEach((list, col) => {
+    const uniform = rowCount > 0 && list.length === rowCount && col < colCount
+      && list.every(([, value]) => value === list[0][1]);
+
+    if (uniform) {
+      onColumn(col, list[0][1]);
+    } else {
+      list.forEach(([row, value]) => onCell(row, col, value));
+    }
+  });
 }
 
 /**
@@ -710,8 +866,10 @@ function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportRes
 
     return height === null || height === undefined ? undefined : pointsToPx(height);
   });
-  const fixedRowsTop = sheet.freeze ? sheet.freeze.rows - rowShift : 0;
-  const fixedColumnsStart = sheet.freeze ? sheet.freeze.cols - colShift : 0;
+  // Clamped to the window like every other layout value: a freeze reaching past a short `range`
+  // would otherwise ask the grid to freeze more rows than it has.
+  const fixedRowsTop = sheet.freeze ? Math.min(sheet.freeze.rows - rowShift, rowCount) : 0;
+  const fixedColumnsStart = sheet.freeze ? Math.min(sheet.freeze.cols - colShift, colCount) : 0;
 
   return {
     mergeCells: mergeCells.length > 0 ? mergeCells : undefined,
@@ -911,9 +1069,10 @@ function stripUndefined<T extends object>(result: T): T {
  * Maps the selected sheet of a workbook snapshot to an import result.
  */
 export function mapWorkbook(
-  workbook: WorkbookSnapshot, options: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
+  workbook: WorkbookSnapshot, requestedOptions: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
 ): MappedResult {
-  const sheet = selectSheet(workbook, options.sheet);
+  const sheet = selectSheet(workbook, requestedOptions.sheet);
+  const options = clampToSheet(sheet, requestedOptions);
   const window = computeWindow(sheet, options);
   const colCount = Math.max(window.lastCol - window.firstCol + 1, 0);
   const pass = collectCells(sheet, workbook, window, options, context, dropped);
@@ -935,7 +1094,7 @@ export function mapWorkbook(
     colHeaders: mapHeaders(sheet, window, options),
     nestedHeaders: mapNestedHeaders(sheet, window, options),
     rowHeaders: options.rowHeaders ? true : undefined,
-    ...placeMeta(pass, colCount, options.inferCellTypes),
+    ...placeMeta(pass, pass.data.length, colCount, options.inferCellTypes),
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,

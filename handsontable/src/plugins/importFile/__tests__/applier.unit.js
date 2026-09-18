@@ -3,8 +3,11 @@ import * as consoleHelpers from '../../../helpers/console';
 
 const STYLE_SELECTOR = 'style[data-hot-imported-styles="hot-1"]';
 
-function fakeHot({ commentsEnabled = false, nestedHeaders } = {}) {
+function fakeHot({ commentsEnabled = false, nestedHeaders, gridSettings = {}, toVisualRow = row => row } = {}) {
   const calls = [];
+  const rootWrapperElement = document.createElement('div');
+
+  document.body.appendChild(rootWrapperElement);
   const commentsPlugin = {
     isEnabled: () => commentsEnabled,
     setCommentAtCell: (row, col, value) => calls.push(['setCommentAtCell', row, col, value]),
@@ -14,6 +17,9 @@ function fakeHot({ commentsEnabled = false, nestedHeaders } = {}) {
     calls,
     guid: 'hot-1',
     rootDocument: document,
+    rootWrapperElement,
+    toVisualRow,
+    toVisualColumn: col => col,
     batch: (fn) => {
       calls.push(['batch:start']); const out = fn();
 
@@ -25,7 +31,7 @@ function fakeHot({ commentsEnabled = false, nestedHeaders } = {}) {
     loadData: data => calls.push(['loadData', data]),
     setCellMetaObject: (row, col, meta) => calls.push(['setCellMetaObject', row, col, meta]),
     getPlugin: name => (name === 'comments' ? commentsPlugin : undefined),
-    getSettings: () => ({ nestedHeaders }),
+    getSettings: () => ({ nestedHeaders, ...gridSettings }),
   };
 }
 
@@ -38,7 +44,7 @@ describe('applyImportResult', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
-    document.head.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
+    document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
   it('should load the data first, then update only the settings the result carries, inside one batch', () => {
@@ -158,7 +164,7 @@ describe('applyImportResult', () => {
       hot, { data: [['a']], styles: { 'htImported-a': 'font-weight:bold' }, sheetNames: [], dropped: [] }
     );
 
-    const styleEl = document.head.querySelector('style[data-hot-imported-styles="hot-1"]');
+    const styleEl = document.querySelector('style[data-hot-imported-styles="hot-1"]');
 
     expect(styleEl.textContent).toBe('.handsontable tbody > tr > td.htImported-a{font-weight:bold}');
 
@@ -166,7 +172,7 @@ describe('applyImportResult', () => {
       hot, { data: [['b']], styles: { 'htImported-b': 'color:#ff0000' }, sheetNames: [], dropped: [] }
     );
 
-    expect(document.head.querySelectorAll(STYLE_SELECTOR)).toHaveLength(1);
+    expect(document.querySelectorAll(STYLE_SELECTOR)).toHaveLength(1);
     expect(styleEl.textContent).toBe('.handsontable tbody > tr > td.htImported-b{color:#ff0000}');
   });
 
@@ -177,11 +183,11 @@ describe('applyImportResult', () => {
       hot, { data: [['a']], styles: { 'htImported-a': 'font-weight:bold' }, sheetNames: [], dropped: [] }
     );
 
-    expect(document.head.querySelector(STYLE_SELECTOR)).not.toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).not.toBeNull();
 
     applyImportResult(hot, { data: [['b']], sheetNames: [], dropped: [] });
 
-    expect(document.head.querySelector(STYLE_SELECTOR)).toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).toBeNull();
   });
 
   it('should pass customBorders through updateSettings and install no stylesheet when there are no styles', () => {
@@ -193,7 +199,7 @@ describe('applyImportResult', () => {
     expect(hot.calls).toEqual([
       ['batch:start'], ['loadData', [['a']]], ['updateSettings', { customBorders: borders }], ['batch:end'],
     ]);
-    expect(document.head.querySelector(STYLE_SELECTOR)).toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).toBeNull();
   });
 
   it('should never pass layoutDirection to updateSettings, since the grid reads it at construction only', () => {
@@ -268,7 +274,7 @@ describe('installImportedStyles / removeImportedStyles', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
-    document.head.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
+    document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
   it('should remove a real installed stylesheet element from the document', () => {
@@ -276,11 +282,11 @@ describe('installImportedStyles / removeImportedStyles', () => {
 
     installImportedStyles(hot, { 'htImported-a': 'font-weight:bold' });
 
-    expect(document.head.querySelector(STYLE_SELECTOR)).not.toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).not.toBeNull();
 
     removeImportedStyles(hot);
 
-    expect(document.head.querySelector(STYLE_SELECTOR)).toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).toBeNull();
   });
 
   it('should not install a declaration that breaks out of the generated rule, and should warn once', () => {
@@ -291,7 +297,7 @@ describe('installImportedStyles / removeImportedStyles', () => {
       'htImported-b': 'background-color:#0000ff}*{background-image:url(https://attacker.example/x)}',
     });
 
-    const styleEl = document.head.querySelector(STYLE_SELECTOR);
+    const styleEl = document.querySelector(STYLE_SELECTOR);
 
     expect(styleEl.textContent).toBe('.handsontable tbody > tr > td.htImported-a{font-weight:bold}');
     expect(styleEl.textContent).not.toContain('attacker.example');
@@ -307,7 +313,7 @@ describe('installImportedStyles / removeImportedStyles', () => {
       'htImported-9z-2': 'color:#00ff00',
     });
 
-    const styleEl = document.head.querySelector(STYLE_SELECTOR);
+    const styleEl = document.querySelector(STYLE_SELECTOR);
 
     expect(styleEl.textContent).toBe('.handsontable tbody > tr > td.htImported-9z-2{color:#00ff00}');
     expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -319,7 +325,117 @@ describe('installImportedStyles / removeImportedStyles', () => {
 
     installImportedStyles(hot, { 'htImported-a': 'background-image:url("https://attacker.example/x")' });
 
-    expect(document.head.querySelector(STYLE_SELECTOR)).toBeNull();
+    expect(document.querySelector(STYLE_SELECTOR)).toBeNull();
     expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+});
+
+describe('applyImportResult – layout across imports', () => {
+  it('should clear the layout a previous import left when the new result carries none', () => {
+    // Import a merged, frozen sheet with hidden rows, then a plain one: the first file's layout used
+    // to stay on the second file's data.
+    const hot = fakeHot({
+      gridSettings: {
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+        hiddenRows: { rows: [1], indicators: true },
+        hiddenColumns: { columns: [0] },
+        fixedRowsTop: 1,
+        fixedColumnsStart: 1,
+        customBorders: [{ row: 0, col: 0, top: { width: 1, color: 'red' } }],
+      },
+    });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
+
+    expect(hot.calls[2]).toEqual(['updateSettings', {
+      mergeCells: [],
+      hiddenRows: { rows: [], indicators: true },
+      hiddenColumns: { columns: [] },
+      fixedRowsTop: 0,
+      fixedColumnsStart: 0,
+      customBorders: [],
+    }]);
+  });
+
+  it('should leave the grid layout alone when the result was produced without importLayout', () => {
+    const hot = fakeHot({
+      gridSettings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }], fixedRowsTop: 1 },
+    });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
+
+    expect(hot.calls.map(call => call[0])).toEqual(['batch:start', 'loadData', 'batch:end']);
+  });
+
+  it('should not touch a layout plugin the grid never enabled', () => {
+    const hot = fakeHot({ gridSettings: {} });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
+
+    expect(hot.calls.map(call => call[0])).toEqual(['batch:start', 'loadData', 'batch:end']);
+  });
+
+  it('should merge the imported list into an options-object setting instead of replacing it', () => {
+    const hot = fakeHot({
+      gridSettings: {
+        hiddenRows: { indicators: true, copyPasteEnabled: false },
+        hiddenColumns: { indicators: true },
+        mergeCells: { virtualized: true },
+      },
+    });
+
+    applyImportResult(hot, {
+      data: [['a'], ['b']],
+      hiddenRows: [1],
+      hiddenColumns: [0],
+      mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+      sheetNames: ['Data'],
+      dropped: [],
+    });
+
+    expect(hot.calls[2]).toEqual(['updateSettings', {
+      mergeCells: { virtualized: true, cells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }] },
+      hiddenRows: { indicators: true, copyPasteEnabled: false, rows: [1] },
+      hiddenColumns: { indicators: true, columns: [0] },
+    }]);
+  });
+});
+
+describe('applyImportResult – coordinates', () => {
+  it('should translate sheet rows to visual rows before writing meta and comments', () => {
+    // A `manualRowMove` array reorders rows inside `loadData`, so sheet row 0 may render as visual
+    // row 1; `setCellMetaObject` and `setCommentAtCell` take the visual index.
+    const hot = fakeHot({ commentsEnabled: true, toVisualRow: row => [1, 0][row] });
+
+    applyImportResult(hot, {
+      data: [['a'], ['b']],
+      cellsMeta: [{ row: 0, col: 0, meta: { readOnly: true } }],
+      comments: [{ row: 1, col: 0, value: 'note' }],
+      sheetNames: ['Data'],
+      dropped: [],
+    });
+
+    expect(hot.calls).toEqual(expect.arrayContaining([
+      ['setCellMetaObject', 1, 0, { readOnly: true }],
+      ['setCommentAtCell', 0, 0, 'note'],
+    ]));
+  });
+});
+
+describe('installImportedStyles – mount point', () => {
+  it('should mount the stylesheet inside the instance wrapper, where a shadow root can see it', () => {
+    const hot = fakeHot();
+
+    installImportedStyles(hot, { 'htImported-a1': 'color:#ff0000' });
+
+    const styleEl = hot.rootWrapperElement.querySelector(STYLE_SELECTOR);
+
+    expect(styleEl).not.toBeNull();
+    expect(document.head.querySelector(STYLE_SELECTOR)).toBeNull();
+
+    removeImportedStyles(hot);
+
+    expect(hot.rootWrapperElement.querySelector(STYLE_SELECTOR)).toBeNull();
   });
 });

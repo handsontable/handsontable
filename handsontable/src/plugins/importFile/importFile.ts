@@ -110,6 +110,16 @@ export interface ImportColumn {
    * The dropdown source values, derived from a list data validation on the column.
    */
   source?: string[];
+  /**
+   * Set when every cell of the column is locked under sheet protection. A column that only partly
+   * agrees carries the flag per cell in `cellsMeta` instead.
+   */
+  readOnly?: boolean;
+  /**
+   * The class names every cell of the column wears (alignment classes and the generated
+   * `htImported-<hash>` classes) when `importStyles` is on and the whole column agrees.
+   */
+  className?: string;
 }
 
 /**
@@ -439,7 +449,7 @@ export class ImportFile extends BasePlugin {
       return result;
     }
 
-    applyImportResult(this.hot, result);
+    applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     this.hot.runHooks('afterImport', result, format);
 
     return result;

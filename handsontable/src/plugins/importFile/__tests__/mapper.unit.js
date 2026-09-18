@@ -103,7 +103,7 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toEqual([]);
   });
 
-  it('should fall back to per-cell meta when a column mixes types', () => {
+  it('should lift the dominant meta and keep per-cell meta only for the cells that differ', () => {
     const sheet = createSheetSnapshot('Data');
 
     sheet.rows = [
@@ -113,16 +113,13 @@ describe('mapWorkbook', () => {
 
     const { result } = map(workbook(sheet));
 
-    expect(result.columns).toEqual([{}]);
+    // The first-seen meta wins a tie and becomes the column's; only the cell that differs gets its
+    // own entry. One stray cell used to send every cell of the column through `setCellMetaObject`.
+    expect(result.columns).toEqual([{
+      type: 'numeric',
+      numericFormat: { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false },
+    }]);
     expect(result.cellsMeta).toEqual([
-      {
-        row: 0,
-        col: 0,
-        meta: {
-          type: 'numeric',
-          numericFormat: { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false },
-        },
-      },
       { row: 1, col: 0, meta: { type: 'date', dateFormat: { month: '2-digit', day: '2-digit', year: '2-digit' } } },
     ]);
   });
@@ -245,6 +242,49 @@ describe('mapWorkbook', () => {
 
     expect(result.fixedRowsTop).toBe(1);
     expect(result.fixedColumnsStart).toBe(2);
+  });
+
+  it('should clamp frozen panes to the window like every other layout value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('a'), text('b'), text('c')], [text('d'), text('e'), text('f')], [text('g'), text('h'), text('i')],
+    ];
+    sheet.freeze = { rows: 20, cols: 10 };
+
+    const { result } = map(workbook(sheet), { range: [0, 0, 1, 1] });
+
+    expect(result.fixedRowsTop).toBe(2);
+    expect(result.fixedColumnsStart).toBe(2);
+  });
+
+  it('should reject a malformed range and clamp an oversized one to the sheet', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('a'), text('b')], [text('c'), text('d')]];
+
+    expect(() => resolveImportOptions({ range: [0, 0, 1] })).toThrow(/"range" import option/);
+    expect(() => resolveImportOptions({ range: [2, 0, 1, 1] })).toThrow(/"range" import option/);
+    expect(() => resolveImportOptions({ range: [0, -1, 1, 1] })).toThrow(/"range" import option/);
+    expect(() => resolveImportOptions({ range: [0, 0.5, 1, 1] })).toThrow(/"range" import option/);
+
+    // `range: [0, 0, 999, 999]` on a 2x2 sheet used to invent a thousand empty rows.
+    const { result } = map(workbook(sheet), { range: [0, 0, 999, 999] });
+
+    expect(result.data).toEqual([['a', 'b'], ['c', 'd']]);
+  });
+
+  it('should cap headerRows at the rows the sheet holds instead of looping past them', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('Group'), text('')], [text('a'), text('b')], [text('c'), text('d')]];
+    sheet.merges = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
+
+    const { result } = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 1e9 });
+
+    // Every row became a header band row; there is no data left, and it finished.
+    expect(result.data).toEqual([]);
+    expect(result.nestedHeaders).toHaveLength(3);
   });
 
   it('should honor a range in sheet coordinates before header promotion', () => {
@@ -466,11 +506,44 @@ describe('mapWorkbook', () => {
 
     const protectedResult = map(workbook(sheet)).result;
 
-    expect(protectedResult.cellsMeta).toEqual([
-      { row: 0, col: 0, meta: { readOnly: true } },
-      { row: 0, col: 2, meta: { readOnly: true } },
+    // One row, so a locked cell is a locked column: `readOnly` follows the cell → column cascade.
+    expect(protectedResult.columns).toEqual([
+      { type: 'text', readOnly: true }, { type: 'text' }, { type: 'text', readOnly: true },
     ]);
+    expect(protectedResult.cellsMeta).toBeUndefined();
     expect(protectedResult.comments).toBeUndefined();
+  });
+
+  it('should import a blank cell on a protected sheet as read-only, like its filled neighbours', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[text('a'), null], [text('b'), text('c')]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns).toEqual([{ type: 'text', readOnly: true }, { type: 'text', readOnly: true }]);
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should omit columns entirely when no column has anything to say', () => {
+    // An array `columns` pins the grid's column count and replaces any `columns` the grid had, so
+    // it is only worth sending when it carries something.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null }), cell({ value: null })]];
+
+    expect(map(workbook(sheet)).result.columns).toBeUndefined();
+    expect(map(workbook(sheet), { inferCellTypes: false }).result.columns).toBeUndefined();
+  });
+
+  it('should still lift readOnly to columns when cell types are not inferred', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[text('a')]];
+
+    expect(map(workbook(sheet), { inferCellTypes: false }).result.columns).toEqual([{ readOnly: true }]);
   });
 
   it('should report a number format it could not invert, and still type the column numeric', () => {
@@ -573,11 +646,11 @@ describe('mapWorkbook – importStyles', () => {
     expect(ruleNames).toHaveLength(2);
     expect(result.styles[ruleNames[0]]).toBe('font-weight:bold;color:#ff0000');
     expect(result.styles[ruleNames[1]]).toBe('background-color:#00ff00');
-    expect(result.cellsMeta).toEqual([
-      { row: 0, col: 0, meta: { className: `htCenter ${ruleNames[0]}` } },
-      { row: 0, col: 1, meta: { className: ruleNames[1] } },
-      { row: 0, col: 3, meta: { className: ruleNames[0] } },
+    // A one-row sheet: every class is column-wide, so it lands on `columns`, not `cellsMeta`.
+    expect(result.columns.map(column => column.className)).toEqual([
+      `htCenter ${ruleNames[0]}`, ruleNames[1], undefined, ruleNames[0],
     ]);
+    expect(result.cellsMeta).toBeUndefined();
     expect(result.customBorders).toEqual([{ row: 0, col: 2, top: { width: 1, color: '#0000ff' } }]);
     expect(dropped.list()).toEqual([]);
   });
@@ -596,6 +669,24 @@ describe('mapWorkbook – importStyles', () => {
 
     const { result } = map(workbook(sheet), { importStyles: true }, ctx);
 
+    expect(result.columns).toEqual([{ type: 'text', readOnly: true, className: 'htRight' }]);
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should keep per-cell readOnly and className when a column does not agree', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [
+      [cell({
+        value: 'x', locked: true, style: { alignment: { horizontal: 'right' }, font: null, fill: null, border: null },
+      })],
+      [cell({ value: 'y', locked: false })],
+    ];
+
+    const { result } = map(workbook(sheet), { importStyles: true }, ctx);
+
+    expect(result.columns).toEqual([{ type: 'text' }]);
     expect(result.cellsMeta).toEqual([{ row: 0, col: 0, meta: { readOnly: true, className: 'htRight' } }]);
   });
 
@@ -637,7 +728,8 @@ describe('mapWorkbook – importStyles', () => {
     const { result } = map(workbook(sheet), { importStyles: true }, ctx);
 
     expect(result.styles).toBeUndefined();
-    expect(result.cellsMeta).toEqual([{ row: 0, col: 0, meta: { readOnly: true } }]);
+    expect(result.columns).toEqual([{ type: 'text', readOnly: true }]);
+    expect(result.cellsMeta).toBeUndefined();
   });
 });
 

@@ -44,6 +44,9 @@ function fakeDocument() {
       appendChild: (el) => {
         elements.push(el);
       },
+      prepend: (el) => {
+        elements.unshift(el);
+      },
       querySelector: (selector) => {
         const match = /data-hot-imported-styles="([^"]+)"/.exec(selector);
         const guid = match ? match[1] : null;
@@ -63,9 +66,14 @@ function fixture(name) {
 function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false } = {}) {
   const calls = [];
   const hooks = {};
+  const rootDocument = fakeDocument();
   const hot = {
+    // The stylesheet is mounted in the wrapper element; the fake head stands in for it.
+    rootWrapperElement: rootDocument.head,
     guid: 'hot-1',
-    rootDocument: fakeDocument(),
+    rootDocument,
+    toVisualRow: row => row,
+    toVisualColumn: col => col,
     // `BasePlugin`'s constructor registers three hooks straight on `hot` (not on itself), so a
     // real `new ImportFile(hot)` needs this stub even though this suite never fires a hook.
     addHook: () => {},

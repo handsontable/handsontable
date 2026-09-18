@@ -1,6 +1,49 @@
 import { warn } from '../../helpers/console';
+import { isPlainObject } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
 import type { ImportResult } from './importFile';
+
+/**
+ * What the applier needs to know about how the result was produced.
+ */
+export interface ApplyOptions {
+  /**
+   * Whether the result describes the sheet's layout. When it does, a layout the previous import
+   * left on the grid and this result does not carry is cleared.
+   */
+  importLayout: boolean;
+}
+
+/**
+ * The layout keys a result may omit. Each is reset when `importLayout` is on, the result does not
+ * carry it, and the grid currently has one - so a plain sheet imported after a merged, frozen one
+ * does not keep the first file's merges and freeze on the second file's data. Widths and heights are
+ * not on the list: `updateSettings` skips an `undefined` value and there is no empty shape for them.
+ */
+type ResettableLayoutKey = 'mergeCells' | 'hiddenRows' | 'hiddenColumns' | 'fixedRowsTop'
+  | 'fixedColumnsStart' | 'customBorders';
+
+const RESETTABLE_LAYOUT_KEYS: ResettableLayoutKey[] = [
+  'mergeCells', 'hiddenRows', 'hiddenColumns', 'fixedRowsTop', 'fixedColumnsStart', 'customBorders',
+];
+
+/**
+ * Builds the value of `mergeCells`, which takes either a bare list or an options object carrying
+ * the list under `cells`. The object's other options are kept: `{ virtualized: true }` used to be
+ * replaced by the imported list.
+ */
+function mergeCellsSetting(current: unknown, cells: unknown[]): unknown {
+  return isPlainObject(current) ? { ...current, cells } : cells;
+}
+
+/**
+ * Builds the value of `hiddenRows` or `hiddenColumns`, which take an options object carrying the
+ * list under `listKey`. The object's other options are kept: `{ indicators: true,
+ * copyPasteEnabled: false }` used to be replaced by `{ rows }`.
+ */
+function hiddenSetting(current: unknown, listKey: 'rows' | 'columns', list: number[]): Record<string, unknown> {
+  return { ...(isPlainObject(current) ? current : {}), [listKey]: list };
+}
 
 const STYLE_ATTRIBUTE = 'data-hot-imported-styles';
 
@@ -32,10 +75,11 @@ const IMPORTED_DECLARATIONS_PATTERN = /^[a-z-]+:[#0-9a-z ,.()-]+(;[a-z-]+:[#0-9a
  * new `colHeaders` never renders. A result carrying no `colHeaders` at all (e.g. the `colHeaders: false`
  * import option) is left untouched - the header band is not this import's concern.
  */
-function toSettings(hot: HotInstance, result: ImportResult): Record<string, unknown> {
+function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOptions): Record<string, unknown> {
   const settings: Record<string, unknown> = {};
+  const current = hot.getSettings() as Record<string, unknown>;
   const direct: Array<keyof ImportResult> = [
-    'colHeaders', 'nestedHeaders', 'rowHeaders', 'columns', 'mergeCells', 'fixedRowsTop', 'fixedColumnsStart',
+    'colHeaders', 'nestedHeaders', 'rowHeaders', 'columns', 'fixedRowsTop', 'fixedColumnsStart',
     'colWidths', 'rowHeights',
   ];
 
@@ -45,23 +89,62 @@ function toSettings(hot: HotInstance, result: ImportResult): Record<string, unkn
     }
   });
 
-  if (result.colHeaders !== undefined && result.nestedHeaders === undefined && hot.getSettings().nestedHeaders) {
+  if (result.colHeaders !== undefined && result.nestedHeaders === undefined && current.nestedHeaders) {
     settings.nestedHeaders = false;
   }
 
+  if (result.mergeCells !== undefined) {
+    settings.mergeCells = mergeCellsSetting(current.mergeCells, result.mergeCells);
+  }
+
   if (result.hiddenRows !== undefined) {
-    settings.hiddenRows = { rows: result.hiddenRows };
+    settings.hiddenRows = hiddenSetting(current.hiddenRows, 'rows', result.hiddenRows);
   }
 
   if (result.hiddenColumns !== undefined) {
-    settings.hiddenColumns = { columns: result.hiddenColumns };
+    settings.hiddenColumns = hiddenSetting(current.hiddenColumns, 'columns', result.hiddenColumns);
   }
 
   if (result.customBorders !== undefined) {
     settings.customBorders = result.customBorders;
   }
 
+  if (options.importLayout) {
+    resetOmittedLayout(result, current, settings);
+  }
+
   return settings;
+}
+
+/**
+ * Clears every resettable layout key the result omits and the grid currently carries. A list
+ * setting keeps its options object and empties the list; a count goes to `0`.
+ */
+function resetOmittedLayout(
+  result: ImportResult, current: Record<string, unknown>, settings: Record<string, unknown>
+): void {
+  RESETTABLE_LAYOUT_KEYS.forEach((key) => {
+    if (result[key] !== undefined || !current[key]) {
+      return;
+    }
+
+    switch (key) {
+      case 'mergeCells':
+        settings.mergeCells = mergeCellsSetting(current.mergeCells, []);
+        break;
+      case 'hiddenRows':
+        settings.hiddenRows = hiddenSetting(current.hiddenRows, 'rows', []);
+        break;
+      case 'hiddenColumns':
+        settings.hiddenColumns = hiddenSetting(current.hiddenColumns, 'columns', []);
+        break;
+      case 'customBorders':
+        settings.customBorders = [];
+        break;
+      default:
+        settings[key] = 0;
+    }
+  });
 }
 
 /**
@@ -93,6 +176,7 @@ function toSettings(hot: HotInstance, result: ImportResult): Record<string, unkn
  */
 export function installImportedStyles(hot: HotInstance, styles: Record<string, string>): void {
   const doc = hot.rootDocument;
+  const mount = hot.rootWrapperElement;
   const rules: string[] = [];
   const rejected: string[] = [];
 
@@ -116,12 +200,15 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
     return;
   }
 
-  let styleEl = doc.head.querySelector<HTMLStyleElement>(`style[${STYLE_ATTRIBUTE}="${hot.guid}"]`);
+  // Mounted inside the instance's own wrapper, where the theme engine keeps its per-instance
+  // `<style>` too: a rule in the outer document's `<head>` never reaches a grid rendered inside a
+  // shadow root, so `importStyles` was a silent no-op there and left an inert element behind.
+  let styleEl = mount.querySelector<HTMLStyleElement>(`style[${STYLE_ATTRIBUTE}="${hot.guid}"]`);
 
   if (!styleEl) {
     styleEl = doc.createElement('style');
     styleEl.setAttribute(STYLE_ATTRIBUTE, hot.guid);
-    doc.head.appendChild(styleEl);
+    mount.prepend(styleEl);
   }
 
   styleEl.textContent = rules.join('\n');
@@ -131,7 +218,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
  * Removes the instance-owned stylesheet, if any.
  */
 export function removeImportedStyles(hot: HotInstance): void {
-  hot.rootDocument.head.querySelector(`style[${STYLE_ATTRIBUTE}="${hot.guid}"]`)?.remove();
+  hot.rootWrapperElement?.querySelector(`style[${STYLE_ATTRIBUTE}="${hot.guid}"]`)?.remove();
 }
 
 /**
@@ -149,9 +236,11 @@ export function removeImportedStyles(hot: HotInstance): void {
  * first render `updateSettings` triggers. The surrounding `batch` suspends rendering, so all the calls
  * still paint once.
  */
-export function applyImportResult(hot: HotInstance, result: ImportResult): void {
+export function applyImportResult(
+  hot: HotInstance, result: ImportResult, options: ApplyOptions = { importLayout: true }
+): void {
   hot.batch(() => {
-    const settings = toSettings(hot, result);
+    const settings = toSettings(hot, result, options);
 
     hot.loadData(result.data);
 
@@ -161,12 +250,20 @@ export function applyImportResult(hot: HotInstance, result: ImportResult): void 
       hot.updateSettings(settings);
     }
 
-    result.cellsMeta?.forEach(({ row, col, meta }) => hot.setCellMetaObject(row, col, meta));
+    // The result is in sheet (physical) coordinates; `setCellMetaObject` and `setCommentAtCell`
+    // take visual ones. They agree unless something reordered the rows during `loadData` - a
+    // `manualRowMove` array does, in its `afterLoadData` - so every coordinate goes through the
+    // index mappers first.
+    result.cellsMeta?.forEach(({ row, col, meta }) => {
+      hot.setCellMetaObject(hot.toVisualRow(row), hot.toVisualColumn(col), meta);
+    });
 
     const comments = hot.getPlugin('comments');
 
     if (result.comments && comments?.isEnabled()) {
-      result.comments.forEach(({ row, col, value }) => comments.setCommentAtCell(row, col, value));
+      result.comments.forEach(({ row, col, value }) => {
+        comments.setCommentAtCell(hot.toVisualRow(row), hot.toVisualColumn(col), value);
+      });
     }
   });
 }

@@ -471,7 +471,12 @@ export function serialToTimeString(serial: number): string {
  * exports to.
  */
 export function serialToIsoDateTime(serial: number): string {
-  return `${serialToIsoDate(serial)} ${serialToTimeString(serial)}`;
+  // Round the whole serial to a second ONCE, then split: rounding the fraction on its own wrapped
+  // `23:59:59.7` to `00:00:00` while the date half kept the original day, a full day off.
+  const totalSeconds = Math.round(serial * 86400);
+  const days = Math.floor(totalSeconds / 86400);
+
+  return `${serialToIsoDate(days)} ${serialToTimeString((totalSeconds - (days * 86400)) / 86400)}`;
 }
 
 /**
