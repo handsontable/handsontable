@@ -51,6 +51,30 @@ Handsontable(document.createElement('div'), {
   ],
 });
 
+// `filterValueComparator` orders the "Filter by value" list. It cascades like any other option:
+// set once for every column at the grid level, or per column inside `columns`.
+Handsontable(document.createElement('div'), {
+  filters: true,
+  filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
+});
+
+const PRIORITY = ['Critical', 'High', 'Medium', 'Low'];
+
+Handsontable(document.createElement('div'), {
+  filters: true,
+  columns: [
+    {
+      filterValueComparator: (a: unknown, b: unknown) =>
+        PRIORITY.indexOf(a as string) - PRIORITY.indexOf(b as string),
+    },
+    { filterValueComparator: undefined },
+    {},
+  ],
+});
+
+// @ts-expect-error – an ordered list is not a comparator; write a function that ranks by it instead
+Handsontable(document.createElement('div'), { filterValueComparator: PRIORITY });
+
 const filters = hot.getPlugin('filters');
 
 filters.enablePlugin();
