@@ -115,8 +115,11 @@ declarative meta and rely on the `updateSettings` cache reset to drop it (see
 `../../dataMap/metaManager/metaSchema.ts` and "Styling uses `_setCellMetaDeclarative`" above). Cleaning it
 would need a new mechanism in that tier, which is out of scope. Two related row bugs share this root cause
 and are tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also resolved once
-and does not grow on append, and a non-last reversed anchor with a row removed below it re-anchors onto a
-data row (data the summary then overwrites). `reversedRowCoordsAlter.unit.js` pins the add cases.
+and does not grow on append, and a non-last reversed anchor (`reversedRowOffset > 0`) with a row removed
+*below* it re-anchors onto a data row, which the refresh then overwrites. The second one's failure mode
+**changed here**: the old gated shift left such an endpoint parked in place (stale but non-destructive),
+whereas the unconditional re-derive moves it onto the data row — so the follow-up must prevent the
+overwrite, not merely re-anchor. `reversedRowCoordsAlter.unit.js` pins the add and remove cases.
 
 ## The refresh pass caches every endpoint, not just the matched ones
 

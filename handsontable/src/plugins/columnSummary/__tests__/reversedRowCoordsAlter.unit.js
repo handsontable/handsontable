@@ -108,6 +108,59 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     expect(hot.getCellMeta(3, 0).className).toContain('columnSummaryResult');
   });
 
+  it('re-derives a non-last reversed anchor when a row is appended, using the stored offset', async() => {
+    // `destinationRow: 1` anchors the summary to the SECOND row from the bottom, so the arithmetic
+    // must use the offset (1), not a bare `count - 1`. With three rows the anchor resolves to row 1.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10], [20], [null]],
+      columnSummary: [{
+        destinationColumn: 0,
+        destinationRow: 1,
+        reversedRowCoords: true,
+        ranges: [[0, 0]],
+        type: 'sum',
+      }],
+    });
+
+    // Second row from the bottom of three rows is row 1; the range sums only row 0 (= 10).
+    expect(hot.getDataAtCell(1, 0)).toBe(10);
+
+    await hot.alter('insert_row_below', 2);
+
+    // Four rows now; second from the bottom is row 2. `count - offset - 1` = 4 - 1 - 1 = 2.
+    expect(hot.getDataAtCell(2, 0)).toBe(10);
+    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+    // The old anchor (row 1) is cleared.
+    expect(hot.getDataAtCell(1, 0)).toBe('');
+  });
+
+  it('moves a reversed summary onto the new last row when a row is removed', async() => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10], [20], [30], [null]],
+      columnSummary: [{
+        destinationColumn: 0,
+        destinationRow: 0,
+        reversedRowCoords: true,
+        ranges: [[1, 2]],
+        type: 'sum',
+      }],
+    });
+
+    // Last row of four holds the summary (sum of rows 1-2 = 50).
+    expect(hot.getDataAtCell(3, 0)).toBe(50);
+
+    // Remove the first row, which sits above both the range and the anchor.
+    await hot.alter('remove_row', 0);
+
+    // Three rows left; the range follows to rows 0-1 (= 20 + 30) and the summary follows the bottom
+    // onto the new last row.
+    expect(hot.getDataAtCell(2, 0)).toBe(50);
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+  });
+
   it('re-anchors within maxRows when an appended row is still addressable', async() => {
     // `maxRows` caps `countAddressableRows()` but not `countPhysicalRows()`. `alter` never creates a
     // row past `maxRows`, so an append that stays within the cap must land the summary on the new
