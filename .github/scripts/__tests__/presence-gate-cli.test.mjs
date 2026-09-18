@@ -43,6 +43,10 @@ const GIT_ENV = (() => {
 const SOURCE = 'handsontable/src/tableView.ts';
 const PAGE_OBJECT = 'tests/fixtures/pages/GridPage.ts';
 const SPEC = 'tests/e2e/overlays.spec.ts';
+// A capture spec: coverage to the gate through the `.spec.ts` rule, and the only
+// kind the visual-only-coverage advisory is about. Added by the head commit when
+// a scenario passes `visualSpec`, so the repository never holds it at the base.
+const VISUAL_SPEC = 'visual-tests/tests/js-only/overlays.spec.ts';
 const DOC = 'docs/content/guides/rtl.md';
 const RTL_SOURCE_LINE = '  if (this.hot.isRtl()) { offset = -offset; }\n';
 
@@ -76,8 +80,12 @@ function write(root, file, content, { append = false } = {}) {
  * Build a repository with a base commit holding a source file, a page object,
  * a Playwright spec, and a docs page, then a head commit that adds RTL logic
  * to the source plus whatever the scenario appends to the other files.
+ * `visualSpec` is different in kind: it is the content of a NEW file under
+ * `visual-tests/tests/`, absent at the base, so the head commit ADDS it — the
+ * `--name-status` shape the visual-only-coverage detector reads.
  *
- * @param {{pageObject?: string, spec?: string, doc?: string, source?: string}} head Lines appended in the head commit.
+ * @param {{pageObject?: string, spec?: string, doc?: string, source?: string, visualSpec?: string}} head Lines
+ *   appended in the head commit (`visualSpec`: the whole new file).
  * @returns {{root: string, base: string}} The repository root and the base SHA.
  */
 function buildRepo(head) {
@@ -100,6 +108,10 @@ function buildRepo(head) {
     if (line !== undefined) {
       write(root, file, line, { append: true });
     }
+  }
+
+  if (head.visualSpec !== undefined) {
+    write(root, VISUAL_SPEC, head.visualSpec);
   }
   write(root, 'pnpm-lock.yaml', 'packages:\n  rtl-polyfill: 1.0.0\n', { append: true });
   git(root, 'add', '.');
@@ -173,4 +185,41 @@ test('a page object change is advisory input, not coverage: the blocking verdict
 
   assert.equal(warnMode.status, 0, 'warn mode reports and exits 0');
   assert.match(warnMode.stdout, /❌ Source changed with no matching test change/);
+});
+
+// A source line with no RTL logic, so the RTL detector stays quiet and the
+// visual-only-coverage advisory is the only one the scenario can print.
+const PLAIN_SOURCE_LINE = '  scrollTo() { this.render(); }\n';
+const VISUAL_SPEC_BODY = 'test(__filename, async({ tablePage }) => {\n'
+  + '  await tablePage.screenshot({ path: helpers.screenshotPath() });\n'
+  + '});\n';
+
+test('a source change covered only by a new visual spec passes the verdict and raises visual-only-coverage, annotation included', () => {
+  // The visual spec is coverage for the verdict (a `.spec.ts`), so block mode
+  // exits 0; the advisory then fires under the green verdict, and in Actions it
+  // is also the `::warning` whose title the month-later tally filters on
+  // (.ai/LOCAL-ENFORCEMENT.md). Pinned end to end because a drifted title
+  // would read as zero firings and decide the question the wrong way.
+  const run = runGate(buildRepo({ source: PLAIN_SOURCE_LINE, visualSpec: VISUAL_SPEC_BODY }), { mode: 'block' });
+
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.match(run.stdout, /✅ Pass\./);
+  assert.match(run.stdout, /⚠️ \*\*visual-only-coverage\*\*/);
+  assert.ok(run.stdout.includes(`- \`${SOURCE}\``), 'the report names the source file');
+  assert.ok(run.stdout.includes(`- \`${VISUAL_SPEC} (A)\``), 'the report names the spec with its git status');
+  assert.match(run.stderr, /^::warning title=Test-presence gate \(visual-only-coverage\)::/m);
+  assert.doesNotMatch(run.stdout, /rtl-correlation|walkontable-routing|frozen-suite-growth/,
+    'the other detectors stay quiet');
+  assert.doesNotMatch(run.stdout, /Advisory warnings skipped/, 'the visual spec reads cleanly through the pathspec');
+
+  // The same change with the tests/e2e spec edited too: the visual spec is no
+  // longer the only coverage, so the advisory — and its annotation — stay silent.
+  const paired = runGate(buildRepo({ source: PLAIN_SOURCE_LINE, visualSpec: VISUAL_SPEC_BODY, spec: SPEC_LINE }), {
+    mode: 'block',
+  });
+
+  assert.equal(paired.status, 0);
+  assert.match(paired.stdout, /✅ Pass\./);
+  assert.doesNotMatch(paired.stdout, /visual-only-coverage/, `a tests/e2e change pairs it:\n${paired.stdout}`);
+  assert.doesNotMatch(paired.stderr, /visual-only-coverage/, 'no annotation either');
 });

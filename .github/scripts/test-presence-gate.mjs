@@ -20,9 +20,13 @@
  * The verdict is printed as GitHub-flavored Markdown so a workflow step can post
  * it as a sticky PR comment. Below the verdict the CLI prints ADVISORY warnings
  * (lib/presence-warnings.mjs): frozen-suite growth, the empty red-spec field,
- * RTL correlation, Walkontable routing. They never touch the exit code, in
- * either mode. In GitHub Actions each is also emitted as a `::warning`
- * annotation — on stderr, so the Markdown piped to the step summary stays clean.
+ * RTL correlation, Walkontable routing, visual-only coverage. They never touch
+ * the exit code, in either mode. In GitHub Actions each is also emitted as a
+ * `::warning` annotation — on stderr, so the Markdown piped to the step summary
+ * stays clean. The annotation title, `Test-presence gate (<type>)`, is what the
+ * month-later tally of `visual-only-coverage` filters on (the advisory
+ * paragraph in .ai/LOCAL-ENFORCEMENT.md), so it is pinned end to end by
+ * presence-gate-cli.test.mjs — do not reword it.
  */
 import { execSync, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';

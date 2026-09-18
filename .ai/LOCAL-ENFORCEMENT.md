@@ -129,13 +129,61 @@ logic and no test-side line mentions RTL — a test file, or any file under
 `tests/**` through `isAdvisoryPath()`, because the gate's own classifier calls
 those files `neither` and would otherwise drop them before the detector ran —
 `presence-gate-cli.test.mjs` runs the CLI against a throwaway repository to
-pin that plumbing), and **Walkontable routing**
+pin that plumbing), **Walkontable routing**
 (engine source changed with nothing
-under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
+under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`),
+and **visual-only coverage** (a source file changed and every change the gate
+counts as coverage is a spec under `visual-tests/` — added, modified, or
+renamed; a deleted spec counts on neither side, and the check is silent when
+there is no coverage at all, because the verdict already says
+`missing-coverage`. A screenshot proves pixels, not behavior: the rule is
+`visual-tests/AGENTS.md` → Decision rule, and the remedy is the `tests/e2e/`
+or unit assertion that would fail if the behavior broke, with the visual spec
+kept for what only pixels can show. It reads the `--name-status` list, never
+the diff, so `isAdvisoryPath()` is untouched).
 In CI each one is also a `::warning` annotation. A new detector is a pure
 function in that lib plus a `node --test` case in
 `.github/scripts/__tests__/presence-warnings.test.mjs`; a gap in the input (no
 body, no diff) must be silence, never a finding.
+
+**The visual-only-coverage advisory is a one-month measurement, and its
+decision is written down here in advance.** The gate counts a visual spec as
+coverage on its own — `COVERAGE_ANY_STATUS` in
+`.github/scripts/lib/presence-gate.mjs`, pinned by `presence-gate.test.mjs`
+(the `visual-tests/…/menu.spec.ts` → `test` classification, and the
+modified-visual-spec change set that passes as test-only). Measured before the
+detector shipped: over 1244 first-parent commits since 2026-03-01 it would have
+fired once (#12086) and never since the gate landed on 2026-07-22, so a count
+alone decides nothing and the rule is fixed now. **One month after the detector
+merges: if any pull request merged with the annotation still standing on its
+final SHA, narrow `COVERAGE_ANY_STATUS` so a spec under `visual-tests/` no
+longer counts alone** — a verdict change: `evaluate()` gains a reason, and
+those two pins flip. **A month of zero means keep counting.** The step summary
+has no API and the presence job posts no comment, so the check-run annotation
+is the one countable channel, and its title is the aggregation key. The tally,
+over the pull requests merged since the detector's merge date (raise `--limit`
+if the month had more):
+
+```sh
+gh pr list --repo handsontable/handsontable --state merged --base develop --limit 200 \
+  --search 'merged:>=YYYY-MM-DD' --json number,headRefOid --jq '.[] | "\(.number) \(.headRefOid)"' |
+while read -r pr sha; do
+  for run in $(gh api "repos/handsontable/handsontable/commits/$sha/check-runs?per_page=100" \
+      --jq '.check_runs[] | select(.name == "Checks / test presence") | .id'); do
+    gh api "repos/handsontable/handsontable/check-runs/$run/annotations" \
+      --jq ".[] | select(.title == \"Test-presence gate (visual-only-coverage)\") | \"$pr\""
+  done
+done | sort -u
+```
+
+It lists the pull requests that merged with the warning still standing on
+their final push, and it must be read exactly that way: an author who added
+the unit test after the warning fired leaves no annotation on the final SHA,
+which is the warning doing its job, and the earlier firing lives only in that
+push's own check run. The check run is named `Checks / test presence` (the job
+is called through `test.yml`), not `test presence`, and check runs hang off the
+pull request's head SHA — the squash commit on `develop` carries none.
+
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
