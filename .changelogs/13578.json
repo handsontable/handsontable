@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the \"Hide rows\" and \"Hide columns\" context menu options appearing when all rows or columns were already hidden.",
+  "type": "fixed",
+  "issueOrPR": 13578,
+  "breaking": false,
+  "framework": "none"
+}
