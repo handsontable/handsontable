@@ -34,6 +34,7 @@ vue:
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
 |[HiddenColumns](@/api/hiddenColumns.md) | Hide specific columns. |
 |[HiddenRows](@/api/hiddenRows.md) | Hide specific rows.|
+|[ImportFile](@/api/importFile.md) | Load an Excel (`.xlsx`) workbook into the data grid, with cell types, dropdown sources, formulas, and layout derived from the file.|
 |[ManualColumnFreeze](@/api/manualColumnFreeze.md) | Pin the columns to the left to keep them visible while scrolling.|
 |[ManualColumnMove](@/api/manualColumnMove.md) | Drag a column to change its order in the data grid.|
 |[ManualColumnResize](@/api/manualColumnResize.md) | Drag the sizing handle to change the width of a column.|

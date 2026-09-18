@@ -318,6 +318,32 @@ describe('exportFile XLSX type — cell styling', () => {
       expect(ws.getRow(1).getCell(1).font).toEqual(jasmine.objectContaining({ bold: true }));
     });
 
+    it('should not export a font color when a CSS class sets only font weight', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-bold-no-color { font-weight: bold; }';
+      document.head.appendChild(style);
+
+      handsontable({
+        data: [['Bold text']],
+        cell: [{ row: 0, col: 0, className: 'test-bold-no-color' }],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx();
+
+      document.head.removeChild(style);
+
+      const { font } = ws.getRow(1).getCell(1);
+
+      // `getCssStyleFromElement` baseline-compares font color against an alignment-only probe, the
+      // same way it always has for background color. Reading `style.color` straight off the rendered
+      // element instead reports the cell's ambient (inherited) text color for ANY non-alignment
+      // class, so a bold-only class used to carry a `color` into the file and back out of an import.
+      expect(font.bold).toBe(true);
+      expect(font.color).toBeUndefined();
+    });
+
     it('should export italic font from a CSS class', async() => {
       const style = document.createElement('style');
 

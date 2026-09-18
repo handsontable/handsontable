@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
+import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
@@ -35,6 +36,16 @@ import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 interface IEWindow extends Window {
   clipboardData: DataTransfer;
 }
+
+/**
+ * `HotInstance` augmented with the internal `_getCopyableData` method. It exists on the Core runtime
+ * object but is intentionally NOT part of the public `HotInstance` type, so it is not exposed to
+ * third-party code. CopyPaste reads cell values through it to keep the copy hooks and the clipboard
+ * text working with the stored values.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getCopyableData(row: number, column: number): unknown;
+};
 
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
@@ -521,10 +532,13 @@ export class CopyPaste extends BasePlugin {
           rowSet.push(this.hot.getColHeader(column, row));
 
         } else {
+          // The raw value, not `getCopyableData()`'s string: the copy and cut hooks hand consumers
+          // the values as they are stored, and `SheetClip.stringify()` reads an object through
+          // `valueOf()`, which `getCopyableData()` does not.
           let copyableCellData =
             useSourceData ?
               this.hot.getCopyableSourceData(row, column) :
-              this.hot.getCopyableData(row, column);
+              (this.hot as HotInstanceInternal)._getCopyableData(row, column);
 
           if (useSourceData &&
             (isObject(copyableCellData) || Array.isArray(copyableCellData))

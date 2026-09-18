@@ -2127,6 +2127,10 @@ export default (): Record<string, unknown> => {
      * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
      * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * The optional **`refetchAfterCreate`** key (default `true`) controls whether a successful **`onRowsCreate`** is followed by a
+     * `fetchRows` refetch of the current query. Set it to `false` when your `onRowsCreate` applies the server response to the
+     * grid itself, for example to keep a new row on the current page while the grid is sorted. With **`pagination`** enabled,
+     * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -2160,6 +2164,8 @@ export default (): Record<string, unknown> => {
      *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
      *   onRowsUpdate: async (rows) => { ... },
      *   onRowsRemove: async (rowIds) => { ... },
+     *   // Optional: set to `false` to skip the automatic refetch after a successful create (default `true`).
+     *   // refetchAfterCreate: false,
      * },
      * ```
      */
@@ -3150,6 +3156,48 @@ export default (): Record<string, unknown> => {
      * ```
      */
     exportFile: undefined,
+
+    /**
+     * The `importFile` option configures the [`ImportFile`](@/api/importFile.md) plugin.
+     *
+     * You can set the `importFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `true`      | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `false`     | Disable the [`ImportFile`](@/api/importFile.md) plugin                                     |
+     * | An object   | Enable the [`ImportFile`](@/api/importFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `importFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     *
+     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     *
+     * Read more:
+     * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [Plugins: `ImportFile`](@/api/importFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 19.0.0
+     * @category ImportFile
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * importFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    importFile: undefined,
 
     /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
