@@ -220,6 +220,22 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.getSelectedLast()).toEqual([1, 0, 2, 1]);
     });
 
+    it('should not scroll the window when it moves the selection', () => {
+      createGrid({ data: [['A1', 'B1']], minRows: 5 });
+
+      hot.selectCell(4, 1);
+
+      // jsdom has no `window.scrollTo`, and with no `height` set the window owns the grid's vertical scroll.
+      const scrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
+
+      hot.updateSettings({ minRows: 2 });
+
+      expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+      expect(scrollTo).not.toHaveBeenCalled();
+
+      scrollTo.mockRestore();
+    });
+
     it('should not touch a selection above the removed rows', () => {
       const afterSelection = jasmine.createSpy('afterSelection');
 

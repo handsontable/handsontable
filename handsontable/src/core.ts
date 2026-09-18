@@ -1324,8 +1324,17 @@ export default function Core(
         return ((axis === 'row' ? bottomEnd.row : bottomEnd.col) ?? -1) >= index;
       });
 
+    // Marked `shift`, the source `alter()`'s removals re-lay the selection with: a settings update must not
+    // scroll the viewport to the clamped selection. Ended in `finally`, because `refresh()` clears the source on
+    // its normal path only, and a source stuck at `shift` would stop every later selection from scrolling.
     if (reachesRemovedPart) {
-      selection.refresh();
+      selection.markSource('shift');
+
+      try {
+        selection.refresh();
+      } finally {
+        selection.markEndSource();
+      }
     }
   };
 
