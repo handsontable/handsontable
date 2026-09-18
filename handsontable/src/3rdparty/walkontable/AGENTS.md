@@ -41,10 +41,18 @@ hides the whole transient selection overlay set on print (`.wtBorder.current`/`.
 every `SelectionHandle` element, `.wtMoveZone`, the `td.area::before` fill) and resets the `td.area`
 border color to the unselected cell colors.
 
-It is scoped to the SELECTION classes **on purpose**: a custom border renders through the same
-`.wtBorder` element (`createBorders`, `settings.selectionType === CUSTOM_SELECTION_TYPE`) but carries
-the custom-border `className` — never `current`/`area`/`fill` — so it is left alone and still prints.
-Never widen the rule to a bare `.wtBorder`; that would hide user-configured borders on paper. Pinned
+Never widen the rule to a bare `.wtBorder`; that would hide user-configured borders on paper. The
+four EDGE classes (`current`/`area`/`fill`) are genuinely selection-scoped: a custom border renders
+through the same `.wtBorder` element (`createBorders`, `settings.selectionType ===
+CUSTOM_SELECTION_TYPE`) but never carries those classes. **`.corner` is the exception** — `createBorders`
+appends `corner` to the fifth div of EVERY Border, custom included, so `.wtBorder.corner` in the print
+rule DOES match a custom border's corner. That is safe not because of class scoping but because a
+custom border never enables `cornerVisible`, so `border.ts` has already forced its corner to
+`display: none`. Do not "tighten" the rule on the assumption `.corner` is selection-only.
+
+Header selection accents (`.ht__active_highlight`, the `-row-seam-*` colors) are deliberately out of
+scope: they are the active row/column header's own `border-*-color`, a colored accent rather than a
+broken box, so they print harmlessly and the HIDE decision was about the cell selection only. Pinned
 by `tests/e2e/print-selection.spec.ts` (fill handle hidden on print, custom border still visible).
 
 ## Custom border `width: 0` is a real value (DEV-1137)

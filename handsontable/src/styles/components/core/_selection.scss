@@ -242,9 +242,13 @@
     // handle - `.wtBorder.corner`, which carries an inline `border` (border.ts) plus a
     // `background-color` - prints as an empty bordered square ("pit"), while the background-only
     // outline divs (`.current`/`.area`/`.fill`) vanish. Hiding the whole selection overlay set
-    // removes the mismatch. Scoped to the SELECTION classes only: custom borders render through the
-    // same `.wtBorder` element with different classes (see `createBorders` / CUSTOM_SELECTION_TYPE
-    // in border.ts) and must still appear on a printout, so a bare `.wtBorder` rule is forbidden.
+    // removes the mismatch. Custom borders must still appear on a printout, so never use a bare
+    // `.wtBorder` rule. The four EDGE classes below are selection-scoped (a custom border renders
+    // through the same `.wtBorder` element but with a different class - see `createBorders` /
+    // CUSTOM_SELECTION_TYPE in border.ts - never `current`/`area`/`fill`). `.corner` is NOT
+    // class-scoped: `createBorders` appends `corner` to the fifth div of EVERY Border, custom
+    // included; hiding it is safe only because a custom border never enables `cornerVisible`, so its
+    // corner is already `display: none`.
     @media print {
       .wtBorder.current,
       .wtBorder.area,
