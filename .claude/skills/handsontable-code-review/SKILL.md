@@ -14,7 +14,7 @@ Review staged or changed code across four dimensions: architecture, code quality
    - **Architecture** — `references/architecture.md`: SOLID, Law of Demeter, plugin decoupling, conflict ownership, coordinate-system correctness, breaking-changes policy, convention over configuration. Also the design lens while implementing any core change, not only at review time.
    - **Code quality** — `references/code-quality.md`: custom ESLint rules, JSDoc, naming, cognitive complexity, DRY, the TypeScript boundary.
    - **Performance & accessibility** — `references/performance-a11y.md`: large-array safety, render batching, memory cleanup, WCAG 2.1 AA, keyboard navigation, ARIA semantics.
-   - **Tests** — `references/tests.md`: a named exercising test for every new interaction path and option form, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened or deleted assertion.
+   - **Tests** — `references/tests.md`: a named exercising test for every new interaction path and option form, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened or deleted assertion, a DOM/API assertion beside every visual capture.
 3. Report using the output format below, applying the general review practices.
 
 ## General review practices
