@@ -127,6 +127,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
+  importFile: { engines: { xlsx: {} } },
   fillHandle: true,
   filter: true,
   filteringCaseSensitive: true,
@@ -480,6 +481,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterImport: (result, format) => {},
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -705,6 +707,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return 10;
   },
+  beforeImport: (result, format) => {},
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},

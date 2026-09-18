@@ -3158,6 +3158,48 @@ export default (): Record<string, unknown> => {
     exportFile: undefined,
 
     /**
+     * The `importFile` option configures the [`ImportFile`](@/api/importFile.md) plugin.
+     *
+     * You can set the `importFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `true`      | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `false`     | Disable the [`ImportFile`](@/api/importFile.md) plugin                                     |
+     * | An object   | Enable the [`ImportFile`](@/api/importFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `importFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     *
+     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     *
+     * Read more:
+     * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [Plugins: `ImportFile`](@/api/importFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 19.0.0
+     * @category ImportFile
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * importFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    importFile: undefined,
+
+    /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
      *
      * You can set the `fillHandle` option to one the following:
