@@ -149,7 +149,7 @@ Called when you insert rows (for example from the context menu). Payload shape:
 - `referenceRowId`: anchor row id when inserting next to a row (from `rowId`); may be `undefined` when there is no anchor (for example some programmatic inserts).
 - `rowsAmount`: how many rows to create in one request.
 
-Your API should create the rows and return a promise. Handsontable refetches the current query after success.
+Your API should create the rows and return a promise. By default, Handsontable refetches the current query after success. Set `refetchAfterCreate: false` to skip the refetch and apply the server response yourself; see [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate).
 
 Create, update, and remove requests are **serialized**: if you trigger another mutation before the previous one finishes, work runs in order so your backend sees a single stream of operations.
 
@@ -174,7 +174,7 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 ### Mutation hooks
 
 - [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) — `(operation, payload)`; return `false` to cancel. For **create** and **remove**, the server callback is not invoked and there is no refetch. For **update** from the grid, `false` reverts optimistic cell values and skips `onRowsUpdate`; cell validators run only when the hook allows the mutation to continue.
-- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch.
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch (for `create`, the refetch is skipped when `refetchAfterCreate` is `false`).
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) — runs when the mutation callback throws or rejects, when validation fails before the request, or when the refetch after a successful update fails.
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).

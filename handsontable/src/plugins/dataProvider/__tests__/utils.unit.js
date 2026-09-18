@@ -27,6 +27,22 @@ describe('dataProvider utils', () => {
       expect(isCompleteDataProviderConfig(c)).toBe(true);
       expect(isCompleteDataProviderConfig({ ...c, rowId: () => 'x' })).toBe(true);
     });
+
+    it('should ignore optional keys such as `refetchAfterCreate` when deciding completeness', () => {
+      const noop = () => {};
+      const c = {
+        rowId: 'id',
+        fetchRows: noop,
+        onRowsCreate: noop,
+        onRowsUpdate: noop,
+        onRowsRemove: noop,
+      };
+
+      expect(isCompleteDataProviderConfig({ ...c, refetchAfterCreate: false })).toBe(true);
+      expect(isCompleteDataProviderConfig({ ...c, refetchAfterCreate: true })).toBe(true);
+      // A wrong type on an optional key is the base plugin's job to warn about, not a completeness failure.
+      expect(isCompleteDataProviderConfig({ ...c, refetchAfterCreate: 'yes' })).toBe(true);
+    });
   });
 
   describe('getDataProviderRequestErrorDescription', () => {
