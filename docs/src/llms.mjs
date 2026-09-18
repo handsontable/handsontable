@@ -18,7 +18,9 @@ import { FRAMEWORK_PREFIXES } from './sidebar.mjs';
 // constant. (Some Astro components still inline the origin because they
 // cannot import this module -- see the prerender-bundle note in
 // astro.config.mjs.)
-export const SITE_URL = 'https://handsontable.com';
+import { SITE_URL } from './agent-note.mjs';
+
+export { SITE_URL };
 
 export const CANONICAL_PREFIX = FRAMEWORK_PREFIXES.javascript;
 
