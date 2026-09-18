@@ -49,7 +49,7 @@ test.describe('xlsx import (ExcelJS)', () => {
 
     expect(await grids.targetCellMeta(0, 1)).toEqual(expect.objectContaining({ type: 'numeric' }));
     // `dateFormat` is Intl.DateTimeFormatOptions, not a pattern string. The export writes the
-    // source column's own options as `mm-dd-yyyy` and the import inverts that pattern back, so the
+    // source column's own options as `mm/dd/yyyy` and the import inverts that pattern back, so the
     // target grid ends up with the options the source was configured with.
     expect(await grids.targetCellMeta(0, 2)).toEqual(expect.objectContaining({
       type: 'date',

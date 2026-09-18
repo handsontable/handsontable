@@ -222,8 +222,9 @@ describe('exportFile XLSX type — cell types', () => {
       const ws = await parseXlsx();
 
       // A four-digit year is `yyyy`, not `yy`: the import inverts the pattern back into these same
-      // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year.
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm-dd-yyyy');
+      // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year. The order and the
+      // separator follow the cell's `locale`, `en-US` by default, so Excel shows what the grid showed.
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm/dd/yyyy');
     });
 
     it('should export an `intl-date` type cell as an Excel date', async() => {
