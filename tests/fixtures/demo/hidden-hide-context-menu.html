@@ -54,6 +54,11 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    // Stamp the row/column header cells so the spec can right-click a specific header - the
+    // non-corner path through each Hide item's `hidden()`.
+    const stampRowHeader = (row, TH) => TH.setAttribute('data-testid', `rowheader-${row}`);
+    const stampColHeader = (col, TH) => TH.setAttribute('data-testid', `colheader-${col}`);
+
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it,
     // so a broken build reads as its own error instead of a cell that never appeared.
@@ -67,6 +72,8 @@
         width: 700,
         height: 400,
         contextMenu: true,
+        afterGetRowHeader: stampRowHeader,
+        afterGetColHeader: stampColHeader,
         hiddenRows: true,
         hiddenColumns: true,
         // Enabled so the spec can drive the "every row gone but NOTHING hidden by the HiddenRows

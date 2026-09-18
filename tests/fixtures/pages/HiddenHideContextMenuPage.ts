@@ -88,6 +88,30 @@ export class HiddenHideContextMenuPage {
   }
 
   /**
+   * Right-click a row header — the non-corner `isSelectedByRowHeader()` path. The header is picked
+   * by visual row, so it must be a currently visible (rendered) row.
+   *
+   * @param {number} row Visual row index whose header to right-click.
+   */
+  async openRowHeaderMenu(row: number): Promise<void> {
+    // The header cell is stamped on both the master table and the frozen clone; the visible one is
+    // in the inline-start overlay, so scope there rather than picking the hidden master copy.
+    await this.grid.locator('.ht_clone_inline_start').getByTestId(`rowheader-${row}`).click({ button: 'right' });
+    await expect(this.menu).toBeVisible();
+  }
+
+  /**
+   * Right-click a column header — the non-corner `isSelectedByColumnHeader()` path.
+   *
+   * @param {number} col Visual column index whose header to right-click.
+   */
+  async openColumnHeaderMenu(col: number): Promise<void> {
+    // The visible column header lives in the top overlay clone, not the master table.
+    await this.grid.locator('.ht_clone_top').getByTestId(`colheader-${col}`).click({ button: 'right' });
+    await expect(this.menu).toBeVisible();
+  }
+
+  /**
    * How many non-separator menu entries match the given text (case-insensitive substring). "Hide
    * row" also matches "Hide rows"; "Hide column" matches "Hide columns"; neither matches the Show
    * items. Read once the menu is open.

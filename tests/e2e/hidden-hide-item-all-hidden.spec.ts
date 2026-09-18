@@ -51,6 +51,16 @@ test.describe('Hide rows / Hide columns context-menu item on a corner select-all
 
       expect(await menu.matchingItemCount('hide row')).toBe(1);
     });
+
+    // The non-corner path: a plain row-header selection (isSelectedByRowHeader), with some rows
+    // hidden and the selected one still visible. The all-hidden case is unreachable this way - a
+    // hidden row has no header to right-click - so the corner tests above own that state.
+    test('still appears on a row-header selection with some rows hidden', async () => {
+      await menu.hideRows([0, 1]);
+      await menu.openRowHeaderMenu(2);
+
+      expect(await menu.matchingItemCount('hide row')).toBe(1);
+    });
   });
 
   test.describe('Hide columns', () => {
@@ -74,6 +84,13 @@ test.describe('Hide rows / Hide columns context-menu item on a corner select-all
       expect(await menu.matchingItemCount('hide column')).toBe(1);
     });
 
+    // The non-corner path: a plain column-header selection (isSelectedByColumnHeader).
+    test('still appears on a column-header selection with some columns hidden', async () => {
+      await menu.hideColumns([0, 1]);
+      await menu.openColumnHeaderMenu(2);
+
+      expect(await menu.matchingItemCount('hide column')).toBe(1);
+    });
   });
 
   // An empty grid has 0 renderable rows AND 0 renderable columns, yet neither plugin has hidden
