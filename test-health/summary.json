@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T12:11:36.136Z",
+  "generatedAt": "2026-09-18T12:37:11.114Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -855,7 +855,7 @@
       "file": "e2e/walkontable/exact-row-heights.spec.ts",
       "line": 80,
       "title": "walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
