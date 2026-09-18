@@ -83,6 +83,26 @@ export class HandsontableEditor extends TextEditor {
   #scrollFollowBound = false;
 
   /**
+   * The height the list wants, measured once per `open()` before anything caps it.
+   *
+   * `getTargetDropdownHeight()` measures the RENDERED sub-grid, so once {@link
+   * HandsontableEditor#limitDropdownIfNeeded} has shrunk the list the wanted height can no longer
+   * be read back from the DOM - the same circular read that let a trimmed list freeze at its edge
+   * size. Kept per open rather than for the editor's life: the choices and the theme can both
+   * change in between.
+   */
+  #wantedDropdownHeight = 0;
+
+  /**
+   * The height last written to the sub-grid, so a scroll that changes nothing writes nothing.
+   *
+   * Compared against the value this editor WROTE, never against `getDropdownHeight()`: that reads
+   * `offsetHeight`, which comes back a pixel or two off the height that was set, so a gate on it
+   * would never match and every scroll event would pay a sub-grid render.
+   */
+  #appliedDropdownHeight = 0;
+
+  /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
    * alone.
    *
@@ -139,9 +159,15 @@ export class HandsontableEditor extends TextEditor {
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
+    // Read BEFORE the write, while the sub-grid still sits at its natural size. A cap from a
+    // previous open does not survive into this one (measured: the reading comes back uncapped),
+    // so this is the list's true wanted height.
+    this.#wantedDropdownHeight = this.getTargetDropdownHeight();
+    this.#appliedDropdownHeight = this.#wantedDropdownHeight;
+
     this.htEditor.updateSettings({
       width: this.getTargetDropdownWidth(),
-      height: this.getTargetDropdownHeight(),
+      height: this.#wantedDropdownHeight,
     });
 
     // `refreshDimensions()` places the holder and then repositions the list through
@@ -419,11 +445,61 @@ export class HandsontableEditor extends TextEditor {
       this.unflipDropdownVertically();
     }
 
+    this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow);
+
     return {
       isFlipped: flipNeeded,
       spaceAbove,
       spaceBelow,
     };
+  }
+
+  /**
+   * Caps the list at the free space on the side the flip just chose.
+   *
+   * A `fixed` box adds no scrollable overflow, so whatever hangs past the containing block cannot
+   * be reached by scrolling the page - and the sub-grid's own holder only scrolls WITHIN the
+   * height the list is given. An uncapped list therefore keeps its last rows permanently off
+   * screen: measured at 19 of 20 options reachable in a 400px viewport, against 20 of 20 before
+   * the list became `fixed`, where the overhang still added to the page's own scroll height.
+   *
+   * Capping to the free space rather than to the whole containing block keeps the edited cell
+   * visible, which is what the `absolute` rules did.
+   *
+   * {@link AutocompleteEditor} overrides this to trim to whole rows against the choices it holds.
+   *
+   * @param {number} spaceAvailable The free space in px on the side the list is placed.
+   */
+  limitDropdownIfNeeded(spaceAvailable: number): void {
+    // Never collapse to a sliver that hides every choice - the flexbox-squeezed grids of #8872.
+    // One row is the same floor `AutocompleteEditor` and the MultiSelect controller keep.
+    const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
+    const height = Math.max(Math.min(this.#wantedDropdownHeight, spaceAvailable), rowHeight || 1);
+
+    if (height === this.#appliedDropdownHeight) {
+      return;
+    }
+
+    this.#appliedDropdownHeight = height;
+    this.htEditor.updateSettings({ height });
+    this.replaceDropdownVertically();
+  }
+
+  /**
+   * Re-applies the vertical flip the list already has, after its height changed.
+   *
+   * Both writers resolve `top` against the containing block and clamp it to that box, and both
+   * need the NEW height to do it - which is why a changed height cannot be answered by editing
+   * `style.top` by hand.
+   *
+   * @private
+   */
+  replaceDropdownVertically(): void {
+    if (this.isFlippedVertically) {
+      this.flipDropdownVertically();
+    } else {
+      this.unflipDropdownVertically();
+    }
   }
 
   /**

@@ -840,12 +840,20 @@ What changed in detail:
   puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
   specific area, size that area rather than the grid.
 - One ancestor property changes where the list is anchored, and the grid reads it for you. An
-  element with a `transform`, `perspective`, `filter`, `backdrop-filter`, a `will-change` naming
-  one of those, `contain: paint`, or a `container-type` becomes the box the list is laid out in,
-  instead of the browser window. A centred modal written `transform: translate(-50%, -50%)` is the
-  common case. The list is placed and bounded against that element, so it cannot leave it, and a
-  list taller than the modal is trimmed to fit and scrolls. Give such a container room if you want
-  the whole list visible.
+  element with any of these becomes the box the list is laid out in, instead of the browser
+  window:
+
+  - `transform`, `translate`, `rotate`, or `scale`
+  - `perspective`
+  - `filter` or `backdrop-filter`
+  - `contain` set to `paint`, `layout`, `strict`, or `content`
+  - `container-type`
+  - `will-change` naming any of the above, or naming `contain`
+
+  A centered modal written `transform: translate(-50%, -50%)` is the common case, but `scale: 0.9`
+  and `contain: content` do it too. The list is placed and bounded against that element, so it
+  cannot leave it, and a list taller than it is trimmed to fit and scrolls. Give such a container
+  room if you want the whole list visible.
 - Whether the list opens above or below the cell is decided by the space left in the **viewport**,
   not the space left inside the grid. A list that used to flip above the cell to fit inside a short
   grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is

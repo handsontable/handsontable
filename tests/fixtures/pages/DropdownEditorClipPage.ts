@@ -133,6 +133,72 @@ export class DropdownEditorClipPage {
   }
 
   /**
+   * How many DISTINCT options the user can reach, counted across the list's own scrollbar.
+   *
+   * A list longer than its box is meant to scroll, so hit-testing once at rest under-counts it.
+   * What must never happen is an option that NO scroll position reaches - and that is exactly
+   * what a `fixed` list taller than its containing block produces: the part hanging past the
+   * block is off screen, a fixed box adds nothing to the page's own scroll height, and the
+   * list's holder only scrolls within the height the list was given.
+   *
+   * Steps the holder by half its height and settles two frames between steps, because the
+   * sub-grid renders its rows on the scroll event rather than on the assignment.
+   */
+  async reachableAcrossListScroll(): Promise<number> {
+    return this.page.evaluate(async () => {
+      const list = document.querySelector('.ht-multi-select-editor')
+        ?? document.querySelector('.handsontableEditor');
+
+      if (!list) {
+        return 0;
+      }
+
+      const seen = new Set<string>();
+      const settle = () => new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+      const collect = () => {
+        list.querySelectorAll('.ht_master tbody td, li').forEach((option) => {
+          const r = option.getBoundingClientRect();
+
+          if (r.width === 0 || r.height === 0) {
+            return;
+          }
+
+          const hit = document.elementFromPoint(r.left + (r.width / 2), r.top + (r.height / 2));
+
+          if (hit && list.contains(hit)) {
+            seen.add(option.textContent ?? '');
+          }
+        });
+      };
+      const holder = list.querySelector('.wtHolder');
+
+      if (!holder) {
+        collect();
+
+        return seen.size;
+      }
+
+      holder.scrollTop = 0;
+      await settle();
+
+      // Ends when the holder stops moving, so it works whatever the list's height is. The guard
+      // only bounds a holder that never settles.
+      for (let guard = 0, previous = -1; holder.scrollTop !== previous && guard < 200; guard += 1) {
+        previous = holder.scrollTop;
+        collect();
+        holder.scrollTop += Math.max(Math.round(holder.clientHeight / 2), 1);
+        await settle();
+      }
+
+      collect();
+
+      return seen.size;
+    });
+  }
+
+  /**
    * The list, the edited cell, the grid root, and the fixture's parent container, in viewport
    * coordinates.
    */

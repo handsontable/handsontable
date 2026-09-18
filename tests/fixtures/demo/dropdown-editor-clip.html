@@ -13,17 +13,26 @@
     // typo in the project config must be one red leg, never a silently
     // mislabeled green one (nothing else asserts which file actually loaded).
     const htParams = new URLSearchParams(location.search);
+    // `Object.hasOwn`, not a plain lookup: `?theme=constructor` (or `toString`, `__proto__`)
+    // resolves through Object.prototype, comes back truthy, and walks straight past the throw
+    // below into `document.write`. No quote character is reachable that way, so nothing escapes
+    // the attribute - but the allowlist would not be an allowlist.
+    const pick = function(map, value, name) {
+      const key = value ?? Object.keys(map)[0];
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
-    if (!window.htTheme) {
-      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
-    }
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + name + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = pick({ main: 'main', horizon: 'horizon', classic: 'classic' },
+      htParams.get('theme'), 'theme');
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
-    if (!window.htBundle) {
-      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
-    }
+    window.htBundle = pick({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' },
+      htParams.get('bundle'), 'bundle');
   </script>
   <style>
     body { font-family: sans-serif; margin: 0; }
@@ -120,17 +129,26 @@
 
       const editorType = overrides.editorType ?? 'dropdown';
       const rows = overrides.rows ?? 3;
+      const options = overrides.options ?? window.htDropdownOptions;
       const settings = { ...overrides };
 
       delete settings.editorType;
       delete settings.rows;
+      delete settings.options;
+
+      // The plain `handsontable` type takes a whole sub-grid rather than a `source` array, and
+      // it is the one type with no trim of its own - so it is what a "the list stays reachable"
+      // case has to drive.
+      const editorColumn = editorType === 'handsontable'
+        ? { type: 'handsontable', handsontable: { data: options.map(o => [o]), colHeaders: false } }
+        : { type: editorType, source: options };
 
       window.hot = new Handsontable(grid, {
         data: Array.from({ length: rows }, (_, r) => [`R${r + 1}`, '']),
         colHeaders: ['Name', 'Choice'],
         colWidths: [90, 110],
         renderer: testIdRenderer,
-        columns: [{}, { type: editorType, source: window.htDropdownOptions }],
+        columns: [{}, editorColumn],
         licenseKey: 'non-commercial-and-evaluation',
         ...settings,
       });

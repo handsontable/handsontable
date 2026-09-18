@@ -705,25 +705,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Calculates the space above and below the editor and flips it vertically if needed.
-   *
-   * @private
-   * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
-   */
-  flipDropdownVerticallyIfNeeded(): { isFlipped: boolean, spaceAbove: number, spaceBelow: number } {
-    const result = super.flipDropdownVerticallyIfNeeded();
-    const {
-      isFlipped,
-      spaceAbove,
-      spaceBelow,
-    } = result;
-
-    this.limitDropdownIfNeeded(isFlipped ? spaceAbove : spaceBelow);
-
-    return result;
-  }
-
-  /**
    * Checks if the internal table should generate scrollbar or could be rendered without it.
    *
    * @private
@@ -771,28 +752,21 @@ export class AutocompleteEditor extends HandsontableEditor {
       this.setDropdownHeight(height);
 
       // Re-place the list now that it is shorter. This used to add the freed height to
-      // `style.top` by hand, for the flipped case only; it goes back through the flip writers
-      // instead, because they resolve the coordinate against the list's containing block and
-      // clamp it to that box - both of which need the NEW height, and neither of which a
-      // hand-edited `top` can express. Reading the flag rather than re-deciding: the caller has
-      // just decided the flip from the untrimmed height, and re-deciding here on the trimmed one
-      // could disagree with the space figure it passed in.
-      if (this.isFlippedVertically) {
-        this.flipDropdownVertically();
-      } else {
-        this.unflipDropdownVertically();
-      }
+      // `style.top` by hand, for the flipped case only. Re-applying the flip rather than
+      // re-deciding it: re-deciding here would use the height just written, which could disagree
+      // with the space figure the caller passed in.
+      //
+      // Note the caller decides the flip from `getDropdownHeight()` - the height the list HAS,
+      // which after a trim is the trimmed one, not the height it wants. So a trimmed list decides
+      // its flip up to one row of scroll later than an untrimmed one would. Harmless (the flip
+      // still happens, just a row late) but it is not the same measurement this method uses.
+      this.replaceDropdownVertically();
     } else if (this.getDropdownHeight() < dropdownHeight) {
       // The list fits now and is still carrying a trim from when it did not. Restore it through the
       // same measurement `open()` uses, then re-place it at its full height. Gated on the current
       // height, so a list that was never trimmed pays no `updateSettings()` per scroll event.
       this.updateDropdownDimensions();
-
-      if (this.isFlippedVertically) {
-        this.flipDropdownVertically();
-      } else {
-        this.unflipDropdownVertically();
-      }
+      this.replaceDropdownVertically();
     }
   }
 

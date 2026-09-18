@@ -96,6 +96,33 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       expect(list.top).toBeGreaterThanOrEqual(cell.bottom - 1);
       expect(list.bottom).toBeGreaterThan(root.bottom);
     });
+
+    test('keeps a `handsontable` list inside the viewport so its last options stay reachable',
+      async ({ page }) => {
+        // The plain `handsontable` type is the one list with no trim of its own: it opens at the
+        // height its sub-grid asks for. A viewport shorter than that height is what exposes it.
+        // A `fixed` box adds nothing to the page's scroll height, and the list's holder only
+        // scrolls WITHIN the height the list was given, so anything hanging below the viewport
+        // is unreachable at every scroll position. Measured at 19 of 20 options before the cap
+        // (list 439px in a 400px viewport), against 20 of 20 on the `absolute` rules it replaced.
+        const options = Array.from({ length: 20 }, (_, i) => `Option ${i + 1}`);
+
+        await page.setViewportSize({ width: 1280, height: 400 });
+        await grid.rebuild({ height: 'auto', editorType: 'handsontable', options });
+        await grid.openEditor(2, 1);
+
+        const { list, cell } = await grid.boxes();
+        const viewportHeight = await page.evaluate(() => window.innerHeight);
+
+        // The invariant: nothing hangs past the box the list is laid out in. Before the cap this
+        // read 439 against a 400px viewport.
+        expect(list.bottom).toBeLessThanOrEqual(viewportHeight + 1);
+        // Capped to the free space below the cell, not to the whole containing block, so the
+        // edited cell stays visible - which is what the `absolute` rules did. Before the cap the
+        // list was pinned to the top of the viewport and covered the cell, so this read 0.
+        expect(list.top).toBeGreaterThan(cell.top);
+        expect(await grid.reachableAcrossListScroll()).toBe(options.length);
+      });
   });
 
   test.describe('an ancestor that is the containing block for a fixed box', () => {
