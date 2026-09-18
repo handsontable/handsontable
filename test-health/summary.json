@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T11:40:37.201Z",
+  "generatedAt": "2026-09-18T12:11:36.136Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 30,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 131
+    "entries": 132
   },
   "rows": [
     {
@@ -55,12 +55,12 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 5,
-      "count30": 6,
-      "countAll": 6,
-      "runs30": 5,
+      "count7": 6,
+      "count30": 7,
+      "countAll": 7,
+      "runs30": 6,
       "flakyRuns30": 0,
-      "branches30": 5,
+      "branches30": 6,
       "legs": [
         "UMD.min (theme: classic)",
         "UMD.min (theme: horizon)",
@@ -74,10 +74,10 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-17T09:28:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35202295389",
-        "branch": "feature/DEV-117_Alter-Out-Of-Range-Remove-Index",
-        "leg": "UMD.min (theme: classic)",
+        "seenAt": "2026-09-18T12:10:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35340859407",
+        "branch": "feature/DEV-164_Hide-hide-items-when-all-hidden",
+        "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
         "source": "ci"
