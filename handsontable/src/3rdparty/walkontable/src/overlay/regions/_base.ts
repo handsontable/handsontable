@@ -369,7 +369,7 @@ export abstract class Overlay {
    *
    * A reader that places something from a clone element's document position (`offsetLeft`, the
    * `offset()` helper) has to add the overlay offset only when the clone is moved by something that
-   * position cannot see - a transform. A clone pinned by its rail is shifted by `position: sticky`,
+   * position cannot see – a transform. A clone pinned by its rail is shifted by `position: sticky`,
    * which IS in the layout, so adding the offset again would count the scroll twice.
    *
    * @returns {number}

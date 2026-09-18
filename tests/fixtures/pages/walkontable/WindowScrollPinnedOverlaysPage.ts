@@ -1,7 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
- * Which pinned clone a scan looks at, and the unique colour the fixture paints its row headers.
+ * Which pinned clone a scan looks at, and the unique color the fixture paints its row headers.
  */
 interface PinnedClone {
   name: 'inlineStart' | 'topCorner' | 'bottomCorner';
@@ -27,13 +27,13 @@ const PINNED_CLONES: PinnedClone[] = [
 /**
  * Page Object for the window-scroll pinned overlays fixture (DEV-127).
  *
- * With no `width` and no `height`, the window scrolls the grid, and three clones - the one holding
- * the row headers and the two inline-start corners - must stay at the viewport's inline-start edge
+ * With no `width` and no `height`, the window scrolls the grid, and three clones – the one holding
+ * the row headers and the two inline-start corners – must stay at the viewport's inline-start edge
  * while the page scrolls sideways. Whether they did is a question about PAINTED frames only: every
  * DOM read answers "pinned" even while the screen shows the header torn away, because anything the
  * engine writes from a scroll listener agrees with itself when read back. So the scroll is recorded
  * with a CDP screencast (lossless PNG, one record per painted frame, each carrying the compositor's
- * own scroll offset), and the frames are scanned for the unique colour the fixture paints each
+ * own scroll offset), and the frames are scanned for the unique color the fixture paints each
  * clone's row headers.
  */
 export class WindowScrollPinnedOverlaysPage {
@@ -42,8 +42,8 @@ export class WindowScrollPinnedOverlaysPage {
   readonly bundle: string;
   readonly grid: Locator;
   readonly master: Locator;
-  readonly topClone: Locator;
   readonly inlineStartClone: Locator;
+  readonly topCornerClone: Locator;
 
   /** Whether the current page was opened right-to-left (`goto({ rtl: true })`). */
   rtl = false;
@@ -60,8 +60,8 @@ export class WindowScrollPinnedOverlaysPage {
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
-    this.topClone = this.grid.locator('.ht_clone_top');
     this.inlineStartClone = this.grid.locator('.ht_clone_inline_start');
+    this.topCornerClone = this.grid.locator('.ht_clone_top_inline_start_corner');
 
     page.on('pageerror', error => this.#pageProblems.push(`pageerror: ${error.message}`));
     page.on('requestfailed', request =>
@@ -124,13 +124,6 @@ export class WindowScrollPinnedOverlaysPage {
     }).hot.view._wt.wtTable.getFirstRenderedColumn());
   }
 
-  /** The lowest row index the master actually renders. */
-  async masterFirstRenderedRow(): Promise<number> {
-    return this.page.evaluate(() => (window as unknown as {
-      hot: { view: { _wt: { wtTable: { getFirstRenderedRow(): number } } } }
-    }).hot.view._wt.wtTable.getFirstRenderedRow());
-  }
-
   /**
    * Put the pointer over the grid's body, where a wheel reaches the page, without pressing.
    */
@@ -146,7 +139,7 @@ export class WindowScrollPinnedOverlaysPage {
 
   /**
    * Scroll the page sideways with real wheel events, then wait until the engine has rendered a band
-   * starting past the one it started on AND the scroll and that band have both stopped moving - a
+   * starting past the one it started on AND the scroll and that band have both stopped moving – a
    * render-state probe. A wheel step is applied asynchronously, so the first band past the start can
    * belong to a scroll still under way, and a cell picked from it would slide away before a click
    * lands. `deltaX` is "towards the inline end": the wheel sign flips in RTL.
@@ -246,7 +239,7 @@ export class WindowScrollPinnedOverlaysPage {
         return context.getImageData(0, 0, bitmap.width, bitmap.height);
       };
       // How many pixels of a scanline, counted inwards from the pinned (inline-start) edge of the
-      // viewport, carry the clone's colour - with a short gap allowed for a header's text glyphs.
+      // viewport, carry the clone's color – with a short gap allowed for a header's text glyphs.
       const painted = (image: ImageData, y: number, rgb: number[], scale: number) => {
         const row = Math.round(y * scale);
         let count = 0;
@@ -314,14 +307,6 @@ export class WindowScrollPinnedOverlaysPage {
       });
   }
 
-  /**
-   * A data cell as the MASTER renders it. Every overlay clone renders its own copy with the same
-   * test id, so the lookup is scoped to the master.
-   */
-  cell(row: number, col: number): Locator {
-    return this.master.getByTestId(`cell-${row}-${col}`);
-  }
-
   /** A data cell in a frozen column, as the inline-start clone renders it. */
   frozenColumnCell(row: number, col: number): Locator {
     return this.inlineStartClone.getByTestId(`cell-${row}-${col}`);
@@ -333,14 +318,6 @@ export class WindowScrollPinnedOverlaysPage {
       .filter({ has: this.page.getByText(String(row + 1), { exact: true }) });
   }
 
-  /** The column header of a column, as the top clone renders it. */
-  async columnHeader(col: number): Promise<Locator> {
-    const name = await this.page.evaluate(
-      c => (window as unknown as { hot: { getColHeader(column: number): string } }).hot.getColHeader(c), col);
-
-    return this.topClone.locator('thead th').filter({ has: this.page.getByText(name, { exact: true }) });
-  }
-
   /** Select a cell by clicking it, and wait for the selection to land on it. */
   async selectCell(cell: Locator): Promise<void> {
     await cell.click();
@@ -349,7 +326,7 @@ export class WindowScrollPinnedOverlaysPage {
 
   /**
    * Open the editor on a cell with a double-click, and wait until the editor reports itself open
-   * ON THAT CELL - the holder element is reused and merely moved, so its visibility says nothing
+   * ON THAT CELL – the holder element is reused and merely moved, so its visibility says nothing
    * about which cell it is placed over.
    */
   async openEditor(cell: Locator): Promise<Locator> {
@@ -364,19 +341,6 @@ export class WindowScrollPinnedOverlaysPage {
     })).toBe(true);
 
     return this.page.locator('.handsontableInputHolder').first();
-  }
-
-  /** Close an open editor without saving, and wait until it reports itself closed. */
-  async closeEditor(): Promise<void> {
-    await this.page.keyboard.press('Escape');
-
-    await expect.poll(() => this.page.evaluate(() => {
-      const editor = (window as unknown as {
-        hot: { getActiveEditor(): { isOpened(): boolean } | undefined }
-      }).hot.getActiveEditor();
-
-      return Boolean(editor && editor.isOpened());
-    })).toBe(false);
   }
 
   /** The fill handle the inline-start clone draws for a selection in a frozen column. */
@@ -396,7 +360,7 @@ export class WindowScrollPinnedOverlaysPage {
   }
 
   /**
-   * A master cell of `row` in the column under the middle of the viewport - visible whatever the
+   * A master cell of `row` in the column under the middle of the viewport – visible whatever the
    * scroll direction, and clear of the clones pinned at the inline-start edge.
    */
   async cellAtViewportCenter(row: number): Promise<Locator> {
@@ -418,8 +382,8 @@ export class WindowScrollPinnedOverlaysPage {
 
   /**
    * Move the horizontal scroll axis between the window and the grid's own box by clipping the page
-   * container - the way a page can take the axis away from the window without touching the grid's
-   * settings - and wait until the engine has re-resolved the owner.
+   * container – the way a page can take the axis away from the window without touching the grid's
+   * settings – and wait until the engine has re-resolved the owner.
    */
   async setContainerClipped(clipped: boolean): Promise<void> {
     await this.page.evaluate((clip) => {
@@ -434,6 +398,24 @@ export class WindowScrollPinnedOverlaysPage {
     await expect.poll(() => this.page.evaluate(() => (window as unknown as {
       hot: { view: { _wt: { wtViewport: { isHorizontallyScrollableByWindow(): boolean } } } }
     }).hot.view._wt.wtViewport.isHorizontallyScrollableByWindow())).toBe(!clipped);
+  }
+
+  /**
+   * Switch the column headers off or on, then draw once more: the draw after the one that stops an
+   * overlay rendering is the first to position the overlay as an idle one.
+   */
+  async setColumnHeaders(enabled: boolean): Promise<void> {
+    await this.page.evaluate((on) => {
+      const { hot } = window as unknown as { hot: { updateSettings(settings: object): void, render(): void } };
+
+      hot.updateSettings({ colHeaders: on });
+      hot.render();
+    }, enabled);
+  }
+
+  /** Whether a clone sits inside a rail (`div.htInlineStartRail`), the way the page pins it. */
+  async isInRail(clone: Locator): Promise<boolean> {
+    return clone.evaluate(element => element.parentElement?.classList.contains('htInlineStartRail') ?? false);
   }
 
   /** The viewport's size in CSS pixels. */

@@ -3,18 +3,18 @@ import { test, expect } from '../../fixtures/test';
 import { WindowScrollPinnedOverlaysPage } from '../../fixtures/pages/walkontable/WindowScrollPinnedOverlaysPage';
 
 /**
- * DEV-127 - the row headers must not flicker while the WINDOW scrolls the grid sideways.
+ * DEV-127 – the row headers must not flicker while the WINDOW scrolls the grid sideways.
  *
- * With no `width` and no `height`, the page scrolls the grid, and three clones - the one holding the
- * row headers and the two inline-start corners - have to stay at the viewport's inline-start edge
+ * With no `width` and no `height`, the page scrolls the grid, and three clones – the one holding the
+ * row headers and the two inline-start corners – have to stay at the viewport's inline-start edge
  * while the columns slide underneath them. The browser scrolls the page on its compositor, without
  * waiting for JavaScript, so anything that re-pins those clones from a `scroll` listener is painted
  * one step behind: on about every other frame of a wheel scroll the row headers were torn away or
  * missing altogether.
  *
  * No DOM read can see that. The engine's own read-back reports the clone at the edge on every frame,
- * so the painted frames themselves are the observable contract - recorded through a CDP screencast
- * and scanned for the colour the fixture paints each clone's row headers. The positive control shows
+ * so the painted frames themselves are the observable contract – recorded through a CDP screencast
+ * and scanned for the color the fixture paints each clone's row headers. The positive control shows
  * the scan does see a clone that stays behind.
  *
  * The placement tests are the other half: a clone held at the edge by the browser is at the edge in
@@ -28,7 +28,7 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
   const PLACEMENT_TOLERANCE = 2;
 
   /**
-   * Asserts an editor box is placed on a cell box: same top, and the same inline-start edge - the
+   * Asserts an editor box is placed on a cell box: same top, and the same inline-start edge – the
    * one the editor is anchored on. The width is left out: a theme sizes the editor as it likes.
    *
    * @param {Locator} editor The editor holder.
@@ -163,8 +163,21 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
     clone = await wt.box(wt.inlineStartClone);
     expect(Math.abs(clone.x)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
 
-    const corner = await wt.box(wt.grid.locator('.ht_clone_top_inline_start_corner'));
+    const corner = await wt.box(wt.topCornerClone);
 
     expect(Math.abs(corner.x)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
+  });
+
+  test('a corner that stops rendering leaves its rail and stays out of it', async() => {
+    // Every draw positions the corners, rendering or not; an idle corner put back into a rail would
+    // stretch to the rail's width once its own width is cleared.
+    await wt.goto();
+    await expect.poll(() => wt.isInRail(wt.topCornerClone)).toBe(true);
+
+    await wt.setColumnHeaders(false);
+    await expect.poll(() => wt.isInRail(wt.topCornerClone)).toBe(false);
+
+    await wt.setColumnHeaders(true);
+    await expect.poll(() => wt.isInRail(wt.topCornerClone)).toBe(true);
   });
 });

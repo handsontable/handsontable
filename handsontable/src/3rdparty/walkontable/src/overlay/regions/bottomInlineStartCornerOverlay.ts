@@ -73,8 +73,10 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
     const rail = this.getInlineStartRail();
-    // The inline axis is held by the rail whenever the window owns it (DEV-127).
-    const pinnedInline = this.inlineStartOverlay.trimmingContainer === rootWindow;
+    const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow;
+    // The inline axis is held by the rail whenever the window owns it (DEV-127). A corner that does
+    // not render stays out of it, as `reset()` left it, and keeps the inset below.
+    const pinnedInline = inlineOnWindow && this.needFullRender;
 
     if (!pinnedInline) {
       // Before the insets below: releasing restores the clone's own top inset.
@@ -93,7 +95,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     // Same rule as the top corner: the positioned form whenever either neighbor's axis is owned by
     // the window; each neighbor reports a 0 offset on an element-owned axis.
-    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow || pinnedInline;
+    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow || inlineOnWindow;
 
     if (anyAxisOnWindow) {
       const { geometryReader } = this.deps;

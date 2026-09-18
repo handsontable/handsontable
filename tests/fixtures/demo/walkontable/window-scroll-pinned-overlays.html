@@ -44,8 +44,8 @@
     body { margin: 0; font-family: sans-serif; }
 
     /*
-     * One unique colour per horizontally pinned clone, scoped to that clone's own row headers. The
-     * screencast frames are scanned for these colours; the master's own row headers scroll with the
+     * One unique color per horizontally pinned clone, scoped to that clone's own row headers. The
+     * screencast frames are scanned for these colors; the master's own row headers scroll with the
      * page and must never be mistaken for the pinned ones, hence the clone scope.
      */
     .ht_clone_inline_start tbody th { background-color: #ff00ff !important; }
@@ -100,7 +100,7 @@
       fixedRowsBottom: window.htFrozen ? 2 : 0,
       layoutDirection: window.htRtl ? 'rtl' : 'ltr',
       // The resize handles are placed from a header's position relative to the root element, and the
-      // editor from a cell's document position - both read the clone's placement.
+      // editor from a cell's document position – both read the clone's placement.
       manualRowResize: true,
       manualColumnResize: true,
       renderer: testIdRenderer,

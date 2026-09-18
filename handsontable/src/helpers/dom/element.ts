@@ -3,7 +3,7 @@ import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
-import { INLINE_START_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/inlineStartRail';
+import { INLINE_START_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/constants';
 
 /**
  * Get the parent of the specified node in the DOM tree.

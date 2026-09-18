@@ -112,13 +112,14 @@ describe('DomElement helper', () => {
       expect(isInternalElement(nested.cell, nested.root)).toBe(true);
     });
 
-    it('should not follow a rail that belongs to another grid', () => {
-      const { cell } = buildGrid(true);
-      const otherRoot = document.createElement('div');
+    it('should step over the rail and no further', () => {
+      // A rail step that climbed one level too far would answer for the element holding the grid.
+      const { root, cell } = buildGrid(true);
+      const host = document.createElement('div');
 
-      otherRoot.className = 'handsontable';
+      host.appendChild(root);
 
-      expect(isInternalElement(cell, otherRoot)).toBe(false);
+      expect(isInternalElement(cell, host)).toBe(false);
     });
   });
 

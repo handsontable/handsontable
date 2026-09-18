@@ -135,8 +135,8 @@ export class TopInlineStartCornerOverlay extends Overlay {
     const rail = this.getInlineStartRail();
 
     // The inline axis is held by the rail whenever the window owns it (DEV-127), like the row headers
-    // the corner sits above.
-    if (this.inlineStartOverlay.trimmingContainer === rootWindow) {
+    // the corner sits above. A corner that does not render stays out of it, as `reset()` left it.
+    if (this.needFullRender && this.inlineStartOverlay.trimmingContainer === rootWindow) {
       rail?.pin(this.deps.getWtTable().getTotalWidth(), this.isRtl(), { edge: 'top' });
     } else {
       rail?.release();

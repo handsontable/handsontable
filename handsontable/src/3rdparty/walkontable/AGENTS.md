@@ -236,7 +236,11 @@ follow; the first, second and fourth were each a measured defect of a simpler ve
   the clone is moved into a rail: an absolutely positioned `div.htInlineStartRail`, as wide as the
   master's total width, with **no height** (it covers nothing and needs no `pointer-events` rule),
   holding only the clone, at the clone's old slot among the master's siblings. The bottom corner hangs
-  from its rail's bottom edge, so that rail's `bottom` is the corner's offset PLUS its height.
+  from its rail's bottom edge, so that rail's `bottom` is the corner's offset PLUS its height. Moving
+  the clone in or out detaches it for a moment, and the focus manager focuses the topmost copy of a
+  cell – for a frozen-column or row-header cell, one inside this clone – so `pin()`/`release()` give
+  the focus back the way row recycling does (`render/rows.ts`), for an engine that blurs a detached
+  element at once.
 - **A sticky shift is part of the layout; a transform never was.** `offsetLeft` and the `offset()`
   helper see it (measured on Chromium, Firefox and WebKit: 300 against 0 at a 300px scroll), so a
   reader that walks that chain and then adds `getOverlayOffset()` counts the scroll twice.
@@ -258,24 +262,35 @@ follow; the first, second and fourth were each a measured defect of a simpler ve
   so nothing else would release it; `reset()` does. Four legacy specs caught this
   (`rowHeader.spec.js` and `settings/fixedColumnsStart.spec.js` turn the overlay off and expect
   `getInlineStartClone().width()` to be 0) — the frame-capture spec cannot, it never turns an overlay off.
-- **Anything that recognises a clone by its PARENT must look through the rail — stylesheets and
+  The corners go on positioning while they do not render (their `resetFixedPosition()` has no render
+  gate), so they pin only while `needFullRender` is set; otherwise the next draw would move an idle
+  corner straight back into a rail.
+- **Anything that recognizes a clone by its PARENT must look through the rail — stylesheets and
   JavaScript alike.** `_base.scss` carries `.ht_master ~ .htInlineStartRail > .handsontable` next to
-  `.ht_master ~ .handsontable` for the row-header seam colour. `isInternalElement()`
+  `.ht_master ~ .handsontable` for the row-header seam color. `isInternalElement()`
   (`helpers/dom/element.ts`) decided "this element belongs to this grid" by requiring the nearest
   `.handsontable` to be a direct child of the root; with the clone in a rail it answered `false` for
   every frozen-column, row-header and corner cell of a window-scrolled grid, and copy/paste, the text
   editor's focus check and the focus manager all ask it. It now steps over a rail (pinned by
   `element.unit.ts` and the legacy `helpers/dom/__tests__/element.spec.js`, which caught it).
-  Descendant queries (`root.querySelector('.ht_clone_*')`, `closest('.ht_clone_*')`) need nothing.
+  `Border#getDimensionsFromHeader` reads the root's `ht__selection--rows`/`--columns` classes, and a
+  `Border` belongs to one clone, so it takes the root through the master (`cloneSource`), never
+  through its own table's parent. The class name lives in `overlay/constants.ts`: the rail imports its
+  focus helpers from `helpers/dom/element.ts`, which reads the class name, and the rail module would
+  close a cycle. Descendant queries (`root.querySelector('.ht_clone_*')`, `closest('.ht_clone_*')`)
+  need nothing.
 - **Not a pixel moves at rest, and one edge case moves by design.** A clone in a zero-height rail at
   `top: 0` lays out exactly where the absolute clone did. Past the table's END, the listener reset the
   offset to 0 (the headers jumped back to the table start); sticky keeps them against the table's end
-  instead. That regime needs a page wider than the grid, scrolled past the grid.
+  instead. That regime needs a page wider than the grid, scrolled past the grid. There
+  `getOverlayOffset()` still snaps to 0 (legacy specs assert that reset), so a reader that places
+  something over the clone from it – the `manualColumnMove` backlight over a frozen column – is off by
+  the parked distance in that regime only.
 
 **No DOM read can test this.** The engine's read-back agrees with itself on every frame, and a
 `page.screenshot()` forces a composite, which is the step the race loses. The pinning is pinned by
 `tests/e2e/walkontable/window-scroll-pinned-overlays.spec.ts`, which records a real wheel scroll through
-a CDP screencast (lossless PNG, the compositor's own `scrollOffsetX` per frame) and scans the colour the
+a CDP screencast (lossless PNG, the compositor's own `scrollOffsetX` per frame) and scans the color the
 fixture paints each clone's row headers, next to a positive control whose clones stay behind; its
 placement tests (editor, fill handle, row-resize handle over the frozen columns, LTR and RTL) are the
 ones that fail on the double-counted offset. Two traps for anyone extending it: keep the scroll profile

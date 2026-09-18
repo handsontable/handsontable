@@ -1,4 +1,32 @@
-import { InlineStartRail, INLINE_START_RAIL_CLASS_NAME } from '../../../src/overlay/inlineStartRail';
+import { InlineStartRail } from '../../../src/overlay/inlineStartRail';
+import { INLINE_START_RAIL_CLASS_NAME } from '../../../src/overlay/constants';
+
+/**
+ * Makes the rail's DOM moves behave like an engine that blurs a detached element at once. jsdom, like
+ * Chromium, keeps the focus on an element through a synchronous detach and re-attach, so without this
+ * the restore never runs and a focus test proves nothing.
+ */
+function emulateEagerBlur(): void {
+  const { appendChild } = Node.prototype;
+  const { replaceWith } = Element.prototype;
+  const blurDetached = (node: Node | string) => {
+    const active = document.activeElement;
+
+    if (typeof node !== 'string' && active instanceof HTMLElement && node.contains(active)) {
+      active.blur();
+    }
+  };
+
+  jest.spyOn(Node.prototype, 'appendChild').mockImplementation(function<T extends Node>(this: Node, node: T): T {
+    blurDetached(node);
+
+    return appendChild.call(this, node) as T;
+  });
+  jest.spyOn(Element.prototype, 'replaceWith').mockImplementation(function(this: Element, ...nodes: (Node | string)[]) {
+    nodes.forEach(blurDetached);
+    replaceWith.apply(this, nodes);
+  });
+}
 
 describe('InlineStartRail', () => {
   let wrapper: HTMLElement;
@@ -21,6 +49,7 @@ describe('InlineStartRail', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     wrapper.remove();
   });
 
@@ -138,6 +167,64 @@ describe('InlineStartRail', () => {
     expect(rail.isPinned()).toBe(true);
     expect(clone.parentElement!.className).toBe(INLINE_START_RAIL_CLASS_NAME);
     expect(wrapper.querySelectorAll(`.${INLINE_START_RAIL_CLASS_NAME}`)).toHaveLength(1);
+  });
+
+  describe('focus', () => {
+    let cell: HTMLElement;
+
+    beforeEach(() => {
+      cell = document.createElement('td');
+      cell.tabIndex = -1;
+      clone.appendChild(cell);
+      cell.focus();
+      jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+    });
+
+    it('should give the focus back to a cell of the clone on pin, on an engine that blurs a detached element', () => {
+      // The focus manager focuses the topmost copy of a cell, so a frozen or header cell it focuses
+      // lives in this clone; losing it drops the grid's keyboard focus to the body.
+      const rail = new InlineStartRail(clone, document);
+      const blurSpy = jest.spyOn(cell, 'blur');
+      const focusSpy = jest.spyOn(cell, 'focus');
+
+      emulateEagerBlur();
+      rail.pin(900, false, { edge: 'top' });
+
+      expect(blurSpy).toHaveBeenCalledTimes(1);
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+      expect(document.activeElement).toBe(cell);
+    });
+
+    it('should give the focus back to a cell of the clone on release, on an engine that blurs a detached element', () => {
+      const rail = new InlineStartRail(clone, document);
+
+      rail.pin(900, false, { edge: 'top' });
+
+      const blurSpy = jest.spyOn(cell, 'blur');
+
+      emulateEagerBlur();
+      rail.release();
+
+      expect(blurSpy).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(cell);
+    });
+
+    it('should leave a focus outside the clone alone', () => {
+      const input = document.createElement('input');
+
+      nextSibling.appendChild(input);
+      input.focus();
+
+      const focusSpy = jest.spyOn(input, 'focus');
+      const rail = new InlineStartRail(clone, document);
+
+      emulateEagerBlur();
+      rail.pin(900, false, { edge: 'top' });
+      rail.release();
+
+      expect(focusSpy).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(input);
+    });
   });
 
   it('should not pin a clone that is not in the document tree', () => {

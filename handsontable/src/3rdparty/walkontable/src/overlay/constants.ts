@@ -108,6 +108,13 @@ export const RESIZE_LOOP_GUARD_RECONNECT_DELAY = 2000;
  */
 export const RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY = 30000;
 
+/**
+ * The class name of the box that carries a pinned inline-start clone (`overlay/inlineStartRail.ts`).
+ * Declared here, not in the rail module, so `helpers/dom/element.ts` can read it without an import
+ * cycle – the rail imports its focus helpers from there.
+ */
+export const INLINE_START_RAIL_CLASS_NAME = 'htInlineStartRail';
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],
