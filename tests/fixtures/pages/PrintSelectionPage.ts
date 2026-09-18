@@ -8,7 +8,7 @@ import { awaitBundle } from '../bundle';
  * selection's fill handle (`.wtBorder.corner`, an inline border + a background) printed as an empty
  * bordered square while the background-only outline vanished. The `@media print` rule in
  * `_selection.scss` hides the transient selection UI; a custom border, which renders through the
- * same `.wtBorder` element with a different class, must stay visible.
+ * same `.wtBorder` element with no layer class, must stay visible.
  *
  * Print media is emulated with `page.emulateMedia({ media: 'print' })`, which activates `@media
  * print` rules in `getComputedStyle` (it does NOT simulate the browser's own background drop — the
@@ -25,7 +25,9 @@ export class PrintSelectionPage {
     this.bundle = bundle;
   }
 
-  /** Navigate to the fixture and wait for the bundle and the first cell. */
+  /**
+   * Navigate to the fixture and wait for the bundle and the first cell.
+   */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/print-selection.html?theme=${this.theme}&bundle=${this.bundle}`);
@@ -44,39 +46,49 @@ export class PrintSelectionPage {
 
   /**
    * Select a multi-cell range through the API, producing the current-cell border, the area border,
-   * and the fill-handle corner. Selecting through `hot.selectCell` (not a click) avoids the
-   * dropdown-arrow hazard and is deterministic. Every Border instance (area, focus, custom) owns a
+   * and the fill-handle corner. Selecting through the API (not a click) avoids the dropdown-arrow
+   * hazard and is deterministic. Every Border instance (area, focus, custom) owns a
    * `.wtBorder.corner` element, so the visible fill handle is the one that is not `display: none`;
    * waits for it to appear.
    */
   async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
     await this.page.evaluate(
-      ([r1, c1, r2, c2]) => (window as any).hot.selectCell(r1, c1, r2, c2),
+      ([r1, c1, r2, c2]) => window.hot.selectCells([[r1, c1, r2, c2]]),
       [fromRow, fromCol, toRow, toCol] as const);
     await expect(this.visibleFillHandle()).toHaveCount(1);
   }
 
-  /** Switch the emulated media type to `print` (activates `@media print`). */
+  /**
+   * Switch the emulated media type to `print` (activates `@media print`).
+   */
   async emulatePrint(): Promise<void> {
     await this.page.emulateMedia({ media: 'print' });
   }
 
-  /** Switch the emulated media type back to `screen`. */
+  /**
+   * Switch the emulated media type back to `screen`.
+   */
   async emulateScreen(): Promise<void> {
     await this.page.emulateMedia({ media: 'screen' });
   }
 
-  /** The visible fill-handle corner in the master overlay (the reported "pit" on print). */
+  /**
+   * The visible fill-handle corner in the master overlay (the reported "pit" on print).
+   */
   visibleFillHandle(): Locator {
     return this.page.locator('.ht_master .wtBorder.corner:visible');
   }
 
-  /** The visible area selection border edges in the master overlay. */
+  /**
+   * The visible area selection border edges in the master overlay.
+   */
   visibleAreaBorder(): Locator {
     return this.page.locator('.ht_master .wtBorder.area:visible');
   }
 
-  /** The visible current-cell selection border edges in the master overlay. */
+  /**
+   * The visible current-cell selection border edges in the master overlay.
+   */
   visibleCurrentBorder(): Locator {
     return this.page.locator('.ht_master .wtBorder.current:visible');
   }

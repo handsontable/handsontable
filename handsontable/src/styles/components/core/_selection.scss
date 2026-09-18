@@ -242,10 +242,12 @@
     // handle (`.wtBorder.corner` - an inline `border` from `Border#createBorders` plus a
     // `background-color`) printed as an empty bordered square (the "pit"), while the background-only
     // outline divs (`.current`/`.area`/`.fill`) vanished. Hiding the whole set removes the mismatch.
-    // Scoping: NEVER use a bare `.wtBorder` - a user's custom border renders through the same element
-    // with a different class (`createBorders` / CUSTOM_SELECTION_TYPE in border.ts) and must still
-    // print. The three selection-layer classes (`current`/`area`/`fill`) are selection-only. `.corner`
-    // is NOT: `createBorders` appends it to the fifth div of EVERY Border, so this matches a custom
+    // Scoping: NEVER use a bare `.wtBorder`. A user's custom border renders through the same element
+    // with NO layer class - `createBorders` (border.ts) sets `wtBorder ${settings.className || ''}`
+    // and the custom-border highlight (`customSelection.ts`, CUSTOM_SELECTION_TYPE) passes none - so
+    // a bare rule cannot exclude it; opt the selection layers IN by `current`/`area`/`fill` instead.
+    // Those three are selection-only. `.corner` is NOT: `createBorders` appends it to the fifth div
+    // of EVERY Border, so this matches a custom
     // border's corner too - which is intended, because a corner is the same border+background box and
     // prints as the same "pit" whoever owns it. The handle classes are listed explicitly (not a
     // `[class*="SelectionHandle"]` substring) so a custom cell renderer whose own class merely
