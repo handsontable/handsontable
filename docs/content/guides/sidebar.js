@@ -24,6 +24,7 @@ const aiToolsItems = [
   { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
   { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
   { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+  { path: 'guides/ai-tools/docs-mcp-server/docs-mcp-server' },
 ];
 
 const stylingItems = [

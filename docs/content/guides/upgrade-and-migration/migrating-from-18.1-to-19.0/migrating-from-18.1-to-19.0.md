@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), `handsontable`, and `multiselect` editors open their lists, and applies if you use one of those cell types.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -808,7 +808,72 @@ Three smaller changes ship with this one:
   `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
   `width` set through the option.
 
-## 18. Dropdown editor lists are no longer confined to the grid
+## 18. `getCopyableData()` returns a string
+
+[`getCopyableData()`](@/api/core.md#getcopyabledata) was documented and typed as returning a string,
+but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an
+object. It now returns a string, as documented.
+
+A value that is not already a string is converted. Numbers and booleans become their text form,
+`null` and `undefined` become an empty string, and any other value goes through its `toString()`. A
+cell with [`copyable`](@/api/options.md#copyable) set to `false` still returns an empty string.
+
+The result can differ from the text copied to the clipboard for an object with its own `valueOf()`,
+such as an instance of a date library. The clipboard reads that object through `valueOf()`, while
+`getCopyableData()` uses `toString()`.
+
+Copying, cutting, and autofill are unaffected. The [`beforeCopy`](@/api/hooks.md#beforecopy),
+[`afterCopy`](@/api/hooks.md#aftercopy), [`beforeCut`](@/api/hooks.md#beforecut),
+[`afterCut`](@/api/hooks.md#aftercut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
+still receive the values as they are stored.
+
+[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before at run
+time. It still returns the source value as it is stored, nested objects included. Its TypeScript
+return type changes from `string` to `unknown`, which matches what it returns.
+
+### Who is affected
+
+- You compare the result of `getCopyableData()` with a value that is not a string, for example
+  `hot.getCopyableData(0, 0) === 1`.
+- You read a property or an item of the result, for example `hot.getCopyableData(0, 0).name` on a
+  cell that holds an object. You now read it from a string, so you get `undefined` or a single
+  character, and no error is thrown.
+- You call `getCopyableSourceData()` from TypeScript and use its result as a string without checking
+  its type first. That code no longer compiles.
+
+### How to migrate
+
+To keep reading the value as it is stored, call [`getDataAtCell()`](@/api/core.md#getdataatcell)
+instead. Unlike `getCopyableData()`, it does not check the `copyable` option, so check it yourself if
+your code relies on it.
+
+**Before:**
+
+```js
+if (hot.getCopyableData(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+**After:**
+
+```js
+if (hot.getCellMeta(0, 0).copyable && hot.getDataAtCell(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+In TypeScript, narrow the result of `getCopyableSourceData()` before you use it as a string:
+
+```ts
+const value = hot.getCopyableSourceData(0, 0);
+
+if (typeof value === 'string') {
+  hot.setDataAtCell(0, 1, value.trim());
+}
+```
+
+## 19. Dropdown editor lists are no longer confined to the grid
 
 The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
 [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), `handsontable`, and
