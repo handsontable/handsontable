@@ -1,4 +1,4 @@
-import { test, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -6,7 +6,12 @@ import { selectCell } from '../../../src/page-helpers';
  * Checks whether ENTER does not close the menu at inappropriate moments. ENTER should accept the
  * filtering action only when the "Ok" button is focused.
  */
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const cell = await selectCell(0, 1);
 
   await cell.click();

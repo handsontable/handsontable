@@ -1,12 +1,16 @@
 import { helpers } from '../../src/helpers';
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   columnsCount,
   selectColumnHeaderByNameAndOpenMenu,
   selectFromContextMenu,
 } from '../../src/page-helpers';
 
-test('Test column hiding', async({ tablePage }) => {
+visualTest('Test column hiding', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await selectColumnHeaderByNameAndOpenMenu('Name');

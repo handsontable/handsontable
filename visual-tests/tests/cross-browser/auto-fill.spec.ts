@@ -1,4 +1,4 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { openEditor, selectCell, selectEditor, clearColumn } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
@@ -9,7 +9,11 @@ const urls = [
 ];
 
 urls.forEach((url) => {
-  test(`Test autofill for: ${url}`, async({ goto, tablePage }) => {
+  visualTest(`Test autofill for: ${url}`, {
+    themes: [CLASSIC],
+    browsers: CROSS_BROWSERS,
+    wrappers: [],
+  }, async({ goto, tablePage }) => {
     await goto(url);
 
     const table = tablePage.locator(helpers.selectors.mainTable);

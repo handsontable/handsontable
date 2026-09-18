@@ -1,7 +1,5 @@
-import { test, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
-
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
 
 /**
  * Verifies that a dashed source border and a `.wtMoveGhost` preview rectangle
@@ -13,7 +11,11 @@ test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript fr
  * the mouse over an interior target cell while the button is held, asserts the
  * ghost is visible, takes a screenshot, then releases the button.
  */
-test(__filename, async({ goto, tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/move-cells-demo')

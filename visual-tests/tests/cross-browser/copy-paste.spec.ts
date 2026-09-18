@@ -1,4 +1,4 @@
-import { test, expect, waitForScrollbarClearanceToClose } from '../../src/test-runner';
+import { visualTest, expect, waitForScrollbarClearanceToClose, CLASSIC } from '../../src/test-runner';
 import {
   selectCell,
   selectColumnHeaderByNameAndOpenMenu,
@@ -6,9 +6,11 @@ import {
 } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
-test('Copy between tables', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+visualTest('Copy between tables', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -38,9 +40,11 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   expect(await tableTopCellReadOnly.innerText()).not.toBe(copiedText);
 });
 
-test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+visualTest('Copy/Paste/Cut inside table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -69,9 +73,11 @@ test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
   expect(await cutCell.innerText()).toBe('');
 });
 
-test('Copy and paste data in a scrolled table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+visualTest('Copy and paste data in a scrolled table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/large-dataset-demo');
 
   const table = tablePage.locator('#root .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -120,9 +126,11 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
   expect(await targetCell.innerText()).toBe('B2');
 });
 
-test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+visualTest('Cut and paste data in a scrolled table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/large-dataset-demo');
 
   const table = tablePage.locator('#root .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -176,9 +184,11 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
   expect(await targetCell.innerText()).toBe('B2');
 });
 
-test('Copy/Paste/Cut table initialized as web component', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+visualTest('Copy/Paste/Cut table initialized as web component', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/web-component-demo');
 
   const tableTop = tablePage.locator('#root > hot-table');
