@@ -35,13 +35,16 @@ export interface SurplusTrailingItemsInput {
  * and subtracts the raw option, so a numeric string such as `'5'` really does size the grid - and anything that
  * does not resolve to a positive number adds nothing.
  *
+ * `Infinity` is a positive number here too, and stays one: paired with `maxRows`/`maxCols` it is a working
+ * value that fills the grid up to the cap, so it has to compare as larger than any finite size.
+ *
  * @param {*} value The option value.
  * @returns {number}
  */
 function toSize(value: unknown): number {
   const size = Number(value);
 
-  return Number.isFinite(size) && size > 0 ? size : 0;
+  return size > 0 ? size : 0;
 }
 
 /**

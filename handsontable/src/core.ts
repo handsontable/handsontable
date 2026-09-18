@@ -1345,8 +1345,8 @@ export default function Core(
    *
    * @param {object} axisState The axis, its current state, and its minimum sizes before and after the update.
    * @param {string} axisState.axis The axis to shrink, `'row'` or `'column'`.
-   * @param {number} axisState.count The number of rows or columns on the axis.
-   * @param {boolean} axisState.isCapped Whether `maxRows`/`maxCols` hides part of the axis.
+   * @param {Function} axisState.getCount Gives the number of rows or columns on the axis.
+   * @param {Function} axisState.getNotTrimmedCount Gives the number of rows or columns left by the trimming maps.
    * @param {Function} axisState.isEmpty Answers whether the row or column at a visual index is empty.
    * @param {Function} axisState.isRemovable Answers whether the row or column at a visual index is a filler.
    * @param {number} axisState.previousMinimum The `minRows`/`minCols` value before the update.
@@ -1354,11 +1354,11 @@ export default function Core(
    * @param {number} axisState.minimum The `minRows`/`minCols` value after the update.
    * @param {number} axisState.spare The `minSpareRows`/`minSpareCols` value after the update.
    */
-  const shrinkAxis = ({ axis, count, isCapped, isEmpty, isRemovable, previousMinimum, previousSpare,
+  const shrinkAxis = ({ axis, getCount, getNotTrimmedCount, isEmpty, isRemovable, previousMinimum, previousSpare,
     minimum, spare }: {
       axis: 'row' | 'column';
-      count: number;
-      isCapped: boolean;
+      getCount: () => number;
+      getNotTrimmedCount: () => number;
       isEmpty: (visualIndex: number) => boolean;
       isRemovable: (visualIndex: number) => boolean;
       previousMinimum: number;
@@ -1368,7 +1368,19 @@ export default function Core(
     }) => {
     const wasLowered = isSizeLowered(previousMinimum, minimum) || isSizeLowered(previousSpare, spare);
 
-    if (!wasLowered || isCapped) {
+    // Read before the grid is, the way `adjustRowsAndCols()` reads its own options first: `updateSettings()`
+    // also runs from a plugin's `enablePlugin()`, which happens before the first data load, and the counts
+    // reach for a data map that does not exist yet.
+    if (!wasLowered) {
+      return;
+    }
+
+    const count = getCount();
+
+    // `countRows()` is capped by `maxRows`, and so is the removal, which cannot address a row the cap hides.
+    // Under a cap the two disagree, and acting on the capped count removes a row out of the MIDDLE of the data
+    // set, so the axis is left alone until the cap is lifted.
+    if (count < getNotTrimmedCount()) {
       return;
     }
 
@@ -1815,11 +1827,8 @@ export default function Core(
     removeSurplusRowsAndCols(previous: MinimumSizes) {
       shrinkAxis({
         axis: 'row',
-        count: instance.countRows(),
-        // `countRows()` is capped by `maxRows`, and so is the removal, which cannot address a row the cap
-        // hides. Under a cap the two disagree, and acting on the capped count removes a row out of the
-        // MIDDLE of the data set, so the axis is left alone until the cap is lifted.
-        isCapped: instance.countRows() < instance.rowIndexMapper.getNotTrimmedIndexesLength(),
+        getCount: () => instance.countRows(),
+        getNotTrimmedCount: () => instance.rowIndexMapper.getNotTrimmedIndexesLength(),
         isEmpty: visualRow => instance.isEmptyRow(visualRow),
         isRemovable: visualRow => datamap.isTrailingFillerRow(instance.toPhysicalRow(visualRow)),
         previousMinimum: previous.minRows,
@@ -1835,8 +1844,8 @@ export default function Core(
 
       shrinkAxis({
         axis: 'column',
-        count: instance.countCols(),
-        isCapped: instance.countCols() < instance.columnIndexMapper.getNotTrimmedIndexesLength(),
+        getCount: () => instance.countCols(),
+        getNotTrimmedCount: () => instance.columnIndexMapper.getNotTrimmedIndexesLength(),
         isEmpty: visualColumn => instance.isEmptyCol(visualColumn),
         isRemovable: visualColumn => datamap.isTrailingFillerColumn(instance.toPhysicalColumn(visualColumn)),
         previousMinimum: previous.minCols,

@@ -477,4 +477,64 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
     });
   });
+
+  describe('when `updateSettings()` runs before the first data load', () => {
+    it('should not read the grid while the plugins are being enabled', () => {
+      // `MultiColumnSorting#enablePlugin()` calls `updateSettings()` to turn itself off when `columnSorting` is
+      // on as well. Plugins are enabled before the data map exists, so counting rows there throws.
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      expect(() => createGrid({
+        data: [['A1'], ['A2']],
+        columnSorting: true,
+        multiColumnSorting: true,
+      })).not.toThrow();
+
+      expect(hot.countRows()).toBe(2);
+    });
+  });
+
+  describe('an `Infinity` minimum', () => {
+    it('should fill the grid up to `maxRows` and count as larger than a finite value', () => {
+      createGrid({ data: [['A1']], minRows: Infinity, maxRows: 4 });
+
+      expect(hot.countRows()).toBe(4);
+
+      hot.updateSettings({ minRows: 2 });
+
+      expect(hot.countRows()).toBe(2);
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should not count as a lowering when a finite value is raised to it', () => {
+      const removals = [];
+
+      createGrid({
+        data: [['A1']],
+        minRows: 3,
+        maxRows: 5,
+        beforeRemoveRow: (index, amount) => {
+          removals.push([index, amount]);
+        },
+      });
+
+      expect(hot.countRows()).toBe(3);
+
+      hot.updateSettings({ minRows: Infinity });
+
+      expect(removals).toEqual([]);
+      expect(hot.countRows()).toBe(5);
+    });
+
+    it('should fill the grid up to `maxCols` and count as larger than a finite value', () => {
+      createGrid({ data: [['A1']], minCols: Infinity, maxCols: 4 });
+
+      expect(hot.countCols()).toBe(4);
+
+      hot.updateSettings({ minCols: 2 });
+
+      expect(hot.countCols()).toBe(2);
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+  });
 });
