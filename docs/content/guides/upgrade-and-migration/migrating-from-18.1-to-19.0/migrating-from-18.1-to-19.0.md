@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -872,3 +872,60 @@ if (typeof value === 'string') {
   hot.setDataAtCell(0, 1, value.trim());
 }
 ```
+
+## 19. Dropdown editor lists are no longer confined to the grid
+
+The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md),
+[`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and
+[`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell types used to
+be positioned inside the grid's root element. Whenever a `height`
+was set, that root clipped its own content, so a list opened near the bottom row was cut off at the
+grid's edge. The editor tried to compensate by trimming the list to the rows that fit the space left
+inside the grid, which on a short grid left as few as two choices visible.
+
+Those lists are now positioned against the viewport. The grid's edge no longer cuts them, and they
+are no longer trimmed to fit inside it, so every choice that fits on screen is shown.
+
+### Who is affected
+
+Anyone rendering `autocomplete`, `dropdown`, `handsontable`, or `multiselect` cells, in particular:
+
+- a grid with a set `height` whose last rows carry one of those editors
+- a grid inside a parent with a fixed height and `overflow: auto` or `overflow: hidden`
+- code or tests that read the list's position, or that assert it opens above the edited cell when the
+  grid has no room below
+
+### How to migrate
+
+For the common case, nothing. The list opens in the same place and simply is not cut off.
+
+What changed in detail:
+
+- The list can now paint outside the grid's box. Whether it paints over what sits next to it
+  depends on the page: the list still belongs to the grid's stacking context, so a host page that
+  puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
+  specific area, size that area rather than the grid.
+- One ancestor property changes where the list is anchored, and the grid reads it for you. An
+  element with any of these becomes the box the list is laid out in, instead of the browser
+  window:
+
+  - `transform`, `translate`, `rotate`, or `scale`
+  - `perspective`
+  - `filter` or `backdrop-filter`
+  - `contain` set to `paint`, `layout`, `strict`, or `content`
+  - `will-change` naming any of the above
+
+  A centered modal written `transform: translate(-50%, -50%)` is the common case, but `scale: 0.9`
+  and `contain: content` do it too. The list is placed and bounded against that element, so it
+  cannot leave it, and a list taller than it is trimmed to fit and scrolls. Give such a container
+  room if you want the whole list visible.
+
+  A `container-type` does not do this, so a grid inside a container-query layout places its list
+  against the browser window like any other grid.
+- Whether the list opens above or below the cell is decided by the space left in the **viewport**,
+  not the space left inside the grid. A list that used to flip above the cell to fit inside a short
+  grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is
+  still decided by the grid's own width.
+- The list is no longer trimmed to the space inside the grid, so it can render more choices than
+  before. [`visibleRows`](@/api/options.md#visiblerows) still caps it.
