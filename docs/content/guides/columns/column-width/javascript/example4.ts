@@ -6,21 +6,29 @@ registerAllModules();
 
 const container = document.querySelector('#example4')!;
 
-new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
+    ['Hydrogen', 'H', 1, -434.4, 'Gas'],
+    ['Helium', 'He', 2, -458.0, 'Gas'],
+    ['Lithium', 'Li', 3, 356.9, 'Solid'],
+    ['Beryllium', 'Be', 4, 2348.6, 'Solid'],
+    ['Boron', 'B', 5, 3768.8, 'Solid'],
   ],
   width: '100%',
   height: 'auto',
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Melting Point (°F)', 'State'],
   rowHeaders: true,
-  colWidths: [200, 100, 100], // initial width of the first 3 columns
+  colWidths: [200, 100, 100, 150, 100], // initial width of each column
   manualColumnResize: true,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
+});
+
+// Demonstrates ManualColumnResize#clearManualSizes(): drag a column header
+// to resize it, then click this button to fall back to `colWidths` again.
+const clearSizesButton = document.querySelector('#example4-clearSizes')!;
+clearSizesButton.addEventListener('click', () => {
+  hot.getPlugin('manualColumnResize').clearManualSizes();
+  hot.render();
 });

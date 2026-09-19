@@ -83,7 +83,13 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ## Set the column width in an array
 
-In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
+In this example, the first four columns are `30px`, `40px`, `50px`, and `60px` wide, and the remaining columns are `90px` each.
+
+::: tip
+
+Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content -- it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
+
+:::
 
 ::: only-for javascript
 
@@ -182,7 +188,7 @@ Use the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook to cap how wide a
 
 Unlike [`colWidths`](@/api/options.md#colwidths), a cap in `modifyColWidth` does not force every cell onto one width. Short values keep a narrow column on a single line. When content would exceed your threshold, the column shrinks to your cap and the text wraps.
 
-Leave `colWidths` unset for columns you want to auto-size (or set the entry to `undefined` in an array). The [`AutoColumnSize`](@/api/autoColumnSize.md) plugin must stay enabled so Handsontable can measure content first. Setting `colWidths` as a single number disables auto-sizing for all columns.
+Don't set the top-level [`colWidths`](@/api/options.md#colwidths) option at all if you want columns to auto-size: even an array with `undefined` entries disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid, so none of its columns get measured. To fix a width on some columns while letting others auto-size, set `width` per column in the [`columns`](@/api/options.md#columns) array instead -- only the columns you give a `width` skip auto-sizing.
 
 You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
 
@@ -277,8 +283,15 @@ hot.render();
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag a column header to resize it, then select **Clear manual sizes**, which runs the snippet above.
 
+:::
+
+::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-width/javascript/example4.html)
 @[code](@/content/guides/columns/column-width/javascript/example4.js)
 @[code](@/content/guides/columns/column-width/javascript/example4.ts)
 
