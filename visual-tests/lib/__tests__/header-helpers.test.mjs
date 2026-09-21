@@ -63,7 +63,47 @@ test('the index-based header helpers resolve the index inside ONE header row', (
 
   assert.doesNotMatch(resolver, /getByRole\(/,
     'headerCellAt() must resolve the index from the scoped selectors it is given, not from a role lookup');
-  assert.match(resolver, /\.nth\(index\)/, 'headerCellAt() no longer indexes by the index it was given');
+});
+
+test('a source index is mapped through the rendered window before it indexes the scrollable overlay', () => {
+  // The scrollable overlays hold the RENDERED window, not the whole grid, so `.nth(sourceIndex)` on
+  // them is only right while the grid is scrolled to its start. Measured on `large-dataset-demo`: at
+  // rest the first leaf header is column 0, scrolled 1200px it is column 22 — so `.nth(0)` there would
+  // have clicked column 22 and the highlight assertion would have passed on it. Only the frozen
+  // prefix is addressed by the raw index, because the corner overlay renders exactly that prefix.
+  const source = read('visual-tests/src/page-helpers.ts');
+  const resolver = bodyOf(source, 'headerCellAt');
+  const finder = bodyOf(source, 'positionInRenderedWindow');
+
+  assert.match(resolver, /\.nth\(position\)/,
+    'headerCellAt() must index the scrollable overlay by the position it resolved, not by the source '
+    + 'index — the overlay holds the rendered window');
+  assert.doesNotMatch(resolver.slice(resolver.indexOf('positionInRenderedWindow')), /locator\(cells\)\.nth\(index\)/,
+    'the source index must not reach the scrollable overlay unmapped');
+  assert.match(resolver, /frozen\.nth\(index\)/,
+    'the frozen prefix IS addressed by the raw index; the corner overlay renders exactly that prefix');
+
+  // The mapping has to come from the cells, because the headers cannot answer it: a header's
+  // `aria-colindex` is window-relative (`visibleColumnIndex + 1`) while a data cell's is absolute.
+  assert.match(finder, /aria-colindex/, 'the column mapping must read the cells\' absolute aria-colindex');
+  assert.match(finder, /aria-rowindex/, 'the row mapping must read the rows\' absolute aria-rowindex');
+  assert.match(finder, /\.ht_master tbody tr/,
+    'the mapping must read the master overlay, which carries the same window as the header overlays');
+  assert.doesNotMatch(finder, /thead tr:last-child/,
+    'the mapping must not be read off the header row — a header\'s aria-colindex restarts at the '
+    + 'window, which is the very thing being corrected for');
+});
+
+test('a target outside the rendered window is refused, not approximated', () => {
+  // `.nth()` of a missing element is a locator that never resolves, so the silent failure mode here is
+  // a timeout with no explanation. Refusing names the axis, the index and the window that is rendered.
+  const resolver = bodyOf(read('visual-tests/src/page-helpers.ts'), 'headerCellAt');
+
+  assert.match(resolver, /position < 0/, 'headerCellAt() must detect a target that is not rendered');
+  assert.match(resolver, /throw new Error\(/,
+    'headerCellAt() must refuse an unrendered target rather than clicking the nearest header');
+  assert.match(resolver, /rendered\[0\]/,
+    'the refusal must name the window that IS rendered, or it cannot be acted on');
 });
 
 test('a frozen header is clicked in the overlay that is painted on top of it', () => {

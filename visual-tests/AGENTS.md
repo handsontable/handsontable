@@ -333,6 +333,17 @@ element screenshots and the settle the fixture does for you):
   addressing them by index would need the row count — a spec that tries fails loudly on the same
   interception). `lib/__tests__/header-helpers.test.mjs` pins all of it. Reach for the same scoping in
   any new helper that addresses a header by position.
+- **A positional selector addresses the RENDERED window, not the grid.** The scrollable overlays hold
+  only the columns and rows in view, so `nth(n)` on them is column `n` just while the grid sits at its
+  scroll start — measured on `large-dataset-demo`, whose first leaf header is column 0 at rest and
+  column 22 after a 1200px scroll. The headers cannot correct for it themselves: a header's
+  `aria-colindex` is `visibleColumnIndex + 1` and restarts at the window, while a DATA cell's is the
+  absolute `sourceColumnIndex` and a body row's `aria-rowindex` is absolute too. `headerCellAt()` maps
+  a source index through the master overlay's cells for that reason, and refuses a target outside the
+  window instead of clicking the nearest header. `helpers.findCell()` and
+  `helpers.findDropdownMenuExpander()` are still plain `nth-of-type` and carry the same limit — right
+  for every spec today, because they all run at scroll start, and worth knowing before you write one
+  that does not.
 - **The fixture drops a stray native selection before every capture, and under a focused text control
   the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
   text-selection highlight (a header label a click sequence left selected). With an input or textarea

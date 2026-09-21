@@ -352,9 +352,11 @@ export async function selectColumnHeaderByNameAndOpenMenu(
  * row has no group cells to shift. Nothing waits that out, either: the wrong element is chosen before
  * the capture, so the settle in `test-runner.ts` has nothing left to settle.
  *
- * The last header row is the one that always has exactly one cell per rendered column, whatever the
- * nesting above it, so scoping to it makes the index mean the column. The corner cell is excluded by
- * role — it carries `gridcell button` ("Select whole grid"), not `columnheader`.
+ * The last header row is the one that always has exactly one cell per RENDERED column, whatever the
+ * nesting above it. The corner cell is excluded by role — it carries `gridcell button` ("Select whole
+ * grid"), not `columnheader`. Rendered, not total: the grid virtualizes, so this list starts at the
+ * first column in the viewport rather than at column 0, and {@link columnPositionOf} is what turns a
+ * source column into a position inside it.
  */
 const COLUMN_HEADER_CELLS = '.ht_clone_top thead tr:last-child > th[role="columnheader"]';
 
@@ -365,7 +367,8 @@ const COLUMN_HEADER_CELLS = '.ht_clone_top thead tr:last-child > th[role="column
  * the corner overlay that is painted over it. Measured on `cell-types-demo`: a click at the centre of
  * the top overlay's copy is received by the corner's, so Playwright's hit-target check fails the
  * target it was given and the call times out on "intercepts pointer events" — and the corner's copy
- * is the one that takes the click. See {@link headerCellAt}.
+ * is the one that takes the click. The corner renders exactly the frozen prefix, from index 0, so no
+ * window arithmetic applies to it.
  */
 const FROZEN_COLUMN_HEADER_CELLS =
   '.ht_clone_top_inline_start_corner thead tr:last-child > th[role="columnheader"]';
@@ -376,7 +379,8 @@ const FROZEN_COLUMN_HEADER_CELLS =
  * Rows have no equivalent of the group row, so this selects what an unscoped `getByRole('rowheader')`
  * already selected — the inline-start overlay's headers, in row order. It is written out anyway
  * because the two helpers are read together, and because the unscoped form is only accidentally
- * right: it depends on no other overlay drawing a row header above this one in document order.
+ * right: it depends on no other overlay drawing a row header above this one in document order. Rows
+ * virtualize like columns, so this list is the rendered window too.
  */
 const ROW_HEADER_CELLS = '.ht_clone_inline_start tbody > tr > th[role="rowheader"]';
 
@@ -393,24 +397,95 @@ const ROW_HEADER_CELLS = '.ht_clone_inline_start tbody > tr > th[role="rowheader
 const FROZEN_ROW_HEADER_CELLS = '.ht_clone_top_inline_start_corner tbody > tr > th[role="rowheader"]';
 
 /**
- * Resolves a header by index, choosing the copy a pointer can actually reach.
+ * Finds where a SOURCE column or row sits inside the rendered window, or -1 when it is not rendered.
  *
- * The frozen headers are a PREFIX of the list in both axes — the frozen columns are the first
- * columns, the top-frozen rows the first rows — and the overlay that holds them renders exactly
- * those, so its count is where the prefix ends. A grid with nothing frozen has no such overlay, the
- * count is zero, and this resolves to the plain list.
+ * The headers cannot answer this themselves. A header's `aria-colindex` is `visibleColumnIndex + 1` -
+ * relative to the window, so it restarts at 2 whatever is scrolled off to the left. The DATA cells
+ * carry the absolute one (`sourceColumnIndex` in the cells renderer), and body rows carry an absolute
+ * `aria-rowindex`, so the master's first rendered row is the grid's own map from source index to
+ * position. Measured on `large-dataset-demo` (many columns in a 500px viewport): at rest the first
+ * header is `A` and the first cell's `aria-colindex` is 2; scrolled to 3000px the first header is
+ * `BA` and the first cell's is 54. Both lists move together, which is what makes one an index into
+ * the other.
  *
- * @param {string} cells Selector for the axis's header cells in the overlay that draws them all.
+ * This searches for the absolute index rather than subtracting a window offset, so a frozen prefix
+ * that the master renders at the head of the window needs no special case — it is simply found where
+ * it is.
+ *
+ * @param {Locator} table The grid's root locator.
+ * @param {number} index Zero-based source column or row index.
+ * @param {'column' | 'row'} axis Which axis `index` counts along.
+ * @returns {Promise<{position: number, rendered: number[]}>} The position within the rendered window
+ * (-1 when the target is not rendered), and every source index the window currently holds.
+ */
+async function positionInRenderedWindow(table: Locator, index: number, axis: 'column' | 'row') {
+  return table.evaluate((grid, [wanted, which]: [number, string]) => {
+    const rows = [...grid.querySelectorAll('.ht_master tbody tr')];
+
+    if (rows.length === 0) {
+      // An empty grid renders no window to be offset by, so the index is its own position.
+      return { position: wanted, rendered: [wanted] };
+    }
+
+    if (which === 'row') {
+      // `aria-rowindex` counts the header rows first, so the offset is how many of them there are.
+      const headerRows = grid.querySelectorAll('.ht_master thead tr').length;
+      const sources = rows.map(row => Number(row.getAttribute('aria-rowindex')) - headerRows - 1);
+
+      return { position: sources.indexOf(wanted), rendered: sources };
+    }
+
+    // `aria-colindex` counts the row headers first, and every rendered row carries the same columns.
+    const rowHeaders = rows[0].querySelectorAll('th').length;
+    const sources = [...rows[0].querySelectorAll('td')]
+      .map(cell => Number(cell.getAttribute('aria-colindex')) - rowHeaders - 1);
+
+    return { position: sources.indexOf(wanted), rendered: sources };
+  }, [index, axis] as [number, string]);
+}
+
+/**
+ * Resolves a header by SOURCE index, choosing the copy a pointer can actually reach.
+ *
+ * Two corrections sit between "index" and "the element to click". The frozen headers are drawn twice
+ * and only the corner overlay's copy takes a click; they are a prefix in both axes, and the overlay
+ * that holds them renders exactly those, so its count is where the prefix ends. Everything past it is
+ * addressed through {@link positionInRenderedWindow}, because the scrollable overlays hold the
+ * rendered window rather than the whole grid.
+ *
+ * A column or row that is not rendered has no header to click, so this refuses rather than clicking
+ * the nearest one — the failure a silent `.nth()` would have produced is the bug this whole file is
+ * fixing.
+ *
+ * @param {string} cells Selector for the axis's header cells in the overlay that scrolls.
  * @param {string} frozenCells Selector for the frozen prefix's cells in the overlay painted on top.
- * @param {number} index Zero-based index along the axis.
+ * @param {number} index Zero-based source index along the axis.
+ * @param {'column' | 'row'} axis Which axis `index` counts along.
  * @returns {Promise<Locator>} The header cell to click.
  */
-async function headerCellAt(cells: string, frozenCells: string, index: number): Promise<Locator> {
+async function headerCellAt(
+  cells: string,
+  frozenCells: string,
+  index: number,
+  axis: 'column' | 'row',
+): Promise<Locator> {
   const table = getPageInstance().locator(helpers.selectors.mainTable);
   const frozen = table.locator(frozenCells);
   const frozenCount = await frozen.count();
 
-  return index < frozenCount ? frozen.nth(index) : table.locator(cells).nth(index);
+  if (index < frozenCount) {
+    return frozen.nth(index);
+  }
+
+  const { position, rendered } = await positionInRenderedWindow(table, index, axis);
+
+  if (position < 0) {
+    throw new Error(`${axis} ${index} is not rendered, so it has no header to click. The grid currently `
+      + `renders ${axis}s ${rendered[0]}-${rendered[rendered.length - 1]}; scroll the target into view `
+      + 'first, or address the header by name. See headerCellAt() in visual-tests/src/page-helpers.ts.');
+  }
+
+  return table.locator(cells).nth(position);
 }
 
 /**
@@ -419,7 +494,7 @@ async function headerCellAt(cells: string, frozenCells: string, index: number): 
  * See {@link COLUMN_HEADER_CELLS} for why those are different and which screenshots the difference
  * cost. The highlight assertion afterwards is what makes the capture that usually follows
  * deterministic: a click resolves as soon as the event is dispatched, and the selection is painted a
- * frame later, so without it a screenshot can record the grid mid-update. It is anchored on purpose —
+ * frame later, so without it a screenshot can record the grid mid-update. It is anchored on purpose -
  * the header beside an active one carries `ht__active_highlight-prev`, which an unanchored pattern
  * would accept, and then a click that landed one header over would still pass.
  *
@@ -427,7 +502,8 @@ async function headerCellAt(cells: string, frozenCells: string, index: number): 
  * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: ModifierKey[] = []) {
-  const header = await headerCellAt(COLUMN_HEADER_CELLS, FROZEN_COLUMN_HEADER_CELLS, columnIndex);
+  const header = await headerCellAt(
+    COLUMN_HEADER_CELLS, FROZEN_COLUMN_HEADER_CELLS, columnIndex, 'column');
 
   await header.click({ modifiers });
   await expect(header).toHaveClass(/(^|\s)ht__(active_)?highlight(\s|$)/);
@@ -439,7 +515,7 @@ export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: 
  * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectRowHeaderByIndex(rowIndex: number, modifiers: ModifierKey[] = []) {
-  const header = await headerCellAt(ROW_HEADER_CELLS, FROZEN_ROW_HEADER_CELLS, rowIndex);
+  const header = await headerCellAt(ROW_HEADER_CELLS, FROZEN_ROW_HEADER_CELLS, rowIndex, 'row');
 
   await header.click({ modifiers });
   await expect(header).toHaveClass(/(^|\s)ht__(active_)?highlight(\s|$)/);
