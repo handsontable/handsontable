@@ -630,15 +630,14 @@ jobs:
   #
   # Cutover (repo admin), both steps before this lands:
   #
-  #   1. Create the `visual-approval` environment WITH required reviewers.
-  #      "Prevent self-review" is deliberately OFF (decided 2026-09-17, the same
-  #      as `manual-qa`): the reviewer list is the whole team, and a developer
-  #      approving differences on a run they pushed is accepted — the name
-  #      recorded on the deployment review is the accountability. The assertion
-  #      below does not check WHO approved — the approvals API returns the
-  #      approver, and the step already reads `approval.user.login` for the
-  #      notice, so it could — which makes this a policy choice rather than
-  #      something the workflow is unable to express.
+  #   1. Create the `visual-approval` environment WITH required reviewers, and
+  #      leave "Prevent self-review" OFF. The assertion below does not check WHO
+  #      approved — the approvals API returns the approver and the step already
+  #      reads `approval.user.login`, so it could — which makes that a policy
+  #      choice rather than a limit of the workflow. The reasoning, and the rule
+  #      that an agent must never approve a deployment, are in `.ai/CI.md`; this
+  #      comment deliberately does not restate them, because the same paragraph
+  #      lived in four workflows and three of the copies had already drifted.
   #
   #   2. DELETE the `visual-approved` label from the repository's label list. The
   #      workflows that acted on it go with this change, so a label left in the
