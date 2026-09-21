@@ -1,0 +1,671 @@
+import { throwWithCause } from '../../../../../helpers/errors';
+import type { DroppedFeatures } from '../../../capabilities';
+import { colLetterToIndex, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
+import { translateSharedFormula } from '../../../formulaRefs';
+import { MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../../../limits';
+import {
+  createCellSnapshot, createSheetSnapshot, type CellSnapshot, type CellValue, type SheetSnapshot,
+} from '../../../model';
+import { tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
+import { decodeOoxmlEscapes } from '../xml/writer';
+import { cfRuleFromXml } from './conditionalFormatting';
+import { PROTECTION_INVERTED_OPTIONS } from './protection';
+import type { ParsedSharedStrings } from './sharedStrings';
+import type { DxfStyle, ParsedStyles } from './styles';
+
+/**
+ * Cells declared so far across the workbook, so many small sheets cannot slip under the per-sheet cap.
+ */
+export interface WorkbookBudget {
+  declaredCells: number;
+}
+
+/**
+ * Everything the sheet reader needs besides the part.
+ */
+export interface WorksheetReadContext {
+  name: string;
+  state: SheetSnapshot['state'];
+  styles: ParsedStyles;
+  sharedStrings: ParsedSharedStrings;
+  comments: Map<string, string>;
+  date1904: boolean;
+  dropped: DroppedFeatures;
+  budget: WorkbookBudget;
+}
+
+/**
+ * Serial-number offset between the 1904 and 1900 date systems (4 years and 1 day).
+ */
+const DATE_1904_OFFSET = 1462;
+
+/**
+ * `<sheetProtection>` attributes that describe the password hash rather than a permission.
+ */
+const PROTECTION_HASH_ATTRS = new Set(['algorithmName', 'hashValue', 'saltValue', 'spinCount', 'password']);
+
+/**
+ * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
+ * import's own heuristic loosely (any of the temporal codes outside quotes and brackets).
+ */
+function isTemporalFormat(numFmt: string | null): boolean {
+  if (numFmt === null) {
+    return false;
+  }
+
+  const stripped = numFmt.replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"/g, '');
+
+  return /[ymdhs]/i.test(stripped);
+}
+
+/**
+ * Refuses a sheet whose declared rectangle cannot be materialized. Same messages as the ExcelJS
+ * adapter; `cellColCount` is the width the cell matrix needs, `layoutColCount` includes columns
+ * that only carry a width or a hidden flag.
+ */
+export function assertSheetRectangle(
+  name: string,
+  rowCount: number,
+  cellColCount: number,
+  layoutColCount: number
+): void {
+  if (rowCount > MAX_SHEET_ROWS) {
+    throwWithCause(`The sheet "${name}" declares ${rowCount} rows, `
+      + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
+  }
+
+  if (layoutColCount > MAX_SHEET_COLUMNS) {
+    throwWithCause(`The sheet "${name}" declares ${layoutColCount} columns, `
+      + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+  }
+
+  if (rowCount * cellColCount > MAX_SHEET_CELLS) {
+    throwWithCause(`The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, `
+      + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
+  }
+}
+
+/**
+ * The rectangle check plus the running workbook budget. A zero-cell row still costs one array
+ * (`max(cellColCount, 1)`), and the column layout is added on top so many empty sheets cannot
+ * slip under the cap together.
+ */
+export function assertSheetFits(
+  name: string,
+  rowCount: number,
+  cellColCount: number,
+  layoutColCount: number,
+  budget: WorkbookBudget
+): void {
+  assertSheetRectangle(name, rowCount, cellColCount, layoutColCount);
+
+  budget.declaredCells += (rowCount * Math.max(cellColCount, 1)) + layoutColCount;
+
+  if (budget.declaredCells > MAX_WORKBOOK_CELLS) {
+    throwWithCause(`The workbook declares ${budget.declaredCells} cells across its sheets, `
+      + `above the ${MAX_WORKBOOK_CELLS}-cell limit this reader accepts.`);
+  }
+}
+
+/**
+ * Splits an A1 address into 0-based row and column.
+ */
+function decodeAddress(ref: string): { row: number; col: number } | null {
+  const match = /^\$?([A-Z]{1,3})\$?(\d{1,7})$/i.exec(ref);
+
+  if (!match) {
+    return null;
+  }
+
+  return { row: Number(match[2]) - 1, col: colLetterToIndex(match[1].toUpperCase()) - 1 };
+}
+
+/**
+ * Parses a `<dimension ref>` (`A1:D5`, or a bare `A1`) into 1-based last row and column, without
+ * the bounds `parseRangeRef` applies – a dimension past the caps has to be *seen* so it can be
+ * refused with the right message rather than silently ignored.
+ */
+function parseDimension(ref: string): { endRow: number; endCol: number } | null {
+  const parts = ref.split(':');
+  const end = decodeAddress(parts[parts.length - 1]);
+
+  return end === null ? null : { endRow: end.row + 1, endCol: end.col + 1 };
+}
+
+/**
+ * Parses a numeric `<v>`.
+ */
+function toNumber(text: string): CellValue {
+  const value = Number(text);
+
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * The state of the `<c>` being read.
+ */
+interface CellState {
+  ref: string;
+  row: number;
+  col: number;
+  type: string | undefined;
+  styleIndex: number;
+  formulaAttrs: XmlAttributes | null;
+  formulaText: string;
+  valueText: string | null;
+  inlineText: string[];
+}
+
+/**
+ * A shared-formula master seen so far.
+ */
+interface SharedMaster {
+  text: string;
+  row: number;
+  col: number;
+}
+
+/**
+ * Parses `xl/worksheets/sheetN.xml` into a `SheetSnapshot`. Rows are allocated as they appear, so a
+ * sheet with cells at row 1 and row 100000 costs two rows; a declared rectangle above the caps is
+ * refused from `<dimension>` before any row is read, and a row past the cap is refused as it appears
+ * when there is no dimension.
+ */
+export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSnapshot {
+  const sheet = createSheetSnapshot(ctx.name);
+  const { rows } = sheet;
+  const { dropped } = ctx;
+  const shared = new Map<string, SharedMaster>();
+  const pendingValidations: Array<{ sqref: string; formulae: string[]; allowBlank: boolean }> = [];
+  let width = 0;
+  let layoutColCount = 0;
+  let declaredCols = 0;
+  let cell: CellState | null = null;
+  let inValue = false;
+  let inFormula = false;
+  let inInlineText = false;
+  let validation: { sqref: string; type: string; allowBlank: boolean; formulae: string[] } | null = null;
+  let validationFormula: string[] | null = null;
+  let cf: { ref: string; rules: Array<Record<string, unknown>> } | null = null;
+  let cfRule: { attrs: XmlAttributes; formulae: string[] } | null = null;
+  let cfFormula: string[] | null = null;
+
+  sheet.state = ctx.state;
+
+  /**
+   * Makes sure `rows` reaches `rowIndex`, refusing a row past the cap.
+   */
+  const ensureRow = (rowIndex: number): Array<CellSnapshot | null> => {
+    if (rowIndex + 1 > MAX_SHEET_ROWS) {
+      throwWithCause(`The sheet "${ctx.name}" declares ${rowIndex + 1} rows, `
+        + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
+    }
+
+    while (rows.length <= rowIndex) {
+      rows.push([]);
+    }
+
+    return rows[rowIndex];
+  };
+
+  /**
+   * Returns the cell at 0-based coordinates, creating it and growing the row on the way.
+   */
+  const cellAt = (rowIndex: number, colIndex: number): CellSnapshot => {
+    if (colIndex + 1 > MAX_SHEET_COLUMNS) {
+      throwWithCause(`The sheet "${ctx.name}" declares ${colIndex + 1} columns, `
+        + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+    }
+
+    const row = ensureRow(rowIndex);
+
+    while (row.length <= colIndex) {
+      row.push(null);
+    }
+
+    width = Math.max(width, colIndex + 1);
+
+    if (rows.length * width > MAX_SHEET_CELLS) {
+      throwWithCause(`The sheet "${ctx.name}" declares ${rows.length} × ${width} cells, `
+        + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
+    }
+
+    if (row[colIndex] === null) {
+      row[colIndex] = createCellSnapshot();
+    }
+
+    return row[colIndex] as CellSnapshot;
+  };
+
+  /**
+   * Finishes the `<c>` being read.
+   */
+  const finishCell = (state: CellState): void => {
+    const xf = ctx.styles.cellXfs[state.styleIndex] ?? ctx.styles.cellXfs[0];
+    let value: CellValue = null;
+    let formula: CellSnapshot['formula'] = null;
+
+    const rawText = state.type === 'inlineStr' ? state.inlineText.join('') : state.valueText;
+
+    if (rawText !== null) {
+      switch (state.type) {
+        case 's': {
+          const index = Number(rawText);
+
+          value = ctx.sharedStrings.strings[index] ?? null;
+
+          if (ctx.sharedStrings.rich[index]) {
+            dropped.record('richText');
+          }
+          break;
+        }
+        case 'str':
+        case 'inlineStr':
+          value = decodeOoxmlEscapes(rawText);
+          break;
+        case 'b':
+          value = rawText === '1' || rawText === 'true';
+          break;
+        case 'e':
+          value = rawText;
+          break;
+        case 'd': {
+          const ms = Date.parse(rawText);
+
+          value = Number.isNaN(ms) ? null : (ms / 86400000) + 25569;
+          break;
+        }
+        default:
+          value = toNumber(rawText);
+
+          if (ctx.date1904 && typeof value === 'number' && isTemporalFormat(xf.numFmt)) {
+            value += DATE_1904_OFFSET;
+          }
+      }
+    }
+
+    if (state.formulaAttrs !== null) {
+      let text: string | null = state.formulaText;
+
+      if (state.formulaAttrs.t === 'shared' && state.formulaAttrs.si !== undefined) {
+        const master = shared.get(state.formulaAttrs.si);
+
+        if (state.formulaText !== '') {
+          shared.set(state.formulaAttrs.si, { text: state.formulaText, row: state.row, col: state.col });
+        } else if (master) {
+          text = translateSharedFormula(master.text, state.row - master.row, state.col - master.col);
+        } else {
+          text = null;
+        }
+      }
+
+      if (text !== null && text !== '') {
+        formula = value === null ? { text } : { text, result: value };
+        value = null;
+      }
+    }
+
+    const isEmpty = value === null && formula === null && xf.numFmt === null && xf.style === null && xf.locked === null;
+
+    if (isEmpty) {
+      // Still grow the width so the row is padded like a row with a real cell here would be.
+      cellAt(state.row, state.col);
+      rows[state.row][state.col] = null;
+
+      return;
+    }
+
+    const target = cellAt(state.row, state.col);
+
+    target.value = value;
+    target.formula = formula;
+    target.numFmt = xf.numFmt;
+    target.style = xf.style;
+    target.locked = xf.locked;
+  };
+
+  tokenizeXml(xml, {
+    open(name, attrs, selfClosing) {
+      switch (name) {
+        case 'dimension': {
+          const dimension = attrs.ref === undefined ? null : parseDimension(attrs.ref);
+
+          if (dimension) {
+            // Refuse the declared rectangle before a single row exists. `<cols>` comes after
+            // `<dimension>` in the part, so the layout width is not known yet; the workbook budget
+            // is charged once at the end, when it is.
+            assertSheetRectangle(ctx.name, dimension.endRow, dimension.endCol, dimension.endCol);
+            declaredCols = dimension.endCol;
+            // A declared tail row with no `<row>` element still exists, as `[]` – the ExcelJS
+            // adapter reports `rowCount` from the same declaration.
+            ensureRow(dimension.endRow - 1);
+          }
+          break;
+        }
+        case 'sheetView':
+          sheet.rtl = attrs.rightToLeft === '1' || attrs.rightToLeft === 'true';
+          break;
+        case 'pane':
+          if (attrs.state === 'frozen' || attrs.state === 'frozenSplit') {
+            const cols = Number(attrs.xSplit ?? 0);
+            const frozenRows = Number(attrs.ySplit ?? 0);
+
+            sheet.freeze = cols > 0 || frozenRows > 0 ? { rows: frozenRows, cols } : null;
+          }
+          break;
+        case 'col': {
+          const min = Number(attrs.min);
+          const max = Number(attrs.max);
+
+          if (!Number.isFinite(min) || !Number.isFinite(max) || min < 1 || max < min) {
+            break;
+          }
+
+          if (max > MAX_SHEET_COLUMNS) {
+            throwWithCause(`The sheet "${ctx.name}" declares ${max} columns, `
+              + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+          }
+
+          layoutColCount = Math.max(layoutColCount, max);
+
+          while (sheet.colWidths.length < max) {
+            sheet.colWidths.push(null);
+          }
+
+          const widthValue = attrs.width === undefined ? null : Number(attrs.width);
+          const hidden = attrs.hidden === '1' || attrs.hidden === 'true';
+
+          for (let c = min; c <= max; c++) {
+            if (widthValue !== null && Number.isFinite(widthValue)) {
+              sheet.colWidths[c - 1] = widthValue;
+            }
+
+            if (hidden) {
+              sheet.hiddenCols.push(c - 1);
+            }
+          }
+          break;
+        }
+        case 'row': {
+          const r = Number(attrs.r);
+
+          if (Number.isFinite(r) && r >= 1) {
+            ensureRow(r - 1);
+
+            if (attrs.ht !== undefined && Number.isFinite(Number(attrs.ht))) {
+              while (sheet.rowHeights.length < r) {
+                sheet.rowHeights.push(null);
+              }
+
+              sheet.rowHeights[r - 1] = Number(attrs.ht);
+            }
+
+            if (attrs.hidden === '1' || attrs.hidden === 'true') {
+              sheet.hiddenRows.push(r - 1);
+            }
+          }
+          break;
+        }
+        case 'c': {
+          const decoded = attrs.r === undefined ? null : decodeAddress(attrs.r);
+
+          if (decoded) {
+            cell = {
+              ref: attrs.r as string,
+              row: decoded.row,
+              col: decoded.col,
+              type: attrs.t,
+              styleIndex: Number(attrs.s ?? 0),
+              formulaAttrs: null,
+              formulaText: '',
+              valueText: null,
+              inlineText: [],
+            };
+
+            if (selfClosing) {
+              finishCell(cell);
+              cell = null;
+            }
+          }
+          break;
+        }
+        case 'f':
+          if (cell) {
+            cell.formulaAttrs = attrs;
+            inFormula = !selfClosing;
+          }
+          break;
+        case 'v':
+          if (cell) {
+            cell.valueText = '';
+            inValue = !selfClosing;
+          }
+          break;
+        case 't':
+          if (cell && cell.type === 'inlineStr') {
+            inInlineText = !selfClosing;
+          }
+          break;
+        case 'mergeCell': {
+          const range = attrs.ref === undefined ? null : parseRangeRef(attrs.ref);
+
+          if (range) {
+            sheet.merges.push({
+              row: range.startRow - 1,
+              col: range.startCol - 1,
+              rowspan: range.endRow - range.startRow + 1,
+              colspan: range.endCol - range.startCol + 1,
+            });
+          }
+          break;
+        }
+        case 'sheetProtection': {
+          const options: Record<string, boolean> = {};
+
+          Object.keys(attrs).forEach((key) => {
+            const raw = attrs[key];
+
+            if (PROTECTION_HASH_ATTRS.has(key) || !(raw === '1' || raw === 'true' || raw === '0' || raw === 'false')) {
+              return;
+            }
+
+            const flag = raw === '1' || raw === 'true';
+
+            // OOXML stores a permission as `1` when the action is LOCKED, while the model (and
+            // ExcelJS) say `true` for "allowed": `formatColumns="0"` reads back as `formatColumns: true`.
+            options[key] = PROTECTION_INVERTED_OPTIONS.has(key) ? !flag : flag;
+          });
+
+          // The file carries a salted hash (or the legacy 16-bit `password`), never the password
+          // itself, so it is reported and not modelled: a re-export cannot pretend to know it.
+          if (attrs.hashValue !== undefined || attrs.algorithmName !== undefined || attrs.password !== undefined) {
+            dropped.record('sheetProtection:password');
+          }
+
+          sheet.protection = { enabled: true, password: null, options };
+          break;
+        }
+        case 'dataValidation':
+          validation = {
+            sqref: attrs.sqref ?? '',
+            type: attrs.type ?? 'any',
+            allowBlank: attrs.allowBlank === '1' || attrs.allowBlank === 'true',
+            formulae: [],
+          };
+          break;
+        case 'formula1':
+        case 'formula2':
+          if (validation) {
+            validationFormula = [];
+          }
+          break;
+        case 'conditionalFormatting':
+          cf = { ref: attrs.sqref ?? '', rules: [] };
+          break;
+        case 'cfRule':
+          if (cf) {
+            cfRule = { attrs, formulae: [] };
+          }
+          break;
+        case 'formula':
+          if (cfRule) {
+            cfFormula = [];
+          }
+          break;
+        case 'autoFilter':
+          dropped.record('autoFilter');
+          break;
+        case 'hyperlink':
+          dropped.record('hyperlink');
+          break;
+        case 'drawing':
+          dropped.record('images');
+          break;
+        case 'tablePart':
+          dropped.record('tables');
+          break;
+        default:
+          break;
+      }
+    },
+    text(text) {
+      if (cell && inValue) {
+        cell.valueText = (cell.valueText ?? '') + text;
+      } else if (cell && inFormula) {
+        cell.formulaText += text;
+      } else if (cell && inInlineText) {
+        cell.inlineText.push(text);
+      } else if (validationFormula) {
+        validationFormula.push(text);
+      } else if (cfFormula) {
+        cfFormula.push(text);
+      }
+    },
+    close(name) {
+      switch (name) {
+        case 'v':
+          inValue = false;
+          break;
+        case 'f':
+          inFormula = false;
+          break;
+        case 't':
+          inInlineText = false;
+          break;
+        case 'c':
+          if (cell) {
+            finishCell(cell);
+            cell = null;
+          }
+          break;
+        case 'formula1':
+        case 'formula2':
+          if (validation && validationFormula) {
+            validation.formulae.push(validationFormula.join(''));
+          }
+
+          validationFormula = null;
+          break;
+        case 'dataValidation':
+          if (validation) {
+            if (validation.type === 'list') {
+              pendingValidations.push({
+                sqref: validation.sqref, formulae: validation.formulae, allowBlank: validation.allowBlank,
+              });
+            } else {
+              dropped.record(`dataValidation:${validation.type}`);
+            }
+
+            validation = null;
+          }
+          break;
+        case 'formula':
+          if (cfRule && cfFormula) {
+            cfRule.formulae.push(cfFormula.join(''));
+          }
+
+          cfFormula = null;
+          break;
+        case 'cfRule':
+          if (cf && cfRule) {
+            cf.rules.push(cfRuleFromXml(cfRule.attrs, cfRule.formulae, ctx.styles.dxfs as DxfStyle[]));
+            cfRule = null;
+          }
+          break;
+        case 'conditionalFormatting':
+          if (cf) {
+            sheet.conditionalFormatting.push(cf);
+            cf = null;
+          }
+          break;
+        default:
+          break;
+      }
+    },
+  });
+
+  // Merges: the master keeps its content, every covered cell reads as empty.
+  sheet.merges.forEach((merge) => {
+    for (let r = merge.row; r < merge.row + merge.rowspan && r < rows.length; r++) {
+      for (let c = merge.col; c < merge.col + merge.colspan && c < rows[r].length; c++) {
+        if (r !== merge.row || c !== merge.col) {
+          rows[r][c] = null;
+        }
+      }
+    }
+  });
+
+  // Comments: a note on an otherwise empty cell still creates the cell.
+  ctx.comments.forEach((text, ref) => {
+    const decoded = decodeAddress(ref);
+
+    if (decoded) {
+      cellAt(decoded.row, decoded.col).comment = text;
+    }
+  });
+
+  // Validations: applied within the sheet's used extent only, so a whole-column `A1:A1048576`
+  // touches the rows that exist rather than a million of them.
+  pendingValidations.forEach(({ sqref, formulae, allowBlank }) => {
+    parseMultiRangeRef(sqref).forEach((range) => {
+      const lastRow = Math.min(range.endRow, rows.length);
+      const lastCol = Math.min(range.endCol, Math.max(width, declaredCols, 1));
+
+      for (let r = range.startRow; r <= lastRow; r++) {
+        for (let c = range.startCol; c <= lastCol; c++) {
+          cellAt(r - 1, c - 1).validation = { type: 'list', formulae, allowBlank };
+        }
+      }
+    });
+  });
+
+  // The rectangle again (the dimension may have lied low) and the workbook budget, now that the
+  // real row count, cell width and column layout are all known.
+  assertSheetFits(ctx.name, rows.length, width, Math.max(width, layoutColCount), ctx.budget);
+
+  // Padding: a row that carries a cell is padded to the sheet width; a row that never got one stays [].
+  rows.forEach((row) => {
+    if (row.length > 0) {
+      while (row.length < width) {
+        row.push(null);
+      }
+    }
+  });
+
+  while (sheet.rowHeights.length < rows.length) {
+    sheet.rowHeights.push(null);
+  }
+
+  sheet.rowHeights.length = rows.length;
+
+  const finalLayoutCols = Math.max(width, layoutColCount);
+
+  while (sheet.colWidths.length < finalLayoutCols) {
+    sheet.colWidths.push(null);
+  }
+
+  sheet.hiddenRows.sort((a, b) => a - b);
+  sheet.hiddenCols.sort((a, b) => a - b);
+
+  return sheet;
+}

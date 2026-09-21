@@ -12,11 +12,13 @@ import { dataValidationsXml } from '../adapters/native/parts/dataValidation';
 import {
   conditionalFormattingXml, cfRuleFromXml, maxRulePriority,
 } from '../adapters/native/parts/conditionalFormatting';
-import { StyleTable } from '../adapters/native/parts/styles';
+import { StyleTable, parseStyles, EMPTY_STYLES } from '../adapters/native/parts/styles';
 import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
 import { worksheetXml } from '../adapters/native/parts/worksheetWriter';
+import { parseWorksheet, assertSheetFits } from '../adapters/native/parts/worksheetReader';
 import { DroppedFeatures } from '../capabilities';
 import { SheetBuilder } from '../builder';
+import { MAX_SHEET_CELLS } from '../limits';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -543,5 +545,226 @@ describe('worksheetXml', () => {
 
   it('should not write a legacyDrawing when no cell has a comment', () => {
     expect(writeSheet((b) => { b.cell(1, 1).value = 1; }).xml).not.toContain('legacyDrawing');
+  });
+});
+
+/**
+ * Parses one sheet with the given optional parts.
+ * @param xml
+ * @param root0
+ * @param root0.styles
+ * @param root0.strings
+ * @param root0.comments
+ * @param root0.date1904
+ */
+function readSheet(xml, {
+  styles = EMPTY_STYLES, strings = { strings: [], rich: [] }, comments = new Map(), date1904 = false,
+} = {}) {
+  const dropped = new DroppedFeatures();
+  const budget = { declaredCells: 0 };
+  const sheet = parseWorksheet(xml, {
+    name: 'Sheet1', state: 'visible', styles, sharedStrings: strings, comments, date1904, dropped, budget,
+  });
+
+  return { sheet, dropped, budget };
+}
+
+const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+
+describe('parseWorksheet', () => {
+  it('should read values by type, shared strings, inline strings, errors and formulas', () => {
+    const strings = { strings: ['plain', 'rich'], rich: [false, true] };
+    const xml = `<worksheet ${NS}><dimension ref="A1:G2"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>4200.5</v></c><c r="C1" t="b"><v>1</v></c>'
+      + '<c r="D1" t="e"><v>#N/A</v></c><c r="E1" t="inlineStr"><is><t xml:space="preserve"> in </t></is></c>'
+      + '<c r="F1" t="str"><f>A1&amp;"!"</f><v>plain!</v></c><c r="G1"><f>SUM(B1)</f></c></row>'
+      + '<row r="2"><c r="A2" t="s"><v>1</v></c></row>'
+      + '</sheetData></worksheet>';
+    const { sheet, dropped } = readSheet(xml, { strings });
+    const row = sheet.rows[0];
+
+    expect(row.map(c => c && c.value)).toEqual(['plain', 4200.5, true, '#N/A', ' in ', null, null]);
+    expect(row[5].formula).toEqual({ text: 'A1&"!"', result: 'plain!' });
+    expect(row[6].formula).toEqual({ text: 'SUM(B1)' });
+    expect(sheet.rows[1][0].value).toBe('rich');
+    expect(sheet.rows[1].length).toBe(7);
+    expect(dropped.list()).toEqual(['richText']);
+  });
+
+  it('should translate shared formulas for every slave from the master text', () => {
+    const xml = `<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><v>2</v></c><c r="C1"><f t="shared" ref="C1:C2" si="0">A1*2</f><v>4</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c><c r="C2"><f t="shared" si="0"/><v>6</v></c></row>'
+      + '</sheetData></worksheet>';
+    const { sheet } = readSheet(xml);
+
+    expect(sheet.rows[0][2].formula).toEqual({ text: 'A1*2', result: 4 });
+    expect(sheet.rows[1][2].formula).toEqual({ text: 'A2*2', result: 6 });
+    expect(sheet.rows[1][2].value).toBeNull();
+  });
+
+  it('should resolve the style index into numFmt, style and locked, and drop an all-default cell', () => {
+    const styles = parseStyles('<styleSheet><fonts><font/><font><b/></font></fonts><cellXfs>'
+      + '<xf numFmtId="0" fontId="0"/>'
+      + '<xf numFmtId="14" fontId="1"><protection locked="0"/></xf></cellXfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1" s="1"><v>45292</v></c>`
+      + '<c r="B1" s="0"/><c r="C1" s="1"/></row></sheetData></worksheet>';
+    const { sheet } = readSheet(xml, { styles });
+
+    expect(sheet.rows[0][0]).toEqual({
+      value: 45292,
+      formula: null,
+      numFmt: 'mm-dd-yy',
+      style: { alignment: null, font: { bold: true }, fill: null, border: null },
+      validation: null,
+      locked: false,
+      comment: null,
+    });
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.rows[0][2].value).toBeNull();
+    expect(sheet.rows[0][2].numFmt).toBe('mm-dd-yy');
+  });
+
+  it('should read layout: widths past the last cell, hidden, heights, merges, freeze, rtl, state', () => {
+    const xml = `<worksheet ${NS}><dimension ref="A1:D5"/>`
+      + '<sheetViews><sheetView rightToLeft="1" workbookViewId="0">'
+      + '<pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/>'
+      + '</sheetView></sheetViews>'
+      + '<cols><col min="1" max="1" width="5" customWidth="1"/><col min="2" max="2" width="20" customWidth="1"/>'
+      + '<col min="3" max="3" hidden="1"/><col min="6" max="6" width="15" customWidth="1"/>'
+      + '<col min="7" max="7" hidden="1"/></cols>'
+      + '<sheetData><row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c>'
+      + '</row><row r="2" ht="30" customHeight="1"><c r="A2"><v>3</v></c></row>'
+      + '<row r="3"><c r="C3"><v>9</v></c><c r="D3"><v>8</v></c></row>'
+      + '<row r="4" hidden="1"><c r="A4"><v>4</v></c><c r="D4"><v>7</v></c></row></sheetData>'
+      + '<mergeCells count="2"><mergeCell ref="A1:B1"/><mergeCell ref="C3:D4"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml);
+
+    expect(sheet.colWidths).toEqual([5, 20, null, null, null, 15, null]);
+    expect(sheet.hiddenCols).toEqual([2, 6]);
+    expect(sheet.rowHeights).toEqual([null, 30, null, null, null]);
+    expect(sheet.hiddenRows).toEqual([3]);
+    expect(sheet.merges).toEqual([
+      { row: 0, col: 0, rowspan: 1, colspan: 2 }, { row: 2, col: 2, rowspan: 2, colspan: 2 },
+    ]);
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.rows[3][3]).toBeNull();
+    expect(sheet.rows[2][2].value).toBe(9);
+    expect(sheet.freeze).toEqual({ rows: 1, cols: 1 });
+    expect(sheet.rtl).toBe(true);
+    // Rows declared by the dimension but never written stay [] and are not padded.
+    expect(sheet.rows[4]).toEqual([]);
+    expect(sheet.rows.length).toBe(5);
+  });
+
+  it('should read list validations onto their cells, drop other kinds, and clamp a whole-column sqref', () => {
+    const xml = `<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
+      + '<row r="1"><c r="A1" t="str"><v>x</v></c></row></sheetData>'
+      + '<dataValidations count="2">'
+      + '<dataValidation type="list" allowBlank="1" sqref="A1:A1048576 B2">'
+      + '<formula1>"a,b,c"</formula1></dataValidation>'
+      + '<dataValidation type="whole" operator="between" sqref="B1">'
+      + '<formula1>1</formula1><formula2>10</formula2></dataValidation></dataValidations></worksheet>';
+    const { sheet, dropped } = readSheet(xml);
+
+    expect(sheet.rows[0][0].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows[1][1].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows[2][0].validation).toEqual({ type: 'list', formulae: ['"a,b,c"'], allowBlank: true });
+    expect(sheet.rows.length).toBe(3);
+    expect(dropped.list()).toEqual(['dataValidation:whole']);
+  });
+
+  it('should read conditional formatting into ExcelJS-shaped rules with their dxf style', () => {
+    const styles = parseStyles('<styleSheet><dxfs><dxf><font><b/></font></dxf></dxfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData/>`
+      + '<conditionalFormatting sqref="A1:A3">'
+      + '<cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThan">'
+      + '<formula>2</formula></cfRule></conditionalFormatting></worksheet>';
+    const { sheet } = readSheet(xml, { styles });
+
+    expect(sheet.conditionalFormatting).toEqual([{
+      ref: 'A1:A3',
+      rules: [{
+        type: 'cellIs', operator: 'greaterThan', priority: 1, formulae: ['2'], style: { font: { bold: true } },
+      }],
+    }]);
+  });
+
+  it('should attach comments by address and record features the model has no room for', () => {
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>`
+      + '<autoFilter ref="A1:A1"/><hyperlinks><hyperlink ref="A1" r:id="rId9"/></hyperlinks><drawing r:id="rId3"/>'
+      + '<tableParts count="1"><tablePart r:id="rId4"/></tableParts><legacyDrawing r:id="rId2"/></worksheet>';
+    const { sheet, dropped } = readSheet(xml, { comments: new Map([['A1', 'a comment'], ['Z9', 'empty cell note']]) });
+
+    expect(sheet.rows[0][0].comment).toBe('a comment');
+    expect(sheet.rows[8][25].comment).toBe('empty cell note');
+    expect(dropped.list().sort()).toEqual(['autoFilter', 'hyperlink', 'images', 'tables']);
+  });
+
+  it('should read sheet protection, strip the hash and record the password', () => {
+    const xml = `<worksheet ${NS}><sheetData/>`
+      + '<sheetProtection algorithmName="SHA-512" hashValue="abc" saltValue="def" spinCount="100000"'
+      + ' sheet="1" formatColumns="0" sort="0"/></worksheet>';
+    const { sheet, dropped } = readSheet(xml);
+
+    // `formatColumns="0"` / `sort="0"` mean ALLOWED in the file, so they read back as `true` – the
+    // same inversion ExcelJS applies and the writer undoes, so a round trip keeps every permission.
+    expect(sheet.protection).toEqual({
+      enabled: true, password: null, options: { sheet: true, formatColumns: true, sort: true },
+    });
+    expect(dropped.list()).toEqual(['sheetProtection:password']);
+  });
+
+  it('should shift 1904-epoch serials on date-formatted cells only', () => {
+    const styles = parseStyles('<styleSheet><cellXfs><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>');
+    const xml = `<worksheet ${NS}><sheetData><row r="1"><c r="A1" s="1"><v>100</v></c>`
+      + '<c r="B1"><v>100</v></c></row></sheetData></worksheet>';
+    const { sheet } = readSheet(xml, { styles, date1904: true });
+
+    expect(sheet.rows[0][0].value).toBe(1562);
+    expect(sheet.rows[0][1].value).toBe(100);
+  });
+
+  it('should refuse a sheet the dimension declares above the caps before reading a row', () => {
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:A1048577"/><sheetData/></worksheet>`))
+      .toThrow(/sheet "Sheet1" declares 1048577 rows, above the 1048576-row limit/);
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:XFE1"/><sheetData/></worksheet>`))
+      .toThrow(/declares 16385 columns, above the 16384-column limit/);
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:ALM5000"/><sheetData/></worksheet>`))
+      .toThrow(/declares 5000 × 1001 cells, above the 5000000-cell limit/);
+  });
+
+  it('should refuse a row past the cap when there is no dimension', () => {
+    const xml = `<worksheet ${NS}><sheetData><row r="1048577">`
+      + '<c r="A1048577"><v>1</v></c></row></sheetData></worksheet>';
+
+    expect(() => readSheet(xml)).toThrow(/declares 1048577 rows/);
+  });
+
+  it('should count the column layout against the workbook budget without inflating the cell product', () => {
+    const cols = '<cols><col min="16384" max="16384" width="12" customWidth="1"/></cols>';
+    const xml = `<worksheet ${NS}><dimension ref="A1:A400"/>${cols}<sheetData>`
+      + '<row r="1"><c r="A1" t="str"><v>r1</v></c></row></sheetData></worksheet>';
+    const { sheet, budget } = readSheet(xml);
+
+    expect(sheet.colWidths.length).toBe(16384);
+    expect(sheet.colWidths[16383]).toBe(12);
+    expect(sheet.rows.length).toBe(400);
+    expect(sheet.rows[0].length).toBe(1);
+    expect(budget.declaredCells).toBe((400 * 1) + 16384);
+  });
+});
+
+describe('assertSheetFits', () => {
+  it('should accumulate the workbook budget across sheets and refuse the one that overflows it', () => {
+    const budget = { declaredCells: 0 };
+
+    for (let i = 0; i < 10; i++) {
+      assertSheetFits(`S${i}`, 1_000_000, 1, 0, budget);
+    }
+
+    expect(() => assertSheetFits('Last', 1, 1, 0, budget))
+      .toThrow(/workbook declares 10000001 cells across its sheets, above the 10000000-cell limit/);
+    expect(MAX_SHEET_CELLS).toBe(5_000_000);
   });
 });
