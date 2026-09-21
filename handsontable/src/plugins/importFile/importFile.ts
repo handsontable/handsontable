@@ -16,7 +16,8 @@ export const PLUGIN_PRIORITY = 245;
  */
 export interface ImportFileSettings {
   /**
-   * Map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
+   * built-in engine reads `.xlsx`.
    */
   engines?: Record<string, object>;
 }
@@ -278,10 +279,6 @@ function configuredEngine(
 function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
   const injected = override ?? configuredEngine(hot, format).injected;
 
-  if (injected === undefined) {
-    return null;
-  }
-
   try {
     return detectXlsxEngine(injected, PLUGIN_KEY);
   } catch {
@@ -346,17 +343,15 @@ function recordLayoutDirectionMismatch(
  * derived from number formats, dropdown sources from list validations, formulas, merged cells,
  * hidden rows and columns, frozen panes, column widths and row heights.
  *
- * XLSX import needs an engine passed through the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs)
- * is the only engine supported today. The plugin reports, in one console warning, anything the
- * engine could not recover from the file.
+ * XLSX import works out of the box through the built-in engine. Pass an engine module through the
+ * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
+ * reports, in one console warning, anything the engine could not recover from the file.
  *
  * @example
  * ::: only-for javascript
  * ```js
- * import ExcelJS from 'exceljs';
- *
  * const hot = new Handsontable(container, {
- *   importFile: { engines: { xlsx: ExcelJS } },
+ *   importFile: true,
  * });
  *
  * const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
@@ -416,8 +411,8 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when an engine is configured for the format and that engine can read it. ExcelJS,
-   * the only engine supported today, reads `xlsx` only.
+   * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
+   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
    */
   supportsImportFormat(format: string): boolean {
     const detected = tryDetectEngine(this.hot, undefined, format);

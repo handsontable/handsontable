@@ -15,6 +15,20 @@ describe('CAPABILITIES', () => {
       readFormats: ['xlsx'],
     });
   });
+
+  it('should declare the native engine as full-fidelity except for the DEFLATE level', () => {
+    expect(CAPABILITIES.native).toEqual({
+      styles: true,
+      conditionalFormatting: true,
+      dataValidation: true,
+      perCellProtection: true,
+      comments: true,
+      freezePanes: true,
+      rtl: true,
+      compressionLevel: false,
+      readFormats: ['xlsx'],
+    });
+  });
 });
 
 describe('DroppedFeatures', () => {

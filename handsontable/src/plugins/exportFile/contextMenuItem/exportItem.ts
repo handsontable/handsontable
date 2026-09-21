@@ -15,7 +15,6 @@ import { getExportOptions } from './utils';
  *
  * The parent item is hidden when `exportFile` is not explicitly configured
  * in the Handsontable settings.
- * The "To Excel" sub-item is hidden when no XLSX engine is configured.
  *
  * @param {ExportFile} exportFilePlugin The plugin instance.
  * @returns {object}

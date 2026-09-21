@@ -219,7 +219,8 @@ export interface ExportOptions {
    */
   headerStyle?: HeaderStyle | null;
   /**
-   * ExcelJS engine instance. Overrides the engine from plugin settings for this call.
+   * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
    */
   engine?: object;
 }
@@ -229,7 +230,8 @@ export interface ExportOptions {
  */
 export interface ExportFileSettings {
   /**
-   * Map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
+   * built-in engine writes `.xlsx`.
    */
   engines?: Record<string, object>;
 }
@@ -271,10 +273,9 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * Supported formats:
  * - **CSV** (`'csv'`) — synchronous, no additional setup required.
- * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Needs an xlsx engine injected and
- *   detected through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs)
- *   (the only engine supported today). Features the engine cannot write are reported in one
- *   console warning per export.
+ * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Uses the built-in xlsx engine unless
+ *   one is passed through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs).
+ *   Features the engine cannot write are reported in one console warning per export.
  *
  * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
  *
@@ -326,8 +327,6 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for react
  * ```jsx
- * import ExcelJS from 'exceljs';
- *
  * const hotRef = useRef(null);
  *
  * ...
@@ -335,7 +334,7 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  * <HotTable
  *   ref={hotRef}
  *   data={getData()}
- *   exportFile={{ engines: { xlsx: ExcelJS } }}
+ *   exportFile={true}
  * />
  *
  * const hot = hotRef.current.hotInstance;
@@ -353,15 +352,13 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for angular
  * ```ts
- * import ExcelJS from 'exceljs';
- *
  * @Component({
  *   template: `<hot-table [settings]="settings"></hot-table>`,
  * })
  * export class AppComponent {
  *   settings = {
  *     data: getData(),
- *     exportFile: { engines: { xlsx: ExcelJS } },
+ *     exportFile: true,
  *   };
  *
  *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
@@ -692,28 +689,14 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when the plugin can produce an export in the given format.
-   *
-   * For text-based formats such as `'csv'`, no extra setup is required and the
-   * method always returns `true`.
-   * For binary formats such as `'xlsx'`, the method returns `true` only when the
-   * corresponding engine has been provided in the plugin's `engines` map.
+   * Returns `true` when the plugin can produce an export in the given format: `'csv'` and `'xlsx'`
+   * always can, the latter through the built-in xlsx engine or the one configured in `engines`.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
    */
   supportsExportFormat(format: string) {
-    if (!EXPORT_TYPES[format]) {
-      return false;
-    }
-
-    if (format === 'xlsx') {
-      const settings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-
-      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines?.xlsx);
-    }
-
-    return true;
+    return Boolean(EXPORT_TYPES[format]);
   }
 
   /**

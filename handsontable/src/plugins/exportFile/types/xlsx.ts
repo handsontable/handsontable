@@ -311,7 +311,7 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
-    const detected = detectXlsxEngine(this.options.engine, 'exportFile');
+    const detected = detectXlsxEngine(this.options.engine ?? undefined, 'exportFile');
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a

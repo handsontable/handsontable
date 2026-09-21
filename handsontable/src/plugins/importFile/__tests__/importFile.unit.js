@@ -119,11 +119,13 @@ describe('ImportFile statics', () => {
 describe('ImportFile#supportsImportFormat', () => {
   const supports = (settings, format) => ImportFile.prototype.supportsImportFormat.call(fakeCtx(settings), format);
 
-  it('should return false when no engine is configured', () => {
-    expect(supports(undefined, 'xlsx')).toBe(false);
-    expect(supports(true, 'xlsx')).toBe(false);
-    expect(supports({}, 'xlsx')).toBe(false);
-    expect(supports({ engines: {} }, 'xlsx')).toBe(false);
+  it('should answer true for xlsx through the built-in engine when nothing is configured', () => {
+    expect(supports(undefined, 'xlsx')).toBe(true);
+    expect(supports(true, 'xlsx')).toBe(true);
+    expect(supports({}, 'xlsx')).toBe(true);
+    expect(supports({ engines: {} }, 'xlsx')).toBe(true);
+    expect(supports(undefined, 'xls')).toBe(false);
+    expect(supports(undefined, 'csv')).toBe(false);
   });
 
   it('should return true for xlsx with ExcelJS and false for formats ExcelJS cannot read', () => {
@@ -211,10 +213,23 @@ describe('ImportFile#importFromArrayBuffer', () => {
     // A per-call engine still goes through the format check of the engine it detects.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
       .rejects.toThrow(/cannot import "csv".*xlsx/);
-    await expect(noEngine.importFromArrayBuffer('xlsx', fixture('values')))
-      .rejects.toThrow(/Missing or invalid ExcelJS engine.*`importFile: \{ engines: \{ xlsx: ExcelJS \} \}`/);
+    // No `engines` at all means the built-in engine, so the import succeeds and names it.
+    const viaNative = await noEngine.importFromArrayBuffer('xlsx', fixture('values'));
+
+    expect(viaNative.engine).toEqual({ kind: 'native', version: null });
     await expect(plugin.importFromArrayBuffer('xlsx', new Uint8Array([1, 2]).buffer))
       .rejects.toThrow(/could not be parsed/);
+  });
+
+  it('should read, map and apply a workbook through the built-in engine when importFile is true', async() => {
+    const { plugin, calls } = pluginWithFakeHot(true);
+    // `values.xlsx`'s first sheet row is the header band; without promoting it, `data[0][0]` would
+    // be the header label `'Name'` rather than the first data row's value, for any engine.
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    expect(result.engine).toEqual({ kind: 'native', version: null });
+    expect(result.data[0][0]).toBe('Ana García');
+    expect(calls.some(([method]) => method === 'updateSettings')).toBe(true);
   });
 
   it('should report layoutDirection as dropped when the grid direction disagrees with the sheet', async() => {

@@ -21,20 +21,15 @@ describe('ExportFile#supportsExportFormat', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'csv')).toBe(true);
   });
 
-  it('should return false for xlsx when no engines are configured', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'xlsx')).toBe(false);
+  it('should return true for xlsx without any engine configured, through the built-in engine', () => {
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'xlsx')).toBe(true);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(true), 'xlsx')).toBe(true);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), 'xlsx')).toBe(true);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: {} }), 'xlsx')).toBe(true);
   });
 
-  it('should return false for xlsx when exportFile settings is not an object', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(true), 'xlsx')).toBe(false);
-  });
-
-  it('should return false for xlsx when engines map is missing', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), 'xlsx')).toBe(false);
-  });
-
-  it('should return false for xlsx when engines map does not contain an xlsx entry', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: {} }), 'xlsx')).toBe(false);
+  it('should return false for an unknown format', () => {
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'pdf')).toBe(false);
   });
 
   it('should return true for xlsx when an xlsx engine is configured', () => {

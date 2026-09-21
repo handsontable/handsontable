@@ -1,10 +1,10 @@
 import { warn } from '../../helpers/console';
 
 /**
- * The engines the xlsx code paths know how to drive. ExcelJS is the only one today; a second engine
- * adds its kind here and its row to `CAPABILITIES`.
+ * The engines the xlsx code paths know how to drive. ExcelJS is injected through `engines`; `native`
+ * is the built-in engine used when nothing is injected.
  */
-export type XlsxEngineKind = 'exceljs';
+export type XlsxEngineKind = 'exceljs' | 'native';
 
 /**
  * What an engine can honor when writing or recover when reading.
@@ -34,6 +34,18 @@ export const CAPABILITIES: Record<XlsxEngineKind, XlsxEngineCapabilities> = {
     freezePanes: true,
     rtl: true,
     compressionLevel: true,
+    readFormats: ['xlsx'],
+  },
+  native: {
+    styles: true,
+    conditionalFormatting: true,
+    dataValidation: true,
+    perCellProtection: true,
+    comments: true,
+    freezePanes: true,
+    rtl: true,
+    // The Web CompressionStream has no level parameter: `false` stores, anything else deflates.
+    compressionLevel: false,
     readFormats: ['xlsx'],
   },
 };
