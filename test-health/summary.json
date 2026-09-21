@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T13:38:14.227Z",
+  "generatedAt": "2026-09-21T13:45:58.416Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -229,7 +229,7 @@
       "file": "e2e/sheets-bar.spec.ts",
       "line": 394,
       "title": "sheets bar › deleting a sheet from the menu leaves the focus on the tab that takes its place",
-      "count7": 12,
+      "count7": 6,
       "count30": 12,
       "countAll": 12,
       "runs30": 2,
