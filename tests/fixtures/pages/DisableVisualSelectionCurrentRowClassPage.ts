@@ -5,25 +5,33 @@ import { awaitBundle } from '../bundle';
  * Page Object for the "disableVisualSelection vs currentRow/ColClassName" fixture (DEV-228).
  *
  * The fixture holds one grid per `disableVisualSelection` value, each with both class options set.
- * The page object selects a body cell and exposes the two things the bug damaged - whether the
- * body cells carry the current-row/column classes - alongside the thing that must NOT come back
- * with them, the header-selection highlight.
+ * The page object selects a body cell and returns Locators - so the spec asserts with web-first
+ * matchers (`toHaveClass` / `toHaveCount`) that retry - for the two things the bug damaged (the
+ * current-row/column classes on body cells) alongside what must NOT come back with them (the
+ * header-selection highlight).
  */
 export class DisableVisualSelectionCurrentRowClassPage {
   /** `disableVisualSelection: 'header'` - the ticket's case. */
   static readonly HEADER = 'dvs-header';
   /** `disableVisualSelection: false` - the positive control. */
   static readonly FALSE = 'dvs-false';
-  /** `disableVisualSelection: true` - everything off. */
+  /** `disableVisualSelection: true` - everything off through the boolean branch. */
   static readonly TRUE = 'dvs-true';
   /** `disableVisualSelection: 'current'`. */
   static readonly CURRENT = 'dvs-current';
   /** `disableVisualSelection: 'area'`. */
   static readonly AREA = 'dvs-area';
-  /** `disableVisualSelection: ['area', 'header']` - the array form, whose blast radius includes 'header'. */
+  /** `disableVisualSelection: ['area', 'header']` - an array whose blast radius includes 'header'. */
   static readonly ARRAY = 'dvs-array';
+  /** `disableVisualSelection: ['current', 'header']` - the second changed-behavior value from the ticket. */
+  static readonly CURRENT_HEADER = 'dvs-current-header';
+  /** `disableVisualSelection: ['current', 'area', 'header']` - everything off through the array branch. */
+  static readonly ALL = 'dvs-all';
 
-  static readonly ALL_GRIDS = ['dvs-header', 'dvs-false', 'dvs-true', 'dvs-current', 'dvs-area', 'dvs-array'];
+  static readonly ALL_GRIDS = [
+    'dvs-header', 'dvs-false', 'dvs-true', 'dvs-current', 'dvs-area',
+    'dvs-array', 'dvs-current-header', 'dvs-all',
+  ];
 
   static readonly CURRENT_ROW_CLASS = 'currentRow';
   static readonly CURRENT_COL_CLASS = 'currentCol';
@@ -79,26 +87,23 @@ export class DisableVisualSelectionCurrentRowClassPage {
     }, [gridId, row, col] as const);
   }
 
-  /** The class tokens on one body cell. */
-  async cellClasses(gridId: string, row: number, col: number): Promise<string[]> {
-    const cell = this.grid(gridId).getByTestId(`cell-${row}-${col}`);
-    const className = await cell.getAttribute('class');
-
-    return (className ?? '').split(/\s+/).filter(Boolean);
+  /** One body cell, for a `toHaveClass` assertion. */
+  cell(gridId: string, row: number, col: number): Locator {
+    return this.grid(gridId).getByTestId(`cell-${row}-${col}`);
   }
 
-  /** How many rendered body cells carry the given class. */
-  async cellCount(gridId: string, className: string): Promise<number> {
-    return this.grid(gridId).locator(`td.${className}`).count();
+  /** Every rendered body cell (`td`) carrying the given class, for a `toHaveCount` assertion. */
+  bodyCells(gridId: string, className: string): Locator {
+    return this.grid(gridId).locator(`td.${className}`);
   }
 
-  /** How many header cells (`th`) carry the given class. */
-  async headerCellCount(gridId: string, className: string): Promise<number> {
-    return this.grid(gridId).locator(`th.${className}`).count();
+  /** Every header cell (`th`) carrying the given class. */
+  headerCells(gridId: string, className: string): Locator {
+    return this.grid(gridId).locator(`th.${className}`);
   }
 
-  /** How many header cells carry the header-selection highlight (`ht__highlight`). */
-  async headerHighlightCount(gridId: string): Promise<number> {
-    return this.grid(gridId).locator('th.ht__highlight').count();
+  /** The header cells carrying the header-selection highlight (`ht__highlight`). */
+  headerHighlight(gridId: string): Locator {
+    return this.grid(gridId).locator('th.ht__highlight');
   }
 }

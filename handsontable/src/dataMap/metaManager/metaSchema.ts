@@ -2507,7 +2507,7 @@ export default (): Record<string, unknown> => {
      * The current-row and current-column indicators
      * ([`currentRowClassName`](#currentRowClassName) and [`currentColClassName`](#currentColClassName))
      * are selection feedback rather than header selection, so `'header'` does not remove them. They are
-     * hidden only when every selection type is off - `true`, or an array holding all of `'current'`,
+     * hidden only when every selection type is off – `true`, or an array holding all of `'current'`,
      * `'area'`, and `'header'`. The classes also mark the current row's and column's header cell, as
      * they do with `false`, so `'header'` still leaves your `currentRowClassName` and
      * `currentColClassName` on those header cells.

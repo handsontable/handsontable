@@ -48,6 +48,8 @@
   <div id="dvs-current" class="grid" data-testid="dvs-current"></div>
   <div id="dvs-area" class="grid" data-testid="dvs-area"></div>
   <div id="dvs-array" class="grid" data-testid="dvs-array"></div>
+  <div id="dvs-current-header" class="grid" data-testid="dvs-current-header"></div>
+  <div id="dvs-all" class="grid" data-testid="dvs-all"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -96,6 +98,8 @@
       'dvs-current': build('dvs-current', 'current'),
       'dvs-area': build('dvs-area', 'area'),
       'dvs-array': build('dvs-array', ['area', 'header']),
+      'dvs-current-header': build('dvs-current-header', ['current', 'header']),
+      'dvs-all': build('dvs-all', ['current', 'area', 'header']),
     };
   </script>
 </body>

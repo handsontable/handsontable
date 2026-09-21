@@ -687,7 +687,13 @@ class Selection {
     rowHighlight?.clear();
     columnHighlight?.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) &&
+    // Resolved once - each call routes through `getCellMeta`, and `applyAndCommit()` runs on every
+    // selection change (once per mousemove during a drag-select).
+    const isFocusEnabled = this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight);
+    const isAreaEnabled = this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight);
+    const isHeaderEnabled = this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight);
+
+    if (isAreaEnabled &&
         (this.isMultiple(cellRange) || layerLevel >= 1)) {
       areaHighlight
         ?.add(cellRange.from)
@@ -725,17 +731,18 @@ class Selection {
     }
 
     // The row and column highlights carry the `currentRowClassName` / `currentColClassName` indicator on
-    // the body cells (and the row/column header). They are selection feedback, not header selection, so
-    // they are shown whenever any selection type is enabled and hidden only when every type is disabled
-    // (`disableVisualSelection: true`). Gating them on `HEADER_TYPE` alone made `disableVisualSelection:
-    // 'header'` strip them from the body cells too (DEV-228).
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight) ||
-        this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) ||
-        this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
+    // the body cells (and the row/column header). They are selection feedback rather than header
+    // selection, so they are shown whenever any selection type is enabled and hidden only when every
+    // type is off - `disableVisualSelection: true`, or an array holding all of `'current'`, `'area'`,
+    // and `'header'`. This is checked against the three named types rather than the highlights' own
+    // `ROW_TYPE` / `COLUMN_TYPE` deliberately: the latter would keep the indicator on for the all-three
+    // array, whereas turning every selection type off must hide it, as it did before DEV-228. Gating
+    // them on `HEADER_TYPE` alone made `disableVisualSelection: 'header'` strip them from the body cells.
+    if (isFocusEnabled || isAreaEnabled || isHeaderEnabled) {
       this.#applyRowColumnHighlights(cellRange, rowHighlight, columnHighlight);
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
+    if (isHeaderEnabled) {
       this.#applyHeaderHighlights(
         cellRange,
         layerLevel,
@@ -787,7 +794,7 @@ class Selection {
   }
 
   /**
-   * Builds the header-extent coordinates a full row/column highlight spans - the row and column
+   * Builds the header-extent coordinates a full row/column highlight spans – the row and column
    * ends in header space. Shared by the row/column highlight and the header highlight so the
    * asymmetric `from` clamp stays in one place.
    *
