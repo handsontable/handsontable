@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `disableVisualSelection: 'header'` option incorrectly hiding the `currentRowClassName` and `currentColClassName` indicators on body cells.",
+  "type": "fixed",
+  "issueOrPR": 13595,
+  "breaking": false,
+  "framework": "none"
+}
