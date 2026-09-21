@@ -153,9 +153,28 @@ describe('Filters sort comparators', () => {
         .toEqual(['Critical', 'High', 'Medium', 'Low']);
     });
 
-    it('should hand blanks to the comparator as an empty string and place them where it says', () => {
+    it('should place a literal empty string where the comparator says', () => {
       // unknown values (the blank) rank last under `byPriority`
       expect(unifyColumnValues(['Low', '', 'Critical'], byPriority)).toEqual(['Critical', 'Low', '']);
+    });
+
+    it('should hand a null or undefined blank to the comparator as an empty string', () => {
+      // `unifyColumnValues` maps through `toEmptyString` BEFORE it sorts, which is the conversion
+      // the option's documentation promises. Assert on what the comparator was handed rather than
+      // on the output: the `Set` dedupes before that map, so `null` and `undefined` survive as two
+      // separate entries and both become `''`.
+      const seen = [];
+      const spy = (a, b) => {
+        seen.push(a, b);
+
+        return byPriority(a, b);
+      };
+
+      unifyColumnValues(['Low', null, undefined, 'Critical'], spy);
+
+      expect(seen).toContain('');
+      expect(seen).not.toContain(null);
+      expect(seen).not.toContain(undefined);
     });
 
     it('should keep every distinct value regardless of the comparator', () => {

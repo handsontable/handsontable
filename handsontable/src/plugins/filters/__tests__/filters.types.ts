@@ -107,3 +107,12 @@ if (selectedColumn !== null) {
   const selectedColumnPhysicalIndex: number = selectedColumn.physicalIndex;
   const selectedColumnVisualIndex: number = selectedColumn.visualIndex;
 }
+
+// The option is declared with property syntax, so under `strictFunctionTypes` it is checked
+// contravariantly and a NARROWED parameter type is not assignable. `unknown` is the conservative
+// choice (narrowing the published signature later would be breaking), and this pins the constraint
+// so it is a documented trade rather than something the first customer discovers.
+Handsontable(document.createElement('div'), {
+  // @ts-expect-error - parameters must be `unknown`; a narrowed signature is not assignable
+  filterValueComparator: (a: string, b: string) => a.localeCompare(b),
+});
