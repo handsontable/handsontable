@@ -297,16 +297,18 @@ They are written in different places and can drift. Keep this in mind:
   every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
   leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
   **Formulas is carried across the toggle by Formulas itself, not from here.** That plugin
-  resyncs its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the
-  Core fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout, so
-  the engine kept the pre-flatten one: measured, the grid showed four rows against a two-row
-  HyperFormula sheet, a formula on a moved row rendered as raw text, and its value landed on another
-  row. The repair is a second `afterUpdateSettings` listener in `formulas.ts`, registered with
-  `orderIndex: 1` so it runs after every plugin has updated, comparing the row count the update ends
-  on against the one the mid-update resync saw. Nothing there names this plugin. Do not add a
-  `nestedRows`-shaped fix on this side, and do not fire `afterUpdateData` by hand — a settings-driven
-  row-count change is a general event, and any other plugin caching a row layout needs the same
-  treatment in its own file.
+  resyncs its sheet from `afterLoadData` / `afterUpdateData`, and on a settings update from
+  `afterCellMetaReset`, which the Core fires *before* `afterUpdateSettings` — a toggle reaches none
+  of them with the new layout, so a scan there served the pre-flatten one: measured, the grid
+  showed four rows against a two-row HyperFormula sheet, a formula on a moved row rendered as raw
+  text, and its value landed on another row. So `afterCellMetaReset` only records that a resync is
+  owed, and the scan runs once the plugins have updated — from an `afterUpdateSettings` listener
+  registered with `orderIndex: 1`, or earlier, from `beforeRender`, which is where it lands on this
+  toggle because `updatePlugin()` above renders (`formulas/AGENTS.md`, "resyncs the sheet ONCE").
+  A row-count gate against the layout the last scan recorded is the fallback. Nothing there names
+  this plugin. Do not add a `nestedRows`-shaped fix on this side, and do not fire `afterUpdateData`
+  by hand — a settings-driven row-count change is a general event, and any other plugin caching a
+  row layout needs the same treatment in its own file.
   **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
   by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
   INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid
