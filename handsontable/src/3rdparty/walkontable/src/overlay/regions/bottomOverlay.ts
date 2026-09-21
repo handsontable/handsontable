@@ -9,7 +9,7 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -72,6 +72,13 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
+   * @returns {'block'} This overlay follows the page up and down.
+   */
+  get railAxis(): 'block' {
+    return 'block';
+  }
+
+  /**
    * Updates the top overlay position.
    *
    * Reports no position change, for the same reason `TopOverlay#resetFixedPosition` does not:
@@ -85,26 +92,42 @@ export class BottomOverlay extends Overlay {
       return false;
     }
     const { rootWindow } = this.deps;
+    const wtTable = this.deps.getWtTable();
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const rail = this.getRail();
+    const restsOnWindow = this.trimmingContainer === rootWindow;
+
+    if (!restsOnWindow) {
+      // Before the insets below: releasing restores the clone's own top inset.
+      rail?.release();
+    }
 
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (restsOnWindow) {
       overlayPosition = this.getOverlayOffset();
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
-      // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
-      // so the overlay sits flush against the actual table content instead of the
+      // fractional CSS pixel past the holder's integer CSS height. The rail reaches that far
+      // instead, so the clone rests against the actual table content rather than the
       // CSS-integer hider boundary.
       const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+      const masterTableRect = geometryReader.getBoundingClientRect(wtTable.TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
-      overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
+      // Held at the viewport's bottom edge by the browser, never by this listener (DEV-126).
+      overlayRoot.style.bottom = '';
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight() + masterTableOverflow,
+        inline: false,
+        block: { pinned: true, edge: 'bottom' },
+      });
 
     } else {
       overlayPosition = this.getScrollPosition();
@@ -274,16 +297,20 @@ export class BottomOverlay extends Overlay {
     // Width is a horizontal question: sized against the scrollport whenever an element owns the
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
-    // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
-    // VERTICAL scrollbar, so it asks this overlay's own (vertical) owner; the bottom strip clears the
-    // HORIZONTAL one, so it asks the inline-start overlay's. In split mode the two differ - the window
-    // owns the rows, the holder owns the columns - and one predicate taken from the vertical owner
-    // said "the window's scrollbar" for both, leaving the holder's horizontal scrollbar under the
-    // frozen bottom rows at the grid's end. Clip and band together, or not at all - see
-    // `TopOverlay#adjustRootElementSize`.
-    const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
-    const bottomClearanceApplies = holderOwnsScrollbars(
-      this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
+    // Each strip reads the axis it lies on. The inline-end strip clears the master's VERTICAL
+    // scrollbar, so it asks the vertical owner; the bottom strip clears the HORIZONTAL one, so it
+    // asks the element that scrolls the columns. In split mode the two differ - the window owns the
+    // rows, the holder owns the columns - and one predicate taken from the vertical owner said "the
+    // window's scrollbar" for both, leaving the holder's horizontal scrollbar under the frozen bottom
+    // rows at the grid's end. The horizontal question reads the scroller, not the owner: in the
+    // reverse split the window owns the columns while the holder scrolls them
+    // (`Overlay#ownsWindowScroll()`), and the owner's identity would leave that scrollbar covered.
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const verticalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
+    const horizontalClearanceApplies = holderOwnsAxisScrollbar(
+      this.wot.wtOverlays.inlineStartOverlay.mainTableScrollableElement === rootWindow,
+      rootWindow
     ) && this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
@@ -291,7 +318,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      inlineEndClearanceApplies && wtViewport.hasVerticalScroll(),
+      verticalClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
@@ -325,7 +352,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      bottomClearanceApplies && wtViewport.hasHorizontalScroll(),
+      horizontalClearanceApplies && wtViewport.hasHorizontalScroll(),
       'horizontal'
     );
 

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Walkontable (window-scroll pinned overlays) e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // Frozen columns and frozen bottom rows on request, so all three horizontally pinned clones
+    // (the inline-start one and both inline-start corners) carry content.
+    window.htFrozen = htParams.get('frozen') === '1';
+    // RTL on request: the grid AND the page, as a real RTL app has it.
+    window.htRtl = htParams.get('rtl') === '1';
+    // Positive control: the clones stop following the page, which is exactly what a clone painted one
+    // step behind the scroll looks like, on every frame instead of some.
+    window.htUnpinned = htParams.get('control') === 'unpinned';
+    // A table tall enough for the page to scroll vertically, for the column-header tests (DEV-126).
+    window.htTall = htParams.get('tall') === '1';
+
+    if (window.htRtl) {
+      document.documentElement.dir = 'rtl';
+    }
+  </script>
+  <style>
+    /* No page margin: the pinned clones then sit at the viewport edge from the first frame on. */
+    body { margin: 0; font-family: sans-serif; }
+
+    /*
+     * One unique color per horizontally pinned clone, scoped to that clone's own row headers. The
+     * screencast frames are scanned for these colors; the master's own row headers scroll with the
+     * page and must never be mistaken for the pinned ones, hence the clone scope.
+     */
+    .ht_clone_inline_start tbody th { background-color: #ff00ff !important; }
+    .ht_clone_top_inline_start_corner thead th { background-color: #00ffff !important; }
+    .ht_clone_bottom_inline_start_corner tbody th { background-color: #ffff00 !important; }
+    .ht_clone_top thead th { background-color: #00ff00 !important; }
+    .ht_clone_bottom tbody td { background-color: #ff8000 !important; }
+  </style>
+</head>
+<body>
+  <!--
+    No `width` and no `height` on the grid: the WINDOW scrolls it, so the clones that hold the row
+    headers must be kept at the viewport's inline-start edge while the page scrolls sideways
+    underneath them. The table is far wider than the viewport and shorter than it, so a horizontal
+    wheel scroll moves the page on one axis only.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    if (window.htUnpinned) {
+      const style = document.createElement('style');
+
+      style.textContent = [
+        '.ht_clone_inline_start, .ht_clone_top, .ht_clone_bottom,',
+        '.ht_clone_top_inline_start_corner, .ht_clone_bottom_inline_start_corner {',
+        '  position: absolute !important; inset-inline-start: 0 !important; top: 0 !important;',
+        '  bottom: auto !important; margin-top: 0 !important; transform: none !important;',
+        '}',
+      ].join('\n');
+      document.head.appendChild(style);
+    }
+
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Short and wide for the sideways tests, so a horizontal wheel moves one axis only; tall and
+    // narrow enough for the up-and-down ones, so a vertical wheel does the same.
+    const data = Array.from({ length: window.htTall ? 220 : 12 }, (_, r) =>
+      Array.from({ length: window.htTall ? 12 : 200 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data,
+      colWidths: 60,
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsStart: window.htFrozen ? 2 : 0,
+      fixedRowsBottom: window.htFrozen ? 2 : 0,
+      // Only on the tall legs: a frozen top row is what the top clone holds, and the short legs'
+      // scanlines are taken through the clones as they are.
+      fixedRowsTop: (window.htFrozen && window.htTall) ? 2 : 0,
+      layoutDirection: window.htRtl ? 'rtl' : 'ltr',
+      // The resize handles are placed from a header's position relative to the root element, and the
+      // editor from a cell's document position – both read the clone's placement.
+      manualRowResize: true,
+      manualColumnResize: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

@@ -50,14 +50,23 @@ So the failure mode is "one action is lost", never "the stack dies". Keep it tha
 ## The redo settle protocol
 
 Most actions settle the redo by calling back with **no argument**. An action that can legitimately fail to
-redo — **currently only `MoveCellsAction`** — reports `{ wasRedone: false }`, which pushes the action back
-onto the **undone** stack instead of the done stack.
+redo reports `{ wasRedone: false }`, which pushes the action back onto the **undone** stack instead of the
+done stack. `MoveCellsAction` decides that itself; `RemoveRowAction` and `RemoveColumnAction` report it
+through `settleOnRemoveHook()` (below).
 
-An action that can legitimately fail to undo — **currently only `RemoveRowAction` with a nested
-snapshot** — exposes `canUndo(hot)`. `UndoRedo.undo()` calls it **before** `beforeUndo`. Formulas
-always calls `engine.undo()` in `beforeUndo`, so a veto or a disabled NestedRows plugin discovered
-only while applying the snapshot would leave HyperFormula restored and Handsontable empty. A late
-`{ wasUndone: false }` still puts the action back on the done stack and must **not** emit `afterUndo`.
+**Refuse early, before the hooks that step HyperFormula.** Formulas calls `engine.undo()` in `beforeUndo`
+and `engine.redo()` in `beforeRedo`, and clears its undo/redo flag only in `afterUndo` / `afterRedo`. So an
+undo or redo that turns out not to apply must be refused **before** those hooks, or the engine moves one
+step while Handsontable stays put. That is what `canUndo(hot)` and `canRedo(hot)` are for:
+`UndoRedo.undo()` asks `canUndo()` before `beforeUndo`, `UndoRedo.redo()` asks `canRedo()` before
+`beforeRedo`, and a `false` leaves the action where it is with no hook fired. Actions that answer:
+
+- `canUndo()` - `RemoveRowAction` with a nested snapshot, `CreateRowAction`, `CreateColumnAction`.
+- `canRedo()` - `RemoveRowAction`, `RemoveColumnAction`.
+
+Anything a check can see coming belongs in it. A late `{ wasUndone: false }` still puts the action back on
+the done stack and must **not** emit `afterUndo`, but by then `beforeUndo` has already run - so treat the
+late result as the fallback for what cannot be predicted, not as the way to refuse.
 Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
 mutate the settings object by reference, and a refused nested undo would otherwise leave the
 frozen-row counts of a state that never came back. Nested cell-meta restore must reopen the origin
@@ -65,6 +74,48 @@ that filed each key (`startCellOptionMetaRecording`, a plain `setCellMeta`, or
 `disableUserDefinedMetaRecording`); a bare write files everything as user-defined and #5661
 returns. The merge snapshot type is `import type { PhysicalRowMergeSnapshot }` from MergeCells —
 type-only, so registering UndoRedo still does not pull that plugin into the bundle.
+
+## A removal that removes nothing must still settle
+
+`CreateRowAction` / `CreateColumnAction` (undo) and `RemoveRowAction` / `RemoveColumnAction` (redo) settle
+on `afterRemoveRow` / `afterRemoveCol`, and a removal that removes nothing fires **neither**. With the settle
+callback armed straight on the hook, it never runs: `ignoreNewActions` stays on and **the stack dies for the
+rest of the session** - the failure mode this file forbids. There are three ways a removal removes nothing,
+and they are handled in two places.
+
+**Predictable - refused by `canUndo()` / `canRedo()` before any hook.** Both read `clipRemovalRange()` from
+`src/utils/removalRange.ts`, the same function `Core#alter()` uses to skip an out-of-range removal, so the
+stack and `alter()` cannot disagree about whether a removal changes the grid. Never copy that rule here.
+
+- **The recorded index names no row or column any more.** Since DEV-117, `alter()` skips an index past the
+  end instead of wrapping it round to the start. An index recorded before the grid changed shape outside
+  the stack - `updateData`, a trim - is therefore a genuine no-op. Before, it silently removed the wrong
+  record.
+- **`RemoveRowAction`'s recorded row is trimmed.** It stores a *physical* index and replays it through
+  `toVisualRow()`, which returns `null` for a trimmed row (the method is typed `number`, but it is not).
+  `alter()` reads any index that is not an integer as "take the rows from the end", so the redo used to
+  **delete a row it never recorded** - the last one. Pre-existing. `canRedo()` tests `Number.isInteger()`,
+  the same condition `alter()` routes on, rather than `=== null`.
+
+**Unpredictable - settled late by `settleOnRemoveHook()` in `utils.ts`.** A `beforeRemoveRow` /
+`beforeRemoveCol` listener that vetoes the removal is found only while the removal runs. The helper arms the
+hook, runs the removal, and when the hook did not fire, disarms it and settles with `{ wasUndone: false }` /
+`{ wasRedone: false }`, so the action stays on the stack it came from. Pre-existing.
+
+**Known gap, deliberately left:** a vetoed undo or redo has already passed `beforeUndo` / `beforeRedo`, so
+with Formulas enabled it still steps HyperFormula. `canUndo()` / `canRedo()` cannot see a veto coming. It is
+the same gap the nested-snapshot `canUndo()` above documents, and a real fix needs the veto answered before
+the stack commits to the operation.
+
+Three things to keep in `settleOnRemoveHook()`:
+
+- **Disarm the listener, even when the removal throws.** The `finally` does it. `UndoRedo#undo()` /
+  `#redo()` catch the throw and discard the action; a listener left armed would settle that discarded action
+  on the next real removal and push it onto the other stack.
+- **Settle with no argument when the hook does fire**, never by forwarding the hook's own arguments: those
+  are the removed index and amount, and a preceding listener's return value can be folded into the first of
+  them (see the hook-argument hazards below).
+- **Use the helper** for any new action that settles on a remove hook, rather than `addHookOnce` directly.
 
 ## `MoveCellsAction` is the asymmetric one, in three ways
 

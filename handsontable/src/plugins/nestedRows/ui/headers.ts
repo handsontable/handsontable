@@ -182,8 +182,11 @@ class HeadersUI extends BaseUI {
    *
    * @private
    * @param {number} deepestLevel Cached deepest level of nesting.
+   * @param {boolean} [shouldRender=true] `false` only sizes the header, for a caller the Core is
+   * about to render anyway - `updatePlugin()` runs on every `updateSettings()` carrying the
+   * `nestedRows` key, which in React is every re-render, and a render here would double each one.
    */
-  updateRowHeaderWidth(deepestLevel?: unknown) {
+  updateRowHeaderWidth(deepestLevel?: unknown, shouldRender = true) {
     let deepestLevelIndex = deepestLevel;
 
     if (!deepestLevelIndex) {
@@ -198,7 +201,9 @@ class HeadersUI extends BaseUI {
 
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * (deepestLevelIndex as number)) + 25);
 
-    this.hot.render();
+    if (shouldRender) {
+      this.hot.render();
+    }
   }
 }
 

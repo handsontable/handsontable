@@ -1866,7 +1866,9 @@ class Border {
     containerOffset: { top: number; left: number }): false | [HTMLElement, number, number] {
     const { geometryReader } = this.wot.domBindings;
     const { wtTable } = this.wot;
-    const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
+    // Read off the master: a pinned clone's parent is its rail, not the grid root (DEV-127).
+    const masterTable = this.wot.cloneSource?.wtTable ?? wtTable;
+    const rootHotElement = masterTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
     let entireSelectionClassname: string | null = null;

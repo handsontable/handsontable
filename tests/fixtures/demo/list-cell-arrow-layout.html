@@ -46,6 +46,19 @@
     if (!window.htRowHeightMode) {
       throw new Error('Unknown ?rowHeightMode= value: ' + JSON.stringify(htParams.get('rowHeightMode')));
     }
+    // `off` sets `textEllipsis: false` on the list column, the documented per-column opt-out that
+    // restores wrapping (DEV-28).
+    window.htListEllipsis = ({ on: 'on', off: 'off' })[htParams.get('listEllipsis') ?? 'on'];
+    if (!window.htListEllipsis) {
+      throw new Error('Unknown ?listEllipsis= value: ' + JSON.stringify(htParams.get('listEllipsis')));
+    }
+    // A second, non-list column: `wrap` is a plain `text` column (must still wrap — the single-line
+    // default is scoped to the list types); `ellipsis` is a `text` column with `textEllipsis: true`
+    // (must show the ellipsis, including inside `.htCellClip` on an exact row — the general rule).
+    window.htSideColumn = ({ none: 'none', wrap: 'wrap', ellipsis: 'ellipsis' })[htParams.get('sideColumn') ?? 'none'];
+    if (!window.htSideColumn) {
+      throw new Error('Unknown ?sideColumn= value: ' + JSON.stringify(htParams.get('sideColumn')));
+    }
   </script>
 </head>
 <body>
@@ -74,22 +87,38 @@
 
     // `autocomplete` / `dropdown` take a flat `source`; `handsontable` takes a nested grid config.
     // All three resolve to `autocompleteRenderer` and the `htAutocomplete` class.
-    const column = window.htCellType === 'handsontable'
+    const listBase = window.htCellType === 'handsontable'
       ? { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } }
       : { type: window.htCellType, source: CHOICES };
+    const column = window.htListEllipsis === 'off'
+      ? { ...listBase, textEllipsis: false }
+      : listBase;
+
+    // Optional non-list column (see the param block): a plain `text` column, with `textEllipsis`
+    // only for the `ellipsis` case.
+    const sideColumn = window.htSideColumn === 'wrap'
+      ? { type: 'text' }
+      : window.htSideColumn === 'ellipsis'
+        ? { type: 'text', textEllipsis: true }
+        : null;
+    const columns = sideColumn ? [column, sideColumn] : [column];
+
+    // The side column gets the breakable phrase in row 0 (so it can wrap or ellipsize), and mirrors
+    // the list column's short/empty rows otherwise.
+    const withSide = row => (sideColumn ? [...row, row[0] === null ? null : (row[0] === SHORT ? SHORT : BREAKABLE)] : row);
 
     // 100px is wide enough for the arrow itself on every theme and still far narrower than the
     // unbreakable token, so the float-wrap (arrow on a second line) is what the spec measures.
     // 90px rows match the DEV-348 review measurement for `htMiddle` / `htBottom`.
     const settings = window.htMode === 'autosize'
       ? {
-        data: [[UNBREAKABLE], [SHORT]],
-        columns: [column],
+        data: [withSide([UNBREAKABLE]), withSide([SHORT])],
+        columns,
         autoColumnSize: true,
       }
       : {
-        data: [[value], [SHORT], [null]],
-        columns: [column],
+        data: [withSide([value]), withSide([SHORT]), withSide([null])],
+        columns,
         colWidths: 100,
         ...(window.htMode === 'tall' ? { rowHeights: 90 } : {}),
       };

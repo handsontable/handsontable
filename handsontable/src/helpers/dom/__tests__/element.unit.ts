@@ -10,6 +10,7 @@ import {
   getFractionalScalingCompensation,
   hasClass,
   isInput,
+  isInternalElement,
   isBottomMostColumnHeader,
   removeAttribute,
   removeClass,
@@ -32,6 +33,7 @@ import {
   outerHeight,
   outerWidth,
   getTrimmingContainer,
+  getFixedContainingBlockRect,
   observeVisibilityChangeOnce,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
@@ -53,6 +55,72 @@ describe('DomElement helper', () => {
       div.contentEditable = 'true';
 
       expect(isInput(div)).toBe(true);
+    });
+  });
+
+  describe('isInternalElement', () => {
+    /**
+     * Builds `<div class="handsontable">` (the grid root) holding one clone, optionally inside a rail
+     * the way a window-scrolled grid pins its inline-start clones, and a cell inside the clone.
+     *
+     * @param {boolean} railed Whether the clone sits inside a rail.
+     * @returns {{ root: HTMLElement, cell: HTMLElement }}
+     */
+    function buildGrid(railed: boolean) {
+      const root = document.createElement('div');
+      const clone = document.createElement('div');
+      const cell = document.createElement('td');
+
+      root.className = 'handsontable';
+      clone.className = 'ht_clone_inline_start handsontable';
+      clone.appendChild(document.createElement('table')).appendChild(cell);
+
+      if (railed) {
+        const rail = document.createElement('div');
+
+        rail.className = 'htOverlayRail';
+        rail.appendChild(clone);
+        root.appendChild(rail);
+      } else {
+        root.appendChild(clone);
+      }
+
+      return { root, cell };
+    }
+
+    it('should recognize a cell of a clone standing directly in the grid root', () => {
+      const { root, cell } = buildGrid(false);
+
+      expect(isInternalElement(cell, root)).toBe(true);
+    });
+
+    it('should recognize a cell of a clone pinned inside a rail', () => {
+      // DEV-127: while the window scrolls the grid sideways, the inline-start clones sit one level
+      // deeper. Copy/paste and the focus handling ask this helper, so answering `false` here made
+      // frozen and header cells read as foreign.
+      const { root, cell } = buildGrid(true);
+
+      expect(isInternalElement(cell, root)).toBe(true);
+    });
+
+    it('should not claim a cell of a grid nested inside a cell of the outer grid', () => {
+      const outer = buildGrid(true);
+      const nested = buildGrid(true);
+
+      outer.cell.appendChild(nested.root);
+
+      expect(isInternalElement(nested.cell, outer.root)).toBe(false);
+      expect(isInternalElement(nested.cell, nested.root)).toBe(true);
+    });
+
+    it('should step over the rail and no further', () => {
+      // A rail step that climbed one level too far would answer for the element holding the grid.
+      const { root, cell } = buildGrid(true);
+      const host = document.createElement('div');
+
+      host.appendChild(root);
+
+      expect(isInternalElement(cell, host)).toBe(false);
     });
   });
 
@@ -1327,6 +1395,29 @@ describe('DomElement helper', () => {
 
       expect(isHTMLElement(element)).toBe(true);
     });
+
+    it('should return `true` for an element built in another realm, where `instanceof` fails', () => {
+      // The whole reason this helper exists. `instanceof HTMLElement` is bound to the realm the
+      // calling module was loaded in, so it reports `false` for an element from an iframe - and a
+      // grid rendered into an iframe is driven from the parent realm. Callers that narrow an
+      // element-or-window with a bare `instanceof` therefore read a real element as "the window";
+      // `Overlay#ownsWindowScroll()` did, and bound the horizontal scroll listener to the window
+      // while the grid's holder was scrolling the columns.
+      const frame = document.createElement('iframe');
+
+      document.body.appendChild(frame);
+
+      const foreignElement = frame.contentDocument!.createElement('div');
+
+      expect(foreignElement instanceof HTMLElement).toBe(false);
+      expect(isHTMLElement(foreignElement)).toBe(true);
+
+      document.body.removeChild(frame);
+    });
+
+    it('should return `false` for a window, which is not an element on any realm', () => {
+      expect(isHTMLElement(window)).toBe(false);
+    });
   });
 
   //
@@ -2041,4 +2132,166 @@ describe('DomElement helper', () => {
       expect(IntersectionObserverStub.instances[0].disconnectCount).toBe(1);
     });
   });
+
+  describe('getFixedContainingBlockRect', () => {
+    /**
+     * jsdom reports every rect as zero, so an ancestor is stubbed with the box it would measure.
+     * What is under test is WHICH ancestor is chosen and how its padding box is derived, not the
+     * browser's own layout.
+     *
+     * @param {HTMLElement} element The element to stub.
+     * @param {object} box The rect it should report.
+     */
+    function stubRect(element, box) {
+      element.getBoundingClientRect = () => ({
+        top: box.top,
+        left: box.left,
+        width: box.width,
+        height: box.height,
+        right: box.left + box.width,
+        bottom: box.top + box.height,
+        x: box.left,
+        y: box.top,
+        toJSON() {},
+      });
+    }
+
+    it('should fall back to the viewport when no ancestor establishes a containing block', () => {
+      const parent = document.createElement('div');
+      const child = document.createElement('div');
+
+      parent.appendChild(child);
+      document.body.appendChild(parent);
+      // A real box on the parent, or this cannot fail: jsdom reports the viewport AND an unstubbed
+      // rect as all zeros, so a helper that wrongly returned the parent would pass the checks below.
+      stubRect(parent, { top: 100, left: 200, width: 400, height: 300 });
+
+      const rect = getFixedContainingBlockRect(child);
+
+      expect(rect.top).toBe(0);
+      expect(rect.left).toBe(0);
+      expect(rect.width).toBe(document.documentElement.clientWidth);
+      expect(rect.height).toBe(document.documentElement.clientHeight);
+
+      parent.remove();
+    });
+
+    // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective` and
+    // `backdrop-filter` from the cascade entirely (the inline value is kept, the computed one comes
+    // back empty), so those two cannot be exercised here even though every browser honours them and
+    // the helper checks them. `tests/e2e/dropdown-editor-clip.spec.ts` covers the real behavior.
+    // Every `will-change` value below was measured to anchor a fixed child in Chrome.
+    // `container-type` is deliberately absent: no current engine makes it a containing block (see
+    // the helper), and jsdom drops it too, so the browser case in the clip spec is what pins that.
+    it.each([
+      ['transform', 'translate(-50%, -50%)'],
+      ['filter', 'saturate(1.2)'],
+      ['willChange', 'transform'],
+      ['willChange', 'translate'],
+      ['willChange', 'rotate'],
+      ['willChange', 'scale'],
+      ['willChange', 'backdrop-filter'],
+      ['willChange', 'contain'],
+      ['contain', 'paint'],
+    ])('should return the padding box of an ancestor with %s: %s', (prop, value) => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style[prop] = value;
+      ancestor.style.borderStyle = 'solid';
+      ancestor.style.borderTopWidth = '3px';
+      ancestor.style.borderLeftWidth = '5px';
+      ancestor.style.borderBottomWidth = '3px';
+      ancestor.style.borderRightWidth = '5px';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      const rect = getFixedContainingBlockRect(child);
+
+      // The border is not part of the containing block, so it is peeled off every side.
+      expect(rect.top).toBe(103);
+      expect(rect.left).toBe(205);
+      expect(rect.width).toBe(390);
+      expect(rect.height).toBe(294);
+
+      ancestor.remove();
+    });
+
+    it('should ignore a `contain` value that contains neither layout nor paint', () => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style.contain = 'size';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      expect(getFixedContainingBlockRect(child).top).toBe(0);
+
+      ancestor.remove();
+    });
+
+    it('should ignore a `will-change` hint that names no containing-block property', () => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style.willChange = 'opacity';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      expect(getFixedContainingBlockRect(child).top).toBe(0);
+
+      ancestor.remove();
+    });
+
+    it('should cross a shadow boundary to reach a host-page ancestor', () => {
+      // The case core stamps `ht-shadow-dom` for. `parentElement` returns null at a ShadowRoot,
+      // so a walk built on it would stop inside the shadow tree and miss the modal entirely.
+      const modal = document.createElement('div');
+      const host = document.createElement('div');
+
+      modal.style.transform = 'translate(-50%, -50%)';
+      modal.appendChild(host);
+      document.body.appendChild(modal);
+      stubRect(modal, { top: 100, left: 200, width: 400, height: 300 });
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const inner = document.createElement('div');
+
+      shadow.appendChild(inner);
+
+      const rect = getFixedContainingBlockRect(inner);
+
+      expect(rect.top).toBe(100);
+      expect(rect.left).toBe(200);
+      expect(rect.width).toBe(400);
+      expect(rect.height).toBe(300);
+
+      modal.remove();
+    });
+
+    it('should pick the NEAREST establishing ancestor', () => {
+      const outer = document.createElement('div');
+      const inner = document.createElement('div');
+      const child = document.createElement('div');
+
+      outer.style.transform = 'translateX(10px)';
+      inner.style.filter = 'blur(1px)';
+      outer.appendChild(inner);
+      inner.appendChild(child);
+      document.body.appendChild(outer);
+      stubRect(outer, { top: 10, left: 10, width: 900, height: 900 });
+      stubRect(inner, { top: 50, left: 60, width: 300, height: 200 });
+
+      const rect = getFixedContainingBlockRect(child);
+
+      expect(rect.top).toBe(50);
+      expect(rect.left).toBe(60);
+
+      outer.remove();
+    });
+  });
+
 });

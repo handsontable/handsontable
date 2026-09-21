@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getCopyableData()` returning the raw cell value, such as a number, a boolean, or `null`, instead of the string its documentation and TypeScript type describe. `getCopyableSourceData()` still returns the stored value, and its TypeScript return type is now `unknown` instead of `string` to match.",
+  "type": "fixed",
+  "issueOrPR": 13559,
+  "breaking": true,
+  "framework": "none"
+}

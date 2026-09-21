@@ -67,8 +67,8 @@
 </head>
 <body>
   <!--
-    DEV-2525. With `height: 'auto'` the grid must never scroll itself — it grows to its rows and
-    the page scrolls instead. Below 100% zoom it did: the hider was written from a sum that
+    DEV-2525. With `height: 'auto'` the grid must never scroll itself vertically — it grows to its
+    rows and the page scrolls instead. Below 100% zoom it did: the hider was written from a sum that
     dropped two sub-pixel terms (the cells' bottom border, which the browser cannot paint thinner
     than one device pixel, and the column header height, read through the whole-pixel
     `offsetHeight`), leaving the scroll box a fraction shorter than the table inside it. The
@@ -113,7 +113,11 @@
     window.hot = new Handsontable(container, {
       data,
       height: 'auto',
-      width: '100%',
+      // A definite width, not `'100%'`. Since DEV-2789 `height: 'auto'` no longer clips the root, so
+      // with a container-driven width the page owns both axes and there is no grid scroll box left
+      // to measure. A definite width clips the horizontal axis on the root, which turns the holder
+      // into a content-sized scroll box on both axes - the shape this defect needs.
+      width: 700,
       stretchH: 'all',
       colHeaders: true,
       rowHeaders: true,
