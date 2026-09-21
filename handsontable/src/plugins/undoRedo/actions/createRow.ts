@@ -1,7 +1,28 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import { clipRemovalRange } from '../../../utils/removalRange';
+import { settleOnRemoveHook, type SettleCallback } from '../utils';
 import { BaseAction } from './_base';
 import { FIXED_ROW_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
+
+/**
+ * Resolves the visual index the undo removes the created rows from.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} index The recorded visual index of the created rows.
+ * @returns {number} The visual index to remove the rows from.
+ */
+function getUndoIndex(hot: HotInstance, index: number): number {
+  const rowCount = hot.countRows();
+  const minSpareRows = hot.getSettings().minSpareRows ?? 0;
+
+  // Work around the situation where the needed row was removed due to an 'undo' of a made change.
+  if (index >= rowCount && index - minSpareRows < rowCount) {
+    return index - minSpareRows;
+  }
+
+  return index;
+}
 
 /**
  * Action that tracks row creation.
@@ -40,21 +61,30 @@ export class CreateRowAction extends BaseAction {
   }
 
   /**
+   * Reports whether undoing the insertion would remove any row.
+   *
+   * UndoRedo must call this before `beforeUndo`. Formulas always calls `engine.undo()` in `beforeUndo`,
+   * so an undo whose removal names no row any more - the grid changed shape outside the stack since the
+   * rows were created - would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when undo can proceed.
+   */
+  canUndo(hot: HotInstance): boolean {
+    return clipRemovalRange(getUndoIndex(hot, this.index), this.amount, hot.countRows()) !== null;
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
-  undo(hot: HotInstance, undoneCallback: HookCallback) {
-    const rowCount = hot.countRows();
-    const minSpareRows = hot.getSettings().minSpareRows;
+  undo(hot: HotInstance, undoneCallback: SettleCallback) {
+    this.index = getUndoIndex(hot, this.index);
 
-    if (this.index >= rowCount && this.index - (minSpareRows ?? 0) < rowCount) {
-      this.index -= (minSpareRows ?? 0); // work around the situation where the needed row was removed due to an 'undo' of a made change
-    }
-
-    hot.addHookOnce('afterRemoveRow', undoneCallback);
-
-    removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
-      hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+    settleOnRemoveHook(hot, 'afterRemoveRow', undoneCallback, { wasUndone: false }, () => {
+      removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
+        hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+      });
     });
   }
 

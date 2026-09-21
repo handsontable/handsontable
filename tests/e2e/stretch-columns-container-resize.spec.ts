@@ -12,9 +12,14 @@ import { StretchColumnsContainerResizePage } from '../fixtures/pages/StretchColu
  * predicted too → the top overlay reserved the bar's width and clipped the header.
  *
  * WHICH ASSERTION DISCRIMINATES: `topCloneRootWidth === hiderWidth` and `lastHeaderOverflow <= 0`
- * fail on the unfixed code for the `auto`-height cases (the clone root is 15px short); the
- * `rootScrollClasses` assertion fails for BOTH the auto and the fixed-height cases. The real
- * scrollbar sizes are a backstop — the browser never painted a bar, which is the whole point.
+ * caught the clone root running 15px short while `height: 'auto'` still clipped the root; the
+ * `rootScrollClasses` assertion caught the phantom classes in both height modes. The real scrollbar
+ * sizes are a backstop — the browser never painted a bar, which is the whole point.
+ *
+ * Since DEV-2789, `height: 'auto'` with no `width` leaves both scroll axes to the page, and the top
+ * overlay writes no width on its clone root. The `'auto'` cases therefore pin that mode: an unsized
+ * clone root, columns that fill the container, and no phantom scroll classes. The clone-root width
+ * check lives on in the pixel-height case, the one mode where the root still sizes the clone.
  */
 test.describe('stretched columns after a container resize', () => {
   let grid: StretchColumnsContainerResizePage;
@@ -27,10 +32,12 @@ test.describe('stretched columns after a container resize', () => {
     test(`${stretchH}: the header clone spans the whole grid after shrinking (auto height)`, async() => {
       await grid.goto({ stretchH, height: 'auto' });
 
+      expect(await grid.horizontalAxisOwnedByWindow()).toBe(true);
+
       const before = await grid.geometry();
 
       expect(before.hiderWidth).toBe(1200);
-      expect(before.topCloneRootWidth).toBe(1200);
+      expect(before.topCloneRootWidth).toBeNaN();
       expect(await grid.rootScrollClasses()).toEqual([]);
 
       await grid.setContainerWidth(900);
@@ -40,8 +47,9 @@ test.describe('stretched columns after a container resize', () => {
       // The plugin and the body agree with the container…
       expect(after.apiColumnWidthSum).toBe(900);
       expect(after.bodyWidth).toBe(900);
-      // …and so must the header clone: this is the clipped-header symptom.
-      expect(after.topCloneRootWidth, 'top clone root width').toBe(after.hiderWidth);
+      // …and the header clone carries no inline width in window mode: a pixel value here would be a
+      // stale reservation.
+      expect(after.topCloneRootWidth, 'top clone root width').toBeNaN();
       expect(after.lastHeaderOverflow, 'last header overflow past the clone root').toBeLessThanOrEqual(0);
       // No phantom scrollbar on either axis.
       expect(await grid.rootScrollClasses()).toEqual([]);
@@ -55,16 +63,37 @@ test.describe('stretched columns after a container resize', () => {
       await grid.goto({ stretchH, height: 'auto' });
 
       await grid.setContainerWidth(900);
-      await grid.setContainerWidth(1500);
+      // 1200, not wider: the page owns the horizontal axis here, so a container wider than the
+      // viewport gives the page a real horizontal scrollbar and a truthful `htHasScrollX`.
+      await grid.setContainerWidth(1200);
 
       const after = await grid.geometry();
 
-      expect(after.apiColumnWidthSum).toBe(1500);
-      expect(after.topCloneRootWidth).toBe(after.hiderWidth);
+      expect(after.apiColumnWidthSum).toBe(1200);
+      expect(after.topCloneRootWidth).toBeNaN();
       expect(after.lastHeaderOverflow).toBeLessThanOrEqual(0);
       expect(await grid.rootScrollClasses()).toEqual([]);
     });
   }
+
+  test('all: growing past the viewport in window mode gives the page a real horizontal scrollbar', async() => {
+    // The other side of the grow case above: with `'auto'` and no `width` the page owns the columns,
+    // so a container wider than the 1280px viewport makes the PAGE scroll sideways. `htHasScrollX` is
+    // then the truth, not a phantom, and the header clone must still follow the stretched columns.
+    await grid.goto({ stretchH: 'all', height: 'auto' });
+
+    expect(await grid.horizontalAxisOwnedByWindow()).toBe(true);
+
+    await grid.setContainerWidth(900);
+    await grid.setContainerWidth(1500);
+
+    const after = await grid.geometry();
+
+    expect(after.apiColumnWidthSum).toBe(1500);
+    expect(after.lastHeaderOverflow).toBeLessThanOrEqual(0);
+    expect(await grid.documentOverflowsHorizontally()).toBe(true);
+    expect(await grid.rootScrollClasses()).toEqual(['htHasScrollX']);
+  });
 
   test('all: a fixed-height grid reports no horizontal scrollbar after shrinking', async() => {
     // The second shape of the defect: with a pixel height the vertical prediction stays correct,
@@ -73,9 +102,14 @@ test.describe('stretched columns after a container resize', () => {
 
     await grid.setContainerWidth(900);
 
+    const after = await grid.geometry();
+
+    // The root sizes the header clone in this mode, so the clipped-header symptom is reachable here.
+    expect(after.topCloneRootWidth, 'top clone root width').toBe(after.hiderWidth);
+    expect(after.lastHeaderOverflow, 'last header overflow past the clone root').toBeLessThanOrEqual(0);
     expect(await grid.rootScrollClasses()).toEqual([]);
     expect(await grid.engineScrollFlags()).toEqual({ vertical: false, horizontal: false });
-    expect((await grid.geometry()).scrollbar).toEqual({ vertical: 0, horizontal: 0 });
+    expect(after.scrollbar).toEqual({ vertical: 0, horizontal: 0 });
   });
 
   test('all: with autoColumnSize on (the library default) the header clone still spans the grid', async() => {
@@ -89,7 +123,7 @@ test.describe('stretched columns after a container resize', () => {
     const after = await grid.geometry();
 
     expect(after.apiColumnWidthSum).toBe(900);
-    expect(after.topCloneRootWidth).toBe(after.hiderWidth);
+    expect(after.topCloneRootWidth).toBeNaN();
     expect(after.lastHeaderOverflow).toBeLessThanOrEqual(0);
     expect(await grid.rootScrollClasses()).toEqual([]);
   });
@@ -111,7 +145,10 @@ test.describe('stretched columns after a container resize', () => {
     // longer fit, the strategy returns no widths, the map goes from stretched to empty in ONE write
     // with ONE cache drop, the hider stops following the container, and a plain render afterwards
     // costs nothing. The hider does not reach 400, so the wait is on the resize-driven render.
-    await grid.goto({ stretchH: 'all', height: 'auto' });
+    // A pixel height: this state exists only while the root owns the scroll. `'auto'` leaves both axes
+    // to the page (DEV-2789), and there the columns stretch to the document's width instead, exactly as
+    // they do with no `height` at all.
+    await grid.goto({ stretchH: 'all', height: 300 });
 
     const dropsBefore = await grid.invalidationCount();
 

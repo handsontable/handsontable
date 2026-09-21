@@ -194,6 +194,100 @@ describe('Core.alter', () => {
       expect(countCols()).toBe(countedColumns);
     });
 
+    describe('when the passed index does not exist', () => {
+      it('should not remove any column when the index is negative', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        await alter('remove_col', -2, 1);
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(10);
+      });
+
+      it('should not remove any column when the index equals the number of columns', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        await alter('remove_col', 10, 1);
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(10);
+      });
+
+      it('should not remove any column when the index is past the last column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        await alter('remove_col', 12, 10);
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(10);
+      });
+
+      it('should remove only the groups that exist when index groups are passed', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        await alter('remove_col', [[1, 1], [20, 1]]);
+
+        // Only the first group points at an existing column, so only `B` is removed.
+        expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(9);
+      });
+
+      it('should remove the existing part of a group that starts before the first column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        // The groups overlap, so they are merged into one that starts at -2 and spans columns
+        // -2, -1, 0 and 1. Only columns 0 and 1 exist, so only `A` and `B` are removed.
+        await alter('remove_col', [[-2, 4], [1, 1]]);
+
+        expect(getDataAtRow(0)).toEqual(['C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(8);
+      });
+
+      it('should not fire the remove hooks when the grid has no columns', async() => {
+        const beforeRemoveCol = jasmine.createSpy('beforeRemoveCol');
+        const afterRemoveCol = jasmine.createSpy('afterRemoveCol');
+
+        handsontable({
+          data: [],
+          startCols: 0,
+          minCols: 0,
+          minSpareCols: 0,
+          beforeRemoveCol,
+          afterRemoveCol,
+        });
+
+        // Clipping the part before the first column leaves an amount to remove, but there is no
+        // column to remove it from, so nothing runs.
+        await alter('remove_col', -2, 4);
+
+        expect(beforeRemoveCol).not.toHaveBeenCalled();
+        expect(afterRemoveCol).not.toHaveBeenCalled();
+        expect(countCols()).toBe(0);
+      });
+
+      it('should remove the existing part of a group that runs past the last column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        // Merged into one group spanning columns 8 to 13; columns 10 and up do not exist.
+        await alter('remove_col', [[8, 2], [9, 5]]);
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1']);
+        expect(countCols()).toBe(8);
+      });
+    });
+
     it('should remove one column if amount parameter is empty', async() => {
       handsontable({
         data: [
@@ -399,7 +493,8 @@ describe('Core.alter', () => {
 
     it('should decrement the number of fixed columns, if a fix column is removed', async() => {
       handsontable({
-        startCols: 1,
+        // The grid needs at least as many columns as the indexes removed below.
+        startCols: 5,
         startRows: 3,
         fixedColumnsStart: 4
       });

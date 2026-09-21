@@ -1,7 +1,7 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
 import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -70,6 +70,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -79,6 +80,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -365,6 +367,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
+  // that a second call is a no-op regardless of how the first one ended (see the `init` method).
+  let initialized = false;
   // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
   // instance instead of on every `updateSettings()` call that carries the options.
   let themeOverridesWarningShown = false;
@@ -1380,6 +1385,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Rows the group names above the first one or past the last one do not exist, so they
+                // are dropped from it rather than translated into rows the caller never named (DEV-117).
+                // The part that does exist is still removed - `normalizeIndexesGroup` above may have
+                // merged a valid group into one that starts above the table. An empty index keeps its
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`. The
+                // rule lives in `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countRows());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1475,6 +1496,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Columns the group names before the first one or past the last one do not exist, so
+                // they are dropped from it rather than translated into columns the caller never named
+                // (DEV-117). The part that does exist is still removed - `normalizeIndexesGroup` above
+                // may have merged a valid group into one that starts before the table. An empty index
+                // keeps its own meaning, "take the columns from the end". The rule lives in
+                // `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countCols());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
                 let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -2037,6 +2074,25 @@ export default function Core(
   }
 
   this.init = function() {
+    // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
+    // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
+    // Use `updateSettings()` to reconfigure a live instance.
+    if (initialized) {
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
+
+      return;
+    }
+
+    initialized = true;
+
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
@@ -2159,9 +2215,7 @@ export default function Core(
 
         lastSlotsHeight = slotsHeight;
 
-        if (isPixelHeight(isFunction(tableMeta.height) ? tableMeta.height() : tableMeta.height)) {
-          applyHeightSetting(tableMeta.height);
-        }
+        reapplyPixelRootHeight(instance, tableMeta.height);
 
         instance.render();
       });
@@ -3536,6 +3590,8 @@ export default function Core(
    * rendered once. As a result, it improves the performance of wrapped operations.
    * Without batching, a similar case could trigger multiple table render calls.
    *
+   * Rendering resumes even when the callback throws; the error is rethrown.
+   *
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3559,11 +3615,11 @@ export default function Core(
   this.batchRender = function<T>(wrappedOperations: () => T): T {
     instance.suspendRender();
 
-    const result = wrappedOperations();
-
-    instance.resumeRender();
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeRender();
+    }
   };
 
   /**
@@ -3650,6 +3706,9 @@ export default function Core(
    * cache is recalculated once. As a result, it improves the performance of wrapped
    * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
+   * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
+   * is not applied on that path.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3673,11 +3732,19 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
-    const result = wrappedOperations();
+    let completed = false;
 
-    instance.resumeExecution(forceFlushChanges);
+    try {
+      const result = wrappedOperations();
 
-    return result;
+      completed = true;
+
+      return result;
+    } finally {
+      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+      // after a throw is a half-applied change, so the flag is honored only on the happy path.
+      instance.resumeExecution(completed && forceFlushChanges);
+    }
   };
 
   /**
@@ -3686,7 +3753,8 @@ export default function Core(
    * as well aggregates the table logic changes such as index changes into one call
    * after which the cache is updated. After the execution of the operations, the
    * table is rendered, and the cache is updated once. As a result, it improves the
-   * performance of wrapped operations.
+   * performance of wrapped operations. Rendering and execution resume even when the
+   * callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batch
@@ -3718,12 +3786,19 @@ export default function Core(
     instance.suspendRender();
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution();
-    instance.resumeRender();
-
-    return result;
+    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+    // instance suspended for the rest of its life, so it never painted again. The two resumes are
+    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+    // the flush) still lets `resumeRender` run.
+    try {
+      return wrappedOperations();
+    } finally {
+      try {
+        instance.resumeExecution();
+      } finally {
+        instance.resumeRender();
+      }
+    }
   };
 
   /**
@@ -4031,7 +4106,14 @@ export default function Core(
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index.
+   * Returns the data's copyable value at specified `row` and `column` index, as a string.
+   *
+   * A value that is not already a string is converted: numbers and booleans to their text form,
+   * `null` and `undefined` to an empty string, and everything else through its `toString()`.
+   * A cell with `copyable` disabled returns an empty string.
+   *
+   * The text copied to the clipboard can differ for an object with its own `valueOf()`, because the
+   * clipboard reads such an object through `valueOf()` first.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -4040,21 +4122,48 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return stringify(datamap.getCopyable(row, datamap.colToProp(column)));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index, without converting it
+   * to a string.
+   *
+   * The clipboard and Autofill need the value as it is stored. Autofill writes it back into the grid,
+   * the `beforeCopy`, `afterCopy`, `beforeCut`, `afterCut`, and `beforeAutofill` hooks hand it to
+   * consumers, and the clipboard text reads an object through `valueOf()` rather than `toString()`.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. The Autofill and CopyPaste plugins
+   * reach it through a local internal type. Do not add it to `HotInstance`.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getCopyableData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getCopyableData = function(row: number, column: number) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
    * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * The value is returned as it is stored, so it can be a nested object or an array. The CopyPaste
+   * plugin serializes those to JSON when copying with source data. A cell with `copyable` disabled
+   * returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableSourceData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
@@ -4067,84 +4176,6 @@ export default function Core(
    */
   this.getSchema = function() {
     return datamap.getSchema();
-  };
-
-  /**
-   * Checks whether a `height` value is a plain pixel length (a number, a digit string, or a `px`
-   * string) – the only form the edge slots can be subtracted from.
-   *
-   * @param {unknown} height The resolved `height` setting.
-   * @returns {boolean}
-   */
-  const isPixelHeight = (height: unknown): height is number | string => (
-    typeof height === 'number' ||
-    (typeof height === 'string' && (/^\d+$/.test(height) || height.endsWith('px')))
-  );
-
-  /**
-   * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
-   * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
-   * asked for. With an explicit `height` the root element owns the vertical axis and contains no
-   * slot, so the engine's `layoutReservedHeight` reserves nothing there – this is the other half of
-   * the same rule, and it used to live in the Pagination plugin alone, which left the sheets bar
-   * 38px taller than the declared height (DEV-2848). A non-pixel height (`auto`, `100%`, a `calc()`)
-   * is left alone: it is resolved by the browser, not by us.
-   *
-   * @param {number | string} height The resolved `height` setting.
-   * @returns {number | string}
-   */
-  const reserveEdgeSlotsHeight = (height: number | string): number | string => {
-    if (!isRootInstance(instance) || !isPixelHeight(height)) {
-      return height;
-    }
-
-    const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
-      .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
-
-    if (reservedHeight === 0) {
-      return height;
-    }
-
-    const heightValue = typeof height === 'string' && height.endsWith('px') ? height : `${height}px`;
-
-    return `calc(${heightValue} - ${reservedHeight}px)`;
-  };
-
-  /**
-   * Writes the `height` setting onto the root element. Split out of `updateSettings` so the slot
-   * `ResizeObserver` can re-apply it when a bar's height changes after the settings were applied.
-   *
-   * @param {*} heightSetting The `height` setting (a length, `'auto'`, `null`, or a function).
-   * @returns {*} The height as written (after `beforeHeightChange` and the slot reservation).
-   */
-  const applyHeightSetting = (heightSetting: unknown): unknown => {
-    let height = heightSetting;
-
-    if (isFunction(height)) {
-      height = (height as () => string | number)();
-    }
-
-    height = instance.runHooks('beforeHeightChange', height);
-
-    if (height === null) {
-      const initialStyle = instance.rootElement.dataset.initialstyle;
-
-      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle);
-
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
-      }
-
-    } else if (height !== undefined) {
-      height = reserveEdgeSlotsHeight(height as number | string);
-
-      instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'clip';
-    }
-
-    return height;
   };
 
   /**
@@ -4224,6 +4255,14 @@ export default function Core(
         'As one is the alias of the other, only one of them can be used at a time. ' +
         '`rowHeights` will be used as the row height configuration.');
     }
+
+    // The stored `height` and `width` before this call. An unreadable value is ignored by
+    // `applyRootSize()` below, and the stored setting must stay on the size the grid uses. On init the
+    // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
+    const previousRootSize = {
+      height: init ? undefined : tableMeta.height,
+      width: init ? undefined : tableMeta.width,
+    };
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
@@ -4552,85 +4591,12 @@ export default function Core(
       runSourceDataValidators(instance, 'init');
     }
 
-    let currentHeight: string | number = instance.rootElement.style.height;
+    // The root's inline `height`, `width`, and `overflow*` have one writer: `core/rootSize.ts`.
+    const rootSize = applyRootSize(instance, settings, init);
 
-    if (currentHeight !== '') {
-      currentHeight = parseInt(instance.rootElement.style.height, 10);
-    }
-
-    if (init) {
-      const initialStyle = instance.rootElement.getAttribute('style');
-
-      if (initialStyle) {
-        instance.rootElement.dataset.initialstyle = instance.rootElement.getAttribute('style') ?? '';
-      }
-    }
-
-    // The resolved value (after `beforeHeightChange` and the slot reservation) is compared against
-    // the previous inline height below, to re-pick the scrollable elements when the axis owner moved.
-    let height: unknown;
-
-    if (typeof settings.height !== 'undefined') {
-      height = applyHeightSetting(settings.height);
-    }
-
-    if (typeof settings.width !== 'undefined') {
-      let width = settings.width;
-
-      if (isFunction(width)) {
-        width = (width as () => string | number)();
-      }
-
-      width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
-    }
-
-    // When height is absent the table uses window scroll, so the `overflow: clip` shorthand from the
-    // height block is not applied. Set overflowX: clip to prevent the inner table from visually
-    // overflowing a constrained width. Read the effective values from the DOM (after both height and
-    // width blocks ran) so partial updateSettings calls see the correct state.
-    // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
-    // overflowX untouched to avoid breaking that shorthand.
-    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
-    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
-    // with the window — matching the long-standing behavior where the page gains a horizontal
-    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
-    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
-    // establishes a fixed box the table must not visually overflow, so it is clipped.
-    if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
-      const effectiveHeight = instance.rootElement.style.height;
-      const effectiveWidth = instance.rootElement.style.width;
-      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
-      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
-      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
-      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
-      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
-      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
-      // `height: 'auto'` is a free height like an unset one: the grid's rows belong to the page. It
-      // still writes the `overflow: clip` shorthand above, so the longhand written here changes
-      // nothing readable today. It is the contract the engine's per-axis trimming reads (the root
-      // owns the horizontal axis, the window the vertical one), and it is what keeps every column
-      // reachable once `'auto'` stops writing the shorthand. Only an unset height may clear the
-      // longhand: for `'auto'` with a relative width the shorthand stays whole, so the clip is not
-      // silently reduced to the vertical axis.
-      const isFreeHeight = effectiveHeight === '' || effectiveHeight === 'auto';
-
-      if (isFreeHeight) {
-        const currentOverflowX = instance.rootElement.style.overflowX;
-
-        // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
-        // overflow (e.g. `overflow: hidden` restored from the initial style) so it is not stomped
-        // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
-        // programmatic scroll.
-        if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          if (isDefiniteWidth) {
-            instance.rootElement.style.overflowX = 'clip';
-          } else if (effectiveHeight === '') {
-            instance.rootElement.style.overflowX = '';
-          }
-        }
-      }
-    }
+    rootSize.ignoredAxes.forEach((axis) => {
+      globalMeta[axis] = previousRootSize[axis];
+    });
 
     if (!init) {
       if (instance.view) {
@@ -4657,8 +4623,7 @@ export default function Core(
       instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
-        currentHeight !== height) {
+    if (!init && instance.view && rootSize.scrollOwnerChanged) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
 
@@ -4805,6 +4770,10 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   *                                For `'remove_row'` and `'remove_col'`, rows and columns that do not exist are
+   *                                never removed. An index that points outside the table (a negative one, or one at
+   *                                or past the last row/column) removes nothing, and in the array format any part of
+   *                                a range that falls outside the table is ignored while the rest is still removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows

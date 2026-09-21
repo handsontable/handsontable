@@ -296,6 +296,100 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(countedRows);
     });
 
+    describe('when the passed index does not exist', () => {
+      it('should not remove any row when the index is negative', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', -2, 1);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should not remove any row when the index equals the number of rows', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', 10, 1);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should not remove any row when the index is past the last row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', 12, 10);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should remove only the groups that exist when index groups are passed', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', [[1, 1], [20, 1]]);
+
+        // Only the first group points at an existing row, so only `A2` is removed.
+        expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(9);
+      });
+
+      it('should remove the existing part of a group that starts above the first row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        // The groups overlap, so they are merged into one that starts at -2 and spans rows
+        // -2, -1, 0 and 1. Only rows 0 and 1 exist, so only `A1` and `A2` are removed.
+        await alter('remove_row', [[-2, 4], [1, 1]]);
+
+        expect(getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(8);
+      });
+
+      it('should not fire the remove hooks when the grid has no rows', async() => {
+        const beforeRemoveRow = jasmine.createSpy('beforeRemoveRow');
+        const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+
+        handsontable({
+          data: [],
+          startCols: 5,
+          minRows: 0,
+          minSpareRows: 0,
+          beforeRemoveRow,
+          afterRemoveRow,
+        });
+
+        // Clipping the part above the first row leaves an amount to remove, but there is no row
+        // to remove it from, so nothing runs.
+        await alter('remove_row', -2, 4);
+
+        expect(beforeRemoveRow).not.toHaveBeenCalled();
+        expect(afterRemoveRow).not.toHaveBeenCalled();
+        expect(countRows()).toBe(0);
+      });
+
+      it('should remove the existing part of a group that runs past the last row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        // Merged into one group spanning rows 8 to 13; rows 10 and up do not exist.
+        await alter('remove_row', [[8, 2], [9, 5]]);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8']);
+        expect(countRows()).toBe(8);
+      });
+    });
+
     it('should fire beforeRemoveRow event before removing row', async() => {
       const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
@@ -482,7 +576,8 @@ describe('Core.alter', () => {
       });
 
       await alter('remove_row', 1);
-      await alter('remove_row', 1);
+      // The second row is gone, so the last one left is at index 0.
+      await alter('remove_row', 0);
 
       expect(countRows()).toEqual(0);
 

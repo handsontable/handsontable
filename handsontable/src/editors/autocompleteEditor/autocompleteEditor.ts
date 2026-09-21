@@ -705,32 +705,17 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Calculates the space above and below the editor and flips it vertically if needed.
-   *
-   * @private
-   * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
-   */
-  flipDropdownVerticallyIfNeeded(): { isFlipped: boolean, spaceAbove: number, spaceBelow: number } {
-    const result = super.flipDropdownVerticallyIfNeeded();
-    const {
-      isFlipped,
-      spaceAbove,
-      spaceBelow,
-    } = result;
-
-    this.limitDropdownIfNeeded(isFlipped ? spaceAbove : spaceBelow);
-
-    return result;
-  }
-
-  /**
    * Checks if the internal table should generate scrollbar or could be rendered without it.
    *
    * @private
    * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
    */
   limitDropdownIfNeeded(spaceAvailable: number): void {
-    const dropdownHeight = this.getDropdownHeight();
+    // The height the list WANTS, computed from its choices, not the height it currently has:
+    // `getDropdownHeight()` reports the trimmed size once the clamp below has run, so a cell that
+    // gains room again could never grow its list back, and one that loses more room could not trim
+    // it further. The scroll follow calls this on every scroll, so both directions matter.
+    const dropdownHeight = this.getTargetEditorHeight();
 
     if (dropdownHeight > spaceAvailable) {
       const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
@@ -750,10 +735,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       // every choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's
       // dropdown clamps to one entry the same way (`dropdownController.updateDimensions()`).
       //
-      // A caveat this cannot solve here: the grid's root element gets `overflow: clip` whenever a
-      // `height` is set, so when the free space is narrower than the forced row, that row is
-      // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
-      // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
+      // The grid's own edge no longer bounds the free space: the list is positioned `fixed`, so
+      // `spaceAvailable` is measured against the box a fixed box is laid out in - the viewport,
+      // or an ancestor that establishes a containing block for it (#8688). A grid inside a small
+      // transformed modal is the case where trimming still bites, because CSS gives the list no
+      // way out of that ancestor.
       //
       // No border compensation here, unlike `getTargetDropdownHeight()`'s `getTableHeight() + 1`.
       // Adding it was measured and changes nothing a user sees: the clipping root, not the list's
@@ -763,12 +749,24 @@ export class AutocompleteEditor extends HandsontableEditor {
       const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
       const height = rowsThatFit * rowHeight;
 
-      if (this.isFlippedVertically) {
-        this.htEditor.rootElement.style.top =
-          `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
-      }
-
       this.setDropdownHeight(height);
+
+      // Re-place the list now that it is shorter. This used to add the freed height to
+      // `style.top` by hand, for the flipped case only. Re-applying the flip rather than
+      // re-deciding it: re-deciding here would use the height just written, which could disagree
+      // with the space figure the caller passed in.
+      //
+      // Note the caller decides the flip from `getDropdownHeight()` - the height the list HAS,
+      // which after a trim is the trimmed one, not the height it wants. So a trimmed list decides
+      // its flip up to one row of scroll later than an untrimmed one would. Harmless (the flip
+      // still happens, just a row late) but it is not the same measurement this method uses.
+      this.replaceDropdownVertically();
+    } else if (this.getDropdownHeight() < dropdownHeight) {
+      // The list fits now and is still carrying a trim from when it did not. Restore it through the
+      // same measurement `open()` uses, then re-place it at its full height. Gated on the current
+      // height, so a list that was never trimmed pays no `updateSettings()` per scroll event.
+      this.updateDropdownDimensions();
+      this.replaceDropdownVertically();
     }
   }
 
@@ -781,6 +779,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     const fractionalScalingCompensation = getFractionalScalingCompensation();
     const targetWidth = this.getTargetEditorWidth() + fractionalScalingCompensation;
     const targetHeight = this.getTargetEditorHeight() + fractionalScalingCompensation;
+
+    // This is the other writer of the sub-grid's height, so it owns the gate's value too. Leaving
+    // it stale would make the next trim to that same number a no-op and skip a needed write.
+    this.appliedDropdownHeight = targetHeight;
 
     this.htEditor.updateSettings({
       width: targetWidth,
@@ -798,6 +800,16 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {number} height The new dropdown height.
    */
   setDropdownHeight(height: number): void {
+    // The scroll follow calls this on every scroll event while the list does not fit, and a trim
+    // that lands on the height already written is the common case - the free space usually changes
+    // by less than a row between two events. Without this gate a trimmed list paid two sub-grid
+    // `updateSettings()` renders per scroll event, both writing the same number.
+    if (height === this.appliedDropdownHeight) {
+      return;
+    }
+
+    this.appliedDropdownHeight = height;
+
     this.htEditor.updateSettings({
       height,
     });
