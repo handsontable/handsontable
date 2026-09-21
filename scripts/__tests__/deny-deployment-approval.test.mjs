@@ -85,6 +85,14 @@ test('reading about the gate is not approving it', () => {
     'grep -d skip -r pending_deployments .',
     'cat scripts/claude/deny-deployment-approval.mjs',
     'node --test scripts/__tests__/deny-deployment-approval.test.mjs',
+    // `--json` is a BODY to curl but an output selector to gh, and `-F` is git grep's fixed-strings.
+    // A flag list that ignores which tool owns the flag blocks these three, and the first of them is
+    // how this session read the review comments on the very PR that added the hook.
+    'gh pr view 13568 --repo handsontable/handsontable --json comments --jq \'.comments[].body\' '
+      + '| grep pending_deployments',
+    'gh run view 123 --repo handsontable/handsontable --log | grep -F pending_deployments',
+    'gh api repos/handsontable/handsontable/actions/runs/123/pending_deployments '
+      + '--jq \'.[].environments[].name\'',
     // A plain GET lists what a run is waiting on and changes nothing — it is how an agent answers
     // "is this blocked on a human?", which it should be able to ask.
     'gh api repos/handsontable/handsontable/actions/runs/123/pending_deployments',
@@ -114,6 +122,11 @@ test('it catches a write however the method is spelled', () => {
       + 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
     'curl --json \'{"state":"approved"}\' https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
     'curl --data-binary @approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    // The body GLUED to the flag, pointing at a file. This is the worst case for a matcher that looks
+    // for the decision: `state` appears in approve.json, not in the command, so the flag is the only
+    // thing left — and a pattern demanding whitespace after `-d` never sees it.
+    'curl -d@approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'curl -T approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
   ];
 
   writes.forEach((command) => {

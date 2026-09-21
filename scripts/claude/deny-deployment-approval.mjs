@@ -53,28 +53,41 @@ const PENDING_DEPLOYMENTS = /pending_deployments/i;
  * false-positives gets disabled, and a disabled hook protects nothing (`.ai/LOCAL-ENFORCEMENT.md` §2),
  * so the pattern has to name the dangerous verb.
  *
- * Every entry is a way to turn that endpoint into a write:
- * - an explicit mutating method, in curl's spelling or gh's (`-X POST`, `--method POST`, `--request PUT`);
- * - `gh api` with a field or a body — `-f`, `-F`, `--field`, `--raw-field`, `--input` all make gh infer
- *   POST, so the method never appears in the command;
- * - a curl BODY, which also implies POST with no `-X` in sight: `-d`, `--data*`, `--json`, `--form`,
- *   `-T`. This is the shape the first version of the narrowed check missed, and it is the one a blocked
- *   agent would reach for next — it is what curl's own documentation shows;
- * - the decision itself, in either spelling: `state=approved` as a form field, or `"state": "approved"`
- *   as JSON. A JSON body carries the colon form, so matching only `=` reads an approval as innocent.
+ * The verbs are grouped BY TOOL, because the same letters mean opposite things in different commands.
+ * `-F` is a body field to curl and `--fixed-strings` to git grep; `--json` is a body to curl but an
+ * OUTPUT SELECTOR to gh, so `gh pr view --json comments | grep pending_deployments` is a read; `-T`
+ * uploads a file for curl and is not a gh write at all. A flag list that ignores which tool owns the
+ * flag blocks ordinary reads about this gate — including the one that answers "is this run waiting on
+ * a human?", which is the question the hook's own message tells a refused agent to go and ask.
+ *
+ * - EXPLICIT_METHOD — a mutating method in any spelling (`-X POST`, `--request PUT`,
+ *   `--method PATCH`). Tool-agnostic: no read spells itself this way.
+ * - DECISION — the decision itself, in either spelling: `state=approved` as a form field, or
+ *   `"state": "approved"` as JSON. A JSON body carries the colon form, so matching only `=` reads an
+ *   approval as innocent.
+ * - GH_API_WRITE — `gh api` with a field or a body (`-f`, `-F`, `--field`, `--raw-field`, `--input`).
+ *   Each of those makes gh infer POST, so the method never appears in the command. The `gh api`
+ *   prefix is load-bearing: it is what separates a write from `gh pr view --json`.
+ * - CURL_BODY — a curl body, which also implies POST with no `-X` in sight (`-d`, `--data*`,
+ *   `--json`, `--form`, `-T`, `--upload-file`). This is the shape a blocked agent reaches for next,
+ *   and it is what curl's own documentation shows. The value may be GLUED to the flag, and `@file` is
+ *   the form that moves the JSON off the command line entirely — `curl -d@approve.json` carries no
+ *   `state` anywhere, so the flag is the only thing left to match on.
  *
  * A plain `GET` of the same path lists what is waiting and changes nothing, so it stays allowed — it is
  * how an agent answers "is this run blocked on a human?", which is a question worth being able to ask.
  */
-const REQUEST_TOOL = /\b(?:curl|wget|http|gh)\b/i;
+const CURL_TOOL = /\b(?:curl|wget|http)\b/i;
 
-const APPROVAL_VERB = [
-  /(?:-X|--request|--method)\s*=?\s*(?:POST|PUT|PATCH)/i,
-  /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/i,
-  /(?:^|\s)(?:-d|-F|-T|--data|--data-raw|--data-binary|--data-urlencode|--data-ascii|--json|--form)(?:\s|=)/i,
-  /(?:^|\s)--upload-file(?:\s|=)/i,
-  /\bstate\b\s*[=:]\s*["']?(?:approved|rejected)\b/i,
-];
+const EXPLICIT_METHOD = /(?:-X|--request|--method)\s*=?\s*(?:POST|PUT|PATCH)/i;
+
+const DECISION = /\bstate\b\s*[=:]\s*["']?(?:approved|rejected)\b/i;
+
+const GH_API_WRITE = /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/i;
+
+// The trailing character class rather than `\s` is the whole point: curl accepts a glued value, and
+// `-d@approve.json` is the shape that leaves no `state` anywhere in the command to match.
+const CURL_BODY = /(?:^|\s)(?:-[dFT]|--data(?:-\w+)?|--json|--form|--upload-file)(?:[\s=@'"{[]|$)/i;
 
 /**
  * Read all of stdin synchronously.
@@ -102,13 +115,15 @@ if (payload?.tool_name !== 'Bash') {
 
 const command = payload?.tool_input?.command ?? '';
 
-// Three conditions, and the request tool is what keeps the flag patterns honest. Several of the
-// mutation flags are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
-// --directories — so matching a flag alone would block a search over the files that describe this gate.
+// The endpoint AND a way to write to it. `CURL_BODY` is the one that has to be paired with its tool:
+// its flags are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
+// --directories — so matching them alone would block a search over the files that describe this gate.
 // A command that names no HTTP client is not reaching the endpoint whatever its flags say.
 if (!PENDING_DEPLOYMENTS.test(command)
-  || !REQUEST_TOOL.test(command)
-  || !APPROVAL_VERB.some(verb => verb.test(command))) {
+  || !(EXPLICIT_METHOD.test(command)
+    || DECISION.test(command)
+    || GH_API_WRITE.test(command)
+    || (CURL_TOOL.test(command) && CURL_BODY.test(command)))) {
   process.exit(0);
 }
 
