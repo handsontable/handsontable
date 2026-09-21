@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>disableVisualSelection + currentRow/ColClassName e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back - a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-228 (dev-handsontable#273). `disableVisualSelection: 'header'` is documented to hide only
+    header selection, leaving single-cell and range selection - and the current-row/column
+    indicator (`currentRowClassName` / `currentColClassName`) - shown. It used to strip those
+    classes off the body cells too, because the row/column highlight was committed under the same
+    header gate.
+
+    Each grid sets both class options and differs only in `disableVisualSelection`. The spec
+    selects a body cell and reads the body-cell classes plus the header-selection highlight
+    (`ht__highlight`), so it can assert BOTH halves: the class comes back under 'header', and the
+    header selection stays suppressed.
+  -->
+  <div id="dvs-header" class="grid" data-testid="dvs-header"></div>
+  <div id="dvs-false" class="grid" data-testid="dvs-false"></div>
+  <div id="dvs-true" class="grid" data-testid="dvs-true"></div>
+  <div id="dvs-current" class="grid" data-testid="dvs-current"></div>
+  <div id="dvs-area" class="grid" data-testid="dvs-area"></div>
+  <div id="dvs-array" class="grid" data-testid="dvs-array"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const baseSettings = {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      currentRowClassName: 'currentRow',
+      currentColClassName: 'currentCol',
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    /**
+     * Build one grid. A constructor that throws stamps its message on the container instead of
+     * taking the whole page down, so a failure reads as the real error rather than a bare
+     * "element not visible".
+     */
+    function build(testId, disableVisualSelection) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        return new Handsontable(container, Object.assign({}, baseSettings, { disableVisualSelection }));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+
+        return null;
+      }
+    }
+
+    window.hots = {
+      'dvs-header': build('dvs-header', 'header'),
+      'dvs-false': build('dvs-false', false),
+      'dvs-true': build('dvs-true', true),
+      'dvs-current': build('dvs-current', 'current'),
+      'dvs-area': build('dvs-area', 'area'),
+      'dvs-array': build('dvs-array', ['area', 'header']),
+    };
+  </script>
+</body>
+</html>

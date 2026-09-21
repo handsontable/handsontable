@@ -2504,6 +2504,14 @@ export default (): Record<string, unknown> => {
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
      *
+     * The current-row and current-column indicators
+     * ([`currentRowClassName`](#currentRowClassName) and [`currentColClassName`](#currentColClassName))
+     * are selection feedback rather than header selection, so `'header'` does not remove them. They are
+     * hidden only when every selection type is off - `true`, or an array holding all of `'current'`,
+     * `'area'`, and `'header'`. The classes also mark the current row's and column's header cell, as
+     * they do with `false`, so `'header'` still leaves your `currentRowClassName` and
+     * `currentColClassName` on those header cells.
+     *
      * When set to any non-`false` value, the second-click deselect behavior
      * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
      * is also skipped. Without visible feedback, toggling layers off can cause unexpected
