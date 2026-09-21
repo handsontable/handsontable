@@ -204,3 +204,24 @@ export function shiftFormulaReferences(formula: string, rowDelta: number, colDel
     return rowOut || colOut ? null : { row, col };
   });
 }
+
+/**
+ * Translates a shared formula from its master cell to a slave cell `rowDelta` rows and `colDelta`
+ * columns away. Unlike `shiftFormulaReferences`, which moves a whole coordinate space and so
+ * shifts `$` components too, a shared formula follows Excel's copy rule: a `$`-pinned component
+ * stays where it is. Returns `null` when a shifted reference would fall off the sheet.
+ */
+export function translateSharedFormula(formula: string, rowDelta: number, colDelta: number): string | null {
+  if (rowDelta === 0 && colDelta === 0) {
+    return formula;
+  }
+
+  return mapFormulaReferences(formula, (reference) => {
+    const row = reference.row === null || reference.rowAbsolute ? reference.row : reference.row + rowDelta;
+    const col = reference.col === null || reference.colAbsolute ? reference.col : reference.col + colDelta;
+    const rowOut = row !== null && (row < 1 || row > MAX_SHEET_ROWS);
+    const colOut = col !== null && (col < 1 || col > MAX_SHEET_COLUMNS);
+
+    return rowOut || colOut ? null : { row, col };
+  });
+}
