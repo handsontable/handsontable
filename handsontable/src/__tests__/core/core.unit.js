@@ -563,6 +563,9 @@ describe('Core.spliceCol / Core.spliceRow deprecation', () => {
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
 
       core.destroy();
     });
@@ -591,6 +594,9 @@ describe('Core.spliceCol / Core.spliceRow deprecation', () => {
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
 
       core.destroy();
     });

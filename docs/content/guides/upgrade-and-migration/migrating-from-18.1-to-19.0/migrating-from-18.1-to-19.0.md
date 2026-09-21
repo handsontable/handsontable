@@ -938,9 +938,10 @@ This applies only if you call [`spliceCol()`](@/api/core.md#splicecol) or
 Both methods are deprecated since 19.0.0, and each prints a one-time console warning when called.
 They still work exactly as before and will be removed in 20.0.0.
 
-Nothing else changes: the `spliceCol` and `spliceRow` change sources that
+Nothing else changes yet: the `spliceCol` and `spliceRow` change sources that
 [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange)
-report are unaffected.
+report are unaffected in 19.x. They go away with the methods in 20.0.0, so do not build new code
+on them.
 
 ### Who is affected
 
@@ -968,4 +969,23 @@ const column = hot.getDataAtCol(1);
 const shifted = column.slice(2);
 shifted.push(null);
 hot.populateFromArray(1, 1, shifted.map(value => [value]));
+```
+
+`spliceRow()` is the same, along the row. Its `populateFromArray()` form takes a single inner array:
+
+**Before:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+hot.spliceRow(1, 1, 1);
+```
+
+**After:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+const row = hot.getSourceDataAtRow(1);
+const shifted = row.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, [shifted]);
 ```
