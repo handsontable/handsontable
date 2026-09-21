@@ -334,9 +334,9 @@ To switch the language after the grid initializes, update the [`language`](@/api
 - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange) - fires before the change is applied.
 - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange) - fires after the change is applied.
 
-Both hooks receive the same payload: `languageCode` (`string`), the new language code.
+Both hooks receive the same payload: `languageCode` (`string`), the new, normalized language code (lowercased language, uppercased region, e.g. `it-it` becomes `it-IT`).
 
-Register the target language's dictionary with `registerLanguageDictionary` before switching to it. If the dictionary isn't registered, the switch is ignored: neither hook fires, and Handsontable logs a console warning instead.
+Register the target language's dictionary with `registerLanguageDictionary` before switching to it. If the dictionary isn't registered, the switch is ignored: neither hook fires, and Handsontable logs a console error instead.
 
 ::: only-for javascript
 
