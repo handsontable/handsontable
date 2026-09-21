@@ -69,6 +69,10 @@ export interface DxfStyle {
   fill?: { type?: string; pattern?: string; fgColor?: { argb: string }; bgColor?: { argb: string } } | null;
   border?: CellStyleSnapshot['border'];
   numFmt?: string;
+  /**
+   * Filled in by `StyleTable#dxfIndex`, never by a caller: the id `numFmt` was registered under.
+   */
+  numFmtId?: number;
 }
 
 /**
@@ -271,7 +275,14 @@ export class StyleTable {
    * Returns the `dxfId` for a conditional-formatting rule style.
    */
   dxfIndex(style: DxfStyle): number {
-    return this.#dxfs.add(style);
+    // The number-format id is allocated HERE rather than while serializing, because `<numFmts>` is
+    // written before `<dxfs>` — an id allocated during the dxf write would never reach the table.
+    // ExcelJS allocates at the same point, in `addDxfStyle`, and shares the one id space.
+    if (style.numFmt === undefined) {
+      return this.#dxfs.add(style);
+    }
+
+    return this.#dxfs.add({ ...style, numFmtId: this.#numFmtId(style.numFmt) });
   }
 
   /**
@@ -370,6 +381,12 @@ export class StyleTable {
 
         if (dxf.font) {
           writeFont(w, dxf.font, false);
+        }
+
+        // Child order inside `<dxf>` is font, numFmt, fill, border. Both halves must be present:
+        // a format code with no registered id cannot be referenced.
+        if (dxf.numFmt !== undefined && dxf.numFmtId !== undefined) {
+          w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: dxf.numFmt });
         }
 
         if (dxf.fill && (dxf.fill.fgColor || dxf.fill.bgColor)) {
@@ -479,11 +496,22 @@ export function parseStyles(xml: string): ParsedStyles {
       }
 
       switch (name) {
-        case 'numFmt':
-          if (attrs.numFmtId !== undefined && attrs.formatCode !== undefined) {
-            customNumFmts.set(Number(attrs.numFmtId), attrs.formatCode.replace(/\\(.)/g, '$1'));
+        case 'numFmt': {
+          if (attrs.formatCode === undefined) {
+            break;
+          }
+
+          const formatCode = attrs.formatCode.replace(/\\(.)/g, '$1');
+
+          // A `<numFmt>` inside a `<dxf>` belongs to that rule's style, not to the workbook's
+          // table, so it must not shadow an id the cell formats resolve against.
+          if (section() === 'dxfs' && dxf) {
+            dxf.numFmt = formatCode;
+          } else if (attrs.numFmtId !== undefined) {
+            customNumFmts.set(Number(attrs.numFmtId), formatCode);
           }
           break;
+        }
         case 'font':
           font = {};
           break;

@@ -56,8 +56,17 @@ describe('StyleTable', () => {
       border: { top: { style: 'thin', color: { argb: 'FF0000FF' } }, left: { style: 'medium' } },
     };
 
+    // Two separately built objects with the same values, not one reference used twice: the table
+    // keys on the serialized shape, so passing the same reference would prove nothing.
+    const sameStyle = {
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      font: { bold: true, underline: true, color: { argb: 'FFFF0000' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } },
+      border: { top: { style: 'thin', color: { argb: 'FF0000FF' } }, left: { style: 'medium' } },
+    };
+
     const a = table.xfIndex({ numFmt: 'mm-dd-yyyy', style, locked: false });
-    const b = table.xfIndex({ numFmt: 'mm-dd-yyyy', style, locked: false });
+    const b = table.xfIndex({ numFmt: 'mm-dd-yyyy', style: sameStyle, locked: false });
     const c = table.xfIndex({ numFmt: '0.00%', style: null, locked: null });
 
     expect(a).toBe(1);
@@ -96,6 +105,20 @@ describe('StyleTable', () => {
     expect(table.toXml()).toContain(
       '<dxfs count="2"><dxf><font><b/></font><fill><patternFill>'
       + '<bgColor rgb="FFFFC7CE"/></patternFill></fill></dxf><dxf><font><i/></font></dxf></dxfs>',
+    );
+  });
+
+  it('should register a conditional-formatting rule number format and write it inside the dxf', () => {
+    const table = new StyleTable();
+
+    expect(table.dxfIndex({ font: { bold: true }, numFmt: '0.000' })).toBe(0);
+
+    const xml = table.toXml();
+
+    // The id has to reach `<numFmts>`, which is serialized BEFORE `<dxfs>`.
+    expect(xml).toContain('<numFmts count="1"><numFmt numFmtId="164" formatCode="0.000"/></numFmts>');
+    expect(xml).toContain(
+      '<dxfs count="1"><dxf><font><b/></font><numFmt numFmtId="164" formatCode="0.000"/></dxf></dxfs>',
     );
   });
 });
@@ -163,5 +186,25 @@ describe('parseStyles', () => {
 
   it('should fall back to a single empty xf when the part has none', () => {
     expect(parseStyles('<styleSheet/>').cellXfs).toEqual(EMPTY_STYLES.cellXfs);
+  });
+
+  it('should read a dxf number format without shadowing the workbook format table', () => {
+    const { cellXfs, dxfs } = parseStyles('<styleSheet>'
+      + '<numFmts><numFmt numFmtId="164" formatCode="0.00%"/></numFmts>'
+      + '<cellXfs><xf numFmtId="164"/></cellXfs>'
+      + '<dxfs><dxf><font><b/></font><numFmt numFmtId="164" formatCode="[Red]0.000"/></dxf></dxfs>'
+      + '</styleSheet>');
+
+    expect(dxfs).toEqual([{ font: { bold: true }, numFmt: '[Red]0.000' }]);
+    // The cell format keeps the workbook table's code, not the rule's.
+    expect(cellXfs[0].numFmt).toBe('0.00%');
+  });
+
+  it('should resolve a style index past the end of its table to no style', () => {
+    // `styles.xml` comes from an untrusted file, so an out-of-range id must not leak `undefined`.
+    const { cellXfs } = parseStyles('<styleSheet><fonts><font/></fonts>'
+      + '<cellXfs><xf numFmtId="0" fontId="99" fillId="99" borderId="99"/></cellXfs></styleSheet>');
+
+    expect(cellXfs[0]).toEqual({ numFmt: null, style: null, locked: null });
   });
 });
