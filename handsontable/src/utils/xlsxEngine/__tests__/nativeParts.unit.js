@@ -14,7 +14,9 @@ import {
 } from '../adapters/native/parts/conditionalFormatting';
 import { StyleTable } from '../adapters/native/parts/styles';
 import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
+import { worksheetXml } from '../adapters/native/parts/worksheetWriter';
 import { DroppedFeatures } from '../capabilities';
+import { SheetBuilder } from '../builder';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -374,5 +376,172 @@ describe('hashSheetPassword', () => {
     expect(SHEET_PASSWORD_SPIN_COUNT).toBe(100000);
     expect(a.saltValue).not.toBe(b.saltValue);
     expect(Buffer.from(a.saltValue, 'base64').byteLength).toBe(16);
+  });
+});
+
+/**
+ * Builds a sheet through the 1-based builder the export uses and serializes it.
+ * @param build
+ * @param passwordHash
+ */
+function writeSheet(build, passwordHash = null) {
+  const builder = new SheetBuilder('Sheet1');
+
+  build(builder);
+
+  const styles = new StyleTable();
+  const strings = new SharedStringTable();
+  const dropped = new DroppedFeatures();
+  const result = worksheetXml(builder.toSnapshot(), styles, strings, dropped, passwordHash);
+
+  return { ...result, styles, strings, dropped };
+}
+
+describe('worksheetXml', () => {
+  it('should write values by type, formulas with and without results, and an empty sheet', () => {
+    const { xml, strings, wroteFormula } = writeSheet((b) => {
+      b.cell(1, 1).value = 'text';
+      b.cell(1, 2).value = 42;
+      b.cell(1, 3).value = true;
+      b.cell(2, 1).formula = { text: 'SUM(B1:B1)' };
+      b.cell(2, 2).formula = { text: 'B1*2', result: 84 };
+      b.cell(2, 3).formula = { text: 'A1&"!"', result: 'text!' };
+      b.cell(2, 4).formula = { text: 'B1>0', result: true };
+    });
+
+    expect(xml).toContain('<dimension ref="A1:D2"/>');
+    expect(xml).toContain('<c r="A1" t="s"><v>0</v></c>');
+    expect(xml).toContain('<c r="B1"><v>42</v></c>');
+    expect(xml).toContain('<c r="C1" t="b"><v>1</v></c>');
+    expect(xml).toContain('<c r="A2"><f>SUM(B1:B1)</f></c>');
+    expect(xml).toContain('<c r="B2"><f>B1*2</f><v>84</v></c>');
+    // The writer escapes quotes inside element text too; Excel reads `&quot;` back as `"`.
+    expect(xml).toContain('<c r="C2" t="str"><f>A1&amp;&quot;!&quot;</f><v>text!</v></c>');
+    expect(xml).toContain('<c r="D2" t="b"><f>B1&gt;0</f><v>1</v></c>');
+    expect(strings.count).toBe(1);
+    expect(wroteFormula).toBe(true);
+
+    const empty = writeSheet(() => {});
+
+    expect(empty.xml).toContain('<dimension ref="A1"/>');
+    expect(empty.xml).toContain('<sheetData/>');
+    expect(empty.wroteFormula).toBe(false);
+  });
+
+  it('should write the style index, number format and a styled empty cell', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 45292;
+      b.cell(1, 1).numFmt = 'mm-dd-yy';
+      b.cell(1, 2).style = { alignment: null, font: { bold: true }, fill: null, border: null };
+    });
+
+    expect(xml).toContain('<c r="A1" s="1"><v>45292</v></c>');
+    expect(xml).toContain('<c r="B1" s="2"/>');
+  });
+
+  it('should write layout: widths, hidden columns, heights, hidden rows, freeze, rtl, merges', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.setColWidth(1, 5);
+      b.setColWidth(2, 12.5);
+      b.hideCol(2);
+      b.hideCol(4);
+      b.setRowHeight(2, 30);
+      b.hideRow(3);
+      b.freeze(1, 2);
+      b.setRtl(true);
+      b.merge(1, 1, 1, 2);
+    });
+
+    expect(xml).toContain(
+      '<sheetView workbookViewId="0" rightToLeft="1">'
+      + '<pane xSplit="1" ySplit="2" topLeftCell="B3" activePane="bottomRight" state="frozen"/>'
+      + '<selection pane="bottomRight"/></sheetView>',
+    );
+    expect(xml).toContain(
+      '<cols><col min="1" max="1" width="5" customWidth="1"/>'
+      + '<col min="2" max="2" width="12.5" customWidth="1" hidden="1"/><col min="4" max="4" hidden="1"/></cols>',
+    );
+    expect(xml).toContain('<row r="2" ht="30" customHeight="1"/>');
+    expect(xml).toContain('<row r="3" hidden="1"/>');
+    expect(xml).toContain('<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells>');
+    expect(xml.indexOf('<sheetData')).toBeLessThan(xml.indexOf('<mergeCells'));
+  });
+
+  it('should keep the master value and drop a covered cell value inside a merge', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'master';
+      b.cell(1, 2).value = 'covered';
+      b.merge(1, 1, 1, 2);
+    });
+
+    expect(xml).toContain('<c r="A1" t="s"><v>0</v></c>');
+    expect(xml).not.toContain('<c r="B1" t="s">');
+  });
+
+  it('should skip an overlapping merge and report it', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.merge(1, 1, 2, 2);
+      b.merge(2, 2, 3, 3);
+    });
+
+    expect(xml).toContain('<mergeCells count="1"><mergeCell ref="A1:B2"/></mergeCells>');
+    expect(dropped.list()).toEqual(['merge:overlap']);
+  });
+
+  it('should write protection with inverted allow flags and per-cell locks', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.cell(1, 1).locked = false;
+      b.cell(1, 2).value = 'y';
+      b.cell(1, 2).locked = true;
+      b.protect('', {
+        selectLockedCells: true, selectUnlockedCells: true, formatColumns: true, sort: true, autoFilter: true,
+      });
+    });
+
+    expect(xml).toContain(
+      '<sheetProtection sheet="1" formatColumns="0" '
+      + 'sort="0" autoFilter="0" objects="1" scenarios="1"/>',
+    );
+    expect(xml).toContain('<c r="A1" s="1" t="s">');
+    expect(xml).toContain('<c r="B1" t="s">');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should write the password hash attributes the caller computed', () => {
+    const hash = { algorithmName: 'SHA-512', hashValue: 'AAA=', saltValue: 'BBB=', spinCount: 100000 };
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x';
+      b.protect('secret', {});
+    }, hash);
+
+    expect(xml).toContain(
+      '<sheetProtection sheet="1" objects="1" scenarios="1" '
+      + 'algorithmName="SHA-512" hashValue="AAA=" saltValue="BBB=" spinCount="100000"/>',
+    );
+  });
+
+  it('should write list validations, conditional formatting and the comments hook in schema order', () => {
+    const { xml, comments } = writeSheet((b) => {
+      b.cell(2, 1).value = 'Open';
+      b.cell(2, 1).validation = { type: 'list', formulae: ['"Open,Closed"'], allowBlank: true };
+      b.cell(2, 1).comment = 'note here';
+      b.addConditionalFormatting('A2:A2', [{ type: 'cellIs', operator: 'equal', formulae: ['"Open"'] }]);
+    });
+
+    expect(xml).toContain('<conditionalFormatting sqref="A2:A2">');
+    expect(xml).toContain('<dataValidations count="1">');
+    expect(xml).toContain('<legacyDrawing r:id="rId2"/>');
+    expect(xml.indexOf('<conditionalFormatting')).toBeLessThan(xml.indexOf('<dataValidations'));
+    expect(xml.indexOf('<dataValidations')).toBeLessThan(xml.indexOf('<pageMargins'));
+    expect(xml.indexOf('<pageMargins')).toBeLessThan(xml.indexOf('<legacyDrawing'));
+    expect(comments).toEqual([{ ref: 'A2', row: 1, col: 0, text: 'note here' }]);
+  });
+
+  it('should not write a legacyDrawing when no cell has a comment', () => {
+    expect(writeSheet((b) => { b.cell(1, 1).value = 1; }).xml).not.toContain('legacyDrawing');
   });
 });
