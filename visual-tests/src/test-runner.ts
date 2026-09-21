@@ -353,9 +353,9 @@ async function clearNativeTextSelection(page: Page) {
  *
  * With `HOT_THEME` set the run's own theme file must be among them, by name: a themed run that asked
  * for no theme stylesheet, or for a different one, is the same wrong picture by another route. A demo
- * that does not use the convention has no such links and passes trivially — the wrapper demos, which
- * render bare, are that case, and the day one of them is themed it needs the `dynamic-css` class on its
- * link (or this query widened) before the check can see it. A cross-origin sheet hides its rules behind a SecurityError; that is reported as
+ * that does not use the convention has no such links and passes trivially. All four demos set the class,
+ * so a themed wrapper run would be checked the same way the js run is — no tier themes a wrapper today,
+ * which is why that path has never been exercised. A cross-origin sheet hides its rules behind a SecurityError; that is reported as
  * unknown, not as empty, so a demo that ever loads a CDN stylesheet is not failed for being unreadable.
  *
  * @param {Page} page The page whose grid has just rendered.
