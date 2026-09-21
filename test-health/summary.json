@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T10:30:20.140Z",
+  "generatedAt": "2026-09-21T12:15:38.844Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 289,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1599
+    "entries": 1600
   },
   "rows": [
     {
@@ -94,12 +94,12 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 4,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 6,
+      "count7": 5,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 7,
       "flakyRuns30": 0,
-      "branches30": 6,
+      "branches30": 7,
       "legs": [
         "UMD.min (theme: classic)",
         "UMD.min (theme: horizon)",
@@ -113,9 +113,9 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-18T12:10:52Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35340859407",
-        "branch": "feature/DEV-164_Hide-hide-items-when-all-hidden",
+        "seenAt": "2026-09-21T12:14:55Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596340126",
+        "branch": "develop",
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
