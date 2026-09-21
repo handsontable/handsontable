@@ -1,8 +1,11 @@
 /**
  * @jest-environment node
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 import { crc32 } from '../adapters/native/zip/crc32';
+import { readZip } from '../adapters/native/zip/reader';
 import { deflateRaw, inflateRaw } from '../adapters/native/zip/streams';
 import { writeZip } from '../adapters/native/zip/writer';
 
@@ -119,5 +122,89 @@ describe('writeZip', () => {
     const data = zip.subarray(start, start + compressedSize);
 
     expect(decoder.decode(inflateRawSync(data))).toBe('<workbook/>'.repeat(50));
+  });
+});
+
+function fixtureBuffer(name) {
+  const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
+
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+describe('readZip', () => {
+  it('should list and read back the entries our own writer produced, stored and deflated', async() => {
+    const entries = [
+      { name: 'a.xml', data: encoder.encode('<a/>') },
+      { name: 'dir/b.xml', data: encoder.encode('<b>ü</b>'.repeat(20)) },
+    ];
+
+    for (const compress of [false, true]) {
+      const zip = await writeZip(entries, compress);
+      const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+      expect(archive.names()).toEqual(['a.xml', 'dir/b.xml']);
+      expect(archive.has('dir/b.xml')).toBe(true);
+      expect(archive.has('missing')).toBe(false);
+      expect(await archive.text('dir/b.xml')).toBe('<b>ü</b>'.repeat(20));
+    }
+  });
+
+  it('should open an archive written by ExcelJS (JSZip) and expose the OOXML parts', async() => {
+    const archive = await readZip(fixtureBuffer('values'));
+
+    expect(archive.names()).toEqual(expect.arrayContaining([
+      '[Content_Types].xml', 'xl/workbook.xml', 'xl/worksheets/sheet1.xml',
+    ]));
+    expect(await archive.text('xl/workbook.xml')).toMatch(/^<\?xml/);
+  });
+
+  it('should strip a UTF-8 byte order mark from a text part', async() => {
+    const zip = await writeZip([
+      { name: 'bom.xml', data: new Uint8Array([0xEF, 0xBB, 0xBF, 0x3C, 0x61, 0x2F, 0x3E]) },
+    ], false);
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    expect(await archive.text('bom.xml')).toBe('<a/>');
+  });
+
+  it('should reject a buffer that is not a zip archive', async() => {
+    await expect(readZip(new Uint8Array([1, 2, 3]).buffer)).rejects.toThrow(/no ZIP end-of-central-directory record/);
+    await expect(readZip(new Uint8Array([1, 2, 3]).buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should reject an entry whose declared inflated size is above the cap', async() => {
+    const zip = await writeZip([{ name: 'big.bin', data: new Uint8Array(10) }], true);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    let eocd = zip.byteLength - 22;
+
+    while (view.getUint32(eocd, true) !== 0x06054b50) {
+      eocd -= 1;
+    }
+
+    const central = view.getUint32(eocd + 16, true);
+
+    // Central header offset 24 holds the uncompressed size; lie about it.
+    view.setUint32(central + 24, 0xFFFFFFF0, true);
+
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    await expect(archive.text('big.bin')).rejects.toThrow(/declares .* bytes, above the .*-byte limit/);
+  });
+
+  it('should reject an unknown compression method', async() => {
+    const zip = await writeZip([{ name: 'x.bin', data: new Uint8Array(4) }], false);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    let eocd = zip.byteLength - 22;
+
+    while (view.getUint32(eocd, true) !== 0x06054b50) {
+      eocd -= 1;
+    }
+
+    const central = view.getUint32(eocd + 16, true);
+
+    view.setUint16(central + 10, 12, true);
+
+    await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
+      .rejects.toThrow(/compression method 12/);
   });
 });
