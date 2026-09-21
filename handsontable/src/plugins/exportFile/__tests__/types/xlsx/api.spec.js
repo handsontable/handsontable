@@ -1,3 +1,5 @@
+import ExcelJS from 'exceljs';
+
 describe('exportFile XLSX type — API', () => {
   const id = 'testContainer';
 
@@ -68,6 +70,32 @@ describe('exportFile XLSX type — API', () => {
   });
 
   describe('engine injection', () => {
+    it('should use the engine configured in the plugin-level settings', async() => {
+      handsontable({
+        data: [['a']],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      // No per-call engine option — reads from plugin settings.
+      const buffer = await getPlugin('exportFile')._createTypeFormatter('xlsx').export();
+
+      expect(buffer instanceof Uint8Array).toBe(true);
+    });
+
+    it('should allow a per-call engine option to override the plugin-level setting', async() => {
+      handsontable({
+        data: [['a']],
+        // No plugin-level engine, so the default is the built-in one — which the per-call
+        // ExcelJS override has to beat.
+      });
+
+      const buffer = await getPlugin('exportFile')
+        ._createTypeFormatter('xlsx', { engine: ExcelJS })
+        .export();
+
+      expect(buffer instanceof Uint8Array).toBe(true);
+    });
+
     it('should export through the built-in engine when no engine is configured', async() => {
       handsontable({ exportFile: true });
 

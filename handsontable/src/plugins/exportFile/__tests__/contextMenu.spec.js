@@ -64,7 +64,7 @@ describe('ExportFile', () => {
         expect(submenuItems).toContain('To CSV');
       });
 
-      it('should contain "To Excel" in the Export submenu when an engine is configured', async() => {
+      it('should contain "To Excel" in the Export submenu', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
