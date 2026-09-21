@@ -5,6 +5,7 @@ import {
   contentTypesXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
   parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
 } from '../adapters/native/parts/package';
+import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -115,5 +116,44 @@ describe('package parts', () => {
       '<vt:vector size="2" baseType="lpstr">'
       + '<vt:lpstr>Data</vt:lpstr><vt:lpstr>Other</vt:lpstr></vt:vector>',
     );
+  });
+});
+
+describe('shared strings', () => {
+  it('should dedupe strings, count every reference and preserve edge whitespace', () => {
+    const table = new SharedStringTable();
+
+    expect(table.add('a')).toBe(0);
+    expect(table.add(' b ')).toBe(1);
+    expect(table.add('a')).toBe(0);
+    expect(table.count).toBe(3);
+    expect(table.uniqueCount).toBe(2);
+
+    const xml = table.toXml();
+
+    expect(xml).toContain(
+      '<sst '
+      + 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="3" uniqueCount="2">',
+    );
+    expect(xml).toContain('<si><t>a</t></si><si><t xml:space="preserve"> b </t></si>');
+  });
+
+  it('should parse plain and rich entries, joining runs and flagging the rich ones', () => {
+    const xml = '<sst xmlns="x" count="3" uniqueCount="3">'
+      + '<si><t>plain</t></si>'
+      + '<si><r><rPr><b/></rPr><t>bold</t></r><r><t xml:space="preserve"> plain</t></r></si>'
+      + '<si><t>a_x000D_b</t><phoneticPr fontId="1"/></si>'
+      + '</sst>';
+
+    expect(parseSharedStrings(xml)).toEqual({
+      strings: ['plain', 'bold plain', 'a\rb'],
+      rich: [false, true, false],
+    });
+  });
+
+  it('should ignore phonetic runs (rPh) so Japanese furigana does not leak into the value', () => {
+    const xml = '<sst><si><t>漢字</t><rPh sb="0" eb="2"><t>かんじ</t></rPh></si></sst>';
+
+    expect(parseSharedStrings(xml).strings).toEqual(['漢字']);
   });
 });
