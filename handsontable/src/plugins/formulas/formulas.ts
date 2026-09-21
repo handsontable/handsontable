@@ -267,11 +267,12 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
-   * How many source rows the grid held the last time `afterCellMetaReset` resynced the sheet, or
-   * `null` before the first such resync.
+   * How many source rows the grid held the last time the sheet was written or reloaded - a scan,
+   * a rejected-write clear, an `afterLoadData` write, or the empty-data reload - or `null` before
+   * the first one. Recorded by `#recordSyncedLayout()`.
    *
-   * Compared against the count the settings update ends on, which is what tells a settings-driven
-   * row-count change apart from an ordinary `updateSettings()` call.
+   * Compared against the count the settings update ends on, which is what tells a row count that
+   * moved after the last write apart from one the write already saw.
    *
    * @type {number|null}
    */
@@ -2372,6 +2373,21 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.#writeSheet(sourceDataArray);
+  }
+
+  /**
+   * Writes a processed source data array into the grid's sheet: escapes it, replaces the sheet
+   * content, re-syncs the index endpoint, redraws the dependent grids, and records the layout.
+   * The one place `#internalOperationPending` is opened across a full write, and it is released
+   * in a `finally`: the read hooks return early while it is set, so a throw from the write or
+   * from a dependent grid's render would otherwise leave every formula cell reading raw text until
+   * the next settings update. Shared by `#resyncSheet()` and the `#onAfterLoadData` write branch,
+   * so the two cannot drift.
+   *
+   * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
+   */
+  #writeSheet(sourceDataArray: unknown[][]) {
     this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
@@ -2552,20 +2568,9 @@ export class Formulas extends BasePlugin {
       // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
       // the pre-guard scan used to invoke them before discarding the result.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-        this.#escapeSourceDataArray(sourceDataArray);
-
-        this.#internalOperationPending = true;
-
-        const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
-
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-        this.renderDependentSheets(dependentCells);
-
-        this.#internalOperationPending = false;
-
-        // The engine now holds this layout, so a settings update this load ran inside of has no
-        // row-count change left to carry.
-        this.#recordSyncedLayout();
+        // Records the layout too, so a settings update this load ran inside of has no row-count
+        // change left to carry.
+        this.#writeSheet(sourceDataArray);
 
       } else {
         this.#clearRejectedSheet();

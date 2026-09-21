@@ -188,9 +188,12 @@ Rules that keep it correct:
   drain the flag — `#getProcessedSourceDataArray` suspends the projection for its bulk read but not for the
   `getSourceDataAtRow` probe that follows it — so a flag still set inside the scan re-enters the method from
   its own scan (measured as a stack overflow). Every write releases `#internalOperationPending` in a
-  `finally`, because the read hooks return early while it is set and would otherwise serve raw formula text
-  until the next settings update — which is what the frozen Jasmine spec `should recover when a dependent
-  grid throws mid-write` used to pin as an intermediate state and now asserts the healed value of.
+  `finally` — `#writeSheet()` is the one full-write path, shared by `#resyncSheet()` and the
+  `#onAfterLoadData` write branch, and `#clearRejectedSheet()` does the same for the emptying write —
+  because the read hooks return early while it is set and would otherwise serve raw formula text until
+  the next settings update. That is what the frozen Jasmine spec `should recover when a dependent grid
+  throws mid-write` used to pin as an intermediate state and now asserts the healed value of, and what
+  `keeps serving the engine after a dependent grid throws during a loadData write` pins for the load path.
 - **Binding another sheet cancels the owed resync.** `#updateSheetNameAndSheetId()` clears the flag, so
   `switchSheet()` (which loads the grid FROM the sheet) and the `addSheet` callers (which filled the sheet
   from the grid) leave nothing to carry — a drain after them would write this grid's visible-column

@@ -403,6 +403,76 @@ describe('Formulas deferred resync', () => {
     expect(writes).not.toHaveBeenCalled();
   });
 
+  it('keeps serving the engine after a dependent grid throws during a loadData write', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const otherContainer = document.createElement('div');
+    const shouldThrow = { current: false };
+
+    document.body.appendChild(otherContainer);
+
+    // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets` redraws
+    // it from inside the span `#internalOperationPending` is open across.
+    const otherHot = new Handsontable(otherContainer, {
+      data: [['=Sheet1!A1']],
+      formulas: { engine, sheetName: 'other' },
+      licenseKey: 'non-commercial-and-evaluation',
+      afterRender() {
+        if (shouldThrow.current) {
+          throw new Error('dependent grid render failed');
+        }
+      },
+    });
+
+    hot = new Handsontable(container, {
+      data: [[1, '=A1+10']],
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    shouldThrow.current = true;
+
+    expect(() => hot.loadData([[5, '=A1*2']])).toThrow('dependent grid render failed');
+
+    shouldThrow.current = false;
+
+    // The write landed before the dependent render threw, and the span was released on the way
+    // out, so the read hooks keep serving the engine instead of raw formula text.
+    expect(hot.getDataAtCell(0, 1)).toBe(10);
+
+    otherHot.destroy();
+    otherContainer.remove();
+  });
+
+  it('drops the owed resync when a listener disables and re-enables the plugin mid-update', () => {
+    const { engine, writes } = buildFlat();
+    const plugin = hot.getPlugin('formulas');
+    let toggled = false;
+
+    // Pins the documented gap: `disablePlugin()` clears the flag and `enablePlugin()` finds the
+    // sheet still in the user-supplied engine, so nothing writes the new data until the next
+    // update. Formulas' own `updatePlugin()` does not take this path.
+    hot.addHook('afterUpdateSettings', () => {
+      if (toggled) {
+        return;
+      }
+
+      toggled = true;
+      plugin.disablePlugin();
+      plugin.enablePlugin();
+    });
+
+    writes.mockClear();
+    hot.updateSettings({ data: [[5, '=A1*2']] });
+
+    expect(writes).not.toHaveBeenCalled();
+    expect(sheetContent(engine)).toEqual([[1, '=A1+10'], [2, '=A2+10']]);
+
+    hot.updateSettings({ readOnly: true });
+
+    expect(writes).toHaveBeenCalledTimes(1);
+    expect(sheetContent(engine)).toEqual([[5, '=A1*2']]);
+  });
+
   it('does not write the grid into a sheet the update switched to', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
