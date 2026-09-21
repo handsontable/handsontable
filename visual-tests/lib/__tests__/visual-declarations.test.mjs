@@ -454,7 +454,8 @@ function captureStems(source, relativePath) {
   const crossBrowser = relativePath.startsWith('cross-browser/');
   // `helpers.setTestDetails()` makes the directory name relative to the run's root, and the
   // cross-browser leg's root is `tests/cross-browser` itself.
-  const specDir = relativePath.replace(/\.spec\.ts$/, '').replace(crossBrowser ? /^cross-browser\// : /^$/, '');
+  const withoutExtension = relativePath.replace(/\.spec\.ts$/, '');
+  const specDir = crossBrowser ? withoutExtension.replace(/^cross-browser\//, '') : withoutExtension;
   const urlsBlock = clean.match(/const urls = \[([\s\S]*?)\];/);
   const loopedUrls = urlsBlock ? [...urlsBlock[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : null;
   const callOffsets = visualTestCallOffsets(clean);
