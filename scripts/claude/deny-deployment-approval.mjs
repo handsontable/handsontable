@@ -16,11 +16,12 @@
  * worse than no approval: it reads as a human sign-off in the audit trail. The block belongs here,
  * where the caller is known to be an agent.
  *
- * Scope is deliberately narrow — the deployment-approval endpoint and nothing else. Reading a run,
- * listing approvals (`GET .../approvals`, which the fail-closed assertion in `manual-qa.yml` and
- * `visual.yml` uses) and every other `gh` call stay available; a hook that blocked more than the one
- * dangerous verb would be turned off, and a hook that is off protects nothing
- * (`.ai/LOCAL-ENFORCEMENT.md` §2).
+ * Scope is deliberately narrow — writes to the deployment-approval endpoint and nothing else. Reading a
+ * run, listing approvals (`GET .../approvals`, which the fail-closed assertion in `manual-qa.yml` and
+ * `visual.yml` uses), a plain `GET` of the pending deployments themselves, and every grep or `cat` over
+ * the files that describe this gate all stay available. That is not politeness: a hook that
+ * false-positives gets turned off, and a hook that is off protects nothing
+ * (`.ai/LOCAL-ENFORCEMENT.md` §2), so it must match the dangerous verb rather than the path string.
  *
  * Reads the tool payload as JSON on stdin. Exit 2 blocks the call and returns the message to the
  * model; exit 0 lets it through. Anything unparseable exits 0 — a hook that fails closed on a
@@ -42,6 +43,30 @@ import { readFileSync } from 'node:fs';
  * actually reach for. `gh run` has no subcommand for this today; if one appears, add it here.
  */
 const PENDING_DEPLOYMENTS = /pending_deployments/i;
+
+/**
+ * What makes a command an APPROVAL rather than a mention of one.
+ *
+ * The endpoint segment alone is not enough, and matching on it alone is how this hook would end up
+ * switched off: `grep -rn pending_deployments .ai/`, `rg pending_deployments`, `cat`ting this file,
+ * or reading the docs that describe the gate all contain the string and all are innocent. A hook that
+ * false-positives gets disabled, and a disabled hook protects nothing (`.ai/LOCAL-ENFORCEMENT.md` §2),
+ * so the pattern has to name the dangerous verb.
+ *
+ * Every entry is a way to turn that endpoint into a write:
+ * - an explicit mutating method, in curl's spelling or gh's (`-X POST`, `--method POST`, `--request PUT`);
+ * - `gh api` with a field or a body — `-f`, `-F`, `--field`, `--raw-field`, `--input` all make gh infer
+ *   POST, so the method never appears in the command;
+ * - the decision itself, `state=approved` or `state=rejected`, whatever carries it.
+ *
+ * A plain `GET` of the same path lists what is waiting and changes nothing, so it stays allowed — it is
+ * how an agent answers "is this run blocked on a human?", which is a question worth being able to ask.
+ */
+const APPROVAL_VERB = [
+  /(?:-X|--request|--method)\s*=?\s*(?:POST|PUT|PATCH)/i,
+  /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/i,
+  /\bstate\s*=\s*["']?(?:approved|rejected)\b/i,
+];
 
 /**
  * Read all of stdin synchronously.
@@ -69,7 +94,7 @@ if (payload?.tool_name !== 'Bash') {
 
 const command = payload?.tool_input?.command ?? '';
 
-if (!PENDING_DEPLOYMENTS.test(command)) {
+if (!PENDING_DEPLOYMENTS.test(command) || !APPROVAL_VERB.some(verb => verb.test(command))) {
   process.exit(0);
 }
 
