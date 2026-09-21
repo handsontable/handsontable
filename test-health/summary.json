@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T12:38:23.443Z",
+  "generatedAt": "2026-09-21T12:44:36.065Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9628,7 +9628,7 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 258,
       "title": "walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
-      "count7": 2,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
@@ -9660,7 +9660,7 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 144,
       "title": "walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
-      "count7": 2,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
