@@ -725,6 +725,17 @@ describe('parseWorksheet', () => {
     expect(sheet.rows[0][1].value).toBe(100);
   });
 
+  it('should refuse a validation sqref that repeats a whole-column range', () => {
+    // The dimension pads the sheet to a million rows and the sqref repeats one whole-column range,
+    // so a reader that walks every range does ~200M cell writes for a file of a few kilobytes.
+    const sqref = new Array(200).fill('A1:A1048576').join(' ');
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData/>`
+      + `<dataValidations count="1"><dataValidation type="list" sqref="${sqref}">`
+      + '<formula1>&quot;a,b&quot;</formula1></dataValidation></dataValidations></worksheet>';
+
+    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+  });
+
   it('should refuse a sheet the dimension declares above the caps before reading a row', () => {
     expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:A1048577"/><sheetData/></worksheet>`))
       .toThrow(/sheet "Sheet1" declares 1048577 rows, above the 1048576-row limit/);

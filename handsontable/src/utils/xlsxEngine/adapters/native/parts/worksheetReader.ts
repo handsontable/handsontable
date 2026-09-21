@@ -180,6 +180,11 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   let width = 0;
   let layoutColCount = 0;
   let declaredCols = 0;
+  // Cells covered so far by declared column and validation ranges. A `sqref` may repeat the same
+  // range any number of times and a `<col>` span may cover the whole sheet, so the expansion work is
+  // budgeted as a whole and each range is MEASURED before it is walked — a 2.6 kB file repeating one
+  // whole-column range 200 times otherwise costs seconds of synchronous CPU.
+  let spanCells = 0;
   let cell: CellState | null = null;
   let inValue = false;
   let inFormula = false;
@@ -191,6 +196,18 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   let cfFormula: string[] | null = null;
 
   sheet.state = ctx.state;
+
+  /**
+   * Charges a declared span against the expansion budget, refusing the sheet when it runs out.
+   */
+  const chargeSpan = (cells: number): void => {
+    spanCells += cells;
+
+    if (spanCells > MAX_SHEET_CELLS) {
+      throwWithCause(`The sheet "${ctx.name}" declares column and validation ranges covering more than `
+        + `${MAX_SHEET_CELLS} cells, above the limit this reader accepts.`);
+    }
+  };
 
   /**
    * Makes sure `rows` reaches `rowIndex`, refusing a row past the cap.
@@ -366,6 +383,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
               + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
           }
 
+          chargeSpan(max - min + 1);
           layoutColCount = Math.max(layoutColCount, max);
 
           while (sheet.colWidths.length < max) {
@@ -630,6 +648,12 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     parseMultiRangeRef(sqref).forEach((range) => {
       const lastRow = Math.min(range.endRow, rows.length);
       const lastCol = Math.min(range.endCol, Math.max(width, declaredCols, 1));
+
+      if (lastRow < range.startRow || lastCol < range.startCol) {
+        return;
+      }
+
+      chargeSpan((lastRow - range.startRow + 1) * (lastCol - range.startCol + 1));
 
       for (let r = range.startRow; r <= lastRow; r++) {
         for (let c = range.startCol; c <= lastCol; c++) {
