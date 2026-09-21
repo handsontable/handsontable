@@ -18,7 +18,7 @@ import { worksheetXml } from '../adapters/native/parts/worksheetWriter';
 import { parseWorksheet, assertSheetFits } from '../adapters/native/parts/worksheetReader';
 import { DroppedFeatures } from '../capabilities';
 import { SheetBuilder } from '../builder';
-import { MAX_SHEET_CELLS } from '../limits';
+import { MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -168,6 +168,16 @@ describe('shared strings', () => {
     const xml = '<sst><si><t>漢字</t><rPh sb="0" eb="2"><t>かんじ</t></rPh></si></sst>';
 
     expect(parseSharedStrings(xml).strings).toEqual(['漢字']);
+  });
+
+  it('should refuse a shared-string table declaring more entries than a workbook can ever address', () => {
+    // Built programmatically: a workbook is already refused past MAX_WORKBOOK_CELLS cells, so no
+    // more distinct strings than that can ever be referenced by a `<c t="s"><v>` index.
+    const entries = new Array(MAX_WORKBOOK_CELLS + 1).fill('<si><t>x</t></si>');
+    const xml = `<sst>${entries.join('')}</sst>`;
+
+    expect(() => parseSharedStrings(xml))
+      .toThrow(/declares more than 10000000 entries, above the limit this reader accepts/);
   });
 });
 
@@ -344,6 +354,22 @@ describe('conditional formatting', () => {
       .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 5 });
     expect(cfRuleFromXml({ type: 'duplicateValues', priority: '6', dxfId: '9' }, [], dxfs))
       .toEqual({ type: 'duplicateValues', priority: 6 });
+  });
+
+  it('should give two rules sharing a dxfId their own style object, not the same instance', () => {
+    const dxfs = [{ font: { bold: true } }];
+    const ruleA = cfRuleFromXml({ type: 'cellIs', operator: 'greaterThan', dxfId: '0' }, ['2'], dxfs);
+    const ruleB = cfRuleFromXml({ type: 'cellIs', operator: 'lessThan', dxfId: '0' }, ['1'], dxfs);
+
+    expect(ruleA.style).not.toBe(ruleB.style);
+    expect(ruleA.style).not.toBe(dxfs[0]);
+
+    // A shallow copy: reassigning a TOP-LEVEL property on one rule's style object must not reach
+    // the other rule's, or the parsed styles table's own entry.
+    ruleA.style.font = { bold: false };
+
+    expect(ruleB.style).toEqual({ font: { bold: true } });
+    expect(dxfs[0]).toEqual({ font: { bold: true } });
   });
 });
 
@@ -734,6 +760,19 @@ describe('parseWorksheet', () => {
       + '<formula1>&quot;a,b&quot;</formula1></dataValidation></dataValidations></worksheet>';
 
     expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+  });
+
+  it('should refuse merges that repeat a whole-sheet range, and refuse it quickly', () => {
+    // The third span kind alongside column and validation spans: a `<mergeCell>` is 32 bytes of XML
+    // and unbudgeted would cost a full sweep of a million-row sheet per occurrence.
+    const mergeCells = new Array(4300).fill('<mergeCell ref="A1:XFD1048576"/>').join('');
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData/>`
+      + `<mergeCells count="4300">${mergeCells}</mergeCells></worksheet>`;
+
+    const start = Date.now();
+
+    expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
+    expect(Date.now() - start).toBeLessThan(1000);
   });
 
   it('should refuse a sheet the dimension declares above the caps before reading a row', () => {

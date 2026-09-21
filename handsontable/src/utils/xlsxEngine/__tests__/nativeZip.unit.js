@@ -134,6 +134,8 @@ function fixtureBuffer(name) {
 /**
  * Scans backwards for the end-of-central-directory record and returns the central directory's
  * start offset, so the byte-surgery tests below share one EOCD scan instead of repeating it.
+ * This returns the FIRST central record's offset; it coincides with the last (and only) one
+ * because every caller here builds a single-entry archive, not because it walks to the end.
  * @param view
  * @param zip
  */
@@ -199,6 +201,22 @@ describe('readZip', () => {
     const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
 
     await expect(archive.text('big.bin')).rejects.toThrow(/declares .* bytes, above the .*-byte limit/);
+  });
+
+  it('should cap inflation at the entry\'s OWN declared size, not just the reader ceiling', async() => {
+    // A highly-compressible payload whose real inflated size is far above what the central
+    // directory will claim: the reader must not trust the ceiling alone and let it through.
+    const zip = await writeZip([{ name: 'big.bin', data: new Uint8Array(100_000) }], true);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const central = centralDirectoryOffset(view, zip);
+
+    // Central header offset 24 holds the uncompressed size; lie DOWN, not up — a small declared
+    // size that the actual stream inflates past.
+    view.setUint32(central + 24, 50, true);
+
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    await expect(archive.text('big.bin')).rejects.toThrow(/inflates above the 50-byte limit/);
   });
 
   it('should reject an unknown compression method', async() => {

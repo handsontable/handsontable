@@ -296,7 +296,8 @@ function requireEngine(hot: HotInstance, format: string, override: object | unde
 
   if (override === undefined && injected === undefined && engines && Object.keys(engines).length > 0) {
     throwWithCause(
-      `ImportFile: no engine is configured for "${format}" files. ` +
+      `ImportFile: no engine is configured for "${format}" files in the "engines" option. ` +
+      'Omit "engines" entirely to use the built-in engine instead of injecting one. ' +
       `Configured formats: ${Object.keys(engines).join(', ')}.`
     );
   }

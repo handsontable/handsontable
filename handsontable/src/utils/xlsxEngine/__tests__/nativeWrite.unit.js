@@ -186,6 +186,27 @@ describe('nativeAdapter.write', () => {
     expect(storedBytes.byteLength).toBeGreaterThan(deflatedBytes.byteLength);
   });
 
+  it('should report a numeric compression level as dropped, since CompressionStream has no level parameter', async() => {
+    const snapshot = snapshotWith(() => {});
+
+    snapshot.compression = 6;
+
+    const dropped = new DroppedFeatures();
+
+    await nativeAdapter.write(snapshot, undefined, dropped);
+
+    expect(dropped.list()).toEqual(['compressionLevel']);
+  });
+
+  it('should not report compressionLevel when compression is boolean', async() => {
+    const stored = snapshotWith(() => {});
+    const droppedStored = new DroppedFeatures();
+
+    stored.compression = false;
+    await nativeAdapter.write(stored, undefined, droppedStored);
+    expect(droppedStored.list()).toEqual([]);
+  });
+
   it('should write conditional formatting ExcelJS reads back', async() => {
     const { workbook } = await writeAndLoad(snapshotWith((b) => {
       b.cell(1, 1).value = 5;
@@ -251,5 +272,20 @@ describe('nativeAdapter.write', () => {
     expect(sheet.rowHeights[0]).toBe(22.5);
     expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
     expect(sheet.freeze).toEqual({ rows: 1, cols: 0 });
+  });
+
+  it('should round-trip a cell value that looks like the reader\'s own control-character escape', async() => {
+    // `_x0041_` is not a control character; it is a literal string. Left unescaped on write it
+    // would be indistinguishable from the `_xHHHH_` a reader writes FOR a real control character,
+    // and `decodeOoxmlEscapes` would decode it into `A` on the next read.
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 'FILE_x0041_TEST';
+    });
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const back = await nativeAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
+    );
+
+    expect(back.sheets[0].rows[0][0].value).toBe('FILE_x0041_TEST');
   });
 });

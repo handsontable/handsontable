@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../../../../helpers/errors';
+import { MAX_WORKBOOK_CELLS } from '../../../limits';
 import { tokenizeXml } from '../xml/tokenizer';
 import { XmlWriter, decodeOoxmlEscapes, needsSpacePreserve } from '../xml/writer';
 import { MAIN_NS } from './package';
@@ -112,6 +114,15 @@ export function parseSharedStrings(xml: string): ParsedSharedStrings {
       } else if (name === 'rPh') {
         inPhonetic = false;
       } else if (name === 'si' && current !== null) {
+        // A workbook can never address more distinct strings than it can address cells, since every
+        // reference is a cell's `<v>`. Bounding the table by `MAX_WORKBOOK_CELLS` keeps two parallel
+        // arrays from growing past what `MAX_INFLATED_ENTRY_BYTES` (512 MB, four times the whole-file
+        // cap) alone would let through before any per-sheet cap has run.
+        if (strings.length >= MAX_WORKBOOK_CELLS) {
+          throwWithCause(`The shared-string table declares more than ${MAX_WORKBOOK_CELLS} entries, `
+            + 'above the limit this reader accepts.');
+        }
+
         strings.push(decodeOoxmlEscapes(current.join('')));
         rich.push(isRich);
         current = null;

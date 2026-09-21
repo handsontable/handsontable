@@ -185,6 +185,11 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   // budgeted as a whole and each range is MEASURED before it is walked — a 2.6 kB file repeating one
   // whole-column range 200 times otherwise costs seconds of synchronous CPU.
   let spanCells = 0;
+  // A repeated `<col hidden>`/`<row hidden>` declaration must not push duplicates: under the
+  // `chargeSpan` ceiling a wide `<col hidden min="1" max="16384"/>` repeated many times still
+  // builds a multi-million-element array that then gets sorted.
+  const hiddenColSet = new Set<number>();
+  const hiddenRowSet = new Set<number>();
   let cell: CellState | null = null;
   let inValue = false;
   let inFormula = false;
@@ -399,7 +404,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
             }
 
             if (hidden) {
-              sheet.hiddenCols.push(c - 1);
+              hiddenColSet.add(c - 1);
             }
           }
           break;
@@ -419,7 +424,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
             }
 
             if (attrs.hidden === '1' || attrs.hidden === 'true') {
-              sheet.hiddenRows.push(r - 1);
+              hiddenRowSet.add(r - 1);
             }
           }
           break;
@@ -624,8 +629,20 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
 
   // Merges: the master keeps its content, every covered cell reads as empty.
   sheet.merges.forEach((merge) => {
-    for (let r = merge.row; r < merge.row + merge.rowspan && r < rows.length; r++) {
-      for (let c = merge.col; c < merge.col + merge.colspan && c < rows[r].length; c++) {
+    const lastRow = Math.min(merge.row + merge.rowspan, rows.length);
+    const lastCol = Math.min(merge.col + merge.colspan, Math.max(width, 1));
+
+    if (lastRow <= merge.row || lastCol <= merge.col) {
+      return;
+    }
+
+    // The third span kind, and the one the budget originally missed. Like the column and
+    // validation spans it is measured before it is walked: `<mergeCell ref="A1:XFD1048576"/>` is
+    // 32 bytes and would otherwise cost a full sweep of the sheet every time it appears.
+    chargeSpan((lastRow - merge.row) * (lastCol - merge.col));
+
+    for (let r = merge.row; r < lastRow; r++) {
+      for (let c = merge.col; c < lastCol && c < rows[r].length; c++) {
         if (r !== merge.row || c !== merge.col) {
           rows[r][c] = null;
         }
@@ -688,8 +705,8 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     sheet.colWidths.push(null);
   }
 
-  sheet.hiddenRows.sort((a, b) => a - b);
-  sheet.hiddenCols.sort((a, b) => a - b);
+  sheet.hiddenRows = Array.from(hiddenRowSet).sort((a, b) => a - b);
+  sheet.hiddenCols = Array.from(hiddenColSet).sort((a, b) => a - b);
 
   return sheet;
 }

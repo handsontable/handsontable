@@ -206,8 +206,11 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
   if (attrs.dxfId !== undefined) {
     const style = dxfs[Number(attrs.dxfId)];
 
+    // Shallow-copied: `dxfs[…]` is the one object `ParsedStyles` holds for this id, and every rule
+    // that shares a `dxfId` would otherwise get the SAME instance — a caller mutating one rule's
+    // style would mutate every other rule referencing that dxf, and the parsed styles table too.
     if (style !== undefined) {
-      rule.style = style;
+      rule.style = { ...style };
     }
   }
 

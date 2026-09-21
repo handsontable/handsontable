@@ -26,7 +26,10 @@ const CENTRAL_HEADER_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const VERSION_20 = 20;
 const FLAG_UTF8_NAMES = 0x0800;
-// 1980-01-01 00:00:00, the DOS epoch, so two exports of the same workbook are byte-identical.
+// 1980-01-01 00:00:00, the DOS epoch, pinned so the ZIP metadata (this entry timestamp) itself
+// contributes no variance between two exports of the same workbook. `docProps/core.xml` still
+// carries a real `new Date()` timestamp (written in `adapters/native/write.ts`), so two exports
+// are NOT byte-identical overall -- only the archive layer around them is.
 // Day 1, month 1, year 0 in the packed DOS date: (0 << 9) | (1 << 5) | 1.
 const DOS_TIME = 0;
 const DOS_DATE = 33;

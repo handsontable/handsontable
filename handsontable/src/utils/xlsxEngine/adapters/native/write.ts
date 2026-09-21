@@ -57,6 +57,13 @@ function assertSheetNames(names: string[]): void {
 export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: DroppedFeatures): Promise<Uint8Array> {
   assertSheetNames(snapshot.sheets.map(sheet => sheet.name));
 
+  // `CAPABILITIES.native.compressionLevel` is `false` for exactly this reason: the Web
+  // `CompressionStream` has no level parameter, so a numeric level is silently ignored unless it
+  // is reported here, the same as any other feature this engine cannot honor.
+  if (typeof snapshot.compression === 'number') {
+    dropped.record('compressionLevel');
+  }
+
   const encoder = new TextEncoder();
   const styles = new StyleTable();
   const strings = new SharedStringTable();

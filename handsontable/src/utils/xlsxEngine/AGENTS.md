@@ -34,7 +34,7 @@ or an engine object.
 - **The numeric DEFLATE level is ignored** – `CompressionStream` has none. `false` stores.
 - **The built-in numFmt table follows ECMA-376, not ExcelJS**: id 22 is `m/d/yy h:mm` (ExcelJS has
   `m/d/yy "h":mm`), ids 39/40 differ from ExcelJS by a space. No fixture uses them; a parity
-  assertion on those ids would.
+  assertion on those ids would fail.
 - **Jest has no Web streams of its own**: `test/cryptoSetup.js` installs `CompressionStream` and
   `DecompressionStream` from `node:stream/web` into the sandbox (Jest 27's node environment copies a
   fixed allow-list of globals). Remove that and every adapter test fails with `ReferenceError`.
@@ -43,13 +43,14 @@ or an engine object.
   is a UI gate, not encryption. Today's export always passes an empty password; the hash path is
   parity for a snapshot built elsewhere. On read the hash is unrecoverable: `sheetProtection:password`
   is recorded and `password` stays `null`, as before.
-- **Column and validation spans are budgeted as a whole, and measured before they are walked.**
+- **Column, validation and merge spans are budgeted as a whole, and measured before they are walked.**
   `<dimension ref="A1:A1048576"/>` is one column by a million rows, which is under `MAX_SHEET_CELLS`
   and so passes every per-sheet cap, and a `sqref` may repeat one whole-column range any number of
-  times. Measured on the unbudgeted reader: 2.6 kB of XML cost ~6 s of synchronous CPU, linear in
-  repeats. `chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a hostile file is
-  refused after a few multiplications rather than five million array writes. Never move that charge
-  after the walk.
+  times; a `<mergeCell ref="A1:XFD1048576"/>` is the third span kind and costs the same full-sheet
+  walk per occurrence. Measured on the unbudgeted reader: 2.6 kB of XML cost ~6 s of synchronous CPU,
+  linear in repeats. `chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a
+  hostile file is refused after a few multiplications rather than five million array writes. Never
+  move that charge after the walk.
 - **The native reader reports `cellStyles` on fewer workbooks than ExcelJS, on purpose.** ExcelJS
   resolves a cell's default font and fill into a style object whenever the cell carries any format
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no

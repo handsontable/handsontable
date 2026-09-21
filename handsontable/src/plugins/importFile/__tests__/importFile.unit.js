@@ -207,9 +207,11 @@ describe('ImportFile#importFromArrayBuffer', () => {
     const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
     const noEngine = pluginWithFakeHot(undefined).plugin;
 
-    // `engines` is keyed by format, so a format with no engine of its own is named as such.
+    // `engines` is keyed by format, so a format with no engine of its own is named as such. The
+    // message also says omitting `engines` altogether uses the built-in engine instead, so this
+    // does not read as contradicting exportFile's silent fallback in that case.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values')))
-      .rejects.toThrow(/no engine is configured for "csv".*Configured formats: xlsx/);
+      .rejects.toThrow(/no engine is configured for "csv".*Omit "engines" entirely.*Configured formats: xlsx/);
     // A per-call engine still goes through the format check of the engine it detects.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
       .rejects.toThrow(/cannot import "csv".*xlsx/);

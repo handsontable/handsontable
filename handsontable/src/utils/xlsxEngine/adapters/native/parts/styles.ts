@@ -53,6 +53,33 @@ export function builtInNumFmtId(code: string): number | undefined {
 }
 
 /**
+ * Escapes a literal space in a CUSTOM format code with a backslash, the way Excel itself writes
+ * one, so it survives serialization the way `parseStyles` reads it back:
+ * `formatCode.replace(/\\(.)/g, '$1')` unescapes `\ ` to a plain space on read, and without this
+ * the writer emitted that plain space verbatim — `0.0\ %` came back from `#numFmtId` as `0.0 %`
+ * and was then written out unescaped, so a native round trip lost the backslash and the two
+ * engines disagreed on the format code for the same file. A space inside a quoted string literal
+ * (`"kr "`) is left alone: the quotes already make it literal there.
+ */
+function escapeNumFmtCode(code: string): string {
+  let inQuotes = false;
+  let escaped = '';
+
+  for (const ch of code) {
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+      escaped += ch;
+    } else if (ch === ' ' && !inQuotes) {
+      escaped += '\\ ';
+    } else {
+      escaped += ch;
+    }
+  }
+
+  return escaped;
+}
+
+/**
  * What one cell asks the style table for.
  */
 export interface XfRequest {
@@ -293,7 +320,7 @@ export class StyleTable {
 
     if (this.#numFmts.size > 0) {
       w.open('numFmts', { count: this.#numFmts.size });
-      this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: code }));
+      this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: escapeNumFmtCode(code) }));
       w.close();
     }
 
@@ -386,7 +413,7 @@ export class StyleTable {
         // Child order inside `<dxf>` is font, numFmt, fill, border. Both halves must be present:
         // a format code with no registered id cannot be referenced.
         if (dxf.numFmt !== undefined && dxf.numFmtId !== undefined) {
-          w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: dxf.numFmt });
+          w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: escapeNumFmtCode(dxf.numFmt) });
         }
 
         if (dxf.fill && (dxf.fill.fgColor || dxf.fill.bgColor)) {

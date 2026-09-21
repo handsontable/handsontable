@@ -121,6 +121,25 @@ describe('StyleTable', () => {
       '<dxfs count="1"><dxf><font><b/></font><numFmt numFmtId="164" formatCode="0.000"/></dxf></dxfs>',
     );
   });
+
+  it('should escape a literal space in a custom format code on write, matching what the reader unescapes', () => {
+    const table = new StyleTable();
+
+    table.xfIndex({ numFmt: '0.0 %', style: null, locked: null });
+    table.dxfIndex({ font: { bold: true }, numFmt: '#,##0 "kr"' });
+
+    const xml = table.toXml();
+
+    expect(xml).toContain('<numFmt numFmtId="164" formatCode="0.0\\ %"/>');
+    // The space INSIDE the quoted "kr" literal is left alone; only the one outside it is escaped.
+    expect(xml).toContain('<numFmt numFmtId="165" formatCode="#,##0\\ &quot;kr&quot;"/>');
+
+    // Full round trip: what the writer escapes, the reader must unescape back to the original.
+    const { cellXfs, dxfs } = parseStyles(xml);
+
+    expect(cellXfs[1].numFmt).toBe('0.0 %');
+    expect(dxfs[0].numFmt).toBe('#,##0 "kr"');
+  });
 });
 
 describe('parseStyles', () => {

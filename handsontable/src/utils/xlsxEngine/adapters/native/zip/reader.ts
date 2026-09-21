@@ -141,16 +141,17 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
     const data = bytes.subarray(start, end);
 
-    return entry.method === 8 ? inflateRaw(data, MAX_INFLATED_ENTRY_BYTES) : data;
+    // The central directory is the authoritative source for this entry (the module comment above),
+    // so the inflate cap is the SMALLER of the entry's own declared size and the reader's ceiling —
+    // never the ceiling alone, or an entry declaring a small size could still inflate past it.
+    return entry.method === 8
+      ? inflateRaw(data, Math.min(entry.uncompressedSize, MAX_INFLATED_ENTRY_BYTES))
+      : data;
   }
 
   return {
     names: () => Array.from(entries.keys()),
     has: name => entries.has(name),
-    text: async(name) => {
-      const text = decoder.decode(await entryBytes(name));
-
-      return text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
-    },
+    text: async name => decoder.decode(await entryBytes(name)),
   };
 }

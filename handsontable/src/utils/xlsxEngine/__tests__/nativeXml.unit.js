@@ -122,6 +122,15 @@ describe('escaping', () => {
     expect(decodeOoxmlEscapes('_xZZZZ_')).toBe('_xZZZZ_');
   });
 
+  it('should escape a literal _xHHHH_-shaped run in text so decodeOoxmlEscapes reads it back unchanged', () => {
+    const written = escapeXmlText('FILE_x0041_TEST');
+
+    // The escaping underscore is itself escaped, OOXML-style, so the literal is not mistaken for
+    // an escape of the control character it would otherwise decode to.
+    expect(written).toBe('FILE_x005F_x0041_TEST');
+    expect(decodeOoxmlEscapes(written)).toBe('FILE_x0041_TEST');
+  });
+
   it('should ask for xml:space="preserve" only around leading, trailing or inner newline whitespace', () => {
     expect(needsSpacePreserve(' a')).toBe(true);
     expect(needsSpacePreserve('a ')).toBe(true);

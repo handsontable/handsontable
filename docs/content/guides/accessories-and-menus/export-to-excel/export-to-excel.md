@@ -84,7 +84,7 @@ const hotSettings = ref({
 
 ## Engines
 
-XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.com/exceljs/exceljs) 4.4 or later through the `engines` option instead. Both write every feature the plugin produces; the built-in engine ignores the numeric `compression` level (it always uses the platform's DEFLATE, or stores the entries for `false`):
+XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.com/exceljs/exceljs) 4.4 or later through the `engines` option instead. The built-in engine ignores the numeric `compression` level (it always uses the platform's DEFLATE, or stores the entries for `false`), and writes only some conditional formatting rule kinds -- every other feature below matches between the two engines:
 
 | Feature | Built-in | ExcelJS |
 |---|---|---|
@@ -92,10 +92,10 @@ XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.c
 | Merged cells, column widths, row heights | Yes | Yes |
 | Hidden rows and columns, multiple sheets | Yes | Yes |
 | Cell styling, `headerStyle` | Yes | Yes |
-| Conditional formatting | Yes | Yes |
+| Conditional formatting | Some rule kinds | Yes |
 | List validation (dropdown sources) | Yes | Yes |
 
-When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. Both engines write everything the export produces, so they drop nothing and the warning never appears on export. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export with it. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
 
 Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
 
