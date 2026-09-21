@@ -543,6 +543,7 @@ export class Formulas extends BasePlugin {
    * @param {string} addedSheetDisplayName The name of the added sheet.
    */
   #onEngineSheetAdded = (addedSheetDisplayName: string) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
   };
 
@@ -554,6 +555,8 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
+    this.#ownSheetExists = null;
+
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
     // Sheet ids are compared rather than names: the engine matches names without looking at the
@@ -574,6 +577,7 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   };
 
@@ -619,6 +623,15 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName: string | null = null;
+
+  /**
+   * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
+   * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
+   * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
+   * removed in the engine, or when this instance's binding or engine changes.
+   */
+  #ownSheetExists: boolean | null = null;
+
   /**
    * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
    *
@@ -665,6 +678,7 @@ export class Formulas extends BasePlugin {
     this.#nestedRowsDetachPending = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
+    this.#ownSheetExists = null;
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -888,6 +902,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     // `#unwrapRenderedHyperlinks()` above already removed this plugin's own anchors from the
     // currently-rendered DOM, eagerly - but a cell that HELD one is now plain URL text, which a
@@ -996,6 +1011,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     super.destroy();
   }
@@ -1013,6 +1029,45 @@ export class Formulas extends BasePlugin {
     // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
+    this.#ownSheetExists = null;
+  }
+
+  /**
+   * Returns `true` when the engine holds the sheet this instance is bound to. The engine is asked
+   * once per invalidation (see `#ownSheetExists`); the hot read paths get the cached answer.
+   *
+   * @returns {boolean}
+   */
+  #hasOwnSheet(): boolean {
+    if (this.#ownSheetExists === null) {
+      this.#ownSheetExists = this.sheetName !== null && this.engine?.doesSheetExist(this.sheetName) === true;
+    }
+
+    return this.#ownSheetExists;
+  }
+
+  /**
+   * Translates visual coordinates into the engine address of the bound sheet. Returns `null` when
+   * the cell has no physical counterpart (out of bounds) or no sheet is bound.
+   *
+   * @param {number} visualRow Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @returns {{ sheet: number, row: number, col: number } | null}
+   */
+  #toEngineAddress(visualRow: number, visualColumn: number): { sheet: number; row: number; col: number } | null {
+    if (
+      this.sheetId === null ||
+      this.hot.toPhysicalRow(visualRow) === null ||
+      this.hot.toPhysicalColumn(visualColumn) === null
+    ) {
+      return null;
+    }
+
+    return {
+      sheet: this.sheetId,
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+    };
   }
 
   /**
@@ -2456,12 +2511,7 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   #onModifyData = (visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) => {
-    if (
-      ioMode !== 'get' ||
-      this.#internalOperationPending ||
-      this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
-    ) {
+    if (ioMode !== 'get' || this.#internalOperationPending || !this.#hasOwnSheet()) {
       return;
     }
 
@@ -2469,19 +2519,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // One translation serves both engine calls; this hook runs once per cell of every bulk read
+    // (AutoColumnSize sampling, the filters column scan), so the per-cell work is what is paid.
+    const address = this.#toEngineAddress(visualRow, visualColumn);
+    // Out of bounds reads as `EMPTY`, like `getCellType()` reports it.
+    const cellType = address === null ? 'EMPTY' : this.engine!.getCellType(address);
 
-    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+    if (address === null || cellType === 'VALUE' || cellType === 'EMPTY') {
       valueHolder.value = unescapeFormulaExpression(valueHolder.value);
 
       return;
     }
 
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the
@@ -2575,7 +2624,7 @@ export class Formulas extends BasePlugin {
       // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
       this.#sourceDataProjectionSuspended ||
       this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
+      !this.#hasOwnSheet()
     ) {
       return;
     }

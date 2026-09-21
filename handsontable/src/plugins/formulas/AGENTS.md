@@ -103,6 +103,27 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+## The per-cell read path caches "the engine holds my sheet" (DEV-2905)
+
+`modifyData` and `modifySourceData` fire once per cell of every bulk read (AutoColumnSize sampling, the
+filters column scan), so `#onModifyData` is the plugin's hottest path. Two rules keep it cheap:
+
+- **`#hasOwnSheet()` replaces `engine.doesSheetExist(this.sheetName)` on those two hooks.** The answer is
+  cached in `#ownSheetExists` and dropped to `null` from every place the answer can change: the engine's own
+  `sheetAdded` / `sheetRenamed` / `sheetRemoved` listeners (engine-wide, so a second instance on the same
+  engine removing this instance's sheet still invalidates it), `#updateSheetNameAndSheetId()`, and the
+  `engine` assignments in `enablePlugin` / `disablePlugin` / `destroy`. HyperFormula exposes no other way to
+  add, rename, or remove a sheet, so a new invalidation point is needed only if a new path writes
+  `sheetName`, `sheetId`, or `engine` without going through those. `#onEngineSheetRemoved` still does not
+  null `sheetName` — the cached `false` is what protects reads after an external `removeSheet` of the own
+  sheet (`tests/e2e/sheet-switch-autosize.spec.ts`).
+- **One address translation per read.** `#toEngineAddress()` does the `toPhysical*` bounds check and the two
+  axis-syncer translations once; the type lookup and `getCellValue` share the result. Keep the `VALUE` /
+  `EMPTY` early return — it hands back the raw source string (after `unescapeFormulaExpression`), while
+  `getCellValue` would return the engine's parsed value (numeric strings as numbers, date text as serials),
+  and array-spill cells have an empty source value yet a real engine value, so the type branch cannot be
+  replaced by a check on the source value either.
+
 ## Engine settings: `maxRows` / `maxColumns` do NOT reach the engine
 
 HyperFormula's own default sheet size is 40000. Handsontable used to pass its `maxRows`, which defaults to

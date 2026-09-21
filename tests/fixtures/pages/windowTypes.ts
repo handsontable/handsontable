@@ -42,6 +42,7 @@ export interface FixtureHotInstance {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
     sheetId: number | null,
+    sheetName: string | null,
     // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
     // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
     engine: {
@@ -191,6 +192,7 @@ export interface FixtureHotInstance {
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
+  getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
@@ -269,6 +271,15 @@ declare global {
     htEngine?: {
       getSheetId(name: string): number,
       getSheetSerialized(sheetId: number): unknown[][],
+    };
+    /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
+    measuredColumns?: number;
+    /** DEV-2905 fixture: reloads the active sheet through `loadData()` with values the engine has not seen. */
+    loadFreshBudget?(): void;
+    /** DEV-2905 fixture: the shared HyperFormula instance, so a spec can remove the bound sheet behind the plugin. */
+    hf?: {
+      getSheetId(name: string): number,
+      removeSheet(sheetId: number): unknown,
     };
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
