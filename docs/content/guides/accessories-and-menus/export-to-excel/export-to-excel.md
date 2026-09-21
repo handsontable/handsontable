@@ -26,7 +26,7 @@ Export your grid data to an Excel (`.xlsx`) file, preserving cell types, styling
 
 ## Overview
 
-The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/exceljs/exceljs), which you must install as a peer dependency. XLSX export goes beyond CSV in several ways:
+The `ExportFile` plugin writes `.xlsx` files with a built-in engine - no extra library is needed. XLSX export goes beyond CSV in several ways:
 
 - Cell types (`numeric`, `date`, `time`, `checkbox`, `dropdown`) are written as native Excel types with matching number formats.
 - Cell styling is read from the rendered DOM - font properties, background colors, alignment, and borders are all transferred to the workbook.
@@ -36,21 +36,14 @@ The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/ex
 
 ## Prerequisites
 
-Install ExcelJS. The supported version range is **`^4.4.0`** (ExcelJS 4.x, version 4.4.0 or later).
-
-```bash
-npm install exceljs
-```
-
-Pass the ExcelJS constructor as `engines: { xlsx: ExcelJS }` in the `exportFile` plugin configuration:
+- Register the `ExportFile` plugin (it is part of `registerAllModules()`). No other library is needed.
 
 ::: only-for javascript
 
 ```js
-import ExcelJS from 'exceljs';
-
 const hot = new Handsontable(container, {
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 
@@ -59,10 +52,9 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
-import ExcelJS from 'exceljs';
-
 <HotTable
-  exportFile={{ engines: { xlsx: ExcelJS } }}
+  exportFile={true}
+  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -71,10 +63,9 @@ import ExcelJS from 'exceljs';
 ::: only-for angular
 
 ```ts
-import ExcelJS from 'exceljs';
-
 readonly hotSettings: GridSettings = {
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
 };
 ```
 
@@ -83,10 +74,9 @@ readonly hotSettings: GridSettings = {
 ::: only-for vue
 
 ```js
-import ExcelJS from 'exceljs';
-
 const hotSettings = ref({
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 
@@ -94,18 +84,18 @@ const hotSettings = ref({
 
 ## Engines
 
-XLSX export goes through an engine you inject via the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs) is the only supported engine, and it writes every feature the plugin produces:
+XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.com/exceljs/exceljs) 4.4 or later through the `engines` option instead. Both write every feature the plugin produces; the built-in engine ignores the numeric `compression` level (it always uses the platform's DEFLATE, or stores the entries for `false`):
 
-| Feature | ExcelJS |
-|---|---|
-| Values, number formats, formulas | Yes |
-| Merged cells, column widths, row heights | Yes |
-| Hidden rows and columns, multiple sheets | Yes |
-| Cell styling, `headerStyle` | Yes |
-| Conditional formatting | Yes |
-| List validation (dropdown sources) | Yes |
+| Feature | Built-in | ExcelJS |
+|---|---|---|
+| Values, number formats, formulas | Yes | Yes |
+| Merged cells, column widths, row heights | Yes | Yes |
+| Hidden rows and columns, multiple sheets | Yes | Yes |
+| Cell styling, `headerStyle` | Yes | Yes |
+| Conditional formatting | Yes | Yes |
+| List validation (dropdown sources) | Yes | Yes |
 
-When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. Both engines write everything the export produces, so they drop nothing and the warning never appears on export. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
 
 Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
 
@@ -247,7 +237,7 @@ Configure the plugin in Handsontable's settings under the `exportFile` key.
 
 | Option    | Type     | Default | Description |
 | --------- | -------- | ------- | ----------- |
-| `engines` | `Object` | -       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+| `engines` | `Object` | -       | Optional map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to export through [ExcelJS](https://github.com/exceljs/exceljs) instead of the built-in engine. |
 
 ## Export options
 
@@ -260,8 +250,8 @@ Pass these options as the second argument to `downloadFileAsync('xlsx', options)
 | `rowHeaders` | `Boolean`, default `false` | Include row headers as a frozen first column in the exported file. |
 | `exportFormulas` | `Boolean`, default `false` | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. |
 | `sheets` | `Array`, default `[]` | Multi-sheet configuration. Each entry is an object with an `instance` (a Handsontable object), a `name` (the sheet tab label), and any per-sheet options such as `colHeaders` or `rowHeaders`. When provided, the top-level `instance` is ignored and each sheet is exported separately. |
-| `compression` | `Boolean` \| `Number` (1–9), default DEFLATE level 6 | DEFLATE compression. Unset or `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). `false` writes the workbook's entries stored, without compression. |
-| `conditionalFormatting` | `Array`, default `[]` | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indexes) and a `rules` array of [ExcelJS conditional formatting rule objects](https://github.com/exceljs/exceljs#conditional-formatting). |
+| `compression` | `Boolean` \| `Number` (1–9), default DEFLATE level 6 | DEFLATE compression. Unset or `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). `false` writes the workbook's entries stored, without compression. The built-in engine treats every level as the platform default. |
+| `conditionalFormatting` | `Array`, default `[]` | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indexes) and a `rules` array of ExcelJS-compatible conditional formatting rule objects ([shape reference](https://github.com/exceljs/exceljs#conditional-formatting)). The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod`; other kinds are reported under the dropped features. |
 | `range` | `Array`, default `[]` | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). When omitted, the entire grid is exported. |
 
 ### Multi-sheet export
@@ -316,7 +306,7 @@ With `exportFormulas`, a formula reference that names another sheet, such as `=R
 
 When the context menu is enabled, **Export to CSV** and **Export to Excel** items are automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
 
-The **Export to Excel** item is only shown when an ExcelJS engine is configured via `engines: { xlsx: ExcelJS }`. The **Export to CSV** item is always available.
+Both items are always available: **Export to Excel** uses the built-in engine unless you configure `engines: { xlsx: ExcelJS }`.
 
 When you select a cell range before opening the context menu, the export covers only the selected range. When no selection is active, the entire grid is exported.
 

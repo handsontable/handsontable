@@ -52,7 +52,7 @@ import type { HotInstance } from '../../../core/types';
 
 /**
  * The longest worksheet name the XLSX format accepts. A longer one is truncated by Excel itself,
- * and by ExcelJS with a console warning.
+ * and by the ExcelJS engine with a console warning.
  */
 const SHEET_NAME_MAX_LENGTH = 31;
 
@@ -79,16 +79,16 @@ const VALIDATION_SHEET_NAME = '_HotValidation';
 /**
  * Turns a user-supplied sheet name into one the format accepts: illegal characters removed, leading
  * and trailing single quotes stripped, the reserved `History` renamed, and an empty result replaced.
- * The reserved name is matched in any case: ExcelJS rejects the exact `History` only, but Excel
- * reserves the name case-insensitively, the same way it compares names for duplicates.
+ * The reserved name is matched in any case: the ExcelJS engine rejects the exact `History` only, but
+ * Excel reserves the name case-insensitively, the same way it compares names for duplicates.
  *
- * This is the only place the export enforces the rules, and it has to: ExcelJS answers each of them
- * with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales` — used to
- * abandon the whole export rather than exporting under a slightly different name.
+ * This is the only place the export enforces the rules, and it has to: the ExcelJS engine answers
+ * each of them with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales`
+ * — used to abandon the whole export rather than exporting under a slightly different name.
  */
 function sanitizeSheetName(baseName: string): string {
-  // Trim on BOTH sides of the quote strip. ExcelJS tests the name it is handed, so `" 'Q1' "` with
-  // the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
+  // Trim on BOTH sides of the quote strip. The ExcelJS engine tests the name it is handed, so
+  // `" 'Q1' "` with the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
   const stripped = baseName
     .replace(ILLEGAL_SHEET_NAME_CHARS, '')
     .trim()
@@ -105,8 +105,8 @@ function sanitizeSheetName(baseName: string): string {
 
 /**
  * Cuts a sanitized sheet name down to `maxLength`, dropping any single quote the cut left at the
- * end. An interior quote is legal, a trailing one is not — and ExcelJS checks for it before its own
- * truncation, so it would reject a name only this cut had made end in one.
+ * end. An interior quote is legal, a trailing one is not — and the ExcelJS engine checks for it
+ * before its own truncation, so it would reject a name only this cut had made end in one.
  */
 function truncateSheetName(name: string, maxLength: number): string {
   const sliced = name.slice(0, maxLength).replace(/'+$/, '');
@@ -117,8 +117,9 @@ function truncateSheetName(name: string, maxLength: number): string {
 /**
  * Narrows a pre-calculated display value to the primitives a cached formula result may carry.
  *
- * ExcelJS throws `I could not understand type of value` for anything else, so an object or an array
- * left in a cell by a custom renderer would abandon the export from inside the summary branch.
+ * The ExcelJS engine throws `I could not understand type of value` for anything else, so an object
+ * or an array left in a cell by a custom renderer would abandon the export from inside the summary
+ * branch.
  */
 function toPrimitiveResult(value: unknown): CellValue {
   if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -327,9 +328,9 @@ class Xlsx extends BaseType {
 
     workbook.compression = this.#getCompressionLevel();
 
-    // Every name the workbook takes, lower-cased: ExcelJS compares names case-insensitively and
-    // throws on a duplicate. The `_HotValidation` helper sheets share the set, so a data sheet
-    // carrying that name can never collide with one.
+    // Every name the workbook takes, lower-cased: the ExcelJS engine compares names
+    // case-insensitively and throws on a duplicate. The `_HotValidation` helper sheets share the
+    // set, so a data sheet carrying that name can never collide with one.
     const usedSheetNames = new Set<string>();
 
     if (sheets && sheets.length > 0) {
@@ -367,9 +368,9 @@ class Xlsx extends BaseType {
    *
    * The name is sanitized first, then truncated, then de-duplicated — in that order. Truncating
    * last would let two distinct 35-character names that differ only past character 31 collide
-   * *after* the de-duplication had already passed them, which ExcelJS answers by throwing. The
-   * counter is made room for inside the 31 characters for the same reason. Comparison is
-   * case-insensitive because ExcelJS's own duplicate check is.
+   * *after* the de-duplication had already passed them, which the ExcelJS engine answers by
+   * throwing. The counter is made room for inside the 31 characters for the same reason. Comparison
+   * is case-insensitive because the ExcelJS engine's own duplicate check is.
    */
   #uniqueSheetName(baseName: string, usedSheetNames: Set<string>): string {
     const sanitized = sanitizeSheetName(baseName);
@@ -490,7 +491,7 @@ class Xlsx extends BaseType {
     //    those cells in Excel surprises users and adds no value, so protection is
     //    suppressed whenever ColumnSummary is present.
     //
-    // 2. Setting protection on every cell — even { locked: false } — causes ExcelJS to
+    // 2. Setting protection on every cell — even { locked: false } — causes the ExcelJS engine to
     //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;

@@ -35,7 +35,8 @@ export function isFormulaValue(value: unknown): value is string {
 }
 
 /**
- * Builds an ExcelJS formula value object for a ColumnSummary destination cell.
+ * Builds a formula value object, in an ExcelJS-compatible shape, for a ColumnSummary destination
+ * cell.
  *
  * Maps Handsontable summary types to their Excel equivalents:
  * `sum` → `SUM`, `min` → `MIN`, `max` → `MAX`, `count` → `COUNT`,

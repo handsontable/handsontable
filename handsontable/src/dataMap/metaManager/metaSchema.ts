@@ -3126,13 +3126,14 @@ export default (): Record<string, unknown> => {
      * | Setting     | Description                                                                                |
      * | ----------- | ------------------------------------------------------------------------------------------ |
      * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | `true`      | Use the plugin with the default configuration (built-in xlsx engine)                       |
      * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
      *
      * If you set the `exportFile` option to an object, you can configure the following options:
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to export through ExcelJS instead of the built-in engine. |
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
@@ -3147,9 +3148,12 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX and CSV export with the built-in engine
+     * exportFile: true,
+     *
+     * // or export XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
-     * // enable XLSX export
      * exportFile: {
      *   engines: { xlsx: ExcelJS },
      * },
@@ -3173,9 +3177,9 @@ export default (): Record<string, unknown> => {
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to import through ExcelJS instead of the built-in engine. |
      *
-     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     * `false` disables the plugin. `true` or an object enables it.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
@@ -3190,6 +3194,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX import with the built-in engine
+     * importFile: true,
+     *
+     * // or import XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
      * importFile: {

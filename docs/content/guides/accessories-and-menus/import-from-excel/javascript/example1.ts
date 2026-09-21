@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -26,7 +25,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  importFile: { engines: { xlsx: ExcelJS } },
+  importFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 

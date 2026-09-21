@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import ExcelJS from 'exceljs';
 
 @Component({
   standalone: true,
@@ -44,7 +43,7 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    importFile: { engines: { xlsx: ExcelJS } },
+    importFile: true,
   };
 
   async importFile(event: Event): Promise<void> {

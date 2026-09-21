@@ -43,8 +43,8 @@ function lookup<T>(table: Record<string, T>, key: string): T | undefined {
 
 /**
  * Shape a color read from a workbook must have before it may reach a CSS declaration: six or eight
- * hexadecimal digits and nothing else. ExcelJS hands back the raw `rgb` attribute of the file, so
- * an attacker-authored workbook can put arbitrary text there.
+ * hexadecimal digits and nothing else. The xlsx engine hands back the raw `rgb` attribute of the
+ * file, so an attacker-authored workbook can put arbitrary text there.
  */
 const ARGB_PATTERN = /^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$/;
 

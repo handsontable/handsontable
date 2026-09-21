@@ -21,33 +21,27 @@ category: Accessories and menus
 menuTag: new
 ---
 
-Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file through an engine you provide, derives cell types from number formats, and applies the layout the workbook carries.
+Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file with its built-in engine, derives cell types from number formats, and applies the layout the workbook carries.
 
 [[toc]]
 
 ## Prerequisites
 
-- Install [ExcelJS](https://github.com/exceljs/exceljs), the engine that powers XLSX import. The supported version range is **`^4.4.0`**.
-
-  ```shell
-  npm install exceljs
-  ```
+- Register the `ImportFile` plugin (it is part of `registerAllModules()`). No other library is needed.
 
 ## Engines
 
-XLSX import goes through an engine you inject, the same way the export does. ExcelJS is the only supported engine; the per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both directions.
+The plugin reads `.xlsx` files with a built-in engine. To read through [ExcelJS](https://github.com/exceljs/exceljs) instead - for example to keep the behavior of a 19.0 integration - install ExcelJS 4.4 or later and pass it through the `engines` option: `importFile: { engines: { xlsx: ExcelJS } }`. The per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both engines and both directions.
 
 ## Steps
 
-1. Pass the engine to the plugin.
+1. Enable the plugin.
 
    ::: only-for javascript
 
    ```javascript
-   import ExcelJS from 'exceljs';
-
    const hot = new Handsontable(container, {
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    });
    ```
@@ -57,10 +51,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for react
 
    ```jsx
-   import ExcelJS from 'exceljs';
-
    <HotTable
-     importFile={{ engines: { xlsx: ExcelJS } }}
+     importFile={true}
      licenseKey="non-commercial-and-evaluation"
    />
    ```
@@ -70,10 +62,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for angular
 
    ```typescript
-   import ExcelJS from 'exceljs';
-
    readonly hotSettings: GridSettings = {
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    };
    ```
@@ -83,10 +73,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for vue
 
    ```js
-   import ExcelJS from 'exceljs';
-
    const hotSettings = ref({
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    });
    ```
@@ -125,17 +113,17 @@ Cell styling is applied only when you set [`importStyles: true`](#styles). Witho
 The plugin also reports every dropped feature in one console warning per import call, naming the engine. With `importStyles` off, a workbook that carries any cell styling reports it this way:
 
 ```text
-The "exceljs" xlsx engine dropped features it cannot write or read: cellStyles.
+The "native" xlsx engine dropped features it cannot write or read: cellStyles.
 ```
 
-Expect `cellStyles` on almost any real workbook: Excel assigns a style to most cells you have used, even ones you never formatted yourself, so the plugin sees styling to report whether or not the sheet looks styled.
+Expect `cellStyles` on almost any real workbook read through the ExcelJS engine: ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries any format index at all, so it reports styling even on cells you never formatted yourself. The built-in engine reports `cellStyles` only when a cell carries styling that is actually there.
 
 Three keys on the result carry features that need more than a cell value. Each row says whether the grid applies it:
 
 | Key | What it carries |
 |---|---|
 | `nestedHeaders` | The promoted header band when `headerRows` is above `1`. It is applied - `updateSettings` both configures and enables the [`NestedHeaders`](@/api/nestedHeaders.md) plugin - and `colHeaders` is absent whenever it is present. A later import that promotes a single header row instead clears a previously applied `nestedHeaders` setting automatically, so the new `colHeaders` renders. |
-| `conditionalFormatting` | One entry per rectangle the workbook's rules cover, as `{ rows: [first, last], cols: [first, last], rules }` in zero-based, inclusive grid coordinates. The `rules` are the engine's own rule objects, passed through untouched. Nothing applies them. |
+| `conditionalFormatting` | One entry per rectangle the workbook's rules cover, as `{ rows: [first, last], cols: [first, last], rules }` in zero-based, inclusive grid coordinates. The `rules` are ExcelJS-compatible rule objects (`type`, `operator`, `formulae`, `style`, …), passed through untouched. Nothing applies them. |
 | `layoutDirection` | `'rtl'` or `'ltr'`, the sheet's own direction. Nothing applies it - see below. |
 
 These are the keys the import can report, beyond `cellStyles`:
