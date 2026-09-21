@@ -635,9 +635,10 @@ jobs:
   #      as `manual-qa`): the reviewer list is the whole team, and a developer
   #      approving differences on a run they pushed is accepted — the name
   #      recorded on the deployment review is the accountability. The assertion
-  #      below cannot tell a self-approval from any other (both are recorded
-  #      approvals and read identically through the API), so this is a policy
-  #      choice, not something the workflow enforces either way.
+  #      below does not check WHO approved — the approvals API returns the
+  #      approver, and the step already reads `approval.user.login` for the
+  #      notice, so it could — which makes this a policy choice rather than
+  #      something the workflow is unable to express.
   #
   #   2. DELETE the `visual-approved` label from the repository's label list. The
   #      workflows that acted on it go with this change, so a label left in the

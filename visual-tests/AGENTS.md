@@ -183,7 +183,8 @@ Seven things about this pipeline are worth knowing before changing it.
   request with differences runs. "Prevent self-review" is deliberately **off** on `visual-approval`, on
   `manual-qa` and on `docs-visual-approval` (decided 2026-09-17): the reviewer list is the whole team, and an author approving their own
   run is accepted — the deployment review records who clicked, and that name is the accountability. The
-  assertion cannot tell a self-approval from any other, so this is policy, not something the job enforces.
+  assertion does not check who approved, though the approvals API would let it, so this is policy rather
+  than a limit of the job.
   Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same
   header), because there is no re-run here to refresh it and the request would otherwise read as pending
   through merge. Fork and Dependabot runs are approved the same way — the reviewer's click

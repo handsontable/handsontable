@@ -225,7 +225,7 @@ jobs:
   # runs. "Prevent self-review" is OFF on it, as on `visual-approval` and
   # `manual-qa` (decided 2026-09-17; the reasoning is in .ai/CI.md — the name
   # recorded on the deployment review is the accountability, and the assertion
-  # below cannot tell a self-approval from any other either way).
+  # below does not check who approved, though the approvals API would let it).
   # A job that references a missing environment silently auto-creates it
   # UNPROTECTED and runs straight through, so the step below asserts the
   # control's OUTCOME -- an approval recorded against this run -- rather than
