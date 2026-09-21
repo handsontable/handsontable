@@ -1,11 +1,20 @@
 /**
  * @jest-environment node
  */
+import Encryptor from 'exceljs/lib/utils/encryptor';
 import {
   contentTypesXml, rootRelsXml, workbookRelsXml, workbookXml, sheetRelsXml, coreXml, appXml,
   parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
 } from '../adapters/native/parts/package';
 import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
+import { commentsXml, vmlDrawingXml, parseComments } from '../adapters/native/parts/comments';
+import { dataValidationsXml } from '../adapters/native/parts/dataValidation';
+import {
+  conditionalFormattingXml, cfRuleFromXml, maxRulePriority,
+} from '../adapters/native/parts/conditionalFormatting';
+import { StyleTable } from '../adapters/native/parts/styles';
+import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
+import { DroppedFeatures } from '../capabilities';
 
 const sheets = [
   { index: 1, name: 'Data', state: 'visible', hasComments: true },
@@ -155,5 +164,179 @@ describe('shared strings', () => {
     const xml = '<sst><si><t>漢字</t><rPh sb="0" eb="2"><t>かんじ</t></rPh></si></sst>';
 
     expect(parseSharedStrings(xml).strings).toEqual(['漢字']);
+  });
+});
+
+describe('comments', () => {
+  const comments = [
+    { ref: 'B2', row: 1, col: 1, text: 'first note' },
+    { ref: 'D5', row: 4, col: 3, text: ' spaced <note> ' },
+  ];
+
+  it('should write one comment per cell under a single author', () => {
+    const xml = commentsXml(comments, 'Handsontable');
+
+    expect(xml).toContain('<authors><author>Handsontable</author></authors>');
+    expect(xml).toContain('<comment ref="B2" authorId="0"><text><r><t>first note</t></r></text></comment>');
+    expect(xml).toContain(
+      '<comment ref="D5" authorId="0"><text><r>'
+      + '<t xml:space="preserve"> spaced &lt;note&gt; </t></r></text></comment>',
+    );
+  });
+
+  it('should write the VML shape Excel needs to show the note, one per comment, 0-based anchors', () => {
+    const vml = vmlDrawingXml(comments);
+
+    expect(vml).toContain('<v:shapetype id="_x0000_t202"');
+    expect(vml).toContain('<v:shape id="_x0000_s1025" type="#_x0000_t202"');
+    expect(vml).toContain('<v:shape id="_x0000_s1026"');
+    expect(vml).toContain('<x:ClientData ObjectType="Note">');
+    expect(vml).toContain('<x:Row>1</x:Row><x:Column>1</x:Column>');
+    expect(vml).toContain('<x:Row>4</x:Row><x:Column>3</x:Column>');
+    expect(vml).toContain('<x:Anchor>2, 6, 0, 14, 4, 2, 4, 16</x:Anchor>');
+  });
+
+  it('should parse comments back, joining runs and skipping phonetic runs', () => {
+    const parsed = parseComments(commentsXml(comments, 'x'));
+
+    expect(Array.from(parsed.entries())).toEqual([['B2', 'first note'], ['D5', ' spaced <note> ']]);
+
+    const excelLike = '<comments><authors><author>A</author></authors><commentList>'
+      + '<comment ref="A1" authorId="0"><text><r><rPr><b/></rPr><t>Author:</t>'
+      + '</r><r><t xml:space="preserve">\nbody_x000D_</t></r></text></comment>'
+      + '</commentList></comments>';
+
+    expect(parseComments(excelLike).get('A1')).toBe('Author:\nbody\r');
+  });
+});
+
+describe('dataValidationsXml', () => {
+  it('should return an empty string when no cell carries a validation', () => {
+    expect(dataValidationsXml([])).toBe('');
+  });
+
+  it('should coalesce identical validations into vertical runs on one sqref and keep others apart', () => {
+    const list = { type: 'list', formulae: ['\'_HotValidation\'!$A$1:$A$3'], allowBlank: true };
+    const inline = { type: 'list', formulae: ['"a,b"'], allowBlank: false };
+    const xml = dataValidationsXml([
+      { row: 1, col: 0, validation: list },
+      { row: 2, col: 0, validation: list },
+      { row: 3, col: 0, validation: list },
+      { row: 5, col: 0, validation: list },
+      { row: 1, col: 2, validation: list },
+      { row: 1, col: 1, validation: inline },
+    ]);
+
+    expect(xml).toContain('<dataValidations count="2">');
+    expect(xml).toContain(
+      '<dataValidation type="list" allowBlank="1" showErrorMessage="1" sqref="A2:A4 A6 C2">'
+      + '<formula1>&apos;_HotValidation&apos;!$A$1:$A$3</formula1></dataValidation>',
+    );
+    expect(xml).toContain(
+      '<dataValidation type="list" showErrorMessage="1" sqref="B2">'
+      + '<formula1>&quot;a,b&quot;</formula1></dataValidation>',
+    );
+  });
+});
+
+describe('conditional formatting', () => {
+  it('should write cellIs, expression and the containsText family with dxf styles and running priorities', () => {
+    const styles = new StyleTable();
+    const dropped = new DroppedFeatures();
+    const rules = [
+      { type: 'cellIs', operator: 'greaterThan', formulae: [100], style: { font: { bold: true } } },
+      { type: 'expression', formulae: ['MOD(ROW(),2)=0'], priority: 7 },
+      { type: 'containsText', operator: 'containsText', text: 'urgent' },
+      { type: 'containsText', operator: 'containsBlanks' },
+    ];
+    const xml = conditionalFormattingXml('B2:D9', rules, styles, { next: 1 }, dropped);
+
+    expect(xml).toContain('<conditionalFormatting sqref="B2:D9">');
+    expect(xml).toContain(
+      '<cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThan">'
+      + '<formula>100</formula></cfRule>',
+    );
+    expect(xml).toContain('<cfRule type="expression" priority="7"><formula>MOD(ROW(),2)=0</formula></cfRule>');
+    expect(xml).toContain(
+      '<cfRule type="containsText" priority="2" operator="containsText" text="urgent">'
+      + '<formula>NOT(ISERROR(SEARCH(&quot;urgent&quot;,B2)))</formula></cfRule>',
+    );
+    expect(xml).toContain(
+      '<cfRule type="containsBlanks" priority="3" operator="containsBlanks">'
+      + '<formula>LEN(TRIM(B2))=0</formula></cfRule>',
+    );
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop the rule kinds the PoC does not write and skip the block when nothing is left', () => {
+    const dropped = new DroppedFeatures();
+    const xml = conditionalFormattingXml('A1:A3', [
+      { type: 'dataBar', cfvo: [{ type: 'min' }, { type: 'max' }] },
+      { type: 'iconSet' },
+      'not a rule',
+    ], new StyleTable(), { next: 1 }, dropped);
+
+    expect(xml).toBe('');
+    expect(dropped.list()).toEqual([
+      'conditionalFormatting:dataBar', 'conditionalFormatting:iconSet', 'conditionalFormatting:invalid',
+    ]);
+  });
+
+  it('should continue priorities above the highest one any rule declares', () => {
+    expect(maxRulePriority([{ rules: [{ priority: 4 }, {}] }, { rules: [{ priority: 9 }] }])).toBe(9);
+    expect(maxRulePriority([{ rules: [{}] }])).toBe(0);
+  });
+
+  it('should rebuild ExcelJS-shaped rule objects from cfRule attributes', () => {
+    const dxfs = [{ font: { bold: true } }];
+
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'greaterThan', priority: '1', dxfId: '0' }, ['2'], dxfs))
+      .toEqual({
+        type: 'cellIs', operator: 'greaterThan', priority: 1, formulae: ['2'], style: { font: { bold: true } },
+      });
+    expect(cfRuleFromXml({ type: 'containsBlanks', priority: '2' }, ['LEN(TRIM(A1))=0'], dxfs))
+      .toEqual({ type: 'containsText', operator: 'containsBlanks', priority: 2, formulae: ['LEN(TRIM(A1))=0'] });
+    expect(cfRuleFromXml({ type: 'containsText', operator: 'containsText', text: 'x', priority: '3' }, [], dxfs))
+      .toEqual({ type: 'containsText', operator: 'containsText', text: 'x', priority: 3 });
+    expect(cfRuleFromXml({ type: 'top10', rank: '5', percent: '1', priority: '4' }, [], dxfs))
+      .toEqual({ type: 'top10', rank: 5, percent: true, bottom: false, priority: 4 });
+    expect(cfRuleFromXml({ type: 'aboveAverage', aboveAverage: '0', priority: '5' }, [], dxfs))
+      .toEqual({ type: 'aboveAverage', aboveAverage: false, priority: 5 });
+    expect(cfRuleFromXml({ type: 'duplicateValues', priority: '6', dxfId: '9' }, [], dxfs))
+      .toEqual({ type: 'duplicateValues', priority: 6 });
+  });
+});
+
+describe('hashSheetPassword', () => {
+  it('should produce the hash ExcelJS produces for the same salt and spin count', async() => {
+    const salt = new Uint8Array(16).map((_v, i) => i * 7);
+    const saltBase64 = Buffer.from(salt).toString('base64');
+    // 100 spins keep the test fast; production uses SHEET_PASSWORD_SPIN_COUNT and Excel accepts any count.
+    const hash = await hashSheetPassword('secret', salt, 100);
+
+    expect(hash).toEqual({
+      algorithmName: 'SHA-512',
+      saltValue: saltBase64,
+      spinCount: 100,
+      hashValue: Encryptor.convertPasswordToHash('secret', 'SHA512', saltBase64, 100),
+    });
+  });
+
+  it('should hash non-ASCII passwords as UTF-16LE, the way Excel does', async() => {
+    const salt = new Uint8Array(16);
+    const hash = await hashSheetPassword('zażółć', salt, 10);
+
+    expect(hash.hashValue).toBe(
+      Encryptor.convertPasswordToHash('zażółć', 'SHA512', Buffer.from(salt).toString('base64'), 10),
+    );
+  });
+
+  it('should default to 100000 spins and a fresh 16-byte salt per call', async() => {
+    const a = await hashSheetPassword('x', undefined, 1);
+    const b = await hashSheetPassword('x', undefined, 1);
+
+    expect(SHEET_PASSWORD_SPIN_COUNT).toBe(100000);
+    expect(a.saltValue).not.toBe(b.saltValue);
+    expect(Buffer.from(a.saltValue, 'base64').byteLength).toBe(16);
   });
 });
