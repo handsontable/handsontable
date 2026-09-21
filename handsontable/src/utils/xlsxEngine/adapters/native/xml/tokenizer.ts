@@ -139,7 +139,9 @@ export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
         if (code === 91) {
           depth += 1;
         } else if (code === 93) {
-          depth -= 1;
+          // Clamped: a stray `]` before any `[` would otherwise drive the depth negative, and the
+          // skip would then run past this DOCTYPE's own `>` into real content.
+          depth = Math.max(0, depth - 1);
         } else if (code === 62 && depth === 0) {
           break;
         }
@@ -209,8 +211,15 @@ export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
 
       const attrName = xml.slice(j, k);
 
-      while (k < length && xml.charCodeAt(k) !== 61) {
+      while (k < length && isWhitespace(xml.charCodeAt(k))) {
         k += 1;
+      }
+
+      // The `=` must be the next thing after the name and any spacing around it. Scanning FORWARD
+      // for an `=` instead would walk straight through this tag's `>` on a bare attribute
+      // (`<a b>`) and steal the next element's attribute value, swallowing that element whole.
+      if (attrName === '' || xml.charCodeAt(k) !== 61) {
+        malformed(lt);
       }
 
       k += 1;
@@ -221,7 +230,7 @@ export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
 
       const quote = xml.charCodeAt(k);
 
-      if (attrName === '' || (quote !== 34 && quote !== 39)) {
+      if (quote !== 34 && quote !== 39) {
         malformed(lt);
       }
 

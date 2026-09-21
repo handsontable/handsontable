@@ -51,6 +51,25 @@ describe('tokenizeXml', () => {
     expect(() => events('<a b="1')).toThrow(/malformed/);
     expect(() => events('<a')).toThrow(/malformed/);
   });
+
+  it('should refuse a malformed attribute instead of swallowing the next element', () => {
+    // A bare attribute name is the dangerous case: a scan that hunts forward for `=` walks through
+    // this tag's own `>` and misappropriates the NEXT element's attribute value, dropping that
+    // element from the event stream with no error at all.
+    expect(() => events('<a b><c d="1"/>')).toThrow(/malformed/);
+    expect(() => events('<a b>')).toThrow(/malformed/);
+    expect(() => events('<a b=>')).toThrow(/malformed/);
+    expect(() => events('<a =x="1">')).toThrow(/malformed/);
+    // Spacing around the `=` stays legal.
+    expect(events('<a b = "1"/>')).toEqual([['open', 'a', { b: '1' }, true]]);
+  });
+
+  it('should not let a stray bracket in a DOCTYPE swallow the content after it', () => {
+    expect(events('<!DOCTYPE t]><middle attr="["/><root/>')).toEqual([
+      ['open', 'middle', { attr: '[' }, true],
+      ['open', 'root', {}, true],
+    ]);
+  });
 });
 
 describe('decodeXmlEntities', () => {
