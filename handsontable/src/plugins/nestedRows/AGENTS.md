@@ -31,7 +31,7 @@ the index type from *whether the row can be trimmed*, not from the house rule al
 
 | File | Role |
 |---|---|
-| `nestedRows.ts` | The plugin. Lifecycle, 22 core hooks, the shortcut, and the **public API** |
+| `nestedRows.ts` | The plugin. Lifecycle, 21 core hooks, the shortcut, and the **public API** |
 | `data/dataManager.ts` | The tree: flatten, cache, read structure, add/detach/move children |
 | `ui/collapsing.ts` | All collapse/expand logic and the hook choke point |
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
@@ -317,6 +317,32 @@ They are written in different places and can drift. Keep this in mind:
   **imperatively** — a `trimRows()` call, a `manualRowMove` order, a hand-registered IndexMap — across
   an off/on round trip. That is inherent to the physical space meaning two different things, and it is
   the reason a runtime toggle is not a free operation to hand a user a button for.
+- **The `beforeLoadData` listener is registered with `orderIndex: 1`, and that number is load-bearing.**
+  `#onBeforeLoadData` validates the incoming array through `#acceptsData()` and, on a non-nested
+  shape, flips the `nestedRows` setting to `false` and disables the plugin for the grid's life. It
+  is a filter hook: every listener sees the value the previous one returned, in registration order,
+  and registration follows ascending `PLUGIN_PRIORITY` — so at 300 this plugin used to run before
+  `sheetsBar` (910) redirected the init load at the active sheet's array. A grid declaring a
+  top-level `data` next to a `sheetsBar` workbook therefore validated the host's placeholder array,
+  self-disabled, and never saw the nested sheet that replaced it (DEV-2939). The positive
+  `orderIndex` moves only this listener behind every default-ordered `beforeLoadData` listener,
+  including that redirect. Do not "fix" this by raising `PLUGIN_PRIORITY` — that reorders all 21
+  hooks and the whole lifecycle. The same move puts every host-declared `beforeLoadData` listener
+  (the settings object, `hot.addHook()`, a wrapper prop) ahead of this validation too — they land at
+  the default order after the plugin hooks, so a host hook that returns a nested array now keeps the
+  plugin on, and a host hook reading `dataManager` inside `beforeLoadData` sees the previous
+  dataset. `beforeUpdateData` deliberately stays at the default order even though
+  `#onBeforeUpdateData` shares the same `#acceptsData` gate: no in-tree listener substitutes the
+  array on that hook (sheetsBar switches through `loadData()`, formulas only reads), so there is
+  nothing to sit behind, and a host `beforeUpdateData` hook returning a nested array still cannot
+  keep the plugin on — move it to `1` only when a redirecting `beforeUpdateData` filter appears.
+  The bug does **not** reproduce with `data` omitted: sheetsBar's `enablePlugin` already loads the
+  sheet through `loadData()`, so core's init pass skips its own load and the plugin only ever sees
+  the valid array. Three specs pin this. In `sheetsBar/__tests__/sheetsBar.unit.js`: the top-level
+  `data` shape (keep that `data` in the fixture; without it the test passes on the unfixed code),
+  and the no-`data` two-sheet shape — a guard that passes on develop and pins sheetsBar's
+  enable-time load, not the fix. In `__tests__/dataHooks.unit.js` here: a host `beforeLoadData`
+  returning a nested array, which fails without the `orderIndex`.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
