@@ -79,6 +79,10 @@ test('reading about the gate is not approving it', () => {
     'grep -rn pending_deployments .ai/',
     'rg pending_deployments scripts/claude',
     'git grep -n pending_deployments',
+    // `-F` is git grep's fixed-strings and `-d` is grep's --directories; both collide with curl's body
+    // flags, so the block needs an HTTP client in the command before a flag means anything.
+    'git grep -F pending_deployments',
+    'grep -d skip -r pending_deployments .',
     'cat scripts/claude/deny-deployment-approval.mjs',
     'node --test scripts/__tests__/deny-deployment-approval.test.mjs',
     // A plain GET lists what a run is waiting on and changes nothing — it is how an agent answers
@@ -102,6 +106,14 @@ test('it catches a write however the method is spelled', () => {
     'gh api -X POST repos/x/y/actions/runs/1/pending_deployments --input body.json',
     'curl --request PUT https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
     'gh api repos/x/y/actions/runs/1/pending_deployments --raw-field state=rejected',
+    // curl's usual POST: the body implies the method, and the body is JSON, so NEITHER an `-X` nor a
+    // `state=approved` form field appears anywhere in the command. The first narrowed version of this
+    // hook missed exactly this, which made it weaker than the blunt path-only match it replaced — and
+    // it is the documented shape, so it is what a blocked agent reaches for next.
+    'curl -H "Authorization: token $GH" -d \'{"state":"approved","environment_ids":[1]}\' '
+      + 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'curl --json \'{"state":"approved"}\' https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'curl --data-binary @approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
   ];
 
   writes.forEach((command) => {

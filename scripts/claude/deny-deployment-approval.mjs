@@ -57,15 +57,23 @@ const PENDING_DEPLOYMENTS = /pending_deployments/i;
  * - an explicit mutating method, in curl's spelling or gh's (`-X POST`, `--method POST`, `--request PUT`);
  * - `gh api` with a field or a body — `-f`, `-F`, `--field`, `--raw-field`, `--input` all make gh infer
  *   POST, so the method never appears in the command;
- * - the decision itself, `state=approved` or `state=rejected`, whatever carries it.
+ * - a curl BODY, which also implies POST with no `-X` in sight: `-d`, `--data*`, `--json`, `--form`,
+ *   `-T`. This is the shape the first version of the narrowed check missed, and it is the one a blocked
+ *   agent would reach for next — it is what curl's own documentation shows;
+ * - the decision itself, in either spelling: `state=approved` as a form field, or `"state": "approved"`
+ *   as JSON. A JSON body carries the colon form, so matching only `=` reads an approval as innocent.
  *
  * A plain `GET` of the same path lists what is waiting and changes nothing, so it stays allowed — it is
  * how an agent answers "is this run blocked on a human?", which is a question worth being able to ask.
  */
+const REQUEST_TOOL = /\b(?:curl|wget|http|gh)\b/i;
+
 const APPROVAL_VERB = [
   /(?:-X|--request|--method)\s*=?\s*(?:POST|PUT|PATCH)/i,
   /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/i,
-  /\bstate\s*=\s*["']?(?:approved|rejected)\b/i,
+  /(?:^|\s)(?:-d|-F|-T|--data|--data-raw|--data-binary|--data-urlencode|--data-ascii|--json|--form)(?:\s|=)/i,
+  /(?:^|\s)--upload-file(?:\s|=)/i,
+  /\bstate\b\s*[=:]\s*["']?(?:approved|rejected)\b/i,
 ];
 
 /**
@@ -94,7 +102,13 @@ if (payload?.tool_name !== 'Bash') {
 
 const command = payload?.tool_input?.command ?? '';
 
-if (!PENDING_DEPLOYMENTS.test(command) || !APPROVAL_VERB.some(verb => verb.test(command))) {
+// Three conditions, and the request tool is what keeps the flag patterns honest. Several of the
+// mutation flags are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
+// --directories — so matching a flag alone would block a search over the files that describe this gate.
+// A command that names no HTTP client is not reaching the endpoint whatever its flags say.
+if (!PENDING_DEPLOYMENTS.test(command)
+  || !REQUEST_TOOL.test(command)
+  || !APPROVAL_VERB.some(verb => verb.test(command))) {
   process.exit(0);
 }
 
