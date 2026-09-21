@@ -26,7 +26,7 @@ for (const engine of ['exceljs', 'native'] as const) {
       await expect(grids.targetHeaders()).toHaveText(['Name', 'Amount', 'Hired', 'Status', 'Bonus']);
       await expect(grids.targetCell(0, 0)).toHaveText('Ana García');
       await expect(grids.targetCell(0, 1)).toHaveText('4,200.50');
-      // The grid stores the ISO string and RENDERS it through the derived Intl options. The expor
+      // The grid stores the ISO string and RENDERS it through the derived Intl options. The export
       // derives the number format from the source column's own `dateFormat`, so a four-digit year
       // survives the round trip; a fixed `mm-dd-yy` used to show `01/15/24` here.
       await expect(grids.targetCell(0, 2)).toHaveText('01/15/2024');
@@ -74,7 +74,7 @@ for (const engine of ['exceljs', 'native'] as const) {
       await expect(grids.targetCell(0, 4)).toHaveCount(0);
 
       // The result is only what the mapper produced. These two assert the grid itself: MergeCells
-      // validates every merge against the table present when the setting is applied, so a layou
+      // validates every merge against the table present when the setting is applied, so a layout
       // setting reaching the grid before the data silently drops the merge (and logs about it) while
       // `result.mergeCells` stays correct.
       expect(await grids.targetMergedCells()).toEqual([{ row: 1, col: 0, rowspan: 2, colspan: 1 }]);
@@ -154,7 +154,7 @@ for (const engine of ['exceljs', 'native'] as const) {
       expect(result.dropped).not.toContain('conditionalFormatting');
       // The export writes a left-to-right sheet and the target grid is left-to-right, so the two
       // agree and nothing is dropped for the direction. The MISMATCH path is unit-tested instead
-      // (`importFile.unit.js`): `layoutDirection` is resolved at construction, so one page canno
+      // (`importFile.unit.js`): `layoutDirection` is resolved at construction, so one page cannot
       // flip a grid's direction between tests.
       expect(result.layoutDirection).toBe('ltr');
       expect(result.dropped).not.toContain('layoutDirection');
