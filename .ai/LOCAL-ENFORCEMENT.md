@@ -329,7 +329,7 @@ code, from both sides. The `SCOPES` regex in `scripts/lint-files.mjs` covers
 keeps its `tests/e2e/` filter, and `scripts/claude/stop.mjs` imports it rather
 than filtering on its own. Neither hook script names the visual package in a
 form a runner would need (a `visual-tests/tests` path, a `visual-tests\/`
-regex, a quoted `visual-tests` path), and every Playwright either spawns runs
+regex, a quoted `visual-tests` path), and every Playwright spawn in them runs
 from `tests/`. So a hook that starts running visual specs — by widening the
 filter, by adding a second runner beside it, or by spawning from
 `visual-tests/` — fails that test naming this map.

@@ -149,6 +149,23 @@ function count(text, needle) {
   return text.split(needle).length - 1;
 }
 
+/**
+ * How many times a `##` heading with this exact name occurs.
+ *
+ * Whitespace-tolerant the way {@link section} is, and for the same reason: a heading that picks up a
+ * trailing space is still that heading to a reader and to every Markdown renderer. A byte-exact
+ * `\n## Name\n` count would drop to 0 there, and an assertion that reads "more than one" would then
+ * fire on a file that has exactly one — sending the next debugger to hunt a duplicate that does not
+ * exist. Counting trimmed lines cannot produce that inverted diagnosis.
+ *
+ * @param {string} text The document.
+ * @param {string} name The heading name, without the `## `.
+ * @returns {number} How many headings carry it.
+ */
+function countHeadings(text, name) {
+  return text.split('\n').filter(line => line.trimEnd() === `## ${name}`).length;
+}
+
 test('the decision rule is one paragraph in visual-tests/AGENTS.md, and no surface copies it', () => {
   const rule = section(read(RULE_FILE), '## Decision rule', RULE_FILE);
 
@@ -164,7 +181,12 @@ test('the decision rule is one paragraph in visual-tests/AGENTS.md, and no surfa
 
   assert.deepEqual(copies, [RULE_FILE],
     'the decision-rule paragraph is copied instead of linked — keep it in visual-tests/AGENTS.md only');
-  assert.equal(count(read(RULE_FILE), '\n## Decision rule\n'), 1, `${RULE_FILE} has more than one Decision rule heading`);
+  const ruleHeadings = countHeadings(read(RULE_FILE), 'Decision rule');
+
+  assert.equal(ruleHeadings, 1,
+    `${RULE_FILE} must carry exactly one "## Decision rule" heading (found ${ruleHeadings}). `
+    + 'Two would let the surfaces link to whichever one the reader scrolls to first; none means the '
+    + 'paragraph moved and every link into it is now dangling.');
 });
 
 test('every authoring surface carries the marker sentence and links to the rule', () => {
@@ -309,18 +331,33 @@ test('every AGENTS.md section a lint message points at exists, and the guardrail
   const headings = agents.split('\n').filter(line => line.startsWith('## ')).map(line => line.slice(3));
   const libDir = path.join(root, 'visual-tests/lib');
   const sources = ['visual-tests/.eslintrc.js', ...readdirSync(libDir).filter(f => f.endsWith('.mjs')).map(f => `visual-tests/lib/${f}`)];
+  let pointers = 0;
 
   for (const file of sources) {
     // `visual-tests/AGENTS.md (Determinism)` is the form the lint messages use; a renamed heading
     // would send the author of a failing spec to a section that no longer exists.
     for (const [, name] of read(file).matchAll(/AGENTS\.md \(([^)]+)\)/g)) {
+      pointers += 1;
       assert.ok(headings.some(heading => heading === name || heading.startsWith(`${name}:`) || heading.startsWith(`${name} `)),
         `${file} points at visual-tests/AGENTS.md (${name}), which is not a ## heading there`);
     }
   }
 
-  assert.equal(count(agents, '\n## Guardrails against bloat and flakes\n'), 1,
-    `${RULE_FILE} must carry the "## Guardrails against bloat and flakes" section exactly once — every later guardrail rewrites its bullet there`);
+  // Without a floor this guarantee is self-cancelling: reword the lint messages out of the
+  // `AGENTS.md (Name)` form, or move `visual-tests/lib`, and `matchAll` yields nothing, the loop
+  // asserts zero times, and the test stays green while pointing at nothing. Five pointers exist
+  // today across the lint config and the lib modules; the floor only has to prove the scan found
+  // the shape at all.
+  assert.ok(sources.length >= 3, `only ${sources.length} sources scanned — visual-tests/lib moved?`);
+  assert.ok(pointers >= 3,
+    `only ${pointers} "AGENTS.md (Name)" pointers found; the lint messages no longer use that form, `
+    + 'so this test is guarding nothing');
+
+  const guardrailHeadings = countHeadings(agents, 'Guardrails against bloat and flakes');
+
+  assert.equal(guardrailHeadings, 1,
+    `${RULE_FILE} must carry exactly one "## Guardrails against bloat and flakes" heading `
+    + `(found ${guardrailHeadings}) — every later guardrail rewrites its own bullet there`);
 
   const guardrails = section(agents, '## Guardrails against bloat and flakes', RULE_FILE);
 
