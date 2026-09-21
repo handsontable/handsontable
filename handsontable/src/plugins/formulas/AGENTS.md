@@ -115,6 +115,64 @@ switches the sheet, and dropping them would skip that.
 `{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
 registry.
 
+## `updateSettings()` resyncs the sheet TWICE, and the second pass is the one that sees plugins
+
+The sheet is rebuilt from the source data in `#onAfterCellMetaReset`, and the Core fires
+`afterCellMetaReset` in the **middle** of `updateSettings()` — before `afterUpdateSettings`, which is
+where every plugin's `onUpdateSettings` runs. So a setting that changes how many rows the grid holds
+is invisible to that pass. `nestedRows: true` is the measured case: the plugin flattens a two-row
+tree into four rows, the engine kept the two-row sheet, `Root B`'s `=UPPER(A1)` rendered as its own
+raw text, and the computed value had slid onto another row — and a later edit then re-evaluated
+against the stale sheet, so the wrong row updated. It was unreachable until the runtime toggle
+stopped throwing in `NestedRows`' own data manager.
+
+`#onAfterUpdateSettingsRowCount` is the repair: a second `afterUpdateSettings` listener registered
+with **`orderIndex: 1`**, which is what puts it after every default-order listener, the plugins'
+included. It compares `countSourceRows()` AND the bound sheet id against what
+`#onAfterCellMetaReset` recorded on its way through the same update (`#recordSyncedLayout`), and
+re-runs that handler when the count moved on the same sheet.
+
+Eight things to keep:
+
+- **Key it off the row COUNT, never off a plugin.** Nothing here knows what changed the layout, which
+  is the point — the next plugin to flatten, group or expand rows at settings time is covered without
+  a change, **as long as it reports through `modifySourceLength`**. A plugin that changes row CONTENT
+  at a constant count (a `modifyRowData`-only projection) is not covered, and neither is a reorder.
+  The corollary belongs in the other plugin's file: it must not reach over here.
+- **The sheet id is half the key, and it is the half that prevents data loss.** `updatePlugin()`
+  switches the sheet from a default-order `afterUpdateSettings` listener, and `switchSheet()` loads
+  the new sheet's rows into the grid — so on a switch between sheets of different heights the count
+  differs for a reason that needs no resync. Without the id check the listener wrote the grid BACK
+  into the sheet just switched to, through `#getProcessedSourceDataArray`'s visible-column
+  projection: a grid showing one column of a three-column sheet truncated that sheet to one column,
+  destroying the rest for every grid sharing the engine. Covered by
+  `does not write the grid back into a sheet it just switched to`.
+- **Record the layout at the END of `#onAfterCellMetaReset`, never at its start.** The empty-data
+  branch's own `switchSheet()` runs `loadData()`, which moves the row count itself, so a count taken
+  first describes a layout the handler then replaced — and the listener re-entered for a change the
+  handler had just made, firing a second full `loadData` from inside `afterUpdateSettings`.
+- **The gate is one integer comparison plus one id comparison** on the common path, which matters
+  because the React wrapper sends `updateSettings()` on every re-render and the resync it guards is a
+  full-dataset scan whose per-cell meta read fires `cells()` and the get-meta listeners. Measured: no
+  extra resync on any re-render-shaped payload, and the probe itself is 0.31% of the call it rides on
+  even at 50k rows (it is `countAllRows()`, an uncached tree walk, when `nestedRows` is on — O(rows),
+  not an integer read).
+- **`minRows`/`minSpareRows` are NOT in the covered class.** The Core creates those rows in
+  `adjustRowsAndCols()`, which runs after `afterUpdateSettings`, so the gate never sees them; they
+  reach the engine through `afterCreateRow` instead, which is correct and cheaper.
+- **The intended path pays for the fix.** The mid-update pass still runs against the pre-flatten data
+  and its result is discarded, so a `nestedRows` toggle rebuilds the sheet twice: measured 133.7 ms →
+  237.1 ms at 10,000 flattened rows (+72%). Halving it means suppressing the mid-update pass while a
+  settings cycle is in flight, which changes when every formula grid resyncs — deliberately not done
+  here.
+- **`orderIndex: 1` is load-bearing and also runs after a USER's `afterUpdateSettings` listener.** A
+  listener reading calculated values from inside that hook still sees the pre-toggle sheet; only a
+  read after `updateSettings()` returns is guaranteed fresh.
+- **On a SHRINK, `getSheetDimensions()` is the wrong probe.** The engine grows a sheet to calculate
+  values outside it and does not hand that extent back, so after a four-row grid drops to two the
+  dimensions still report four while the content is correct. Assert `getSheetSerialized()` instead —
+  `tests/e2e/formulas-nested-rows-toggle.spec.ts` does.
+
 ## The engine's sheet size is not the grid's axis length, in either direction
 
 `getSheetDimensions()` answers with the extent of the sheet's **content**, and the engine accepts an order
