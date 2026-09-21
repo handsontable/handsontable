@@ -90,7 +90,9 @@ Other rules:
   larger. `#getCompressionLevel` therefore returns `6` for anything but `false` and a valid level;
   `xlsxValidationSheetName.unit.js` pins the `writeBuffer` options for unset, `false` and `3`, and
   `exceljsWrite.unit.js` pins STORE-vs-DEFLATE by SIZE (stored output larger than deflated on a repetitive
-  sheet), which is the only assertion that can tell the two apart at the adapter.
+  sheet), which is the only assertion that can tell the two apart at the adapter. The native engine has no
+  level: `false` stores, every other value deflates at the platform default; `nativeWrite.unit.js` pins
+  STORE-vs-DEFLATE by size.
 - **Sheet names are sanitized by the export, not by the engine.** ExcelJS throws for an illegal character
   (`* ? : / \ [ ]`), a leading or trailing `'`, the reserved name `History`, an empty name and a duplicate
   (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export. ExcelJS
@@ -196,6 +198,7 @@ Other rules:
 - `../../utils/xlsxEngine/` for the neutral workbook model, engine detection, capabilities and the
   ExcelJS adapter this plugin and `importFile` both call — neither plugin touches an engine object
   directly.
+- `../../utils/xlsxEngine/AGENTS.md` for the engine contract and the native adapter's traps.
 - Sources of exported values: `../formulas/AGENTS.md`, `../columnSummary/AGENTS.md`,
   `../nestedHeaders/AGENTS.md`.
 - Menu entry: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.

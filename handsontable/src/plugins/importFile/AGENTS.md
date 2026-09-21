@@ -338,10 +338,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.
-- `../../utils/xlsxEngine/` for the model, detection, capabilities and adapters. ExcelJS is the only
-  engine; a second one adds its kind to `XlsxEngineKind`, its row to `CAPABILITIES`, its duck-typing to
-  `detect.ts` and an adapter beside `adapters/exceljs.ts`. Nothing about any specific future engine is
-  kept in the tree — a SheetJS evaluation was done under DEV-2135 and deliberately not shipped.
+- Two engines: `native` (built in, default) and `exceljs` (injected). `../../utils/xlsxEngine/AGENTS.md`
+  has the engine contract and the native adapter's traps.
 - `../base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table (this plugin is 245).
 
 ## Testing
@@ -349,7 +347,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - `npm run test:unit -- --testPathPattern='importFile|xlsxEngine'`
 - Adapter tests parse real `.xlsx` fixtures under `src/utils/xlsxEngine/__tests__/fixtures/`; regenerate
   them with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` after changing a case, and commit.
-  They run with `@jest-environment node` because ExcelJS parses through Node streams. Three things make
+  They run with `@jest-environment node` because both adapters need Node globals jsdom lacks (ExcelJS:
+  streams; native: `CompressionStream`). Three things make
   that pragma work here: the `'jest-environment'` entry in the root `.eslintrc.js`'s `jsdoc/check-tag-names`
   → `definedTags` list (added in DEV-2135), without which the tag itself fails lint as unknown; and the
   `typeof window === 'undefined'` guards in `test/bootstrap.js` and `test/helpers/custom-matchers.js`,
