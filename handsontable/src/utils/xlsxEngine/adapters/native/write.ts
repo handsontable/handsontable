@@ -20,6 +20,15 @@ export const WORKBOOK_AUTHOR = 'Handsontable';
 const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/;
 
 /**
+ * The DEFLATE level `exportFile`'s `#getCompressionLevel` (`plugins/exportFile/types/xlsx.ts`)
+ * returns for an unset, `null` or `true` `compression` option. Must match that method's fallback
+ * exactly: this module reports a chosen-but-unhonorable compression level as a dropped feature, and
+ * treats this level as "the caller asked for nothing" so a default export produces no warning. If
+ * that method's fallback ever changes, this constant has to move with it.
+ */
+const DEFAULT_COMPRESSION_LEVEL = 6;
+
+/**
  * Refuses a sheet name Excel refuses. The export sanitizes names before they get here, so this is
  * a backstop for a snapshot built by other code.
  */
@@ -57,10 +66,11 @@ function assertSheetNames(names: string[]): void {
 export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: DroppedFeatures): Promise<Uint8Array> {
   assertSheetNames(snapshot.sheets.map(sheet => sheet.name));
 
-  // `CAPABILITIES.native.compressionLevel` is `false` for exactly this reason: the Web
-  // `CompressionStream` has no level parameter, so a numeric level is silently ignored unless it
-  // is reported here, the same as any other feature this engine cannot honor.
-  if (typeof snapshot.compression === 'number') {
+  // `CAPABILITIES.native.compressionLevel` is `false` because the Web `CompressionStream` has no
+  // level parameter. Only a level the caller actually chose is worth reporting: `exportFile`
+  // normalizes an unset, `null` or `true` compression to 6 before the snapshot exists, so
+  // recording every number would warn on every default export.
+  if (typeof snapshot.compression === 'number' && snapshot.compression !== DEFAULT_COMPRESSION_LEVEL) {
     dropped.record('compressionLevel');
   }
 

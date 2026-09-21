@@ -186,7 +186,28 @@ describe('nativeAdapter.write', () => {
     expect(storedBytes.byteLength).toBeGreaterThan(deflatedBytes.byteLength);
   });
 
-  it('should report a numeric compression level as dropped, since CompressionStream has no level parameter', async() => {
+  it('should report a numeric compression level other than the default as dropped, since CompressionStream has no level parameter', async() => {
+    const snapshot = snapshotWith(() => {});
+
+    snapshot.compression = 9;
+
+    const dropped = new DroppedFeatures();
+
+    await nativeAdapter.write(snapshot, undefined, dropped);
+
+    expect(dropped.list()).toEqual(['compressionLevel']);
+  });
+
+  it('should not report compressionLevel when compression is left at its default', async() => {
+    const snapshot = snapshotWith(() => {});
+    const dropped = new DroppedFeatures();
+
+    await nativeAdapter.write(snapshot, undefined, dropped);
+
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should not report compressionLevel when compression explicitly equals the default level (6)', async() => {
     const snapshot = snapshotWith(() => {});
 
     snapshot.compression = 6;
@@ -195,7 +216,7 @@ describe('nativeAdapter.write', () => {
 
     await nativeAdapter.write(snapshot, undefined, dropped);
 
-    expect(dropped.list()).toEqual(['compressionLevel']);
+    expect(dropped.list()).toEqual([]);
   });
 
   it('should not report compressionLevel when compression is boolean', async() => {

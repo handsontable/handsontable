@@ -897,6 +897,11 @@ class Xlsx extends BaseType {
    * DEFLATE level, anything else (`true`, `null`, `undefined`) = DEFLATE level 6. Only an explicit
    * `false` turns compression off: the default has been DEFLATE since the option existed, and an
    * unset option must keep producing the same file size.
+   *
+   * The fallback level (`6`) is duplicated as `DEFAULT_COMPRESSION_LEVEL` in
+   * `../../../utils/xlsxEngine/adapters/native/write.ts`, which uses it to tell a chosen level from
+   * an unset one when deciding whether to report `compressionLevel` as dropped. The two must move
+   * together.
    */
   #getCompressionLevel(): false | number {
     const { compression } = this.options;
