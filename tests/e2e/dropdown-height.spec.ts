@@ -6,14 +6,15 @@ import { DropdownHeightPage } from '../fixtures/pages/DropdownHeightPage';
  * squeezed the grid. `limitDropdownIfNeeded()` trims the list to whole rows that fit
  * the free space below the edited cell, but its arithmetic returned 0 as soon as that
  * space was not taller than a single row — the list rendered as an invisible sliver,
- * so every choice was hidden. It must keep at least one option visible and stay
- * scrollable to reach the rest.
+ * so every choice was hidden. It must keep at least one option visible and every
+ * option reachable.
  *
- * The visibility assertions measure the option against every clipping ancestor, not
- * against the list's own holder: the holder lives inside the grid's root element,
- * which carries `overflow: clip` whenever a `height` is set, and it can hang past that
- * root's bottom edge. A holder-only check (and `toBeVisible()`, which only needs a
- * non-empty bounding box) calls a clipped-away option visible.
+ * Since #8688 the list is positioned against the viewport rather than the grid, so the
+ * squeezed grid's root (`overflow: clip` whenever a `height` is set) no longer bounds it:
+ * the whole list fits below the cell and nothing is trimmed. The visibility assertions
+ * still measure the option against every clipping ancestor, not against the list's own
+ * holder, because a holder-only check (and `toBeVisible()`, which only needs a non-empty
+ * bounding box) would call a clipped-away option visible if the clip ever came back.
  */
 test.describe('autocomplete dropdown height', () => {
   let grid: DropdownHeightPage;
@@ -28,8 +29,8 @@ test.describe('autocomplete dropdown height', () => {
 
     await grid.openDropdownAt(0, 1);
 
-    // The free space below the cell is exactly one list row, so the list is trimmed —
-    // but it must never fall below one whole option. Before the fix this measured ~0-2px.
+    // The free space below the cell INSIDE the grid is exactly one list row. The list must
+    // never fall below one whole option whatever bounds it. Before the fix this measured ~0-2px.
     expect(await grid.listHeight()).toBeGreaterThanOrEqual(listRowHeight);
   });
 
@@ -46,21 +47,24 @@ test.describe('autocomplete dropdown height', () => {
     expect(await grid.visibleHeightOfOption('Germany')).toBeGreaterThanOrEqual(listRowHeight * 0.8);
   });
 
-  test('flex-squeezed grid — the last option is reachable from the keyboard', async () => {
-    const listRowHeight = await grid.listRowHeight();
-    const optionCount = await grid.sourceOptionCount();
+  test('flex-squeezed grid — every option is rendered and the last one is reachable from the keyboard',
+    async () => {
+      const listRowHeight = await grid.listRowHeight();
+      const optionCount = await grid.sourceOptionCount();
 
-    await grid.openDropdownAt(0, 1);
+      await grid.openDropdownAt(0, 1);
 
-    // The trimmed list scrolls, so nothing is silently dropped: arrowing past the end
-    // of the list brings the last option on screen, readable in full.
-    expect(await grid.listCanScroll()).toBe(true);
+      // The list escapes the squeezed grid (#8688), so there is room for all of it: every
+      // option is rendered and nothing scrolls. Arrowing past the end still lands on the
+      // last option, readable in full.
+      await expect(grid.options()).toHaveCount(optionCount);
+      expect(await grid.listCanScroll()).toBe(false);
 
-    await grid.arrowDownThroughList(optionCount + 1);
+      await grid.arrowDownThroughList(optionCount + 1);
 
-    await expect(grid.optionByText('Spain')).toBeVisible();
-    expect(await grid.visibleHeightOfOption('Spain')).toBeGreaterThanOrEqual(listRowHeight * 0.8);
-  });
+      await expect(grid.optionByText('Spain')).toBeVisible();
+      expect(await grid.visibleHeightOfOption('Spain')).toBeGreaterThanOrEqual(listRowHeight * 0.8);
+    });
 
   test('normal-height grid — the untrimmed list keeps showing all options', async () => {
     const optionCount = await grid.sourceOptionCount();

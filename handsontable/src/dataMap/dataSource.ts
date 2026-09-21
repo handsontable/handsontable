@@ -425,10 +425,12 @@ class DataSource {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
+   * The value is returned as it is stored, so it can be a nested object or an array.
+   *
    * @param {number} row Visual row index.
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   getCopyable(row: number, prop: string | number | DataAccessorFn): unknown {
     const visualColumn = this.propToCol(prop);

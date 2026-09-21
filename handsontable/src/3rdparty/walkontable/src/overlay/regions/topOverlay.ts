@@ -4,7 +4,6 @@ import {
   getScrollTop,
   hasClass,
   removeClass,
-  setOverlayPosition,
   resetCssTransform,
 } from '../../../../../helpers/dom/element';
 import { isMobileOrIpadOS } from '../../../../../helpers/browser';
@@ -71,6 +70,13 @@ export class TopOverlay extends Overlay {
   }
 
   /**
+   * @returns {'block'} This overlay follows the page up and down.
+   */
+  get railAxis(): 'block' {
+    return 'block';
+  }
+
+  /**
    * Updates the top overlay position.
    *
    * Reports no position change. `innerBorderTop` is still stamped for backward compatibility, but it
@@ -90,17 +96,28 @@ export class TopOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow } = this.deps;
+    const wtTable = this.deps.getWtTable();
+    const rail = this.getRail();
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset();
-
-      setOverlayPosition(overlayRoot, '0px', `${overlayPosition}px`);
+      // Held at the viewport's top edge by the browser, never by this listener (DEV-126). The inline
+      // axis is the page's: this clone spans the table's width and moves with it.
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight(),
+        inline: false,
+        block: { pinned: true, edge: 'top' },
+      });
 
     } else {
+      rail?.release();
       overlayPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
     }
+
+    resetCssTransform(overlayRoot);
 
     this.adjustHeaderBordersPosition(overlayPosition);
 

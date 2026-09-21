@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the headers and the frozen rows and columns flickering while the browser window scrolls the grid.",
+  "type": "fixed",
+  "issueOrPR": 13567,
+  "breaking": false,
+  "framework": "none"
+}

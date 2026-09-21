@@ -21,6 +21,7 @@ import {
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 import { staticRegister, resolveWithInstance } from '../../utils/staticRegister';
+import { rootInstanceSymbol } from '../../utils/rootInstance';
 
 registerCellType(CheckboxCellType);
 registerCellType(TextCellType);
@@ -62,6 +63,183 @@ describe('Core', () => {
       core.updateData([['e', 'f'], ['g', 'h']]);
 
       expect(core.renderChangeTracker.epoch).toBeGreaterThan(epochBefore);
+
+      core.destroy();
+    });
+  });
+
+  describe('init', () => {
+    it('should be idempotent - a second call is a no-op that does not rebuild the view or overlays DOM', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      // Track how many `ResizeObserver`s are created. A newable subclass is needed - `jest.spyOn` on a class
+      // constructor cannot be invoked with `new` in this Jest version.
+      const OriginalResizeObserver = window.ResizeObserver;
+      const resizeObserverInstances = [];
+      const observedTargets = [];
+
+      window.ResizeObserver = class extends OriginalResizeObserver {
+        constructor(...args) {
+          super(...args);
+          resizeObserverInstances.push(this);
+        }
+
+        observe(target, ...rest) {
+          observedTargets.push(target);
+
+          return super.observe(target, ...rest);
+        }
+      };
+
+      // Build a ROOT instance (third constructor arg) so the root-only branch of `init()` runs too - it is
+      // what sets up the edge-slot `ResizeObserver` the ticket calls out as being orphaned on a re-init.
+      const core = new Core(container, {
+        data: [['a', 'b'], ['c', 'd']],
+        licenseKey: 'non-commercial-and-evaluation',
+      }, rootInstanceSymbol);
+      let beforeInitCount = 0;
+
+      core.addHook('beforeInit', () => {
+        beforeInitCount += 1;
+      });
+
+      try {
+        core.init();
+
+        const viewAfterFirstInit = core.view;
+        // The master table plus the Walkontable overlay clones each carry the `htCore` class, so a single
+        // init produces several. What matters is that a second init adds none of them.
+        const htCoreCountAfterFirstInit = container.querySelectorAll('table.htCore').length;
+        const resizeObserverCountAfterFirstInit = resizeObserverInstances.length;
+
+        expect(beforeInitCount).toBe(1);
+        expect(htCoreCountAfterFirstInit).toBeGreaterThan(0);
+        expect(resizeObserverCountAfterFirstInit).toBeGreaterThan(0);
+        // Pin the ROOT-only edge-slot observer specifically (Walkontable's own `ResizeMonitor` is created
+        // on any instance, so counts alone would not prove the root branch ran).
+        expect(observedTargets).toContain(core.rootSlotBottomElement);
+
+        // Ignore any unrelated warning the first init may emit (e.g. the theme-name notice).
+        warnSpy.mockClear();
+
+        core.init();
+
+        // The guard sits at the very top of `init()`, so `beforeInit` never fires a second time, the
+        // original view is kept - no duplicate `.htCore` / overlays DOM - and the root-only edge-slot
+        // `ResizeObserver` is not recreated (which would orphan the first one).
+        expect(beforeInitCount).toBe(1);
+        expect(container.querySelectorAll('table.htCore').length).toBe(htCoreCountAfterFirstInit);
+        expect(core.view).toBe(viewAfterFirstInit);
+        expect(resizeObserverInstances.length).toBe(resizeObserverCountAfterFirstInit);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('already been initialized'));
+      } finally {
+        window.ResizeObserver = OriginalResizeObserver;
+        warnSpy.mockRestore();
+        core.destroy();
+      }
+    });
+
+    it('should guard a re-entrant init() from `beforeInit` (flag set before any work, not after)', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+      let beforeInitCount = 0;
+
+      core.addHook('beforeInit', () => {
+        beforeInitCount += 1;
+        // A nested init() must hit the guard and return. If the flag were set at the END of init()
+        // instead of the top, this would re-enter the whole setup and recurse until the stack overflows.
+        core.init();
+      });
+
+      try {
+        expect(() => core.init()).not.toThrow();
+        expect(beforeInitCount).toBe(1);
+        // `beforeInit` fires before the view is built, so the nested call takes the "did not finish" branch;
+        // both guard messages share this phrase.
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Calling `init()` again is a no-op'));
+      } finally {
+        warnSpy.mockRestore();
+        core.destroy();
+      }
+    });
+  });
+
+  describe('batch', () => {
+    it.each([
+      ['batch', core => [core.isRenderSuspended(), core.isExecutionSuspended()], [false, false]],
+      ['batchRender', core => [core.isRenderSuspended()], [false]],
+      ['batchExecution', core => [core.isExecutionSuspended()], [false]],
+    ])('%s should resume after the wrapped operations throw, and rethrow', (method, probe, resumed) => {
+      // Host hooks run inside the callback (`beforeLoadData`, `afterUpdateSettings`), so a throw
+      // there used to leave the instance suspended for the rest of its life: it never painted again.
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      expect(() => core[method](() => {
+        throw new Error('hook failed');
+      })).toThrow('hook failed');
+
+      expect(probe(core)).toEqual(resumed);
+
+      core.destroy();
+    });
+
+    it('should still resume rendering when resuming execution itself throws', () => {
+      // `resumeExecution` fires hooks on the flush; a throw there used to replace the callback's
+      // error and skip `resumeRender`, the permanent suspension through a narrower door.
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      const original = core.resumeExecution;
+
+      core.resumeExecution = () => {
+        core.resumeExecution = original;
+        original.call(core);
+        throw new Error('flush failed');
+      };
+
+      expect(() => core.batch(() => 'ok')).toThrow('flush failed');
+      expect(core.isRenderSuspended()).toBe(false);
+      expect(core.isExecutionSuspended()).toBe(false);
+
+      core.destroy();
+    });
+
+    it('should not force a flush when the batchExecution callback throws', () => {
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      const resumeArgs = [];
+      const original = core.resumeExecution;
+
+      core.resumeExecution = (...args) => {
+        resumeArgs.push(args);
+
+        return original.apply(core, args);
+      };
+
+      expect(() => core.batchExecution(() => {
+        throw new Error('mid-alter');
+      }, true)).toThrow('mid-alter');
+      expect(resumeArgs).toEqual([[false]]);
+
+      core.batchExecution(() => {}, true);
+      expect(resumeArgs).toEqual([[false], [true]]);
+
+      core.destroy();
+    });
+
+    it('should return the callback result when it does not throw', () => {
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      expect(core.batch(() => 42)).toBe(42);
+      expect(core.isRenderSuspended()).toBe(false);
+      expect(core.isExecutionSuspended()).toBe(false);
 
       core.destroy();
     });

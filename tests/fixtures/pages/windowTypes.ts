@@ -146,6 +146,19 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    /** The `<td>` currently being edited. Throws once the grid is destroyed. */
+    getEditedCell(): HTMLTableCellElement,
+    /**
+     * The list's own sub-grid, on the `handsontable` / `autocomplete` / `dropdown` family. Read by
+     * `DropdownEditorClipPage#startListHeightWriteRecorder()` to record its height writes.
+     */
+    htEditor?: {
+      updateSettings(settings: Record<string, unknown>, ...rest: unknown[]): void,
+    },
+    /** Whether that family's list is rendered above the edited cell. */
+    isFlippedVertically?: boolean,
+    /** The multiselect editor keeps its own flip state on this controller instead. */
+    dropdownController?: { isFlippedVertically(): boolean },
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
@@ -234,6 +247,10 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
+    initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
+    /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
+    htDropdownOptions: string[];
     /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
     consoleErrors?: string[];
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
@@ -314,6 +331,23 @@ declare global {
     resetBorderMoveCount(): boolean;
     /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
     getBorderMoveCount(): number;
+    /**
+     * Resets the count of mouse moves that landed on a header (fragmentSelection fixture).
+     */
+    resetHeaderMoveCount(): boolean;
+    /**
+     * Returns how many mouse moves landed on a header since the reset (fragmentSelection fixture).
+     */
+    getHeaderMoveCount(): number;
+    /**
+     * Forgets the latest `mouseup` (fragmentSelection fixture).
+     */
+    resetLastMouseUp(): boolean;
+    /**
+     * Whether the latest `mouseup` landed off the grid; `null` when none has since the reset
+     * (fragmentSelection fixture).
+     */
+    wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
