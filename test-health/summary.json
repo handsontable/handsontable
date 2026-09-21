@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T12:23:15.710Z",
+  "generatedAt": "2026-09-21T12:38:23.443Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 289,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1601
+    "entries": 1602
   },
   "rows": [
     {
@@ -124,6 +124,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 4,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-21T12:37:40Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596936299/attempts/2",
+        "branch": "feature/DEV-2982_NestedRows-cleanup-on-disable",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
       "tier": "playwright",
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
@@ -150,39 +183,6 @@
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35234941839",
         "branch": "feature/DEV-2825_Dropdown-editor-list-clipped-by-grid",
         "leg": "e2e-classic-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 3,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 4,
-      "flakyRuns30": 4,
-      "branches30": 4,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-21T12:22:28Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596936299",
-        "branch": "feature/DEV-2982_NestedRows-cleanup-on-disable",
-        "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
@@ -9628,7 +9628,7 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 258,
       "title": "walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
-      "count7": 4,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
@@ -9660,7 +9660,7 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 144,
       "title": "walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
-      "count7": 4,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
