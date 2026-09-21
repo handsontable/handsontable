@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T12:44:36.065Z",
+  "generatedAt": "2026-09-21T13:38:14.227Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 289,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1602
+    "entries": 1603
   },
   "rows": [
     {
@@ -129,14 +129,15 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 4,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 4,
-      "flakyRuns30": 4,
-      "branches30": 4,
+      "count7": 5,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 5,
+      "flakyRuns30": 5,
+      "branches30": 5,
       "legs": [
         "e2e-classic-min",
+        "e2e-horizon",
         "e2e-horizon-min",
         "e2e-main-min"
       ],
@@ -146,10 +147,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-21T12:37:40Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596936299/attempts/2",
-        "branch": "feature/DEV-2982_NestedRows-cleanup-on-disable",
-        "leg": "e2e-horizon-min",
+        "seenAt": "2026-09-21T13:37:28Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35604670293",
+        "branch": "feature/DEV-225_Deprecate-splice-methods",
+        "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"

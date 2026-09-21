@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-21T12:38:23.443Z",
+  "updatedAt": "2026-09-21T13:38:14.227Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "35604670293",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35604670293",
+      "workflow": "Tests",
+      "branch": "feature/DEV-225_Deprecate-splice-methods",
+      "headSha": "dd9e4063b4e28bb0ee8d7b450421bd505753d11f",
+      "event": "pull_request",
+      "seenAt": "2026-09-21T13:37:28Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon-min",
