@@ -644,6 +644,37 @@ const hotSettings2 = ref({
 For the full list of configuration options and plugin methods, see the
 [`Formulas` API reference](@/api/formulas.md).
 
+## Inspect formula dependencies
+
+The plugin exposes two methods that read the dependency graph HyperFormula builds for your formulas.
+Use them to debug why a cell recalculates.
+
+- [`getCellPrecedents(address)`](@/api/formulas.md#getcellprecedents) returns the cells and ranges that a
+  cell's formula reads.
+- [`getCellDependents(address)`](@/api/formulas.md#getcelldependents) returns the cells whose formulas read
+  a given cell.
+
+Both take a HyperFormula address (`{ sheet, row, col }`) or a range (`{ start, end }`), and both return an
+array of addresses and ranges.
+
+```javascript
+const formulas = hot.getPlugin('formulas');
+
+// The cells that reference A1.
+formulas.getCellDependents({ sheet: 0, row: 0, col: 0 });
+
+// The cells that the formula in C1 reads.
+formulas.getCellPrecedents({ sheet: 0, row: 0, col: 2 });
+```
+
+The returned coordinates use HyperFormula's index space, which matches Handsontable's visual coordinates
+only when no rows or columns are trimmed, hidden, moved, or sorted. Results can include cells on other
+sheets and, for a named expression, a `sheet` id of `-1`.
+
+When you pass a range, HyperFormula returns some of the cells and smaller ranges related to that range,
+not always every one, because it optimizes how large ranges are stored. Pass a single cell address when
+you need the complete set for that cell.
+
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference

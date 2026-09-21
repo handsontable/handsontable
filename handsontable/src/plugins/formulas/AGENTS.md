@@ -31,6 +31,21 @@ Related, on the hook side: **`afterSetDataAtCell` carries visual rows while
 and silently suppresses whichever cell it collides with. `prop` needs no such care: `propToCol()` returns a
 visual column on both paths.
 
+> **The two exceptions to "always translate": `getCellDependents` / `getCellPrecedents`.** These public
+> methods (DEV-204) are the only ones that speak HF index space at their boundary. They neither translate
+> the incoming address nor translate the addresses they return, unlike `getCellType` / `isFormulaCellType`,
+> which take visual `(row, column)`. It is deliberate, not a missed `getVisualIndexFromHfIndex()`.
+> HyperFormula's dependency graph is inherently an HF-space concept, and its results cannot be expressed in
+> visual space: a dependent can live on another sheet, the result can be a range rather than a cell, and a
+> named-expression reference comes back with `sheet: -1`, none of which has a Handsontable visual
+> coordinate. The consequence a caller must know (and the JSDoc states): the returned HF indexes equal
+> visual indexes only when nothing is trimmed, hidden, moved, or sorted. Do not "fix" these two by routing
+> them through the axis syncers, and do not copy their raw-address pattern into a method that is supposed to
+> be visual. The public argument/return types are `FormulasCellAddress` / `FormulasCellRange`
+> (`engine/types.ts`, re-exported from the plugin barrel). They are named to avoid a collision with
+> HyperFormula's own `SimpleCellAddress` / `SimpleCellRange`, since core source never imports from
+> `'hyperformula'`.
+
 ## Undo/redo bypasses the change listeners — and that is the design
 
 ```js

@@ -1,8 +1,29 @@
 /**
+ * A single cell address in HyperFormula's own index space.
+ * Structurally matches HyperFormula's `SimpleCellAddress`.
+ */
+export interface FormulasCellAddress {
+  col: number;
+  row: number;
+  sheet: number;
+}
+
+/**
+ * A rectangular cell range in HyperFormula's own index space.
+ * Structurally matches HyperFormula's `SimpleCellRange`.
+ */
+export interface FormulasCellRange {
+  start: FormulasCellAddress;
+  end: FormulasCellAddress;
+}
+
+/**
  * Minimal duck-type interface for a HyperFormula engine **instance**.
  * Describes only the methods and properties accessed by Handsontable internals.
  */
 export interface HyperFormulaEngine {
+  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
+  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
   doesSheetExist(sheetName: string): boolean;
   getSheetId(sheetName: string): number;
   getSheetName(sheetId: number): string | undefined;

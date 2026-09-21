@@ -41,7 +41,7 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
-import type { HyperFormulaEngine } from './engine/types';
+import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
@@ -1108,6 +1108,38 @@ export class Formulas extends BasePlugin {
       row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
+  }
+
+  /**
+   * Returns the cells and cell ranges that depend on the provided cell or range (its out-neighbors in
+   * HyperFormula's dependency graph). These are the cells whose formulas reference the given address.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges, not only single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   */
+  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellDependents(address);
+  }
+
+  /**
+   * Returns the cells and cell ranges that the provided cell or range depends on (its in-neighbors in
+   * HyperFormula's dependency graph). These are the cells and ranges the given cell's formula reads.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges, not only single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   */
+  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellPrecedents(address);
   }
 
   /**
