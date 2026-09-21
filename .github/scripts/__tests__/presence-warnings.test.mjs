@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { classify, isCoverage } from '../lib/presence-gate.mjs';
@@ -373,7 +373,7 @@ test('Walkontable routing ignores changes outside the engine source, including i
 });
 
 // --- visualOnlyCoverage ---
-// The #12086 shape — the one commit in 1244 first-parent commits since
+// The #12086 shape — the one commit in 1251 first-parent commits since
 // 2026-03-01 that would have fired: a scroll fix in the engine proven by a new
 // visual spec, with a demo edit and a changelog entry (both 'neither' to the
 // gate) beside it.
@@ -498,6 +498,33 @@ test('VISUAL_SPEC_RE matches a capture spec under visual-tests/tests/ and nothin
   assert.equal(VISUAL_SPEC_RE.test('examples/next/visual-tests/js/demo/src/main.ts'), false);
   assert.equal(VISUAL_SPEC_RE.test('visual-tests/lib/__tests__/manifest.unit.js'), false, 'a unit test in the package');
   assert.equal(VISUAL_SPEC_RE.test('visual-tests/src/page-helpers.spec.ts'), false, 'a spec outside the testDir');
+});
+
+test('VISUAL_SPEC_RE matches every capture spec that actually exists', () => {
+  // Prevents the one silent failure this detector cannot survive: the population moving out from under
+  // the matcher. `tests/playwright.config.ts` already reserves `tests/visual/` as a later home for these
+  // specs, and the day they move, the regex stops matching, the detector goes quiet for good, and the
+  // month-later tally reads that silence as "nobody shipped a screenshot alone" — a false zero that
+  // decides a policy question. Every other input to that tally is pinned for the same reason (the
+  // annotation title, the check-run name, `headRefOid`, the PR-only `if:`); this is the last one, and it
+  // is pinned against the real tree rather than against a fixture, because a fixture would move with the
+  // regex and prove nothing.
+  const root = repoRoot();
+  const walk = (dir) => readdirSync(path.join(root, dir), { withFileTypes: true })
+    .flatMap(entry => (entry.isDirectory()
+      ? walk(path.join(dir, entry.name))
+      : [path.join(dir, entry.name)]));
+  const specs = walk('visual-tests/tests').filter(file => file.endsWith('.spec.ts'));
+
+  assert.ok(specs.length >= 100,
+    `only ${specs.length} capture specs found under visual-tests/tests — the tree moved, and this pin `
+    + 'is now checking almost nothing');
+
+  const missed = specs.filter(file => !VISUAL_SPEC_RE.test(file));
+
+  assert.deepEqual(missed, [],
+    'VISUAL_SPEC_RE no longer matches every capture spec in the tree, so visual-only-coverage would go '
+    + 'silent for the ones it misses and the month-later tally would read a false zero');
 });
 
 test('the visual-only-coverage message says a screenshot proves pixels, not behavior, and points at the decision rule', () => {

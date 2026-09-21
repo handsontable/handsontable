@@ -97,6 +97,15 @@ function buildRepo(head) {
   write(root, SPEC, 'test(\'renders\', async() => {\n  await grid.goto();\n});\n');
   write(root, DOC, '# Layout direction\n');
   write(root, 'pnpm-lock.yaml', 'lockfileVersion: 9\n');
+
+  // A capture spec that already existed lets the head commit MODIFY or RENAME it, so the `M` and `R`
+  // statuses reach the detector through `readChanges()`'s real `git diff --name-status` parsing rather
+  // than through a hand-built fixture. The rename shape is the one worth exercising: git reports it as
+  // `R100\told\tnew`, and only the new path may be judged.
+  if (head.visualSpecInBase !== undefined) {
+    write(root, VISUAL_SPEC, head.visualSpecInBase);
+  }
+
   git(root, 'add', '.');
   git(root, 'commit', '-q', '-m', 'base');
 
@@ -112,6 +121,10 @@ function buildRepo(head) {
 
   if (head.visualSpec !== undefined) {
     write(root, VISUAL_SPEC, head.visualSpec);
+  }
+
+  if (head.renameVisualSpecTo !== undefined) {
+    git(root, 'mv', VISUAL_SPEC, head.renameVisualSpecTo);
   }
   write(root, 'pnpm-lock.yaml', 'packages:\n  rtl-polyfill: 1.0.0\n', { append: true });
   git(root, 'add', '.');
@@ -193,6 +206,39 @@ const PLAIN_SOURCE_LINE = '  scrollTo() { this.render(); }\n';
 const VISUAL_SPEC_BODY = 'test(__filename, async({ tablePage }) => {\n'
   + '  await tablePage.screenshot({ path: helpers.screenshotPath() });\n'
   + '});\n';
+
+test('a modified or renamed capture spec reaches the advisory through the real diff parser', () => {
+  // The `A` scenario below covers the common shape. `M` and `R` reached the detector only through
+  // hand-built `{status, path}` fixtures, which skip `readChanges()` entirely — and `readChanges()` is
+  // where the two shapes that can go wrong live: `status[0]` truncates `R100` to `R`, and a rename line
+  // carries BOTH paths separated by tabs, so taking the wrong field would judge the spec's old name.
+  const modified = runGate(
+    buildRepo({
+      source: PLAIN_SOURCE_LINE,
+      visualSpecInBase: VISUAL_SPEC_BODY,
+      visualSpec: `${VISUAL_SPEC_BODY}\n// a second capture state\n`,
+    }),
+    { mode: 'block' },
+  );
+
+  assert.equal(modified.status, 0, modified.stdout + modified.stderr);
+  assert.match(modified.stdout, /⚠️ \*\*visual-only-coverage\*\*/);
+  assert.ok(modified.stdout.includes(`- \`${VISUAL_SPEC} (M)\``),
+    `a modified capture spec must be reported with status M:\n${modified.stdout}`);
+
+  const RENAMED = 'visual-tests/tests/js-only/overlays-renamed.spec.ts';
+  const renamed = runGate(
+    buildRepo({ source: PLAIN_SOURCE_LINE, visualSpecInBase: VISUAL_SPEC_BODY, renameVisualSpecTo: RENAMED }),
+    { mode: 'block' },
+  );
+
+  assert.equal(renamed.status, 0, renamed.stdout + renamed.stderr);
+  assert.match(renamed.stdout, /⚠️ \*\*visual-only-coverage\*\*/);
+  assert.ok(renamed.stdout.includes(`- \`${RENAMED} (R)\``),
+    `a renamed capture spec must be reported at its NEW path with status R:\n${renamed.stdout}`);
+  assert.ok(!renamed.stdout.includes(`\`${VISUAL_SPEC} (R)\``),
+    'the rename must not be reported at the old path');
+});
 
 test('a source change covered only by a new visual spec passes the verdict and raises visual-only-coverage, annotation included', () => {
   // The visual spec is coverage for the verdict (a `.spec.ts`), so block mode

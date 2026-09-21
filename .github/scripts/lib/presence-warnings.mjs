@@ -479,6 +479,12 @@ export function collectWarnings({ changes = [], diff = '', prBody } = {}) {
       // "Every change the gate counts as coverage", not "the only test change":
       // a deleted tests/e2e spec or a NEW Jasmine spec can sit beside the capture
       // spec — neither is coverage to the gate, and the detector fires anyway.
+      //
+      // MERGE ORDER: the `Decision rule` heading this points at is created by the
+      // decision-rule guardrail (#13581), not by this change. Land that one first,
+      // or the first author who trips this advisory follows the pointer to a
+      // heading that is not there yet. Nothing breaks either way — the message is
+      // prose — but the pointer is the whole remedy, so it is worth sequencing.
       message: 'Source changed and every change the gate counts as coverage is a visual spec under '
         + 'visual-tests/tests/. A screenshot proves pixels, not behavior — add the Playwright assertion in '
         + 'tests/e2e/ (or a unit test) that would fail if the behavior broke, and keep the visual spec for what '
