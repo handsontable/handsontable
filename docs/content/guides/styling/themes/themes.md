@@ -426,6 +426,8 @@ const hotSettings = ref({
 
 Switch a grid to another CSS-file theme by giving it a different theme class name, either through [`useTheme()`](@/api/core.md#usetheme) or through the `theme` option. Both take a class name string such as `ht-theme-main-dark`, never a theme config object or a `ThemeBuilder` instance.
 
+In the framework wrappers, prefer changing the value your component binds over calling the instance directly. A wrapper re-asserts its bound settings as the component re-renders, which can undo an imperative call.
+
 ::: only-for javascript
 
 ```js
@@ -473,20 +475,23 @@ Keep the theme in React state and pass it through the `theme` prop. The React wr
 ::: only-for angular
 
 ```typescript
-import { Component, ViewChild } from '@angular/core';
-import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import 'handsontable/styles/ht-theme-main.min.css';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: `<hot-table [settings]="{ theme: 'ht-theme-main' }" />`,
+  template: `<hot-table [settings]="hotSettings" />`,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
+  hotSettings: GridSettings = { theme: 'ht-theme-main' };
 
   toggleTheme(isDarkMode: boolean) {
-    this.hotTable.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+    this.hotSettings = {
+      ...this.hotSettings,
+      theme: isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main',
+    };
   }
 }
 ```
@@ -500,15 +505,17 @@ import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import 'handsontable/styles/ht-theme-main.min.css';
 
-const hotRef = ref(null);
+const hotSettings = ref({
+  theme: 'ht-theme-main',
+});
 
 function toggleTheme(isDarkMode) {
-  hotRef.value?.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+  hotSettings.value.theme = isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main';
 }
 ```
 
 ```html
-<HotTable ref="hotRef" :settings="{ theme: 'ht-theme-main' }" />
+<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -573,7 +580,7 @@ const App = () => {
 
 ```typescript
 import { Component } from '@angular/core';
-import { HotTableModule } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
 const mainThemeBuilder = registerTheme(mainTheme);
@@ -581,10 +588,11 @@ const mainThemeBuilder = registerTheme(mainTheme);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: `<hot-table [settings]="{ theme: theme }" />`,
+  template: `<hot-table [settings]="hotSettings" />`,
 })
 export class AppComponent {
   theme = mainThemeBuilder;
+  hotSettings: GridSettings = { theme: this.theme };
 
   toggleTheme(isDarkMode: boolean) {
     this.theme.setColorScheme(isDarkMode ? 'dark' : 'light');
@@ -592,7 +600,7 @@ export class AppComponent {
 }
 ```
 
-An Angular template resolves `theme` against the component instance, so the builder has to be a class field. A module-level `const` alone leaves the `theme` option `undefined`, and the grid silently falls back to the registered `main` theme.
+An Angular template resolves names against the component instance, so the builder has to reach it as a class field. A module-level `const` alone leaves the `theme` option `undefined`, and the grid silently falls back to the registered `main` theme. The settings object stays untouched when the color scheme changes: the builder notifies the grid by itself.
 
 :::
 
