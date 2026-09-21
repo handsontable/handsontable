@@ -102,8 +102,9 @@ visualTest(__filename, {
   `lib/__tests__/visual-declarations.test.mjs` rejects both shapes.
 - **The declaration codemod wrote today's behavior out, so no golden moved.** js-only declares the five js
   variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
-  seed's wholesale copy equal to the declarations; cross-browser declares `classic` and the three
-  projects. The 23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` — none of those wrapper
+  seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
+  cross-browser projects they actually need — `copy-paste.spec.ts` names chromium alone, which is what
+  it rendered before the declaration existed. The 23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` — none of those wrapper
   declarations has been argued for yet, and the constant's name is the grep the audit runs.
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
@@ -493,7 +494,8 @@ which of these run locally and which only in CI.
   [Variant declaration](#variant-declaration) above; `lib/visual-declarations.mjs` validates them at load,
   `lib/__tests__/visual-declarations.test.mjs` sweeps the spec tree and derives the eleven per-prefix
   totals from what is checked in, and `.eslintrc.js` bans a bare `test(` and a spec-side `test.skip(`. The
-  codemod that landed it wrote today's rendered set out on all 112 specs, so no golden record moved; the
+  codemod that landed it wrote today's rendered set out on all 111 live specs — every one but the parked
+  `cross-browser/merging.spec.ts` — so no golden record moved; the
   23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` until the consolidation audit gives each one
   a reason of its own.
 - **G3 · The golden budget** — not yet landed. `visual-tests/visual-budget.json` holds one count per

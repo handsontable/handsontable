@@ -869,9 +869,18 @@ test('every spec holds one declaration, and its leg can render it', () => {
     const declarations = readDeclarations(source, relativePath);
     const callCount = visualTestCallOffsets(stripComments(source, relativePath)).length;
 
+    // Not `declarations.length === callCount` — both sides count the same `visualTestCallOffsets()`
+    // result, so that comparison can never be false. What can go wrong is a call whose declaration the
+    // reader found but could not slice: `readDeclarations()` throws on an unreadable one, so the check
+    // that differs is that each entry carries the source it parsed.
     assert.equal(declarations.length, callCount,
       `${relativePath}: every visualTest() call must carry a readable declaration object.`);
     assert.ok(declarations.length >= 1, `${relativePath}: no declaration found.`);
+    declarations.forEach(({ declarationSource }, index) => {
+      assert.ok(declarationSource && declarationSource.trim() !== '',
+        `${relativePath}: visualTest() call ${index + 1} carries an empty declaration source, so the `
+        + 'sweep is reading a call it cannot check.');
+    });
 
     const [first] = declarations;
     const firstShape = JSON.stringify(normalizeDeclaration(first.declaration, relativePath));
@@ -950,6 +959,15 @@ test('every spec declares a shape its own directory can host', () => {
     assert.ok(first, `${relativePath} declares no variants; every live spec calls visualTest().`);
 
     const directory = relativePath.split('/')[0];
+
+    // A spec under a new top-level directory would otherwise die on `undefined.map` — an opaque
+    // TypeError in a file whose whole design is loud, self-explaining failure. The directory decides
+    // which shapes are legal (the seed copies `multi-frameworks` wholesale; the cross-browser leg
+    // renders bare), so a new one is a decision, not an oversight: it has to be registered here.
+    assert.ok(allowedShapes[directory],
+      `${relativePath}: the directory "${directory}" has no allowed declaration shapes. Register it in `
+      + 'allowedShapes and remedies, and say in the pull request what the new directory renders.');
+
     const allowed = allowedShapes[directory].map(shape => shapeOf(normalizeDeclaration(shape)));
     const written = shapeOf(normalizeDeclaration(first.declaration, relativePath));
 
