@@ -2924,6 +2924,12 @@ export default function Core(
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
+   * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
+   * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
+   * infinite loop. If you need to update data from within a renderer, guard the call (for example, skip it when the
+   * new value already equals the current one), or, preferably, perform the update in a data-change hook such as
+   * {@link Hooks#afterChange} and keep the renderer display-only.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
