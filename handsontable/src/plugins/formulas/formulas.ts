@@ -1117,10 +1117,12 @@ export class Formulas extends BasePlugin {
    * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
    * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
    * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
-   * with a `sheet` id of `-1`. The result may include ranges, not only single cells.
+   * with a `sheet` id of `-1`. The result may include ranges that contain the given address, not only
+   * single cells.
    *
    * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
    * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
    */
   getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
     return this.engine!.getCellDependents(address);
@@ -1133,10 +1135,12 @@ export class Formulas extends BasePlugin {
    * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
    * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
    * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
-   * with a `sheet` id of `-1`. The result may include ranges, not only single cells.
+   * with a `sheet` id of `-1`. The result may include ranges contained in the given cell or range, not
+   * only single cells.
    *
    * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
    * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
    */
   getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
     return this.engine!.getCellPrecedents(address);

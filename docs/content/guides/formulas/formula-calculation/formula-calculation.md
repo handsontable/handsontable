@@ -671,9 +671,14 @@ The returned coordinates use HyperFormula's index space, which matches Handsonta
 only when no rows or columns are trimmed, hidden, moved, or sorted. Results can include cells on other
 sheets and, for a named expression, a `sheet` id of `-1`.
 
-When you pass a range, HyperFormula returns some of the cells and smaller ranges related to that range,
-not always every one, because it optimizes how large ranges are stored. Pass a single cell address when
-you need the complete set for that cell.
+Each result can hold ranges as well as single cells. `getCellDependents` can return a range that contains
+the address you passed, and `getCellPrecedents` can return a range that the address reads. When you pass a
+range, HyperFormula returns some of the related cells and ranges, not always every one, because it
+optimizes how large ranges are stored. Pass a single cell address when you need the complete set for that
+cell.
+
+Both methods throw when `address` is neither a valid address nor a range, names a sheet id that does not
+exist, or is a range whose `start` and `end` are on different sheets. Always set the `sheet` id.
 
 ## Available functions
 

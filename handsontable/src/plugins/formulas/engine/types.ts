@@ -1,6 +1,10 @@
 /**
  * A single cell address in HyperFormula's own index space.
  * Structurally matches HyperFormula's `SimpleCellAddress`.
+ *
+ * `sheet` is a required `number` here, unlike the internal `sheet: number | null` addresses below: this
+ * is a public API and the caller states the target sheet explicitly, mirroring HyperFormula's own
+ * `SimpleCellAddress`.
  */
 export interface FormulasCellAddress {
   col: number;
@@ -22,8 +26,6 @@ export interface FormulasCellRange {
  * Describes only the methods and properties accessed by Handsontable internals.
  */
 export interface HyperFormulaEngine {
-  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
-  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
   doesSheetExist(sheetName: string): boolean;
   getSheetId(sheetName: string): number;
   getSheetName(sheetId: number): string | undefined;
@@ -38,6 +40,8 @@ export interface HyperFormulaEngine {
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
   getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;
   getCellSerialized(address: { sheet: number | null; row: number; col: number }): unknown;
+  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
+  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[];
   isItPossibleToSetCellContents(address: object): boolean;
   setCellContents(address: { sheet: number | null; row: number; col: number }, value: unknown): unknown[];
   isItPossibleToReplaceSheetContent(sheetId: number | null, data: unknown[][]): boolean;
