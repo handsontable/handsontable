@@ -199,7 +199,15 @@ export interface HotInstance {
 
   // Alter
   alter(action: string, index?: number | number[][], amount?: number, source?: string, keepEmptyRows?: boolean): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_col`/`remove_col`.
+   */
   spliceCol(column: number, index: number, amount: number, ...elements: unknown[]): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_row`/`remove_row`.
+   */
   spliceRow(row: number, index: number, amount: number, ...elements: unknown[]): void;
 
   // Rendering

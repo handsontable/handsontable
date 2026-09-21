@@ -507,3 +507,121 @@ describe('Core.setDataAtCell past the last column', () => {
     core.destroy();
   });
 });
+
+describe('Core.spliceCol / Core.spliceRow deprecation', () => {
+  let container;
+  let warnSpy;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
+    // assertions below would depend on the order the specs run in.
+    _resetDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+    container.remove();
+  });
+
+  /**
+   * Collects every deprecation warning printed so far that mentions the given method name.
+   *
+   * @param {string} methodName The deprecated method's name (for example, `spliceCol`).
+   * @returns {Array} The matching `console.warn` messages.
+   */
+  function deprecationWarnings(methodName) {
+    return warnSpy.mock.calls
+      .map(args => String(args[0]))
+      .filter(message => message.includes(`\`${methodName}()\` method is deprecated`));
+  }
+
+  /**
+   * Builds and initializes a grid.
+   *
+   * @param {object} settings The grid settings.
+   * @returns {object} The initialized instance.
+   */
+  function build(settings) {
+    const core = new Core(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+
+    core.init();
+
+    return core;
+  }
+
+  describe('spliceCol', () => {
+    it('should warn once no matter how many times it is called', () => {
+      const core = build({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
+
+      core.spliceCol(0, 0, 1);
+      core.spliceCol(0, 0, 1);
+      core.spliceCol(0, 0, 1);
+
+      const warnings = deprecationWarnings('spliceCol');
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
+
+      core.destroy();
+    });
+
+    it('should keep working - splice the column data and return the removed portion', () => {
+      const core = build({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
+
+      const removed = core.spliceCol(0, 0, 2);
+
+      expect(removed).toEqual(['A1', 'A2']);
+      expect(core.getDataAtCol(0)).toEqual(['A3', null, null]);
+
+      core.destroy();
+    });
+  });
+
+  describe('spliceRow', () => {
+    it('should warn once no matter how many times it is called', () => {
+      const core = build({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']] });
+
+      core.spliceRow(0, 0, 1);
+      core.spliceRow(0, 0, 1);
+      core.spliceRow(0, 0, 1);
+
+      const warnings = deprecationWarnings('spliceRow');
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
+
+      core.destroy();
+    });
+
+    it('should keep working - splice the row data and return the removed portion', () => {
+      const core = build({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']] });
+
+      const removed = core.spliceRow(0, 0, 2);
+
+      expect(removed).toEqual(['A1', 'B1']);
+      expect(core.getDataAtRow(0)).toEqual(['C1', null, null]);
+
+      core.destroy();
+    });
+  });
+
+  it('should warn separately for each method', () => {
+    const core = build({ data: [['A1', 'B1'], ['A2', 'B2']] });
+
+    core.spliceCol(0, 0, 1);
+    core.spliceRow(0, 0, 1);
+
+    expect(deprecationWarnings('spliceCol')).toHaveLength(1);
+    expect(deprecationWarnings('spliceRow')).toHaveLength(1);
+
+    core.destroy();
+  });
+});
