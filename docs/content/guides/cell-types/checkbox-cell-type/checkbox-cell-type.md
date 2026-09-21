@@ -233,6 +233,28 @@ The `value` property of the `label` option can also be a function. The function 
 
 :::
 
+## Extend the checkbox with a custom renderer
+
+To add your own content to a checkbox cell, write a custom [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that chains the built-in checkbox renderer and then adds nodes to the cell.
+
+Add those nodes with DOM methods such as `appendChild` or `insertAdjacentText`, on the element returned by `Handsontable.dom.getCellContentRoot(td)`. Do not use `td.innerHTML += ...`. Assigning to `innerHTML` re-serializes and re-parses the whole cell, which drops the checkbox's checked state on every render, so the box never appears checked. It also rebuilds the cell's content wrapper on each draw and bypasses Handsontable's HTML sanitization.
+
+```javascript
+const baseCheckboxRenderer = Handsontable.renderers.getRenderer('checkbox');
+
+function checkboxWithNoteRenderer(instance, td, row, col, prop, value, cellProperties) {
+  // Render the checkbox first.
+  baseCheckboxRenderer.call(this, instance, td, row, col, prop, value, cellProperties);
+
+  // Then add your own content next to it.
+  const contentRoot = Handsontable.dom.getCellContentRoot(td);
+
+  contentRoot.appendChild(instance.rootDocument.createTextNode(' (in stock)'));
+}
+```
+
+Register the renderer, or pass it as the column's [`renderer`](@/api/options.md#renderer) option, alongside `type: 'checkbox'`.
+
 ## Result
 
 After configuring the checkbox cell type, cells display an interactive checkbox. Clicking the checkbox or pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> toggles its state. The underlying data source stores the boolean value (or your custom `checkedTemplate`/`uncheckedTemplate` values).
