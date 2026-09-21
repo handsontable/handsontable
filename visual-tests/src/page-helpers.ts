@@ -332,22 +332,117 @@ export async function selectColumnHeaderByNameAndOpenMenu(
 }
 
 /**
- * @param {number} columnIndex Cell locator.
+ * The header cells that are 1:1 with COLUMNS, which `getByRole('columnheader')` on its own is not.
+ *
+ * That role matches every header cell the grid draws: both rows of a nested header, and one copy per
+ * overlay. Counting through all of them is not counting columns. Measured on `arabic-rtl-demo`
+ * (10 columns, a two-row nested header): 17 matches, of which the first seven are the GROUP row, so
+ * `nth(2)` lands on the label above column 5 and `nth(5)` on a spacer above column 8. The spec that
+ * asked for columns 2 and 5 photographed 5 through 8, and had done so for as long as the goldens
+ * existed.
+ *
+ * The group row is also the unstable one. Its cells are a function of the rendered window: a
+ * colspanned label is drawn across the part of its span that is rendered, and the columns outside it
+ * fall back to spacers, so a window that starts or ends one column over changes how many cells sit
+ * before the leaf row — and every index after them moves with it. The same `nth(5)` then picks a
+ * different column in two runs of the same build, which is what turned up as
+ * `selection-arabic-rtl-demo-2.png` (#13568) and `selection-nested-headers-demo-{2,3}.png` (#13587)
+ * flipping between two correct-looking images. Only the two demos in that spec's list that HAVE a
+ * nested header ever flaked; the three with a single header row never did, because a single header
+ * row has no group cells to shift. Nothing waits that out, either: the wrong element is chosen before
+ * the capture, so the settle in `test-runner.ts` has nothing left to settle.
+ *
+ * The last header row is the one that always has exactly one cell per rendered column, whatever the
+ * nesting above it, so scoping to it makes the index mean the column. The corner cell is excluded by
+ * role — it carries `gridcell button` ("Select whole grid"), not `columnheader`.
+ */
+const COLUMN_HEADER_CELLS = '.ht_clone_top thead tr:last-child > th[role="columnheader"]';
+
+/**
+ * The same cells for the FROZEN columns, which the top overlay also draws but cannot be clicked in.
+ *
+ * A frozen column's header exists twice, at the same coordinates: once in the top overlay and once in
+ * the corner overlay that is painted over it. Measured on `cell-types-demo`: a click at the centre of
+ * the top overlay's copy is received by the corner's, so Playwright's hit-target check fails the
+ * target it was given and the call times out on "intercepts pointer events" — and the corner's copy
+ * is the one that takes the click. See {@link headerCellAt}.
+ */
+const FROZEN_COLUMN_HEADER_CELLS =
+  '.ht_clone_top_inline_start_corner thead tr:last-child > th[role="columnheader"]';
+
+/**
+ * The row-header cells, scoped for the same reason as {@link COLUMN_HEADER_CELLS}.
+ *
+ * Rows have no equivalent of the group row, so this selects what an unscoped `getByRole('rowheader')`
+ * already selected — the inline-start overlay's headers, in row order. It is written out anyway
+ * because the two helpers are read together, and because the unscoped form is only accidentally
+ * right: it depends on no other overlay drawing a row header above this one in document order.
+ */
+const ROW_HEADER_CELLS = '.ht_clone_inline_start tbody > tr > th[role="rowheader"]';
+
+/**
+ * The row headers frozen to the TOP, which the corner overlay covers exactly as it covers a frozen
+ * column's header. Measured on `custom-borders-demo` (`fixedRowsTop: 2`): the corner holds those two
+ * row headers and intercepts the inline-start overlay's copies of them.
+ *
+ * Rows frozen to the BOTTOM are covered the same way by `ht_clone_bottom_inline_start_corner`, and
+ * are not resolved here because they sit at the end of the row list rather than at a known index -
+ * addressing them by index would need the row count. No spec does; one that tries fails loudly on
+ * the same interception rather than photographing the wrong row.
+ */
+const FROZEN_ROW_HEADER_CELLS = '.ht_clone_top_inline_start_corner tbody > tr > th[role="rowheader"]';
+
+/**
+ * Resolves a header by index, choosing the copy a pointer can actually reach.
+ *
+ * The frozen headers are a PREFIX of the list in both axes — the frozen columns are the first
+ * columns, the top-frozen rows the first rows — and the overlay that holds them renders exactly
+ * those, so its count is where the prefix ends. A grid with nothing frozen has no such overlay, the
+ * count is zero, and this resolves to the plain list.
+ *
+ * @param {string} cells Selector for the axis's header cells in the overlay that draws them all.
+ * @param {string} frozenCells Selector for the frozen prefix's cells in the overlay painted on top.
+ * @param {number} index Zero-based index along the axis.
+ * @returns {Promise<Locator>} The header cell to click.
+ */
+async function headerCellAt(cells: string, frozenCells: string, index: number): Promise<Locator> {
+  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  const frozen = table.locator(frozenCells);
+  const frozenCount = await frozen.count();
+
+  return index < frozenCount ? frozen.nth(index) : table.locator(cells).nth(index);
+}
+
+/**
+ * Clicks the header of COLUMN `columnIndex` — the column, not the nth header cell in the grid.
+ *
+ * See {@link COLUMN_HEADER_CELLS} for why those are different and which screenshots the difference
+ * cost. The highlight assertion afterwards is what makes the capture that usually follows
+ * deterministic: a click resolves as soon as the event is dispatched, and the selection is painted a
+ * frame later, so without it a screenshot can record the grid mid-update. It is anchored on purpose —
+ * the header beside an active one carries `ht__active_highlight-prev`, which an unanchored pattern
+ * would accept, and then a click that landed one header over would still pass.
+ *
+ * @param {number} columnIndex Zero-based column index.
  * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: ModifierKey[] = []) {
-  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  const header = await headerCellAt(COLUMN_HEADER_CELLS, FROZEN_COLUMN_HEADER_CELLS, columnIndex);
 
-  await table.getByRole('columnheader').nth(columnIndex).click({ modifiers });
+  await header.click({ modifiers });
+  await expect(header).toHaveClass(/(^|\s)ht__(active_)?highlight(\s|$)/);
 }
 /**
- * @param {number} rowIndex Cell locator.
+ * Clicks the header of ROW `rowIndex`.
+ *
+ * @param {number} rowIndex Zero-based row index.
  * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectRowHeaderByIndex(rowIndex: number, modifiers: ModifierKey[] = []) {
-  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  const header = await headerCellAt(ROW_HEADER_CELLS, FROZEN_ROW_HEADER_CELLS, rowIndex);
 
-  await table.getByRole('rowheader').nth(rowIndex).click({ modifiers });
+  await header.click({ modifiers });
+  await expect(header).toHaveClass(/(^|\s)ht__(active_)?highlight(\s|$)/);
 }
 
 /**

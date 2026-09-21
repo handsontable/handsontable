@@ -313,6 +313,26 @@ element screenshots and the settle the fixture does for you):
 - **Hover the element, not a coordinate.** `locator.hover()` names the target and runs the actionability
   checks (visible, stable, receives events at the point) before moving; a raw `mouse.move()` to a
   bounding-box coordinate does neither, so what it hovers depends on what happened to be there.
+- **Count columns and rows, not header cells.** `getByRole('columnheader')` matches every header cell
+  the grid draws — both rows of a nested header, and one copy per overlay — so `.nth(n)` over it is not
+  column `n`. Measured on `arabic-rtl-demo` (10 columns, two header rows): 17 matches, the first seven
+  being the GROUP row, so `nth(2)` lands on the label above column 5 and `nth(5)` on a spacer above
+  column 8. The group row is also the unstable half: a colspanned label is drawn across the part of its
+  span that is rendered and the rest falls back to spacers, so a rendered window one column wider or
+  narrower changes how many cells precede the leaf row and every index after them moves with it. That is
+  a flake nothing waits out, because the wrong element is chosen before any capture happens — it
+  surfaced as `selection-arabic-rtl-demo-2.png` and `selection-nested-headers-demo-{2,3}.png` flipping
+  by exactly one column on two unrelated pull requests, and only ever on the two demos in
+  `selection.spec.ts` that HAVE a nested header. `selectColumnHeaderByIndex()` and
+  `selectRowHeaderByIndex()` in `src/page-helpers.ts` scope to the last header row, which is 1:1 with
+  columns whatever the nesting above it, and assert the header is highlighted before returning. They
+  also resolve a FROZEN header in the corner overlay rather than the top one: a frozen column's header
+  is drawn twice at the same coordinates, the top overlay's copy is the one underneath, and clicking it
+  fails Playwright's hit-target check instead of selecting anything (measured on `cell-types-demo`, and
+  on `custom-borders-demo` for `fixedRowsTop`; rows frozen to the BOTTOM are not resolved, because
+  addressing them by index would need the row count — a spec that tries fails loudly on the same
+  interception). `lib/__tests__/header-helpers.test.mjs` pins all of it. Reach for the same scoping in
+  any new helper that addresses a header by position.
 - **The fixture drops a stray native selection before every capture, and under a focused text control
   the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
   text-selection highlight (a header label a click sequence left selected). With an input or textarea
