@@ -303,13 +303,15 @@ export class AppComponent {
 ::: only-for vue
 
 ```ts
-import { ref } from 'vue';
+import { markRaw, ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
-const theme = registerTheme(mainTheme)
-  .setColorScheme('auto')
-  .setDensityType('comfortable');
+const theme = markRaw(
+  registerTheme(mainTheme)
+    .setColorScheme('auto')
+    .setDensityType('comfortable')
+);
 
 const hotSettings = ref({
   theme: theme,
@@ -321,6 +323,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+`markRaw()` is required here. Without it, Vue wraps the `ThemeBuilder` in a reactive proxy that can't reach the builder's private fields, and the grid throws `TypeError: attempted to get private field on non-instance` when it mounts.
 
 :::
 
@@ -418,9 +422,9 @@ const hotSettings = ref({
 
 :::
 
-### Switch between CSS-file themes at runtime
+## Switch between CSS-file themes at runtime
 
-Use [`useTheme()`](@/api/core.md#usetheme) to swap the grid's active theme for another CSS-file theme's class name. Pass the class name as a string -- `useTheme()` only accepts a name, not a theme config object or a `ThemeBuilder` instance.
+Switch a grid to another CSS-file theme by giving it a different theme class name, either through [`useTheme()`](@/api/core.md#usetheme) or through the `theme` option. Both take a class name string such as `ht-theme-main-dark`, never a theme config object or a `ThemeBuilder` instance.
 
 ::: only-for javascript
 
@@ -443,25 +447,26 @@ function toggleTheme(isDarkMode) {
 ::: only-for react
 
 ```jsx
-import { useRef } from 'react';
+import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import 'handsontable/styles/ht-theme-main.min.css';
 
 const App = () => {
-  const hotRef = useRef(null);
+  const [theme, setTheme] = useState('ht-theme-main');
 
   const toggleTheme = (isDarkMode) => {
-    hotRef.current?.hotInstance?.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+    setTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
   };
 
   return (
     <HotTable
-      ref={hotRef}
-      theme="ht-theme-main"
+      theme={theme}
     />
   );
 };
 ```
+
+Keep the theme in React state and pass it through the `theme` prop. The React wrapper re-sends the `theme` prop on every render, so a `useTheme()` call made through the instance ref is undone by the next render.
 
 :::
 
@@ -508,11 +513,18 @@ function toggleTheme(isDarkMode) {
 
 :::
 
-Load the matching static stylesheet for every class name you switch to. The dark variant is a separate CSS file (`ht-theme-main.min.css` also carries the `ht-theme-main-dark` rules -- see [Step 1. Load CSS files](#step-1-load-css-files)). Without it, the grid logs a warning that the theme's stylesheets are missing and loses its styling. An unsupported value -- anything other than a registered theme name -- is ignored, and the grid logs a warning and keeps its current theme.
+Load the matching static stylesheet for every class name you switch to. Light and dark modes of a theme live in the same file: `ht-theme-main.min.css` defines `ht-theme-main`, `ht-theme-main-dark`, and `ht-theme-main-dark-auto` (see [Step 1. Load CSS files](#step-1-load-css-files)). Without the file, the grid logs a warning that the theme's stylesheets are missing and loses its styling.
+
+`useTheme()` validates the format of the name, not whether a stylesheet for it exists. The two cases behave differently:
+
+| Value | Result |
+| --- | --- |
+| `useTheme('dark')` | Rejected. The grid keeps its current theme and logs `dark isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.` |
+| `useTheme('ht-theme-doesnotexist')` | Applied. The grid switches to a class that no stylesheet defines, loses its styling, and logs the missing-stylesheets warning. |
 
 ## Switch the color scheme at runtime with the Theme API
 
-When a grid uses the Theme API, call [`setColorScheme()`](@/api/options.md#theme) directly on the `ThemeBuilder` instance returned by `registerTheme()`. The builder notifies the grid on its own -- no `updateSettings()` call is needed.
+When a grid uses the Theme API, call `setColorScheme()` directly on the `ThemeBuilder` instance returned by `registerTheme()`. The builder notifies the grid on its own -- no `updateSettings()` call is needed.
 
 ::: only-for javascript
 
@@ -564,7 +576,7 @@ import { Component } from '@angular/core';
 import { HotTableModule } from '@handsontable/angular-wrapper';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
-const theme = registerTheme(mainTheme);
+const mainThemeBuilder = registerTheme(mainTheme);
 
 @Component({
   standalone: true,
@@ -572,11 +584,15 @@ const theme = registerTheme(mainTheme);
   template: `<hot-table [settings]="{ theme: theme }" />`,
 })
 export class AppComponent {
+  theme = mainThemeBuilder;
+
   toggleTheme(isDarkMode: boolean) {
-    theme.setColorScheme(isDarkMode ? 'dark' : 'light');
+    this.theme.setColorScheme(isDarkMode ? 'dark' : 'light');
   }
 }
 ```
+
+An Angular template resolves `theme` against the component instance, so the builder has to be a class field. A module-level `const` alone leaves the `theme` option `undefined`, and the grid silently falls back to the registered `main` theme.
 
 :::
 
@@ -601,9 +617,11 @@ function toggleTheme(isDarkMode) {
 
 Don't mix this with [`useTheme()`](#switch-between-css-file-themes-at-runtime): the Theme API only ever generates styles under the plain `ht-theme-{name}` class, never a `-dark` variant of it, so switching to `ht-theme-{name}-dark` on a Theme API grid loses the theme instead of applying its dark mode.
 
+`setColorScheme()` changes the `ThemeBuilder` itself, so every grid that shares that builder switches with it. To change one grid only, leave the builder alone and set the per-instance [`colorScheme`](@/api/options.md#colorscheme) option, as described in [Switch the color scheme or density at runtime](#switch-the-color-scheme-or-density-at-runtime).
+
 ## Switch between two registered themes at runtime
 
-To swap the grid's theme for a genuinely different one -- not a light/dark variant of the same theme -- register both themes up front and pass the target theme to [`updateSettings()`](@/api/core.md#updatesettings) through the `theme` option:
+To swap the grid's theme for a genuinely different one -- not a light/dark variant of the same theme -- hand the target theme to the grid through the `theme` option: with [`updateSettings()`](@/api/core.md#updatesettings) on a plain instance, or by changing the value your component binds, so that the new theme survives the next render.
 
 ::: only-for javascript
 
@@ -629,7 +647,7 @@ function switchTheme(useHorizon) {
 ::: only-for react
 
 ```jsx
-import { useRef } from 'react';
+import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
 
@@ -637,16 +655,15 @@ const themeA = registerTheme(mainTheme);
 const themeB = registerTheme(horizonTheme);
 
 const App = () => {
-  const hotRef = useRef(null);
+  const [theme, setTheme] = useState(themeA);
 
   const switchTheme = (useHorizon) => {
-    hotRef.current?.hotInstance?.updateSettings({ theme: useHorizon ? themeB : themeA });
+    setTheme(useHorizon ? themeB : themeA);
   };
 
   return (
     <HotTable
-      ref={hotRef}
-      theme={themeA}
+      theme={theme}
     />
   );
 };
@@ -657,8 +674,8 @@ const App = () => {
 ::: only-for angular
 
 ```typescript
-import { Component, ViewChild } from '@angular/core';
-import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
 
 const themeA = registerTheme(mainTheme);
@@ -667,18 +684,18 @@ const themeB = registerTheme(horizonTheme);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: `<hot-table [settings]="{ theme: themeA }" />`,
+  template: `<hot-table [settings]="hotSettings" />`,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
-
-  themeA = themeA;
+  hotSettings: GridSettings = { theme: themeA };
 
   switchTheme(useHorizon: boolean) {
-    this.hotTable.hotInstance?.updateSettings({ theme: useHorizon ? themeB : themeA });
+    this.hotSettings = { ...this.hotSettings, theme: useHorizon ? themeB : themeA };
   }
 }
 ```
+
+Bind a settings field and replace it, rather than calling `updateSettings()` on the instance. An object literal written straight into `[settings]="{ ... }"` is restated whenever anything else inside it changes, which undoes the imperative call.
 
 :::
 
@@ -687,17 +704,14 @@ export class AppComponent {
 ```ts
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
-import { mainTheme, horizonTheme, registerTheme } from 'handsontable/themes';
-
-const themeA = registerTheme(mainTheme);
-const themeB = registerTheme(horizonTheme);
+import { mainTheme, horizonTheme } from 'handsontable/themes';
 
 const hotSettings = ref({
-  theme: themeA,
+  theme: mainTheme,
 });
 
 function switchTheme(useHorizon) {
-  hotSettings.value.theme = useHorizon ? themeB : themeA;
+  hotSettings.value.theme = useHorizon ? horizonTheme : mainTheme;
 }
 ```
 
@@ -705,7 +719,13 @@ function switchTheme(useHorizon) {
 <HotTable :settings="hotSettings" />
 ```
 
+Pass the plain theme config objects here, not the `ThemeBuilder` instances that `registerTheme()` returns, and never put a `ThemeBuilder` inside `ref()` or `reactive()`. Vue wraps such an object in a reactive proxy, and the builder keeps its state in private class fields that a proxy can't reach, so the grid throws `TypeError: attempted to get private field on non-instance` when it mounts. Wrapping the builder in `markRaw()` stops the error but doesn't make the swap work: the Vue wrapper compares settings with `JSON.stringify()`, and because a builder exposes no public fields, every builder serializes to `{}` and the change looks like no change at all.
+
+The grid registers the config you pass, so re-applying a config whose theme is already registered logs `Theme "main" is already registered. Registration skipped.` and reuses the theme that is already there.
+
 :::
+
+Passing a theme object works only when no `ht-theme-*` class is set on the grid's container element or on any of its ancestors. If one is, the grid stays on that CSS-file theme, and the passed theme object is ignored without a warning. Remove the class from your own markup before switching themes this way.
 
 ## Set the color scheme or density without a theme
 
