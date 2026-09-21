@@ -30,3 +30,10 @@ export const MAX_WORKBOOK_CELLS = 10000000;
  * to far more than the file's own size.
  */
 export const MAX_INPUT_BYTES = 128 * 1024 * 1024;
+
+/**
+ * The largest number of bytes one archive entry may inflate to. `MAX_INPUT_BYTES` bounds the file;
+ * a DEFLATE stream can inflate to a thousand times its size, so the entry is bounded on its own
+ * while it is being inflated, before any part is parsed.
+ */
+export const MAX_INFLATED_ENTRY_BYTES = 4 * MAX_INPUT_BYTES;
