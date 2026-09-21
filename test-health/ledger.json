@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-21T12:15:38.844Z",
+  "updatedAt": "2026-09-21T12:23:15.710Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "35596936299",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596936299",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2982_NestedRows-cleanup-on-disable",
+      "headSha": "f36adfbbc9ac1ad63fca2ecacc7379c08202899c",
+      "event": "pull_request",
+      "seenAt": "2026-09-21T12:22:28Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD.min (theme: horizon)",

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-21T12:15:38.844Z",
+  "generatedAt": "2026-09-21T12:23:15.710Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 289,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1600
+    "entries": 1601
   },
   "rows": [
     {
@@ -162,12 +162,12 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 2,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
+      "count7": 3,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 4,
+      "flakyRuns30": 4,
+      "branches30": 4,
       "legs": [
         "e2e-classic-min",
         "e2e-horizon-min",
@@ -179,10 +179,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-18T11:07:52Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35335711478",
-        "branch": "feature/DEV-2825_Dropdown-editor-list-clipped-by-grid",
-        "leg": "e2e-main-min",
+        "seenAt": "2026-09-21T12:22:28Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35596936299",
+        "branch": "feature/DEV-2982_NestedRows-cleanup-on-disable",
+        "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
