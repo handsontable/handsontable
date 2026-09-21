@@ -21,14 +21,19 @@ export const AGENT_NOTE_TEXT =
   '`claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`. ' +
   `All agent resources: ${SITE_URL}/docs/llms.txt`;
 
-/** Markdown footer form, appended to each /docs/_md twin at write time (not to
- *  the route map itself, so llms-full.txt does not repeat it per page). */
+/**
+ * Markdown footer form, appended to each /docs/_md twin at write time — not to
+ * the route map itself, so llms-full.txt does not inherit it per page.
+ * buildLlmsFull() in llms.mjs appends it once, at the end of the corpus.
+ */
 export const AGENT_NOTE_MD = `\n\n---\n\n*${AGENT_NOTE_TEXT}*\n`;
 
-/** HTML comment form for rendered pages. Deliberately its own wording: the CLI
- *  commands carry `--` flags, which must not appear inside an HTML comment, so
- *  this form points at URLs and leaves the copy-pasteable commands to the
- *  Markdown twin and the linked pages. */
+/**
+ * HTML comment form for rendered pages. Deliberately its own wording: the CLI
+ * commands carry `--` flags, which must not appear inside an HTML comment, so
+ * this form points at URLs and leaves the copy-pasteable commands to the
+ * Markdown twin and the linked pages.
+ */
 export const AGENT_NOTE_HTML_COMMENT =
   '<!-- AI agents: official Handsontable + HyperFormula skills at ' +
   'https://github.com/handsontable/handsontable-skills. Live docs search over MCP (streamable ' +

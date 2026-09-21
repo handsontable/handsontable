@@ -664,7 +664,8 @@ function markdownRoutesIntegration(sidebars) {
 
       mkdirSync(destDir, { recursive: true });
       // The agent note is appended per file, not stored in the route map, so
-      // llms-full.txt (which concatenates the map) carries it once, not 200x.
+      // llms-full.txt (built from the map) does not repeat it per page —
+      // buildLlmsFull() appends it once, at the end of the corpus.
       writeFileSync(dest, md + AGENT_NOTE_MD, 'utf-8');
     }
 
