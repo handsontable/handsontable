@@ -950,18 +950,22 @@ You are affected only if your code calls `hot.spliceCol(...)` or `hot.spliceRow(
 
 Change the data yourself and write it back with
 [`populateFromArray()`](@/api/core.md#populatefromarray), or use
-[`alter()`](@/api/core.md#alter) to add or remove whole rows and columns.
+[`alter()`](@/api/core.md#alter) to add or remove whole rows and columns. Read the column, run
+`Array.prototype.splice()` on it, and write the shifted tail back from the same row.
 
 **Before:**
 
 ```js
-// Replace two values in column 1, starting at row 1.
-hot.spliceCol(1, 1, 2, 'X1', 'X2');
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+hot.spliceCol(1, 1, 1);
 ```
 
 **After:**
 
 ```js
-// Replace two values in column 1, starting at row 1.
-hot.populateFromArray(1, 1, [['X1'], ['X2']]);
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+const column = hot.getDataAtCol(1);
+const shifted = column.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, shifted.map(value => [value]));
 ```
