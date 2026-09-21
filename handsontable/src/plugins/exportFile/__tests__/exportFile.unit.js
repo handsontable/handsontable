@@ -36,7 +36,7 @@ describe('ExportFile#supportsExportFormat', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'xlsx')).toBe(true);
   });
 
-  it('should return false for an unknown format', () => {
+  it('should return false for an unknown format even with engines configured', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'pdf')).toBe(false);
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), '')).toBe(false);
   });
