@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the `updateSettings()` performance with the `formulas` plugin enabled: a setting that changes the row count, such as toggling `nestedRows`, now rebuilds the formula sheet once instead of twice.",
+  "type": "changed",
+  "issueOrPR": 13600,
+  "breaking": false,
+  "framework": "none"
+}
