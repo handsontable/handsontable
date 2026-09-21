@@ -328,12 +328,18 @@ They are written in different places and can drift. Keep this in mind:
   (the settings object, `hot.addHook()`, a wrapper prop) ahead of this validation too — they land at
   the default order after the plugin hooks, so a host hook that returns a nested array now keeps the
   plugin on, and a host hook reading `dataManager` inside `beforeLoadData` sees the previous
-  dataset. The bug does **not** reproduce with `data` omitted: sheetsBar's `enablePlugin` already
-  loads the sheet through `loadData()`, so core's init pass skips its own load and the plugin only
-  ever sees the valid array. Three specs in `sheetsBar.unit.js` pin this — the top-level `data`
-  shape (keep that `data` in the fixture; without it the test passes on the unfixed code), the
-  no-`data` two-sheet shape that guards sheetsBar's enable-time load, and a host `beforeLoadData`
-  returning a nested array.
+  dataset. `beforeUpdateData` deliberately stays at the default order even though
+  `#onBeforeUpdateData` shares the same `#acceptsData` gate: no in-tree listener substitutes the
+  array on that hook (sheetsBar switches through `loadData()`, formulas only reads), so there is
+  nothing to sit behind, and a host `beforeUpdateData` hook returning a nested array still cannot
+  keep the plugin on — move it to `1` only when a redirecting `beforeUpdateData` filter appears.
+  The bug does **not** reproduce with `data` omitted: sheetsBar's `enablePlugin` already loads the
+  sheet through `loadData()`, so core's init pass skips its own load and the plugin only ever sees
+  the valid array. Three specs pin this. In `sheetsBar/__tests__/sheetsBar.unit.js`: the top-level
+  `data` shape (keep that `data` in the fixture; without it the test passes on the unfixed code),
+  and the no-`data` two-sheet shape — a guard that passes on develop and pins sheetsBar's
+  enable-time load, not the fix. In `__tests__/dataHooks.unit.js` here: a host `beforeLoadData`
+  returning a nested array, which fails without the `orderIndex`.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is

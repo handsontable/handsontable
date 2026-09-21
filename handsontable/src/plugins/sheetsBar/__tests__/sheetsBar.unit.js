@@ -448,7 +448,7 @@ describe('SheetsBar plugin', () => {
     expect(hot.getData().map(row => row[0])).toEqual(['Group 1', 'Group 2', 'Line 3']);
   });
 
-  it('keeps `nestedRows` enabled across a workbook declared without a top-level `data`', () => {
+  it('guards the enable-time sheet load: `nestedRows` stays on across a workbook declared without a top-level `data` (passes on develop, pins the load path rather than the fix)', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     hot = new Handsontable(container, {
@@ -473,26 +473,6 @@ describe('SheetsBar plugin', () => {
     expect(hot.countRows()).toBe(2);
     expect(hot.getData().map(row => row[0])).toEqual(['x', 'x1']);
     expect(nestedRows.dataManager.getRowLevel(1)).toBe(1);
-    expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Nested Rows plugin requires'));
-  });
-
-  it('keeps `nestedRows` enabled when a host `beforeLoadData` hook supplies the nested array', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    hot = new Handsontable(container, {
-      data: [['flat', 'placeholder']],
-      nestedRows: true,
-      beforeLoadData(sourceData, initialLoad) {
-        return initialLoad ? [{ a: 'Root', __children: [{ a: 'Leaf' }] }] : sourceData;
-      },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-    const nestedRows = hot.getPlugin('nestedRows');
-
-    expect(nestedRows.isEnabled()).toBe(true);
-    expect(hot.countRows()).toBe(2);
-    expect(hot.getData().map(row => row[0])).toEqual(['Root', 'Leaf']);
-    expect(nestedRows.dataManager.hasChildren(0)).toBe(true);
     expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Nested Rows plugin requires'));
   });
 
