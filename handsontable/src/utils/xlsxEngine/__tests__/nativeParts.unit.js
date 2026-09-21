@@ -268,6 +268,42 @@ describe('conditional formatting', () => {
     expect(dropped.list()).toEqual([]);
   });
 
+  it('should write top10, aboveAverage and timePeriod rules with their own attributes', () => {
+    const styles = new StyleTable();
+    const dropped = new DroppedFeatures();
+    const xml = conditionalFormattingXml('B2:B9', [
+      { type: 'top10', rank: 5, percent: true, style: { font: { bold: true } } },
+      { type: 'top10' },
+      { type: 'top10', rank: 3, bottom: true },
+      { type: 'aboveAverage', aboveAverage: false },
+      { type: 'aboveAverage' },
+      { type: 'timePeriod', timePeriod: 'today', formulae: ['FLOOR(B2,1)=TODAY()'] },
+    ], styles, { next: 1 }, dropped);
+
+    expect(xml).toContain('<cfRule type="top10" dxfId="0" priority="1" rank="5" percent="1"/>');
+    // No rank given falls back to Excel's own default of 10; percent and bottom are omitted when off.
+    expect(xml).toContain('<cfRule type="top10" priority="2" rank="10"/>');
+    expect(xml).toContain('<cfRule type="top10" priority="3" rank="3" bottom="1"/>');
+    // `aboveAverage="0"` is how "below average" is written; the default is omitted.
+    expect(xml).toContain('<cfRule type="aboveAverage" priority="4" aboveAverage="0"/>');
+    expect(xml).toContain('<cfRule type="aboveAverage" priority="5"/>');
+    expect(xml).toContain(
+      '<cfRule type="timePeriod" priority="6" timePeriod="today">'
+      + '<formula>FLOOR(B2,1)=TODAY()</formula></cfRule>',
+    );
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop a timePeriod rule that names no period or carries no formula', () => {
+    const dropped = new DroppedFeatures();
+
+    expect(conditionalFormattingXml('A1:A3', [
+      { type: 'timePeriod', timePeriod: 'today' },
+      { type: 'timePeriod', formulae: ['TRUE()'] },
+    ], new StyleTable(), { next: 1 }, dropped)).toBe('');
+    expect(dropped.list()).toEqual(['conditionalFormatting:timePeriod']);
+  });
+
   it('should drop the rule kinds the PoC does not write and skip the block when nothing is left', () => {
     const dropped = new DroppedFeatures();
     const xml = conditionalFormattingXml('A1:A3', [
