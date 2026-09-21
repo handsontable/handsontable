@@ -237,7 +237,9 @@ The `value` property of the `label` option can also be a function. The function 
 
 To add your own content to a checkbox cell, write a custom [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that chains the built-in checkbox renderer and then adds nodes to the cell.
 
-Add those nodes with DOM methods such as `appendChild` or `insertAdjacentText`, on the element returned by `Handsontable.dom.getCellContentRoot(td)`. Do not use `td.innerHTML += ...`. Assigning to `innerHTML` re-serializes and re-parses the whole cell, which drops the checkbox's checked state on every render, so the box never appears checked. It also rebuilds the cell's content wrapper on each draw and bypasses Handsontable's HTML sanitization.
+Add those nodes with DOM methods such as `appendChild` or `insertAdjacentText`, on the element returned by `Handsontable.dom.getCellContentRoot(td)`. Do not use `td.innerHTML += ...`. Assigning to `innerHTML` re-serializes and re-parses the whole cell on every draw, which rebuilds the cell's content wrapper and drops any state that lives only as a DOM property rather than a reflected HTML attribute, as well as any listener attached directly to a node. Your markup string is also parsed as raw HTML, without the sanitization Handsontable applies to the content it renders itself.
+
+The snippet below uses the global `Handsontable` object. In a framework wrapper, import `Handsontable` and use `Handsontable.renderers`/`Handsontable.dom` the same way.
 
 ```javascript
 const baseCheckboxRenderer = Handsontable.renderers.getRenderer('checkbox');

@@ -35,5 +35,13 @@ test.describe('Checkbox column overwritten by a custom renderer', () => {
     // Before the fix the re-render dropped the checked state on every draw, so the box stayed
     // visually unchecked even though its data was true.
     await expect(grid.checkbox(1, 0)).toBeChecked();
+
+    // The reverse direction: clicking again must clear the box. This pins the uncheck path, which
+    // relies on the renderer cloning a fresh input per render so the `checked` attribute never
+    // leaks from a prior checked state.
+    await grid.clickCheckbox(1, 0);
+
+    await expect.poll(() => grid.dataAt(1, 0)).toBe(false);
+    await expect(grid.checkbox(1, 0)).not.toBeChecked();
   });
 });
