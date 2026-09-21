@@ -98,6 +98,25 @@ test.describe('NestedRows enabled at runtime', () => {
     await expect(nestedRows.nestingIndicators()).toHaveCount(0);
   });
 
+  test('turning the plugin off leaves the headers of a grid rendered inside a cell alone', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ nested: 'inner' });
+
+    const innerIndicators = await nestedRows.innerNestingIndicators().count();
+
+    expect(innerIndicators).toBeGreaterThan(0);
+    await expect(nestedRows.nestingIndicators()).toHaveCount(innerIndicators);
+
+    await nestedRows.setNestedRows(true);
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(innerIndicators);
+
+    expect(await nestedRows.disableNestedRowsAndCountInnerIndicators()).toBe(innerIndicators);
+
+    await expect(nestedRows.innerNestingIndicators()).toHaveCount(innerIndicators);
+    await expect(nestedRows.nestingIndicators()).toHaveCount(innerIndicators);
+  });
+
   test('replacing the data with arrays while the plugin is on disables it without throwing', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

@@ -60,10 +60,11 @@ export class NestedRowsPage {
    * clone painted over it.
    *
    * Scoped to the whole grid on purpose. Only the clone is visible, but Walkontable recycles the
-   * master's `th` elements too, so a leak there is just as permanent.
+   * master's `th` elements too, so a leak there is just as permanent. Scoped to `tbody` because
+   * CollapsibleColumns draws the same class names into `thead th`.
    */
   nestingIndicators(): Locator {
-    return this.grid.locator('th [class^="ht_nesting"]');
+    return this.grid.locator('tbody th [class^="ht_nesting"]');
   }
 
   /** How many rows the grid currently shows. Collapsing trims rows, so this shrinks. */

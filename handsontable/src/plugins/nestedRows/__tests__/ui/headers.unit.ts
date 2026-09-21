@@ -52,6 +52,20 @@ describe('HeadersUI#removeLevelIndicators', () => {
     expect(Array.from(TH.firstElementChild!.children)).toEqual([label]);
   });
 
+  it('should leave a matching node that is not a direct child of the inner container alone', () => {
+    const { TH, label } = buildDecoratedRowHeader();
+    const wrapper = document.createElement('div');
+    const foreign = document.createElement('span');
+
+    foreign.className = 'ht_nestingLevel_empty';
+    wrapper.appendChild(foreign);
+    TH.firstElementChild!.appendChild(wrapper);
+
+    expect(() => hot.getPlugin('nestedRows').headersUI!.removeLevelIndicators(TH)).not.toThrow();
+    expect(Array.from(TH.firstElementChild!.children)).toEqual([label, wrapper]);
+    expect(wrapper.contains(foreign)).toBe(true);
+  });
+
   it('should leave a header without an inner container alone', () => {
     const TH = document.createElement('th');
 

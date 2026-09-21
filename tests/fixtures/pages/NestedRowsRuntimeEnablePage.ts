@@ -26,16 +26,23 @@ export class NestedRowsRuntimeEnablePage {
    *
    * `data: 'arrays'` seeds an array-of-arrays dataset, which the plugin cannot work with.
    * `fixed: 'rows'` freezes the first row, so its header is also painted in the top overlays.
+   * `nested: 'inner'` renders a second grid, with its own NestedRows on, inside the first cell.
    */
   async goto(
-    options: { data?: 'objects' | 'arrays', size?: 'small' | 'tall', fixed?: 'none' | 'rows' } = {}
+    options: {
+      data?: 'objects' | 'arrays',
+      size?: 'small' | 'tall',
+      fixed?: 'none' | 'rows',
+      nested?: 'none' | 'inner',
+    } = {}
   ): Promise<void> {
     const dataShape = options.data ? `&data=${options.data}` : '';
     const size = options.size ? `&size=${options.size}` : '';
     const fixed = options.fixed ? `&fixed=${options.fixed}` : '';
+    const nested = options.nested ? `&nested=${options.nested}` : '';
 
     await this.page.goto(
-      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}${size}${fixed}`
+      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}${size}${fixed}${nested}`
     );
 
     await awaitBundle(this.page);
@@ -74,11 +81,34 @@ export class NestedRowsRuntimeEnablePage {
 
   /**
    * Every nesting indicator the plugin has drawn into a row header - the collapse/expand buttons and
-   * the indent spacers - across both copies of the headers: the master table and the inline-start
-   * clone painted over it.
+   * the indent spacers - across every copy of the headers: the master table and the overlays painted
+   * over it. Scoped to `tbody` because CollapsibleColumns draws the same class names into `thead th`.
+   * With `nested: 'inner'` this also counts the inner grid's indicators; `innerNestingIndicators()`
+   * isolates those.
    */
   nestingIndicators(): Locator {
-    return this.grid.locator('th [class^="ht_nesting"]');
+    return this.grid.locator('tbody th [class^="ht_nesting"]');
+  }
+
+  /** The nesting indicators of the grid rendered inside a cell (`goto({ nested: 'inner' })`). */
+  innerNestingIndicators(): Locator {
+    return this.page.getByTestId('inner-grid').locator('tbody th [class^="ht_nesting"]');
+  }
+
+  /**
+   * Turns the outer plugin off and counts the inner grid's indicators in the same tick.
+   *
+   * The count has to be synchronous: the inner grid redraws itself shortly after the outer toggle
+   * (its own observers fire when the cell around it resizes), and that redraw puts back whatever the
+   * outer teardown removed. An auto-retrying locator assertion would see the healed state and pass
+   * even when the outer plugin had stripped the inner headers.
+   */
+  disableNestedRowsAndCountInnerIndicators(): Promise<number> {
+    return this.page.evaluate(() => {
+      window.hot.updateSettings({ nestedRows: false });
+
+      return document.querySelectorAll('[data-testid="inner-grid"] tbody th [class^="ht_nesting"]').length;
+    });
   }
 
   /** The collapse/expand button in the visible row header, by visual row index. */
@@ -252,8 +282,10 @@ export class NestedRowsRuntimeEnablePage {
   /**
    * Replaces the whole dataset through `loadData()` and reports the error it threw, or `null`.
    *
-   * Returned rather than thrown so a spec can assert on the absence of a throw without a
-   * `try`/`catch` of its own, and so the grid stays reachable for the assertions that follow.
+   * On a healthy grid this is always `null` - invalid data makes the plugin log an error and disable
+   * itself, and the load carries on. The catch is for the regression it pins: an earlier cut of the
+   * disable-time cleanup threw a `TypeError` out of the plugin's `beforeLoadData` listener, and
+   * returning the message keeps that failure readable instead of rejecting the whole evaluation.
    */
   loadData(data: unknown[]): Promise<string | null> {
     return this.page.evaluate((rows) => {

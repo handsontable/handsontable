@@ -174,7 +174,9 @@ class HeadersUI extends BaseUI {
 
   /**
    * Removes the nesting-level indicator nodes (the collapse/expand button and the indent spacers)
-   * appended to a row header's inner container.
+   * appended to a row header's inner container. Only direct children of that container are taken,
+   * which is where `appendLevelIndicators()` puts them; a deeper node with a matching class belongs
+   * to someone else's markup.
    *
    * @private
    * @param {HTMLTableCellElement} TH TH element.
@@ -186,11 +188,42 @@ class HeadersUI extends BaseUI {
       return;
     }
 
-    const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
+    const previousIndicators = innerDiv.querySelectorAll(':scope > [class^="ht_nesting"]');
 
     arrayEach(previousIndicators, (elem) => {
       if (elem) {
         innerDiv.removeChild(elem as Node);
+      }
+    });
+  }
+
+  /**
+   * Removes the nesting-level indicators from every row header this instance has rendered.
+   *
+   * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
+   * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
+   * name only two of them. The walk also has to work with no grid state at all: the plugin disables
+   * itself from `beforeLoadData` on invalid data, which at construction fires before the view exists
+   * and on a later `loadData()` fires after `replaceData()` destroyed the previous DataMap, so
+   * anything that reaches `countRows()` - `getCell()` does, through the `fixedRowsTop` setting -
+   * throws there.
+   *
+   * A header is taken when the nearest `handsontable` ancestor above its table is this instance's
+   * root: `ht_master` and every `ht_clone_*` carry that class, as does the root, while on a
+   * window-scrolled grid an overlay sits inside a rail element that carries neither. That is what
+   * keeps a grid rendered inside a cell out of the walk.
+   *
+   * @private
+   */
+  removeRenderedLevelIndicators() {
+    const { rootElement } = this.hot;
+    const rowHeaders = rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
+
+    rowHeaders.forEach((TH) => {
+      const table = TH.closest('.handsontable');
+
+      if (table?.parentElement?.closest('.handsontable') === rootElement) {
+        this.removeLevelIndicators(TH);
       }
     });
   }

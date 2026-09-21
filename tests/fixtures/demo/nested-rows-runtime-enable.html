@@ -34,6 +34,11 @@
     if (!window.htFixed) {
       throw new Error('Unknown ?fixed= value: ' + JSON.stringify(htParams.get('fixed')));
     }
+
+    window.htNested = ({ none: 'none', inner: 'inner' })[htParams.get('nested') ?? 'none'];
+    if (!window.htNested) {
+      throw new Error('Unknown ?nested= value: ' + JSON.stringify(htParams.get('nested')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -57,6 +62,8 @@
 
     `?data=arrays` seeds an array-of-arrays dataset instead, which the plugin cannot handle.
     `?fixed=rows` freezes the first row, so its header is painted in the top overlays as well.
+    `?nested=inner` renders a second grid, with its own NestedRows on, inside the first cell, so a
+    spec can prove the outer plugin's teardown leaves the inner grid's headers alone.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -68,7 +75,19 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    const hasInnerGrid = window.htNested === 'inner';
+    const innerContainer = document.createElement('div');
+
+    innerContainer.setAttribute('data-testid', 'inner-grid');
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      if (hasInnerGrid && row === 0 && col === 0) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+        td.appendChild(innerContainer);
+
+        return;
+      }
+
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
@@ -138,6 +157,26 @@
       });
     } catch (error) {
       window.htFixtureError = error && error.message ? error.message : String(error);
+    }
+
+    if (hasInnerGrid && !window.htFixtureError) {
+      try {
+        window.innerHot = new Handsontable(innerContainer, {
+          data: [
+            { name: 'Inner root', __children: [{ name: 'Inner leaf' }] },
+            { name: 'Inner sibling' },
+          ],
+          columns: [{ data: 'name' }],
+          colHeaders: ['Inner'],
+          rowHeaders: true,
+          nestedRows: true,
+          width: 200,
+          height: 'auto',
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+      } catch (error) {
+        window.htFixtureError = error && error.message ? error.message : String(error);
+      }
     }
   </script>
 </body>

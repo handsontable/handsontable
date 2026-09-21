@@ -102,10 +102,16 @@ They are written in different places and can drift. Keep this in mind:
   resets the `<th>`'s `className` and strips every `aria-*` attribute on each paint
   (`3rdparty/walkontable/src/render/rowHeaders.ts`), so `ht_nestingLevels`, `ht_nestingParent` and
   `aria-expanded` never survive a repaint — but `TableView#appendRowHeader()` reuses the existing
-  `div.relative` and rewrites only its `.rowHeader` span. `#removeRenderedLevelIndicators()` therefore
-  runs first thing in `disablePlugin()`, before the hooks go, and it **walks the DOM, not
-  coordinates**: every `tbody th` under `rootElement` whose table belongs to this instance, through
-  `HeadersUI#removeLevelIndicators()`. Two earlier cuts show why. Bounding the walk by `countRows()`
+  `div.relative` and rewrites only its `.rowHeader` span. `HeadersUI#removeRenderedLevelIndicators()`
+  therefore runs as the LAST line of `disablePlugin()`, after `super.disablePlugin()` has removed the
+  hooks - not before: `unregisterMap()` fires the public `afterRowSequenceCacheUpdate` hook, and a
+  consumer rendering from it would re-decorate the headers while `afterGetRowHeader` is still
+  registered, silently undoing a walk that ran first. It **walks the DOM, not coordinates**: every
+  `tbody th` under `rootElement` whose table belongs to this instance, through
+  `HeadersUI#removeLevelIndicators()`, which takes only the DIRECT children of the header's inner
+  `div` (`:scope > [class^="ht_nesting"]`) - the walk now reaches headers the plugin never decorated,
+  and `removeChild()` on a deeper match would throw `NotFoundError`. Two earlier cuts show why the
+  DOM. Bounding the walk by `countRows()`
   threw `Cannot read properties of undefined (reading 'getLength')` — `disablePlugin()` is also reached
   from `#acceptsData()` inside `beforeLoadData`, and at construction that hook fires before `hot.view`
   and before the first DataMap exist. That took down 7 specs: `initialization.spec.js` (3),
@@ -125,10 +131,18 @@ They are written in different places and can drift. Keep this in mind:
   every `ht_clone_*` carry the `handsontable` class, as does the root, but on a window-scrolled grid
   (`height: 'auto'`) the overlays sit inside a `div.htOverlayRail` that carries neither — a direct-child
   check skipped the inline-start clone there and left 2 nodes per fixture. The filter is what keeps a
-  grid rendered inside a cell out of the walk. Cost: 30 µs median (n=30) for a 20-row band, ~0.3% of
-  the no-op `updateSettings({ nestedRows: true })` React re-sends on every render, and it scales with
-  the rendered band, not `countRows()`. Pinned by `tests/e2e/nested-rows-runtime-enable.spec.ts`
-  (frozen-row copies, `loadData()` with arrays while on) and `tests/e2e/nested-rows-api.spec.ts`.
+  grid rendered inside a cell out of the walk (a `GhostTable` container also copies the root's
+  classes, but it is injected and removed within one measurement pass, so it is never there at
+  disable time). The cost is one `querySelectorAll` over the rendered `th` elements plus a scoped
+  query per header, so it scales with what is drawn, not with `countRows()`; the earlier
+  band-bounded cut measured ~30 µs against a 10 ms no-op `updateSettings()`, and the DOM walk does
+  strictly less coordinate work. Pinned by `tests/e2e/nested-rows-runtime-enable.spec.ts`
+  (frozen-row copies, `loadData()` with arrays while on, and an inner grid rendered in a cell) and
+  `tests/e2e/nested-rows-api.spec.ts`. **The inner-grid spec has to read the inner headers in the
+  same tick as the outer disable.** The inner grid redraws shortly after the outer toggle (its own
+  observers fire when the cell around it resizes) and its `afterGetRowHeader` puts the decoration
+  back, so an auto-retrying `toHaveCount()` passed against a build with the ownership filter removed
+  - measured before the synchronous read was added; with it the same build fails 4 → 0.
 - **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
   `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
   passes must tell those apart, or "already in the right state" reads as "blocked". Use
@@ -517,7 +531,7 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
-| `tests/e2e/nested-rows-runtime-enable.spec.ts` | Playwright: the plugin switched on and off with `updateSettings()`, including the header cleanup on disable and a `loadData()` with invalid data while it is on |
+| `tests/e2e/nested-rows-runtime-enable.spec.ts` | Playwright: the plugin switched on and off with `updateSettings()`, including the header cleanup on disable (frozen-row copies, an inner grid in a cell left alone) and a `loadData()` with invalid data while it is on |
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
