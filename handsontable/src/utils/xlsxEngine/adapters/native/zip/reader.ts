@@ -71,6 +71,11 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
     const extraLength = view.getUint16(offset + 30, true);
     const commentLength = view.getUint16(offset + 32, true);
     const localOffset = view.getUint32(offset + 42, true);
+
+    if (offset + 46 + nameLength + extraLength + commentLength > endRecord) {
+      throwWithCause(`The ZIP central directory record ${i} is malformed.`);
+    }
+
     const name = decoder.decode(bytes.subarray(offset + 46, offset + 46 + nameLength));
 
     if (method !== 0 && method !== 8) {

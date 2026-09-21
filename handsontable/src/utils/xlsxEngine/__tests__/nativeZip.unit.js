@@ -131,6 +131,22 @@ function fixtureBuffer(name) {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
+/**
+ * Scans backwards for the end-of-central-directory record and returns the central directory's
+ * start offset, so the byte-surgery tests below share one EOCD scan instead of repeating it.
+ * @param view
+ * @param zip
+ */
+function centralDirectoryOffset(view, zip) {
+  let eocd = zip.byteLength - 22;
+
+  while (view.getUint32(eocd, true) !== 0x06054b50) {
+    eocd -= 1;
+  }
+
+  return view.getUint32(eocd + 16, true);
+}
+
 describe('readZip', () => {
   it('should list and read back the entries our own writer produced, stored and deflated', async() => {
     const entries = [
@@ -175,13 +191,7 @@ describe('readZip', () => {
   it('should reject an entry whose declared inflated size is above the cap', async() => {
     const zip = await writeZip([{ name: 'big.bin', data: new Uint8Array(10) }], true);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
-    let eocd = zip.byteLength - 22;
-
-    while (view.getUint32(eocd, true) !== 0x06054b50) {
-      eocd -= 1;
-    }
-
-    const central = view.getUint32(eocd + 16, true);
+    const central = centralDirectoryOffset(view, zip);
 
     // Central header offset 24 holds the uncompressed size; lie about it.
     view.setUint32(central + 24, 0xFFFFFFF0, true);
@@ -194,17 +204,26 @@ describe('readZip', () => {
   it('should reject an unknown compression method', async() => {
     const zip = await writeZip([{ name: 'x.bin', data: new Uint8Array(4) }], false);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
-    let eocd = zip.byteLength - 22;
-
-    while (view.getUint32(eocd, true) !== 0x06054b50) {
-      eocd -= 1;
-    }
-
-    const central = view.getUint32(eocd + 16, true);
+    const central = centralDirectoryOffset(view, zip);
 
     view.setUint16(central + 10, 12, true);
 
     await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
       .rejects.toThrow(/compression method 12/);
+  });
+
+  it('should reject a central directory record whose length fields run past the end record', async() => {
+    const zip = await writeZip([{ name: 'x.bin', data: new Uint8Array(4) }], false);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const central = centralDirectoryOffset(view, zip);
+
+    // Central header offset 28 holds the file name length; lie about it so the last record's
+    // declared length runs past the end-of-central-directory record.
+    view.setUint16(central + 28, 0xFF00, true);
+
+    await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
+      .rejects.toThrow(/central directory record .* is malformed/);
+    await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
+      .rejects.toMatchObject({ cause: { handsontable: true } });
   });
 });
