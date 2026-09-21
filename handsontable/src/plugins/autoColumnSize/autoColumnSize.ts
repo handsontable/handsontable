@@ -409,12 +409,7 @@ export class AutoColumnSize extends BasePlugin {
 
     this.#applySamplingSettings();
 
-    // Registered behind every other `afterLoadData` listener (they use the default order). The
-    // sweep reads cells through `getDataAtCell()`, and the Formulas plugin feeds the new data to
-    // its engine in its own `afterLoadData` listener. Sampled ahead of it, a formula column was
-    // measured against the previous dataset's results, and the engine's `valuesUpdated` batch
-    // then queued every changed cell for a second synchronous full rescan on the resume render.
-    this.addHook('afterLoadData', this.#onAfterLoadData, 1);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
@@ -1179,10 +1174,10 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Triggers a full column width recalculation after new data is loaded, skipping the initial
-   * load since `#onInit` already handles it. Runs last among the `afterLoadData` listeners, so
-   * the sweep measures the values the other plugins (Formulas above all) derive from the new
-   * data, and the refinement queue those plugins fill while loading is discarded by the sweep
-   * instead of triggering a second full rescan.
+   * load since `#onInit` already handles it. The Formulas plugin registers its own
+   * `afterLoadData` listener ahead of this one, so the sweep reads the values the engine derives
+   * from the new data, and the refinement queue the engine update fills is discarded by the
+   * sweep instead of triggering a second full rescan.
    */
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     // Queued cells describe the previous dataset — their rows and previous values are

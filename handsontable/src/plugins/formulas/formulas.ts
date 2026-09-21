@@ -701,11 +701,18 @@ export class Formulas extends BasePlugin {
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
+    // Ahead of every default-order `afterLoadData` listener: the engine has to hold the new data
+    // before another plugin reads cells through `modifyData`. AutoColumnSize sweeps every column
+    // in its own `afterLoadData` listener, and registered behind it (this plugin's priority is
+    // higher) the sweep measured formula columns against the previous dataset's results, after
+    // which the engine's `valuesUpdated` batch queued every changed cell for a second synchronous
+    // full rescan on the resume render. Moving this listener, rather than that one, leaves the
+    // order of every other listener - plugins and host callbacks alike - as it was.
+    this.addHook('afterLoadData', this.#onAfterLoadData, -1);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
     this.addHook('beforeUpdateData', this.#onBeforeLoadData);
-    this.addHook('afterUpdateData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterLoadData, -1);
 
     this.addHook('modifyData', this.#onModifyData);
     this.addHook('modifySourceData', this.#onModifySourceData);
@@ -803,6 +810,9 @@ export class Formulas extends BasePlugin {
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
       this.#undoRedoDependentCells = this.engine!.undo() ?? [];
+      // The engine's undo can add, remove, or rename a sheet without emitting the sheet events
+      // that otherwise drop this cache.
+      this.#ownSheetExists = null;
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
@@ -826,6 +836,8 @@ export class Formulas extends BasePlugin {
       // Handsontable move must be validated first), so `engine.redo()` is not called here and
       // there are no engine-reported dependent cells to collect.
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
+      // Same as the undo: a redone sheet operation emits no sheet event.
+      this.#ownSheetExists = null;
     });
 
     this.addHook('afterUndo', (action: unknown) => {
@@ -2623,7 +2635,6 @@ export class Formulas extends BasePlugin {
       this.#sourceDataSyncPending ||
       // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
       this.#sourceDataProjectionSuspended ||
-      this.sheetName === null ||
       !this.#hasOwnSheet()
     ) {
       return;
@@ -2636,13 +2647,20 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // One translation for the type lookup, the dimensions check, and the serialized read.
+    const address = this.#toEngineAddress(visualRow, visualColumn);
+
+    if (address === null) {
+      return;
+    }
+
+    const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {
       return;
     }
 
-    const dimensions = this.engine!.getSheetDimensions(this.engine!.getSheetId(this.sheetName));
+    const dimensions = this.engine!.getSheetDimensions(address.sheet);
 
     // Don't actually change the source data if HyperFormula is not
     // initialized yet. This is done to allow the `afterLoadData` hook to
@@ -2651,12 +2669,6 @@ export class Formulas extends BasePlugin {
     if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
-
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
 
     valueHolder.value = this.engine!.getCellSerialized(address);
   };

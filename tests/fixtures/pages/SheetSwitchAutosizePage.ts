@@ -94,8 +94,8 @@ export class SheetSwitchAutosizePage {
     await this.page.evaluate(() => {
       const { sheetName } = window.hot.getPlugin('formulas');
 
-      if (sheetName !== null && window.hf) {
-        window.hf.removeSheet(window.hf.getSheetId(sheetName));
+      if (sheetName !== null && window.htEngine) {
+        window.htEngine.removeSheet(window.htEngine.getSheetId(sheetName));
       }
     });
   }

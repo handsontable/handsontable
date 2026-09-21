@@ -165,8 +165,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before
   the Formulas `afterLoadData` fed the new data to the engine, and the engine's `valuesUpdated` batch
-  queued every cell for a synchronous rescan; AutoColumnSize now registers that listener at
-  `orderIndex` 1, and `tests/e2e/sheet-switch-autosize.spec.ts` pins the count. What remains is
+  queued every cell for a synchronous rescan; the Formulas plugin now registers its listener at
+  `orderIndex` -1, and `tests/e2e/sheet-switch-autosize.spec.ts` pins the count. What remains is
   O(rows × cols) per `loadData()` by design — the `syncLimit` contract is "first paint exact" — so a
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
   double load and the Formulas `afterCellMetaReset` scan of the *outgoing* sheet that the

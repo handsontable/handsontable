@@ -39,7 +39,9 @@ test.describe('AutoColumnSize on a formula sheet switch', () => {
     // The switch runs `loadData()` twice (the Formulas plugin's `switchSheet` and then the bar's
     // own load, see the fixture), and each sweeps every column of the arriving sheet. The resume
     // render's visible walk covers the viewport range, which the departing sheet's columns still
-    // define at that point (all of them visible). Anything on top is the stale-engine rescan.
+    // define at that point (all of them visible) - a rendering-engine change that resets the
+    // rendered range on `loadData()` would legitimately turn that term into `arrivingColumns`.
+    // Anything on top of the sum is the stale-engine rescan this spec guards against.
     const arrivingColumns = await grid.columnCount();
 
     await expect.poll(() => grid.measuredColumns()).toBe(arrivingColumns * 2 + departingColumns);

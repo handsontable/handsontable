@@ -121,16 +121,20 @@ Three consequences:
 - **The synchronous sweep's samples are dropped on purpose.** It runs inside the `init` / `afterLoadData`
   hook cascade, *before* other plugins re-apply their cell meta (MergeCells' `spanned`/`hidden`), so what it
   collected cannot be trusted for later re-measures.
-- **The `afterLoadData` listener is registered at `orderIndex` 1, so it runs after every other plugin's
-  (DEV-2905).** The sweep reads cells through `getDataAtCell()`, and the Formulas plugin feeds the new data
-  to its engine in its own `afterLoadData` listener. Registered at the default order this plugin ran first
-  (its `PLUGIN_PRIORITY` is the lowest), measured formula columns against the *previous* dataset's results,
-  and the engine's `valuesUpdated` batch then queued every changed cell — which `#refreshQueuedColumnsWidth`
-  turned into a second synchronous full rescan on the resume render. A sheets-bar switch measured every
-  column three times. Running last, the sweep sees the fresh values and `recalculateAllColumnsWidth()`
-  discards the queue the load filled. `tests/e2e/sheet-switch-autosize.spec.ts` pins the count at
-  `countCols() * 2` (the load sweep plus the visible-columns walk). Do not move the listener back to the
-  default order to "measure earlier" — a sample taken before the engine holds the data is wrong, not early.
+
+## The `afterLoadData` sweep relies on the Formulas plugin running first (DEV-2905)
+
+This plugin has the lowest `PLUGIN_PRIORITY`, so at the default order its `afterLoadData` listener ran
+before every other plugin's — including the Formulas listener that feeds the new data to the engine. The
+sweep then measured formula columns against the *previous* dataset's results, and the engine's
+`valuesUpdated` batch queued every changed cell, which `#refreshQueuedColumnsWidth` turned into a second
+synchronous full rescan on the resume render: three measurements per column per `loadData()`. The Formulas
+plugin now registers that listener at `orderIndex` -1 (its own `AGENTS.md` says why it moved rather than
+this one), so the sweep sees fresh values and `recalculateAllColumnsWidth()` discards the queue.
+`tests/e2e/sheet-switch-autosize.spec.ts` pins the count at `countCols() * 2` (the load sweep plus the
+visible-columns walk). Keep this listener at the default order: AutoRowSize measures row heights against
+this plugin's widths in its own default-order `afterLoadData` listener, and host `afterLoadData` callbacks
+read `getColWidth()` — both expect the sweep to have run, which is what the plugin enable order gives them.
 
 ## The index map is `skipUnchangedWrites`
 
