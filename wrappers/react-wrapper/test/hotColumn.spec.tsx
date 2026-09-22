@@ -21,14 +21,14 @@ import {
   OBSOLETE_HOTEDITOR_WARNING,
   OBSOLETE_HOTRENDERER_WARNING,
   UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING
-} from '../src/helpers'
-import { HotTableProps, HotTableRef, HotRendererProps } from '../src/types'
+} from '../src/helpers';
+import { HotTableProps, HotTableRef, HotRendererProps } from '../src/types';
 
 // register Handsontable's modules
 registerAllModules();
 
 describe('Passing column settings using HotColumn', () => {
-  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
+  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
@@ -49,7 +49,7 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
   });
 
-  it('should allow to use data option as a string', async () => {
+  it('should allow to use data option as a string', async() => {
     const dataKeyCellValue = 'Value of key1 in row 0';
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
@@ -66,20 +66,20 @@ describe('Passing column settings using HotColumn', () => {
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotColumn renderer prop', async () => {
+  it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotColumn renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(100, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(100, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn renderer={RendererComponent}/>
       </HotTable>
@@ -102,22 +102,22 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('<div>value: B100</div>');
   });
 
-  it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotColumn renderer prop', async () => {
+  it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotColumn renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(100, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(100, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
-        <HotColumn renderer={(props) => <RendererComponent {...props} />}/>
+        <HotColumn renderer={props => <RendererComponent {...props} />}/>
       </HotTable>
     )).hotInstance!;
 
@@ -138,20 +138,20 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('<div>value: B100</div>');
   });
 
-  it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotColumn hotRenderer prop', async () => {
+  it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotColumn hotRenderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(100, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(100, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn hotRenderer={customNativeRenderer}/>
       </HotTable>
@@ -174,25 +174,25 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 1)!.innerHTML).toEqual('value: B100');
   });
 
-  it('should issue a warning when the renderer component is nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
+  it('should issue a warning when the renderer component is nested under HotColumn and assigned the \'hot-renderer\' attribute', async() => {
     console.warn = jest.fn();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(100, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(100, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn>
-          {/* @ts-ignore */}
+          {/* @ts-expect-error `hot-renderer` is deliberately invalid: testing the obsolete-API warning. */}
           <RendererComponent hot-renderer></RendererComponent>
         </HotColumn>
       </HotTable>
@@ -205,18 +205,18 @@ describe('Renderer configuration using React components', () => {
 });
 
 describe('Editor configuration using React components', () => {
-  it('should mount a column editor component inside the Handsontable root portal', async () => {
+  it('should mount a column editor component inside the Handsontable root portal', async() => {
     const hotTableComponent = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn editor={EditorComponent} />
       </HotTable>
@@ -231,18 +231,18 @@ describe('Editor configuration using React components', () => {
     expect(portalHost!.classList.contains('hot-wrapper-editor-container')).toBe(false);
   });
 
-  it('should use the editor component as Handsontable editor, when it\'s passed as component to HotColumn editor prop', async () => {
+  it('should use the editor component as Handsontable editor, when it\'s passed as component to HotColumn editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn editor={EditorComponent} />
       </HotTable>
@@ -250,7 +250,7 @@ describe('Editor configuration using React components', () => {
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -258,7 +258,7 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('block');
     expect(hotInstance.getDataAtCell(0, 1)).toEqual('B1');
 
-    await act(async () => {
+    await act(async() => {
       simulateMouseEvent(document.querySelector('#editorComponentContainer button'), 'click');
     });
 
@@ -268,7 +268,7 @@ describe('Editor configuration using React components', () => {
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -276,26 +276,26 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
-  it('should use the editor component as Handsontable editor, when it\'s passed inline to HotColumn editor prop', async () => {
+  it('should use the editor component as Handsontable editor, when it\'s passed inline to HotColumn editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
-        <HotColumn editor={(props) => <EditorComponent {...props} />} />
+        <HotColumn editor={props => <EditorComponent {...props} />} />
       </HotTable>
     )).hotInstance!;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -303,7 +303,7 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('block');
     expect(hotInstance.getDataAtCell(0, 1)).toEqual('B1');
 
-    await act(async () => {
+    await act(async() => {
       simulateMouseEvent(document.querySelector('#editorComponentContainer button'), 'click');
     });
 
@@ -313,7 +313,7 @@ describe('Editor configuration using React components', () => {
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -321,24 +321,24 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
-  it('should use the editor class as native Handsontable editor, when it\'s passed to HotColumn hotEditor prop', async () => {
+  it('should use the editor class as native Handsontable editor, when it\'s passed to HotColumn hotEditor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn hotEditor={CustomNativeEditor} />
       </HotTable>
     )).hotInstance!;
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
       (document.activeElement as HTMLInputElement).value = 'hello';
@@ -348,37 +348,37 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getDataAtCell(0, 1)).toEqual('--hello--');
   });
 
-  it('should be possible to reuse editor components between columns with different props passed to them', async () => {
+  it('should be possible to reuse editor components between columns with different props passed to them', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <HotColumn editor={(props) => <EditorComponent background='red' {...props} />} />
-        <HotColumn editor={(props) => <EditorComponent background='yellow' {...props} />} />
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
+        <HotColumn editor={props => <EditorComponent background='red' {...props} />} />
+        <HotColumn editor={props => <EditorComponent background='yellow' {...props} />} />
       </HotTable>
     )).hotInstance!;
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
     });
 
     expect((document.querySelectorAll('#editorComponentContainer')[0] as any).style.backgroundColor).toEqual('red');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.getActiveEditor()!.close();
       hotInstance.selectCell(0, 1);
     });
 
     expect((document.querySelectorAll('#editorComponentContainer')[1] as any).style.backgroundColor).toEqual('yellow');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -388,26 +388,26 @@ describe('Editor configuration using React components', () => {
     hotInstance.getActiveEditor()!.close();
   });
 
-  it('should issue a warning when the editor component is nested under HotColumn and assigned the \'hot-editor\' attribute', async () => {
+  it('should issue a warning when the editor component is nested under HotColumn and assigned the \'hot-editor\' attribute', async() => {
     console.warn = jest.fn();
 
     mountComponentWithRef<HotTableRef>((
-        <HotTable licenseKey="non-commercial-and-evaluation"
-                  id="test-hot"
-                  data={createSpreadsheetData(3, 2)}
-                  width={300}
-                  height={300}
-                  rowHeights={23}
-                  colWidths={50}
-                  init={function () {
-                    mockElementDimensions(this.rootElement, 300, 300);
-                  }}>
-          <HotColumn/>
-          <HotColumn>
-            {/* @ts-ignore */}
-            <EditorComponent hot-editor></EditorComponent>
-          </HotColumn>
-        </HotTable>
+      <HotTable licenseKey="non-commercial-and-evaluation"
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
+        <HotColumn/>
+        <HotColumn>
+          {/* @ts-expect-error `hot-editor` is deliberately invalid: testing the obsolete-API warning. */}
+          <EditorComponent hot-editor></EditorComponent>
+        </HotColumn>
+      </HotTable>
     ));
 
     expect(document.querySelector('#editorComponentContainer')).not.toBeTruthy();
@@ -415,18 +415,18 @@ describe('Editor configuration using React components', () => {
     expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
   });
 
-  it('should disable editing for a column with the `editor` prop set to `false`', async () => {
+  it('should disable editing for a column with the `editor` prop set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn editor={false} />
         <HotColumn />
       </HotTable>
@@ -434,7 +434,7 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0)).toBe(false);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -446,7 +446,7 @@ describe('Editor configuration using React components', () => {
     // prop had an effect rather than the test being dead.
     expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -454,18 +454,18 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
-  it('should disable editing for a column with the `hotEditor` prop set to `false`', async () => {
+  it('should disable editing for a column with the `hotEditor` prop set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn hotEditor={false} />
         <HotColumn />
       </HotTable>
@@ -473,7 +473,7 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0)).toBe(false);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -484,7 +484,7 @@ describe('Editor configuration using React components', () => {
     // Positive control, as above.
     expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -492,11 +492,11 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
-  it('should apply and revert a dynamic switch of a column `editor` prop to `false`', async () => {
+  it('should apply and revert a dynamic switch of a column `editor` prop to `false`', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const hotSettings: HotTableProps = {
-      licenseKey: "non-commercial-and-evaluation",
-      id: "test-hot",
+      licenseKey: 'non-commercial-and-evaluation',
+      id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
@@ -504,7 +504,7 @@ describe('Editor configuration using React components', () => {
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
-      init: function () {
+      init() {
         mockElementDimensions(this.rootElement, 300, 300);
       },
       children: [<HotColumn key={'1'} />, <HotColumn key={'2'} />]
@@ -516,7 +516,7 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotSettings.children = [<HotColumn key={'1'} editor={false} />, <HotColumn key={'2'} />];
       renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
@@ -524,7 +524,7 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getCellEditor(0, 0)).toBe(false);
     expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -532,7 +532,7 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()).toBeUndefined();
 
     // Dropping the prop brings the default editor back, so `false` does not stick.
-    await act(async () => {
+    await act(async() => {
       hotSettings.children = [<HotColumn key={'1'} />, <HotColumn key={'2'} />];
       renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
@@ -540,11 +540,11 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
   });
 
-  it('should apply and revert a dynamic switch of a column `hotEditor` prop to `false`', async () => {
+  it('should apply and revert a dynamic switch of a column `hotEditor` prop to `false`', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const hotSettings: HotTableProps = {
-      licenseKey: "non-commercial-and-evaluation",
-      id: "test-hot",
+      licenseKey: 'non-commercial-and-evaluation',
+      id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
@@ -552,7 +552,7 @@ describe('Editor configuration using React components', () => {
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
-      init: function () {
+      init() {
         mockElementDimensions(this.rootElement, 300, 300);
       },
       children: [<HotColumn key={'1'} />, <HotColumn key={'2'} />]
@@ -564,7 +564,7 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotSettings.children = [<HotColumn key={'1'} hotEditor={false} />, <HotColumn key={'2'} />];
       renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
@@ -572,7 +572,7 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getCellEditor(0, 0)).toBe(false);
     expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -580,7 +580,7 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()).toBeUndefined();
 
     // Dropping the prop brings the default editor back, so `false` does not stick.
-    await act(async () => {
+    await act(async() => {
       hotSettings.children = [<HotColumn key={'1'} />, <HotColumn key={'2'} />];
       renderHotTableWithProps(hotSettings, false, hotTableRef);
     });
@@ -588,18 +588,18 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
   });
 
-  it('should let a column `hotEditor` editor win over an `editor` prop set to `false`', async () => {
+  it('should let a column `hotEditor` editor win over an `editor` prop set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn editor={false} hotEditor={CustomNativeEditor} />
         <HotColumn />
       </HotTable>
@@ -609,7 +609,7 @@ describe('Editor configuration using React components', () => {
     // applies, which is how every released version behaved.
     expect(hotInstance.getCellEditor(0, 0)).toBe(CustomNativeEditor);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
       (document.activeElement as HTMLInputElement).value = 'hello';
@@ -619,18 +619,18 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('--hello--');
   });
 
-  it('should treat a column `editor` or `hotEditor` prop of `true` as if the prop was not passed', async () => {
+  it('should treat a column `editor` or `hotEditor` prop of `true` as if the prop was not passed', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 4)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 4)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn type="numeric" editor={true} />
         <HotColumn type="numeric" hotEditor={true} />
         <HotColumn type="numeric" />
@@ -646,7 +646,7 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getCellEditor(0, 2).EDITOR_TYPE).toBe('numeric');
     expect(hotInstance.getCellEditor(0, 3).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -654,18 +654,18 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('NumericEditor');
   });
 
-  it('should keep a column editable when a falsy `editor` prop is not `false`', async () => {
+  it('should keep a column editable when a falsy `editor` prop is not `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         {/* The `cond ? MyEditor : null` idiom must inherit, not lock the column. */}
         <HotColumn editor={null as any} />
         <HotColumn />
@@ -674,7 +674,7 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -682,19 +682,19 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
-  it('should let a bare HotColumn inherit an `editor` of `false` set on the grid', async () => {
+  it('should let a bare HotColumn inherit an `editor` of `false` set on the grid', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                editor={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        editor={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn />
         <HotColumn hotEditor={CustomNativeEditor} />
       </HotTable>
@@ -703,7 +703,7 @@ describe('Editor configuration using React components', () => {
     // A column that names no editor of its own must inherit the grid-level `false`.
     expect(hotInstance.getCellEditor(0, 0)).toBe(false);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       simulateKeyboardEvent('keydown', 13);
     });
@@ -716,7 +716,11 @@ describe('Editor configuration using React components', () => {
 });
 
 describe('Dynamic HotColumn configuration changes', () => {
-  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async () => {
+  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async() => {
+    /**
+     *
+     * @param props
+     */
     function RendererComponent2(props: HotRendererProps) {
       return (
         <>r2: {props.value}</>
@@ -726,8 +730,8 @@ describe('Dynamic HotColumn configuration changes', () => {
     const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
-      licenseKey: "non-commercial-and-evaluation",
-      id: "test-hot",
+      licenseKey: 'non-commercial-and-evaluation',
+      id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
@@ -736,13 +740,13 @@ describe('Dynamic HotColumn configuration changes', () => {
       readOnly: false,
       autoRowSize: false,
       autoColumnSize: false,
-      init: function () {
+      init() {
         mockElementDimensions(this.rootElement, 300, 300);
       },
-      renderer: (props) => <RendererComponent {...props} key={'1'}/>,
+      renderer: props => <RendererComponent {...props} key={'1'}/>,
       children: [
         <HotColumn title="test title" className="first-column-class-name" key={'2'}
-                   editor={() => <EditorComponent className="editor-className-1" background='red' />} />,
+          editor={() => <EditorComponent className="editor-className-1" background='red' />} />,
         <HotColumn title="test title 2" key={'3'} renderer={RendererComponent2} />
       ]
     };
@@ -754,11 +758,12 @@ describe('Dynamic HotColumn configuration changes', () => {
     let editorElement = document.querySelector('#editorComponentContainer') as HTMLElement;
 
     expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].title).toEqual('test title');
-    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].className).toEqual('first-column-class-name');
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[0].className)
+      .toEqual('first-column-class-name');
     expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
     expect(hotInstance.getCell(1, 0)!.innerHTML).toEqual('<div>value: A2</div>');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       hotInstance.getActiveEditor()!.open();
     });
@@ -768,7 +773,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(editorElement.style.background).toEqual('red');
     expect(editorElement.className.includes('editor-className-1')).toBe(true);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.getActiveEditor()!.close();
     });
 
@@ -799,7 +804,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>r2: A1</div>');
     expect(hotInstance.getCell(1, 0)!.innerHTML).toEqual('<div>r2: A2</div>');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 0);
       hotInstance.getActiveEditor()!.open();
     });
@@ -809,16 +814,17 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(editorElement.style.background).toEqual('blue');
     expect(editorElement.className.includes('editor-className-2')).toBe(true);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.getActiveEditor()!.close();
     });
 
     expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].title).toEqual('test title');
-    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].className).toEqual('first-column-class-name');
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[])[1].className)
+      .toEqual('first-column-class-name');
     expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('<div>value: B1</div>');
     expect(hotInstance.getCell(1, 1)!.innerHTML).toEqual('<div>value: B2</div>');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.selectCell(0, 1);
       hotInstance.getActiveEditor()!.open();
     });
@@ -826,7 +832,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getActiveEditor()!.constructor.name).toEqual('CustomEditor');
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('block');
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.getActiveEditor()!.close();
     });
 
@@ -835,7 +841,7 @@ describe('Dynamic HotColumn configuration changes', () => {
 });
 
 describe('Dynamic HotColumn add/remove', () => {
-  it('should drop column settings when a HotColumn is removed from the end', async () => {
+  it('should drop column settings when a HotColumn is removed from the end', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -880,7 +886,7 @@ describe('Dynamic HotColumn add/remove', () => {
       .toEqual(['A', 'B']);
   });
 
-  it('should drop column settings when a HotColumn is removed from the middle (stable keys)', async () => {
+  it('should drop column settings when a HotColumn is removed from the middle (stable keys)', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -923,7 +929,7 @@ describe('Dynamic HotColumn add/remove', () => {
       .toEqual(['A', 'C']);
   });
 
-  it('should reduce columns to one when all-but-one HotColumns are removed', async () => {
+  it('should reduce columns to one when all-but-one HotColumns are removed', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -963,7 +969,7 @@ describe('Dynamic HotColumn add/remove', () => {
       .toEqual(['A']);
   });
 
-  it('should keep a component renderer on a surviving column when an earlier column is removed', async () => {
+  it('should keep a component renderer on a surviving column when an earlier column is removed', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -1008,7 +1014,7 @@ describe('Dynamic HotColumn add/remove', () => {
     expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('B1');
   });
 
-  it('should reflect a keyed reorder of HotColumn children', async () => {
+  it('should reflect a keyed reorder of HotColumn children', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -1050,7 +1056,7 @@ describe('Dynamic HotColumn add/remove', () => {
       .toEqual(['C', 'A', 'B']);
   });
 
-  it('should restore correct column settings through an add -> remove -> add cycle', async () => {
+  it('should restore correct column settings through an add -> remove -> add cycle', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const baseProps: HotTableProps = {
       licenseKey: 'non-commercial-and-evaluation',
@@ -1122,18 +1128,18 @@ describe('Dynamic HotColumn add/remove', () => {
 });
 
 describe('Miscellaneous scenarios with `HotColumn` config', () => {
-  it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async () => {
+  it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async() => {
     const onAfterValidate = jest.fn();
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                data={[['yellow'], ['white'], ['orange']]}
-                afterValidate={onAfterValidate}
+        data={[['yellow'], ['white'], ['orange']]}
+        afterValidate={onAfterValidate}
       >
         <HotColumn type="dropdown" source={['yellow', 'red', 'orange']}/>
       </HotTable>
     )).hotInstance!;
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.populateFromArray(0, 0, [['test'], ['test2'], ['test3']]);
     });
 
@@ -1146,26 +1152,25 @@ describe('Miscellaneous scenarios with `HotColumn` config', () => {
   });
 });
 
-
 describe('Passing children', () => {
-  it('should issue a warning when anything is nested under HotColumn', async () => {
+  it('should issue a warning when anything is nested under HotColumn', async() => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-        <HotTable licenseKey="non-commercial-and-evaluation"
-                  id="test-hot"
-                  data={createSpreadsheetData(3, 2)}
-                  width={300}
-                  height={300}
-                  rowHeights={23}
-                  colWidths={50}
-                  init={function () {
-                    mockElementDimensions(this.rootElement, 300, 300);
-                  }}>
-          <HotColumn>
-            <div>Something unexpected</div>
-          </HotColumn>
-        </HotTable>
+      <HotTable licenseKey="non-commercial-and-evaluation"
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
+        <HotColumn>
+          <div>Something unexpected</div>
+        </HotColumn>
+      </HotTable>
     ));
 
     expect(console.warn).toHaveBeenCalledWith(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);

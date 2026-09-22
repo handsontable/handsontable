@@ -6,17 +6,20 @@ import {
   mockElementDimensions,
   mountComponentWithRef
 } from './_helpers';
-import { HotRendererProps, HotTableRef } from '../src/types'
+import { HotRendererProps, HotTableRef } from '../src/types';
 
 describe('React Context', () => {
-  it('should be possible to declare a context and use it inside both renderers and editors', async () => {
+  it('should be possible to declare a context and use it inside both renderers and editors', async() => {
     let hotTableInstance: HotTableRef = null!;
     const TestContext = React.createContext('def-test-val');
 
+    /**
+     *
+     */
     function RendererComponent2() {
       return (
         <TestContext.Consumer>
-          {(context) => <>{context}</>}
+          {context => <>{context}</>}
         </TestContext.Consumer>
       );
     }
@@ -25,11 +28,11 @@ describe('React Context', () => {
       return (
         <div className={className}>
           <TestContext.Consumer>
-            {(context) => <>{context}</>}
+            {context => <>{context}</>}
           </TestContext.Consumer>
         </div>
       );
-    }
+    };
 
     class RendererComponent3 extends React.Component<HotRendererProps> {
       render() {
@@ -37,7 +40,7 @@ describe('React Context', () => {
           <>
             {this.context}
           </>
-        )
+        );
       }
     }
     RendererComponent3.contextType = TestContext;
@@ -50,7 +53,7 @@ describe('React Context', () => {
           <div className={this.props.className}>
             {this.context}
           </div>
-        )
+        );
       }
     }
     EditorComponent3.contextType = TestContext;
@@ -58,24 +61,24 @@ describe('React Context', () => {
     mountComponentWithRef<HotTableRef>((
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
-                  id="test-hot"
-                  data={createSpreadsheetData(3, 2)}
-                  width={300}
-                  height={300}
-                  rowHeights={23}
-                  colWidths={50}
-                  autoRowSize={false}
-                  autoColumnSize={false}
-                  init={function () {
-                    mockElementDimensions(this.rootElement, 300, 300);
-                  }}
-                  ref={function (instance) {
-                    hotTableInstance = instance!;
-                  }}>
+          id="test-hot"
+          data={createSpreadsheetData(3, 2)}
+          width={300}
+          height={300}
+          rowHeights={23}
+          colWidths={50}
+          autoRowSize={false}
+          autoColumnSize={false}
+          init={function() {
+            mockElementDimensions(this.rootElement, 300, 300);
+          }}
+          ref={function(instance) {
+            hotTableInstance = instance!;
+          }}>
           <HotColumn renderer={RendererComponent2}
-                     editor={() => <EditorComponent2 className="ec2" />} />
+            editor={() => <EditorComponent2 className="ec2" />} />
           <HotColumn renderer={RendererComponent3}
-                     editor={() => <EditorComponent3 className="ec3" />} />
+            editor={() => <EditorComponent3 className="ec3" />} />
         </HotTable>
       </TestContext.Provider>
     ));

@@ -36,7 +36,8 @@ type HotTable = ForwardRefExoticComponent<HotTableProps & RefAttributes<HotTable
  * ```
  */
 const HotTable: HotTable = forwardRef<HotTableRef, HotTableProps>(({ children, ...props }, ref) => {
-  const componentId = props.id ?? useId();
+  const generatedId = useId();
+  const componentId = props.id ?? generatedId;
 
   return (
     <HotTableContextProvider>
@@ -45,7 +46,7 @@ const HotTable: HotTable = forwardRef<HotTableRef, HotTableProps>(({ children, .
       </HotTableInner>
     </HotTableContextProvider>
   );
-})
+});
 
 /**
  * Package version.
