@@ -2924,6 +2924,12 @@ export default function Core(
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
+   * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
+   * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
+   * infinite loop. If you need to update data from within a renderer, guard the call (for example, skip it when the
+   * new value already equals the current one), or, preferably, perform the update in a data-change hook such as
+   * {@link Hooks#afterChange} and keep the renderer display-only.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -3150,10 +3156,14 @@ export default function Core(
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_col` and
+   * `remove_col` to add or remove columns.
    * @param {number} column Index of the column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3161,14 +3171,23 @@ export default function Core(
    * @returns {Array} Returns removed portion of columns.
    */
   this.spliceCol = function(column: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceCol',
+      'The `spliceCol()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_col`/`remove_col`.');
+
     return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_row` and
+   * `remove_row` to add or remove rows.
    * @param {number} row Index of column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3176,6 +3195,11 @@ export default function Core(
    * @returns {Array} Returns removed portion of rows.
    */
   this.spliceRow = function(row: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceRow',
+      'The `spliceRow()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_row`/`remove_row`.');
+
     return datamap.spliceRow(row, index, amount, ...elements);
   };
 

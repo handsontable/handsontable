@@ -85,17 +85,35 @@ export function createISODateTimeSortComparator(): (a: unknown, b: unknown) => n
 }
 
 /**
- * Returns the appropriate sort comparator for the given column cell meta, or `undefined` if
- * no cell-type-specific comparator is needed (falls back to `unifyColumnValues` default).
+ * Returns the comparator that orders a column's "Filter by value" list, or `undefined` if the
+ * default order of `unifyColumnValues` applies.
  *
- * @param {*} meta The cell meta object for the column. Anything that is not an object carrying a
- * `type` is treated as "no comparator", so callers may pass a loosely typed data-map entry.
+ * Resolution order:
+ * 1. `meta.filterValueComparator`, when it is a function – the user's own order for that column.
+ * 2. The cell-type comparator (`date`, `intl-date`, `intl-datetime`).
+ * 3. `undefined` (default comparator).
+ *
+ * The comparator only ORDERS the list. `unifyColumnValues` dedupes the values before sorting, so
+ * no comparator can add or drop a value, and the filter's result never depends on it.
+ *
+ * @param {*} meta The cell meta object for the column. Anything that is not an object is treated
+ * as "no comparator", so callers may pass a loosely typed data-map entry.
  * @returns {Function|undefined}
  */
 export function getSortComparatorForMeta(
   meta: unknown
 ): ((a: unknown, b: unknown) => number) | undefined {
-  if (meta === null || typeof meta !== 'object' || !('type' in meta)) {
+  if (meta === null || typeof meta !== 'object') {
+    return undefined;
+  }
+
+  const { filterValueComparator } = meta as { filterValueComparator?: unknown };
+
+  if (typeof filterValueComparator === 'function') {
+    return filterValueComparator as (a: unknown, b: unknown) => number;
+  }
+
+  if (!('type' in meta)) {
     return undefined;
   }
 

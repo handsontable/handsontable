@@ -31,6 +31,21 @@ Related, on the hook side: **`afterSetDataAtCell` carries visual rows while
 and silently suppresses whichever cell it collides with. `prop` needs no such care: `propToCol()` returns a
 visual column on both paths.
 
+> **The two exceptions to "always translate": `getCellDependents` / `getCellPrecedents`.** These public
+> methods (DEV-204) are the only ones that speak HF index space at their boundary. They neither translate
+> the incoming address nor translate the addresses they return, unlike `getCellType` / `isFormulaCellType`,
+> which take visual `(row, column)`. It is deliberate, not a missed `getVisualIndexFromHfIndex()`.
+> HyperFormula's dependency graph is inherently an HF-space concept, and its results cannot be expressed in
+> visual space: a dependent can live on another sheet, the result can be a range rather than a cell, and a
+> named-expression reference comes back with `sheet: -1`, none of which has a Handsontable visual
+> coordinate. The consequence a caller must know (and the JSDoc states): the returned HF indexes equal
+> visual indexes only when nothing is trimmed, hidden, moved, or sorted. Do not "fix" these two by routing
+> them through the axis syncers, and do not copy their raw-address pattern into a method that is supposed to
+> be visual. The public argument/return types are `FormulasCellAddress` / `FormulasCellRange`
+> (`engine/types.ts`, re-exported from the plugin barrel). They are named to avoid a collision with
+> HyperFormula's own `SimpleCellAddress` / `SimpleCellRange`, since core source never imports from
+> `'hyperformula'`.
+
 ## Undo/redo bypasses the change listeners — and that is the design
 
 ```js
@@ -99,6 +114,135 @@ switches the sheet, and dropping them would skip that.
 `engine/register.ts` accepts three shapes: an engine class, an engine instance, or
 `{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
 registry.
+
+## `updateSettings()` resyncs the sheet ONCE, after the plugins update
+
+The sheet is rebuilt from the source data by `#resyncSheet()` — one full scan of the source data, one
+`setSheetContent`. The Core fires `afterCellMetaReset` in the **middle** of `updateSettings()`, before
+`afterUpdateSettings`, which is where every plugin's `onUpdateSettings` runs. So a scan run there describes
+a layout a plugin may be about to replace: `nestedRows: true` flattens a two-row tree into four rows, and
+an engine left with the two-row sheet rendered `Root B`'s `=UPPER(A1)` as its own raw text while the
+computed value slid onto another row (DEV-2978).
+
+One flag, `#sheetResyncPending`, connects four drains:
+
+- **`#onAfterCellMetaReset`** records that a resync is owed and which sheet it belongs to
+  (`#sheetIdAtLastSync`). It scans eagerly in exactly two cases: **construction**, because the Core skips
+  `afterUpdateSettings` on its first run and `hot.view` does not exist yet, so there is no late pass to
+  defer to; and the **empty-data branch**, which is not a scan but a reload of the grid FROM the sheet
+  (`switchSheet()`), and which records the layout it produced.
+- **`#onBeforeRender`** drains it before a draw starts. This is where the scan actually lands on the
+  `nestedRows` toggle: NestedRows renders from its own `onUpdateSettings`, after it has flattened the tree.
+  Without this drain the first cell's paint gate would drain it through `#onModifyData`, and the full scan
+  plus the dependent grids' redraw would run from inside a cell paint of this grid's own draw (measured
+  stack: `#resyncSheet <- #onModifyData <- CellPainter.shouldPaint <- TableView.render <-
+  NestedRows.onUpdateSettings`).
+- **`#onModifyData` / `#onModifySourceData`** drain it when something reads the engine before either of
+  the above — a plugin's `onUpdateSettings`, a user's default-order `afterUpdateSettings` listener.
+- **`#onAfterUpdateSettingsRowCount`**, the `afterUpdateSettings` listener registered with
+  **`orderIndex: 1`** — after every default-order listener, the plugins' included — drains whatever is
+  still owed. When nothing is (an earlier drain ran, or the eager branch did) it falls back to the DEV-2978
+  gate: `countSourceRows()` against the count the last write recorded (`#recordSyncedLayout()`), on the
+  same sheet id, and rescans only when the count moved after that write.
+
+That is one scan per `updateSettings()`. Measured locally with the `performance-tests` harness on a
+throwaway scenario — the perf suite stays small and broad, and the count is pinned by the tests below —
+(5,000 parents with one child each, 10,000 rows flattened, `updateSettings({ nestedRows: true })`):
+**151 ms → 99 ms total (−34%), 2 → 1 `setSheetContent` per toggle, 5 iterations** (DEV-3006; heap moved
+−4% to −11% across develop runs, so read that column loosely). Before DEV-3006 the mid-update scan ran and was discarded, and the late
+listener scanned again. The total did not shrink for a settings change that leaves the row count alone: the
+one scan moved from `afterCellMetaReset` to the first drain, so a user listener that reads one cell mid-cycle
+now pays it inside that read (measured 78–90 ms at 10,000 rows, against 0 ms before), and a profiler bills
+it to the listener.
+
+Rules that keep it correct:
+
+- **Reads through the Core data API never see a stale engine; the plugin's own methods can.**
+  `getDataAtCell()`, `getData()`, `getSourceDataAtCell()`, `getSourceData()` and a render all pass through
+  the two read hooks, which drain the flag after their own early-return guards, so a plugin's
+  `onUpdateSettings` or a user's default-order listener that reads a cell gets the sheet the update
+  produced. `getCellType()`, `isFormulaCellType()`, `getCellDependents()`, `getCellPrecedents()` and a
+  direct `plugin.engine.*` read do NOT drain: from a default-order listener they answer for the PREVIOUS
+  sheet until the update returns, where before DEV-3006 they answered for the mid-update scan (a different
+  stale state, but stale on a row-count change too). A second grid on the same engine reading this sheet
+  through a cross-sheet reference sees the previous sheet in that window as well; it is re-rendered when
+  the drain runs. No core plugin reads any of those inside the window.
+- **A listener throw is self-healing; a scan throw is not retried.** If a default-order listener throws,
+  `updateSettings()` unwinds before the late listener runs and the flag stays set; the next draw or engine
+  read drains it, and so does the next `updateSettings()` or `loadData()`. If the SCAN throws — a `cells()`
+  handler that throws for one cell, a dependent grid whose `afterRender` throws — `#resyncSheet()` leaves
+  the flag cleared and the layout unrecorded, and the next `updateSettings()` retries. It must not re-arm
+  the flag: measured with a persistently throwing write, a re-armed flag turned every later `getDataAtCell()`
+  and `render()` into a full scan that threw again (3 reads, 3 throws, 4 writes), where develop threw once
+  and kept rendering. The one deterministic engine throw, a sheet over `maxRows` / `maxColumns`, is not
+  thrown at all: `isItPossibleToReplaceSheetContent` is checked first and `#clearRejectedSheet()` empties
+  the sheet with a warning, the same treatment `#onAfterLoadData` gives a rejected load. Covered by `syncs
+  the sheet on the next read when a default-order listener throws`, `does not retry a scan that threw until
+  the next settings update`, `stops scanning after a write that fails on every attempt`, and `empties the
+  sheet instead of throwing when the engine cannot hold the layout`.
+- **A scan can now throw out of a READ or a RENDER.** The drain moved from `updateSettings()` into the
+  hooks, so a resync that fails surfaces from the `getDataAtCell()`, `getSourceDataAtCell()` or `render()`
+  that drained it, where before it surfaced from `updateSettings()`. Accepted: the alternative is serving a
+  value from a sheet known to be stale. It surfaces once, per the rule above.
+- **`#resyncSheet()` clears the flag FIRST.** The scan reads the source data through the very hooks that
+  drain the flag — `#getProcessedSourceDataArray` suspends the projection for its bulk read but not for the
+  `getSourceDataAtRow` probe that follows it — so a flag still set inside the scan re-enters the method from
+  its own scan (measured as a stack overflow). Every write releases `#internalOperationPending` in a
+  `finally` — `#writeSheet()` is the one full-write path, shared by `#resyncSheet()` and the
+  `#onAfterLoadData` write branch, and `#clearRejectedSheet()` does the same for the emptying write —
+  because the read hooks return early while it is set and would otherwise serve raw formula text until
+  the next settings update. That is what the frozen Jasmine spec `should recover when a dependent grid
+  throws mid-write` used to pin as an intermediate state and now asserts the healed value of, and what
+  `keeps serving the engine after a dependent grid throws during a loadData write` pins for the load path.
+- **Binding another sheet cancels the owed resync.** `#updateSheetNameAndSheetId()` clears the flag, so
+  `switchSheet()` (which loads the grid FROM the sheet) and the `addSheet` callers (which filled the sheet
+  from the grid) leave nothing to carry — a drain after them would write this grid's visible-column
+  projection over the sheet just bound: a grid showing one column of a three-column sheet truncated that
+  sheet for every grid sharing the engine (the DEV-2978 data-loss case). The late listener's sheet-id check
+  is the second line of defense. Covered by `does not write the grid into a sheet the update switched to`
+  (unit) and `does not write the grid back into a sheet it just switched to` (Playwright).
+  `#onAfterLoadData`'s own write clears it for the same reason.
+- **Key the fallback gate off the row COUNT, never off a plugin.** Nothing here knows what changed the
+  layout, which is the point — the next plugin to flatten, group or expand rows at settings time is
+  covered without a change, **as long as it reports through `modifySourceLength`**. `minRows` /
+  `minSpareRows` are NOT in that class: the Core creates those rows in `adjustRowsAndCols()`, after
+  `afterUpdateSettings`, and they reach the engine through `afterCreateRow`. A read that drains BEFORE a
+  row-count-changing plugin runs (a listener on `afterCellMetaReset`) costs the second scan the gate exists
+  for — covered by `rescans when the row count moves after an early drain`.
+- **Record the layout at the END of every write, never at the start.** `#resyncSheet()`,
+  `#clearRejectedSheet()`, the `#onAfterLoadData` write branch and the empty-data reload all record it.
+  The empty-data branch's `switchSheet()` runs `loadData()`, which moves the row count itself; a count
+  taken first describes a layout the handler then replaced, and the late listener re-entered for a change
+  the handler had just made. A `loadData()` from a default-order listener records too, so the gate does not
+  take the rows it loaded for a foreign layout change — covered by `lets a default-order listener load data
+  without a second scan`.
+- **One `setSheetContent` per update is also one engine undo entry per update.** Every write pushes a
+  HyperFormula undo entry and clears its redo stack, and the grid records no action for a settings update,
+  so the discarded second scan used to add an entry the grid could never match. Covered by `pushes exactly
+  one engine undo entry per settings update`; it counts entries, it does not prove the two stacks agree
+  after an `undo()`, because NestedRows clears the grid's history on enable.
+- **`hot.view` is the init detector, on purpose.** The Core creates the view right after the first
+  `updateSettings(settings, true)`, so it is absent during the construction-time `afterCellMetaReset`
+  and present for every later one; `collapsibleColumns` and `emptyDataState` read the same signal. Covered
+  by `fills the sheet before the first draw at construction`.
+- **The incremental alternative was considered and rejected.** Replacing the late full scan with
+  `addRows` / `removeRows` for the row delta does not work: flattening inserts rows in the INTERIOR of the
+  sheet, not at the end, so the delta is not an append and the insert positions would have to be derived
+  from the tree. More machinery and more ways to be quietly wrong; revisit only if the deferral above turns
+  out to be unsafe.
+- **Known gap:** a foreign `afterUpdateSettings` listener that runs `disablePlugin(); enablePlugin()` on
+  this plugin mid-update drops the owed resync (`disablePlugin` clears the flag, `enablePlugin` finds the
+  sheet still in a user-supplied engine and skips the rebuild), so the sheet keeps the previous data until
+  the next update. Formulas' own `updatePlugin` does not do this. Not fixed, because setting the flag on
+  every re-enable would also rescan a plain runtime re-enable, which never rebuilt the sheet before.
+- **On a SHRINK, `getSheetDimensions()` is the wrong probe.** The engine grows a sheet to calculate
+  values outside it and does not hand that extent back, so after a four-row grid drops to two the
+  dimensions still report four while the content is correct. Assert `getSheetSerialized()` instead —
+  `tests/e2e/formulas-nested-rows-toggle.spec.ts` does.
+
+Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, listener and scan throws,
+engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
+(`rebuilds the sheet once per toggle`).
 
 ## The engine's sheet size is not the grid's axis length, in either direction
 
