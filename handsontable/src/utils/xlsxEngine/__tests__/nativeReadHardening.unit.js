@@ -320,6 +320,42 @@ describe('native reader hardening: the <sheetProtection> attribute allow-list', 
   });
 });
 
+describe('native reader hardening: a package part the workbook names but does not carry', () => {
+  it('should refuse a package whose root relationship points at a workbook part that is absent', async() => {
+    // The workbook's path is the ROOT relationship's own text, so a package may name any part —
+    // including one it does not hold. Without this check the reader asked the archive for the
+    // missing part and surfaced the ZIP layer's "no entry named" instead of saying what is wrong
+    // with the package.
+    const bytes = await repack('values', (part, text) => (
+      part === '_rels/.rels' ? text.replace('Target="xl/workbook.xml"', 'Target="xl/absent.xml"') : text
+    ));
+
+    await expect(read(bytes)).rejects.toThrow(/The archive has no workbook part at "xl\/absent\.xml"\./);
+    await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should refuse a sheet whose r:id resolves to no relationship at all', async() => {
+    // `r:id` is what binds a `<sheet>` to its part. An id no relationship declares leaves the sheet
+    // with no path, which must be refused by name rather than read as an empty sheet.
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/workbook.xml' ? text.replace('r:id="rId4"', 'r:id="rIdAbsent"') : text
+    ));
+
+    await expect(read(bytes)).rejects.toThrow(/the sheet "Values" has no part\./);
+    await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should refuse a sheet whose relationship targets a part the archive does not hold', async() => {
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/_rels/workbook.xml.rels'
+        ? text.replace('Target="worksheets/sheet1.xml"', 'Target="worksheets/absent.xml"')
+        : text
+    ));
+
+    await expect(read(bytes)).rejects.toThrow(/the sheet "Values" has no part\./);
+  });
+});
+
 describe('native reader hardening: the part a sheet resolves to', () => {
   it('should refuse a sheet whose relationship targets a part that is not a worksheet', async() => {
     // A relationship target is the file's own text: `/[Content_Types].xml` resolves back inside the

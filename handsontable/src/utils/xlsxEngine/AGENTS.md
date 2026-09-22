@@ -218,16 +218,22 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   there or in a test it names. The shape is FOUR-WAY: a snapshot is built twice (two independent
   objects), written by both engines, and each engine's bytes are then read by BOTH readers —
   `nn`/`ne`/`en`/`ee`. `nn` and `ee` alone would only prove each engine agrees with itself; the
-  cross legs are what catch a writer emitting something only its own reader understands. Three
-  normalizations are reused from `nativeRead.unit.js` and no fourth may be added: a real divergence
-  is asserted explicitly with both actual values instead (id 22, the theme fill, the CF rule-kind
-  subset, the two sheet-name rows, the `lossy.xlsx` dropped ORDER).
+  cross legs are what catch a writer emitting something only its own reader understands. Exactly
+  three normalizations exist and no fourth may be added: a real divergence is asserted explicitly
+  with both actual values instead (id 22, the theme fill, the CF rule-kind subset, the two
+  sheet-name rows, the `lossy.xlsx` dropped ORDER). **The three live in ONE place —
+  `__tests__/helpers/snapshotNormalize.js`** — with each one's reason and the no-fourth rule in that
+  file's header comment; `enginesParity.unit.js` and `nativeRead.unit.js` both import from it, so
+  the invariant is reviewable by reading one file. They were hand-copied into the two suites before
+  that helper existed and had already drifted textually. `expectFourWayParity` also asserts the
+  native leg is non-empty, so the four-way comparison cannot pass on four snapshots that all lost
+  the feature under test.
 - **`nativeRead.unit.js` ends with a parity test against the ExcelJS adapter on six fixtures**, and
-  it normalizes exactly three known differences: conditional-formatting rules compared by `ref`
-  only, numbers rounded to nine decimals (ExcelJS loses ulps round-tripping a time serial through a
-  `Date`), and the default-font/fill case above. Border and alignment are compared unnormalized. If
-  that test fails, the OOXML is the arbiter — read the fixture's raw XML before changing a reader,
-  and never widen a normalization to make it pass.
+  it normalizes exactly three known differences, through the same shared helper: conditional-formatting
+  rules compared by `ref` only, numbers rounded to nine decimals (ExcelJS loses ulps round-tripping a
+  time serial through a `Date`), and the default-font/fill case above. Border and alignment are
+  compared unnormalized. If that test fails, the OOXML is the arbiter — read the fixture's raw XML
+  before changing a reader, and never widen a normalization to make it pass.
 - **`<dimension>` is the pre-allocation cap check**; without it the caps run incrementally per
   row and cell. `<col max="16384">` widens `colWidths` but never the cell product.
 - **Adapter tests run under `@jest-environment node`** (jsdom has no streams; the node environment gets them from `test/cryptoSetup.js`). ExcelJS stays a
@@ -238,3 +244,21 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
 ## Testing
 
 `npm run test:unit -- --testPathPattern='xlsxEngine'`
+
+Shared test helpers live in `__tests__/helpers/`: `snapshotNormalize.js` (the three cross-engine
+normalizations, their reasons, and the rule that no fourth may be added) and `fixtures.js`
+(`loadFixture` and `toArrayBuffer`). Import from them rather than hand-copying either — both were
+duplicated across `nativeRead`, `nativeWrite`, `enginesParity` and `importFile.unit.js`, and the
+normalizers had already drifted textually before the helper existed.
+
+**Coverage limit: every `.xlsx` fixture in `__tests__/fixtures/` is written by ExcelJS**, through
+`fixtures/generate.mjs` (`node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` regenerates
+them). No fixture produced by Excel, LibreOffice or Google Sheets is in the suite, so a
+fixture-based test proves the native reader against ONE writer's OOXML dialect. The tests that
+deliberately step outside it synthesize their input instead — the namespace-prefixed variant and the
+`x14:`/`<extLst>` case in `nativeRead.unit.js`, and every `repack()` case in
+`nativeReadHardening.unit.js` and `nativeZip.unit.js`. A reader change that could depend on the
+writer's dialect needs one of those, not another ExcelJS fixture. `generate.mjs` pins
+`workbook.created`/`workbook.modified` to the epoch and reads no clock or random number otherwise,
+so a regeneration that changes a byte changed a case; the committed fixtures predate that pin and
+are deliberately not rewritten for it.

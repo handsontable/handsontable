@@ -1,8 +1,6 @@
 /**
  * @jest-environment node
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { nativeAdapter } from '../adapters/native';
 import { excelJsAdapter } from '../adapters/exceljs';
@@ -12,12 +10,8 @@ import { SheetBuilder } from '../builder';
 import { createWorkbookSnapshot } from '../model';
 import { readZip } from '../adapters/native/zip/reader';
 import { writeZip } from '../adapters/native/zip/writer';
-
-function load(name) {
-  const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
-
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-}
+import { loadFixture as load, toArrayBuffer } from './helpers/fixtures';
+import { strip } from './helpers/snapshotNormalize';
 
 async function read(name) {
   const dropped = new DroppedFeatures();
@@ -159,9 +153,8 @@ describe('nativeAdapter.read', () => {
 
     const bytes = await workbook.xlsx.writeBuffer();
 
-    await expect(nativeAdapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
-    )).rejects.toThrow(/sheet "Huge" declares 1048577 rows, above the 1048576-row limit/);
+    await expect(nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures()))
+      .rejects.toThrow(/sheet "Huge" declares 1048577 rows, above the 1048576-row limit/);
   });
 
   it('should refuse an input buffer above the byte cap before opening it', async() => {
@@ -179,51 +172,9 @@ describe('nativeAdapter.read', () => {
       const native = await nativeAdapter.read(load(name), undefined, new DroppedFeatures());
       const viaExcelJs = await excelJsAdapter.read(load(name), ExcelJS, new DroppedFeatures());
 
-      // Three legitimate differences are normalized away. Conditional-formatting rules differ in
-      // object shape (ExcelJS adds its own bookkeeping keys), so they are compared by ref only. The
-      // ExcelJS adapter reads a time as a Date and turns it back into a serial, which loses a few
-      // ulps (0.5208333333333334 comes back as 0.52083333333212), so numbers are rounded to nine
-      // decimals on both sides – `exceljsRead.unit.js` uses `toBeCloseTo` on that same cell. And a
-      // cell whose only xf difference from the base is its number format (e.g. `values.xlsx`'s
-      // "Amount"/"Hired"/"Start"/"Ratio" columns) still references the SAME font/fill ids as the
-      // base xf (verified against the fixture's own `xl/styles.xml`) – no style is actually applied.
-      // ExcelJS's `cell.font`/`cell.fill` getters resolve those shared ids into a full object anyway
-      // (`{color:{theme:1},family:2,name:'Calibri',scheme:'minor',size:11}` / `{pattern:'none',…}`)
-      // purely because the cell carries an `s` attribute at all, while `cell.border`/`cell.alignment`
-      // correctly resolve to `{}`/`undefined` in the same case. That is a quirk of ExcelJS's own
-      // object model, not a difference in what the file means, and the native reader's `style: null`
-      // for exactly this shape is already pinned by `nativeStyles.unit.js`. So a font/fill is kept
-      // only when it carries a property the model actually tracks (bold, italic, underline, an argb
-      // color, or a solid fill's foreground color); otherwise it collapses to `null` on both sides.
-      const round = value => (typeof value === 'number' ? Math.round(value * 1e9) / 1e9 : value);
-      const normalizeFont = (font) => {
-        if (!font) {
-          return null;
-        }
-
-        const { bold, italic, underline, color } = font;
-        const argb = color && typeof color.argb === 'string' ? color : undefined;
-
-        return bold || italic || underline || argb ? { bold, italic, underline, color: argb } : null;
-      };
-      const normalizeFill = fill => (fill && fill.pattern === 'solid' && fill.fgColor ? fill : null);
-      const normalizeStyle = (style) => {
-        if (!style) {
-          return null;
-        }
-
-        const font = normalizeFont(style.font);
-        const fill = normalizeFill(style.fill);
-        const alignment = style.alignment ?? null;
-        const border = style.border ?? null;
-
-        return font || fill || alignment || border ? { alignment, font, fill, border } : null;
-      };
-      const normalize = (key, value) => (key === 'style' ? normalizeStyle(value) : round(value));
-      const strip = snapshot => JSON.parse(JSON.stringify(snapshot.sheets.map(sheet => ({
-        ...sheet, conditionalFormatting: sheet.conditionalFormatting.map(cf => cf.ref),
-      })), normalize));
-
+      // Three legitimate differences are normalized away, and exactly three: the reason for each
+      // one, and the rule that no fourth may ever be added, live at the top of
+      // `helpers/snapshotNormalize.js`, which `enginesParity.unit.js` imports from too.
       expect(strip(native)).toEqual(strip(viaExcelJs));
     }
   });
@@ -245,9 +196,7 @@ describe('nativeAdapter.read: merge members with no <c> element of their own', (
     snapshot.sheets.push(sheet.toSnapshot());
 
     const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
-    const roundTripped = await nativeAdapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
-    );
+    const roundTripped = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
     const row = roundTripped.sheets[0].rows[0];
 
     expect(row).toHaveLength(2);
@@ -256,9 +205,7 @@ describe('nativeAdapter.read: merge members with no <c> element of their own', (
     expect(roundTripped.sheets[0].merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
 
     // The same file read by ExcelJS, the behavior this reader was brought in line with.
-    const viaExcelJs = await excelJsAdapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
-    );
+    const viaExcelJs = await excelJsAdapter.read(toArrayBuffer(bytes), ExcelJS, new DroppedFeatures());
 
     expect(viaExcelJs.sheets[0].rows[0]).toHaveLength(2);
     expect(viaExcelJs.sheets[0].rows[0][1]).toBeNull();
@@ -281,12 +228,13 @@ function prefixElements(xml) {
 }
 
 /**
- * Repacks a fixture with every XML part's elements namespace-prefixed.
+ * Repacks a fixture, passing every part's text through `transform`.
  *
  * @param {string} name The fixture name.
+ * @param {Function} transform Receives the part name and its text, returns the text to write.
  * @returns {Promise<ArrayBuffer>}
  */
-async function loadPrefixed(name) {
+async function repack(name, transform) {
   const zip = await readZip(load(name));
   const encoder = new TextEncoder();
   const entries = [];
@@ -295,12 +243,20 @@ async function loadPrefixed(name) {
     // eslint-disable-next-line no-await-in-loop
     const text = await zip.text(partName);
 
-    entries.push({ name: partName, data: encoder.encode(prefixElements(text)) });
+    entries.push({ name: partName, data: encoder.encode(transform(partName, text)) });
   }
 
-  const bytes = await writeZip(entries, true);
+  return toArrayBuffer(await writeZip(entries, true));
+}
 
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+/**
+ * Repacks a fixture with every XML part's elements namespace-prefixed.
+ *
+ * @param {string} name The fixture name.
+ * @returns {Promise<ArrayBuffer>}
+ */
+function loadPrefixed(name) {
+  return repack(name, (partName, text) => prefixElements(text));
 }
 
 describe('nativeAdapter.read with namespace-prefixed parts', () => {
@@ -320,5 +276,28 @@ describe('nativeAdapter.read with namespace-prefixed parts', () => {
       expect(prefixed).toEqual(plain);
       expect(prefixedDropped.list()).toEqual(plainDropped.list());
     }
+  });
+
+  it('should not read an x14:-prefixed conditionalFormatting inside <extLst> as a second block', async() => {
+    // The other half of the rule, and the half the test above cannot reach. `createLocalName`
+    // strips ONLY the prefix the part's ROOT element carries, so a `<extLst>` extension in the x14
+    // namespace keeps its prefix and matches nothing. A normalizer that stripped EVERY prefix
+    // instead read that extension as a second, empty (`ref: ''`) conditional-formatting block —
+    // the exact mutant `enginesParity.unit.js` kills on ExcelJS-written bytes. It is killed here
+    // too, so the file that documents the rule proves both halves of it rather than one.
+    const x14Block = '<extLst><ext uri="{78C0D931-6437-407d-A8EE-F0AAD7539E65}" '
+      + 'xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main">'
+      + '<x14:conditionalFormattings><x14:conditionalFormatting>'
+      + '<x14:cfRule type="dataBar" id="{0A1B2C3D-0000-0000-0000-000000000000}"/>'
+      + '<xm:sqref xmlns:xm="http://schemas.microsoft.com/office/excel/2006/main">A1:A3</xm:sqref>'
+      + '</x14:conditionalFormatting></x14:conditionalFormattings></ext></extLst>';
+    const plain = await nativeAdapter.read(load('formulas'), undefined, new DroppedFeatures());
+    const withExtension = await nativeAdapter.read(await repack('formulas', (partName, text) => (
+      partName === 'xl/worksheets/sheet1.xml' ? text.replace('</worksheet>', `${x14Block}</worksheet>`) : text
+    )), undefined, new DroppedFeatures());
+
+    expect(plain.sheets[0].conditionalFormatting).toHaveLength(1);
+    expect(withExtension.sheets[0].conditionalFormatting).toHaveLength(1);
+    expect(withExtension.sheets[0].conditionalFormatting).toEqual(plain.sheets[0].conditionalFormatting);
   });
 });

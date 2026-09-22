@@ -308,14 +308,19 @@ describe('conditional formatting', () => {
     expect(dropped.list()).toEqual([]);
   });
 
-  it('should drop a timePeriod rule that names no period or carries no formula', () => {
+  it('should drop a timePeriod rule that names no period or carries no formula, and an expression rule with none', () => {
     const dropped = new DroppedFeatures();
 
+    // An `expression` rule IS its formula — there is nothing left to write when `formulae` is empty
+    // or absent, so it is recorded under its own name rather than emitted as a `<cfRule>` with no
+    // `<formula>` child, which Excel opens with the "repair" dialog.
     expect(conditionalFormattingXml('A1:A3', [
       { type: 'timePeriod', timePeriod: 'today' },
       { type: 'timePeriod', formulae: ['TRUE()'] },
+      { type: 'expression', formulae: [] },
+      { type: 'expression' },
     ], new StyleTable(), { next: 1 }, dropped)).toBe('');
-    expect(dropped.list()).toEqual(['conditionalFormatting:timePeriod']);
+    expect(dropped.list()).toEqual(['conditionalFormatting:timePeriod', 'conditionalFormatting:expression']);
   });
 
   it('should drop the rule kinds the PoC does not write and skip the block when nothing is left', () => {

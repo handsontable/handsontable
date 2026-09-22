@@ -132,21 +132,47 @@ function fixtureBuffer(name) {
 }
 
 /**
- * Scans backwards for the end-of-central-directory record and returns the central directory's
- * start offset, so the byte-surgery tests below share one EOCD scan instead of repeating it.
- * This returns the FIRST central record's offset; it coincides with the last (and only) one
- * because every caller here builds a single-entry archive, not because it walks to the end.
+ * Scans backwards for the end-of-central-directory record and returns its offset.
  * @param view
  * @param zip
  */
-function centralDirectoryOffset(view, zip) {
+function endRecordOffset(view, zip) {
   let eocd = zip.byteLength - 22;
 
   while (view.getUint32(eocd, true) !== 0x06054b50) {
     eocd -= 1;
   }
 
-  return view.getUint32(eocd + 16, true);
+  return eocd;
+}
+
+/**
+ * Returns the central directory's start offset, so the byte-surgery tests below share one EOCD
+ * scan instead of repeating it. This returns the FIRST central record's offset; it coincides with
+ * the last (and only) one because every caller here builds a single-entry archive, not because it
+ * walks to the end.
+ * @param view
+ * @param zip
+ */
+function centralDirectoryOffset(view, zip) {
+  return view.getUint32(endRecordOffset(view, zip) + 16, true);
+}
+
+/**
+ * Writes a single-entry archive and hands its bytes, a `DataView` over them and its central
+ * directory's offset to `patch`, then detaches the result for `readZip`. Every refusal below is a
+ * ONE-FIELD lie told on an otherwise valid archive, so the refusal it triggers is the only thing
+ * that differs between them.
+ * @param patch
+ * @param data
+ */
+async function patchedArchive(patch, data = new Uint8Array(4)) {
+  const zip = await writeZip([{ name: 'x.bin', data }], false);
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+
+  patch(view, zip, centralDirectoryOffset(view, zip));
+
+  return zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength);
 }
 
 describe('readZip', () => {
@@ -257,5 +283,81 @@ describe('readZip', () => {
       .rejects.toThrow(/central directory record .* is malformed/);
     await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
       .rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should reject a central directory that is out of bounds or declares ZIP64 offsets', async() => {
+    // The ZIP64 half: the end record stores 0xFFFFFFFF in the offset (or the size) field and the
+    // real value lives in a ZIP64 locator this reader does not read, so following the marker as if
+    // it were an offset would walk to byte 4294967295 of a file that has none.
+    const zip64Offset = await patchedArchive((view, zip) => {
+      view.setUint32(endRecordOffset(view, zip) + 16, 0xFFFFFFFF, true);
+    });
+    const zip64Size = await patchedArchive((view, zip) => {
+      view.setUint32(endRecordOffset(view, zip) + 12, 0xFFFFFFFF, true);
+    });
+    // The out-of-bounds half: honest-looking numbers whose sum reaches past the end record, which
+    // is where the directory must stop.
+    const outOfBounds = await patchedArchive((view, zip) => {
+      view.setUint32(endRecordOffset(view, zip) + 12, 0x00FF0000, true);
+    });
+
+    for (const buffer of [zip64Offset, zip64Size, outOfBounds]) {
+      await expect(readZip(buffer))
+        .rejects.toThrow(/central directory is out of bounds or uses ZIP64, which this reader does not accept/);
+      await expect(readZip(buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
+  });
+
+  it('should reject an entry whose sizes or local offset are declared as ZIP64', async() => {
+    // Every one of these three fields is 32-bit in the classic record, and 0xFFFFFFFF is the escape
+    // that says "read the real value from the ZIP64 extra field". Taking the marker at face value
+    // would mean a 4 GB slice, or a slice starting past the end of the file.
+    const compressed = await patchedArchive((view, zip, central) => view.setUint32(central + 20, 0xFFFFFFFF, true));
+    const uncompressed = await patchedArchive((view, zip, central) => view.setUint32(central + 24, 0xFFFFFFFF, true));
+    const localOffset = await patchedArchive((view, zip, central) => view.setUint32(central + 42, 0xFFFFFFFF, true));
+
+    for (const buffer of [compressed, uncompressed, localOffset]) {
+      await expect(readZip(buffer))
+        .rejects.toThrow(/The ZIP entry "x.bin" uses ZIP64 sizes, which this reader does not accept/);
+      await expect(readZip(buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
+  });
+
+  it('should reject a request for an entry the archive does not declare', async() => {
+    // The package layer asks for a part by name after `has()` said yes; a caller that skips that
+    // check must get this reader's own refusal rather than an internal `undefined` dereference.
+    const zip = await writeZip([{ name: 'a.xml', data: encoder.encode('<a/>') }], false);
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    await expect(archive.text('xl/workbook.xml')).rejects.toThrow(/The archive has no entry named "xl\/workbook.xml"/);
+    await expect(archive.text('xl/workbook.xml')).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should reject an entry whose local header is malformed', async() => {
+    // The central directory is the authoritative record, but the DATA is found through the local
+    // offset it names. Pointed anywhere but a local file header, the bytes that follow are not this
+    // entry's — they are whatever happened to be there.
+    const insideFile = await patchedArchive((view, zip, central) => view.setUint32(central + 42, 1, true));
+    // The other shape: an offset so late that the header itself does not fit in the file.
+    const pastEnd = await patchedArchive(
+      (view, zip, central) => view.setUint32(central + 42, zip.byteLength - 1, true),
+    );
+
+    for (const buffer of [insideFile, pastEnd]) {
+      const archive = await readZip(buffer);
+
+      await expect(archive.text('x.bin')).rejects.toThrow(/The ZIP entry "x.bin" has a malformed local header/);
+      await expect(archive.text('x.bin')).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
+  });
+
+  it('should reject an entry whose declared compressed size runs past the end of the file', async() => {
+    // A truncated (or crafted) archive whose last entry claims more bytes than the file holds. The
+    // slice would silently come back short, so the entry is refused instead of read in part.
+    const buffer = await patchedArchive((view, zip, central) => view.setUint32(central + 20, 0x0000FF00, true));
+    const archive = await readZip(buffer);
+
+    await expect(archive.text('x.bin')).rejects.toThrow(/The ZIP entry "x.bin" runs past the end of the file/);
+    await expect(archive.text('x.bin')).rejects.toMatchObject({ cause: { handsontable: true } });
   });
 });

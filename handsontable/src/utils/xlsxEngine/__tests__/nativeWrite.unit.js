@@ -8,6 +8,7 @@ import { readZip } from '../adapters/native/zip/reader';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
+import { toArrayBuffer } from './helpers/fixtures';
 
 async function writeAndLoad(snapshot) {
   const dropped = new DroppedFeatures();
@@ -31,6 +32,10 @@ function snapshotWith(buildFn, name = 'Sheet1') {
 
 /**
  * ExcelJS returns a plain note as a string and a formatted one as `{ texts }`; normalize both.
+ *
+ * This has a twin in `src/plugins/exportFile/__tests__/types/xlsx/features.spec.js`. The two are
+ * deliberately not shared: that suite is the frozen Jasmine/Puppeteer one, it runs in a browser
+ * against the built bundle, and it cannot import a Jest helper from `src/`.
  * @param note
  */
 function noteText(note) {
@@ -160,7 +165,7 @@ describe('nativeAdapter.write', () => {
     expect(withFormula.workbook.creator).toBe('Handsontable');
     expect(withFormula.workbook.lastModifiedBy).toBe('Handsontable');
 
-    const unzip = async bytes => readZip(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    const unzip = async bytes => readZip(toArrayBuffer(bytes));
 
     expect(await (await unzip(withFormula.bytes)).text('xl/workbook.xml')).toContain('fullCalcOnLoad="1"');
     expect(await (await unzip(without.bytes)).text('xl/workbook.xml')).not.toContain('fullCalcOnLoad');
@@ -275,9 +280,7 @@ describe('nativeAdapter.write', () => {
       b.freeze(0, 1);
     });
     const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
-    const back = await nativeAdapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
-    );
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
     const sheet = back.sheets[0];
 
     expect(sheet.rows[0][0].value).toBe('Name');
@@ -303,9 +306,7 @@ describe('nativeAdapter.write', () => {
       b.cell(1, 1).value = 'FILE_x0041_TEST';
     });
     const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
-    const back = await nativeAdapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
-    );
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
 
     expect(back.sheets[0].rows[0][0].value).toBe('FILE_x0041_TEST');
   });

@@ -6,116 +6,17 @@
  * the gaps the parity-matrix audit named: the styled/validation/lossy fixtures on the READ side, and
  * every writer on the WRITE side (nothing compared the two writers before this file existed).
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { nativeAdapter } from '../adapters/native';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
+import { loadFixture as load, toArrayBuffer } from './helpers/fixtures';
+import { normalizeFont, normalizeStyle, strip } from './helpers/snapshotNormalize';
 
-/**
- * Reads a fixture file into the `ArrayBuffer` an adapter's `read()` expects.
- * @param name
- */
-function load(name) {
-  const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
-
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-}
-
-/**
- * Rounds a number to nine decimal places.
- *
- * Legitimate difference #1: the ExcelJS adapter reads a time-formatted cell as a `Date` and
- * converts it back into a serial on the way out, which loses a few ulps in the last place
- * (`0.5208333333333334` round-trips as `0.52083333333212`). The native adapter never routes a
- * value through `Date`, so without this the two would disagree on float noise, never on content.
- * @param value
- */
-function roundNumber(value) {
-  return typeof value === 'number' ? Math.round(value * 1e9) / 1e9 : value;
-}
-
-/**
- * Collapses a font object to `null` unless it carries a property the model actually tracks (bold,
- * italic, underline, or an explicit argb color).
- *
- * Legitimate difference #3 (font half): ExcelJS's `cell.font` getter resolves a cell's *default*
- * font (theme, size, family) into a full object merely because the cell carries a style index at
- * all, while the native reader correctly reports no style for the same cell. Without this, any
- * fixture cell whose only xf difference from the base is unrelated to font would still disagree.
- * @param font
- */
-function normalizeFont(font) {
-  if (!font) {
-    return null;
-  }
-
-  const { bold, italic, underline, color } = font;
-  const argb = color && typeof color.argb === 'string' ? color : undefined;
-
-  return bold || italic || underline || argb ? { bold, italic, underline, color: argb } : null;
-}
-
-/**
- * Collapses a fill object to `null` unless it is a solid pattern carrying a foreground color.
- *
- * Legitimate difference #3 (fill half): the same reasoning as `normalizeFont` — ExcelJS resolves a
- * cell's default fill into an object even when nothing meaningful was set.
- * @param fill
- */
-function normalizeFill(fill) {
-  return fill && fill.pattern === 'solid' && fill.fgColor ? fill : null;
-}
-
-/**
- * Applies `normalizeFont`/`normalizeFill` to a cell style. Alignment and border are passed through
- * UNNORMALIZED on purpose: a previous review confirmed the existing normalizations leave those two
- * exposed, and that property must survive here too, or a real alignment/border divergence would be
- * silently hidden rather than caught.
- * @param style
- */
-function normalizeStyle(style) {
-  if (!style) {
-    return null;
-  }
-
-  const font = normalizeFont(style.font);
-  const fill = normalizeFill(style.fill);
-  const { alignment = null, border = null } = style;
-
-  return font || fill || alignment || border ? { alignment, font, fill, border } : null;
-}
-
-/**
- * `JSON.stringify`'s replacer for one snapshot: every number is rounded, every cell style is
- * normalized, everything else is passed through as-is.
- * @param key
- * @param value
- */
-function normalizeValue(key, value) {
-  return key === 'style' ? normalizeStyle(value) : roundNumber(value);
-}
-
-/**
- * Normalizes a whole workbook snapshot for cross-engine comparison.
- *
- * Legitimate difference #2: a sheet's conditional-formatting blocks are reduced to their `ref`
- * only. ExcelJS's own rule objects carry its own bookkeeping keys that have no equivalent in the
- * native reader's output, so comparing full rule content would fail on that bookkeeping rather than
- * on anything the two engines actually disagree about.
- * @param snapshot
- */
-function strip(snapshot) {
-  return JSON.parse(JSON.stringify(
-    snapshot.sheets.map(sheet => ({
-      ...sheet, conditionalFormatting: sheet.conditionalFormatting.map(cf => cf.ref),
-    })),
-    normalizeValue,
-  ));
-}
+// `strip()` applies the three — and only three — cross-engine normalizations. Their reasons, and
+// the rule that no fourth may be added, live at the top of `helpers/snapshotNormalize.js`.
 
 describe('read parity: the styled fixtures the six-fixture loop in nativeRead.unit.js does not reach', () => {
   it('reads styles.xlsx and validation.xlsx to the same snapshot and the same dropped list on both engines', async() => {
@@ -171,15 +72,6 @@ function buildSnapshot(buildFn) {
 }
 
 /**
- * Converts a `Uint8Array` (what both adapters' `write()` returns) into the `ArrayBuffer` slice
- * both adapters' `read()` expects.
- * @param bytes
- */
-function toArrayBuffer(bytes) {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-}
-
-/**
  * Runs the four-way write-parity check: writes `buildFn`'s snapshot with both engines, then reads
  * EACH engine's bytes with BOTH readers.
  *
@@ -212,6 +104,15 @@ async function fourWayRead(buildFn) {
 async function expectFourWayParity(buildFn) {
   const { nn, ne, en, ee } = await fourWayRead(buildFn);
   const [native, nativeViaExcelJs, exceljsViaNative, exceljs] = [nn, ne, en, ee].map(strip);
+
+  // The three assertions below are equality-only, so four snapshots that had ALL lost the feature
+  // under test would agree vacuously — and `normalizeStyle` collapsing a style that carries nothing
+  // to `null` is exactly the shape that could erase it. These three positive lines stop the helper
+  // from ever going hollow: every caller writes at least one sheet holding at least one non-null
+  // cell, so the native leg must come back with one.
+  expect(native.length).toBeGreaterThan(0);
+  expect(native[0].rows.length).toBeGreaterThan(0);
+  expect(native.some(sheet => sheet.rows.some(row => row.some(cell => cell !== null)))).toBe(true);
 
   expect(nativeViaExcelJs).toEqual(native);
   expect(exceljsViaNative).toEqual(native);
@@ -758,7 +659,16 @@ const SHEET_NAMES = [
 
 describe('sheet-name validation: the same illegal set through both writers, outcome only', () => {
   /**
-   * Writes a one-sheet workbook named `name` with `adapter` and answers whether it was accepted.
+   * Writes a workbook whose sheets are named `names` with `adapter` and answers whether it was
+   * accepted.
+   *
+   * The ExcelJS side is outcome-only on purpose: the two engines word their refusals differently,
+   * and pinning ExcelJS's wording here would pin a dependency's text rather than our contract. The
+   * NATIVE side is not blanket-outcome-only, though — a `TypeError` raised inside this helper, or a
+   * rejection for a reason that has nothing to do with the sheet name, would otherwise read as the
+   * sheet-name rule working. So a native rejection must be a Handsontable error whose message names
+   * that rule. `nativeWrite.unit.js` asserts the per-reason wording for four of these rows; this
+   * check is the floor under the other eleven.
    * @param adapter
    * @param engine
    * @param names
@@ -772,7 +682,12 @@ describe('sheet-name validation: the same illegal set through both writers, outc
       await adapter.write(snapshot, engine, new DroppedFeatures());
 
       return 'accepted';
-    } catch {
+    } catch (error) {
+      if (adapter === nativeAdapter) {
+        expect(error.message).toMatch(/was rejected by the native engine/);
+        expect(error.cause).toMatchObject({ handsontable: true });
+      }
+
       return 'rejected';
     }
   }

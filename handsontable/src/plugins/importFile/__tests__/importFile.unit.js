@@ -1,8 +1,6 @@
 /**
  * @jest-environment node
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
@@ -13,6 +11,7 @@ import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -61,12 +60,6 @@ function fakeDocument() {
       },
     },
   };
-}
-
-function fixture(name) {
-  const bytes = readFileSync(join(__dirname, '../../../utils/xlsxEngine/__tests__/fixtures', `${name}.xlsx`));
-
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
 function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false } = {}) {
@@ -381,9 +374,7 @@ describe('mapWorkbook on a merge whose covered cells were never written', () => 
     snapshot.sheets.push(sheet.toSnapshot());
 
     const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
-    const read = await adapter.read(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), engine, new DroppedFeatures(),
-    );
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
 
     return mapWorkbook(
       read,
