@@ -115,7 +115,9 @@
     };
 
     // Counts the columns AutoColumnSize measures. Each measured column is one `addColumn()` call on
-    // the plugin's ghost table, whichever sweep asked for it.
+    // the plugin's ghost table, whichever sweep asked for it. The patch relies on the plugin creating
+    // its `GhostTable` once, in a field initializer, and never reassigning it; a lifecycle change there
+    // loses the patch and shows up here as a poll timeout, not as a wrong pass.
     const ghostTable = hot.getPlugin('autoColumnSize').ghostTable;
     const originalAddColumn = ghostTable.addColumn.bind(ghostTable);
 

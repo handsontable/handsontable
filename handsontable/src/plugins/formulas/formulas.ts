@@ -706,8 +706,10 @@ export class Formulas extends BasePlugin {
     // in its own `afterLoadData` listener, and registered behind it (this plugin's priority is
     // higher) the sweep measured formula columns against the previous dataset's results, after
     // which the engine's `valuesUpdated` batch queued every changed cell for a second synchronous
-    // full rescan on the resume render. Moving this listener, rather than that one, leaves the
-    // order of every other listener - plugins and host callbacks alike - as it was.
+    // full rescan on the resume render. Moving this listener, rather than that one, keeps the sweep
+    // where AutoRowSize and host callbacks expect it. The one listener this overtakes with an effect
+    // is the `manualColumnMove` / `manualRowMove` re-apply of a configured order, and the effect is a
+    // fix: the order used to reach the engine twice on a `loadData()` (see the plugin's AGENTS.md).
     this.addHook('afterLoadData', this.#onAfterLoadData, -1);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
@@ -1059,26 +1061,34 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Translates visual coordinates into the engine address of the bound sheet. Returns `null` when
-   * the cell has no physical counterpart (out of bounds) or no sheet is bound.
+   * Translates visual coordinates once into everything a per-cell read needs: the engine address of
+   * the bound sheet and the physical coordinates the cell meta is keyed by. Returns `null` when the
+   * cell has no physical counterpart (out of bounds) or no sheet is bound.
    *
    * @param {number} visualRow Visual row index.
    * @param {number} visualColumn Visual column index.
-   * @returns {{ sheet: number, row: number, col: number } | null}
+   * @returns {{ address: { sheet: number, row: number, col: number }, physicalRow: number, physicalColumn: number } | null}
    */
-  #toEngineAddress(visualRow: number, visualColumn: number): { sheet: number; row: number; col: number } | null {
-    if (
-      this.sheetId === null ||
-      this.hot.toPhysicalRow(visualRow) === null ||
-      this.hot.toPhysicalColumn(visualColumn) === null
-    ) {
+  #toEngineAddress(visualRow: number, visualColumn: number): {
+    address: { sheet: number; row: number; col: number };
+    physicalRow: number;
+    physicalColumn: number;
+  } | null {
+    const physicalRow = this.hot.toPhysicalRow(visualRow);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (this.sheetId === null || physicalRow === null || physicalColumn === null) {
       return null;
     }
 
     return {
-      sheet: this.sheetId,
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      address: {
+        sheet: this.sheetId,
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      },
+      physicalRow,
+      physicalColumn,
     };
   }
 
@@ -2531,13 +2541,22 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // One translation serves both engine calls; this hook runs once per cell of every bulk read
-    // (AutoColumnSize sampling, the filters column scan), so the per-cell work is what is paid.
-    const address = this.#toEngineAddress(visualRow, visualColumn);
-    // Out of bounds reads as `EMPTY`, like `getCellType()` reports it.
-    const cellType = address === null ? 'EMPTY' : this.engine!.getCellType(address);
+    // One translation serves the type lookup, the value read, and the meta read; this hook runs once
+    // per cell of every bulk read (AutoColumnSize sampling, the filters column scan), so the per-cell
+    // work is what is paid.
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
 
-    if (address === null || cellType === 'VALUE' || cellType === 'EMPTY') {
+    // Out of bounds reads as `EMPTY`, like `getCellType()` reports it.
+    if (engineCell === null) {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+
+      return;
+    }
+
+    const { address, physicalRow, physicalColumn } = engineCell;
+    const cellType = this.engine!.getCellType(address);
+
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
       valueHolder.value = unescapeFormulaExpression(valueHolder.value);
 
       return;
@@ -2548,8 +2567,7 @@ export class Formulas extends BasePlugin {
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the
     // filters column scan), so an eager read would materialize one meta per scanned cell.
     const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
-      { visualRow, visualColumn },
+      physicalRow, physicalColumn, { visualRow, visualColumn },
     );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -2648,12 +2666,13 @@ export class Formulas extends BasePlugin {
     }
 
     // One translation for the type lookup, the dimensions check, and the serialized read.
-    const address = this.#toEngineAddress(visualRow, visualColumn);
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
 
-    if (address === null) {
+    if (engineCell === null) {
       return;
     }
 
+    const { address } = engineCell;
     const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {

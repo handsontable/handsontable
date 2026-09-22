@@ -26,7 +26,7 @@ test.describe('AutoColumnSize on a formula sheet switch', () => {
     // Every column is visible (1100px grid, 4 columns), so the render-time walk covers exactly
     // `countCols()` columns and the load sweep covers the same set once more. A third full pass
     // is the stale-engine rescan this spec guards against.
-    await expect.poll(() => grid.measuredColumns()).toBe(columnCount * 2);
+    await expect.poll(() => grid.measuredColumnsSettled()).toBe(columnCount * 2);
   });
 
   test('a switch to a data-holding sheet sweeps it once per loadData, plus the visible walk', async () => {
@@ -44,7 +44,7 @@ test.describe('AutoColumnSize on a formula sheet switch', () => {
     // Anything on top of the sum is the stale-engine rescan this spec guards against.
     const arrivingColumns = await grid.columnCount();
 
-    await expect.poll(() => grid.measuredColumns()).toBe(arrivingColumns * 2 + departingColumns);
+    await expect.poll(() => grid.measuredColumnsSettled()).toBe(arrivingColumns * 2 + departingColumns);
   });
 
   test('widths measured after a switch match the widths measured at init', async () => {

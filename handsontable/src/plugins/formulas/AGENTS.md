@@ -115,6 +115,20 @@ callbacks read `getColWidth()`. `afterUpdateData` carries the same order for sym
 data path is unaffected either way — with `source === 'updateSettings'` this listener returns early and the
 engine is fed from `afterCellMetaReset`.
 
+**The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
+carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+`enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
+branch (measured with the engine methods spied; the reference rewrite that
+`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
+init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
+`setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
+instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity
+sequence and sends nothing, and the move that follows reaches the engine once through `syncMoves()`. The
+spec's `loadData()` case pins the formula staying `=A1+10`. Do not "restore" the `setColumnOrder` path by
+postponing `setupSyncEndpoint()` behind the moves without re-measuring that case.
+
 ## The per-cell read path caches "the engine holds my sheet" (DEV-2905)
 
 `modifyData` and `modifySourceData` fire once per cell of every bulk read (AutoColumnSize sampling, the

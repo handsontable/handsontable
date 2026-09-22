@@ -63,6 +63,17 @@ export class SheetSwitchAutosizePage {
     return this.page.evaluate(() => window.measuredColumns ?? 0);
   }
 
+  /**
+   * The measured-columns count once it has stopped moving: two consecutive reads that agree, or -1
+   * while it is still climbing. The counter only grows, so a poll for an exact value would stop at
+   * the first tick that reaches it and miss a pass that lands in a later task.
+   */
+  async measuredColumnsSettled(): Promise<number> {
+    const first = await this.measuredColumns();
+
+    return (await this.measuredColumns()) === first ? first : -1;
+  }
+
   async columnCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countCols());
   }

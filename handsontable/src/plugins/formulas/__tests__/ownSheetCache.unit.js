@@ -124,10 +124,17 @@ describe('Formulas own-sheet cache', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('=A1+10');
   });
 
-  it('treats an out-of-bounds read as an empty cell', () => {
+  it('answers an out-of-bounds read from the source value without asking the engine', () => {
     build();
 
-    expect(hot.getDataAtCell(hot.countRows(), 1)).toBeNull();
-    expect(hot.getDataAtCell(0, hot.countCols())).toBeNull();
+    const getCellType = jest.spyOn(engine, 'getCellType');
+    const getCellValue = jest.spyOn(engine, 'getCellValue');
+    const valueHolder = { value: '\'=raw' };
+
+    hot.runHooks('modifyData', hot.countRows(), 1, valueHolder, 'get');
+
+    expect(getCellType).not.toHaveBeenCalled();
+    expect(getCellValue).not.toHaveBeenCalled();
+    expect(valueHolder.value).toBe('=raw');
   });
 });
