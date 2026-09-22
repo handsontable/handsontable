@@ -721,9 +721,13 @@ test('a leg violation names the spec it came from', () => {
       { themes: [CLASSIC], wrappers: WRAPPERS, wrappersReason: 'w' },
     ],
   ].forEach(([leg, declared]) => {
+    // A prefix check, not a pattern match: building a regex out of a path means escaping every
+    // metacharacter it might carry, and an escape list that misses one (a backslash, on Windows) is a
+    // silently wrong assertion rather than a failing one. CodeQL flagged the first version for exactly
+    // that.
     assert.throws(
       () => assertDeclarationFitsLeg(normalizeDeclaration(declared), leg),
-      new RegExp(`^Error: ${leg.where.replace(/[./]/g, '\\$&')}: `),
+      error => error.message.startsWith(`${leg.where}: `),
       `the leg violation for ${leg.where} must name the spec before it states the rule`,
     );
   });
