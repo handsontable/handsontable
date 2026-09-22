@@ -18,7 +18,9 @@ import { FRAMEWORK_PREFIXES } from './sidebar.mjs';
 // constant. (Some Astro components still inline the origin because they
 // cannot import this module -- see the prerender-bundle note in
 // astro.config.mjs.)
-export const SITE_URL = 'https://handsontable.com';
+import { AGENT_NOTE_MD, SITE_URL } from './agent-note.mjs';
+
+export { SITE_URL };
 
 export const CANONICAL_PREFIX = FRAMEWORK_PREFIXES.javascript;
 
@@ -151,6 +153,8 @@ export function buildLlmsIndex(pageMeta, sections) {
     `- [Full guides corpus (Markdown)](${SITE_URL}/docs/llms-full.txt): Every guide page concatenated into one plain-text file`,
     `- [Docs pages as Markdown](${SITE_URL}/docs/_md/${CANONICAL_PREFIX}/installation.md): Every docs page, guides and API alike, has a Markdown twin at /docs/_md/{framework}/{slug}.md`,
     `- [Skills for Claude Code](${SITE_URL}/docs/${CANONICAL_PREFIX}/skills-for-claude-code/): Versioned skills for Handsontable and HyperFormula (repo: https://github.com/handsontable/handsontable-skills)`,
+    `- [Docs MCP server](${SITE_URL}/docs/${CANONICAL_PREFIX}/docs-mcp-server/): First-party MCP server (streamable HTTP) with semantic search over Handsontable and HyperFormula docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release (endpoint: https://docs-assistant.handsontable.com/mcp)`,
+    '- [Context7](https://context7.com/handsontable/handsontable): Third-party MCP route serving these docs to any agent',
     '',
     '## API reference',
     '',
@@ -250,5 +254,7 @@ export function buildLlmsFull(routeMap, sections) {
     }
   }
 
-  return parts.join('\n');
+  // The per-page agent note is stripped from the corpus by construction (the
+  // route map never carries it); append it once, at the end.
+  return parts.join('\n').trimEnd() + AGENT_NOTE_MD;
 }

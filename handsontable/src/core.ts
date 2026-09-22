@@ -1,7 +1,7 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
 import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -367,6 +367,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
+  // that a second call is a no-op regardless of how the first one ended (see the `init` method).
+  let initialized = false;
   // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
   // instance instead of on every `updateSettings()` call that carries the options.
   let themeOverridesWarningShown = false;
@@ -2071,6 +2074,25 @@ export default function Core(
   }
 
   this.init = function() {
+    // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
+    // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
+    // Use `updateSettings()` to reconfigure a live instance.
+    if (initialized) {
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
+
+      return;
+    }
+
+    initialized = true;
+
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
@@ -2902,6 +2924,12 @@ export default function Core(
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
+   * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
+   * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
+   * infinite loop. If you need to update data from within a renderer, guard the call (for example, skip it when the
+   * new value already equals the current one), or, preferably, perform the update in a data-change hook such as
+   * {@link Hooks#afterChange} and keep the renderer display-only.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -3128,10 +3156,14 @@ export default function Core(
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_col` and
+   * `remove_col` to add or remove columns.
    * @param {number} column Index of the column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3139,14 +3171,23 @@ export default function Core(
    * @returns {Array} Returns removed portion of columns.
    */
   this.spliceCol = function(column: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceCol',
+      'The `spliceCol()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_col`/`remove_col`.');
+
     return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_row` and
+   * `remove_row` to add or remove rows.
    * @param {number} row Index of column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3154,6 +3195,11 @@ export default function Core(
    * @returns {Array} Returns removed portion of rows.
    */
   this.spliceRow = function(row: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceRow',
+      'The `spliceRow()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_row`/`remove_row`.');
+
     return datamap.spliceRow(row, index, amount, ...elements);
   };
 
@@ -3568,6 +3614,8 @@ export default function Core(
    * rendered once. As a result, it improves the performance of wrapped operations.
    * Without batching, a similar case could trigger multiple table render calls.
    *
+   * Rendering resumes even when the callback throws; the error is rethrown.
+   *
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3591,11 +3639,11 @@ export default function Core(
   this.batchRender = function<T>(wrappedOperations: () => T): T {
     instance.suspendRender();
 
-    const result = wrappedOperations();
-
-    instance.resumeRender();
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeRender();
+    }
   };
 
   /**
@@ -3682,6 +3730,9 @@ export default function Core(
    * cache is recalculated once. As a result, it improves the performance of wrapped
    * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
+   * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
+   * is not applied on that path.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3705,11 +3756,19 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
-    const result = wrappedOperations();
+    let completed = false;
 
-    instance.resumeExecution(forceFlushChanges);
+    try {
+      const result = wrappedOperations();
 
-    return result;
+      completed = true;
+
+      return result;
+    } finally {
+      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+      // after a throw is a half-applied change, so the flag is honored only on the happy path.
+      instance.resumeExecution(completed && forceFlushChanges);
+    }
   };
 
   /**
@@ -3718,7 +3777,8 @@ export default function Core(
    * as well aggregates the table logic changes such as index changes into one call
    * after which the cache is updated. After the execution of the operations, the
    * table is rendered, and the cache is updated once. As a result, it improves the
-   * performance of wrapped operations.
+   * performance of wrapped operations. Rendering and execution resume even when the
+   * callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batch
@@ -3750,12 +3810,19 @@ export default function Core(
     instance.suspendRender();
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution();
-    instance.resumeRender();
-
-    return result;
+    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+    // instance suspended for the rest of its life, so it never painted again. The two resumes are
+    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+    // the flush) still lets `resumeRender` run.
+    try {
+      return wrappedOperations();
+    } finally {
+      try {
+        instance.resumeExecution();
+      } finally {
+        instance.resumeRender();
+      }
+    }
   };
 
   /**
@@ -4063,7 +4130,14 @@ export default function Core(
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index.
+   * Returns the data's copyable value at specified `row` and `column` index, as a string.
+   *
+   * A value that is not already a string is converted: numbers and booleans to their text form,
+   * `null` and `undefined` to an empty string, and everything else through its `toString()`.
+   * A cell with `copyable` disabled returns an empty string.
+   *
+   * The text copied to the clipboard can differ for an object with its own `valueOf()`, because the
+   * clipboard reads such an object through `valueOf()` first.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -4072,21 +4146,48 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return stringify(datamap.getCopyable(row, datamap.colToProp(column)));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index, without converting it
+   * to a string.
+   *
+   * The clipboard and Autofill need the value as it is stored. Autofill writes it back into the grid,
+   * the `beforeCopy`, `afterCopy`, `beforeCut`, `afterCut`, and `beforeAutofill` hooks hand it to
+   * consumers, and the clipboard text reads an object through `valueOf()` rather than `toString()`.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. The Autofill and CopyPaste plugins
+   * reach it through a local internal type. Do not add it to `HotInstance`.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getCopyableData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getCopyableData = function(row: number, column: number) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
    * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * The value is returned as it is stored, so it can be a nested object or an array. The CopyPaste
+   * plugin serializes those to JSON when copying with source data. A cell with `copyable` disabled
+   * returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableSourceData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, datamap.colToProp(column));
   };
 
   /**

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; }
+    /* Fixture-authored styling the export reads off the source grid's DOM (see cell-style.ts's
+       class probe) - this is what the styles round trip carries through `importStyles: true`. */
+    .handsontable td.bold-red { font-weight: bold; color: #ff0000; }
+    .handsontable td.green-bg { background-color: #00ff00; }
+  </style>
+</head>
+<body>
+  <!--
+    Round-trip fixture for the importFile/exportFile plugins: a configured source grid is exported
+    to an in-memory XLSX blob (via ExcelJS) and that blob is imported straight into an empty target
+    grid, both in the same page. No file ever touches disk, so the round trip is deterministic and
+    runs on every theme x bundle leg.
+  -->
+  <div id="toolbar">
+    <button data-testid="round-trip" type="button">Export then import</button>
+    <button data-testid="round-trip-styles" type="button">Export then import styles</button>
+    <button data-testid="round-trip-nested" type="button">Export then import nested headers</button>
+    <span data-testid="status"></span>
+  </div>
+  <div id="source" data-testid="source"></div>
+  <div id="source2" data-testid="source2"></div>
+  <div id="target" data-testid="target"></div>
+
+  <script>
+    // HyperFormula comes from THIS package's own node_modules (declared in
+    // tests/package.json, pinned to the exact version the handsontable
+    // package locks), exactly the way formulas-grid.html loads it. Loaded ONLY
+    // on the base-bundle legs — handsontable.full.min.js sets
+    // window.HyperFormula itself as it loads and would overwrite this global
+    // anyway; gating gives every leg exactly one engine.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script src="/tests/node_modules/exceljs/dist/exceljs.min.js"></script>
+  <script>
+    const sourceEl = document.querySelector('[data-testid="source"]');
+    const targetEl = document.querySelector('[data-testid="target"]');
+
+    sourceEl.className = `ht-theme-${window.htTheme}`;
+    targetEl.className = `ht-theme-${window.htTheme}`;
+    document.getElementById('source2').className = `ht-theme-${window.htTheme}`;
+
+    const stamp = prefix => function(td, row, col) {
+      td.setAttribute('data-testid', `${prefix}-${row}-${col}`);
+    };
+
+    // The Bonus column holds formulas over the Amount column, so the round trip covers the
+    // reference translation: the export shifts every relative reference forward by the header row
+    // and the row-header column it prepends (the grid's `=B1*0.2` is written as `C2*0.2`), and the
+    // import has to shift it back before the grid can evaluate it.
+    const source = new Handsontable(sourceEl, {
+      data: [
+        ['Ana García', 4200.5, '2024-01-15', 'Open', true, '=B1*0.2'],
+        ['James Okafor', 18700, '2023-11-02', 'Closed', false, '=B2*0.2'],
+        ['Li Wei', 950.25, '2025-03-09', 'Open', true, '=B3*0.2'],
+      ],
+      colHeaders: ['Name', 'Amount', 'Hired', 'Status', 'Active', 'Bonus'],
+      rowHeaders: true,
+      columns: [
+        { type: 'text' },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 2 }, className: 'htRight bold-red' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+          className: 'green-bg' },
+        { type: 'dropdown', source: ['Open', 'Closed', 'Blocked'] },
+        { type: 'checkbox' },
+        {},
+      ],
+      formulas: { engine: HyperFormula, sheetName: 'Source' },
+      mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 1 }],
+      hiddenColumns: { columns: [4] },
+      fixedRowsTop: 1,
+      colWidths: [140, 90, 110, 100, 60, 90],
+      // Two border sides on the Amount column's first row, so the styles round trip has a
+      // `customBorders` entry to carry through `importStyles` and back out on re-export. `start` is
+      // there on purpose beside `top`: the import maps Excel's physical `left` onto the plugin's
+      // LOGICAL `start`, and only a start-side entry proves that half of the mapping survives both
+      // directions (the plugin mirrors `start` onto `left` in cell meta, which is what the export
+      // reads back).
+      customBorders: [
+        { row: 0, col: 1, top: { width: 2, color: '#0000ff' }, start: { width: 1, color: '#0000ff' } },
+      ],
+      exportFile: { engines: { xlsx: ExcelJS } },
+      afterRenderer: stamp('source'),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // A second, small source grid, so the nested-header round trip does not change what the first
+    // three tests see. The existing source has flat `colHeaders`; giving IT nested headers would
+    // make the default `headerRows: 1` import promote only the top layer and rewrite assertions
+    // that are about something else.
+    const source2 = new Handsontable(document.getElementById('source2'), {
+      data: [
+        ['Ana García', 'Analyst', 120],
+        ['Li Wei', 'Engineer', 40],
+      ],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Team', colspan: 2 }, 'Totals'],
+        ['Name', 'Role', 'Revenue'],
+      ],
+      exportFile: { engines: { xlsx: ExcelJS } },
+      afterRenderer: stamp('source2'),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.__source2 = source2;
+
+    const target = new Handsontable(targetEl, {
+      data: [[]],
+      formulas: { engine: HyperFormula, sheetName: 'Target' },
+      importFile: { engines: { xlsx: ExcelJS } },
+      // Enabled so an imported `customBorders` entry (via `importStyles: true`) actually lands,
+      // rather than being reported under `result.dropped` as `cellStyles:borders`.
+      customBorders: true,
+      // Used only by the styles round trip, to re-export the target and read the styling back.
+      exportFile: { engines: { xlsx: ExcelJS } },
+      afterRenderer: stamp('target'),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.__source = source;
+    window.__target = target;
+
+    window.__lastImport = null;
+    target.addHook('afterImport', (result) => {
+      window.__lastImport = result;
+    });
+
+    document.querySelector('[data-testid="round-trip"]').addEventListener('click', async() => {
+      const status = document.querySelector('[data-testid="status"]');
+
+      status.textContent = 'working';
+
+      const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true, exportHiddenColumns: 'hide', exportFormulas: true,
+      });
+
+      await target.getPlugin('importFile').importFromBlob('xlsx', blob, {
+        colHeaders: 'firstRow', rowHeaders: true,
+      });
+      status.textContent = 'done';
+    });
+
+    // Same export -> import round trip as above, but with `importStyles: true`, followed by a
+    // RE-export of the target: the target is exported again and the resulting blob is read back
+    // with the in-page ExcelJS, so the assertions can check that the generated stylesheet and
+    // `customBorders` entries the import installed actually reach a re-exported file, not just
+    // the grid's own rendered DOM.
+    document.querySelector('[data-testid="round-trip-styles"]').addEventListener('click', async() => {
+      const status = document.querySelector('[data-testid="status"]');
+
+      status.textContent = 'working';
+
+      const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true, exportFormulas: true,
+      });
+
+      await target.getPlugin('importFile').importFromBlob('xlsx', blob, {
+        colHeaders: 'firstRow', rowHeaders: true, importStyles: true,
+      });
+
+      const reexportBlob = await target.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true,
+      });
+      const workbook = new ExcelJS.Workbook();
+
+      await workbook.xlsx.load(await reexportBlob.arrayBuffer());
+
+      const ws = workbook.worksheets[0];
+
+      // Target row 0 (Ana García) with headers + row headers exported: data column 1 (Amount)
+      // lands at sheet column C, data column 2 (Hired) at sheet column D, data row 0 at sheet row 2.
+      window.__reexport = {
+        amountFont: ws.getCell('C2').font,
+        hiredFill: ws.getCell('D2').fill,
+        amountBorder: ws.getCell('C2').border,
+      };
+      status.textContent = 'done-styles';
+    });
+
+    // Nested headers + conditional formatting in one pass. The export writes two header rows (so
+    // `dataRowOffset` is 3) and no row headers (`dataColOffset` is 1), which puts the descriptor's
+    // rows [0, 1] x cols [2, 2] at the sheet reference `C3:C4`; the import shifts the same two
+    // header rows back off and has to land on rows [0, 1] x cols [2, 2] again.
+    document.querySelector('[data-testid="round-trip-nested"]').addEventListener('click', async() => {
+      const status = document.querySelector('[data-testid="status"]');
+
+      status.textContent = 'working';
+
+      const blob = await source2.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true,
+        conditionalFormatting: [{
+          rows: [0, 1],
+          cols: [2, 2],
+          rules: [{
+            type: 'cellIs',
+            operator: 'greaterThan',
+            formulae: ['100'],
+            priority: 1,
+            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFFC7CE' } } },
+          }],
+        }],
+      });
+
+      await target.getPlugin('importFile').importFromBlob('xlsx', blob, {
+        colHeaders: 'firstRow', headerRows: 2,
+      });
+      status.textContent = 'done-nested';
+    });
+  </script>
+</body>
+</html>

@@ -306,6 +306,19 @@ export default {
         metaTitle: 'HiddenColumns - Angular Data Grid | Handsontable',
       },
     },
+    'ImportFile.md': {
+      id: 'k7xq2m4d',
+      metaTitle: 'ImportFile - JavaScript Data Grid | Handsontable',
+      description: 'Use the ImportFile plugin with its API options, members, and methods to load an Excel workbook into your grid through an engine you provide.',
+      react: {
+        id: 'r3vn8p1s',
+        metaTitle: 'ImportFile - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'w9zt5c6b',
+        metaTitle: 'ImportFile - Angular Data Grid | Handsontable',
+      },
+    },
     'ManualColumnFreeze.md': {
       id: 'xn65u35f',
       metaTitle: 'ManualColumnFreeze - JavaScript Data Grid | Handsontable',

@@ -700,6 +700,9 @@ importers:
       eslint:
         specifier: 8.57.1
         version: 8.57.1
+      exceljs:
+        specifier: 4.4.0
+        version: 4.4.0
       hyperformula:
         specifier: 3.3.0
         version: 3.3.0
@@ -915,9 +918,21 @@ importers:
       '@types/react-redux':
         specifier: ^7.1.7
         version: 7.1.34
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^5.4.0
+        version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@3.8.2))(eslint@8.57.1)(typescript@3.8.2)
+      '@typescript-eslint/parser':
+        specifier: ^5.4.0
+        version: 5.62.0(eslint@8.57.1)(typescript@3.8.2)
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      eslint:
+        specifier: ^8.57.1
+        version: 8.57.1
+      eslint-plugin-react-hooks:
+        specifier: ^4.6.0
+        version: 4.6.2(eslint@8.57.1)
       handsontable:
         specifier: workspace:^
         version: link:../../handsontable/tmp
@@ -8321,6 +8336,12 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
+
+  eslint-plugin-react-hooks@4.6.2:
+    resolution: {integrity: sha512-QzliNJq4GinDBcD8gPB5v0wh6g8q3SUi6EFF0x8N/BL9PoVs0atuGc47ozMRyOWAKdwaZ5OnbOEa3WR+dSGKuQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
 
   eslint-plugin-vue@8.7.1:
     resolution: {integrity: sha512-28sbtm4l4cOzoO1LtzQPxfxhQABararUb1JtqusQqObJpWX2e/gmVyeYVfepizPFne0Q5cILkYGiBoV36L12Wg==}
@@ -19943,6 +19964,25 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@3.8.2))(eslint@8.57.1)(typescript@3.8.2)':
+    dependencies:
+      '@eslint-community/regexpp': 4.12.2
+      '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@3.8.2)
+      '@typescript-eslint/scope-manager': 5.62.0
+      '@typescript-eslint/type-utils': 5.62.0(eslint@8.57.1)(typescript@3.8.2)
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@3.8.2)
+      debug: 4.4.3
+      eslint: 8.57.1
+      graphemer: 1.4.0
+      ignore: 5.3.2
+      natural-compare-lite: 1.4.0
+      semver: 7.8.4
+      tsutils: 3.21.0(typescript@3.8.2)
+    optionalDependencies:
+      typescript: 3.8.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -20012,6 +20052,18 @@ snapshots:
       natural-compare: 1.4.0
       ts-api-utils: 2.5.0(typescript@6.0.3)
       typescript: 6.0.3
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@3.8.2)':
+    dependencies:
+      '@typescript-eslint/scope-manager': 5.62.0
+      '@typescript-eslint/types': 5.62.0
+      '@typescript-eslint/typescript-estree': 5.62.0(typescript@3.8.2)
+      debug: 4.4.3
+      eslint: 8.57.1
+    optionalDependencies:
+      typescript: 3.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -20110,6 +20162,18 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
+  '@typescript-eslint/type-utils@5.62.0(eslint@8.57.1)(typescript@3.8.2)':
+    dependencies:
+      '@typescript-eslint/typescript-estree': 5.62.0(typescript@3.8.2)
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@3.8.2)
+      debug: 4.4.3
+      eslint: 8.57.1
+      tsutils: 3.21.0(typescript@3.8.2)
+    optionalDependencies:
+      typescript: 3.8.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/type-utils@5.62.0(eslint@8.57.1)(typescript@4.9.5)':
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@4.9.5)
@@ -20165,6 +20229,20 @@ snapshots:
   '@typescript-eslint/types@7.18.0': {}
 
   '@typescript-eslint/types@8.61.0': {}
+
+  '@typescript-eslint/typescript-estree@5.62.0(typescript@3.8.2)':
+    dependencies:
+      '@typescript-eslint/types': 5.62.0
+      '@typescript-eslint/visitor-keys': 5.62.0
+      debug: 4.4.3
+      globby: 11.1.0
+      is-glob: 4.0.3
+      semver: 7.8.4
+      tsutils: 3.21.0(typescript@3.8.2)
+    optionalDependencies:
+      typescript: 3.8.2
+    transitivePeerDependencies:
+      - supports-color
 
   '@typescript-eslint/typescript-estree@5.62.0(typescript@4.9.5)':
     dependencies:
@@ -20253,6 +20331,21 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
+
+  '@typescript-eslint/utils@5.62.0(eslint@8.57.1)(typescript@3.8.2)':
+    dependencies:
+      '@eslint-community/eslint-utils': 4.9.1(eslint@8.57.1)
+      '@types/json-schema': 7.0.15
+      '@types/semver': 7.7.1
+      '@typescript-eslint/scope-manager': 5.62.0
+      '@typescript-eslint/types': 5.62.0
+      '@typescript-eslint/typescript-estree': 5.62.0(typescript@3.8.2)
+      eslint: 8.57.1
+      eslint-scope: 5.1.1
+      semver: 7.8.4
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   '@typescript-eslint/utils@5.62.0(eslint@8.57.1)(typescript@4.9.5)':
     dependencies:
@@ -22613,6 +22706,10 @@ snapshots:
       synckit: 0.9.3
     transitivePeerDependencies:
       - supports-color
+
+  eslint-plugin-react-hooks@4.6.2(eslint@8.57.1):
+    dependencies:
+      eslint: 8.57.1
 
   eslint-plugin-vue@8.7.1(eslint@8.57.1):
     dependencies:
@@ -29192,6 +29289,11 @@ snapshots:
     dependencies:
       tslib: 1.14.1
       typescript: 5.8.3
+
+  tsutils@3.21.0(typescript@3.8.2):
+    dependencies:
+      tslib: 1.14.1
+      typescript: 3.8.2
 
   tsutils@3.21.0(typescript@4.9.5):
     dependencies:

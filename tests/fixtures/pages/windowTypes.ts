@@ -41,6 +41,13 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
+    sheetId: number | null,
+    // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
+    // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
+    engine: {
+      getSheetDimensions(sheetId: number): { width: number, height: number },
+      getSheetSerialized(sheetId: number): unknown[][],
+    } | null,
   };
   getPlugin(name: 'undoRedo'): {
     undo(): void,
@@ -146,6 +153,19 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    /** The `<td>` currently being edited. Throws once the grid is destroyed. */
+    getEditedCell(): HTMLTableCellElement,
+    /**
+     * The list's own sub-grid, on the `handsontable` / `autocomplete` / `dropdown` family. Read by
+     * `DropdownEditorClipPage#startListHeightWriteRecorder()` to record its height writes.
+     */
+    htEditor?: {
+      updateSettings(settings: Record<string, unknown>, ...rest: unknown[]): void,
+    },
+    /** Whether that family's list is rendered above the edited cell. */
+    isFlippedVertically?: boolean,
+    /** The multiselect editor keeps its own flip state on this controller instead. */
+    dropdownController?: { isFlippedVertically(): boolean },
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
@@ -234,8 +254,22 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
-    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
+    initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
+    /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
+    htDropdownOptions: string[];
+    /** DEV-2938 / DEV-2978 fixtures: everything the page logged through `console.error`, in order. */
     consoleErrors?: string[];
+    /** DEV-2978 fixture: how many `setSheetContent` calls the bound engine has taken since the last reset. */
+    sheetWriteCount?: number;
+    /**
+     * DEV-2978 fixture, `sheet-switch` scenario: the shared HyperFormula instance the grid and the
+     * spec both address, so a spec can read a sheet the grid is not currently bound to.
+     */
+    htEngine?: {
+      getSheetId(name: string): number,
+      getSheetSerialized(sheetId: number): unknown[][],
+    };
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
     /** DEV-2938 fixture: how many times the grid has drawn since it was built. */
@@ -314,6 +348,23 @@ declare global {
     resetBorderMoveCount(): boolean;
     /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
     getBorderMoveCount(): number;
+    /**
+     * Resets the count of mouse moves that landed on a header (fragmentSelection fixture).
+     */
+    resetHeaderMoveCount(): boolean;
+    /**
+     * Returns how many mouse moves landed on a header since the reset (fragmentSelection fixture).
+     */
+    getHeaderMoveCount(): number;
+    /**
+     * Forgets the latest `mouseup` (fragmentSelection fixture).
+     */
+    resetLastMouseUp(): boolean;
+    /**
+     * Whether the latest `mouseup` landed off the grid; `null` when none has since the reset
+     * (fragmentSelection fixture).
+     */
+    wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */

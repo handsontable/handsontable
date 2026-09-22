@@ -16,6 +16,7 @@ import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
+import { ImportFile } from './importFile';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
 import { HiddenColumns } from './hiddenColumns';
@@ -71,6 +72,7 @@ declare module './registry' {
     dragToScroll: typeof DragToScroll;
     dropdownMenu: typeof DropdownMenu;
     exportFile: typeof ExportFile;
+    importFile: typeof ImportFile;
     filters: typeof Filters;
     formulas: typeof Formulas;
     hiddenColumns: typeof HiddenColumns;
@@ -122,6 +124,7 @@ export function registerAllPlugins() {
   registerPlugin(DragToScroll);
   registerPlugin(DropdownMenu);
   registerPlugin(ExportFile);
+  registerPlugin(ImportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
   registerPlugin(HiddenColumns);
@@ -169,6 +172,7 @@ export {
   DragToScroll,
   DropdownMenu,
   ExportFile,
+  ImportFile,
   Filters,
   Formulas,
   HiddenColumns,
