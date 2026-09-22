@@ -151,6 +151,43 @@ describe('contextMenu/utils', () => {
       expect(checkSelectionConsistency(ranges, (row, col) => col === 1)).toBe(true);
       expect(checkSelectionConsistency(ranges, () => false)).toBe(false);
     });
+
+    it('should find a match in a later range, even when an earlier range has none (DEV-136)', () => {
+      // A multi-layer selection (e.g. a Ctrl+click adding a second block). The first range has no
+      // match at all, so it used to abandon the search after it and report "no match anywhere",
+      // even though the second range has one.
+      const ranges = [
+        createStoppableRange([[0, 0], [0, 1]]),
+        createStoppableRange([[5, 5]]),
+      ];
+
+      expect(checkSelectionConsistency(ranges, (row, col) => row === 5 && col === 5)).toBe(true);
+    });
+
+    it('should still stop as soon as a match is found, without entering a later range', () => {
+      const visited = [];
+      const ranges = [
+        createStoppableRange([[0, 0], [0, 1]]),
+        createStoppableRange([[9, 9]]),
+      ];
+
+      checkSelectionConsistency(ranges, (row, col) => {
+        visited.push([row, col]);
+
+        return row === 0 && col === 0;
+      });
+
+      expect(visited).toEqual([[0, 0]]);
+    });
+
+    it('should report false when no range holds a match', () => {
+      const ranges = [
+        createStoppableRange([[0, 0], [0, 1]]),
+        createStoppableRange([[5, 5]]),
+      ];
+
+      expect(checkSelectionConsistency(ranges, () => false)).toBe(false);
+    });
   });
 
   describe('getAlignmentClasses', () => {

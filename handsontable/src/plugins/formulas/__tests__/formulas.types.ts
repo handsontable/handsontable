@@ -77,3 +77,10 @@ precedents.length.toFixed();
 // Deprecated no-op shims, kept for backward compatibility - must still compile.
 formulas.registerShortcuts();
 formulas.unregisterShortcuts();
+
+// DEV-207
+formulas.showFormulas();
+formulas.hideFormulas();
+const isShowingFormulas: boolean = formulas.isShowingFormulas();
+
+isShowingFormulas.valueOf();

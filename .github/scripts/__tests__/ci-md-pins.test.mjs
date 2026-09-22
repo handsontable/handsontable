@@ -53,6 +53,12 @@ test('the tooling glob still covers the directories basenames resolve against', 
 
 test('every test file a bullet in .ai/CI.md names exists', () => {
   // A renamed pin silently orphans its bullet; nothing else reads these names.
+  //
+  // The two floors below are VACUITY guards, not counts anybody maintains. `.ai/CI.md` only ever
+  // grows, so a floor set well under today's total never needs touching — it fires when the parsing
+  // breaks (a heading style change that stops the bullet split from matching, a regex that stops
+  // extracting names), which would otherwise leave the loop iterating zero times and the test green
+  // while checking nothing. Raise them only if they ever fire for a real shrink.
   assert.ok(bullets.length >= 17, `.ai/CI.md lost its bullets (${bullets.length} found)`);
 
   const mentions = new Map();
