@@ -93,7 +93,12 @@ or an engine object.
   assert four-way equality.
 - **Jest has no Web streams of its own**: `test/cryptoSetup.js` installs `CompressionStream` and
   `DecompressionStream` from `node:stream/web` into the sandbox (Jest 27's node environment copies a
-  fixed allow-list of globals). Remove that and every adapter test fails with `ReferenceError`.
+  fixed allow-list of globals). Remove that and every adapter test fails through
+  `assertStreamAvailable` in `zip/streams.ts`, which names the missing global and the two ways out
+  (a browser or Node 18+, or ExcelJS through `engines`) instead of the bare `ReferenceError` the
+  engine used to raise. jsdom and Vitest's jsdom environment have neither global either, which is
+  why both guides carry a Requirements note. The guard is at the two entry points and throws
+  SYNCHRONOUSLY; inside the async zip writer that surfaces as a rejection.
 - **A sheet password is hashed exactly as ExcelJS hashes it** (`parts/protection.ts`: SHA-512 spin
   hash, 100000 rounds, UTF-16LE password, 16-byte salt) so Excel prompts for it on unprotect. It
   is a UI gate, not encryption. Today's export always passes an empty password; the hash path is

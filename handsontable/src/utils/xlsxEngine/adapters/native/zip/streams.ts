@@ -80,9 +80,28 @@ async function pump(
 }
 
 /**
+ * Refuses the operation when the host has no Compression Streams API. jsdom, Vitest's jsdom
+ * environment and Jest's default environment all lack both globals, and without this the engine
+ * failed with a bare `ReferenceError` raised from inside this module.
+ */
+function assertStreamAvailable(globalName: 'CompressionStream' | 'DecompressionStream'): void {
+  const available = globalName === 'CompressionStream'
+    ? typeof CompressionStream !== 'undefined'
+    : typeof DecompressionStream !== 'undefined';
+
+  if (!available) {
+    throwWithCause(`${globalName} is not available here, and the built-in xlsx engine needs the Web `
+      + 'Compression Streams API. Run Handsontable in a browser or on Node 18+, or inject ExcelJS '
+      + 'through the `engines` option.');
+  }
+}
+
+/**
  * Compresses bytes with raw DEFLATE (no zlib header), the method ZIP entries use.
  */
 export function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
+  assertStreamAvailable('CompressionStream');
+
   return pump(bytes, new CompressionStream('deflate-raw'), Number.POSITIVE_INFINITY);
 }
 
@@ -90,5 +109,7 @@ export function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
  * Decompresses raw DEFLATE bytes, refusing output above `maxBytes`.
  */
 export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Array> {
+  assertStreamAvailable('DecompressionStream');
+
   return pump(bytes, new DecompressionStream('deflate-raw'), maxBytes);
 }

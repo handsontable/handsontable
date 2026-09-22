@@ -82,6 +82,10 @@ const hotSettings = ref({
 
 :::
 
+### Requirements
+
+The built-in engine packs the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - jsdom, Vitest with the jsdom environment, or Jest's default environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option.
+
 ## Engines
 
 XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.com/exceljs/exceljs) 4.4 or later through the `engines` option instead. The built-in engine ignores the numeric `compression` level (it always uses the platform's DEFLATE, or stores the entries for `false`), and writes only some conditional formatting rule kinds -- every other feature below matches between the two engines:

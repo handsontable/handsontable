@@ -29,6 +29,10 @@ Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads t
 
 - Register the `ImportFile` plugin (it is part of `registerAllModules()`). No other library is needed.
 
+### Requirements
+
+The built-in engine unpacks the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - jsdom, Vitest with the jsdom environment, or Jest's default environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option.
+
 ## Engines
 
 The plugin reads `.xlsx` files with a built-in engine. To read through [ExcelJS](https://github.com/exceljs/exceljs) instead - for example to keep the behavior of a 19.0 integration - install ExcelJS 4.4 or later and pass it through the `engines` option: `importFile: { engines: { xlsx: ExcelJS } }`. The per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both engines and both directions.
@@ -203,6 +207,16 @@ Pass these options as the third argument to `importFromArrayBuffer(format, buffe
 | `apply` | `boolean` | `true` | Apply the result to the grid. |
 | `engine` | `object` | - | Per-call engine override. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. |
+
+### Re-importing an export
+
+A workbook you exported from Handsontable carries its nested headers and its row headers as ordinary sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
+
+```javascript
+await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
+  colHeaders: 'firstRow', headerRows: 2, rowHeaders: true,
+});
+```
 
 ## Styles
 
