@@ -1508,6 +1508,7 @@ export const REGISTERED_HOOKS = [
    * menu "Read only" item.
    *
    * @event Hooks#beforeReadOnlyToggle
+   * @since 19.0.0
    * @param {object} stateBefore An object where each key is a visual row index and each value is an array
    *                             of booleans (the previous `readOnly` state) indexed by visual column.
    * @param {CellRange[]} ranges An array of `CellRange` coordinates where the read-only state will be applied.

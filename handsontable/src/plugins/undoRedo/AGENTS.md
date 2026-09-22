@@ -241,17 +241,27 @@ therefore push one undo entry per cell instead of one per click. The fix is the 
 a per-cell `stateBefore` snapshot (`getReadOnlyStates()` in `contextMenu/utils.ts`, the `readOnly` twin of
 `getAlignmentClasses()`) and fires a bespoke `beforeReadOnlyToggle` hook **once**, after the snapshot and
 before the mutation loop; this action's `startRegisteringEvents()` is the only listener and turns that one
-firing into one `done()` call. No new IGNORE-flag plumbing was needed: `UndoRedo.ignoreNewActions` (already
-set for the duration of `undo()`/`redo()`) suppresses the action's own replay from re-triggering
-`afterSetCellMeta`-driven recording, the same mechanism `removeRow.ts`'s existing nested-meta restore
-already relies on. Unlike alignment (which recomputes the new class via `align()` on redo, because the
-alignment axis is per-cell), a read-only toggle applies one uniform boolean to every affected cell, so
-`redo()` just replays the recorded `readOnly` value — only `undo()` needs the per-cell `stateBefore` map, to
-put a mixed-state selection back exactly as it was rather than to a single value.
+firing into one `done()` call. No IGNORE-flag plumbing was needed at all, and not because
+`ignoreNewActions` is suppressing anything here: `undo()`/`redo()` write through `hot.setCellMeta()`, which
+fires `beforeSetCellMeta`/`afterSetCellMeta` — hooks this action does not listen to. The only hook this
+action's `startRegisteringEvents()` listens to is `beforeReadOnlyToggle`, and nothing in `undo()`/`redo()`
+fires that hook, so there is no path back into `done()` at all during replay; the flag is simply not
+load-bearing for this action. Unlike alignment (which recomputes the new class via `align()` on redo,
+because the alignment axis is per-cell), a read-only toggle applies one uniform boolean to every affected
+cell, so `redo()` just replays the recorded `readOnly` value — only `undo()` needs the per-cell
+`stateBefore` map, to put a mixed-state selection back exactly as it was rather than to a single value.
 
 A future `setCellMeta`-driven action should default to this pattern (bespoke `before*` hook fired once by
-the caller, not a listener on `afterSetCellMeta` itself) unless the caller already has some other natural
+the caller, capturing a snapshot before the mutation) unless the caller already has some other natural
 per-operation boundary to hook.
+
+**Known gap, shared with `CellAlignmentAction`:** the menu item fires its `before*` hook unconditionally,
+before the mutation loop runs — so a selection whose every `setCellMeta` write gets vetoed by a
+`beforeSetCellMeta` listener still stacks an undo entry for a change that never actually happened, and
+(per `done()`'s no-op contract) still clears the redo stack. Neither action's `wrappedAction` can see the
+veto coming, because `beforeSetCellMeta` fires per cell, inside the loop, after the snapshot/hook already
+ran. A real fix needs the menu item to know whether at least one write actually landed before firing the
+hook — deliberately not built here, to keep this fix scoped to DEV-136.
 
 ## Undo/redo bypasses the Formulas plugin's change listeners
 
@@ -285,6 +295,10 @@ fix makes a green spec go red, suspect the spec.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='undoRedo'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='undoRedo'`
 
-`__tests__/actions/` holds a spec per action — put a new action's coverage there, not in the 2.5k-line
-`UndoRedo.spec.js`. There are also dedicated `hooks`, `keyboardShortcuts`, `scroll` and `selection` specs,
-plus `../mergeCells/__tests__/undoRedo.spec.js` for that interaction.
+`__tests__/actions/` holds a legacy Jasmine spec per EXISTING action — extend one there, not the 2.5k-line
+`UndoRedo.spec.js`, when the action already has a file. The legacy Jasmine `*.spec.js` suite is frozen
+monorepo-wide (`.ai/TESTING.md`): a **new** action gets its coverage as a **Playwright** spec under
+`tests/e2e/*.spec.ts` instead — do not add a new file under `__tests__/actions/`, however tempting the
+existing per-action-file convention looks (DEV-136 got this wrong on the first pass). There are also
+dedicated `hooks`, `keyboardShortcuts`, `scroll` and `selection` specs, plus
+`../mergeCells/__tests__/undoRedo.spec.js` for that interaction.
