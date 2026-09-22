@@ -271,7 +271,7 @@ describe('numericRenderer', () => {
         '(gate the write on an actual change)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
-        // An array already carrying both markers - nothing for this render to add.
+        // An array already carrying both markers — nothing for this render to add.
         const existingClassName = ['htRight', 'htNumeric'];
         const cellMeta = {
           instance,
@@ -284,7 +284,7 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        // The renderer must not rewrite an unchanged array into a joined string - doing so
+        // The renderer must not rewrite an unchanged array into a joined string — doing so
         // unconditionally would replay a user-defined array `className` as a baked-in string the
         // next time `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
         expect(cellMeta.className).toBe(existingClassName);

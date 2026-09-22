@@ -56,7 +56,7 @@ export function numericRenderer(
   }
 
   // `numericRenderer` only ever runs for a cell already configured numeric (`type: 'numeric'` or
-  // `renderer: 'numeric'`), so the alignment/class marker applies unconditionally here - it must not
+  // `renderer: 'numeric'`), so the alignment/class marker applies unconditionally here — it must not
   // be re-derived from the cell's VALUE, or a numeric-typed cell holding `null`/`undefined`/text never
   // gets marked as numeric even though `getCellMeta().type` says it is (DEV-135).
   //
@@ -77,7 +77,7 @@ export function numericRenderer(
     classArrChanged = true;
   }
 
-  // Gate the write on actually having changed something - rewriting the array into a string on
+  // Gate the write on actually having changed something — rewriting the array into a string on
   // every render would replay a user-defined array `className` as a baked-in string the next time
   // `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
   if (classArrChanged) {
