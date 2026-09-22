@@ -26,6 +26,20 @@ jobs:
     name: Trigger examples snapshot import
     runs-on: ubuntu-latest
     steps:
+      # Push events are already filtered by the branch patterns above, but
+      # workflow_dispatch bypasses that filter, so validate the ref here
+      # instead of dispatching a branch the importer in handsontable/examples
+      # cannot resolve. Runs before the checkout below so an invalid manual
+      # dispatch ref fails fast without paying for a fetch first.
+      - name: Validate docs branch
+        env:
+          DOCS_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ "$DOCS_BRANCH" != 'develop' && ! "$DOCS_BRANCH" =~ ^prod-docs/[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::\"$DOCS_BRANCH\" is not a docs branch the examples importer accepts (expected \"develop\" or \"prod-docs/<major>.<minor>\")."
+            exit 1
+          fi
+
       # Full history (not a shallow clone) so BEFORE_SHA/AFTER_SHA below are
       # reachable, and sparse/blobless so this stays a cheap partial checkout,
       # not a full monorepo clone, for a job that previously checked out
@@ -46,19 +60,6 @@ jobs:
             docs/content/recipes
             .github
           persist-credentials: false
-
-      # Push events are already filtered by the branch patterns above, but
-      # workflow_dispatch bypasses that filter, so validate the ref here
-      # instead of dispatching a branch the importer in handsontable/examples
-      # cannot resolve.
-      - name: Validate docs branch
-        env:
-          DOCS_BRANCH: ${{ github.ref_name }}
-        run: |
-          if [[ "$DOCS_BRANCH" != 'develop' && ! "$DOCS_BRANCH" =~ ^prod-docs/[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::\"$DOCS_BRANCH\" is not a docs branch the examples importer accepts (expected \"develop\" or \"prod-docs/<major>.<minor>\")."
-            exit 1
-          fi
 
       # Deterministic (DEV-3029): example content is never inline in a guide's
       # .md -- it's referenced from sibling files beside it -- so whether a

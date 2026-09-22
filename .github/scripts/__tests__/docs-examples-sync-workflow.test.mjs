@@ -53,8 +53,10 @@ test('the mint and dispatch steps are gated on needs_sync with fail-open polarit
   assert.doesNotMatch(source, /needs_sync == 'true'/);
 });
 
-test('step order is checkout, validate branch, gate, mint, dispatch', () => {
-  const order = ['Checkout docs content', 'Validate docs branch', 'id: gate', 'Mint GitHub App token', 'Send repository_dispatch to handsontable/examples'];
+test('step order is validate branch, checkout, gate, mint, dispatch', () => {
+  // Validate first so an invalid manual-dispatch ref fails fast without
+  // paying for the checkout that follows.
+  const order = ['Validate docs branch', 'Checkout docs content', 'id: gate', 'Mint GitHub App token', 'Send repository_dispatch to handsontable/examples'];
   const positions = order.map((marker) => source.indexOf(marker));
 
   assert.ok(positions.every((p) => p > -1), 'every expected step marker must be present');

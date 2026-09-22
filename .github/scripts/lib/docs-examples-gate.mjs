@@ -153,11 +153,16 @@ export function isExampleRelevant({ path, status, diffText = '', beforeText = nu
   if (status === 'renamed' || status === 'copied') {
     // Assumption: the importer is plausibly path-keyed, so a rename/copy
     // changes what an `@[code]` reference or example id resolves against
-    // even with byte-identical content. Always relevant -- checked before the
-    // scope filter below because git's pathspec match on a rename/copy can
-    // fire on the OLD path while the NEW path (what `path` holds here) has
-    // moved outside `docs/content/guides|recipes`; that move is itself a
-    // reason to sync, not a reason to skip.
+    // even with byte-identical content. Always relevant.
+    //
+    // Checked before the scope filter below defensively, for a direct caller
+    // that passes an out-of-scope `path` alongside this status. In practice
+    // the CLI (`../docs-examples-gate.mjs`) never constructs that combination:
+    // a `git diff -- <pathspec>` restricted to the scoped directories cannot
+    // pair a rename/copy whose new side falls outside them -- verified
+    // empirically, it degrades to a plain delete of the OLD (in-scope) path
+    // instead, which the 'removed' branch below already handles correctly by
+    // checking whether the departing content had an example block.
     return true;
   }
 

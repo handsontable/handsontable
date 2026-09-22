@@ -173,6 +173,64 @@ test('decide: a new guide with no example block does not proceed; one with a blo
   }
 });
 
+test('decide: a guide renamed OUT of the scoped directories is judged on whether the departing content had an example block', () => {
+  // git reports this as a plain delete of the old (in-scope) path, not a
+  // rename -- a pathspec-restricted diff cannot pair a rename whose new side
+  // falls outside the pathspec (verified empirically against real git). The
+  // 'removed' branch in isExampleRelevant already handles that correctly.
+  const { root, write, run, commit } = fixture();
+
+  write('docs/content/guides/x/plain.md', '# Plain guide\n\nJust prose, nothing else.\n');
+  write('other/.keep', ''); // pre-create the destination directory
+  const beforePlain = commit('base: a plain guide');
+
+  run(['mv', 'docs/content/guides/x/plain.md', 'other/plain.md']);
+  const afterPlainMoved = commit('move the plain guide out of scope');
+
+  assert.equal(decide(root, beforePlain, afterPlainMoved).needsSync, false);
+
+  write('docs/content/guides/x/with-example.md', ['# With example', '', '::: example #ex', '@[code](@/content/x.js)', ':::'].join('\n'));
+  const beforeExample = commit('base: a guide with an example');
+
+  run(['mv', 'docs/content/guides/x/with-example.md', 'other/with-example.md']);
+  const afterExampleMoved = commit('move the guide-with-an-example out of scope');
+
+  try {
+    const result = decide(root, beforeExample, afterExampleMoved);
+
+    assert.equal(result.needsSync, true);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('decide: copying a guide while also editing its source in the same push is detected as a copy and always proceeds', () => {
+  // Plain -C (not the expensive --find-copies-harder) only detects a copy
+  // when its source was ALSO modified in the same diff -- verified
+  // empirically against real git. A copy of an untouched file is reported as
+  // a plain add instead, which the 'added' branch already handles by content.
+  const { root, write, commit } = fixture();
+  const original = [
+    '# Title', '', 'Line one of the guide.', 'Line two of the guide.', 'Line three of the guide.',
+    'Line four of the guide.', 'Line five of the guide.', 'Line six of the guide.', 'Line seven of the guide.',
+  ].join('\n');
+
+  write('docs/content/guides/x/y.md', original);
+  const before = commit('base');
+
+  write('docs/content/guides/x/y-copy.md', original); // unmodified copy
+  write('docs/content/guides/x/y.md', original.replace('Line one of the guide.', 'Line one of the guide, edited.'));
+  const after = commit('copy the guide as a template, and edit the original');
+
+  try {
+    const result = decide(root, before, after);
+
+    assert.equal(result.needsSync, true);
+  } finally {
+    cleanup(root);
+  }
+});
+
 test('decide: a change entirely outside docs/content/guides and docs/content/recipes never proceeds', () => {
   const { root, write, commit } = fixture();
 

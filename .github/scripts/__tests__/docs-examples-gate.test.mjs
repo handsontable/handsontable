@@ -225,11 +225,15 @@ test('isExampleRelevant: adding a plain line inside an otherwise-unchanged block
   );
 });
 
-test('isExampleRelevant: a renamed .md file is relevant even when the new path has moved outside the scoped directories', () => {
-  // git's pathspec match on a rename/copy can fire on the OLD path; the new
-  // path (what `path` holds) may no longer match docs/content/guides|recipes.
-  // That move is itself a reason to sync, not a reason to fall through to the
-  // scope filter and read "not relevant".
+test('isExampleRelevant: defensively, a "renamed" status is relevant even if the caller passes an out-of-scope path', () => {
+  // Defensive only: the real CLI (docs-examples-gate.mjs) never constructs
+  // this combination. A `git diff -- <pathspec>` restricted to the scoped
+  // directories cannot pair a rename whose new side falls outside them --
+  // verified empirically, it reports a plain delete of the OLD (in-scope)
+  // path instead, which the 'removed' branch already handles correctly (see
+  // the CLI-level "a guide renamed out of scope" test in
+  // docs-examples-gate-cli.test.mjs). This guards a hypothetical direct
+  // caller of the pure function, not decide()'s own reachable behavior.
   assert.equal(isExampleRelevant({ path: 'docs/other/y.md', status: 'renamed' }), true);
 });
 

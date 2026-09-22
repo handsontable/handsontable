@@ -71,7 +71,12 @@ export function decide(root, before, after) {
     return { needsSync: true, reason: 'new branch push (before SHA is all zeros); nothing to diff against' };
   }
 
-  const nameStatus = git(root, ['diff', '--name-status', '-M', before, after, '--', ...PATHS]).trim();
+  // -C (not the expensive --find-copies-harder / `-C -C`) detects a copy only
+  // when its source was ALSO modified in the same diff -- cheap, no full-tree
+  // scan of unmodified files. A copy of an untouched file still shows up as a
+  // plain 'A' at the new path, which the 'added' branch below already
+  // classifies correctly by checking the new file's own content.
+  const nameStatus = git(root, ['diff', '--name-status', '-M', '-C', before, after, '--', ...PATHS]).trim();
 
   if (nameStatus === '') {
     return { needsSync: false, reason: 'no changed files under docs/content/guides or docs/content/recipes' };
