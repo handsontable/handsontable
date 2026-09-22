@@ -7,6 +7,12 @@ import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
+import { mapWorkbook, resolveImportOptions } from '../mapper';
+import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
+import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
+import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -318,5 +324,49 @@ describe('ImportFile#destroy', () => {
     expect(() => plugin.destroy()).not.toThrow();
 
     expect(hot.rootDocument.head.querySelector(selector)).toBeNull();
+  });
+});
+
+describe('mapWorkbook on a merge whose covered cells were never written', () => {
+  /**
+   * Builds `A1:B1` merged with only A1 carrying a value, writes it with the given engine, then
+   * reads those bytes back with the same engine and maps them the way the plugin does.
+   * @param adapter
+   * @param engine
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 'master';
+    sheet.cell(2, 1).value = 'below';
+    sheet.merge(1, 1, 1, 2);
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), engine, new DroppedFeatures(),
+    );
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({ headerRows: 1 }),
+      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  it('should keep the merge on a native-written file, exactly as on an ExcelJS-written one', async() => {
+    // The end-to-end consequence of the reader's merge-member materialization. `mapWorkbook` takes
+    // the used column count from the widest row, so a reader that left the covered slot out
+    // narrowed the sheet to one column and then dropped the merge entirely — the native engine's
+    // own export/import round trip silently lost every merge whose covered cells carried no style.
+    const viaNative = await roundTrip(nativeAdapter, undefined);
+    const viaExcelJs = await roundTrip(excelJsAdapter, ExcelJS);
+
+    expect(viaNative.mergeCells).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+    expect(viaNative.mergeCells).toEqual(viaExcelJs.mergeCells);
+    expect(viaNative.colHeaders).toEqual(viaExcelJs.colHeaders);
+    expect(viaNative.data).toEqual(viaExcelJs.data);
   });
 });

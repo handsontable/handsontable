@@ -8,6 +8,8 @@ import { nativeAdapter } from '../adapters/native';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
 import { MAX_INPUT_BYTES } from '../limits';
+import { SheetBuilder } from '../builder';
+import { createWorkbookSnapshot } from '../model';
 
 function load(name) {
   const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
@@ -222,5 +224,41 @@ describe('nativeAdapter.read', () => {
 
       expect(strip(native)).toEqual(strip(viaExcelJs));
     }
+  });
+});
+
+describe('nativeAdapter.read: merge members with no <c> element of their own', () => {
+  it('should materialize a merge member the writer never emitted, so the row reaches full width', async() => {
+    // Exactly the shape the native writer produces for `A1:B1` merged with only A1 carrying a
+    // value: `writeCell`'s `isCovered` branch emits no `<c r="B1">` at all because B1 has no style,
+    // so the only evidence B1 exists is `<mergeCells>` and `<dimension>`. Before the merge pass
+    // materialized its members, the reader derived the width from the `<c>` elements alone and
+    // handed back a one-cell row — `importFile`'s mapper takes the sheet width from the widest row,
+    // so the merge then fell outside the used range and was dropped entirely.
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 'master';
+    sheet.merge(1, 1, 1, 2);
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const roundTripped = await nativeAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), undefined, new DroppedFeatures(),
+    );
+    const row = roundTripped.sheets[0].rows[0];
+
+    expect(row).toHaveLength(2);
+    expect(row[0].value).toBe('master');
+    expect(row[1]).toBeNull();
+    expect(roundTripped.sheets[0].merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+
+    // The same file read by ExcelJS, the behavior this reader was brought in line with.
+    const viaExcelJs = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
+    );
+
+    expect(viaExcelJs.sheets[0].rows[0]).toHaveLength(2);
+    expect(viaExcelJs.sheets[0].rows[0][1]).toBeNull();
   });
 });

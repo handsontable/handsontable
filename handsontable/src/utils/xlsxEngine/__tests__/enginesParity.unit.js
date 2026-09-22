@@ -370,7 +370,7 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     });
   });
 
-  it('writes a solid argb fill the same way, except a bgColor default only ExcelJS\'s reader surfaces', async() => {
+  it('writes a solid argb fill identically on all four legs', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
@@ -386,22 +386,13 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     const fillOf = snapshot => snapshot.sheets[0].rows[0][0].style.fill;
     const plainFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FF00' } };
 
-    expect(fillOf(nn)).toEqual(plainFill);
-    expect(fillOf(en)).toEqual(plainFill);
-    expect(fillOf(ee)).toEqual(plainFill);
-
-    // Finding: the native writer always emits a companion `<bgColor indexed="64"/>` beside a solid
-    // fill's `<fgColor>` (`StyleTable`'s fill serialization, the OOXML-conventional "automatic"
-    // background), which the native reader deliberately does not surface — the model's fill shape
-    // has no `bgColor` field, and native's own `parseStyles` only tracks `bgColor` on a DXF fill.
-    // ExcelJS's own style reader is not so selective: given the SAME native-written XML, it resolves
-    // that companion color into `bgColor: { indexed: 64 }` on the fill object it hands back. This is
-    // asserted explicitly rather than normalized away, per this file's rule against a fourth
-    // normalizer — the existing `normalizeFill` intentionally keeps the whole fill object as-is.
-    expect(fillOf(ne)).toEqual({ ...plainFill, bgColor: { indexed: 64 } });
+    // The native writer used to emit a companion `<bgColor indexed="64"/>` beside the `<fgColor>`,
+    // which only ExcelJS's reader surfaced — so the `ne` leg alone carried an extra
+    // `bgColor: { indexed: 64 }`. The companion element is gone, so all four legs agree exactly.
+    [nn, ne, en, ee].forEach(snapshot => expect(fillOf(snapshot)).toEqual(plainFill));
   });
 
-  it('writes a per-cell unlock and sheet protection options, except objects/scenarios (a native-writer quirk)', async() => {
+  it('writes a per-cell unlock and sheet protection options identically on all four legs', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
@@ -422,23 +413,33 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       expect(snapshot.sheets[0].protection.options).toEqual(expect.objectContaining({
         formatColumns: true, sort: true, autoFilter: true,
       }));
-    });
 
-    // Finding: the native writer always emits `objects="1" scenarios="1"` on a protected sheet,
-    // whatever the caller asked for, and native's own reader treats both as PLAIN (non-inverted)
-    // booleans, so its own round trip (`nn`) reports them `true`. ExcelJS inverts both instead (its
-    // own writer only emits either attribute when explicitly told `false`, and its reader treats a
-    // present `="1"` as "not allowed"), so the SAME native-written bytes read back `objects: false,
-    // scenarios: false` through the ExcelJS reader (`ne`) — the two engines disagree in both
-    // PRESENCE and POLARITY on two permission flags neither caller declared. An ExcelJS-written file
-    // carries neither attribute at all, so both readers agree there is simply no such key (`en`/`ee`).
-    expect(nn.sheets[0].protection.options).toEqual(expect.objectContaining({ objects: true, scenarios: true }));
-    expect(ne.sheets[0].protection.options).toEqual(expect.objectContaining({ objects: false, scenarios: false }));
-    expect(en.sheets[0].protection.options).not.toHaveProperty('objects');
-    expect(ee.sheets[0].protection.options).not.toHaveProperty('scenarios');
+      // `objects` and `scenarios` are permissions like any other: the attribute is written only
+      // when the caller asked for `false`, so neither key exists on any leg here. The native writer
+      // used to emit `objects="1" scenarios="1"` unconditionally, which ExcelJS's reader — which
+      // inverts both — turned into `objects: false, scenarios: false` on native bytes alone.
+      expect(snapshot.sheets[0].protection.options).not.toHaveProperty('objects');
+      expect(snapshot.sheets[0].protection.options).not.toHaveProperty('scenarios');
+    });
   });
 
-  it('writes merged cells, dropping a covered cell\'s content, but native under-pads its own row width', async() => {
+  it('writes an explicitly denied objects/scenarios permission identically on all four legs', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'x';
+      sheet.protect('', { objects: false, scenarios: false });
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+
+    [nn, ne, en, ee].forEach((snapshot) => {
+      expect(snapshot.sheets[0].protection.options).toEqual(expect.objectContaining({
+        objects: false, scenarios: false,
+      }));
+    });
+  });
+
+  it('writes merged cells, dropping a covered cell\'s content and padding the row on all four legs', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');
 
@@ -448,30 +449,17 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       snapshot.sheets.push(sheet.toSnapshot());
     });
 
+    // Every leg pads the covered cell to an explicit `null`, matching the model's documented
+    // "padded to sheet width" contract. The native reader used to derive the width from the `<c>`
+    // elements it saw alone, so its own round trip (`nn`) came back one cell short — the native
+    // writer emits no `<c>` for an unstyled covered cell. The reader now materializes every merge
+    // member, exactly as ExcelJS does.
     [nn, ne, en, ee].forEach((snapshot) => {
       expect(snapshot.sheets[0].rows[0][0].value).toBe('master');
       expect(snapshot.sheets[0].merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
-    });
-
-    // Three of the four legs pad the covered cell to an explicit `null`, matching the model's
-    // documented "padded to sheet width" contract for a row that carries at least one cell.
-    [ne, en, ee].forEach((snapshot) => {
+      expect(snapshot.sheets[0].rows[0]).toHaveLength(2);
       expect(snapshot.sheets[0].rows[0][1]).toBeNull();
-      expect(snapshot.sheets[0].rows[0].length).toBe(2);
     });
-
-    // Finding: a covered cell with no style of its own gets no `<c>` element at all from the native
-    // writer (`worksheetWriter.ts`'s `writeCell`, the `isCovered` branch), and the native reader's
-    // own sheet width is derived only from the `<c>` elements it actually saw — never from
-    // `<mergeCells>` or `<dimension>` — so native's OWN round trip (`nn`) leaves the row one cell
-    // short (`length` 1, not 2), rather than an explicit `null`. ExcelJS's writer still serializes a
-    // (typed, empty) `<c>` for a merge slave, which is what feeds the native reader's width
-    // correctly when it reads an ExcelJS-written file (`en`), and its own reader (`ee`) sees
-    // regardless; reading the SAME native-written bytes with the ExcelJS reader (`ne`) also comes
-    // out full width, because ExcelJS derives a sheet's width from its own column/row bookkeeping,
-    // not from which cells were actually written.
-    expect(nn.sheets[0].rows[0].length).toBe(1);
-    expect(nn.sheets[0].rows[0][1]).toBeUndefined();
   });
 
   it('documents that native\'s built-in numFmt id 22 differs from ExcelJs\'s canonical string for the same id', async() => {

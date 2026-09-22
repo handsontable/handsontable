@@ -279,13 +279,22 @@ export function worksheetXml(
       attrs.selectUnlockedCells = '1';
     }
 
+    // `objects` and `scenarios` default to "allowed" like every other permission, so the attribute
+    // is written only when the caller locked them down. Writing them unconditionally made ExcelJS's
+    // reader — which inverts both — report `objects: false, scenarios: false` on native bytes.
+    if (options.objects === false) {
+      attrs.objects = '1';
+    }
+
+    if (options.scenarios === false) {
+      attrs.scenarios = '1';
+    }
+
     PROTECTION_ALLOW_OPTIONS.forEach((key) => {
       if (options[key] === true) {
         attrs[key] = '0';
       }
     });
-    attrs.objects = '1';
-    attrs.scenarios = '1';
 
     if (passwordHash) {
       attrs.algorithmName = passwordHash.algorithmName;

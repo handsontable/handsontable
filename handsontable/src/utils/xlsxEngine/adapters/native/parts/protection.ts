@@ -16,8 +16,10 @@ export const SHEET_PASSWORD_SPIN_COUNT = 100000;
 /**
  * Protection options whose `true` means "allowed". OOXML stores them inverted: the attribute is
  * `1` when the action is LOCKED, so `formatColumns: true` is written as `formatColumns="0"` and
- * read back the same way. `selectLockedCells`/`selectUnlockedCells` invert too but are not in this
- * list because their default differs; `sheet`, `objects` and `scenarios` are stored as they are.
+ * read back the same way. `selectLockedCells`/`selectUnlockedCells` and `objects`/`scenarios`
+ * invert too but are not in this list because their default differs — the writer emits them only
+ * when the caller explicitly asked for `false`, exactly as ExcelJS does. Only `sheet` is stored
+ * non-inverted.
  */
 export const PROTECTION_ALLOW_OPTIONS = [
   'formatCells', 'formatColumns', 'formatRows', 'insertColumns', 'insertRows', 'insertHyperlinks',
@@ -28,7 +30,7 @@ export const PROTECTION_ALLOW_OPTIONS = [
  * Options stored inverted in the file (attribute `1` = not allowed).
  */
 export const PROTECTION_INVERTED_OPTIONS = new Set([
-  ...PROTECTION_ALLOW_OPTIONS, 'selectLockedCells', 'selectUnlockedCells',
+  ...PROTECTION_ALLOW_OPTIONS, 'selectLockedCells', 'selectUnlockedCells', 'objects', 'scenarios',
 ]);
 
 /**

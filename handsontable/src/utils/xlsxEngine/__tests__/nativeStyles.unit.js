@@ -78,8 +78,10 @@ describe('StyleTable', () => {
     expect(xml).toContain('<numFmts count="1"><numFmt numFmtId="164" formatCode="mm-dd-yyyy"/></numFmts>');
     expect(xml).toContain('<font><b/><u/><color rgb="FFFF0000"/><sz val="11"/><name val="Calibri"/></font>');
     expect(xml).toContain(
+      // No companion `<bgColor indexed="64"/>`: a solid pattern needs only its foreground color,
+      // and ExcelJS's writer emits none either (see `enginesParity.unit.js`'s fill case).
       '<fill><patternFill patternType="solid">'
-      + '<fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill>',
+      + '<fgColor rgb="FFF2F2F2"/></patternFill></fill>',
     );
     expect(xml).toContain(
       '<border><left style="medium"/><right/><top style="thin">'

@@ -342,8 +342,10 @@ export class StyleTable {
       if (fill === 'none' || fill === 'gray125') {
         w.leaf('patternFill', { patternType: fill });
       } else {
-        w.open('patternFill', { patternType: 'solid' }).leaf('fgColor', { rgb: fill.fgColor.argb })
-          .leaf('bgColor', { indexed: 64 }).close();
+        // No companion `<bgColor indexed="64"/>`: a solid pattern is fully described by its
+        // foreground color, ExcelJS's writer emits none either, and emitting one made ExcelJS's
+        // reader surface a `bgColor: { indexed: 64 }` on native-written bytes alone.
+        w.open('patternFill', { patternType: 'solid' }).leaf('fgColor', { rgb: fill.fgColor.argb }).close();
       }
 
       w.close();

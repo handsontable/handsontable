@@ -532,7 +532,7 @@ describe('worksheetXml', () => {
 
     expect(xml).toContain(
       '<sheetProtection sheet="1" formatColumns="0" '
-      + 'sort="0" autoFilter="0" objects="1" scenarios="1"/>',
+      + 'sort="0" autoFilter="0"/>',
     );
     expect(xml).toContain('<c r="A1" s="1" t="s">');
     expect(xml).toContain('<c r="B1" t="s">');
@@ -547,7 +547,7 @@ describe('worksheetXml', () => {
     }, hash);
 
     expect(xml).toContain(
-      '<sheetProtection sheet="1" objects="1" scenarios="1" '
+      '<sheetProtection sheet="1" '
       + 'algorithmName="SHA-512" hashValue="AAA=" saltValue="BBB=" spinCount="100000"/>',
     );
   });
@@ -749,6 +749,34 @@ describe('parseWorksheet', () => {
 
     expect(sheet.rows[0][0].value).toBe(1562);
     expect(sheet.rows[0][1].value).toBe(100);
+  });
+
+  it('should materialize a merge member that has no <c> element, up to the dimension', () => {
+    // The shape the native writer emits for `A1:B1` merged with only A1 written: B1 carries no
+    // style, so `writeCell`'s `isCovered` branch emits no `<c>` for it at all. The merge pass
+    // materializes it as an explicit `null` — what ExcelJS returns for the same file — instead of
+    // clamping the merge to the master and leaving the row a cell short.
+    const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
+      + '<mergeCells count="1"><mergeCell ref="A1:B1"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml, { strings: { strings: ['master'], rich: [false] } });
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[0][0].value).toBe('master');
+    expect(sheet.rows[0][1]).toBeNull();
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+  });
+
+  it('should clamp a merge that reaches past the dimension instead of widening the sheet', () => {
+    // The dimension is the bound: both the native writer and Excel include every merge in it, so a
+    // merge reaching past it is malformed and must not grow the sheet on the file's say-so.
+    const xml = `<worksheet ${NS}><dimension ref="A1:B1"/><sheetData>`
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c></row></sheetData>'
+      + '<mergeCells count="1"><mergeCell ref="A1:E1"/></mergeCells></worksheet>';
+    const { sheet } = readSheet(xml, { strings: { strings: ['master'], rich: [false] } });
+
+    expect(sheet.rows[0]).toHaveLength(2);
+    expect(sheet.rows[0][1]).toBeNull();
   });
 
   it('should refuse a validation sqref that repeats a whole-column range', () => {

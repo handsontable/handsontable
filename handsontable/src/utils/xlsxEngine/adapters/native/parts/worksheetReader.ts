@@ -627,10 +627,17 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     },
   });
 
-  // Merges: the master keeps its content, every covered cell reads as empty.
+  // Merges: the master keeps its content, every covered cell reads as empty. A merge member with
+  // no `<c>` element of its own is MATERIALIZED here as an explicit `null`, which is what ExcelJS
+  // returns for the same file — without it a merge whose covered cells were never written (the
+  // native writer emits no `<c>` for an unstyled covered cell) left the row one column short, and
+  // `importFile`'s mapper, which takes the sheet width from the widest row, then dropped the merge.
   sheet.merges.forEach((merge) => {
     const lastRow = Math.min(merge.row + merge.rowspan, rows.length);
-    const lastCol = Math.min(merge.col + merge.colspan, Math.max(width, 1));
+    // The dimension is the bound, the same one the validation pass below uses: both the native
+    // writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
+    // malformed and stays clamped rather than growing the sheet on a hostile file's say-so.
+    const lastCol = Math.min(merge.col + merge.colspan, Math.max(width, declaredCols, 1));
 
     if (lastRow <= merge.row || lastCol <= merge.col) {
       return;
@@ -638,13 +645,24 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
 
     // The third span kind, and the one the budget originally missed. Like the column and
     // validation spans it is measured before it is walked: `<mergeCell ref="A1:XFD1048576"/>` is
-    // 32 bytes and would otherwise cost a full sweep of the sheet every time it appears.
+    // 32 bytes and would otherwise cost a full sweep of the sheet every time it appears. The
+    // padding below walks no further than this charge already paid for.
     chargeSpan((lastRow - merge.row) * (lastCol - merge.col));
 
+    // `assertSheetFits` below re-checks the rectangle with the grown width, so a whole-sheet merge
+    // is still refused rather than silently widening the sheet.
+    width = Math.max(width, lastCol);
+
     for (let r = merge.row; r < lastRow; r++) {
-      for (let c = merge.col; c < lastCol && c < rows[r].length; c++) {
+      const row = rows[r];
+
+      while (row.length < lastCol) {
+        row.push(null);
+      }
+
+      for (let c = merge.col; c < lastCol; c++) {
         if (r !== merge.row || c !== merge.col) {
-          rows[r][c] = null;
+          row[c] = null;
         }
       }
     }
