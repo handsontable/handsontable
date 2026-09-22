@@ -83,17 +83,18 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 With no other plugin adding its own entries, setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the following items, in this order -- this is also the value of [`DropdownMenu.DEFAULT_ITEMS`](@/api/dropdownMenu.md#default_items):
 
+```
+'col_left', 'col_right', '---------', 'remove_col', '---------', 'clear_column', '---------', 'make_read_only', '---------', 'alignment'
+```
+
 | Key                                          | Action                                          |
 | --------------------------------------------- | ------------------------------------------------ |
 | [`col_left`](@/api/dropdownMenu.md)           | Insert a column to the left                      |
 | [`col_right`](@/api/dropdownMenu.md)          | Insert a column to the right                     |
-| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
+| [`---------`](@/api/dropdownMenu.md)          | Add a separator to the items in the menu         |
 | [`remove_col`](@/api/dropdownMenu.md)         | Remove the selected column                       |
-| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
 | [`clear_column`](@/api/dropdownMenu.md)       | Delete the data of the selected column            |
-| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
 | [`make_read_only`](@/api/dropdownMenu.md)     | Make the selected column read-only                |
-| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
 | [`alignment`](@/api/dropdownMenu.md)          | Align the text in the column                     |
 
 The [`Filters`](@/api/filters.md) plugin and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin (see below) each add their own entries on top of this list when enabled -- they don't replace it. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
