@@ -86,12 +86,14 @@ function getFormulasUndoRedoSteps(hot: HotInstance, amount: number): number {
 /**
  * Removes the detached subtree without settling the enclosing action until its original snapshot is restored.
  *
+ * NestedRows expands removal of the root into all of its descendants. Passing the physical subtree length to
+ * `alter()` would instead select unrelated visible rows when some descendants are trimmed or collapsed.
+ *
  * @param {Core} hot The Handsontable instance.
  * @param {number} visualRow Visual row of the detached subtree.
- * @param {number} amount Number of rows in the detached subtree.
  * @returns {boolean} `true` when the removal fired its completion hook.
  */
-function removeDetachedRows(hot: HotInstance, visualRow: number, amount: number): boolean {
+function removeDetachedRows(hot: HotInstance, visualRow: number): boolean {
   let wasRemoved = false;
   const onAfterRemoveRow = () => {
     wasRemoved = true;
@@ -100,7 +102,7 @@ function removeDetachedRows(hot: HotInstance, visualRow: number, amount: number)
   hot.addHookOnce('afterRemoveRow', onAfterRemoveRow);
 
   try {
-    hot.alter('remove_row', visualRow, amount, 'UndoRedo.undo');
+    hot.alter('remove_row', visualRow, 1, 'UndoRedo.undo');
   } finally {
     if (!wasRemoved) {
       hot.removeHook('afterRemoveRow', onAfterRemoveRow);
@@ -241,7 +243,7 @@ export class NestedRowsDetachAction extends BaseAction {
       return false;
     }
 
-    return clipRemovalRange(detachedVisualRow, this.amount, hot.countRows()) !== null && this.removeAction.canUndo(hot);
+    return clipRemovalRange(detachedVisualRow, 1, hot.countRows()) !== null && this.removeAction.canUndo(hot);
   }
 
   /**
@@ -256,7 +258,7 @@ export class NestedRowsDetachAction extends BaseAction {
     const detachedVisualRow = detachedPhysicalRow === null ? null : hot.toVisualRow(detachedPhysicalRow);
 
     if (typeof detachedVisualRow !== 'number' || !Number.isInteger(detachedVisualRow) ||
-        !removeDetachedRows(hot, detachedVisualRow, this.amount)) {
+        !removeDetachedRows(hot, detachedVisualRow)) {
       undoneCallback({ wasUndone: false });
 
       return;

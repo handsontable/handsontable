@@ -468,6 +468,43 @@ describe('NestedRows', () => {
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
+    it('should not remove following rows when undoing a detached subtree with a trimmed descendant', async() => {
+      const originalData = [
+        {
+          col1: 'Grandparent',
+          __children: [{
+            col1: 'Parent',
+            __children: [{
+              col1: 'Child',
+              __children: [{ col1: 'Trimmed grandchild' }],
+            }],
+          }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        nestedRows: true,
+        trimRows: [3],
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      await waitUntil(() => countRows() === 4);
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(2));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+    });
+
     it('should undo a detached child after external trimming shifts row indexes', async() => {
       const originalData = [
         { col1: 'Trimmed' },
