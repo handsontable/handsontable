@@ -350,6 +350,52 @@ describe('numericRenderer', () => {
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1</td>', toMatchHTMLConfig);
         expect(cellMeta.className).toBe('htCenter htNumeric');
       });
+
+      it('should keep `dir="ltr"` for RTL-script text in a numeric-typed cell (DEV-135, ' +
+        'documented trade-off - the cell is configured numeric, so it stays LTR whatever it holds)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+        };
+        const cellValue = 'مرحبا';
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(TD.getAttribute('dir')).toBe('ltr');
+        expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should keep `htRight htNumeric` and `dir="ltr"` on a cell whose value changes from numeric ' +
+        'to non-numeric across renders (DEV-135 - marking no longer depends on the value, so there is ' +
+        'nothing to remove on a later render)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+        };
+
+        spyOn(instance, 'getDataAtCell').and.returnValues(1, 'abc');
+
+        numericRenderer(
+          instance, TD, undefined, undefined, undefined,
+          numericRenderer.valueFormatter(1, cellMeta), cellMeta
+        );
+
+        expect(cellMeta.className).toBe('htRight htNumeric');
+        expect(TD.getAttribute('dir')).toBe('ltr');
+
+        numericRenderer(
+          instance, TD, undefined, undefined, undefined,
+          numericRenderer.valueFormatter('abc', cellMeta), cellMeta
+        );
+
+        expect(cellMeta.className).toBe('htRight htNumeric');
+        expect(TD.getAttribute('dir')).toBe('ltr');
+      });
     });
   });
 });
