@@ -157,25 +157,49 @@ const command = payload?.tool_input?.command ?? '';
  * Quotes are tracked because a naive split would cut inside a JSON body — `-d '{"a":"b|c"}'` — and
  * leave the endpoint in a stage with no tool and no flag, which is an evasion rather than a nicety.
  *
+ * Two shapes are NOT separators, and both were bypasses before they were handled. A backslash at the
+ * end of a line continues it, which is how anyone writes a curl long enough to need a body — the tool
+ * lands on one line and the endpoint on another, and each fragment alone looks harmless. And an `&`
+ * inside a redirection (`2>&1`, `&>/tmp/log`, `>&2`) is not the control operator it resembles; cutting
+ * there splits an ordinary command in half. A real `&&` or a backgrounding `&` still separates.
+ *
+ * Joining continuations before the quote scan is deliberately approximate: a backslash-newline inside
+ * single quotes is literal to bash and is joined here anyway. That errs toward treating two fragments
+ * as one command, which can only make this stricter, never blinder.
+ *
  * @param {string} bashCommand The raw Bash command.
  * @returns {string[]} The non-empty stages, in order.
  */
 function shellStages(bashCommand) {
+  const joined = bashCommand.replace(/\\\r?\n/g, ' ');
   const stages = [];
   let current = '';
   let quote = '';
 
-  for (const character of bashCommand) {
+  for (let index = 0; index < joined.length; index += 1) {
+    const character = joined[index];
+
     if (quote) {
       current += character;
 
       if (character === quote) {
         quote = '';
       }
-    } else if (character === '\'' || character === '"') {
+
+      continue; // eslint-disable-line no-continue
+    }
+
+    if (character === '\'' || character === '"') {
       quote = character;
       current += character;
-    } else if (character === '|' || character === ';' || character === '&' || character === '\n') {
+
+      continue; // eslint-disable-line no-continue
+    }
+
+    // `2>&1` and `&>file` are redirections, not control operators.
+    const redirection = character === '&' && (current.endsWith('>') || joined[index + 1] === '>');
+
+    if (!redirection && (character === '|' || character === ';' || character === '&' || character === '\n')) {
       stages.push(current);
       current = '';
     } else {

@@ -265,6 +265,37 @@ test('httpie is covered the way httpie is actually driven', () => {
   });
 });
 
+test('a continued line is one command, and a redirection is not a separator', () => {
+  // Judging per stage is what stopped a later `grep -F` counting as a body flag, but a stage is only
+  // the right unit if the split agrees with the shell. Two shapes did not, and both were bypasses: a
+  // backslash at the end of a line continues it — which is how anyone writes a curl long enough to
+  // need a body, so the tool landed on one fragment and the endpoint on another — and an `&` inside a
+  // redirection is not the control operator it resembles.
+  const endpoint = 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments';
+  const apiPath = 'repos/x/y/actions/runs/1/pending_deployments';
+  const blocked = [
+    `curl -X POST \\\n  -H "Authorization: token $GH" \\\n  ${endpoint}`,
+    `curl -sS \\\n  -d @approve.json \\\n  ${endpoint}`,
+    `gh api \\\n  --method POST \\\n  ${apiPath}`,
+    `gh api \\\n  ${apiPath} \\\n  -f state=approved`,
+    `curl -d@approve.json 2>&1 ${endpoint}`,
+    `curl -d@approve.json &>/tmp/log ${endpoint}`,
+    `curl -d@approve.json "${endpoint}?per_page=1&page=2"`,
+  ];
+
+  blocked.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `a write survived the stage split: ${command}`);
+  });
+
+  // The operators that really do separate still do, in both directions.
+  assert.equal(runHook(bash(`git status && curl -d@approve.json ${endpoint}`)).status, 2,
+    'a write in the second stage of && must still be caught');
+  assert.equal(runHook(bash(`gh api ${apiPath} \\\n  | grep -F approved`)).status, 0,
+    'a continued line that pipes a read into grep is still a read');
+  assert.equal(runHook(bash(`curl -s "${endpoint}?per_page=1&page=2"`)).status, 0,
+    'an & inside a query string does not make a GET a write');
+});
+
 test('it judges Bash only, and survives a payload it cannot read', () => {
   // A PreToolUse hook that threw on a malformed payload would block every Bash call in the session,
   // so the unreadable cases must exit 0 rather than fail closed.
