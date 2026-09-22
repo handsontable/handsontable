@@ -234,7 +234,13 @@ export function checkSelectionConsistency(ranges: CellRangeLike[], comparator: (
         }
       });
 
-      return result;
+      // `arrayEach` stops the moment a callback returns exactly `false`. A range with no match
+      // must return anything else so the NEXT range still gets a chance - returning `result`
+      // (`false` while nothing has matched yet) stopped the whole search after the FIRST range
+      // that came up empty, so a match sitting in a later range (a multi-layer selection, e.g. a
+      // Ctrl+click) was never found (DEV-136, reported by Bugbot). Only stop once a match is
+      // actually found, which `!result` expresses: `false` (stop) once `result` is `true`.
+      return !result;
     });
   }
 

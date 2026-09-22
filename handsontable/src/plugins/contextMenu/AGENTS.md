@@ -289,6 +289,18 @@ menu would leave a merged cell on the top row instead of the row it cycles along
 through `inlineStart`/`inlineEnd`, so the grid Tab commands cannot cover it. Pinned by
 `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
 
+## `checkSelectionConsistency()` abandoned the search after the FIRST empty range (FIXED, DEV-136)
+
+`arrayEach()` stops iterating the moment a callback returns exactly `false`. The per-range callback
+used to `return result` — `false` while nothing had matched yet — so a range with no match stopped
+the whole walk right there, and a match sitting in a LATER range (a multi-layer selection, e.g. a
+Ctrl+click adding a second block) was never found. `readOnly.ts` and `readOnlyComment.ts` both decide
+their toggle from this helper, so a selection shaped that way toggled the wrong way — and, since
+DEV-136, corrupted the read-only toggle's undo snapshot too (its "no match found" fast path trusts
+this helper's `false` to mean every visited cell was proven writable, which a truncated search cannot
+guarantee). Fixed by returning `!result` instead: continue while no match has been found yet, stop
+once it has. Pinned by `contextMenu/__tests__/utils.unit.js`.
+
 ## Where to look next
 
 - DropdownMenu specifics: `handsontable/src/plugins/dropdownMenu/AGENTS.md`.
