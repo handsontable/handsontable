@@ -744,6 +744,43 @@ Each link element gets the `ht-link` and `ht-hyperlink` classes, and takes its c
 To render links in cells that hold plain URLs rather than formulas, use the
 [`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option.
 
+## Show formulas instead of values
+
+By default, a formula cell displays its calculated value. To display the formula text instead (for
+example, `=SUM(A1:A2)`), call [`showFormulas()`](@/api/formulas.md#showformulas):
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.showFormulas();
+```
+
+Call [`hideFormulas()`](@/api/formulas.md#hideformulas) to display calculated values again, and
+[`isShowingFormulas()`](@/api/formulas.md#isshowingformulas) to check the current mode.
+
+```js
+formulas.hideFormulas();
+formulas.isShowingFormulas(); // false
+```
+
+While formulas are shown, copying or cutting a formula cell copies its formula text, matching what's
+on screen.
+
+This mode is display-only. Sorting, the [filter-by-value list](@/guides/columns/column-filter/column-filter.md),
+and cell validation keep reading each formula cell's calculated value, not its formula text - the
+same as in Excel and Google Sheets. Pasting is unaffected either way: what lands in a cell depends
+on the clipboard content, not on whether formulas are currently shown.
+
+Column and row sizing (`autoColumnSize`, `autoRowSize`) also keep measuring the calculated value,
+since they sample cells directly rather than through the grid's normal render pass. A column sized
+for a short calculated value can clip a long formula while it's shown.
+
+### Keyboard shortcut
+
+Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas and showing values.
+On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
+`Cmd`+`` ` `` is the system's window-cycling shortcut.
+
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook fires whenever the calculation engine recomputes cell values - including cells that
@@ -1363,3 +1400,5 @@ After setting up the `Formulas` plugin with a HyperFormula engine, cells that co
 - [Formulas](@/api/formulas.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.
