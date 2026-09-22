@@ -338,9 +338,16 @@ element screenshots and the settle the fixture does for you):
   dispatch of the stability matrix rendered every themed pass that way (run 35230835319) — the job had
   built the base stylesheet but not the theme ones (`build:themes-css` is a prerequisite of `build:umd`
   alone, see `handsontable/scripts/tasks.json`), and because that matrix compares runners with each
-  other, ten identical unthemed renders read as "stable". `assertStylesheetsLoaded()` in `test-runner.ts` runs after the table appears
-  and fails the render naming any requested stylesheet with no rules, and, under `HOT_THEME`, a demo that
-  attached no theme link at all. Demos without the convention (the wrappers) have no such links and pass.
+  other, ten identical unthemed renders read as "stable". `assertStylesheetsLoaded()` in `test-runner.ts` runs after the table appears,
+  waits for every requested stylesheet to arrive, and then fails the render naming any that carries no
+  rules — and, under `HOT_THEME`, a demo that attached no theme link at all. The two failures are
+  separate because the remedies are: a sheet that never arrived is a request that failed, while a sheet
+  that arrived empty is the preview server's `index.html` being served as CSS. **All four demos set the
+  class**, wrappers included. The wrapper demos pass today not because they lack the links but because
+  they attach one only when a theme is requested, and no tier themes a wrapper yet — so the selector
+  matches nothing there. The wait matters for the day one does: those demos attach the link
+  synchronously and leave the ordering to the browser, where a one-shot read could refuse a render that
+  was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
   (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
   one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten

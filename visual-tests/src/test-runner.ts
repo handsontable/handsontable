@@ -26,6 +26,15 @@ const SETTLE_TIMEOUT = 5000;
  * in walkontable plus a margin for a loaded runner. The settle polls this long before it asks whether the
  * pointer is holding the band open, so a pinned capture costs about 1.5 s instead of the full timeout.
  */
+/**
+ * How long a requested stylesheet gets to arrive before the render is refused.
+ *
+ * Generous on purpose: this waits only when something is genuinely still in flight, and the cost of
+ * being too strict is a flaky failure on a slow runner — the exact thing the guard exists to stop
+ * being photographed.
+ */
+const STYLESHEET_TIMEOUT = 5000;
+
 const FADE_ALLOWANCE = 1500;
 
 /**
@@ -351,6 +360,16 @@ async function clearNativeTextSelection(page: Page) {
  * null `sheet` or an empty rule list, and that is what is asserted — the place the wrong picture is
  * cheapest to catch is before the first capture, with the missing file named.
  *
+ * The two states are waited for and reported separately, because a link element existing is not a
+ * stylesheet having loaded. The js demo waits on a promise before it builds the grid, but the wrapper
+ * demos attach the link synchronously in `<head>` and leave the ordering to the browser, so reading
+ * `sheet` once — the moment the table appears — could read it before the fetch resolved and refuse a
+ * render that was fine. That is the flake shape this file spends its length avoiding, arriving inside
+ * the guard meant to prevent one. So: wait for every requested sheet to arrive, then judge what it
+ * carries. A sheet still absent after {@link STYLESHEET_TIMEOUT} never loaded (a 404 outside vite's
+ * index.html fallback, or a server that hung); a sheet that arrived with no rules is the fallback
+ * being served as CSS. The messages say which, because the remedies differ.
+ *
  * With `HOT_THEME` set the run's own theme file must be among them, by name: a themed run that asked
  * for no theme stylesheet, or for a different one, is the same wrong picture by another route. A demo
  * that does not use the convention has no such links and passes trivially. All four demos set the class,
@@ -362,14 +381,27 @@ async function clearNativeTextSelection(page: Page) {
  * @returns {Promise<void>} Resolves when every requested stylesheet carries rules.
  */
 async function assertStylesheetsLoaded(page: Page) {
-  // The callback runs in the browser, where `document` is the right global to use.
+  // The callbacks run in the browser, where `document` is the right global to use.
   /* eslint-disable no-restricted-globals */
+  await page.waitForFunction(
+    () => [...document.querySelectorAll<HTMLLinkElement>('link.dynamic-css')]
+      .every(link => link.sheet !== null),
+    undefined,
+    { timeout: STYLESHEET_TIMEOUT, polling: 50 },
+  ).catch((error: Error) => {
+    // Only a timeout means "still not here"; a closed page or a destroyed context is a different
+    // failure and must surface as itself. The timeout is not thrown — the read below names the files.
+    if (error.name !== 'TimeoutError') {
+      throw error;
+    }
+  });
+
   const links = await page.evaluate(() => [...document.querySelectorAll<HTMLLinkElement>('link.dynamic-css')]
     .map((link) => {
-      let rules: number;
+      let rules: number | null;
 
       try {
-        rules = link.sheet ? link.sheet.cssRules.length : 0;
+        rules = link.sheet ? link.sheet.cssRules.length : null;
       } catch {
         rules = -1;
       }
@@ -377,6 +409,16 @@ async function assertStylesheetsLoaded(page: Page) {
       return { href: link.getAttribute('href') ?? '', rules };
     }));
   /* eslint-enable no-restricted-globals */
+
+  const pending = links.filter(link => link.rules === null);
+
+  if (pending.length > 0) {
+    throw new Error(`${pending.length} stylesheet(s) the demo asked for never loaded within `
+      + `${STYLESHEET_TIMEOUT} ms — ${pending.map(link => link.href).join(', ')} — so the grid is about `
+      + 'to be photographed unstyled. The request failed or never answered; a path the server answers '
+      + 'with index.html and a 200 shows up as the empty-rules failure instead. See '
+      + 'assertStylesheetsLoaded() in visual-tests/src/test-runner.ts.');
+  }
 
   const empty = links.filter(link => link.rules === 0);
 
