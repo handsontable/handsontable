@@ -258,5 +258,53 @@ describe('UndoRedo -> RemoveRow action', () => {
         getPlugin('undoRedo').undo();
       }).not.toThrowWithCause(undefined, { handsontable: true });
     });
+
+    it('should keep restoring the hidden row across an undo -> redo -> undo cycle', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+
+      // Redo re-removes row 3 - the RemoveRowAction pushed back onto the done stack is the same
+      // object undo just used, not a freshly captured one, so this must not disturb what it holds.
+      getPlugin('undoRedo').redo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+      expect(getPlugin('hiddenRows').isHidden(3)).toBe(true);
+    });
+
+    it('should not throw when `hiddenRows` is disabled between the removal and the undo', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+
+      await updateSettings({ hiddenRows: false });
+
+      expect(() => {
+        getPlugin('undoRedo').undo();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
+
+      // The row data itself must still come back even though there is no hiddenRows plugin left
+      // to restore hiding state into.
+      expect(getDataAtCell(3, 0)).toBe('A4');
+    });
   });
 });
