@@ -16,9 +16,9 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | When | Gate | Runs | Blocks on |
 |---|---|---|---|
 | Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
-| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
+| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
-| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
+| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
 | CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
 
 Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
@@ -129,13 +129,67 @@ logic and no test-side line mentions RTL — a test file, or any file under
 `tests/**` through `isAdvisoryPath()`, because the gate's own classifier calls
 those files `neither` and would otherwise drop them before the detector ran —
 `presence-gate-cli.test.mjs` runs the CLI against a throwaway repository to
-pin that plumbing), and **Walkontable routing**
+pin that plumbing), **Walkontable routing**
 (engine source changed with nothing
-under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
+under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`),
+and **visual-only coverage** (a source file changed and every change the gate
+counts as coverage is a capture spec under `visual-tests/tests/`. Added,
+modified, and renamed specs count; a deleted spec counts on neither side. The
+check is silent when there is no coverage at all, because the verdict already
+says `missing-coverage`. A screenshot proves pixels, not behavior. The rule is
+`visual-tests/AGENTS.md` → Decision rule. The remedy is the `tests/e2e/` or
+unit assertion that would fail if the behavior broke; the visual spec stays for
+what only pixels can show. It reads the `--name-status` list, never the diff,
+so `isAdvisoryPath()` is untouched).
 In CI each one is also a `::warning` annotation. A new detector is a pure
 function in that lib plus a `node --test` case in
 `.github/scripts/__tests__/presence-warnings.test.mjs`; a gap in the input (no
 body, no diff) must be silence, never a finding.
+
+**The visual-only-coverage advisory is a one-month measurement. Its decision
+is written down here in advance.** The gate counts a visual spec as coverage
+on its own: `COVERAGE_ANY_STATUS` in `.github/scripts/lib/presence-gate.mjs`,
+pinned by `presence-gate.test.mjs` (the `visual-tests/…/menu.spec.ts` → `test`
+classification, and the modified-visual-spec change set that passes as
+test-only). Measured before the detector shipped, on `origin/develop` at
+`06b74cfcd` (2026-09-18): over 1251 first-parent commits since 2026-03-01 it
+would have fired once (#12086), and never since the gate landed on 2026-07-22.
+A count alone therefore decides nothing, so the rule is fixed now. **One month
+after the detector merges, run the tally below. If any pull request merged with
+the annotation still standing on its final SHA, narrow `COVERAGE_ANY_STATUS` so
+a spec under `visual-tests/` no longer counts alone.** That is a verdict
+change: `evaluate()` gains a reason, and those two pins flip. **A month of zero
+means keep counting.** The step summary has no API and the presence job posts
+no comment. The check-run annotation is therefore the one countable channel,
+and its title is the aggregation key. The tally, over the pull requests merged
+since the detector's merge date (raise `--limit` if the month had more):
+
+```sh
+gh pr list --repo handsontable/handsontable --state merged --base develop --limit 200 \
+  --search 'merged:>=YYYY-MM-DD' --json number,headRefOid --jq '.[] | "\(.number) \(.headRefOid)"' |
+while read -r pr sha; do
+  for run in $(gh api "repos/handsontable/handsontable/commits/$sha/check-runs?per_page=100" \
+      --jq '.check_runs[] | select(.name == "Checks / test presence") | .id'); do
+    gh api "repos/handsontable/handsontable/check-runs/$run/annotations" \
+      --jq ".[] | select(.title == \"Test-presence gate (visual-only-coverage)\") | \"$pr\""
+  done
+done | sort -u
+```
+
+It lists the pull requests that merged with the warning still standing on
+their final push, and it must be read exactly that way. An author who added
+the unit test after the warning fired leaves no annotation on the final SHA —
+that is the warning doing its job — and the earlier firing lives only in that
+push's own check run. Two facts about the API shape the recipe. The check run
+is named `Checks / test presence` (the job is called through `test.yml`), not
+`test presence`. And the recipe reads each pull request's `headRefOid`, never
+the squash commit on `develop`. That commit does carry check runs — a
+`Checks / test presence` run among them — but the `presence` job is PR-only
+(`if: github.event_name == 'pull_request'` in `checks.yml`), so on a `develop`
+push that run is `skipped` and holds no annotations. Measured 2026-09-18 on
+`06b74cfcd`: 49 check runs, the presence run skipped with zero annotations.
+The annotations live only on the runs against the pull request's head SHAs.
+
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
@@ -229,6 +283,7 @@ Machine-enforced by the presence gate; full decision rules in
 [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md).
 
 - **User-visible** (render, interaction, keyboard, menus, overlays) → **Playwright E2E**, `tests/e2e/**/*.spec.ts`.
+- **Only pixels can prove it** (theme tokens, geometry, compositing) → a **visual spec**, `visual-tests/tests/**/*.spec.ts`, **in addition to, never instead of** the Playwright E2E. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage (`presence-gate.mjs`), so this line is policy the reviewer checks, not a gate — rule: `visual-tests/AGENTS.md` → Decision rule.
 - **Logic / invisible** (data, indexing, algorithms, internal state) → **Jest unit**, `*.unit.js` in a `__tests__/` dir next to the source.
 - **Public API / type surface** → a **type test**, `*.types.ts`.
 - **Framework consumption** (wrapper / npm) → an integration demo (matrix; being built).
@@ -253,6 +308,7 @@ agree on what a "fixed wait" is:
 | Tier | Where | Level | Flags |
 |---|---|---|---|
 | Playwright (`tests/`) | `tests/.eslintrc.cjs` (`no-restricted-syntax`) | **error** | `waitForTimeout(`, `sleep(`, `setTimeout(` (the global timer only — bare, `window.`, or `globalThis.` — inside `page.evaluate` too; `test.setTimeout(ms)` / `testInfo.setTimeout(ms)` set a budget, not a wait, and pass), `'networkidle'`, `.only`, `.skip`, bare `test.fixme` |
+| Visual (`visual-tests/src`, `visual-tests/tests`) | `visual-tests/.eslintrc.js` (`no-restricted-syntax`, the functional tier's list copied) | **error** | the same flags, plus `locator.screenshot()` / `elementHandle.screenshot()` (bypasses the settle and the selection clear in `src/test-runner.ts` — clip a `tablePage.screenshot()` instead) and `test.fixme`; the conditional `test.skip(condition, why)` is the one legal skip — plus, once landed, the capture after an unasserted action rule and the spec docblock (`visual-tests/AGENTS.md`, Guardrails) |
 | Frozen Jasmine + Jest (`*.spec.js`, `*.unit.js`, `*.unit.ts`) | `handsontable/no-fixed-sleep-in-spec` (`handsontable/.config/plugin/eslint/rules/`) | warn | `sleep(` (`noSleep`), `setTimeout(fn, <non-zero numeric literal>)` on the global timer (`noSetTimeout` — a literal `0` is a macrotask hand-off, not a wait, and passes), `waitForNextAnimationFrames(` (`noFrameWait` — a literal `0` resolves at once and passes too) |
 | Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` — with the frozen rule's exemptions: the global timer only, a non-zero numeric-literal delay only, a literal `0` frame count passes — plus `theme-sensitive-viewport`, a rendered-row count read from a grid with no pinned viewport (a different number on each leg of the theme matrix) |
 
@@ -274,6 +330,63 @@ a verdict flip (the contract: `evals/lib/counterexamples.mjs`); the hollow-test 
 gaming signals are covered by the inline-source unit tests in
 `evals/__tests__/score.test.mjs` only. All of it runs under the root
 `npm run test:tooling` (CI: `Checks / tooling tests`).
+
+### The visual tier's enforcement map
+
+Anything syntactic is lint, and therefore local and immediate; anything that
+needs a rendered `out.json` is CI-only; running a visual spec is never a hook,
+because it needs the built example apps and the port-8082 server. What a
+capture is *for* is `visual-tests/AGENTS.md` → Decision rule (a visual spec is
+in addition to, never instead of a Playwright assertion); this map says where
+each enforceable half of that rule runs.
+
+- **Lint, everywhere.** `visual-tests/.eslintrc.js` (the `Visual` row of the
+  determinism table above) runs at PostToolUse for any edited `*.spec.ts`
+  (`scripts/claude/post-tool-use.mjs`, `npx eslint --fix <file>` — fail-open in
+  a linked worktree, like every agent hook), at pre-commit and pre-push through
+  `scripts/lint-files.mjs` (`SCOPES` admits `visual-tests/(src|tests)/` and
+  nothing else in the package — `lib/` and `scripts/` drive no page;
+  `scripts/__tests__/lint-files.test.mjs` pins the scope), and in CI as
+  `lint.yml`'s `visual-tests` job (`npm run in visual-tests lint`, the whole
+  package), which `test.yml` runs when `checks.yml`'s `test-visual` filter
+  (`visual-tests/**`, `examples/next/visual-tests/**`, `pnpm-lock.yaml`,
+  `pnpm-workspace.yaml`) or `run-all` fires. The rule against a
+  capture after an unasserted action, and the spec docblock (G4 under
+  `visual-tests/AGENTS.md`, Guardrails), join this row when they land; they are
+  lint too, so they inherit all three points.
+- **A rendered `out.json`, CI only.** `visual-tests/scripts/visual-gate.mjs`
+  (the pull request verdict) and `scripts/seed-report.mjs` (the seed and
+  nightly summaries) read `.reg/out.json`, which `scripts/compare.mjs` (or
+  `scripts/compare-fork.mjs`, on the credential-free fork path) writes only
+  after `visual.yml`'s `Compare` job rendered and reg-suit compared. The tier
+  prune in `compare.mjs` runs before that compare and trims the synced
+  `.reg/expected/`, not the report — CI-only for the same reason, since the
+  baseline it trims is fetched from R2. The golden budget, the compare record,
+  and the quarantine (G3 and G5, same section) read the same `out.json` and are
+  CI-only for the same reason. Nothing local produces it.
+- **Never a hook.** `visual-tests/scripts/run-tests.mjs` needs `npm run build`
+  first (it installs and builds the tier's example apps) and starts
+  `npm run serve -- --port=8082` from `examples/next/visual-tests/<framework>/demo`
+  per framework; `playwright.config.ts` starts no server of its own (the
+  cross-browser config does, on the same port). `changedPlaywrightSpecs` in
+  `scripts/pre-push.mjs` (shared by `scripts/claude/stop.mjs`) matches
+  `tests/e2e/` only, by design, so a changed visual spec is never run by
+  pre-push or the Stop hook. A visual spec is proven by the pull request's
+  `Visual / Compare` job — the `full` tier when the spec or its demo changed
+  (`visual-full`), the `pr` tier otherwise. The local loop is
+  `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` in
+  `visual-tests/`, by hand, from one checkout at a time (`.ai/WORKTREES.md`).
+
+`.github/scripts/__tests__/visual-decision-rule.test.mjs` pins this map to the
+code, from both sides. The `SCOPES` regex in `scripts/lint-files.mjs` covers
+`visual-tests/(src|tests)/`. `changedPlaywrightSpecs` in `scripts/pre-push.mjs`
+keeps its `tests/e2e/` filter, and `scripts/claude/stop.mjs` imports it rather
+than filtering on its own. Neither hook script names the visual package in a
+form a runner would need (a `visual-tests/tests` path, a `visual-tests\/`
+regex, a quoted `visual-tests` path), and every Playwright spawn in them runs
+from `tests/`. So a hook that starts running visual specs — by widening the
+filter, by adding a second runner beside it, or by spawning from
+`visual-tests/` — fails that test naming this map.
 
 ### The tracked human exception (the manual-QA tickbox)
 

@@ -13,29 +13,58 @@ Cloudflare R2.
 ## Test Pattern
 
 ```typescript
-import { test } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
+import { openContextMenu } from '../../../src/page-helpers';
 
+// One capture per distinct visual state, and the state asserted before the capture. What earns a
+// capture at all is the decision rule below.
 test(__filename, async({ tablePage }) => {
-  // Setup
-  const cell = await tablePage.locator('.ht_master td').first();
-  await cell.click();
+  const cell = tablePage.locator('.ht_master td').first();
 
-  // Capture state
+  // State 1: the focused cell. Assert the state, then photograph it — a capture on the line after
+  // `click()` records whichever half of the transition the runner reached.
+  await cell.click();
+  await expect(cell).toHaveClass(/current/);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // Action + another screenshot
-  await tablePage.keyboard.press('Escape');
+  // State 2: the context menu open. A second capture is a second visual state, never a second
+  // angle on the first one.
+  await openContextMenu(cell);
+  await expect(tablePage.locator(helpers.selectors.contextMenu)).toBeVisible();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
 ```
+
+That fence is what `test-runner.ts` exports **today**, and it is meant to be copied. A spec also scopes
+itself to a framework or a browser with the conditional `test.skip(condition, why)` described under
+[Determinism](#determinism).
+
+G2 (under [Guardrails](#guardrails-against-bloat-and-flakes)) replaces the call with
+`visualTest(title, { themes, browsers, wrappers }, fn)`, which declares the variants the spec renders on
+instead of leaving them implicit. **This example changes to that shape in the same pull request that
+adds the export** — not before, because an example that imports a name the module does not have is
+copied long before the paragraph under it is read. Everything else here is unaffected by that change:
+an assertion between each action and its capture, one capture per visual state.
 
 ## Key Rules
 
 - Test naming: `__filename` auto-generates title from file path
 - Screenshots: Always use `helpers.screenshotPath()` for consistent naming
 - Organization: `tests/js-only/`, `tests/multi-frameworks/`, `tests/cross-browser/`
-- Examples for testing live in `examples/next/docs/`
+- Examples for testing live in `examples/next/visual-tests/<framework>/demo/` (the docs tree `examples/next/docs/` is the documentation examples; nothing here serves it)
+
+## Decision rule
+
+A screenshot asserts pixels no DOM or API probe can express: theme tokens, geometry, compositing. Focus order, DOM state, selection, data, and "the menu opened" are Playwright assertions in `tests/e2e`, in addition to, never instead of. One capture per distinct visual state. New features get their own demo route, never the shared `/` demo.
+
+Three measured facts behind the rule (2026-09-18, `visual-tests/tests`):
+
+- **112 specs hold 273 captures, and 57 specs hold more than one.** A second capture is a second visual state — a menu open, a filter applied — never a second angle on the same one. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage, so "in addition to" is what the reviewer checks and what the PR template's test-evidence bullet asks for, not something a gate enforces.
+- **29 specs photograph the shared `/` demo, and the 23 multi-frameworks specs among them never navigate** (0 `goto(` calls). `/` is the frozen multi-feature grid (`initDefaultDemo()` in `examples/next/visual-tests/js/demo/src/index.js`); a feature added there re-captures every one of those specs on every variant it renders — js × 5 plus the three wrappers for the 23 multi-frameworks specs, three browsers for the 6 cross-browser ones. The other 83 specs call `goto(` to one of the 27 named `/<name>-demo` routes on that Navigo router (`grep -c "'/.*-demo'"` over the file), which is where a new feature goes: a `src/demos/<feature>/` module and one route.
+- **A feature on its own route is js-only by construction.** The react and angular demos serve `/` and `/scenario-grid` (`react-wrapper/demo/src/index.tsx`, `angular-wrapper/demo/src/app/app.config.ts`); the vue3 demo has no router and serves `/` only — so a spec on `/<feature>-demo` renders no wrapper and declares none. Wrapper parity for a *new* feature is therefore a trade-off to state in the pull request, not a default: either extend `/` under a `[visual budget: N – reason]` marker (every spec on `/` re-captures, and the demo config must stay identical across all four frameworks — the js-copied baseline gotcha below), or add the route to the react-router routes, the Angular routes, and the Vue demo — a per-framework change, not a Navigo edit. Neither is "mirror the route in all four demos": no multi-frameworks spec uses a route today, and the copied baseline only ever compares what a wrapper actually renders.
+
+This section is the one source of the rule; every other surface (`handsontable/.ai/TESTING.md`, the root `AGENTS.md`, the `visual-testing` and `creating-visual-test-examples` skills, the PR template, the `pr-creation` and `handsontable-code-review` skills, `.ai/LOCAL-ENFORCEMENT.md`) carries one sentence and a link here. `.github/scripts/__tests__/visual-decision-rule.test.mjs` pins the paragraph to this file and the link to each surface.
 
 ## Golden snapshots: js-copied baselines (critical gotcha)
 
@@ -61,11 +90,15 @@ The reference (golden) baseline and the builds compared against it are generated
 
 Not every build renders every variant; the tier decides which. Measured on 2026-09-09 over 82 pull
 requests: a build rendered 1646 golden records and the visual stage added a mean 15.1 minutes to a pull
-request run. Every js-only spec renders five times (the bare chromium run — the "classic" delivery path,
+request run. The golden set is 1676 records on 2026-09-18 (`base/develop/out.json`, read cache-busted as
+described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox /
+webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
+Every js-only spec renders five times (the bare chromium run — the "classic" delivery path,
 where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers. The
-bare run is byte-identical to `main` on 199 of its 234 records — it is a delivery-path parity check, not a
-fifth theme — and no real regression in that window was confined to one theme, one browser or one wrapper;
+bare run was byte-identical to `main` on 199 of its then 234 records (240 today) — it is a delivery-path
+parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
+browser or one wrapper;
 every real change hit all themes or all browsers. So a pull request renders the two default themes on js;
 the seed renders the other js variants and the cross-browser leg minutes after the merge and comments what
 changed on the merged pull request; and the nightly renders what the seed only copies — the wrappers.
@@ -103,9 +136,9 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
   leg is 7 minutes and one job under the org's 60-job cap. `strategy` cannot read `env`, so the two matrix
   shapes are spelled out in `visual.yml`, and `.github/scripts/__tests__/visual-tiers.test.mjs` pins that
   the `pr` shape agrees with `VISUAL_TIERS.pr.browsers` being empty.
-- **A subset render is compared as a subset, or it reports ~1178 phantom deletions.** reg-suit lists every
-  expected file that has no actual counterpart as a DELETED item, so a `pr` render (468 records) against
-  the full baseline (1646) would report every horizon, wrapper, bare, and cross-browser golden as deleted on
+- **A subset render is compared as a subset, or it reports ~1196 phantom deletions.** reg-suit lists every
+  expected file that has no actual counterpart as a DELETED item, so a `pr` render (480 records) against
+  the full baseline (1676) would report every horizon, wrapper, bare, and cross-browser golden as deleted on
   every pull request. `compare.mjs` therefore runs `reg-suit sync-expected`, prunes `.reg/expected` to the
   tier's prefixes (`tierPrefixes()` → `pruneExpected()`), then `reg-suit compare` and `reg-suit publish`;
   `compare-fork.mjs` filters the baseline manifest with `isInTier()` the same way. The prune always
@@ -132,10 +165,10 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
 - **Local use.** `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` is the fast loop — js on
   chromium with two themes, no wrapper installs. Set the same `VISUAL_TIER=pr` on `npm run compare` so the
   prune matches what was rendered; a feature branch otherwise resolves to `full`, and a `pr`-tier render
-  compared as `full` reports the other 1178 records as deleted. A bare `npm run test` on a feature branch
+  compared as `full` reports the other 1196 records as deleted. A bare `npm run test` on a feature branch
   renders everything, as before.
 - **Bootstrap seeds the tier's subset, not the branch's full set.** A `pr`-tier pull request that seeds a
-  new base branch (`VISUAL_BOOTSTRAP=true`) promotes its 468 records and nothing else; the branch's own
+  new base branch (`VISUAL_BOOTSTRAP=true`) promotes its 480 records and nothing else; the branch's own
   `seed`-tier build replaces that with the full set on the next push. `lts/*` never gets one — nothing runs
   the visual tests on an LTS push — so a later `full`-tier pull request into an LTS branch reports every
   variant outside the `pr` subset as new. A `full`-tier pull request bootstraps the same way, real wrapper renders included; the branch's next
@@ -306,7 +339,9 @@ element screenshots and the settle the fixture does for you):
   focus, opens or closes an element, or scrolls, wait for that state with a web-first assertion —
   `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` / `.toHaveClass()` — or a
   page helper that does. A capture on the line after a `click()` / `press()` / `type()` with nothing
-  asserted in between photographs whichever half of the transition the runner reached.
+  asserted in between photographs whichever half of the transition the runner reached. What a capture
+  is *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs
+  stable.
 - **The filters menu moves focus on a timer.** Choosing a condition focuses that condition's first
   input 10 ms later (`handsontable/src/plugins/filters/component/condition.ts`), so a capture or a key
   press straight after the choice lands on either side of the hand-off; `filterByCondition()` and the
@@ -367,6 +402,23 @@ element screenshots and the settle the fixture does for you):
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too; the
   conditional `test.skip(condition, why)` that scopes a spec to a framework or a browser is the one legal
   skip, and an element capture is a clipped `tablePage.screenshot()` so the settle still runs.
+- **The fixture refuses to photograph a grid whose stylesheet never arrived.** The js demo loads its
+  theme and each route's CSS as `<link class="dynamic-css">` and waits for `load` before it builds the
+  grid, but `load` is not proof of a stylesheet: vite's preview server answers an unknown path with
+  `index.html` and a 200, Chromium fires `load` for it, and the demo carries on unthemed. The first CI
+  dispatch of the stability matrix rendered every themed pass that way (run 35230835319) — the job had
+  built the base stylesheet but not the theme ones (`build:themes-css` is a prerequisite of `build:umd`
+  alone, see `handsontable/scripts/tasks.json`), and because that matrix compares runners with each
+  other, ten identical unthemed renders read as "stable". `assertStylesheetsLoaded()` in `test-runner.ts` runs after the table appears,
+  waits for every requested stylesheet to arrive, and then fails the render naming any that carries no
+  rules — and, under `HOT_THEME`, a demo that attached no theme link at all. The two failures are
+  separate because the remedies are: a sheet that never arrived is a request that failed, while a sheet
+  that arrived empty is the preview server's `index.html` being served as CSS. **All four demos set the
+  class**, wrappers included. The wrapper demos pass today not because they lack the links but because
+  they attach one only when a theme is requested, and no tier themes a wrapper yet — so the selector
+  matches nothing there. The wait matters for the day one does: those demos attach the link
+  synchronously and leave the ordering to the browser, where a one-shot read could refuse a render that
+  was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
   (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
   one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten
@@ -392,6 +444,54 @@ nightly/<branch>/  the nightly full render's report, rewritten each night, never
 targets. The `js`-to-wrapper baseline copy in `run-tests.mjs` (the `seed` tier — see the golden snapshots
 gotcha above) still applies — reg-suit matches screenshots by their path, and every other tier is
 compared against an exact subset of that seed.
+
+## Guardrails against bloat and flakes
+
+The suite grew from 1646 to 1676 golden records between 2026-09-09 and 2026-09-18 with no rule saying what
+earns a capture, and its flakes (the filters family, the WebKit selection captures) had no ledger. Seven
+guardrails put a rule, a budget, and a record around it. Each one lands in its own pull request and
+rewrites its bullet here when it does, so this list is the live state — a bullet marked *not yet landed*
+describes the intent and the shape, not something you can rely on today. `.ai/CI.md` carries the
+one-bullet summary for the pipeline; `.ai/LOCAL-ENFORCEMENT.md` (*The visual tier's enforcement map*) says
+which of these run locally and which only in CI.
+
+- **G1 · The decision rule** — landed. One canonical paragraph, [Decision rule](#decision-rule) above,
+  linked from every authoring surface and pinned by `.github/scripts/__tests__/visual-decision-rule.test.mjs`
+  (the paragraph occurs once, each surface carries the link, the sentences it replaced are gone).
+- **G2 · The variant declaration** — not yet landed. Every spec will declare what it renders on through
+  `visualTest(__filename, { themes, browsers, wrappers, wrappersReason }, fn)` (`src/test-runner.ts`),
+  with `classic` a token in `themes`, `wrappersReason` mandatory when `wrappers` is non-empty, and the
+  default for a new spec `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }` — two
+  renders, not five. The [Test Pattern](#test-pattern) above shows that shape; until it lands, a spec is
+  `test(__filename, …)` plus the conditional `test.skip(condition, why)` described under Determinism, and
+  "every js variant renders the same count" stays true only until the first spec declares two themes.
+- **G3 · The golden budget** — not yet landed. `visual-tests/visual-budget.json` holds one count per
+  golden prefix (the eleven keys the prune uses) and a per-spec capture cap keyed by reg-suit stem, each
+  exception carrying a ticket; the `Visual budget` step of the Compare job reads `.reg/out.json`, blocks a
+  render over the file, and requires `[visual budget: N – reason]` in the pull request body on any net
+  growth (N = the full-tier total after the change; a render under budget asks you to lower the file in the
+  same pull request). The PR template's comment block documents the marker.
+- **G4 · The capture lint and the spec docblock** — not yet landed. A capture on the statement after an
+  unasserted pointer or keyboard primitive (`click`, `dblclick`, `hover`, `press`, `type`, `fill`,
+  `dragTo`, `mouse.*`, `keyboard.*`) becomes a `no-restricted-syntax` error in `visual-tests/.eslintrc.js`,
+  and every spec carries a docblock naming what its capture proves and the ticket that owns it. The filters
+  family is repaired first (assert the state, then capture); the remaining sites wear
+  `// eslint-disable-next-line no-restricted-syntax -- <ticket>: <why>` naming the consolidation task, so
+  the debt is counted and greppable.
+- **G5 · The compare record, the quarantine, and the nightly stability run** — not yet landed. Every
+  Compare writes a record the cross-run flake ledger (`test-health.yml`) ingests; a flaky capture can be
+  quarantined in `visual-tests/visual-quarantine.json` (reported, not blocking, expiring — an expired entry
+  fails the tooling suite until it is renewed or removed); and `Visual stability` runs on weekday nights
+  alongside the full render, thirty minutes after it, so byte-instability is measured, not guessed: the
+  nightly catches drift (one render against the baseline), the stability run catches noise (runners against
+  each other), and a flake and a drift seen the same morning can be told apart.
+- **G6 · The visual-only-coverage warning** — not yet landed. The presence gate keeps counting a visual
+  spec as coverage and prints an advisory `visual-only-coverage` warning when a source change ships with a
+  screenshot as its only test, pointing at the decision rule above.
+- **G7 · The enforcement map** — landed. `.ai/LOCAL-ENFORCEMENT.md`, *The visual tier's enforcement map*:
+  anything syntactic is lint (local and CI), anything that needs a rendered `out.json` is CI-only, and
+  running a visual spec is never a hook. `visual-decision-rule.test.mjs` cross-checks the map's two hook
+  claims against `scripts/lint-files.mjs` and `scripts/pre-push.mjs`.
 
 ## Run
 

@@ -346,6 +346,61 @@ summary formulas stay out of the sort (#12627). User-facing copy:
   that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
   it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
 
+## `showFormulas()`/`hideFormulas()`: display-only, on purpose (DEV-207)
+
+`#showFormulasFlag` makes a `FORMULA`/`ARRAYFORMULA` cell show its formula text instead of its
+calculated value. It is deliberately **not** read by `#onModifyData`: that hook feeds every
+`getDataAtCell()` consumer — the renderer, `CopyPaste`, but also column sorting's comparator, the
+Filters value-list dropdown, and cell validation — and gating there would make sorting order by
+formula text and the value-list dropdown show formula strings, which neither Excel nor Google
+Sheets does. Cell validation happens to be immune regardless: `#onBeforeValidate` (below) already
+recomputes the calculated value from the engine directly, ignoring whatever `modifyData` reports.
+
+Two separate mechanisms carry the mode instead, both scoped to exactly where a user expects it:
+
+- **Paint**: `#onPaintFormulaText`, a *second* `afterRenderer` hook registered with `orderIndex: 1`
+  (`this.addHook('afterRenderer', this.#onPaintFormulaText, 1)`), so it always runs after every
+  default-order (`orderIndex` 0) `afterRenderer` listener — this plugin's own `#onAfterRenderer`
+  above (the `HYPERLINK` wrap) and `AutoLink`'s. **The `orderIndex` is load-bearing, not tidiness.**
+  `AutoLink`'s hook reads the TD's *live rendered text*, not the hook's `value` argument, so without
+  it a `=HYPERLINK("https://…", label)` formula's own painted text would get re-linkified by
+  `AutoLink` the instant this plugin wrote it — measured and confirmed with a negative control
+  (`tests/e2e/formulas-show-formulas.spec.ts`, "does not let AutoLink re-linkify…"). Running last
+  makes this plugin's paint the final write for the cell regardless of which plugin enabled first.
+- **Copy/cut**: `#onBeforeCopyOrCut`, registered on both `beforeCopy` and `beforeCut`, rewrites only
+  the copied array in place — never touches `getDataAtCell()` or the data map. It has to map each
+  `data[i][j]` back to a `(row, column)` from the `coords` argument alone, the same way
+  `CopyPaste#getRangedData()`/`normalizeRanges()` (`../copyPaste/copyableRanges.ts`) built that array
+  in the first place: dedupe each range's rows and columns, first-seen order. `copiedRowsAndColumns()`
+  reimplements that small, pure derivation locally rather than importing it, to avoid a cross-plugin
+  dependency on `copyPaste`'s internal module — keep the two in sync if that algorithm ever changes.
+  A negative row in `coords` is a copied column header (`CopyPaste#getRangedData`'s `row < 0`
+  convention), never a formula cell, and is skipped.
+
+`showFormulas()`/`hideFormulas()` both guard on `this.enabled` and no-op while the plugin is
+disabled — `#onModifyData`/`#onPaintFormulaText` cost nothing while disabled either way, but a bare
+flag flip with no hook to act on it would make `isShowingFormulas()` report a mode that shows
+nothing.
+
+The `Ctrl`+`` ` `` grid shortcut is registered/removed with the plugin's own `#registerToggleFormulasShortcut`/
+`#unregisterToggleFormulasShortcut` (own `SHORTCUTS_GROUP = PLUGIN_KEY`), called from
+`enablePlugin()`/`disablePlugin()` — **not** through the deprecated `registerShortcuts()`/
+`unregisterShortcuts()` no-op shims, which exist only for the pre-19.0.0 `Alt`+`Enter` link shortcut
+and must keep doing nothing. The binding is `['Control', 'backquote']`, not `Control/Meta` and not
+the literal `` ` `` character: `Cmd`+`` ` `` is macOS's own "move focus to the next window" shortcut
+(the same reason `MergeCells` binds `['Control', 'm']`), and a real backquote keypress's
+`keyCode`/`which` (192) normalizes to the string `'backquote'`, never to the character itself
+(`shortcuts/utils.ts`'s `specialCharactersSet`) — the Jasmine `keyDownUp()` simulator cannot
+reproduce that real `keyCode`, which is why the shortcut's real-keypress coverage lives in
+`tests/e2e/formulas-show-formulas.spec.ts` instead of the Jasmine suite.
+
+**Known limitation: `AutoColumnSize`/`AutoRowSize` measure the calculated value, not the painted
+text.** Both size through `GhostTable`, which calls a cell's renderer directly and never fires
+`afterRenderer` — so a column stays sized for `3` while the DOM shows `=A1+B1`, and a long formula
+can clip for as long as the mode is on. No render or settings change recalculates it. Accepted
+trade-off for keeping the toggle purely display-only rather than feeding the sampler a second, mode-
+dependent measurement path.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='formulas'`
