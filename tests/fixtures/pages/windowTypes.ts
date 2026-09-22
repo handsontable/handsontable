@@ -42,6 +42,10 @@ export interface FixtureHotInstance {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
     sheetId: number | null,
+    /** DEV-207: `showFormulas()`/`hideFormulas()`/`isShowingFormulas()` toggle. */
+    showFormulas(): void,
+    hideFormulas(): void,
+    isShowingFormulas(): boolean,
     // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
     // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
     engine: {

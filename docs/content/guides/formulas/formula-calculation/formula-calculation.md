@@ -768,7 +768,12 @@ on screen.
 
 This mode is display-only. Sorting, the [filter-by-value list](@/guides/columns/column-filter/column-filter.md),
 and cell validation keep reading each formula cell's calculated value, not its formula text - the
-same as in Excel and Google Sheets.
+same as in Excel and Google Sheets. Pasting is unaffected either way: what lands in a cell depends
+on the clipboard content, not on whether formulas are currently shown.
+
+Column and row sizing (`autoColumnSize`, `autoRowSize`) also keep measuring the calculated value,
+since they sample cells directly rather than through the grid's normal render pass. A column sized
+for a short calculated value can clip a long formula while it's shown.
 
 ### Keyboard shortcut
 
@@ -1395,3 +1400,5 @@ After setting up the `Formulas` plugin with a HyperFormula engine, cells that co
 - [Formulas](@/api/formulas.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

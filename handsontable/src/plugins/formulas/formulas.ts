@@ -929,6 +929,9 @@ export class Formulas extends BasePlugin {
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    // Positive `orderIndex`: must run after every default-order `afterRenderer` listener (this
+    // plugin's own above, and AutoLink's) - see `#onPaintFormulaText`'s own doc for why.
+    this.addHook('afterRenderer', this.#onPaintFormulaText, 1);
     this.addHook('beforeCopy', this.#onBeforeCopyOrCut);
     this.addHook('beforeCut', this.#onBeforeCopyOrCut);
 
@@ -2790,27 +2793,16 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `afterRenderer` hook callback. Paints `showFormulas()` mode's formula text over the already
-   * rendered calculated value, and wraps the already rendered content of a `HYPERLINK` cell in an
-   * anchor. Paint-only: neither write touches the data model, so `getDataAtCell()`, sorting,
-   * filtering, and validation never see the formula text - only the DOM does. The cell keeps its
-   * own renderer and its cell meta is left untouched, so disabling the plugin or clearing the
-   * formula needs no cleanup.
+   * `afterRenderer` hook callback. Wraps the already rendered content of a `HYPERLINK` cell in an
+   * anchor. The cell keeps its own renderer and its cell meta is left untouched, so disabling the
+   * plugin or clearing the formula needs no cleanup.
    *
    * @param {HTMLTableCellElement} TD The rendered cell element.
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    */
   #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
-    if (this.#internalOperationPending) {
-      return;
-    }
-
-    if (this.#showFormulasFlag) {
-      this.#paintFormulaText(TD, row, column);
-    }
-
-    if (!this.#hyperlinksEnabled) {
+    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
       return;
     }
 
@@ -2822,9 +2814,8 @@ export class Formulas extends BasePlugin {
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
 
     // While formulas are shown as raw text, the rendered content is the formula itself, not the
-    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen. Also,
-    // `#paintFormulaText` above already replaced the content, wiping out any anchor recycled from a
-    // previous paint.
+    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen -
+    // `#onPaintFormulaText` (registered to run after this hook) overwrites it either way.
     if (this.#showFormulasFlag) {
       this.#hyperlinkCells.delete(hyperlinkKey);
 
@@ -2864,8 +2855,15 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Overwrites a FORMULA/ARRAYFORMULA cell's already-rendered content with its formula text. An
-   * `ARRAY` cell (a non-origin spill cell) has no formula text of its own - `getCellSerialized()`
+   * `afterRenderer` hook callback, registered with a positive `orderIndex` so it always runs after
+   * every default-order `afterRenderer` listener - this plugin's own `#onAfterRenderer` above, and
+   * AutoLink's, which reads the TD's live text and would otherwise linkify a URL substring inside
+   * the painted formula text (the URL argument of a `=HYPERLINK(url, label)` formula, for instance),
+   * since it detects URLs in whatever the cell currently displays, not in the hook's `value`
+   * argument. Running last makes this the final write for the cell regardless of which plugin
+   * enabled first, or whether AutoLink is even registered at all.
+   *
+   * An `ARRAY` cell (a non-origin spill cell) has no formula text of its own - `getCellSerialized()`
    * would return its raw, unformatted value for it, skipping the date/time conversion and error
    * unwrapping the normal value path applies - so it is left showing its calculated value, same as
    * `VALUE`/`EMPTY`.
@@ -2874,7 +2872,11 @@ export class Formulas extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    */
-  #paintFormulaText(TD: HTMLTableCellElement, row: number, column: number) {
+  #onPaintFormulaText = (TD: HTMLTableCellElement, row: number, column: number) => {
+    if (this.#internalOperationPending || !this.#showFormulasFlag) {
+      return;
+    }
+
     const cellType = this.getCellType(row, column);
 
     if (cellType !== 'FORMULA' && cellType !== 'ARRAYFORMULA') {
@@ -2888,7 +2890,7 @@ export class Formulas extends BasePlugin {
     };
 
     fastInnerText(TD, String(this.engine!.getCellSerialized(address)));
-  }
+  };
 
   /**
    * `beforeCopy`/`beforeCut` hook callback. While formulas are shown, rewrites each copied/cut

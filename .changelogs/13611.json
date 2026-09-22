@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added a `showFormulas()`/`hideFormulas()` toggle to the [`Formulas`](https://handsontable.com/docs/javascript-data-grid/api/formulas/) plugin, so a formula cell can display its formula text instead of its calculated value.",
+  "title": "Added a `showFormulas()`/`hideFormulas()` toggle to the [`Formulas`](https://handsontable.com/docs/javascript-data-grid/api/formulas/) plugin, so a formula cell can display its formula text instead of its calculated value, and a `Ctrl`+`` ` `` shortcut that toggles it.",
   "type": "added",
   "issueOrPR": 13611,
   "breaking": false,

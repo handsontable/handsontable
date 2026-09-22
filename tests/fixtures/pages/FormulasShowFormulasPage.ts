@@ -1,9 +1,10 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import './windowTypes';
 
 /**
  * Page Object for the `showFormulas()`/`hideFormulas()` fixture (DEV-207). Column A is a plain
- * value, column B a formula, column C a `HYPERLINK` formula.
+ * value, column B a formula, column D a `HYPERLINK` formula, with `autoLink: true` also on.
  */
 export class FormulasShowFormulasPage {
   readonly page: Page;
@@ -31,16 +32,21 @@ export class FormulasShowFormulasPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** The anchor a `HYPERLINK` cell renders, if any. */
+  /** The `HYPERLINK` anchor a cell renders, if any. */
   link(row: number, col: number): Locator {
     return this.cell(row, col).locator('a.ht-link.ht-hyperlink');
+  }
+
+  /** Any anchor at all in the cell - `HYPERLINK`'s own, or one AutoLink added. */
+  anyAnchor(row: number, col: number): Locator {
+    return this.cell(row, col).locator('a.ht-link');
   }
 
   /** Click a cell so it becomes the selected one, and wait until the selection lands. */
   async selectCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).click();
     await expect.poll(() => this.page.evaluate(() => {
-      const highlight = (window as any).hot.getSelectedRangeActive()?.highlight;
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
 
       return highlight ? [highlight.row, highlight.col] : null;
     })).toEqual([row, col]);
@@ -48,11 +54,21 @@ export class FormulasShowFormulasPage {
 
   /** `formulas.isShowingFormulas()`. */
   async isShowingFormulas(): Promise<boolean> {
-    return this.page.evaluate(() => (window as any).hot.getPlugin('formulas').isShowingFormulas());
+    return this.page.evaluate(() => window.hot.getPlugin('formulas').isShowingFormulas());
   }
 
   /** `formulas.showFormulas()`, called through the public API. */
   async showFormulasViaApi(): Promise<void> {
-    await this.page.evaluate(() => (window as any).hot.getPlugin('formulas').showFormulas());
+    await this.page.evaluate(() => window.hot.getPlugin('formulas').showFormulas());
+  }
+
+  /** `formulas.hideFormulas()`, called through the public API. */
+  async hideFormulasViaApi(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('formulas').hideFormulas());
+  }
+
+  /** Read the page clipboard (requires the `clipboard-read` permission). */
+  async clipboardText(): Promise<string> {
+    return this.page.evaluate(() => navigator.clipboard.readText());
   }
 }

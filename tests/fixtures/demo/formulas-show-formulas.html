@@ -32,11 +32,14 @@
 <body>
   <!--
     HyperFormula-backed grid for the `showFormulas()`/`hideFormulas()` toggle (DEV-207). Column A is
-    a plain value, column B a formula, column C a `HYPERLINK` formula, so a spec can prove: the
+    a plain value, column B a formula, column D a `HYPERLINK` formula, so a spec can prove: the
     toggle actually repaints under `renderMode: 'onChange'` (not only the data layer), the real
-    `Ctrl`+`` ` ``/`Cmd`+`` ` `` keyboard shortcut works, and a `HYPERLINK` cell stops rendering as a
-    link while its raw formula text is shown. Every leg runs exactly ONE engine: the `umd` legs load
-    HyperFormula as an external script (the base bundle ships none); the `full-min` legs use the
+    `Ctrl`+`` ` `` keyboard shortcut works, and a `HYPERLINK` cell stops rendering as a link while its
+    raw formula text is shown. `autoLink: true` is on so a spec can also prove the painted formula
+    text does not get re-linkified: AutoLink reads a cell's rendered text (not the hook's `value`
+    argument), so without an explicit paint order it would wrap the URL inside the painted
+    `=HYPERLINK(url, ...)` text in its own anchor. Every leg runs exactly ONE engine: the `umd` legs
+    load HyperFormula as an external script (the base bundle ships none); the `full-min` legs use the
     engine baked into the bundle.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -57,15 +60,18 @@
     window.hot = new Handsontable(container, {
       data: [
         ['1', '2', '=A1+B1', '=HYPERLINK("https://example.com", "Example")'],
+        // Empty cut/paste target row for the copy-paste spec.
+        [null, null, null, null],
       ],
       formulas: {
         engine: HyperFormula,
         sheetName: 'Sheet1',
         hyperlinks: true,
       },
+      autoLink: true,
       renderMode: 'onChange',
       width: 500,
-      height: 100,
+      height: 130,
       rowHeaders: true,
       colHeaders: true,
       afterRenderer(td, row, col) {
