@@ -36,9 +36,10 @@ type HotTable = ForwardRefExoticComponent<HotTableProps & RefAttributes<HotTable
  * ```
  */
 const HotTable: HotTable = forwardRef<HotTableRef, HotTableProps>(({ children, ...props }, ref) => {
-  // Pre-existing conditional useId() call; fixed in #13609, kept as-is here to keep this PR lint-config-only.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const componentId = props.id ?? useId();
+  // `useId()` must run unconditionally on every render (never only when `id` is missing), or React
+  // sees a different hook count between renders and throws "Rendered fewer hooks than expected".
+  const generatedId = useId();
+  const componentId = props.id ?? generatedId;
 
   return (
     <HotTableContextProvider>
