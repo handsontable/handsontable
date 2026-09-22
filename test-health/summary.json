@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-22T13:46:14.173Z",
+  "generatedAt": "2026-09-22T14:02:11.691Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 289,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1605
+    "entries": 1607
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 8,
-      "count30": 15,
-      "countAll": 15,
+      "count7": 9,
+      "count30": 16,
+      "countAll": 16,
       "runs30": 9,
       "flakyRuns30": 9,
       "branches30": 8,
@@ -39,8 +39,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-22T13:45:28Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304",
+        "seenAt": "2026-09-22T14:01:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304/attempts/2",
         "branch": "feature/DEV-134_Restore-hidden-rows-after-undoing-remove",
         "leg": "e2e-horizon-min",
         "status": "flaky",
@@ -129,9 +129,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 4,
-      "count30": 6,
-      "countAll": 6,
+      "count7": 5,
+      "count30": 7,
+      "countAll": 7,
       "runs30": 6,
       "flakyRuns30": 6,
       "branches30": 6,
@@ -147,8 +147,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-22T13:45:28Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304",
+        "seenAt": "2026-09-22T14:01:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304/attempts/2",
         "branch": "feature/DEV-134_Restore-hidden-rows-after-undoing-remove",
         "leg": "e2e-horizon-min",
         "status": "flaky",
