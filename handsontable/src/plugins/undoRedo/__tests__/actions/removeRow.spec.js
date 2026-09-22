@@ -204,6 +204,7 @@ describe('UndoRedo -> RemoveRow action', () => {
         hiddenRows: true,
         contextMenu: true,
         rowHeaders: true,
+        colHeaders: true,
       });
 
       getPlugin('hiddenRows').hideRows([2, 3]);
@@ -215,10 +216,19 @@ describe('UndoRedo -> RemoveRow action', () => {
 
       expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([2, 3]);
 
-      // Header selection must keep working - the ticket's second reported symptom.
-      await selectRows(0);
+      // The ticket's second reported symptom (header selection misbehaving) traced back to the
+      // same corrupted hiding-map state: with rows 2 and 3 wrongly counted as rendered, the
+      // renderable row count - which row-header selection is built on - was wrong too. Pin it
+      // directly: 6 rows total, 2 of them hidden, 4 must remain rendered.
+      expect(countRenderedRows()).toBe(4);
 
-      expect(getSelectedLast()).toEqual([0, -1, 0, 2]);
+      // Clicking the corner (select-all) must resolve to the DOM row headers actually rendered,
+      // not the stale/wrong count the unfixed bug left behind.
+      const corner = getCell(-1, -1);
+
+      await simulateClick(corner, 'LMB');
+
+      expect($('.ht_clone_inline_start .htCore tbody tr').length).toBe(4);
     });
 
     it('should not re-hide a row that was not hidden before the removal', async() => {

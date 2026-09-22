@@ -55,11 +55,14 @@ normally.
 
 **Scoped to the non-nested-rows path**, gated by `hasNestedRowsSnapshot` the same way `removedMergedCells`
 is for that branch — DEV-134 is not about `nestedRows`, and combining hidden rows with a nested-row
-removal/restore would need its own physical-index-keyed capture, not built here. No redo-side change was
-needed: redo re-runs `hot.alter('remove_row', ...)`, which re-enters the same `beforeRemoveRow` listener
-and creates a **fresh** `RemoveRowAction` through `undoRedoPlugin.done()` — so the hidden state (already
-restored by the prior undo) is captured again automatically for the next undo, exactly like merged cells
-and cell metas already work.
+removal/restore would need its own physical-index-keyed capture, not built here. **No redo-side change was
+needed, but not for the reason "redo re-captures" would suggest.** `UndoRedo#redo()` sets
+`ignoreNewActions = true` before calling `action.redo()`, and that flag makes `done()` bail out before
+`wrappedAction()` ever runs (`isBlockedByDefault` on the `'UndoRedo.redo'` source would refuse it too) — so
+`RemoveRowAction#redo()`'s own `hot.alter('remove_row', ...)` does **not** create a fresh action or
+re-capture anything. `UndoRedo#redo()` instead pushes the *same* action object (popped off the undone
+stack) back onto the done stack, carrying the `removedHiddenRows` it captured on the **original** removal
+forward unchanged — which is exactly what the next undo needs, so nothing further was required.
 
 ## A throwing action resets the flag and is discarded
 
