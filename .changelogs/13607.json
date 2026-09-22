@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed HotTable throwing \"Rendered fewer hooks than expected\" when the id prop was added or removed across re-renders.",
+  "type": "fixed",
+  "issueOrPR": 13607,
+  "breaking": false,
+  "framework": "react"
+}
