@@ -687,7 +687,13 @@ class Selection {
     rowHighlight?.clear();
     columnHighlight?.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) &&
+    // Resolved once - each call routes through `getCellMeta`, and `applyAndCommit()` runs on every
+    // selection change (once per mousemove during a drag-select).
+    const isFocusEnabled = this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight);
+    const isAreaEnabled = this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight);
+    const isHeaderEnabled = this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight);
+
+    if (isAreaEnabled &&
         (this.isMultiple(cellRange) || layerLevel >= 1)) {
       areaHighlight
         ?.add(cellRange.from)
@@ -724,7 +730,19 @@ class Selection {
       }
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
+    // The row and column highlights carry the `currentRowClassName` / `currentColClassName` indicator on
+    // the body cells (and the row/column header). They are selection feedback rather than header
+    // selection, so they are shown whenever any selection type is enabled and hidden only when every
+    // type is off - `disableVisualSelection: true`, or an array holding all of `'current'`, `'area'`,
+    // and `'header'`. This is checked against the three named types rather than the highlights' own
+    // `ROW_TYPE` / `COLUMN_TYPE` deliberately: the latter would keep the indicator on for the all-three
+    // array, whereas turning every selection type off must hide it, as it did before DEV-228. Gating
+    // them on `HEADER_TYPE` alone made `disableVisualSelection: 'header'` strip them from the body cells.
+    if (isFocusEnabled || isAreaEnabled || isHeaderEnabled) {
+      this.#applyRowColumnHighlights(cellRange, rowHighlight, columnHighlight);
+    }
+
+    if (isHeaderEnabled) {
       this.#applyHeaderHighlights(
         cellRange,
         layerLevel,
@@ -735,10 +753,61 @@ class Selection {
         activeRowHeaderHighlight,
         activeColumnHeaderHighlight,
         activeCornerHeaderHighlight,
-        rowHighlight,
-        columnHighlight,
       );
     }
+  }
+
+  /**
+   * Applies the row and column highlights (the `currentRowClassName` / `currentColClassName` indicator)
+   * for the given cell range.
+   *
+   * @param {CellRange} cellRange The cell range to highlight.
+   * @param {object | null | undefined} rowHighlight The row highlight instance.
+   * @param {object | null | undefined} columnHighlight The column highlight instance.
+   */
+  #applyRowColumnHighlights(
+    cellRange: CellRange,
+    rowHighlight: ReturnType<Highlight['createRowHighlight']>,
+    columnHighlight: ReturnType<Highlight['createColumnHighlight']>,
+  ) {
+    if (cellRange.isSingleHeader()) {
+      return;
+    }
+
+    const { rowCoordsFrom, rowCoordsTo, columnCoordsFrom, columnCoordsTo } =
+      this.#createHeaderExtentCoords(cellRange);
+
+    if (this.settings.selectionMode === 'single') {
+      rowHighlight?.add(rowCoordsFrom).commit();
+      columnHighlight?.add(columnCoordsFrom).commit();
+
+    } else {
+      rowHighlight
+        ?.add(rowCoordsFrom)
+        .add(rowCoordsTo)
+        .commit();
+      columnHighlight
+        ?.add(columnCoordsFrom)
+        .add(columnCoordsTo)
+        .commit();
+    }
+  }
+
+  /**
+   * Builds the header-extent coordinates a full row/column highlight spans – the row and column
+   * ends in header space. Shared by the row/column highlight and the header highlight so the
+   * asymmetric `from` clamp stays in one place.
+   *
+   * @param {CellRange} cellRange The cell range to highlight.
+   * @returns {{ rowCoordsFrom: CellCoords, rowCoordsTo: CellCoords, columnCoordsFrom: CellCoords, columnCoordsTo: CellCoords }}
+   */
+  #createHeaderExtentCoords(cellRange: CellRange) {
+    return {
+      rowCoordsFrom: this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1),
+      rowCoordsTo: this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1),
+      columnCoordsFrom: this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0)),
+      columnCoordsTo: this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0),
+    };
   }
 
   /**
@@ -753,8 +822,6 @@ class Selection {
    * @param {object | null | undefined} activeRowHeaderHighlight The active row header highlight instance.
    * @param {object | null | undefined} activeColumnHeaderHighlight The active column header highlight instance.
    * @param {object | null | undefined} activeCornerHeaderHighlight The active corner header highlight instance.
-   * @param {object | null | undefined} rowHighlight The row highlight instance.
-   * @param {object | null | undefined} columnHighlight The column highlight instance.
    */
   #applyHeaderHighlights(
     cellRange: CellRange,
@@ -766,20 +833,14 @@ class Selection {
     activeRowHeaderHighlight: ReturnType<Highlight['createActiveRowHeader']>,
     activeColumnHeaderHighlight: ReturnType<Highlight['createActiveColumnHeader']>,
     activeCornerHeaderHighlight: ReturnType<Highlight['createActiveCornerHeader']>,
-    rowHighlight: ReturnType<Highlight['createRowHighlight']>,
-    columnHighlight: ReturnType<Highlight['createColumnHighlight']>,
   ) {
     if (!cellRange.isSingleHeader()) {
-      const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1);
-      const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1);
-      const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0));
-      const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0);
+      const { rowCoordsFrom, rowCoordsTo, columnCoordsFrom, columnCoordsTo } =
+        this.#createHeaderExtentCoords(cellRange);
 
       if (this.settings.selectionMode === 'single') {
         rowHeaderHighlight?.add(rowCoordsFrom).commit();
         columnHeaderHighlight?.add(columnCoordsFrom).commit();
-        rowHighlight?.add(rowCoordsFrom).commit();
-        columnHighlight?.add(columnCoordsFrom).commit();
 
       } else {
         rowHeaderHighlight
@@ -787,14 +848,6 @@ class Selection {
           .add(rowCoordsTo)
           .commit();
         columnHeaderHighlight
-          ?.add(columnCoordsFrom)
-          .add(columnCoordsTo)
-          .commit();
-        rowHighlight
-          ?.add(rowCoordsFrom)
-          .add(rowCoordsTo)
-          .commit();
-        columnHighlight
           ?.add(columnCoordsFrom)
           .add(columnCoordsTo)
           .commit();

@@ -140,9 +140,11 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
+   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`:
+   * `'col_left'`, `'col_right'`, `'---------'`, `'remove_col'`, `'---------'`, `'clear_column'`,
+   * `'---------'`, `'make_read_only'`, `'---------'`, `'alignment'`.
    *
-   * @returns {Array}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [

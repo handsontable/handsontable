@@ -217,6 +217,7 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
     const hot = {
       ...createTwoCellHotStub(cells[0], cells[1]),
       setCellMeta,
+      runHooks: jest.fn(),
       render: jest.fn(),
     };
 
@@ -229,20 +230,44 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
     ]);
   });
 
-  it('should decide the toggle from the first read-only cell, without reading the rest', () => {
-    // The mark has to walk a fully read-only selection to the end; the click does not, and on a
-    // 100k-cell column that is 100k meta reads before the writes even start.
-    const getCellMetaTransient = jest.fn(() => ({ readOnly: true }));
+  it('should decide "make read-only" from the first writable cell, without reading the rest', () => {
+    // Making the selection read-only: `checkSelectionConsistency()` only stops early on a MATCH
+    // (a read-only cell). Every cell here is writable, so it never matches and has to walk the
+    // whole selection to prove that - which is also why no second pass is needed for the undo
+    // snapshot (DEV-136): the same walk already proved every cell's prior state was `false`.
+    const getCellMetaTransient = jest.fn(() => ({ readOnly: false }));
     const hot = {
       ...createTwoCellHotStub({}, {}),
       getCellMetaTransient,
       setCellMeta: jest.fn(),
+      runHooks: jest.fn(),
       render: jest.fn(),
     };
 
     readOnlyItem().callback.call(hot);
 
-    expect(getCellMetaTransient).toHaveBeenCalledTimes(1);
+    expect(getCellMetaTransient).toHaveBeenCalledTimes(2);
+    expect(hot.setCellMeta).toHaveBeenCalledTimes(2);
+  });
+
+  it('should decide "make writable" from the first read-only cell, then read the rest once for the undo snapshot', () => {
+    // Deciding "at least one" still stops at the first match, exactly as before. But restoring a
+    // MIXED selection on undo needs every cell's actual prior state, and stopping early leaves the
+    // rest unknown - so making a read-only selection writable now pays for one full second pass
+    // here (DEV-136). This is the one direction the DEV-124 short-circuit can no longer stay free:
+    // it decided the toggle without reading the rest, but undo needs to know what "the rest" was.
+    const getCellMetaTransient = jest.fn(() => ({ readOnly: true }));
+    const hot = {
+      ...createTwoCellHotStub({}, {}),
+      getCellMetaTransient,
+      setCellMeta: jest.fn(),
+      runHooks: jest.fn(),
+      render: jest.fn(),
+    };
+
+    readOnlyItem().callback.call(hot);
+
+    expect(getCellMetaTransient).toHaveBeenCalledTimes(3);
     expect(hot.setCellMeta).toHaveBeenCalledTimes(2);
   });
 

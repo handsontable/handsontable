@@ -222,7 +222,9 @@ jobs:
   #
   # Cutover (repo admin): create the `docs-visual-approval` environment WITH
   # required reviewers before the first labeled pull request with differences
-  # runs. A job that references a missing environment silently auto-creates it
+  # runs, and leave "Prevent self-review" OFF — the reasoning for that setting
+  # is in `.ai/CI.md`, which is the one copy of it.
+  # A job that references a missing environment silently auto-creates it
   # UNPROTECTED and runs straight through, so the step below asserts the
   # control's OUTCOME -- an approval recorded against this run -- rather than
   # trusting its configuration, and fails closed when none is.

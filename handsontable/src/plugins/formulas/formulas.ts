@@ -41,7 +41,7 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
-import type { HyperFormulaEngine } from './engine/types';
+import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
@@ -265,6 +265,44 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * How many source rows the grid held the last time the sheet was written or reloaded - a scan,
+   * a rejected-write clear, an `afterLoadData` write, or the empty-data reload - or `null` before
+   * the first one. Recorded by `#recordSyncedLayout()`.
+   *
+   * Compared against the count the settings update ends on, which is what tells a row count that
+   * moved after the last write apart from one the write already saw.
+   *
+   * @type {number|null}
+   */
+  #sourceRowCountAtLastSync: number | null = null;
+
+  /**
+   * Which engine sheet the count above describes, or `null` before the first resync.
+   *
+   * Compared alongside the count so that a sheet switch performed by this plugin during the same
+   * `updateSettings()` is not mistaken for another plugin reshaping the grid.
+   *
+   * @type {number|null}
+   */
+  #sheetIdAtLastSync: number | null = null;
+
+  /**
+   * Whether `afterCellMetaReset` fired during a settings update and left the sheet resync for
+   * later, instead of scanning the source data mid-update.
+   *
+   * The Core fires `afterCellMetaReset` before the plugins update, so a scan there describes a
+   * layout a plugin may be about to replace. The owed resync runs once, from whichever comes
+   * first: the late `afterUpdateSettings` listener (`#onAfterUpdateSettingsRowCount`), the next
+   * draw (`#onBeforeRender`), or the first engine read a default-order listener makes
+   * (`#onModifyData`, `#onModifySourceData`). Binding another sheet cancels it
+   * (`#updateSheetNameAndSheetId`), because the engine is then authoritative for the grid. A
+   * throw from the scan clears it without retry - see `#resyncSheet` (DEV-3006).
+   *
+   * @type {boolean}
+   */
+  #sheetResyncPending = false;
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -642,6 +680,7 @@ export class Formulas extends BasePlugin {
     // also covers a `disablePlugin()` that lands mid-span.
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
+    this.#sheetResyncPending = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
 
@@ -755,6 +794,12 @@ export class Formulas extends BasePlugin {
     // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
     // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
+    this.addHook('beforeRender', this.#onBeforeRender);
+
+    // `orderIndex: 1` puts this after every default-order listener, and the plugins' own
+    // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
+    // they have run. See `#onAfterUpdateSettingsRowCount`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -848,6 +893,14 @@ export class Formulas extends BasePlugin {
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
+
+    // The recorded layout belongs to the engine session being torn down. Nothing reads it before
+    // `#onAfterCellMetaReset` refreshes it - the Core fires `afterCellMetaReset` before
+    // `afterUpdateSettings`, and a listener registered mid-run does not fire that run - so this is
+    // consistency with the two guard flags `enablePlugin()` clears, not a live defect.
+    this.#sourceRowCountAtLastSync = null;
+    this.#sheetIdAtLastSync = null;
+    this.#sheetResyncPending = false;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -980,6 +1033,12 @@ export class Formulas extends BasePlugin {
     // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
+
+    // Every caller has just made the engine authoritative for the grid - `switchSheet()` is about
+    // to load the grid FROM the sheet, `addSheet()` callers filled it from the grid - so a resync
+    // owed from earlier in the same settings update has nothing left to carry. Drained later, it
+    // would write this grid's visible-column projection over the sheet just bound.
+    this.#sheetResyncPending = false;
   }
 
   /**
@@ -1108,6 +1167,42 @@ export class Formulas extends BasePlugin {
       row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
+  }
+
+  /**
+   * Returns the cells and cell ranges that depend on the provided cell or range (its out-neighbors in
+   * HyperFormula's dependency graph). These are the cells whose formulas reference the given address.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges that contain the given address, not only
+   * single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
+   */
+  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellDependents(address);
+  }
+
+  /**
+   * Returns the cells and cell ranges that the provided cell or range depends on (its in-neighbors in
+   * HyperFormula's dependency graph). These are the cells and ranges the given cell's formula reads.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges contained in the given cell or range, not
+   * only single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
+   */
+  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellPrecedents(address);
   }
 
   /**
@@ -2214,32 +2309,216 @@ export class Formulas extends BasePlugin {
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * The Core fires it in the middle of `updateSettings()`, before `afterUpdateSettings` and so
+   * before any plugin has applied the new settings. A scan run here describes the layout the
+   * plugins are about to replace, so outside of construction the scan is only recorded as owed
+   * and `#resyncSheet` runs it later, once per cycle - see `#sheetResyncPending`. Construction
+   * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
+   * stays eager there; `hot.view` is what the Core creates right after that first run.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    // Runs on every `updateSettings()` call, and both branches below re-run a full-dataset scan
-    // whose per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta`
-    // listeners – see `#escapeSourceDataArray` for what that changes for a listener with side
-    // effects.
+    // The reload below and the scan in `#resyncSheet` both run a full-dataset read whose per-cell
+    // meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners – see
+    // `#escapeSourceDataArray` for what that changes for a listener with side effects.
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
         this.switchSheet(this.sheetName);
       }
 
+      this.#recordSyncedLayout();
+
       return;
     }
 
+    if (this.hot.view) {
+      this.#sheetResyncPending = true;
+      this.#sheetIdAtLastSync = this.sheetId;
+
+      return;
+    }
+
+    this.#resyncSheet();
+  };
+
+  /**
+   * Rebuilds the engine sheet from the source data: one full scan, one `setSheetContent`.
+   *
+   * `#sheetResyncPending` is cleared FIRST. The scan reads the source data through the read hooks
+   * that drain the flag - `#getProcessedSourceDataArray` suspends the projection for its bulk
+   * read but not for the `getSourceDataAtRow` probe that follows it - so a flag still set here
+   * would re-enter this method from inside its own scan.
+   *
+   * A throw from the scan leaves the flag CLEARED and the layout unrecorded. It is not re-armed: a
+   * throw that repeats on every scan - a `cells()` handler that throws for one cell, a dependent
+   * grid whose `afterRender` throws - would otherwise turn every later read and render into a
+   * full scan that throws again, where before this plugin the throw surfaced once, from
+   * `updateSettings()`. The next `updateSettings()` marks the flag again and retries there. The
+   * one throw the engine itself raises deterministically, a sheet over its `maxRows` /
+   * `maxColumns`, is not thrown at all: the layout is checked first and the sheet is emptied with
+   * a warning, as `#onAfterLoadData` does. `#internalOperationPending` is released on every path,
+   * because the read hooks return early while it is set and would otherwise serve raw formula
+   * text until the next settings update.
+   */
+  #resyncSheet() {
+    this.#sheetResyncPending = false;
+
     const sourceDataArray = this.#getProcessedSourceDataArray();
 
+    if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+      this.#clearRejectedSheet();
+
+      return;
+    }
+
+    this.#writeSheet(sourceDataArray);
+  }
+
+  /**
+   * Writes a processed source data array into the grid's sheet: escapes it, replaces the sheet
+   * content, re-syncs the index endpoint, redraws the dependent grids, and records the layout.
+   * The one place `#internalOperationPending` is opened across a full write, and it is released
+   * in a `finally`: the read hooks return early while it is set, so a throw from the write or
+   * from a dependent grid's render would otherwise leave every formula cell reading raw text until
+   * the next settings update. Shared by `#resyncSheet()` and the `#onAfterLoadData` write branch,
+   * so the two cannot drift.
+   *
+   * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
+   */
+  #writeSheet(sourceDataArray: unknown[][]) {
     this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
-    const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-    this.renderDependentSheets(dependentCells);
-    this.#internalOperationPending = false;
+    try {
+      const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+
+      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+      this.renderDependentSheets(dependentCells);
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#recordSyncedLayout();
+  }
+
+  /**
+   * Empties the sheet when the engine cannot hold the grid's layout - it exceeds the engine's
+   * `maxRows` or `maxColumns` - and warns. Leaving the sheet untouched would keep the previous
+   * data in the engine while the grid already shows the new one, so stale values would be served;
+   * emptying it changes what every grid reading it computes, hence the dependent redraw. The
+   * layout is recorded so the late `afterUpdateSettings` listener does not take the emptied sheet
+   * for a row-count change and scan a layout the engine just rejected.
+   */
+  #clearRejectedSheet() {
+    this.#internalOperationPending = true;
+
+    try {
+      const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+
+      this.renderDependentSheets(dependentCells);
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#recordSyncedLayout();
+
+    warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
+      'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+  }
+
+  /**
+   * `beforeRender` hook callback.
+   *
+   * Drains a resync the settings update in flight still owes, before the draw starts. Without it
+   * the first cell's paint gate would drain it through `#onModifyData`, and the full scan plus the
+   * dependent grids' redraw would run from inside a cell paint of this grid's own draw. A plugin
+   * that renders from its own `onUpdateSettings` - NestedRows does - reaches this before the late
+   * `afterUpdateSettings` listener.
+   */
+  #onBeforeRender = () => {
+    if (this.engine && this.#sheetResyncPending) {
+      this.#resyncSheet();
+    }
+  };
+
+  /**
+   * Records which sheet the engine was last brought in line with, and how many source rows the
+   * grid held at that moment. `#onAfterUpdateSettingsRowCount` compares the count the settings
+   * update ends on against it.
+   *
+   * Called at the END of every write - `#resyncSheet()`, `#clearRejectedSheet()`, the
+   * `#onAfterLoadData` write branch - and at the end of the empty-data reload, never at its start:
+   * that branch's own `switchSheet()` runs `loadData()`, which moves the row count itself, so a
+   * count taken beforehand describes a layout that no longer exists and makes the late listener
+   * re-enter for a change the handler had just made. A throw inside a write leaves the previous
+   * values in place; the flag, not this record, is what carries a retry (see `#sheetResyncPending`).
+   */
+  #recordSyncedLayout() {
+    this.#sourceRowCountAtLastSync = this.hot.countSourceRows();
+    this.#sheetIdAtLastSync = this.sheetId;
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback, registered to run after every other listener.
+   *
+   * The Core fires `afterCellMetaReset` in the middle of `updateSettings()` - before the plugins
+   * update - so `#onAfterCellMetaReset` only records that a resync is owed, and this listener
+   * performs it once the plugins have finished shaping the layout: turning `nestedRows` on flattens
+   * the tree into twice as many rows, and a scan run before that described a layout the engine
+   * then held while the grid showed another, so a formula the flatten moved rendered as raw text
+   * and its value landed on another row (DEV-2978). This is the one scan an ordinary
+   * `updateSettings()` call - the one a React re-render sends - pays (DEV-3006).
+   *
+   * The owed resync may already have been drained earlier in the same update: by `beforeRender`,
+   * when a plugin renders from its own `onUpdateSettings`, or by a read hook, when a listener reads
+   * a cell. Then only a row count that moved since that scan calls for another, which is what the
+   * comparison against `#recordSyncedLayout()` decides. Nothing here knows which plugin moved it.
+   * `minRows`/`minSpareRows` are NOT in that class: the Core creates those rows in
+   * `adjustRowsAndCols()`, after this hook, and they reach the engine through `afterCreateRow`.
+   *
+   * The sheet id is compared as well as the count, because a count change this plugin caused ITSELF
+   * is not a foreign layout change. `updatePlugin()` switches the sheet from a default-order
+   * `afterUpdateSettings` listener, and `switchSheet()` loads the new sheet's rows into the grid -
+   * so on a switch between sheets of different heights the count differs for a reason that needs no
+   * resync. Re-entering there wrote the grid BACK into the sheet just switched to, through this
+   * grid's visible-column projection: a grid showing one column of a three-column sheet truncated
+   * that sheet to one column, destroying the rest for every grid sharing the engine.
+   */
+  #onAfterUpdateSettingsRowCount = () => {
+    if (!this.engine) {
+      return;
+    }
+
+    if (this.sheetId !== this.#sheetIdAtLastSync) {
+      return;
+    }
+
+    // The resync `afterCellMetaReset` left for this pass. This is the one scan an ordinary
+    // settings update pays, and it runs against the layout the plugins have finished shaping.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
+
+      return;
+    }
+
+    // The resync already ran - construction, the empty-data reload, or a default-order listener
+    // that read the engine and drained it before the plugins updated - so only a row count that
+    // moved since then calls for another.
+    if (this.#sourceRowCountAtLastSync === null || this.hot.countSourceRows() === this.#sourceRowCountAtLastSync) {
+      return;
+    }
+
+    if (this.#hotWasInitializedWithEmptyData) {
+      this.#onAfterCellMetaReset();
+
+      return;
+    }
+
+    this.#closeLeakedGuards();
+    this.#resyncSheet();
   };
 
   /**
@@ -2277,6 +2556,10 @@ export class Formulas extends BasePlugin {
     }
 
     if (!this.#hotWasInitializedWithEmptyData) {
+      // Whatever the branches below write supersedes a resync still owed from a settings update
+      // this load interrupted.
+      this.#sheetResyncPending = false;
+
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       // The guard only range-checks the sheet against the array dimensions, so escaping can run
@@ -2285,31 +2568,12 @@ export class Formulas extends BasePlugin {
       // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
       // the pre-guard scan used to invoke them before discarding the result.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-        this.#escapeSourceDataArray(sourceDataArray);
-
-        this.#internalOperationPending = true;
-
-        const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
-
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-        this.renderDependentSheets(dependentCells);
-
-        this.#internalOperationPending = false;
+        // Records the layout too, so a settings update this load ran inside of has no row-count
+        // change left to carry.
+        this.#writeSheet(sourceDataArray);
 
       } else {
-        // The sheet is reused, so leaving it untouched would keep the previous data in the engine
-        // while the grid already shows the new one. Empty it instead of serving stale values.
-        this.#internalOperationPending = true;
-
-        const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
-
-        // Emptying the sheet changes what the grids reading it compute, so they need a redraw.
-        this.renderDependentSheets(dependentCells);
-
-        this.#internalOperationPending = false;
-
-        warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
-          'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+        this.#clearRejectedSheet();
       }
 
     } else if (this.sheetName !== null) {
@@ -2338,6 +2602,14 @@ export class Formulas extends BasePlugin {
 
     if (visualRow === null || visualColumn === null) {
       return;
+    }
+
+    // A read made while a settings update is still in flight - by a plugin's `onUpdateSettings`
+    // or a default-order `afterUpdateSettings` listener - gets the sheet the update produced,
+    // not the one it started from. Reached after the `#internalOperationPending` check above, so
+    // the scan's own re-entrant reads never drain it again.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
     }
 
     const cellType = this.getCellType(visualRow, visualColumn);
@@ -2456,6 +2728,13 @@ export class Formulas extends BasePlugin {
 
     if (visualRow === null || visualColumn === null) {
       return;
+    }
+
+    // Same drain as in `#onModifyData`: the projection has to describe the sheet the in-flight
+    // settings update produced. Reached after the `#sourceDataProjectionSuspended` check above,
+    // so the scan's own source read never drains it again.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
     }
 
     const cellType = this.getCellType(visualRow, visualColumn);
