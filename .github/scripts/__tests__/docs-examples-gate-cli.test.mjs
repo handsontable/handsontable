@@ -34,6 +34,9 @@ function fixture() {
   };
 
   run(['init', '-q', '-b', 'develop']);
+  // Deterministic regardless of the host's global git config -- CRLF fixtures
+  // below need bytes written by writeFileSync to reach `git diff` unchanged.
+  run(['config', 'core.autocrlf', 'false']);
 
   return { root, run, write, commit };
 }
@@ -224,6 +227,86 @@ test('decide: copying a guide while also editing its source in the same push is 
 
   try {
     const result = decide(root, before, after);
+
+    assert.equal(result.needsSync, true);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('decide: a real (git-produced) diff with two blocks -- one hunk in prose, another inside a block -- proceeds', () => {
+  const { root, write, commit } = fixture();
+  const lines = [
+    '# Title', '', 'Intro prose, unchanged.', '', '::: example #ex1', '@[code](@/content/a.js)', ':::',
+    '', 'Middle prose.', '', '::: example #ex2', '@[code](@/content/b.js)', ':::',
+  ];
+
+  write('docs/content/guides/x/y.md', `${lines.join('\n')}\n`);
+  const before = commit('base: two example blocks');
+
+  const edited = lines.map((l, i) => {
+    if (l === 'Middle prose.') return 'Middle prose, edited.'; // outside any block
+    if (i === 11) return '@[code](@/content/b.ts)'; // inside ex2's block
+
+    return l;
+  });
+
+  write('docs/content/guides/x/y.md', `${edited.join('\n')}\n`);
+  const after = commit('edit prose between blocks, and one block\'s reference');
+
+  try {
+    const result = decide(root, before, after);
+
+    assert.equal(result.needsSync, true);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('decide: a real (git-produced) diff with two blocks, edited ONLY in the surrounding prose, does not proceed', () => {
+  const { root, write, commit } = fixture();
+  const lines = [
+    '::: example #ex1', '@[code](@/content/a.js)', ':::', '', 'Middle prose.', '', '::: example #ex2', '@[code](@/content/b.js)', ':::',
+  ];
+
+  write('docs/content/guides/x/y.md', `${lines.join('\n')}\n`);
+  const before = commit('base: two example blocks');
+
+  const edited = lines.map((l) => (l === 'Middle prose.' ? 'Middle prose, edited.' : l));
+
+  write('docs/content/guides/x/y.md', `${edited.join('\n')}\n`);
+  const after = commit('edit only the prose between the blocks');
+
+  try {
+    const result = decide(root, before, after);
+
+    assert.equal(result.needsSync, false);
+  } finally {
+    cleanup(root);
+  }
+});
+
+test('decide: CRLF line endings -- a real (git-produced) diff still classifies a prose edit as not relevant and a block edit as relevant', () => {
+  const { root, write, commit } = fixture();
+  const beforeLines = ['# Title', '', 'Old prose.', '', '::: example #ex', '@[code](@/content/x.js)', ':::'];
+
+  write('docs/content/guides/x/y.md', `${beforeLines.join('\r\n')}\r\n`);
+  const base = commit('base (CRLF)');
+
+  const proseEdited = beforeLines.map((l) => (l === 'Old prose.' ? 'New prose, fixed a typo.' : l));
+
+  write('docs/content/guides/x/y.md', `${proseEdited.join('\r\n')}\r\n`);
+  const afterProse = commit('typo fix (CRLF)');
+
+  assert.equal(decide(root, base, afterProse).needsSync, false);
+
+  const codeEdited = beforeLines.map((l) => (l === '@[code](@/content/x.js)' ? '@[code](@/content/x.ts)' : l));
+
+  write('docs/content/guides/x/y.md', `${codeEdited.join('\r\n')}\r\n`);
+  const afterCode = commit('switch the example to TS (CRLF)');
+
+  try {
+    const result = decide(root, base, afterCode);
 
     assert.equal(result.needsSync, true);
   } finally {

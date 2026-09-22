@@ -237,6 +237,106 @@ test('isExampleRelevant: defensively, a "renamed" status is relevant even if the
   assert.equal(isExampleRelevant({ path: 'docs/other/y.md', status: 'renamed' }), true);
 });
 
+test('isExampleRelevant: a file with two example blocks is relevant when one diff hunk lands in a block and another, separate hunk lands in prose outside any block', () => {
+  const lines = [
+    '# Title', // 1
+    '', // 2
+    'Intro prose, unchanged.', // 3
+    '', // 4
+    '::: example #ex1', // 5
+    '@[code](@/content/a.js)', // 6
+    ':::', // 7
+    '', // 8
+    'Middle prose.', // 9 -- this line changes, OUTSIDE any block
+    '', // 10
+    '::: example #ex2', // 11
+    '@[code](@/content/b.js)', // 12 -- this line changes, INSIDE ex2's block
+    ':::', // 13
+  ];
+  const before = lines.join('\n');
+  const after = lines.map((l, i) => {
+    if (i === 8) return 'Middle prose, edited.';
+    if (i === 11) return '@[code](@/content/b.ts)';
+
+    return l;
+  }).join('\n');
+
+  // Two non-adjacent single-line hunks under --unified=0 -- exactly the
+  // "one hunk in-block, one hunk out-of-block" shape.
+  const diffText = [
+    '--- a/docs/content/guides/x/y.md',
+    '+++ b/docs/content/guides/x/y.md',
+    '@@ -9 +9 @@',
+    '-Middle prose.',
+    '+Middle prose, edited.',
+    '@@ -12 +12 @@',
+    '-@[code](@/content/b.js)',
+    '+@[code](@/content/b.ts)',
+  ].join('\n');
+
+  assert.equal(parseExampleBlockRanges(before).length, 2, 'fixture must actually contain two separate blocks');
+  assert.equal(
+    isExampleRelevant({ path: 'docs/content/guides/x/y.md', status: 'modified', diffText, beforeText: before, afterText: after }),
+    true,
+  );
+});
+
+test('isExampleRelevant: a file with two example blocks is NOT relevant when every changed line lands in the prose between/around them', () => {
+  const lines = [
+    '::: example #ex1', // 1
+    '@[code](@/content/a.js)', // 2
+    ':::', // 3
+    '', // 4
+    'Middle prose.', // 5 -- this line changes, OUTSIDE any block
+    '', // 6
+    '::: example #ex2', // 7
+    '@[code](@/content/b.js)', // 8
+    ':::', // 9
+  ];
+  const before = lines.join('\n');
+  const after = lines.map((l, i) => (i === 4 ? 'Middle prose, edited.' : l)).join('\n');
+  const diffText = [
+    '--- a/docs/content/guides/x/y.md',
+    '+++ b/docs/content/guides/x/y.md',
+    '@@ -5 +5 @@',
+    '-Middle prose.',
+    '+Middle prose, edited.',
+  ].join('\n');
+
+  assert.equal(parseExampleBlockRanges(before).length, 2, 'fixture must actually contain two separate blocks');
+  assert.equal(
+    isExampleRelevant({ path: 'docs/content/guides/x/y.md', status: 'modified', diffText, beforeText: before, afterText: after }),
+    false,
+  );
+});
+
+test('parseExampleBlockRanges finds the same ranges on CRLF-joined text as on LF-joined text', () => {
+  const lines = ['# Title', '', '::: example #ex', '@[code](@/content/x.js)', ':::', '', 'Trailing prose.'];
+
+  assert.deepEqual(parseExampleBlockRanges(lines.join('\r\n')), parseExampleBlockRanges(lines.join('\n')));
+  assert.deepEqual(parseExampleBlockRanges(lines.join('\r\n')), [{ start: 3, end: 5 }]);
+});
+
+test('isExampleRelevant: CRLF line endings -- a prose-only edit outside the block is not relevant, an edit inside is', () => {
+  const beforeLines = ['# Title', '', 'Old prose.', '', '::: example #ex', '@[code](@/content/x.js)', ':::'];
+  const before = beforeLines.join('\r\n');
+  const proseAfter = beforeLines.map((l, i) => (i === 2 ? 'New prose, fixed a typo.' : l)).join('\r\n');
+  const proseDiff = ['--- a/docs/content/guides/x/y.md', '+++ b/docs/content/guides/x/y.md', '@@ -3 +3 @@', '-Old prose.\r', '+New prose, fixed a typo.\r'].join('\n');
+
+  assert.equal(
+    isExampleRelevant({ path: 'docs/content/guides/x/y.md', status: 'modified', diffText: proseDiff, beforeText: before, afterText: proseAfter }),
+    false,
+  );
+
+  const codeAfter = beforeLines.map((l, i) => (i === 5 ? '@[code](@/content/x.ts)' : l)).join('\r\n');
+  const codeDiff = ['--- a/docs/content/guides/x/y.md', '+++ b/docs/content/guides/x/y.md', '@@ -6 +6 @@', '-@[code](@/content/x.js)\r', '+@[code](@/content/x.ts)\r'].join('\n');
+
+  assert.equal(
+    isExampleRelevant({ path: 'docs/content/guides/x/y.md', status: 'modified', diffText: codeDiff, beforeText: before, afterText: codeAfter }),
+    true,
+  );
+});
+
 test('isExampleRelevant: modified .md with a missing before/after blob fails open', () => {
   assert.equal(
     isExampleRelevant({
