@@ -128,6 +128,255 @@ function isNameEnd(code: number): boolean {
 }
 
 /**
+ * Scans forward from `from` while the characters are part of a name, returning the offset of the
+ * first one that ends it.
+ */
+function skipName(xml: string, from: number): number {
+  let i = from;
+
+  while (i < xml.length && !isNameEnd(xml.charCodeAt(i))) {
+    i += 1;
+  }
+
+  return i;
+}
+
+/**
+ * Scans forward from `from` over XML whitespace, returning the offset of the first character that
+ * is not whitespace.
+ */
+function skipWhitespace(xml: string, from: number): number {
+  let i = from;
+
+  while (i < xml.length && isWhitespace(xml.charCodeAt(i))) {
+    i += 1;
+  }
+
+  return i;
+}
+
+/**
+ * Hands the text handler the character data between two offsets, when there is any and the caller
+ * asked for it at all.
+ */
+function emitText(xml: string, from: number, to: number, handlers: XmlHandlers): void {
+  if (handlers.text && to > from) {
+    handlers.text(decodeXmlEntities(xml.slice(from, to)));
+  }
+}
+
+/**
+ * Skips a processing instruction (`<?…?>`, the prolog among them), returning the offset past it.
+ */
+function skipProcessingInstruction(xml: string, lt: number): number {
+  const end = xml.indexOf('?>', lt);
+
+  return end === -1 ? malformed(lt) : end + 2;
+}
+
+/**
+ * Skips a comment, returning the offset past it.
+ */
+function skipComment(xml: string, lt: number): number {
+  const end = xml.indexOf('-->', lt);
+
+  return end === -1 ? malformed(lt) : end + 3;
+}
+
+/**
+ * Delivers a CDATA section as text — uninterpreted, so no entity in it is decoded — and returns
+ * the offset past it.
+ */
+function readCdata(xml: string, lt: number, handlers: XmlHandlers): number {
+  const end = xml.indexOf(']]>', lt);
+
+  if (end === -1) {
+    malformed(lt);
+  }
+
+  if (handlers.text) {
+    handlers.text(xml.slice(lt + 9, end));
+  }
+
+  return end + 3;
+}
+
+/**
+ * Skips a DOCTYPE, returning the offset past it.
+ */
+function skipDoctype(xml: string, lt: number): number {
+  // A DOCTYPE, possibly with an internal subset in brackets. Skip to its closing `>` at depth 0.
+  const { length } = xml;
+  let depth = 0;
+  let j = lt + 2;
+
+  for (; j < length; j++) {
+    const code = xml.charCodeAt(j);
+
+    if (code === 91) {
+      depth += 1;
+    } else if (code === 93) {
+      // Clamped: a stray `]` before any `[` would otherwise drive the depth negative, and the
+      // skip would then run past this DOCTYPE's own `>` into real content.
+      depth = Math.max(0, depth - 1);
+    } else if (code === 62 && depth === 0) {
+      break;
+    }
+  }
+
+  return j >= length ? malformed(lt) : j + 1;
+}
+
+/**
+ * Fires the close handler for an end tag, returning the offset past it.
+ */
+function readEndTag(xml: string, lt: number, handlers: XmlHandlers): number {
+  const end = xml.indexOf('>', lt);
+
+  if (end === -1) {
+    malformed(lt);
+  }
+
+  if (handlers.close) {
+    handlers.close(xml.slice(lt + 2, end).trim());
+  }
+
+  return end + 1;
+}
+
+/**
+ * One attribute of a start tag, with the offset past its closing quote.
+ */
+interface XmlAttribute {
+  name: string;
+  value: string;
+  end: number;
+}
+
+/**
+ * Reads one `name="value"` pair starting at `from`. `lt` is the tag's own `<`, the offset every
+ * failure in the tag is reported at.
+ */
+function readAttribute(xml: string, from: number, lt: number): XmlAttribute {
+  let k = skipName(xml, from);
+  const name = xml.slice(from, k);
+
+  k = skipWhitespace(xml, k);
+
+  // The `=` must be the next thing after the name and any spacing around it. Scanning FORWARD
+  // for an `=` instead would walk straight through this tag's `>` on a bare attribute
+  // (`<a b>`) and steal the next element's attribute value, swallowing that element whole.
+  if (name === '' || xml.charCodeAt(k) !== 61) {
+    malformed(lt);
+  }
+
+  k = skipWhitespace(xml, k + 1);
+
+  const quote = xml.charCodeAt(k);
+
+  if (quote !== 34 && quote !== 39) {
+    malformed(lt);
+  }
+
+  const valueEnd = xml.indexOf(String.fromCharCode(quote), k + 1);
+
+  if (valueEnd === -1) {
+    malformed(lt);
+  }
+
+  return { name, value: decodeXmlEntities(xml.slice(k + 1, valueEnd)), end: valueEnd + 1 };
+}
+
+/**
+ * A start tag, with the offset past its `>`.
+ */
+interface XmlStartTag {
+  name: string;
+  attrs: XmlAttributes;
+  selfClosing: boolean;
+  end: number;
+}
+
+/**
+ * Reads a start tag and every attribute on it. The attribute count is unbounded: an element may
+ * carry as many as the file declares, and the loop ends only on the tag's own `>`.
+ */
+function readStartTag(xml: string, lt: number): XmlStartTag {
+  let j = skipName(xml, lt + 1);
+
+  if (j === lt + 1 || j >= xml.length) {
+    malformed(lt);
+  }
+
+  const name = xml.slice(lt + 1, j);
+  const attrs: XmlAttributes = {};
+  let selfClosing = false;
+
+  for (;;) {
+    j = skipWhitespace(xml, j);
+
+    if (j >= xml.length) {
+      malformed(lt);
+    }
+
+    const code = xml.charCodeAt(j);
+
+    if (code === 47) {
+      selfClosing = true;
+      j += 1;
+      continue;
+    }
+
+    if (code === 62) {
+      j += 1;
+      break;
+    }
+
+    const attribute = readAttribute(xml, j, lt);
+
+    attrs[attribute.name] = attribute.value;
+    j = attribute.end;
+  }
+
+  return { name, attrs, selfClosing, end: j };
+}
+
+/**
+ * Reads the one markup construct that starts at `lt`, firing the handler it belongs to, and
+ * returns the offset past it. The order of the tests is the order the prefixes disambiguate in:
+ * `<!--` and `<![CDATA[` are both `<!`, so the DOCTYPE test has to come last of the three.
+ */
+function readMarkup(xml: string, lt: number, handlers: XmlHandlers): number {
+  if (xml.startsWith('<?', lt)) {
+    return skipProcessingInstruction(xml, lt);
+  }
+
+  if (xml.startsWith('<!--', lt)) {
+    return skipComment(xml, lt);
+  }
+
+  if (xml.startsWith('<![CDATA[', lt)) {
+    return readCdata(xml, lt, handlers);
+  }
+
+  if (xml.startsWith('<!', lt)) {
+    return skipDoctype(xml, lt);
+  }
+
+  if (xml.startsWith('</', lt)) {
+    return readEndTag(xml, lt, handlers);
+  }
+
+  const { name, attrs, selfClosing, end } = readStartTag(xml, lt);
+
+  if (handlers.open) {
+    handlers.open(name, attrs, selfClosing);
+  }
+
+  return end;
+}
+
+/**
  * Tokenizes an XML document forward-only, calling the handlers as it goes. No tree is built; the
  * caller keeps whatever state it needs. Names keep their namespace prefix (`x:ClientData`,
  * `r:id`); a reader of a main OOXML part normalizes an element's prefix with `createLocalName()`,
@@ -142,166 +391,12 @@ export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
     const lt = xml.indexOf('<', i);
 
     if (lt === -1) {
-      if (handlers.text && i < length) {
-        handlers.text(decodeXmlEntities(xml.slice(i)));
-      }
+      emitText(xml, i, length, handlers);
 
       return;
     }
 
-    if (lt > i && handlers.text) {
-      handlers.text(decodeXmlEntities(xml.slice(i, lt)));
-    }
-
-    if (xml.startsWith('<?', lt)) {
-      const end = xml.indexOf('?>', lt);
-
-      i = end === -1 ? malformed(lt) : end + 2;
-      continue;
-    }
-
-    if (xml.startsWith('<!--', lt)) {
-      const end = xml.indexOf('-->', lt);
-
-      i = end === -1 ? malformed(lt) : end + 3;
-      continue;
-    }
-
-    if (xml.startsWith('<![CDATA[', lt)) {
-      const end = xml.indexOf(']]>', lt);
-
-      if (end === -1) {
-        malformed(lt);
-      }
-
-      if (handlers.text) {
-        handlers.text(xml.slice(lt + 9, end));
-      }
-
-      i = end + 3;
-      continue;
-    }
-
-    if (xml.startsWith('<!', lt)) {
-      // A DOCTYPE, possibly with an internal subset in brackets. Skip to its closing `>` at depth 0.
-      let depth = 0;
-      let j = lt + 2;
-
-      for (; j < length; j++) {
-        const code = xml.charCodeAt(j);
-
-        if (code === 91) {
-          depth += 1;
-        } else if (code === 93) {
-          // Clamped: a stray `]` before any `[` would otherwise drive the depth negative, and the
-          // skip would then run past this DOCTYPE's own `>` into real content.
-          depth = Math.max(0, depth - 1);
-        } else if (code === 62 && depth === 0) {
-          break;
-        }
-      }
-
-      i = j >= length ? malformed(lt) : j + 1;
-      continue;
-    }
-
-    if (xml.startsWith('</', lt)) {
-      const end = xml.indexOf('>', lt);
-
-      if (end === -1) {
-        malformed(lt);
-      }
-
-      if (handlers.close) {
-        handlers.close(xml.slice(lt + 2, end).trim());
-      }
-
-      i = end + 1;
-      continue;
-    }
-
-    // Start tag.
-    let j = lt + 1;
-
-    while (j < length && !isNameEnd(xml.charCodeAt(j))) {
-      j += 1;
-    }
-
-    if (j === lt + 1 || j >= length) {
-      malformed(lt);
-    }
-
-    const name = xml.slice(lt + 1, j);
-    const attrs: XmlAttributes = {};
-    let selfClosing = false;
-
-    for (;;) {
-      while (j < length && isWhitespace(xml.charCodeAt(j))) {
-        j += 1;
-      }
-
-      if (j >= length) {
-        malformed(lt);
-      }
-
-      const code = xml.charCodeAt(j);
-
-      if (code === 47) {
-        selfClosing = true;
-        j += 1;
-        continue;
-      }
-
-      if (code === 62) {
-        j += 1;
-        break;
-      }
-
-      let k = j;
-
-      while (k < length && !isNameEnd(xml.charCodeAt(k))) {
-        k += 1;
-      }
-
-      const attrName = xml.slice(j, k);
-
-      while (k < length && isWhitespace(xml.charCodeAt(k))) {
-        k += 1;
-      }
-
-      // The `=` must be the next thing after the name and any spacing around it. Scanning FORWARD
-      // for an `=` instead would walk straight through this tag's `>` on a bare attribute
-      // (`<a b>`) and steal the next element's attribute value, swallowing that element whole.
-      if (attrName === '' || xml.charCodeAt(k) !== 61) {
-        malformed(lt);
-      }
-
-      k += 1;
-
-      while (k < length && isWhitespace(xml.charCodeAt(k))) {
-        k += 1;
-      }
-
-      const quote = xml.charCodeAt(k);
-
-      if (quote !== 34 && quote !== 39) {
-        malformed(lt);
-      }
-
-      const valueEnd = xml.indexOf(String.fromCharCode(quote), k + 1);
-
-      if (valueEnd === -1) {
-        malformed(lt);
-      }
-
-      attrs[attrName] = decodeXmlEntities(xml.slice(k + 1, valueEnd));
-      j = valueEnd + 1;
-    }
-
-    if (handlers.open) {
-      handlers.open(name, attrs, selfClosing);
-    }
-
-    i = j;
+    emitText(xml, i, lt, handlers);
+    i = readMarkup(xml, lt, handlers);
   }
 }
