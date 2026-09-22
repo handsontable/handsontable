@@ -308,6 +308,196 @@ describe('NestedRows', () => {
       expect(getCellMeta(0, 0).className).toBe('replaced');
     });
 
+    it('should undo and redo a detached nested subtree as one action', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{
+            col1: 'Child',
+            __children: [{ col1: 'Grandchild' }],
+          }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual([
+        { col1: 'Parent', __children: [] },
+        { col1: 'After' },
+        {
+          col1: 'Child',
+          __children: [{ col1: 'Grandchild' }],
+        },
+      ]);
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(undoRedo.doneActions.length).toBe(0);
+      expect(undoRedo.undoneActions.length).toBe(1);
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.undoneActions.length).toBe(0);
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual([
+        { col1: 'Parent', __children: [] },
+        { col1: 'After' },
+        {
+          col1: 'Child',
+          __children: [{ col1: 'Grandchild' }],
+        },
+      ]);
+    });
+
+    it('should restore a last child to its original nested parent', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{
+            col1: 'Child',
+            __children: [{
+              col1: 'Grandchild',
+              __children: [{ col1: 'Great grandchild' }],
+            }],
+          }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(2));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual([
+        {
+          col1: 'Parent',
+          __children: [
+            { col1: 'Child', __children: [] },
+            {
+              col1: 'Grandchild',
+              __children: [{ col1: 'Great grandchild' }],
+            },
+          ],
+        },
+        { col1: 'After' },
+      ]);
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual([
+        {
+          col1: 'Parent',
+          __children: [
+            { col1: 'Child', __children: [] },
+            {
+              col1: 'Grandchild',
+              __children: [{ col1: 'Great grandchild' }],
+            },
+          ],
+        },
+        { col1: 'After' },
+      ]);
+    });
+
+    it('should undo a detached subtree with collapsed descendants', async() => {
+      const originalData = [
+        {
+          col1: 'Collapsed parent',
+          __children: [{ col1: 'Hidden child' }],
+        },
+        {
+          col1: 'Outer parent',
+          __children: [{
+            col1: 'Parent',
+            __children: [{
+              col1: 'Child',
+              __children: [{ col1: 'Grandchild' }],
+            }],
+          }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.collapsingUI.collapseChildren(0);
+      nestedRows.collapsingUI.collapseChildren(4);
+      await waitUntil(() => countRows() === 5);
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(3));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+    });
+
+    it('should undo a detached child after external trimming shifts row indexes', async() => {
+      const originalData = [
+        { col1: 'Trimmed' },
+        {
+          col1: 'Parent',
+          __children: [{ col1: 'Child' }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        nestedRows: true,
+        trimRows: [0],
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(2));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
+    });
+
     it('should not throw an error when removing a parent row', async() => {
       const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
 
@@ -328,7 +518,7 @@ describe('NestedRows', () => {
 
       getPlugin('undoRedo').undo();
 
-      await waitForNextAnimationFrames(2);
+      await waitUntil(() => getPlugin('undoRedo').undoneActions.length === 1);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(countRows()).toBe(2);

@@ -449,6 +449,201 @@ describe('Formulas', () => {
       ]);
     });
 
+    it('should keep HyperFormula in step when undoing and redoing a detached subtree', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{
+              col1: '=A1 & "-child"',
+              __children: [{
+                col1: 'Grandchild',
+                __children: [{ col1: 'Great grandchild' }],
+              }],
+            }],
+          },
+          { col1: 'After' },
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].formulasUndoRedoSteps).toBe(5);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('After');
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+      expect(getDataAtCell(3, 0)).toBe('Grandchild');
+      expect(getDataAtCell(4, 0)).toBe('Great grandchild');
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual([
+        {
+          col1: 'Parent',
+          __children: [{
+            col1: '=A1 & "-child"',
+            __children: [{
+              col1: 'Grandchild',
+              __children: [{ col1: 'Great grandchild' }],
+            }],
+          }],
+        },
+        { col1: 'After' },
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('Parent-child');
+      expect(getDataAtCell(2, 0)).toBe('Grandchild');
+      expect(getDataAtCell(3, 0)).toBe('Great grandchild');
+      expect(getDataAtCell(4, 0)).toBe('After');
+      expect(getPlugin('formulas').engine.getSheetSerialized(getPlugin('formulas').sheetId)).toEqual([
+        ['Parent'],
+        ['=A1 & "-child"'],
+        ['Grandchild'],
+        ['Great grandchild'],
+        ['After'],
+      ]);
+
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual([
+        { col1: 'Parent', __children: [] },
+        { col1: 'After' },
+        {
+          col1: '=A1 & "-child"',
+          __children: [{
+            col1: 'Grandchild',
+            __children: [{ col1: 'Great grandchild' }],
+          }],
+        },
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('After');
+      expect(getDataAtCell(2, 0)).toBe('Parent-child');
+      expect(getDataAtCell(3, 0)).toBe('Grandchild');
+      expect(getDataAtCell(4, 0)).toBe('Great grandchild');
+      expect(getPlugin('formulas').engine.getSheetSerialized(getPlugin('formulas').sheetId)).toEqual([
+        ['Parent'],
+        ['After'],
+        ['=A1 & "-child"'],
+        ['Grandchild'],
+        ['Great grandchild'],
+      ]);
+    });
+
+    it('should keep HyperFormula in step when undoing a detached child is vetoed', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{ col1: '=A1 & "-child"' }],
+        },
+        { col1: 'After' },
+      ];
+      let vetoRemoval = false;
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        beforeRemoveRow: () => {
+          return vetoRemoval ? false : undefined;
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+      const formulasPlugin = getPlugin('formulas');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      vetoRemoval = true;
+      undoRedo.undo();
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.undoneActions.length).toBe(0);
+      expect(nestedRows.dataManager.getData()).toEqual(detachedData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
+
+      vetoRemoval = false;
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual(originalData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['Parent'],
+        ['=A1 & "-child"'],
+        ['After'],
+      ]);
+    });
+
+    it('should keep HyperFormula in step when redoing a detached child is vetoed', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{ col1: '=A1 & "-child"' }],
+        },
+        { col1: 'After' },
+      ];
+
+      handsontable({
+        data: JSON.parse(JSON.stringify(originalData)),
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+      const formulasPlugin = getPlugin('formulas');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      const dataAfterUndo = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
+      const sheetAfterUndo = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+      let vetoRedo = true;
+
+      hot().addHook('beforeRedo', () => {
+        return vetoRedo ? false : undefined;
+      });
+      undoRedo.redo();
+
+      expect(undoRedo.doneActions.length).toBe(0);
+      expect(undoRedo.undoneActions.length).toBe(1);
+      expect(nestedRows.dataManager.getData()).toEqual(dataAfterUndo);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterUndo);
+
+      vetoRedo = false;
+      undoRedo.redo();
+      await waitUntil(() => undoRedo.doneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual(detachedData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
+    });
+
     it('should not undo HyperFormula when a nested parent undo is vetoed', async() => {
       handsontable({
         data: [{

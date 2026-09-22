@@ -11,8 +11,8 @@ every `updateSettings()` call whatever the payload.
 
 ```
 cellAlignment  columnMove  columnSort  createColumn  createRow  dataChange
-filters  fixedCounts  mergeCells  moveCells  readOnlyToggle  removeColumn
-removeRow  rowMove  unmergeCells
+filters  fixedCounts  mergeCells  moveCells  nestedRowsDetach  readOnlyToggle
+removeColumn  removeRow  rowMove  unmergeCells
 ```
 
 Adding an action means a new file plus a registration in `actions/index.ts`. Do not add a branch to
@@ -67,6 +67,12 @@ step while Handsontable stays put. That is what `canUndo(hot)` and `canRedo(hot)
 Anything a check can see coming belongs in it. A late `{ wasUndone: false }` still puts the action back on
 the done stack and must **not** emit `afterUndo`, but by then `beforeUndo` has already run - so treat the
 late result as the fallback for what cannot be predicted, not as the way to refuse.
+
+`NestedRowsDetachAction` is the exception for an unavoidable late `beforeRemoveRow` veto: Formulas defers
+its multi-step HyperFormula replay until `afterUndo` / `afterRedo`, and releases its index-sync guard from
+`afterRedoStackChange` when a rejected undo skips `afterUndo`. Do not split the detach back into independent
+remove/create actions, or the two histories desynchronize (DEV-138).
+
 Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
 mutate the settings object by reference, and a refused nested undo would otherwise leave the
 frozen-row counts of a state that never came back. Nested cell-meta restore must reopen the origin
