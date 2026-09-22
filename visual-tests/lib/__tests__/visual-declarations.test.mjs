@@ -709,6 +709,26 @@ test('assertDeclarationFitsLeg rejects over-declaration on both legs', () => {
   );
 });
 
+test('a leg violation names the spec it came from', () => {
+  // The caller is a sweep over every spec in the tree, so a message that only restates the rule leaves
+  // the reader grepping for which file broke it — and the rule is the half they can already read in the
+  // source. `normalizeDeclaration()` already prefixes its own errors this way; this is the other half.
+  [
+    [{ crossBrowser: false, where: 'js-only/pagination/paging.spec.ts' }, { browsers: CROSS_BROWSERS }],
+    [{ crossBrowser: true, where: 'cross-browser/selection.spec.ts' }, { themes: JS_VARIANTS }],
+    [
+      { crossBrowser: true, where: 'cross-browser/undo-redo.spec.ts' },
+      { themes: [CLASSIC], wrappers: WRAPPERS, wrappersReason: 'w' },
+    ],
+  ].forEach(([leg, declared]) => {
+    assert.throws(
+      () => assertDeclarationFitsLeg(normalizeDeclaration(declared), leg),
+      new RegExp(`^Error: ${leg.where.replace(/[./]/g, '\\$&')}: `),
+      `the leg violation for ${leg.where} must name the spec before it states the rule`,
+    );
+  });
+});
+
 test('the reader accepts the inline declaration and the one-per-line declaration alike', () => {
   // The three authoring surfaces do not agree on whitespace, and they should not have to: the skill's
   // fenced example writes the declaration inline, `AGENTS.md`, the template and all 111 codemod-written
@@ -893,7 +913,7 @@ test('every spec holds one declaration, and its leg can render it', () => {
 
     assertDeclarationFitsLeg(
       normalizeDeclaration(first.declaration, relativePath),
-      { crossBrowser: relativePath.startsWith('cross-browser/') },
+      { crossBrowser: relativePath.startsWith('cross-browser/'), where: relativePath },
     );
     specsChecked += 1;
   });

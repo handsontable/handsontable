@@ -294,31 +294,37 @@ export function renderedPrefixes(declaration, tierPrefixList, { crossBrowser = f
  * sits in — a cross-browser spec's title is a plain string, not `__filename`. The static sweep in
  * `__tests__/visual-declarations.test.mjs` walks the tree and calls this per file.
  *
+ * Every message names the spec, through the same {@link at} prefix `normalizeDeclaration()` uses. The
+ * caller is a sweep over 111 files, so a message that only restates the rule leaves the reader grepping
+ * the tree for which file broke it — and the rule is the half they can already read here.
+ *
  * @param {VisualDeclaration} declaration A normalized declaration.
  * @param {object} leg Where the spec lives.
  * @param {boolean} leg.crossBrowser Whether the spec sits under `tests/cross-browser/`.
+ * @param {string} [leg.where] The spec path, for the message.
  * @returns {void} Throws when the declaration names a variant the leg does not render.
  */
-export function assertDeclarationFitsLeg(declaration, { crossBrowser }) {
+export function assertDeclarationFitsLeg(declaration, { crossBrowser, where }) {
   if (crossBrowser) {
     if (declaration.themes.length !== 1 || !declaration.themes.includes(CLASSIC)) {
-      throw new Error(`A spec under tests/cross-browser/ renders bare, so its "themes" must be ['${CLASSIC}']; `
-        + `got [${declaration.themes.join(', ')}]. The leg sets no HOT_THEME, so a theme named here renders `
-        + 'nothing and only inflates the derived golden count.');
+      throw new Error(`${at(where)}a spec under tests/cross-browser/ renders bare, so its "themes" must be `
+        + `['${CLASSIC}']; got [${declaration.themes.join(', ')}]. The leg sets no HOT_THEME, so a theme `
+        + 'named here renders nothing and only inflates the derived golden count.');
     }
 
     if (declaration.wrappers.length > 0) {
-      throw new Error('A spec under tests/cross-browser/ renders no wrapper, so its "wrappers" must be empty; '
-        + `got [${declaration.wrappers.join(', ')}]. The leg sets no HOT_FRAMEWORK, so a wrapper named here `
-        + 'renders nothing and only inflates the derived golden count.');
+      throw new Error(`${at(where)}a spec under tests/cross-browser/ renders no wrapper, so its "wrappers" `
+        + `must be empty; got [${declaration.wrappers.join(', ')}]. The leg sets no HOT_FRAMEWORK, so a `
+        + 'wrapper named here renders nothing and only inflates the derived golden count.');
     }
 
     return;
   }
 
   if (declaration.browsers.length !== 1 || !declaration.browsers.includes('chromium')) {
-    throw new Error('A spec outside tests/cross-browser/ runs on the main Playwright config, which has one '
-      + `chromium project, so its "browsers" must be ['chromium']; got [${declaration.browsers.join(', ')}]. `
-      + 'A browser named here renders nothing and only inflates the derived golden count.');
+    throw new Error(`${at(where)}a spec outside tests/cross-browser/ runs on the main Playwright config, `
+      + 'which has one chromium project, so its "browsers" must be [\'chromium\']; got '
+      + `[${declaration.browsers.join(', ')}]. A browser named here renders nothing and only inflates the `
+      + 'derived golden count.');
   }
 }
