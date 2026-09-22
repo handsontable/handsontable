@@ -84,6 +84,30 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
 
+## A shrinking `loadData` leaves the model addressing cells that are gone
+
+The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`)
+replaces the dataset while `savedBorders` keeps the previous grid's coordinates. Nothing renders
+them - `#syncViewportSelections` only materializes borders inside the rendered range - but
+`#resetBorderModel` walks the whole model into `#writeBordersMeta(row, col, null)`, and
+`removeCellMeta` asserts an in-range index. On 8x8 data bordered at `{ row: 7, col: 7 }` followed by
+a 3x3 `loadData`, `updateSettings({ customBorders: [] })`, `updateSettings({ customBorders: [in-range
+entry] })` and `clearBorders()` all threw `Assertion failed: Expecting an unsigned number` - a
+pre-existing defect, reproducible on released 18.1.1.
+
+`#resetBorderModel` therefore **drops an entry whose `row >= countRows()` or `col >= countCols()`
+without a meta write**. There is no cell to clear, and no veto to honor either: a
+`beforeRemoveCellMeta` listener cannot be asked about a cell that does not exist. An in-range entry
+keeps the vetoed-removal behavior unchanged.
+
+**The `afterLoadData` hook was deliberately NOT added.** The core clears cell meta on `loadData` and
+keeps it on `updateData`, so a hook that cleared the model would remove borders the user still sees
+after a same-size `loadData` - a visible behavior change with no ticket behind it. A hook that only
+pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that walked
+the model into `removeCellMeta`, and the guard there already covers every caller (`clearBorders()`,
+`changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`,
+including a same-size control proving an in-range entry still has its meta removed.
+
 ## `setCellMeta('borders', …)` written directly is supported
 
 The value may be a complete plugin-shaped object (UndoRedo restoring an undone removal) **or** a partial

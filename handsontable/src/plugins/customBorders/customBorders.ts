@@ -959,8 +959,21 @@ export class CustomBorders extends BasePlugin {
     // so they keep their model entry too - clearing the model around them would leave `getBorders()`
     // and `getCellMeta().borders` disagreeing.
     const kept: BorderObject[] = [];
+    const rowCount = this.hot.countRows();
+    const colCount = this.hot.countCols();
 
     arrayEach(this.savedBorders, (border) => {
+      // A `loadData` (or `updateSettings({ data })`) with a smaller dataset leaves the model
+      // holding the previous grid's coordinates, while the core has already dropped the cell meta
+      // behind them. `removeCellMeta` asserts an in-range index, so clearing such an entry threw
+      // "Expecting an unsigned number" and took `clearBorders()` and every `customBorders`
+      // reconfiguration down with it. There is no cell left to clear, so the entry is dropped from
+      // the model without a meta write - and without a veto, since no listener can be asked about
+      // a cell that does not exist.
+      if (border.row >= rowCount || border.col >= colCount) {
+        return;
+      }
+
       if (!this.#writeBordersMeta(border.row, border.col, null)) {
         kept.push(border);
       }
