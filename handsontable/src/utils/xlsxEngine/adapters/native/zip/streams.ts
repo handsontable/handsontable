@@ -1,4 +1,5 @@
 import { throwWithCause } from '../../../../../helpers/errors';
+import { throwLimitExceeded } from '../../../limits';
 
 /**
  * Copies bytes into a fresh view over its own `ArrayBuffer`. The stream writer accepts only
@@ -49,7 +50,7 @@ async function pump(
       if (total > maxBytes) {
         // eslint-disable-next-line no-await-in-loop
         await reader.cancel();
-        throwWithCause(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
+        throwLimitExceeded(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
       }
 
       chunks.push(value);

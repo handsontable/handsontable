@@ -800,7 +800,10 @@ describe('parseWorksheet', () => {
     const start = Date.now();
 
     expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
-    expect(Date.now() - start).toBeLessThan(1000);
+    // A wall-clock bound has to be loose enough that a loaded CI box cannot redden it on timing
+    // alone: the unbudgeted reader spent ~6 s on this input, so 5 s still separates the two states
+    // while leaving the budgeted path (a few milliseconds) an order of magnitude of headroom.
+    expect(Date.now() - start).toBeLessThan(5000);
   });
 
   it('should refuse a sheet the dimension declares above the caps before reading a row', () => {

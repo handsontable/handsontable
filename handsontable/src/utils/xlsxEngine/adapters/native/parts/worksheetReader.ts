@@ -2,7 +2,9 @@ import { throwWithCause } from '../../../../../helpers/errors';
 import type { DroppedFeatures } from '../../../capabilities';
 import { colLetterToIndex, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
 import { translateSharedFormula } from '../../../formulaRefs';
-import { MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../../../limits';
+import {
+  MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwLimitExceeded,
+} from '../../../limits';
 import {
   createCellSnapshot, createSheetSnapshot, type CellSnapshot, type CellValue, type SheetSnapshot,
 } from '../../../model';
@@ -70,25 +72,25 @@ export function assertSheetRectangle(
   layoutColCount: number
 ): void {
   if (rowCount > MAX_SHEET_ROWS) {
-    throwWithCause(`The sheet "${name}" declares ${rowCount} rows, `
+    throwLimitExceeded(`The sheet "${name}" declares ${rowCount} rows, `
       + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
   }
 
   if (layoutColCount > MAX_SHEET_COLUMNS) {
-    throwWithCause(`The sheet "${name}" declares ${layoutColCount} columns, `
+    throwLimitExceeded(`The sheet "${name}" declares ${layoutColCount} columns, `
       + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
   }
 
   if (rowCount * cellColCount > MAX_SHEET_CELLS) {
-    throwWithCause(`The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, `
+    throwLimitExceeded(`The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, `
       + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
   }
 }
 
 /**
  * The rectangle check plus the running workbook budget. A zero-cell row still costs one array
- * (`max(cellColCount, 1)`), and the column layout is added on top so many empty sheets cannot
- * slip under the cap together.
+ * (`max(cellColCount, 1)`), the column layout is added on top, and the whole sheet costs at least
+ * one unit, so many empty sheets cannot slip under the cap together.
  */
 export function assertSheetFits(
   name: string,
@@ -99,16 +101,25 @@ export function assertSheetFits(
 ): void {
   assertSheetRectangle(name, rowCount, cellColCount, layoutColCount);
 
-  budget.declaredCells += (rowCount * Math.max(cellColCount, 1)) + layoutColCount;
+  // A sheet always costs at least one unit, whatever it declares: a sheet with no `<row>` and no
+  // `<col>` charged `0 * 1 + 0 = 0`, so a workbook of empty sheets never advanced the budget at all
+  // while each of those sheets still cost a full inflate and tokenize of its part.
+  budget.declaredCells += Math.max((rowCount * Math.max(cellColCount, 1)) + layoutColCount, 1);
 
   if (budget.declaredCells > MAX_WORKBOOK_CELLS) {
-    throwWithCause(`The workbook declares ${budget.declaredCells} cells across its sheets, `
+    throwLimitExceeded(`The workbook declares ${budget.declaredCells} cells across its sheets, `
       + `above the ${MAX_WORKBOOK_CELLS}-cell limit this reader accepts.`);
   }
 }
 
 /**
  * Splits an A1 address into 0-based row and column.
+ *
+ * A1 notation is 1-based on both axes, so `A0` is not an address — but it matches the shape of one,
+ * and subtracting 1 from it used to hand the reader a row of `-1`, which reached `rows[-1]` and
+ * surfaced as an internal `TypeError` rather than as a refusal. A reference that does not match at
+ * all (`1A`, an empty `r`) is still ignored, as before: only a well-shaped one that names row or
+ * column zero is refused.
  */
 function decodeAddress(ref: string): { row: number; col: number } | null {
   const match = /^\$?([A-Z]{1,3})\$?(\d{1,7})$/i.exec(ref);
@@ -117,7 +128,14 @@ function decodeAddress(ref: string): { row: number; col: number } | null {
     return null;
   }
 
-  return { row: Number(match[2]) - 1, col: colLetterToIndex(match[1].toUpperCase()) - 1 };
+  const row = Number(match[2]);
+  const col = colLetterToIndex(match[1].toUpperCase());
+
+  if (row < 1 || col < 1) {
+    throwWithCause(`The cell reference "${ref}" is not a valid A1 address; rows and columns start at 1.`);
+  }
+
+  return { row: row - 1, col: col - 1 };
 }
 
 /**
@@ -209,7 +227,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     spanCells += cells;
 
     if (spanCells > MAX_SHEET_CELLS) {
-      throwWithCause(`The sheet "${ctx.name}" declares column and validation ranges covering more than `
+      throwLimitExceeded(`The sheet "${ctx.name}" declares column and validation ranges covering more than `
         + `${MAX_SHEET_CELLS} cells, above the limit this reader accepts.`);
     }
   };
@@ -218,8 +236,14 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
    * Makes sure `rows` reaches `rowIndex`, refusing a row past the cap.
    */
   const ensureRow = (rowIndex: number): Array<CellSnapshot | null> => {
+    // Belt and braces for the lower bound: `decodeAddress` refuses row zero, and a negative index
+    // would otherwise skip the `while` below and return `rows[-1]`, which is `undefined`.
+    if (rowIndex < 0) {
+      throwWithCause(`The sheet "${ctx.name}" declares a row before the first one.`);
+    }
+
     if (rowIndex + 1 > MAX_SHEET_ROWS) {
-      throwWithCause(`The sheet "${ctx.name}" declares ${rowIndex + 1} rows, `
+      throwLimitExceeded(`The sheet "${ctx.name}" declares ${rowIndex + 1} rows, `
         + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
     }
 
@@ -235,7 +259,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
    */
   const cellAt = (rowIndex: number, colIndex: number): CellSnapshot => {
     if (colIndex + 1 > MAX_SHEET_COLUMNS) {
-      throwWithCause(`The sheet "${ctx.name}" declares ${colIndex + 1} columns, `
+      throwLimitExceeded(`The sheet "${ctx.name}" declares ${colIndex + 1} columns, `
         + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
     }
 
@@ -248,7 +272,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     width = Math.max(width, colIndex + 1);
 
     if (rows.length * width > MAX_SHEET_CELLS) {
-      throwWithCause(`The sheet "${ctx.name}" declares ${rows.length} × ${width} cells, `
+      throwLimitExceeded(`The sheet "${ctx.name}" declares ${rows.length} × ${width} cells, `
         + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
     }
 
@@ -418,7 +442,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           }
 
           if (max > MAX_SHEET_COLUMNS) {
-            throwWithCause(`The sheet "${ctx.name}" declares ${max} columns, `
+            throwLimitExceeded(`The sheet "${ctx.name}" declares ${max} columns, `
               + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
           }
 

@@ -112,6 +112,53 @@ or an engine object.
   linear in repeats. `chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a
   hostile file is refused after a few multiplications rather than five million array writes. Never
   move that charge after the walk.
+- **The SHEET LIST and the INFLATED BYTES are budgeted too, and a part is inflated once per read.**
+  The span budget above bounds one sheet; until DEV-3011 nothing bounded how many sheets a workbook
+  could ask for, and a `<sheet>` element charged **nothing**. Each one costs a full inflate plus a
+  tokenize of the part it names, they are a few dozen bytes each, they compress about 20:1, and N of
+  them may all name the SAME part — so a 104 kB archive declaring 20 000 sheets inflated 39 GB over
+  32 s and **resolved**, with `budget.declaredCells` still at 0 (a sheet with no `<row>` and no
+  `<col>` charged `0 * 1 + 0`). Four guards now hold that down, and each one alone is insufficient.
+  `MAX_WORKBOOK_SHEETS` (2048, `limits.ts`) is refused inside `parseWorkbook`'s own tokenize
+  (`parts/package.ts`), so the count is rejected while `xl/workbook.xml` is still being read and
+  **before any sheet part is inflated** — never in `read.ts`, which already holds the list.
+  `MAX_INFLATED_TOTAL_BYTES` (256 MB, twice `MAX_INPUT_BYTES`) is charged in `zip/reader.ts` for
+  every entry the read inflates, on the size the central directory DECLARES (clamped to
+  `MAX_INFLATED_ENTRY_BYTES`, which is also the ceiling the inflate is given), so a part past the
+  budget is refused before a byte of it is materialized — that is what closes the 408 kB archive
+  holding one 400 MB part, which was inside every per-entry cap and cost 1.9 GB of RSS. The
+  per-entry cap stays 512 MB and is checked FIRST, so both caps stay reachable and each keeps its
+  own message. `ZipArchive.text()` MEMOIZES per entry name for the archive's lifetime and
+  `readWorkbook` calls `release()` in a `finally`, so N sheets pointing at one part cost one inflate
+  and an honest multi-sheet file stops re-reading `styles.xml`; the memo cannot become the bomb
+  because every cached string's bytes were charged against the same total. And `assertSheetFits`
+  charges a floor of one unit per sheet, so `declaredCells` advances on an empty sheet.
+  `MAX_INFLATED_ENTRY_BYTES` alone was never a bound on a workbook: `openPackage` holds
+  `styles.xml`, `sharedStrings.xml` and a sheet as simultaneous strings.
+- **A limit refusal is recognized by a FLAG on the error, not by its wording.** `read.ts` re-throws
+  a cap's own message instead of wrapping it in `The workbook could not be parsed by the native
+  engine: …`, and it used to decide that with `/limit this reader accepts/` against the message.
+  Every cap in the native adapter now throws through `throwLimitExceeded()` (`limits.ts`), which
+  tags `error.cause.limit`, and `isLimitError()` is what `read.ts` asks — on the `openPackage` path
+  as well as the per-sheet one, because the sheet count and the inflate total are both refused
+  before the first sheet. A new cap that reaches for `throwWithCause` directly still refuses the
+  file, but its message is wrapped and it stops reading as this reader's own contract.
+- **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
+  matches the A1 shape, and `Number('0') - 1` handed `ensureRow(-1)` through the upper-bound check
+  to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading
+  'length')`, an internal `TypeError` in place of a refusal. A reference that does not match at all
+  (`1A`, an empty `r`) is still ignored silently; only a well-shaped `A0` is refused, on the cell
+  path AND on the comment-anchor path, where the worksheet is well formed and a note in
+  `comments{N}.xml` took the whole import down. `ensureRow` keeps a `rowIndex < 0` guard as belt and
+  braces.
+- **`<dimension>` pre-allocation is DELIBERATELY still eager.** `<dimension ref="A1:A1048576"/>` is
+  32 bytes that materialize a million row arrays (238 MB of RSS, measured), and it is left that way:
+  `rows` IS the snapshot's own array (`const { rows } = sheet;`), the declared tail rows are part of
+  what the reader returns (ExcelJS reports the same `rowCount` from the same declaration), and
+  `sheet.rowHeights` is padded to `rows.length` regardless — so allocating them lazily would defer
+  the cost, not remove it, while `rows.length` is the sheet's row count at six more sites (the
+  `cellAt` cell-product cap, the merge clamp, the validation clamp, `assertSheetFits`, the padding
+  pass and `rowHeights`). `MAX_WORKBOOK_CELLS` is what bounds the total across sheets.
 - **The native reader reports `cellStyles` on fewer workbooks than ExcelJS, on purpose.** ExcelJS
   resolves a cell's default font and fill into a style object whenever the cell carries any format
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no

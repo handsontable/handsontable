@@ -1,14 +1,17 @@
 import { throwWithCause } from '../../../../../helpers/errors';
-import { MAX_INFLATED_ENTRY_BYTES } from '../../../limits';
+import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
 import { inflateRaw } from './streams';
 
 /**
- * A read-only view of an opened archive. Entries are inflated on demand, one at a time.
+ * A read-only view of an opened archive. Entries are inflated on demand, one at a time, and each
+ * entry is inflated at most once: `text()` memoizes its result for the archive's lifetime, so N
+ * sheets pointing at one part cost one inflate rather than N. `release()` drops that cache.
  */
 export interface ZipArchive {
   names(): string[];
   has(name: string): boolean;
   text(name: string): Promise<string>;
+  release(): void;
 }
 
 /**
@@ -108,6 +111,25 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
   const entries = readCentralDirectory(bytes, view);
   const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
+  const texts = new Map<string, string>();
+  let inflatedTotal = 0;
+
+  /**
+   * Charges an entry's inflated size against the archive-wide budget. The per-entry cap bounds one
+   * part and the input cap bounds the compressed file; neither bounds the sum, so a handful of
+   * parts each just under the per-entry cap, or one part amplified a thousandfold out of a few
+   * hundred kilobytes, stayed inside every declared limit. The charge runs on the size the central
+   * directory declares (clamped to the per-entry cap, which is also the ceiling the inflate itself
+   * is given), so an entry past the budget is refused before a byte of it is materialized.
+   */
+  function chargeInflated(name: string, byteLength: number): void {
+    inflatedTotal += byteLength;
+
+    if (inflatedTotal > MAX_INFLATED_TOTAL_BYTES) {
+      throwLimitExceeded(`The archive entry "${name}" brings the inflated total to ${inflatedTotal} bytes, `
+        + `above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit this reader accepts.`);
+    }
+  }
 
   /**
    * Slices and inflates one entry's bytes.
@@ -120,9 +142,13 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
     }
 
     if (entry.uncompressedSize > MAX_INFLATED_ENTRY_BYTES) {
-      throwWithCause(`The ZIP entry "${name}" declares ${entry.uncompressedSize} bytes, `
+      throwLimitExceeded(`The ZIP entry "${name}" declares ${entry.uncompressedSize} bytes, `
         + `above the ${MAX_INFLATED_ENTRY_BYTES}-byte limit this reader accepts.`);
     }
+
+    const inflatedSize = Math.min(entry.uncompressedSize, MAX_INFLATED_ENTRY_BYTES);
+
+    chargeInflated(name, inflatedSize);
 
     const { localOffset } = entry;
 
@@ -144,14 +170,32 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
     // The central directory is the authoritative source for this entry (the module comment above),
     // so the inflate cap is the SMALLER of the entry's own declared size and the reader's ceiling —
     // never the ceiling alone, or an entry declaring a small size could still inflate past it.
-    return entry.method === 8
-      ? inflateRaw(data, Math.min(entry.uncompressedSize, MAX_INFLATED_ENTRY_BYTES))
-      : data;
+    return entry.method === 8 ? inflateRaw(data, inflatedSize) : data;
+  }
+
+  /**
+   * Decodes one entry as text, inflating it only the first time it is asked for. The cache is
+   * bounded by the same total-bytes budget that bounds the inflating, so it cannot itself grow past
+   * what the archive was allowed to cost.
+   */
+  async function text(name: string): Promise<string> {
+    const cached = texts.get(name);
+
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const decoded = decoder.decode(await entryBytes(name));
+
+    texts.set(name, decoded);
+
+    return decoded;
   }
 
   return {
     names: () => Array.from(entries.keys()),
     has: name => entries.has(name),
-    text: async name => decoder.decode(await entryBytes(name)),
+    text,
+    release: () => texts.clear(),
   };
 }

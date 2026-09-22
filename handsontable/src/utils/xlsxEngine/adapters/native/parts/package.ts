@@ -1,3 +1,4 @@
+import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
 import type { SheetSnapshot } from '../../../model';
 import { createLocalName, tokenizeXml } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
@@ -281,6 +282,14 @@ export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date
 
       if (name === 'sheet') {
         const state = attrs.state === 'hidden' || attrs.state === 'veryHidden' ? attrs.state : 'visible';
+
+        // The count is refused here, while the workbook part is still being tokenized and before a
+        // single sheet part has been inflated: each entry costs a full inflate plus a tokenize of
+        // the part it names, and they may all name the same part, so nothing else bounds the total.
+        if (sheets.length >= MAX_WORKBOOK_SHEETS) {
+          throwLimitExceeded(`The workbook declares more than ${MAX_WORKBOOK_SHEETS} sheets, `
+            + 'above the limit this reader accepts.');
+        }
 
         sheets.push({ name: attrs.name ?? '', relId: attrs['r:id'] ?? '', state });
       } else if (name === 'workbookPr') {
