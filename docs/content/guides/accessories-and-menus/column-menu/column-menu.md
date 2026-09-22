@@ -79,7 +79,24 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ## Plugin configuration
 
-To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md#page-specific).
+To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the full list of entry options, see [Context menu with selected options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-selected-options).
+
+Setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the following items, in this order:
+
+| Key                                          | Action                                          |
+| --------------------------------------------- | ------------------------------------------------ |
+| [`col_left`](@/api/dropdownMenu.md)           | Insert a column to the left                      |
+| [`col_right`](@/api/dropdownMenu.md)          | Insert a column to the right                     |
+| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
+| [`remove_col`](@/api/dropdownMenu.md)         | Remove the selected column                       |
+| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
+| [`clear_column`](@/api/dropdownMenu.md)       | Delete the data of the selected column            |
+| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
+| [`make_read_only`](@/api/dropdownMenu.md)     | Make the selected column read-only                |
+| [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
+| [`alignment`](@/api/dropdownMenu.md)          | Align the text in the column                     |
+
+This is also the value of [`DropdownMenu.DEFAULT_ITEMS`](@/api/dropdownMenu.md#default_items).
 
 Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
 
