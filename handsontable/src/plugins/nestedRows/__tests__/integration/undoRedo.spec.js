@@ -433,12 +433,15 @@ describe('NestedRows', () => {
           __children: [{ col1: 'Hidden child' }],
         },
         {
-          col1: 'Outer parent',
+          col1: 'Grandparent',
           __children: [{
-            col1: 'Parent',
+            col1: 'Outer parent',
             __children: [{
-              col1: 'Child',
-              __children: [{ col1: 'Grandchild' }],
+              col1: 'Parent',
+              __children: [{
+                col1: 'Child',
+                __children: [{ col1: 'Grandchild' }],
+              }],
             }],
           }],
         },
@@ -454,10 +457,12 @@ describe('NestedRows', () => {
       const undoRedo = getPlugin('undoRedo');
 
       nestedRows.collapsingUI.collapseChildren(0);
-      nestedRows.collapsingUI.collapseChildren(4);
-      await waitUntil(() => countRows() === 5);
+      nestedRows.collapsingUI.collapseChildren(5);
+      await waitUntil(() => countRows() === 6);
 
-      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(3));
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(4));
+      nestedRows.collapsingUI.collapseChildren(2);
+      await waitUntil(() => countRows() === 3);
 
       expect(undoRedo.doneActions.length).toBe(1);
       expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');
@@ -505,7 +510,7 @@ describe('NestedRows', () => {
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
-    it('should undo a detached child after external trimming shifts row indexes', async() => {
+    it('should undo a detached child after external trimming hides it', async() => {
       const originalData = [
         { col1: 'Trimmed' },
         {
@@ -525,6 +530,8 @@ describe('NestedRows', () => {
       const undoRedo = getPlugin('undoRedo');
 
       nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(2));
+      getPlugin('trimRows').trimRows([3]);
+      await waitUntil(() => countRows() === 2);
 
       expect(undoRedo.doneActions.length).toBe(1);
       expect(undoRedo.doneActions[0].actionType).toBe('nested_rows_detach');

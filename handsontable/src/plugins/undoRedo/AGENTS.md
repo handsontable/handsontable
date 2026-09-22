@@ -103,6 +103,11 @@ defers its multi-step HyperFormula replay until `afterUndo` and releases its ind
 in `afterRedo`. Do not split the detach back into independent remove/create actions, or the two histories
 desynchronize (DEV-138).
 
+A detached root can be trimmed after the move. Its path resolves in physical space, so `canUndo()` must not
+reject a `null` visual index. `removeDetachedRows()` temporarily clears every trimming flag that owns that
+root only to get the visual coordinate `alter('remove_row', ...)` requires, restoring the flags if a remove
+hook vetoes it. Never pass the physical row to `alter()`.
+
 Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
 mutate the settings object by reference, and a refused nested undo would otherwise leave the
 frozen-row counts of a state that never came back. Nested cell-meta restore must reopen the origin

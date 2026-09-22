@@ -1,5 +1,4 @@
 import type { HotInstance } from '../../../core/types';
-import { clipRemovalRange } from '../../../utils/removalRange';
 import type { SettleCallback } from '../utils';
 import { BaseAction } from './_base';
 import { RemoveRowAction } from './removeRow';
@@ -89,11 +88,16 @@ function getFormulasUndoRedoSteps(hot: HotInstance, amount: number): number {
  * NestedRows expands removal of the root into all of its descendants. Passing the physical subtree length to
  * `alter()` would instead select unrelated visible rows when some descendants are trimmed or collapsed.
  *
+ * A detached root can itself be trimmed by NestedRows or another trimming map. Clear its flags long enough to resolve
+ * its visual coordinate, and restore them if a remove hook vetoes the removal.
+ *
  * @param {Core} hot The Handsontable instance.
- * @param {number} visualRow Visual row of the detached subtree.
+ * @param {number} physicalRow Physical row of the detached subtree.
  * @returns {boolean} `true` when the removal fired its completion hook.
  */
-function removeDetachedRows(hot: HotInstance, visualRow: number): boolean {
+function removeDetachedRows(hot: HotInstance, physicalRow: number): boolean {
+  const trimmedMaps = Array.from(hot.rowIndexMapper.trimmingMapsCollection.collection.values())
+    .filter(map => map.getValueAtIndex(physicalRow) === true);
   let wasRemoved = false;
   const onAfterRemoveRow = () => {
     wasRemoved = true;
@@ -102,10 +106,27 @@ function removeDetachedRows(hot: HotInstance, visualRow: number): boolean {
   hot.addHookOnce('afterRemoveRow', onAfterRemoveRow);
 
   try {
+    hot.batchExecution(() => {
+      trimmedMaps.forEach((map) => {
+        map.setValueAtIndex(physicalRow, false);
+      });
+    }, true);
+
+    const visualRow = hot.toVisualRow(physicalRow);
+
+    if (typeof visualRow !== 'number' || !Number.isInteger(visualRow)) {
+      return false;
+    }
+
     hot.alter('remove_row', visualRow, 1, 'UndoRedo.undo');
   } finally {
     if (!wasRemoved) {
       hot.removeHook('afterRemoveRow', onAfterRemoveRow);
+      hot.batchExecution(() => {
+        trimmedMaps.forEach((map) => {
+          map.setValueAtIndex(physicalRow, true);
+        });
+      }, true);
     }
   }
 
@@ -237,13 +258,11 @@ export class NestedRowsDetachAction extends BaseAction {
     }
 
     const detachedPhysicalRow = dataManager.getRowIndexByTreePath(this.detachedRowPath);
-    const detachedVisualRow = detachedPhysicalRow === null ? null : hot.toVisualRow(detachedPhysicalRow);
 
-    if (typeof detachedVisualRow !== 'number' || !Number.isInteger(detachedVisualRow)) {
-      return false;
-    }
-
-    return clipRemovalRange(detachedVisualRow, 1, hot.countRows()) !== null && this.removeAction.canUndo(hot);
+    return typeof detachedPhysicalRow === 'number' &&
+      Number.isInteger(detachedPhysicalRow) &&
+      hot.rowIndexMapper.getIndexesSequence().includes(detachedPhysicalRow) &&
+      this.removeAction.canUndo(hot);
   }
 
   /**
@@ -255,10 +274,9 @@ export class NestedRowsDetachAction extends BaseAction {
   undo(hot: HotInstance, undoneCallback: SettleCallback) {
     const dataManager = getNestedRowsDataManager(hot);
     const detachedPhysicalRow = dataManager?.getRowIndexByTreePath(this.detachedRowPath) ?? null;
-    const detachedVisualRow = detachedPhysicalRow === null ? null : hot.toVisualRow(detachedPhysicalRow);
 
-    if (typeof detachedVisualRow !== 'number' || !Number.isInteger(detachedVisualRow) ||
-        !removeDetachedRows(hot, detachedVisualRow)) {
+    if (typeof detachedPhysicalRow !== 'number' || !Number.isInteger(detachedPhysicalRow) ||
+        !removeDetachedRows(hot, detachedPhysicalRow)) {
       undoneCallback({ wasUndone: false });
 
       return;
