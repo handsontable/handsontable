@@ -51,6 +51,46 @@ export const CAPABILITIES: Record<XlsxEngineKind, XlsxEngineCapabilities> = {
 };
 
 /**
+ * The feature names an adapter may report as dropped, declared once because both adapters raise
+ * them and they are public output: they land on `ImportResult.dropped` and in the console warning,
+ * and the guides' dropped-features tables document them one for one. A typo in one adapter would
+ * otherwise produce a different result key for the same condition, with nothing to catch it.
+ */
+export const DROPPED_FEATURES = {
+  // Raised by both adapters, on either direction.
+  autoFilter: 'autoFilter',
+  compressionLevel: 'compressionLevel',
+  hyperlink: 'hyperlink',
+  images: 'images',
+  mergeOverlap: 'merge:overlap',
+  richText: 'richText',
+  sheetProtectionPassword: 'sheetProtection:password',
+  tables: 'tables',
+  conditionalFormattingInvalid: 'conditionalFormatting:invalid',
+  conditionalFormattingExpression: 'conditionalFormatting:expression',
+  conditionalFormattingTimePeriod: 'conditionalFormatting:timePeriod',
+  // Raised by `importFile`, above whatever the engine already reported.
+  cellStyles: 'cellStyles',
+  cellStylesBorders: 'cellStyles:borders',
+  comments: 'comments',
+  conditionalFormattingUnparsedRef: 'conditionalFormatting:unparsedRef',
+  dataValidationUnresolvedList: 'dataValidation:unresolvedList',
+  formulaOutOfRange: 'formula:outOfRange',
+  layoutDirection: 'layoutDirection',
+} as const;
+
+/**
+ * A name `record()` accepts: one of the declared names, or one of the three families whose tail is
+ * the file's own value — an unsupported validation type, an unsupported rule kind, and a number
+ * format with no `Intl.NumberFormat` equivalent.
+ */
+export type DroppedFeatureName =
+  | typeof DROPPED_FEATURES[keyof typeof DROPPED_FEATURES]
+  | `dataValidation:${string}`
+  | `conditionalFormatting:${string}`
+  | `numFmt:${string}`;
+
+/**
  * Collects the features an adapter was asked for but could not honor, and reports them once.
  */
 export class DroppedFeatures {
@@ -62,7 +102,7 @@ export class DroppedFeatures {
   /**
    * Records one dropped occurrence of a feature.
    */
-  record(feature: string): void {
+  record(feature: DroppedFeatureName): void {
     this.#counts.set(feature, (this.#counts.get(feature) ?? 0) + 1);
   }
 

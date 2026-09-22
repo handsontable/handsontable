@@ -34,6 +34,10 @@ import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
 import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
+import { DEFAULT_COMPRESSION_LEVEL } from '../../../utils/xlsxEngine/compression';
+import {
+  isReservedSheetName, SHEET_NAME_MAX_LENGTH, stripIllegalSheetNameChars,
+} from '../../../utils/xlsxEngine/sheetNames';
 import {
   PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT,
   POINTS_PER_PIXEL as PIXELS_TO_POINTS_RATIO,
@@ -51,25 +55,9 @@ import {
 import type { HotInstance } from '../../../core/types';
 
 /**
- * The longest worksheet name the XLSX format accepts. A longer one is truncated by Excel itself,
- * and by the ExcelJS engine with a console warning.
- */
-const SHEET_NAME_MAX_LENGTH = 31;
-
-/**
- * The characters a worksheet name may not contain: `* ? : / \ [ ]`.
- */
-const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/g;
-
-/**
  * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
  */
 const FALLBACK_SHEET_NAME = 'Sheet';
-
-/**
- * The name the XLSX format reserves for a workbook's change history.
- */
-const RESERVED_SHEET_NAME = 'History';
 
 /**
  * The base name of the very hidden helper sheet carrying the dropdown source lists.
@@ -89,8 +77,7 @@ const VALIDATION_SHEET_NAME = '_HotValidation';
 function sanitizeSheetName(baseName: string): string {
   // Trim on BOTH sides of the quote strip. The ExcelJS engine tests the name it is handed, so
   // `" 'Q1' "` with the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
-  const stripped = baseName
-    .replace(ILLEGAL_SHEET_NAME_CHARS, '')
+  const stripped = stripIllegalSheetNameChars(baseName)
     .trim()
     .replace(/^'+/, '')
     .replace(/'+$/, '')
@@ -100,7 +87,7 @@ function sanitizeSheetName(baseName: string): string {
     return FALLBACK_SHEET_NAME;
   }
 
-  return stripped.toLowerCase() === RESERVED_SHEET_NAME.toLowerCase() ? `${stripped}_` : stripped;
+  return isReservedSheetName(stripped) ? `${stripped}_` : stripped;
 }
 
 /**
@@ -909,10 +896,9 @@ class Xlsx extends BaseType {
    * `false` turns compression off: the default has been DEFLATE since the option existed, and an
    * unset option must keep producing the same file size.
    *
-   * The fallback level (`6`) is duplicated as `DEFAULT_COMPRESSION_LEVEL` in
-   * `../../../utils/xlsxEngine/adapters/native/write.ts`, which uses it to tell a chosen level from
-   * an unset one when deciding whether to report `compressionLevel` as dropped. The two must move
-   * together.
+   * The fallback level comes from `utils/xlsxEngine/compression.ts`, which the built-in engine
+   * imports too: it tells a chosen level from an unset one by that same constant when deciding
+   * whether to report `compressionLevel` as dropped.
    */
   #getCompressionLevel(): false | number {
     const { compression } = this.options;
@@ -925,7 +911,7 @@ class Xlsx extends BaseType {
       return compression;
     }
 
-    return 6;
+    return DEFAULT_COMPRESSION_LEVEL;
   }
 
   /**

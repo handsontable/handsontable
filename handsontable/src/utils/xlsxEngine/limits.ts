@@ -84,6 +84,32 @@ export function throwLimitExceeded(message: string): never {
 }
 
 /**
+ * Refuses a sheet declaring more rows than the reader accepts. The wording is part of the reader's
+ * contract, so every site that refuses a row count raises it through this helper rather than
+ * rebuilding the sentence.
+ */
+export function throwRowLimit(name: string, rows: number): never {
+  return throwLimitExceeded(`The sheet "${name}" declares ${rows} rows, `
+    + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
+}
+
+/**
+ * Refuses a sheet declaring more columns than the reader accepts.
+ */
+export function throwColumnLimit(name: string, columns: number): never {
+  return throwLimitExceeded(`The sheet "${name}" declares ${columns} columns, `
+    + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+}
+
+/**
+ * Refuses a sheet whose declared rectangle holds more cells than the reader accepts.
+ */
+export function throwCellLimit(name: string, rows: number, columns: number): never {
+  return throwLimitExceeded(`The sheet "${name}" declares ${rows} × ${columns} cells, `
+    + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
+}
+
+/**
  * Whether an error is a refusal by one of the limits declared here, rather than a parse failure.
  */
 export function isLimitError(error: unknown): boolean {

@@ -1,5 +1,5 @@
 import { throwWithCause } from '../../../helpers/errors';
-import type { DroppedFeatures } from '../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../capabilities';
 import {
   createCellSnapshot,
   createSheetSnapshot,
@@ -329,7 +329,7 @@ async function writeSheetFeatures(
     } catch {
       // ExcelJS throws `Cannot merge already merged cells` on an overlap. One malformed merge must
       // not abandon the whole export, so the range is skipped and reported instead.
-      dropped.record('merge:overlap');
+      dropped.record(DROPPED_FEATURES.mergeOverlap);
     }
   });
 
@@ -443,13 +443,13 @@ function recordLossyValue(raw: ExcelCellValue, dropped: DroppedFeatures): void {
   }
 
   if ('hyperlink' in raw) {
-    dropped.record('hyperlink');
+    dropped.record(DROPPED_FEATURES.hyperlink);
   }
 
   // A hyperlink's own text may itself be a rich-text run list, in which case the runs are nested one
   // level down and the top-level `in` test above does not see them.
   if ('richText' in raw || hasNestedRichText(raw)) {
-    dropped.record('richText');
+    dropped.record(DROPPED_FEATURES.richText);
   }
 }
 
@@ -506,15 +506,15 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
  */
 function recordUnmodelledSheetFeatures(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures): void {
   if ((worksheet.getImages?.() ?? []).length > 0) {
-    dropped.record('images');
+    dropped.record(DROPPED_FEATURES.images);
   }
 
   if (Object.keys(worksheet.tables ?? {}).length > 0) {
-    dropped.record('tables');
+    dropped.record(DROPPED_FEATURES.tables);
   }
 
   if (worksheet.autoFilter) {
-    dropped.record('autoFilter');
+    dropped.record(DROPPED_FEATURES.autoFilter);
   }
 }
 
@@ -597,7 +597,7 @@ function readSheetLayout(
     } & Record<string, unknown>;
 
     if (typeof hashValue === 'string' || typeof algorithmName === 'string') {
-      dropped.record('sheetProtection:password');
+      dropped.record(DROPPED_FEATURES.sheetProtectionPassword);
     }
 
     sheet.protection = {

@@ -1,15 +1,16 @@
 import { throwWithCause } from '../../../../../helpers/errors';
-import type { DroppedFeatures } from '../../../capabilities';
-import { colLetterToIndex, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
+import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
 import { translateSharedFormula } from '../../../formulaRefs';
 import {
-  MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwLimitExceeded,
+  MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwCellLimit,
+  throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../../../limits';
 import {
   createCellSnapshot, createSheetSnapshot, type CellSnapshot, type CellValue, type SheetSnapshot,
 } from '../../../model';
+import { decodeOoxmlEscapes } from '../xml/escapes';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
-import { decodeOoxmlEscapes } from '../xml/writer';
 import { cfRuleFromXml } from './conditionalFormatting';
 import { PROTECTION_INVERTED_OPTIONS } from './protection';
 import type { ParsedSharedStrings } from './sharedStrings';
@@ -42,6 +43,18 @@ export interface WorksheetReadContext {
 const DATE_1904_OFFSET = 1462;
 
 /**
+ * Milliseconds in one day, the unit an ISO date has to be divided by to become a serial number.
+ */
+const MS_PER_DAY = 86400000;
+
+/**
+ * Serial-number offset between the Unix epoch and the 1900 date system's day zero. The system
+ * counts from 1899-12-30 rather than 1899-12-31 because it reproduces Lotus 1-2-3's non-existent
+ * 1900-02-29, so 1970-01-01 is day 25569.
+ */
+const EXCEL_EPOCH_OFFSET = 25569;
+
+/**
  * `<sheetProtection>` attributes that describe the password hash rather than a permission.
  */
 const PROTECTION_HASH_ATTRS = new Set(['algorithmName', 'hashValue', 'saltValue', 'spinCount', 'password']);
@@ -72,18 +85,15 @@ export function assertSheetRectangle(
   layoutColCount: number
 ): void {
   if (rowCount > MAX_SHEET_ROWS) {
-    throwLimitExceeded(`The sheet "${name}" declares ${rowCount} rows, `
-      + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
+    throwRowLimit(name, rowCount);
   }
 
   if (layoutColCount > MAX_SHEET_COLUMNS) {
-    throwLimitExceeded(`The sheet "${name}" declares ${layoutColCount} columns, `
-      + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+    throwColumnLimit(name, layoutColCount);
   }
 
   if (rowCount * cellColCount > MAX_SHEET_CELLS) {
-    throwLimitExceeded(`The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, `
-      + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
+    throwCellLimit(name, rowCount, cellColCount);
   }
 }
 
@@ -122,20 +132,17 @@ export function assertSheetFits(
  * column zero is refused.
  */
 function decodeAddress(ref: string): { row: number; col: number } | null {
-  const match = /^\$?([A-Z]{1,3})\$?(\d{1,7})$/i.exec(ref);
+  const parsed = parseCellRef(ref);
 
-  if (!match) {
+  if (!parsed) {
     return null;
   }
 
-  const row = Number(match[2]);
-  const col = colLetterToIndex(match[1].toUpperCase());
-
-  if (row < 1 || col < 1) {
+  if (parsed.row < 1 || parsed.col < 1) {
     throwWithCause(`The cell reference "${ref}" is not a valid A1 address; rows and columns start at 1.`);
   }
 
-  return { row: row - 1, col: col - 1 };
+  return { row: parsed.row - 1, col: parsed.col - 1 };
 }
 
 /**
@@ -243,8 +250,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     }
 
     if (rowIndex + 1 > MAX_SHEET_ROWS) {
-      throwLimitExceeded(`The sheet "${ctx.name}" declares ${rowIndex + 1} rows, `
-        + `above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`);
+      throwRowLimit(ctx.name, rowIndex + 1);
     }
 
     while (rows.length <= rowIndex) {
@@ -259,8 +265,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
    */
   const cellAt = (rowIndex: number, colIndex: number): CellSnapshot => {
     if (colIndex + 1 > MAX_SHEET_COLUMNS) {
-      throwLimitExceeded(`The sheet "${ctx.name}" declares ${colIndex + 1} columns, `
-        + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+      throwColumnLimit(ctx.name, colIndex + 1);
     }
 
     const row = ensureRow(rowIndex);
@@ -272,8 +277,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     width = Math.max(width, colIndex + 1);
 
     if (rows.length * width > MAX_SHEET_CELLS) {
-      throwLimitExceeded(`The sheet "${ctx.name}" declares ${rows.length} × ${width} cells, `
-        + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
+      throwCellLimit(ctx.name, rows.length, width);
     }
 
     if (row[colIndex] === null) {
@@ -327,7 +331,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           value = ctx.sharedStrings.strings[index] ?? null;
 
           if (ctx.sharedStrings.rich[index]) {
-            dropped.record('richText');
+            dropped.record(DROPPED_FEATURES.richText);
           }
           break;
         }
@@ -344,7 +348,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
         case 'd': {
           const ms = Date.parse(rawText);
 
-          value = Number.isNaN(ms) ? null : (ms / 86400000) + 25569;
+          value = Number.isNaN(ms) ? null : (ms / MS_PER_DAY) + EXCEL_EPOCH_OFFSET;
           break;
         }
         default:
@@ -442,8 +446,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           }
 
           if (max > MAX_SHEET_COLUMNS) {
-            throwLimitExceeded(`The sheet "${ctx.name}" declares ${max} columns, `
-              + `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`);
+            throwColumnLimit(ctx.name, max);
           }
 
           chargeSpan(max - min + 1);
@@ -560,7 +563,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           // The file carries a salted hash (or the legacy 16-bit `password`), never the password
           // itself, so it is reported and not modelled: a re-export cannot pretend to know it.
           if (attrs.hashValue !== undefined || attrs.algorithmName !== undefined || attrs.password !== undefined) {
-            dropped.record('sheetProtection:password');
+            dropped.record(DROPPED_FEATURES.sheetProtectionPassword);
           }
 
           sheet.protection = { enabled: true, password: null, options };
@@ -602,16 +605,16 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           }
           break;
         case 'autoFilter':
-          dropped.record('autoFilter');
+          dropped.record(DROPPED_FEATURES.autoFilter);
           break;
         case 'hyperlink':
-          dropped.record('hyperlink');
+          dropped.record(DROPPED_FEATURES.hyperlink);
           break;
         case 'drawing':
-          dropped.record('images');
+          dropped.record(DROPPED_FEATURES.images);
           break;
         case 'tablePart':
-          dropped.record('tables');
+          dropped.record(DROPPED_FEATURES.tables);
           break;
         default:
           break;

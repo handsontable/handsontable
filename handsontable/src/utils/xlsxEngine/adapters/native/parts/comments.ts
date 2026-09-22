@@ -1,6 +1,14 @@
-import { createLocalName, tokenizeXml } from '../xml/tokenizer';
-import { XmlWriter, decodeOoxmlEscapes, needsSpacePreserve } from '../xml/writer';
+import { needsSpacePreserve } from '../xml/escapes';
+import { collectRichTextRuns } from '../xml/richText';
+import { tokenizeXml } from '../xml/tokenizer';
+import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
+
+/**
+ * The shape id Excel gives the first note of a sheet. Ids below it belong to the drawing objects
+ * Excel reserves for itself, and every further note counts up from here.
+ */
+const VML_SHAPE_ID_BASE = 1025;
 
 /**
  * One cell note. `row` and `col` are 0-based; `ref` is the A1 address the same cell has.
@@ -57,7 +65,7 @@ export function vmlDrawingXml(comments: SheetComment[]): string {
     const anchor = [left, 6, top, 14, left + 2, 2, top + 4, 16].join(', ');
 
     w.open('v:shape', {
-      id: `_x0000_s${1025 + index}`,
+      id: `_x0000_s${VML_SHAPE_ID_BASE + index}`,
       type: '#_x0000_t202',
       style: 'position:absolute;margin-left:105.3pt;margin-top:10.5pt;'
         + 'width:97.8pt;height:59.1pt;z-index:1;visibility:hidden',
@@ -90,43 +98,16 @@ export function vmlDrawingXml(comments: SheetComment[]): string {
 export function parseComments(xml: string): Map<string, string> {
   const comments = new Map<string, string>();
   let ref: string | null = null;
-  let parts: string[] = [];
-  let inText = false;
-  let inPhonetic = false;
 
-  const localName = createLocalName();
+  tokenizeXml(xml, collectRichTextRuns('comment', (attrs) => {
+    ref = attrs.ref ?? null;
+  }, (text) => {
+    if (ref !== null) {
+      comments.set(ref, text);
+    }
 
-  tokenizeXml(xml, {
-    open(rawName, attrs, selfClosing) {
-      const name = localName(rawName);
-
-      if (name === 'comment') {
-        ref = attrs.ref ?? null;
-        parts = [];
-      } else if (name === 'rPh') {
-        inPhonetic = !selfClosing;
-      } else if (name === 't' && ref !== null && !inPhonetic) {
-        inText = !selfClosing;
-      }
-    },
-    text(text) {
-      if (inText) {
-        parts.push(text);
-      }
-    },
-    close(rawName) {
-      const name = localName(rawName);
-
-      if (name === 't') {
-        inText = false;
-      } else if (name === 'rPh') {
-        inPhonetic = false;
-      } else if (name === 'comment' && ref !== null) {
-        comments.set(ref, decodeOoxmlEscapes(parts.join('')));
-        ref = null;
-      }
-    },
-  });
+    ref = null;
+  }));
 
   return comments;
 }

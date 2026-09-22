@@ -1,7 +1,9 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_WORKBOOK_CELLS, throwLimitExceeded } from '../../../limits';
-import { createLocalName, tokenizeXml } from '../xml/tokenizer';
-import { XmlWriter, decodeOoxmlEscapes, needsSpacePreserve } from '../xml/writer';
+import { needsSpacePreserve } from '../xml/escapes';
+import { collectRichTextRuns } from '../xml/richText';
+import { tokenizeXml } from '../xml/tokenizer';
+import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
 
 /**
@@ -85,56 +87,20 @@ export interface ParsedSharedStrings {
 export function parseSharedStrings(xml: string): ParsedSharedStrings {
   const strings: string[] = [];
   const rich: boolean[] = [];
-  let current: string[] | null = null;
-  let isRich = false;
-  let inText = false;
-  let inPhonetic = false;
 
-  const localName = createLocalName();
+  tokenizeXml(xml, collectRichTextRuns('si', () => {}, (text, isRich) => {
+    // A workbook can never address more distinct strings than it can address cells, since every
+    // reference is a cell's `<v>`. Bounding the table by `MAX_WORKBOOK_CELLS` keeps two parallel
+    // arrays from growing past what `MAX_INFLATED_ENTRY_BYTES` (512 MB, four times the whole-file
+    // cap) alone would let through before any per-sheet cap has run.
+    if (strings.length >= MAX_WORKBOOK_CELLS) {
+      throwLimitExceeded(`The shared-string table declares more than ${MAX_WORKBOOK_CELLS} entries, `
+        + 'above the limit this reader accepts.');
+    }
 
-  tokenizeXml(xml, {
-    open(rawName, _attrs, selfClosing) {
-      const name = localName(rawName);
-
-      if (name === 'si') {
-        current = [];
-        isRich = false;
-      } else if (name === 'r') {
-        isRich = true;
-      } else if (name === 'rPh') {
-        inPhonetic = !selfClosing;
-      } else if (name === 't' && current !== null && !inPhonetic) {
-        inText = !selfClosing;
-      }
-    },
-    text(text) {
-      if (inText && current !== null) {
-        current.push(text);
-      }
-    },
-    close(rawName) {
-      const name = localName(rawName);
-
-      if (name === 't') {
-        inText = false;
-      } else if (name === 'rPh') {
-        inPhonetic = false;
-      } else if (name === 'si' && current !== null) {
-        // A workbook can never address more distinct strings than it can address cells, since every
-        // reference is a cell's `<v>`. Bounding the table by `MAX_WORKBOOK_CELLS` keeps two parallel
-        // arrays from growing past what `MAX_INFLATED_ENTRY_BYTES` (512 MB, four times the whole-file
-        // cap) alone would let through before any per-sheet cap has run.
-        if (strings.length >= MAX_WORKBOOK_CELLS) {
-          throwLimitExceeded(`The shared-string table declares more than ${MAX_WORKBOOK_CELLS} entries, `
-            + 'above the limit this reader accepts.');
-        }
-
-        strings.push(decodeOoxmlEscapes(current.join('')));
-        rich.push(isRich);
-        current = null;
-      }
-    },
-  });
+    strings.push(text);
+    rich.push(isRich);
+  }));
 
   return { strings, rich };
 }

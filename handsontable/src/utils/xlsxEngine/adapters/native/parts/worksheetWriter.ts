@@ -1,4 +1,4 @@
-import type { DroppedFeatures } from '../../../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
 import type { CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
 import { XmlWriter } from '../xml/writer';
@@ -18,6 +18,12 @@ export interface WorksheetWriteResult {
   comments: SheetComment[];
   wroteFormula: boolean;
 }
+
+/**
+ * The row height in points a sheet declares for rows that carry none, the value Excel itself
+ * writes for the default 11pt Calibri.
+ */
+const DEFAULT_ROW_HEIGHT_POINTS = 15;
 
 /**
  * A1 address of a 0-based cell.
@@ -55,7 +61,7 @@ function resolveMerges(
     }
 
     if (keys.some(key => occupied.has(key))) {
-      dropped.record('merge:overlap');
+      dropped.record(DROPPED_FEATURES.mergeOverlap);
 
       return;
     }
@@ -218,7 +224,7 @@ export function worksheetXml(
   }
 
   w.close().close();
-  w.leaf('sheetFormatPr', { defaultRowHeight: 15 });
+  w.leaf('sheetFormatPr', { defaultRowHeight: DEFAULT_ROW_HEIGHT_POINTS });
 
   const colEntries: string[] = [];
 

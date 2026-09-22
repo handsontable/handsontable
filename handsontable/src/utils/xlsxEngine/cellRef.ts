@@ -51,6 +51,24 @@ const COLUMN_SPAN_REGEX = /^\$?([A-Z]{1,3}):\$?([A-Z]{1,3})$/i;
 const ROW_SPAN_REGEX = /^\$?(\d{1,7}):\$?(\d{1,7})$/;
 
 /**
+ * Parses a single cell reference (`A1`, `$A$1`, `aa12`) into 1-based coordinates, or `null` when
+ * the text is not a cell reference at all. This is the only A1 parser in the package — a reader
+ * that needs 0-based coordinates subtracts here rather than growing a second regex.
+ *
+ * A reference naming row or column zero (`A0`) matches the shape and comes back as it is written,
+ * so a caller that cannot use a zero coordinate has to refuse it.
+ */
+export function parseCellRef(ref: string): { row: number; col: number } | null {
+  const match = CELL_REF_REGEX.exec(ref);
+
+  if (!match) {
+    return null;
+  }
+
+  return { row: parseInt(match[2], 10), col: colLetterToIndex(match[1].toUpperCase()) };
+}
+
+/**
  * Orders a range's corners and refuses one that reaches past the sheet limits.
  */
 function toRange(rowA: number, colA: number, rowB: number, colB: number): RangeRef | null {
@@ -87,17 +105,14 @@ export function parseRangeRef(ref: string): RangeRef | null {
   }
 
   const [start, end = start] = withoutSheet.split(':');
-  const startMatch = start.match(CELL_REF_REGEX);
-  const endMatch = end.match(CELL_REF_REGEX);
+  const startCell = parseCellRef(start);
+  const endCell = parseCellRef(end);
 
-  if (!startMatch || !endMatch) {
+  if (!startCell || !endCell) {
     return null;
   }
 
-  return toRange(
-    parseInt(startMatch[2], 10), colLetterToIndex(startMatch[1]),
-    parseInt(endMatch[2], 10), colLetterToIndex(endMatch[1]),
-  );
+  return toRange(startCell.row, startCell.col, endCell.row, endCell.col);
 }
 
 /**

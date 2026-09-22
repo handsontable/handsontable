@@ -1,4 +1,5 @@
 import { crc32 } from './crc32';
+import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
 import { deflateRaw } from './streams';
 
 /**
@@ -122,11 +123,11 @@ export async function writeZip(entries: ZipEntryInput[], compress: boolean): Pro
       uncompressedSize: entry.data.byteLength,
       localOffset,
     });
-    localOffset += 30 + nameBytes.byteLength + data.byteLength;
+    localOffset += LOCAL_HEADER_SIZE + nameBytes.byteLength + data.byteLength;
   }
 
-  const centralSize = prepared.reduce((sum, e) => sum + 46 + e.nameBytes.byteLength, 0);
-  const writer = new ByteWriter(localOffset + centralSize + 22);
+  const centralSize = prepared.reduce((sum, e) => sum + CENTRAL_HEADER_SIZE + e.nameBytes.byteLength, 0);
+  const writer = new ByteWriter(localOffset + centralSize + END_RECORD_SIZE);
 
   prepared.forEach((entry) => {
     writer.u32(LOCAL_HEADER_SIGNATURE);

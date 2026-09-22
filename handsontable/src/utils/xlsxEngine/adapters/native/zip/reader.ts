@@ -1,5 +1,6 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
+import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
 import { inflateRaw } from './streams';
 
 /**
@@ -27,7 +28,6 @@ interface CentralEntry {
 const LOCAL_HEADER_SIGNATURE = 0x04034b50;
 const CENTRAL_HEADER_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
-const END_RECORD_MIN_SIZE = 22;
 const MAX_COMMENT_LENGTH = 0xFFFF;
 const ZIP64_MARKER = 0xFFFFFFFF;
 
@@ -35,9 +35,9 @@ const ZIP64_MARKER = 0xFFFFFFFF;
  * Finds the end-of-central-directory record, scanning backwards over a possible archive comment.
  */
 function findEndRecord(view: DataView): number {
-  const floor = Math.max(0, view.byteLength - END_RECORD_MIN_SIZE - MAX_COMMENT_LENGTH);
+  const floor = Math.max(0, view.byteLength - END_RECORD_SIZE - MAX_COMMENT_LENGTH);
 
-  for (let offset = view.byteLength - END_RECORD_MIN_SIZE; offset >= floor; offset--) {
+  for (let offset = view.byteLength - END_RECORD_SIZE; offset >= floor; offset--) {
     if (view.getUint32(offset, true) === END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
       return offset;
     }
@@ -63,7 +63,7 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
   const entries = new Map<string, CentralEntry>();
 
   for (let i = 0; i < count; i++) {
-    if (offset + 46 > endRecord || view.getUint32(offset, true) !== CENTRAL_HEADER_SIGNATURE) {
+    if (offset + CENTRAL_HEADER_SIZE > endRecord || view.getUint32(offset, true) !== CENTRAL_HEADER_SIGNATURE) {
       throwWithCause(`The ZIP central directory record ${i} is malformed.`);
     }
 
@@ -75,11 +75,12 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
     const commentLength = view.getUint16(offset + 32, true);
     const localOffset = view.getUint32(offset + 42, true);
 
-    if (offset + 46 + nameLength + extraLength + commentLength > endRecord) {
+    if (offset + CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength > endRecord) {
       throwWithCause(`The ZIP central directory record ${i} is malformed.`);
     }
 
-    const name = decoder.decode(bytes.subarray(offset + 46, offset + 46 + nameLength));
+    const nameStart = offset + CENTRAL_HEADER_SIZE;
+    const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLength));
 
     if (method !== 0 && method !== 8) {
       throwWithCause(`The ZIP entry "${name}" uses compression method ${method}; `
@@ -91,7 +92,7 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
     }
 
     entries.set(name, { method, compressedSize, uncompressedSize, localOffset });
-    offset += 46 + nameLength + extraLength + commentLength;
+    offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
   }
 
   return entries;
@@ -105,7 +106,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   const bytes = new Uint8Array(buffer);
   const view = new DataView(buffer);
 
-  if (bytes.byteLength < END_RECORD_MIN_SIZE) {
+  if (bytes.byteLength < END_RECORD_SIZE) {
     throwWithCause('The file has no ZIP end-of-central-directory record.');
   }
 
@@ -152,13 +153,14 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
     const { localOffset } = entry;
 
-    if (localOffset + 30 > bytes.byteLength || view.getUint32(localOffset, true) !== LOCAL_HEADER_SIGNATURE) {
+    if (localOffset + LOCAL_HEADER_SIZE > bytes.byteLength
+      || view.getUint32(localOffset, true) !== LOCAL_HEADER_SIGNATURE) {
       throwWithCause(`The ZIP entry "${name}" has a malformed local header.`);
     }
 
     const nameLength = view.getUint16(localOffset + 26, true);
     const extraLength = view.getUint16(localOffset + 28, true);
-    const start = localOffset + 30 + nameLength + extraLength;
+    const start = localOffset + LOCAL_HEADER_SIZE + nameLength + extraLength;
     const end = start + entry.compressedSize;
 
     if (end > bytes.byteLength) {

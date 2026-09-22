@@ -1,6 +1,8 @@
 import { throwWithCause } from '../../../../helpers/errors';
-import type { DroppedFeatures } from '../../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../capabilities';
+import { DEFAULT_COMPRESSION_LEVEL } from '../../compression';
 import type { WorkbookSnapshot } from '../../model';
+import { ILLEGAL_SHEET_NAME_CHARS, isReservedSheetName, SHEET_NAME_MAX_LENGTH } from '../../sheetNames';
 import { commentsXml, vmlDrawingXml } from './parts/comments';
 import {
   appXml, contentTypesXml, coreXml, rootRelsXml, sheetRelsXml, workbookRelsXml, workbookXml, type PackageSheet,
@@ -17,20 +19,10 @@ import { writeZip, type ZipEntryInput } from './zip/writer';
  */
 export const WORKBOOK_AUTHOR = 'Handsontable';
 
-const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/;
-
-/**
- * The DEFLATE level `exportFile`'s `#getCompressionLevel` (`plugins/exportFile/types/xlsx.ts`)
- * returns for an unset, `null` or `true` `compression` option. Must match that method's fallback
- * exactly: this module reports a chosen-but-unhonorable compression level as a dropped feature, and
- * treats this level as "the caller asked for nothing" so a default export produces no warning. If
- * that method's fallback ever changes, this constant has to move with it.
- */
-const DEFAULT_COMPRESSION_LEVEL = 6;
-
 /**
  * Refuses a sheet name Excel refuses. The export sanitizes names before they get here, so this is
- * a backstop for a snapshot built by other code.
+ * a backstop for a snapshot built by other code. The rules themselves live in
+ * `utils/xlsxEngine/sheetNames.ts`, so the export's sanitizer and this backstop cannot drift.
  */
 function assertSheetNames(names: string[]): void {
   const seen = new Set<string>();
@@ -40,13 +32,13 @@ function assertSheetNames(names: string[]): void {
 
     if (name === '') {
       reason = 'the name is empty';
-    } else if (name.length > 31) {
-      reason = 'the name is longer than 31 characters';
+    } else if (name.length > SHEET_NAME_MAX_LENGTH) {
+      reason = `the name is longer than ${SHEET_NAME_MAX_LENGTH} characters`;
     } else if (ILLEGAL_SHEET_NAME_CHARS.test(name)) {
       reason = 'the name carries an illegal character (* ? : / \\ [ ])';
     } else if (name.startsWith('\'') || name.endsWith('\'')) {
       reason = 'the name starts or ends with an apostrophe';
-    } else if (name.toLowerCase() === 'history') {
+    } else if (isReservedSheetName(name)) {
       reason = 'the name is reserved';
     } else if (seen.has(name.toLowerCase())) {
       reason = 'the name is a duplicate';
@@ -71,7 +63,7 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
   // normalizes an unset, `null` or `true` compression to 6 before the snapshot exists, so
   // recording every number would warn on every default export.
   if (typeof snapshot.compression === 'number' && snapshot.compression !== DEFAULT_COMPRESSION_LEVEL) {
-    dropped.record('compressionLevel');
+    dropped.record(DROPPED_FEATURES.compressionLevel);
   }
 
   const encoder = new TextEncoder();

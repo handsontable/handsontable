@@ -3,8 +3,9 @@
  */
 import { tokenizeXml, decodeXmlEntities } from '../adapters/native/xml/tokenizer';
 import {
-  XmlWriter, escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes, needsSpacePreserve,
-} from '../adapters/native/xml/writer';
+  escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes, needsSpacePreserve,
+} from '../adapters/native/xml/escapes';
+import { XmlWriter } from '../adapters/native/xml/writer';
 
 /**
  * Records every event the tokenizer emits as a compact tuple.

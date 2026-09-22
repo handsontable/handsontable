@@ -1,5 +1,5 @@
-import { isObject } from '../../../../../helpers/object';
-import type { DroppedFeatures } from '../../../capabilities';
+import { isObject, isPlainObject } from '../../../../../helpers/object';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import type { XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 import type { DxfStyle, StyleTable } from './styles';
@@ -20,9 +20,44 @@ const CONTAINS_TEXT_TYPES = new Set([
 ]);
 
 /**
- * A rule object as the `conditionalFormatting` export option carries it.
+ * The rank a `top10` rule means when it declares none: Excel's own default.
+ */
+const DEFAULT_TOP10_RANK = 10;
+
+/**
+ * A rule object as the `conditionalFormatting` export option carries it. The option is public and
+ * untyped, so every member is read through the three accessors below rather than asserted: they
+ * state the contract once instead of casting at each of the dozen places a member is read.
  */
 type RuleObject = Record<string, unknown>;
+
+/**
+ * A rule member that has to be a number, or `undefined` when the rule carries something else.
+ */
+function readNumber(rule: RuleObject, key: string): number | undefined {
+  const value = rule[key];
+
+  return typeof value === 'number' ? value : undefined;
+}
+
+/**
+ * A rule member that has to be a string, or `undefined` when the rule carries something else.
+ */
+function readString(rule: RuleObject, key: string): string | undefined {
+  const value = rule[key];
+
+  return typeof value === 'string' ? value : undefined;
+}
+
+/**
+ * A rule member that has to be a differential style, or `undefined` when the rule carries something
+ * else. The members themselves are read by `StyleTable#dxfIndex`, which tolerates any shape.
+ */
+function readStyle(rule: RuleObject, key: string): DxfStyle | undefined {
+  const value = rule[key];
+
+  return isObject(value) ? (value as DxfStyle) : undefined;
+}
 
 /**
  * The highest priority any rule of the sheet declares, or 0.
@@ -31,8 +66,8 @@ export function maxRulePriority(blocks: Array<{ rules: unknown[] }>): number {
   let max = 0;
 
   blocks.forEach(({ rules }) => rules.forEach((rule) => {
-    if (isObject(rule) && typeof (rule as RuleObject).priority === 'number') {
-      max = Math.max(max, (rule as RuleObject).priority as number);
+    if (isPlainObject(rule)) {
+      max = Math.max(max, readNumber(rule, 'priority') ?? 0);
     }
   }));
 
@@ -76,20 +111,23 @@ export function conditionalFormattingXml(
   w.open('conditionalFormatting', { sqref: ref });
 
   rules.forEach((candidate) => {
-    if (!isObject(candidate) || typeof (candidate as RuleObject).type !== 'string') {
-      dropped.record('conditionalFormatting:invalid');
+    const rule = isPlainObject(candidate) ? candidate : null;
+    const type = rule === null ? undefined : readString(rule, 'type');
+
+    if (rule === null || type === undefined) {
+      dropped.record(DROPPED_FEATURES.conditionalFormattingInvalid);
 
       return;
     }
 
-    const rule = candidate as RuleObject;
-    const type = rule.type as string;
-    const formulae = Array.isArray(rule.formulae) ? (rule.formulae as unknown[]).map(String) : [];
-    const dxfId = isObject(rule.style) ? styles.dxfIndex(rule.style as DxfStyle) : undefined;
+    const formulae = Array.isArray(rule.formulae) ? rule.formulae.map(String) : [];
+    const style = readStyle(rule, 'style');
+    const dxfId = style === undefined ? undefined : styles.dxfIndex(style);
+    const declaredPriority = readNumber(rule, 'priority');
     let rulePriority: number;
 
-    if (typeof rule.priority === 'number') {
-      rulePriority = rule.priority;
+    if (declaredPriority !== undefined) {
+      rulePriority = declaredPriority;
     } else {
       rulePriority = priority.next;
       priority.next += 1;
@@ -100,7 +138,7 @@ export function conditionalFormattingXml(
     switch (type) {
       case 'expression':
         if (formulae.length === 0) {
-          dropped.record('conditionalFormatting:expression');
+          dropped.record(DROPPED_FEATURES.conditionalFormattingExpression);
 
           return;
         }
@@ -108,15 +146,16 @@ export function conditionalFormattingXml(
         w.open('cfRule', base).leaf('formula', undefined, formulae[0]).close();
         break;
       case 'cellIs':
-        w.open('cfRule', { ...base, operator: typeof rule.operator === 'string' ? rule.operator : 'equal' });
+        w.open('cfRule', { ...base, operator: readString(rule, 'operator') ?? 'equal' });
         formulae.forEach(formula => w.leaf('formula', undefined, formula));
         w.close();
         break;
       case 'containsText': {
-        const operator = typeof rule.operator === 'string' && CONTAINS_TEXT_TYPES.has(rule.operator)
-          ? rule.operator
+        const declaredOperator = readString(rule, 'operator');
+        const operator = declaredOperator !== undefined && CONTAINS_TEXT_TYPES.has(declaredOperator)
+          ? declaredOperator
           : 'containsText';
-        const text = typeof rule.text === 'string' ? rule.text : '';
+        const text = readString(rule, 'text') ?? '';
         const textAttr = operator === 'containsText' && text !== '' ? text : undefined;
 
         w.open('cfRule', { ...base, type: operator, operator, text: textAttr });
@@ -127,7 +166,7 @@ export function conditionalFormattingXml(
       case 'top10':
         w.leaf('cfRule', {
           ...base,
-          rank: typeof rule.rank === 'number' ? rule.rank : 10,
+          rank: readNumber(rule, 'rank') ?? DEFAULT_TOP10_RANK,
           percent: rule.percent === true ? '1' : undefined,
           bottom: rule.bottom === true ? '1' : undefined,
         });
@@ -135,15 +174,18 @@ export function conditionalFormattingXml(
       case 'aboveAverage':
         w.leaf('cfRule', { ...base, aboveAverage: rule.aboveAverage === false ? '0' : undefined });
         break;
-      case 'timePeriod':
-        if (formulae.length === 0 || typeof rule.timePeriod !== 'string') {
-          dropped.record('conditionalFormatting:timePeriod');
+      case 'timePeriod': {
+        const timePeriod = readString(rule, 'timePeriod');
+
+        if (formulae.length === 0 || timePeriod === undefined) {
+          dropped.record(DROPPED_FEATURES.conditionalFormattingTimePeriod);
 
           return;
         }
 
-        w.open('cfRule', { ...base, timePeriod: rule.timePeriod }).leaf('formula', undefined, formulae[0]).close();
+        w.open('cfRule', { ...base, timePeriod }).leaf('formula', undefined, formulae[0]).close();
         break;
+      }
       default:
         dropped.record(`conditionalFormatting:${type}`);
 
@@ -190,7 +232,7 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
   }
 
   if (type === 'top10') {
-    rule.rank = attrs.rank === undefined ? 10 : Number(attrs.rank);
+    rule.rank = attrs.rank === undefined ? DEFAULT_TOP10_RANK : Number(attrs.rank);
     rule.percent = attrs.percent === '1' || attrs.percent === 'true';
     rule.bottom = attrs.bottom === '1' || attrs.bottom === 'true';
   }
