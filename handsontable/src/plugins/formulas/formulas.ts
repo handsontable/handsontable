@@ -474,9 +474,9 @@ export class Formulas extends BasePlugin {
   #nestedRowsDetachUndoPending = false;
 
   /**
-   * The changes that the engine reported while undoing or redoing an action. They are collected in
-   * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
-   * validated.
+   * The changes that the engine reported while undoing or redoing an action. They are captured when
+   * HyperFormula history is replayed and consumed in `afterUndo`/`afterRedo`, where the dependent cells
+   * get validated.
    *
    * @type {Array}
    */
@@ -912,9 +912,9 @@ export class Formulas extends BasePlugin {
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
 
-      // NestedRows emits its structural hooks only after every `beforeRedo` listener accepted the
-      // action. Deferring the replay avoids advancing HyperFormula when a later listener vetoes it.
-      if (isNestedRowsDetachAction(action)) {
+      // A later `beforeRedo` listener can veto the action. Structural actions must wait until
+      // `afterRedo`, so HyperFormula's history only advances after the grid action is accepted.
+      if (isStructuralAction(action)) {
         this.#undoRedoDependentCells = [];
 
         return;
@@ -954,7 +954,7 @@ export class Formulas extends BasePlugin {
     });
 
     this.addHook('afterRedo', (action: unknown) => {
-      if (isNestedRowsDetachAction(action)) {
+      if (isStructuralAction(action)) {
         this.#undoRedoDependentCells = replayFormulasUndoRedo(
           this.engine!, 'redo', getFormulasUndoRedoSteps(action)
         );

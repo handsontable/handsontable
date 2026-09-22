@@ -72,11 +72,15 @@ that path:
   `nested_rows_detach`) are the only actions that make HyperFormula rewrite formula references, so they are
   the only ones whose source data has to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves
   the source data's own reference frame untouched and must **not** trigger the write-back.
+- **Structural redos replay only in `afterRedo`.** `UndoRedo#redo()` gives every `beforeRedo` listener a
+  chance to veto the action before it runs, so replaying from `beforeRedo` would advance HyperFormula while
+  the grid remains undone. The action types are exactly `STRUCTURAL_ACTION_TYPES`; non-structural redos
+  retain their existing replay path.
 - **`nested_rows_detach` owns several engine history entries.** NestedRows emits an internal removal,
-  insertion, and cell writes as one grid action. Replay its recorded step count only in `afterUndo` /
-  `afterRedo`: a `beforeRemoveRow` veto skips `afterUndo`, so replaying from `beforeUndo` would advance
-  HyperFormula while the tree remains detached. `afterRedoStackChange` releases the undo index-sync guard
-  on that veto path (DEV-138).
+  insertion, and cell writes as one grid action. Its undo also replays only in `afterUndo`: a
+  `beforeRemoveRow` veto skips that hook, so replaying from `beforeUndo` would advance HyperFormula while
+  the tree remains detached. `afterRedoStackChange` releases the undo index-sync guard on that veto path
+  (DEV-138).
 
 **`MoveCellsAction` is asymmetric, on purpose.** Its `undo` restores both regions with `restoreRegion`
 instead of replaying the move, so `afterMoveCells` — where the forward direction syncs — never fires; undo

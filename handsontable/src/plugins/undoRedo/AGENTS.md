@@ -55,11 +55,12 @@ done stack. `MoveCellsAction` decides that itself; `RemoveRowAction` and `Remove
 through `settleOnRemoveHook()` (below).
 
 **Refuse early, before the hooks that step HyperFormula.** Formulas calls `engine.undo()` in `beforeUndo`
-and `engine.redo()` in `beforeRedo`, and clears its undo/redo flag only in `afterUndo` / `afterRedo`. So an
-undo or redo that turns out not to apply must be refused **before** those hooks, or the engine moves one
-step while Handsontable stays put. That is what `canUndo(hot)` and `canRedo(hot)` are for:
-`UndoRedo.undo()` asks `canUndo()` before `beforeUndo`, `UndoRedo.redo()` asks `canRedo()` before
-`beforeRedo`, and a `false` leaves the action where it is with no hook fired. Actions that answer:
+and normally replays redo history in `beforeRedo`; structural redos defer that replay until `afterRedo` so a
+later `beforeRedo` listener can veto safely. An undo or a non-structural redo that turns out not to apply
+must still be refused **before** those hooks, or the engine moves one step while Handsontable stays put.
+That is what `canUndo(hot)` and `canRedo(hot)` are for: `UndoRedo.undo()` asks `canUndo()` before
+`beforeUndo`, `UndoRedo.redo()` asks `canRedo()` before `beforeRedo`, and a `false` leaves the action where
+it is with no hook fired. Actions that answer:
 
 - `canUndo()` - `RemoveRowAction` with a nested snapshot, `CreateRowAction`, `CreateColumnAction`.
 - `canRedo()` - `RemoveRowAction`, `RemoveColumnAction`.
@@ -68,10 +69,11 @@ Anything a check can see coming belongs in it. A late `{ wasUndone: false }` sti
 the done stack and must **not** emit `afterUndo`, but by then `beforeUndo` has already run - so treat the
 late result as the fallback for what cannot be predicted, not as the way to refuse.
 
-`NestedRowsDetachAction` is the exception for an unavoidable late `beforeRemoveRow` veto: Formulas defers
-its multi-step HyperFormula replay until `afterUndo` / `afterRedo`, and releases its index-sync guard from
-`afterRedoStackChange` when a rejected undo skips `afterUndo`. Do not split the detach back into independent
-remove/create actions, or the two histories desynchronize (DEV-138).
+`NestedRowsDetachAction` is the exception for an unavoidable late `beforeRemoveRow` veto on undo: Formulas
+defers its multi-step HyperFormula replay until `afterUndo` and releases its index-sync guard from
+`afterRedoStackChange` when a rejected undo skips that hook. All structural redos, including detach, replay
+in `afterRedo`. Do not split the detach back into independent remove/create actions, or the two histories
+desynchronize (DEV-138).
 
 Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
 mutate the settings object by reference, and a refused nested undo would otherwise leave the
@@ -108,10 +110,10 @@ stack and `alter()` cannot disagree about whether a removal changes the grid. Ne
 hook, runs the removal, and when the hook did not fire, disarms it and settles with `{ wasUndone: false }` /
 `{ wasRedone: false }`, so the action stays on the stack it came from. Pre-existing.
 
-**Known gap, deliberately left:** a vetoed undo or redo has already passed `beforeUndo` / `beforeRedo`, so
-with Formulas enabled it still steps HyperFormula. `canUndo()` / `canRedo()` cannot see a veto coming. It is
-the same gap the nested-snapshot `canUndo()` above documents, and a real fix needs the veto answered before
-the stack commits to the operation.
+**Known gap, deliberately left:** a vetoed undo or non-structural redo has already passed `beforeUndo` /
+`beforeRedo`, so with Formulas enabled it can still step HyperFormula. Structural redos defer their replay to
+`afterRedo`, avoiding this path. `canUndo()` / `canRedo()` cannot see a late removal veto coming. A complete
+fix needs the veto answered before the stack commits to the operation.
 
 Three things to keep in `settleOnRemoveHook()`:
 
