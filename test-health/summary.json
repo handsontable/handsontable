@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-22T11:29:51.546Z",
+  "generatedAt": "2026-09-22T11:40:03.975Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -163,7 +163,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 4,
+      "count7": 3,
       "count30": 5,
       "countAll": 5,
       "runs30": 5,
