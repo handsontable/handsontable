@@ -185,6 +185,86 @@ test('shell quote-splitting does not hide the endpoint', () => {
   });
 });
 
+test('a write is judged per pipeline stage, so a later grep is not a body flag', () => {
+  // Scanning the whole command made an ordinary read look like an approval: a GET piped into
+  // `grep -F` carries `-F`, and one piped into `grep -d skip` carries `-d`. Both were blocked — the
+  // same false positive this hook was narrowed to avoid, arriving from the other end. A write is one
+  // command doing one thing, so each stage carries its own endpoint and its own verb.
+  const allowed = [
+    'gh api repos/x/y/actions/runs/1/pending_deployments | grep -F approved',
+    'curl -s https://api.github.com/repos/x/y/actions/runs/1/pending_deployments | grep -d skip approved',
+    'gh api repos/x/y/actions/runs/1/pending_deployments | grep -f patterns.txt',
+    'gh api repos/x/y/actions/runs/1/pending_deployments --jq \'.[].state\' | sort | uniq -c',
+  ];
+
+  allowed.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 0, `a piped read was blocked: ${command}`);
+  });
+
+  // The split is quote-aware, or a JSON body containing a pipe would cut the stage in half and leave
+  // the endpoint somewhere with no tool and no flag — an evasion rather than a nicety.
+  const blocked = [
+    'curl -d \'{"note":"a|b","state":"approved"}\' '
+      + 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'echo body | curl -d @- https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+  ];
+
+  blocked.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `a staged write went through: ${command}`);
+  });
+});
+
+test('curl short options are read case-sensitively, because the case is the meaning', () => {
+  // `-d` is a body and `-D` is --dump-header; `-F` is a form and `-f` is --fail; `-T` uploads and `-t`
+  // is --telnet-option. Matching the letters case-insensitively blocked three reads outright. curl
+  // also accepts a body flag clustered with other short options and glued to its value, and neither
+  // shape leaves a `state` anywhere in the command.
+  const endpoint = 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments';
+
+  [
+    `curl -sT approve.json ${endpoint}`,
+    `curl -Tapprove.json ${endpoint}`,
+    `curl -sd @approve.json ${endpoint}`,
+  ].forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `a clustered or glued body went through: ${command}`);
+  });
+
+  [
+    `curl -f ${endpoint}`,
+    `curl -D headers.txt ${endpoint}`,
+    `curl -t BINARY ${endpoint}`,
+  ].forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 0,
+      `a read-only curl flag was read as a body: ${command}. -d/-F/-T are bodies; -D/-f/-t are not.`);
+  });
+});
+
+test('httpie is covered the way httpie is actually driven', () => {
+  // It takes the method positionally rather than behind `-X`, reads STDIN as the body, and has an
+  // `@file` body form — so every pattern written for curl misses it. The binary ships under three
+  // names, and `https` is the one that cannot be matched on a word boundary: every `https://` URL
+  // contains it, so command position is what separates the client from the scheme.
+  const endpoint = 'https://api.github.com/repos/x/y/actions/runs/1/pending_deployments';
+
+  [
+    `http POST ${endpoint} state=approved`,
+    `http POST ${endpoint} @approve.json`,
+    `https POST ${endpoint} @approve.json`,
+    `httpie POST ${endpoint} @approve.json`,
+    `http ${endpoint} < approve.json`,
+  ].forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `an httpie write went through: ${command}`);
+  });
+
+  // The scheme in a URL is not the httpie binary, and curl does not read stdin without a body flag.
+  [
+    `curl -s ${endpoint}`,
+    `curl -s ${endpoint} < /dev/null`,
+  ].forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 0, `an https:// URL was read as an httpie call: ${command}`);
+  });
+});
+
 test('it judges Bash only, and survives a payload it cannot read', () => {
   // A PreToolUse hook that threw on a malformed payload would block every Bash call in the session,
   // so the unreadable cases must exit 0 rather than fail closed.

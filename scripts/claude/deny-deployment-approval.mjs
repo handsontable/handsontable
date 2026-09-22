@@ -82,7 +82,13 @@ const PENDING_DEPLOYMENTS = /pending_deployments/i;
  * A plain `GET` of the same path lists what is waiting and changes nothing, so it stays allowed — it is
  * how an agent answers "is this run blocked on a human?", which is a question worth being able to ask.
  */
-const CURL_TOOL = /\b(?:curl|wget|http)\b/i;
+const CURL = /\bcurl\b/i;
+
+const WGET = /\bwget\b/i;
+
+// httpie is matched at COMMAND POSITION only. `\bhttps\b` matches inside every `https://` URL, so a
+// word-boundary test would read an ordinary curl GET as an httpie call and block it.
+const HTTPIE = /^\s*(?:https?|httpie)\s/i;
 
 const EXPLICIT_METHOD = /(?:-X|--request|--method)\s*=?\s*(?:POST|PUT|PATCH)/i;
 
@@ -90,20 +96,28 @@ const DECISION = /\bstate\b\s*[=:]\s*["']?(?:approved|rejected)\b/i;
 
 const GH_API_WRITE = /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:\s|=)/i;
 
-// The trailing character class rather than `\s` is the whole point: curl accepts a glued value, and
-// `-d@approve.json` is the shape that leaves no `state` anywhere in the command to match.
-const CURL_BODY = /(?:^|\s)(?:-[dFT]|--data(?:-\w+)?|--json|--form|--upload-file)(?:[\s=@'"{[]|$)/i;
+// Short options are case-SENSITIVE, and the difference is the whole point: `-d` is a body and `-D` is
+// --dump-header; `-F` is a form and `-f` is --fail; `-T` uploads and `-t` is --telnet-option. Matching
+// them case-insensitively blocked `curl -f <endpoint>`, `curl -D headers.txt` and `curl -t` — three
+// reads. Exactly `-d`, `-F` and `-T` are curl's body options, so the letter is looked for INSIDE the
+// option token rather than as a token of its own: curl accepts them clustered (`-sT approve.json`)
+// and glued to their value (`-Tapprove.json`), and both shapes carried no `state` on the command line.
+// Scoped to curl because wget spells `-d` as --debug.
+const CURL_SHORT_BODY = /(?:^|\s)-[A-Za-z]*[dFT]/;
 
-// wget spells its body differently, and `CURL_TOOL` has always named wget. `--post-file=approve.json`
-// makes wget POST with no method and no `state` in the command, so without this it went through —
-// measured, not assumed.
+const CURL_LONG_BODY = /(?:^|\s)--(?:data(?:-\w+)?|json|form|upload-file)(?:[\s=@'"{[]|$)/i;
+
+// wget infers POST from its body exactly as curl does, and `CURL_TOOL` had always named wget while
+// carrying only curl's flags, so `--post-file=approve.json` went through.
 const WGET_BODY = /(?:^|\s)--(?:post|body)-(?:data|file)(?:[\s=@'"{[]|$)/i;
 
-// httpie is the one of the three that reads STDIN as the request body and infers POST from it, so a
-// bare redirect is a write there. curl ignores stdin unless asked (`-d @-`, `-T -`), both of which
-// `CURL_BODY` already covers, so a plain `curl URL < file` is a GET and stays allowed.
-const HTTPIE = /\bhttp\b/i;
-const STDIN_REDIRECT = /(?:^|\s)<\s*\S/;
+// httpie takes its method positionally rather than behind `-X`, reads STDIN as the body, and has a
+// documented `@file` body form — none of which any of the patterns above would see.
+const HTTPIE_WRITE = [
+  /(?:^|\s)(?:POST|PUT|PATCH)(?:\s|$)/,
+  /(?:^|\s)[^\s=<>|]*:?=?@\S/,
+  /(?:^|\s)<\s*\S/,
+];
 
 /**
  * Read all of stdin synchronously.
@@ -131,28 +145,82 @@ if (payload?.tool_name !== 'Bash') {
 
 const command = payload?.tool_input?.command ?? '';
 
-// Shell quoting is not syntax to a regex. bash resolves `pending_dep''loyments` to the real endpoint
-// before curl ever sees it, and the same split works on any flag or value, so every pattern is tested
-// against the command with quotes and backslashes removed as well as against the command as written.
-// Testing both forms rather than only the stripped one keeps the quoted patterns intact — the body
-// flags accept a quote as their trailing character, and stripping first would hide that.
-//
-// What this does NOT close: a command that builds the string at runtime — base64, command
-// substitution, a variable assembled earlier in the session. A regex over shell text cannot follow
-// that, and pretending otherwise would be worse than saying so.
-const forms = [command, command.replace(/['"\\]/g, '')];
-const hits = pattern => forms.some(form => pattern.test(form));
+/**
+ * Splits a command into the pipeline stages a shell would run, without splitting inside quotes.
+ *
+ * The unit matters. Scanning the WHOLE command for a write flag makes an ordinary read look like an
+ * approval: `gh api <endpoint> | grep -F approved` carries `-F`, and `curl -s <endpoint> | grep -d
+ * skip` carries `-d`, so both were blocked — the exact false positive this hook was narrowed to avoid
+ * two rounds ago, reintroduced from the other end. A write is one command doing one thing, so each
+ * stage is judged on its own and has to carry the endpoint itself.
+ *
+ * Quotes are tracked because a naive split would cut inside a JSON body — `-d '{"a":"b|c"}'` — and
+ * leave the endpoint in a stage with no tool and no flag, which is an evasion rather than a nicety.
+ *
+ * @param {string} bashCommand The raw Bash command.
+ * @returns {string[]} The non-empty stages, in order.
+ */
+function shellStages(bashCommand) {
+  const stages = [];
+  let current = '';
+  let quote = '';
 
-// The endpoint AND a way to write to it. The body flags are the ones that have to be paired with a
-// tool: they are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
-// --directories — so matching them alone would block a search over the files that describe this gate.
-// A command that names no HTTP client is not reaching the endpoint whatever its flags say.
-if (!hits(PENDING_DEPLOYMENTS)
-  || !(hits(EXPLICIT_METHOD)
+  for (const character of bashCommand) {
+    if (quote) {
+      current += character;
+
+      if (character === quote) {
+        quote = '';
+      }
+    } else if (character === '\'' || character === '"') {
+      quote = character;
+      current += character;
+    } else if (character === '|' || character === ';' || character === '&' || character === '\n') {
+      stages.push(current);
+      current = '';
+    } else {
+      current += character;
+    }
+  }
+
+  stages.push(current);
+
+  return stages.filter(stage => stage.trim() !== '');
+}
+
+/**
+ * Judges one pipeline stage: does it reach the endpoint, and does it write?
+ *
+ * Shell quoting is not syntax to a regex. bash resolves `pending_dep''loyments` to the real endpoint
+ * before any client sees it, and the same split works on a flag or a value, so every pattern is tested
+ * against the stage with quotes and backslashes removed as well as against the stage as written.
+ * Testing both forms rather than only the stripped one keeps the quoted patterns intact — the body
+ * flags accept a quote as their trailing character, and stripping first would hide that.
+ *
+ * What this does NOT close: a command that builds the string at runtime — base64, command
+ * substitution, a variable assembled earlier in the session. A regex over shell text cannot follow
+ * that, and pretending otherwise would be worse than saying so.
+ *
+ * @param {string} stage One stage from {@link shellStages}.
+ * @returns {boolean} True when this stage would approve or reject a deployment.
+ */
+function stageWrites(stage) {
+  const forms = [stage, stage.replace(/['"\\]/g, '')];
+  const hits = pattern => forms.some(form => pattern.test(form));
+
+  if (!hits(PENDING_DEPLOYMENTS)) {
+    return false;
+  }
+
+  return hits(EXPLICIT_METHOD)
     || hits(DECISION)
     || hits(GH_API_WRITE)
-    || (hits(CURL_TOOL) && (hits(CURL_BODY) || hits(WGET_BODY)))
-    || (hits(HTTPIE) && hits(STDIN_REDIRECT)))) {
+    || (hits(CURL) && (hits(CURL_SHORT_BODY) || hits(CURL_LONG_BODY)))
+    || (hits(WGET) && hits(WGET_BODY))
+    || (hits(HTTPIE) && HTTPIE_WRITE.some(hits));
+}
+
+if (!shellStages(command).some(stageWrites)) {
   process.exit(0);
 }
 
