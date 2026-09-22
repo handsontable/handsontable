@@ -48,7 +48,7 @@ const HotTable: HotTable = forwardRef<HotTableRef, HotTableProps>(({ children, .
       </HotTableInner>
     </HotTableContextProvider>
   );
-})
+});
 
 /**
  * Package version.

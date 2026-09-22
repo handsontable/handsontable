@@ -31,7 +31,14 @@ export interface HotRendererProps {
 export interface HotEditorHooks {
   onOpen?: () => void
   onClose?: () => void
-  onPrepare?: (row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) => void
+  onPrepare?: (
+    row: number,
+    column: number,
+    prop: string | number,
+    TD: HTMLTableCellElement,
+    originalValue: any,
+    cellProperties: Handsontable.CellProperties
+  ) => void
   onFocus?: () => void
 }
 
@@ -119,7 +126,6 @@ export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.Grid
 export interface HotColumnProps extends ReplaceRenderersEditors<ColumnGridSettings> {
   children?: ReactNode;
 }
-
 
 /**
  * Type of interface exposed to parent components by HotTable instance via React ref
