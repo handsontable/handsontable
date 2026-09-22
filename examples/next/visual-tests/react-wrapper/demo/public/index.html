@@ -12,6 +12,11 @@
         const themeLink = document.createElement('link');
 
         themeLink.rel = 'stylesheet';
+        // The class the capture guard looks for (assertStylesheetsLoaded in
+        // visual-tests/src/test-runner.ts). No tier themes a wrapper today, so nothing checks this
+        // link yet; setting it now means the day one does, a missing theme file fails the render
+        // instead of being photographed as an unthemed grid.
+        themeLink.className = 'dynamic-css';
 
         if (theme === 'main' || theme === 'main-dark') {
           themeLink.href = `/static/css/handsontable/styles/ht-theme-main.css`;

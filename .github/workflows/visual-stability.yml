@@ -100,8 +100,9 @@ jobs:
 
       # No Build stage to download from on a dispatch, so this composes the same
       # screenshot tree visual.yml's artifact-fallback path does: the ES + CJS
-      # build, the language packs, and the type declarations the regenerated
-      # `exports` map names (partial-packaging.test.mjs pins that pairing).
+      # build, the language packs, the type declarations the regenerated
+      # `exports` map names (partial-packaging.test.mjs pins that pairing), and
+      # the stylesheets.
       - name: Build the Handsontable package the demos import
         if: steps.gate.outputs.run == 'true'
         run: |
@@ -112,9 +113,29 @@ jobs:
           npm run in handsontable build:languages.min
           npm run in handsontable build:types
           (cd handsontable && node scripts/run.mjs downlevel:types)
+          # The theme stylesheets. The js demo loads its theme as a <link> from
+          # `styles/` (examples/next/visual-tests/js/demo/src/index.js, loadThemeCSS).
+          # The base stylesheet is already there — `build:es` pulls `build:styles.min`
+          # and so `build:styles` through handsontable/scripts/tasks.json — but the
+          # theme files are prerequisites of `build:umd` / `build:umd.min` only, which
+          # is how visual.yml's fallback gets them and which this job never runs (the
+          # vite demo does not load the UMD bundles). So the two theme tasks are named
+          # here. Without them the first CI dispatch (run 35230835319) rendered every
+          # themed pass unstyled: `postbuild:partial` copied a styles/ with no theme
+          # in it and said nothing (partial mode downgrades the completeness checks),
+          # the theme <link> got index.html and a 200 from vite's preview (no 404),
+          # the demo carried on, and ten runners agreed on the wrong picture. The
+          # fixture now refuses such a capture (assertStylesheetsLoaded in
+          # test-runner.ts); the check below fails the job before a browser launches.
+          npm run in handsontable build:themes-css
+          npm run in handsontable build:themes-css.min
           # A tree for screenshots, not for publishing (no UMD or theme bundles), so
           # it skips the strict packaging checks.
           npm run in handsontable postbuild:partial
+          test -f handsontable/tmp/styles/ht-theme-main.css || {
+            echo '::error::handsontable/tmp/styles/ht-theme-main.css is missing after postbuild:partial — the themed renders below would photograph an unstyled grid.'
+            exit 1
+          }
 
       # The installer and the linker both filter by path prefix, so naming the js tree
       # skips the three wrapper installs this job never serves (the Angular one is the
