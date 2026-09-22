@@ -3125,8 +3125,8 @@ export default (): Record<string, unknown> => {
      *
      * | Setting     | Description                                                                                |
      * | ----------- | ------------------------------------------------------------------------------------------ |
-     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
-     * | `true`      | Use the plugin with the default configuration (built-in xlsx engine)                       |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration, with the context-menu entry hidden |
+     * | `true`      | Use the plugin with the default configuration (built-in xlsx engine), with the context-menu entry shown |
      * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
      *
      * If you set the `exportFile` option to an object, you can configure the following options:

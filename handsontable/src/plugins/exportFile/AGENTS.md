@@ -123,6 +123,13 @@ Other rules:
   renderer leaving an object or an array in the cell is all it takes.
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
+- **Every dropped-feature name the export can report is a row in the export guide's dropped-features
+  table**, the same rule `importFile/AGENTS.md` states for the import direction: add to both or neither.
+  The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
+  `DroppedFeatureName` narrows `DroppedFeatures#record()` to them — they are public output, so a typo in
+  one adapter would otherwise produce a different key for the same condition with nothing to catch it.
+  The write direction owns `compressionLevel`, `merge:overlap` and the four `conditionalFormatting:*`
+  names; the read direction's are in the import guide.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule

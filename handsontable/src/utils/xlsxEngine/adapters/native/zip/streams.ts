@@ -38,7 +38,8 @@ async function pump(
 
   try {
     for (;;) {
-      // eslint-disable-next-line no-await-in-loop
+      // The next chunk does not exist until this one has been delivered.
+      // eslint-disable-next-line no-await-in-loop -- a stream is read one chunk at a time.
       const { done, value } = await reader.read();
 
       if (done) {
@@ -48,7 +49,8 @@ async function pump(
       total += value.byteLength;
 
       if (total > maxBytes) {
-        // eslint-disable-next-line no-await-in-loop
+        // The cap was hit, so this cancels the stream once and throws: the loop never comes round again.
+        // eslint-disable-next-line no-await-in-loop -- see the comment above.
         await reader.cancel();
         throwLimitExceeded(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
       }

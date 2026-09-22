@@ -204,19 +204,19 @@ export function worksheetXml(
   w.open('sheetViews').open('sheetView', { workbookViewId: 0, rightToLeft: sheet.rtl ? '1' : undefined });
 
   if (sheet.freeze) {
-    const { rows, cols } = sheet.freeze;
+    const { rows: frozenRows, cols: frozenColumns } = sheet.freeze;
     let activePane = 'bottomLeft';
 
-    if (cols > 0 && rows > 0) {
+    if (frozenColumns > 0 && frozenRows > 0) {
       activePane = 'bottomRight';
-    } else if (cols > 0) {
+    } else if (frozenColumns > 0) {
       activePane = 'topRight';
     }
 
     w.leaf('pane', {
-      xSplit: cols > 0 ? cols : undefined,
-      ySplit: rows > 0 ? rows : undefined,
-      topLeftCell: address(rows, cols),
+      xSplit: frozenColumns > 0 ? frozenColumns : undefined,
+      ySplit: frozenRows > 0 ? frozenRows : undefined,
+      topLeftCell: address(frozenRows, frozenColumns),
       activePane,
       state: 'frozen',
     });

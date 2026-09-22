@@ -95,6 +95,18 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   and friends are matched WITH it. Today only the VML *writer* exists (`parts/comments.ts`), so
   nothing reads one — if a VML reader is ever added, it must not normalize.
 - **The numeric DEFLATE level is ignored** – `CompressionStream` has none. `false` stores.
+- **The write is SYNCHRONOUS per sheet, and nothing caps its size.** `writeWorkbook` loops over the
+  snapshot's sheets and calls `worksheetXml` for each one; the only `await` in that loop is
+  `hashSheetPassword`, which an unprotected sheet skips. `worksheetXml` builds the whole part as one
+  string through `XmlWriter` (array of parts, one `join('')` — the right shape, no quadratic
+  concatenation) and `TextEncoder` then copies it into a `Uint8Array`, so a large sheet holds the
+  UTF-16 string and its UTF-8 copy at once and the main thread does not yield between rows or
+  between sheets. Only the DEFLATE (`zip/writer.ts`) and the password hash yield at all. The read
+  side has explicit budgets for exactly this cost (`MAX_SHEET_CELLS`, `chargeSpan`); the write side
+  has NONE, deliberately — the caller asked for this data — and it is no worse than the ExcelJS
+  path, whose non-streaming writer is synchronous per sheet too. The export guide says so in its
+  engines section. If a yield is ever added, it belongs between sheets in `write.ts`, not inside
+  `worksheetXml`, where the part's own child order is the constraint.
 - **The built-in numFmt table follows ECMA-376, not ExcelJS**, and exactly ONE id disagrees: id 22
   is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. Ids 39 and
   40 carry the identical string in both tables — an earlier version of this file claimed they
@@ -111,9 +123,11 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   SYNCHRONOUSLY; inside the async zip writer that surfaces as a rejection.
 - **A sheet password is hashed exactly as ExcelJS hashes it** (`parts/protection.ts`: SHA-512 spin
   hash, 100000 rounds, UTF-16LE password, 16-byte salt) so Excel prompts for it on unprotect. It
-  is a UI gate, not encryption. Today's export always passes an empty password; the hash path is
-  parity for a snapshot built elsewhere. On read the hash is unrecoverable: `sheetProtection:password`
-  is recorded and `password` stays `null`, as before.
+  is a UI gate, not encryption. The export never SETS a sheet password — `exportFile` calls
+  `SheetBuilder#protect('')` and the builder stores `''` as `null` (`builder.ts`), which `write.ts`
+  never hashes — so the hash path is unreachable from `exportFile` and exists as parity for a
+  snapshot built elsewhere. On read the hash is unrecoverable: `sheetProtection:password` is
+  recorded and `password` stays `null`, as before.
 - **Column, validation and merge spans are budgeted as a whole, and measured before they are walked.**
   `<dimension ref="A1:A1048576"/>` is one column by a million rows, which is under `MAX_SHEET_CELLS`
   and so passes every per-sheet cap, and a `sqref` may repeat one whole-column range any number of

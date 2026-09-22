@@ -52,9 +52,6 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
               error('ExportFile: XLSX export failed.', err);
             });
           },
-          hidden() {
-            return !exportFilePlugin.supportsExportFormat('xlsx');
-          },
         },
       ],
     },

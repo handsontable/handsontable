@@ -111,7 +111,11 @@ export async function writeZip(entries: ZipEntryInput[], compress: boolean): Pro
   let localOffset = 0;
 
   for (const entry of entries) {
-    // eslint-disable-next-line no-await-in-loop
+    // Sequenced on purpose, and the reason is MEMORY, not ordering: the entries are independent and
+    // `Promise.all` would keep the array's order anyway, but it would also hold every part's
+    // compressed copy, and every `CompressionStream` behind it, alive at once — a whole workbook
+    // instead of one part. The offsets are accumulated here as each compressed length becomes known.
+    // eslint-disable-next-line no-await-in-loop -- see the comment above.
     const data = compress ? await deflateRaw(entry.data) : entry.data;
     const nameBytes = encoder.encode(entry.name);
 

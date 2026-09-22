@@ -99,7 +99,20 @@ XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.c
 | Conditional formatting | Some rule kinds | Yes |
 | List validation (dropdown sources) | Yes | Yes |
 
+Both engines write a sheet synchronously. A very large grid blocks the tab for as long as the sheet takes to serialize, and a multi-sheet export pays that for each sheet in turn, so export a large grid from an interaction the user started rather than on a timer.
+
 When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export with it. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+
+These are the keys the export can report:
+
+| Key | What it means |
+|---|---|
+| `compressionLevel` | You set a numeric `compression` level and the built-in engine cannot honor it. The Compression Streams API the engine packs with has no level parameter, so the archive uses the platform default. Pass `compression: false` to store the entries instead. |
+| `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
+| `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar` or `iconSet`. The rest of the block is written. |
+| `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. |
+| `conditionalFormatting:expression` | An `expression` rule with no `formulae` entry. The rule means nothing without one. |
+| `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `formulae` entry, or no `timePeriod` string. |
 
 Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
 

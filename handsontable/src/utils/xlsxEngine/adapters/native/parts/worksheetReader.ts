@@ -200,7 +200,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   const pendingValidations: Array<{ sqref: string; formulae: string[]; allowBlank: boolean }> = [];
   let width = 0;
   let layoutColCount = 0;
-  let declaredCols = 0;
+  let declaredColumns = 0;
   // Cells covered so far by declared column and validation ranges. A `sqref` may repeat the same
   // range any number of times and a `<col>` span may cover the whole sheet, so the expansion work is
   // budgeted as a whole and each range is MEASURED before it is walked — a 2.6 kB file repeating one
@@ -415,7 +415,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
             // `<dimension>` in the part, so the layout width is not known yet; the workbook budget
             // is charged once at the end, when it is.
             assertSheetRectangle(ctx.name, dimension.endRow, dimension.endCol, dimension.endCol);
-            declaredCols = dimension.endCol;
+            declaredColumns = dimension.endCol;
             // A declared tail row with no `<row>` element still exists, as `[]` – the ExcelJS
             // adapter reports `rowCount` from the same declaration.
             ensureRow(dimension.endRow - 1);
@@ -427,10 +427,12 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           break;
         case 'pane':
           if (attrs.state === 'frozen' || attrs.state === 'frozenSplit') {
-            const cols = Number(attrs.xSplit ?? 0);
+            const frozenColumns = Number(attrs.xSplit ?? 0);
             const frozenRows = Number(attrs.ySplit ?? 0);
 
-            sheet.freeze = cols > 0 || frozenRows > 0 ? { rows: frozenRows, cols } : null;
+            sheet.freeze = frozenColumns > 0 || frozenRows > 0
+              ? { rows: frozenRows, cols: frozenColumns }
+              : null;
           }
           break;
         case 'col': {
@@ -702,7 +704,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     // The dimension is the bound, the same one the validation pass below uses: both the native
     // writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
     // malformed and stays clamped rather than growing the sheet on a hostile file's say-so.
-    const lastCol = Math.min(merge.col + merge.colspan, Math.max(width, declaredCols, 1));
+    const lastCol = Math.min(merge.col + merge.colspan, Math.max(width, declaredColumns, 1));
 
     if (lastRow <= merge.row || lastCol <= merge.col) {
       return;
@@ -747,7 +749,7 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   pendingValidations.forEach(({ sqref, formulae, allowBlank }) => {
     parseMultiRangeRef(sqref).forEach((range) => {
       const lastRow = Math.min(range.endRow, rows.length);
-      const lastCol = Math.min(range.endCol, Math.max(width, declaredCols, 1));
+      const lastCol = Math.min(range.endCol, Math.max(width, declaredColumns, 1));
 
       if (lastRow < range.startRow || lastCol < range.startCol) {
         return;
