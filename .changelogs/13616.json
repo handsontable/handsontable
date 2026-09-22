@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed undo and redo after detaching a nested row.",
+  "type": "fixed",
+  "issueOrPR": 13616,
+  "breaking": false,
+  "framework": "none"
+}
