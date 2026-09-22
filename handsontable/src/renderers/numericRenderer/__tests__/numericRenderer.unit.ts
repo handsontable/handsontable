@@ -234,7 +234,7 @@ describe('numericRenderer', () => {
         expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
-      it('should add default class names only if value is numeric', () => {
+      it('should add default class names regardless of whether the value is numeric (DEV-135)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
         const cellMeta = {
@@ -247,8 +247,47 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td>A</td>');
-        expect(cellMeta.className).toBe(undefined);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">A</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should add default class names for `null`/`undefined` values (DEV-135)', () => {
+        for (const cellValue of [null, undefined]) {
+          const TD = document.createElement('td');
+          const instance = getInstance();
+          const cellMeta = { instance };
+          const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+          spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+          numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+          expect(TD.getAttribute('dir')).toBe('ltr');
+          expect(cellMeta.className).toBe('htRight htNumeric');
+        }
+      });
+
+      it('should not rewrite `className` into a joined string when both markers are already present ' +
+        '(gate the write on an actual change)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        // An array already carrying both markers - nothing for this render to add.
+        const existingClassName = ['htRight', 'htNumeric'];
+        const cellMeta = {
+          instance,
+          className: existingClassName,
+        };
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        // The renderer must not rewrite an unchanged array into a joined string - doing so
+        // unconditionally would replay a user-defined array `className` as a baked-in string the
+        // next time `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
+        expect(cellMeta.className).toBe(existingClassName);
       });
 
       it('should add default class names when `className` is an array', () => {

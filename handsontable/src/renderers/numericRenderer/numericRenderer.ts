@@ -55,24 +55,36 @@ export function numericRenderer(
     }
   }
 
-  if (isNumeric(hotInstance.getDataAtCell(row, col))) {
-    // `className` is publicly typed `string | string[]`. `normalizeClassNames()` returns a fresh
-    // array on both branches, so the pushes below cannot reach a grid-level or column-level array -
-    // that is one instance shared by every cell through the cell meta prototype chain.
-    const classArr = normalizeClassNames(cellProperties.className);
+  // `numericRenderer` only ever runs for a cell already configured numeric (`type: 'numeric'` or
+  // `renderer: 'numeric'`), so the alignment/class marker applies unconditionally here - it must not
+  // be re-derived from the cell's VALUE, or a numeric-typed cell holding `null`/`undefined`/text never
+  // gets marked as numeric even though `getCellMeta().type` says it is (DEV-135).
+  //
+  // `className` is publicly typed `string | string[]`. `normalizeClassNames()` returns a fresh
+  // array on both branches, so the pushes below cannot reach a grid-level or column-level array -
+  // that is one instance shared by every cell through the cell meta prototype chain.
+  const classArr = normalizeClassNames(cellProperties.className);
+  let classArrChanged = false;
 
-    if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
-      classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
-      classArr.push('htRight');
-    }
-
-    if (classArr.indexOf('htNumeric') < 0) {
-      classArr.push('htNumeric');
-    }
-
-    cellProperties.className = classArr.join(' ');
-    TD.dir = 'ltr';
+  if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
+    classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+    classArr.push('htRight');
+    classArrChanged = true;
   }
+
+  if (classArr.indexOf('htNumeric') < 0) {
+    classArr.push('htNumeric');
+    classArrChanged = true;
+  }
+
+  // Gate the write on actually having changed something - rewriting the array into a string on
+  // every render would replay a user-defined array `className` as a baked-in string the next time
+  // `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
+  if (classArrChanged) {
+    cellProperties.className = classArr.join(' ');
+  }
+
+  TD.dir = 'ltr';
 
   textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
