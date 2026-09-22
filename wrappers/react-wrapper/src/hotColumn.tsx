@@ -18,6 +18,8 @@ import { useHotTableContext } from './hotTableContext';
 import { useHotColumnContext } from './hotColumnContext';
 import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
+const isHotColumn = (childNode: any): childNode is ReactElement => childNode.type === HotColumn;
+
 const internalProps = ['_columnIndex', '_getOwnerDocument', 'children'];
 
 const HotColumn: FC<HotColumnProps> = (props) => {
@@ -109,7 +111,5 @@ const HotColumn: FC<HotColumnProps> = (props) => {
     </EditorContextProvider>
   );
 };
-
-const isHotColumn = (childNode: any): childNode is ReactElement => childNode.type === HotColumn;
 
 export { HotColumn, isHotColumn };

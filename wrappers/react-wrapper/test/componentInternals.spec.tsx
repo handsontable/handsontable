@@ -14,10 +14,6 @@ import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types';
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async() => {
-    /**
-     *
-     * @param props
-     */
     function RendererComponent2(props: HotRendererProps) {
       React.useEffect(() => {
         rendererCounters.set(`${props.row}-${props.col}`, {
@@ -160,10 +156,6 @@ describe('Component lifecyle', () => {
   // unmounted and their portal container DIVs detached from the TD on every
   // grid render, causing a visible flicker and loss of component-local state.
   it('should not detach the portal container DIV from any TD when a single cell is edited (#10800)', async() => {
-    /**
-     *
-     * @param props
-     */
     function StableCell(props: HotRendererProps) {
       return (
         <span data-cell={`${props.row}-${props.col}`}>{String(props.value)}</span>
@@ -228,10 +220,6 @@ describe('Component lifecyle', () => {
   it('should preserve renderer component state across grid renders (#10800)', async() => {
     let nextSeed = 0;
 
-    /**
-     *
-     * @param props
-     */
     function SeededCell(props: HotRendererProps) {
       // useState initialiser runs once per mount. If the wrapper remounts the
       // component on every render, the seed will change.

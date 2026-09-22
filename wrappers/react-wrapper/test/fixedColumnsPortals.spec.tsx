@@ -17,10 +17,6 @@ import { HotRendererProps, HotTableRef } from '../src/types';
 describe('Component-based renderers in fixed columns', () => {
   const CELL_TEXT = 'rendered-by-component';
 
-  /**
-   *
-   * @param props
-   */
   function Cell(props: HotRendererProps) {
     return <span className="cell-marker">{`${CELL_TEXT}:${props.row}-${props.col}`}</span>;
   }

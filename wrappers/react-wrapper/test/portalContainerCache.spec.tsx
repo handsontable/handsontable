@@ -21,10 +21,6 @@ describe('Portal container cache eviction', () => {
   it('should keep the portal container cache bounded to the viewport while scrolling a tall grid', async() => {
     let capturedContext: ReturnType<typeof useHotTableContext> | undefined;
 
-    /**
-     *
-     * @param props
-     */
     function Cell(props: HotRendererProps) {
       // A renderer component renders inside the context provider, so it can
       // read the diagnostic cache size.
@@ -81,10 +77,6 @@ describe('Portal container cache eviction', () => {
     let nextSeed = 0;
     const seeds = new Map<string, number>();
 
-    /**
-     *
-     * @param props
-     */
     function SeededCell(props: HotRendererProps) {
       // useState initialiser runs once per mount. A fresh seed on return proves
       // the previous container was evicted (not reused from the cache).

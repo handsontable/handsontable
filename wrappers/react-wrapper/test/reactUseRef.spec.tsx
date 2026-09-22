@@ -12,9 +12,6 @@ describe('Using useRef hooks within HotTable', () => {
     const refData = createSpreadsheetData(3, 3);
     let data!: string[][];
 
-    /**
-     *
-     */
     function ExampleComponent() {
       const hotRef = useRef<HotTableRef>(null);
 

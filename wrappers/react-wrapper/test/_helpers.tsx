@@ -37,11 +37,6 @@ afterEach(() => {
   });
 });
 
-/**
- *
- * @param Component
- * @param strictMode
- */
 export function mountComponentWithRef<T>(Component: React.ReactElement, strictMode = true): T {
   let hotTableComponent: React.RefObject<T> | null = null;
 
@@ -62,12 +57,6 @@ export function mountComponentWithRef<T>(Component: React.ReactElement, strictMo
   return hotTableComponent!.current!;
 }
 
-/**
- *
- * @param props
- * @param strictMode
- * @param hotTableRef
- */
 export function renderHotTableWithProps(
   props: HotTableProps,
   strictMode = true,
@@ -84,10 +73,6 @@ export function renderHotTableWithProps(
   return hotTableRef;
 }
 
-/**
- *
- * @param Component
- */
 export function mountComponent(Component: React.ReactElement): void {
   const App = () => {
     return (
@@ -100,10 +85,6 @@ export function mountComponent(Component: React.ReactElement): void {
   });
 }
 
-/**
- *
- * @param delay
- */
 export function sleep(delay = 100): Promise<void> {
   return new Promise((resolve) => {
     if (delay === 0) {
@@ -158,12 +139,6 @@ export function createSpreadsheetData(rows = 100, columns = 4): string[][] {
   return _rows;
 }
 
-/**
- *
- * @param element
- * @param width
- * @param height
- */
 export function mockElementDimensions(element: HTMLElement, width: number, height: number): void {
   Object.defineProperty(element, 'clientWidth', {
     value: width
@@ -180,11 +155,6 @@ export function mockElementDimensions(element: HTMLElement, width: number, heigh
   });
 }
 
-/**
- *
- * @param type
- * @param keyCode
- */
 export function simulateKeyboardEvent(type: string, keyCode: number): void {
   const newEvent: any = document.createEvent('KeyboardEvent');
   const KEY_CODES: Record<number, string> = {
@@ -225,11 +195,6 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
   document.activeElement!.dispatchEvent(newEvent);
 }
 
-/**
- *
- * @param element
- * @param type
- */
 export function simulateMouseEvent(element: Element | null, type: string): void {
   const event = document.createEvent('Events');
 

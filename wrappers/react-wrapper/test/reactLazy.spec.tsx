@@ -11,10 +11,6 @@ import { HotRendererProps, HotTableRef } from '../src/types';
 
 describe('React.lazy', () => {
   it('should be possible to lazy-load components and utilize Suspend', async() => {
-    /**
-     *
-     * @param props
-     */
     function RendererComponent2(props: HotRendererProps) {
       return (
         <>
@@ -25,10 +21,6 @@ describe('React.lazy', () => {
 
     let promiseResolve: (value: unknown) => void = () => undefined;
 
-    /**
-     *
-     * @param props
-     */
     function SuspendedRenderer(props: HotRendererProps) {
       const customImportPromise = new Promise((resolve, reject) => {
         promiseResolve = resolve;

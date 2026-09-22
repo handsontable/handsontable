@@ -13,10 +13,6 @@ import { HotRendererProps, HotTableRef } from '../src/types';
 
 describe('Using hooks within HotTable', () => {
   it('should be possible to use hook-enabled components as renderers', async() => {
-    /**
-     *
-     * @param props
-     */
     function HookEnabledRenderer(props: HotRendererProps) {
       const [count, setCount] = React.useState(0);
 

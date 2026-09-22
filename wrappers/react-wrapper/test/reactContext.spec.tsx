@@ -13,9 +13,6 @@ describe('React Context', () => {
     let hotTableInstance: HotTableRef = null!;
     const TestContext = React.createContext('def-test-val');
 
-    /**
-     *
-     */
     function RendererComponent2() {
       return (
         <TestContext.Consumer>
