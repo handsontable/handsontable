@@ -239,9 +239,24 @@ calls it once per selected cell in a loop. A naive action listening to `afterSet
 therefore push one undo entry per cell instead of one per click. The fix is the same shape
 `CellAlignmentAction` already uses for its own `setCellMeta('className', …)` writes: the menu item captures
 a per-cell `stateBefore` snapshot (`getReadOnlyStates()` in `contextMenu/utils.ts`, the `readOnly` twin of
-`getAlignmentClasses()`) and fires a bespoke `beforeReadOnlyToggle` hook **once**, after the snapshot and
-before the mutation loop; this action's `startRegisteringEvents()` is the only listener and turns that one
-firing into one `done()` call. No IGNORE-flag plumbing was needed at all, and not because
+`getAlignmentClasses()`) and fires a bespoke `beforeReadOnlyToggle` hook **once**, before the mutation loop;
+this action's `startRegisteringEvents()` is the only listener and turns that one firing into one `done()`
+call.
+
+**The snapshot pass is asymmetric, on purpose, and it costs the DEV-124 short-circuit in one direction
+only.** `checkSelectionConsistency()` decides "at least one cell is read-only" and stops at the FIRST
+match — the optimization `checkedMenuItems.unit.js` pins so a click on a 100k-cell already-read-only column
+does not pay 100k reads before any write starts. Making the selection READ-ONLY (no match found) gets its
+`stateBefore` for free: no match means the check already walked every cell to prove it, so every one of
+them was `false`, and passing an EMPTY snapshot restores that correctly on undo (`stateBefore[row]?.[col]`
+reads as `false` via `Boolean(undefined)`) with no second pass. Making the selection WRITABLE (a match
+found, so the check stopped early) cannot get this for free: undoing a MIXED selection needs to know every
+cell's actual prior state, and the short-circuit that decided the toggle deliberately never looked at the
+rest. So exactly this direction pays a second, full `getReadOnlyStates()` pass — the one case DEV-136 could
+not avoid without breaking correctness for a mixed selection. `readOnly.ts`'s `callback()` branches on
+`atLeastOneReadOnly` for exactly this reason; do not "simplify" it back to one unconditional call.
+
+No IGNORE-flag plumbing was needed at all, and not because
 `ignoreNewActions` is suppressing anything here: `undo()`/`redo()` write through `hot.setCellMeta()`, which
 fires `beforeSetCellMeta`/`afterSetCellMeta` — hooks this action does not listen to. The only hook this
 action's `startRegisteringEvents()` listens to is `beforeReadOnlyToggle`, and nothing in `undo()`/`redo()`
