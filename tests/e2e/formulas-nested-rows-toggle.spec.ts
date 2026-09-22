@@ -77,6 +77,28 @@ test.describe('Formulas across a nestedRows runtime toggle', () => {
     expect(await grid.consoleErrors()).toEqual([]);
   });
 
+  test('rebuilds the sheet once per toggle', async() => {
+    await grid.goto();
+
+    // DEV-3006: the mid-update pass used to scan the pre-flatten tree and the late listener scanned
+    // again, so the toggle paid two full rebuilds and the first one was discarded. The mid-update
+    // pass now only records that a resync is owed, and the late listener performs the one scan.
+    await grid.resetSheetWriteCount();
+    await grid.setNestedRows(true);
+
+    expect(await grid.sheetWriteCount()).toBe(1);
+    expect(await grid.sheetHeight()).toBe(4);
+
+    await grid.resetSheetWriteCount();
+    await grid.setNestedRows(false);
+
+    expect(await grid.sheetWriteCount()).toBe(1);
+    expect(await grid.sheetContent()).toEqual([
+      ['Root A', ''],
+      ['Root B', '=UPPER(A1)'],
+    ]);
+  });
+
   test('leaves the sheet alone when the row count did not change', async() => {
     await grid.goto();
 
