@@ -47,6 +47,26 @@ describe('Handsontable initialization', () => {
     expect(hotInstance.rootContainer.id).toEqual('test-hot');
   });
 
+  it('should not throw when the `id` prop is added or removed across re-renders', async () => {
+    // `useId()` must run unconditionally on every render (never only when `id` is
+    // missing), or React sees a different hook count between renders and throws
+    // "Rendered fewer hooks than expected".
+    const hotTableRef = renderHotTableWithProps({
+      id: 'test-hot',
+      data: [[2]],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(() => {
+      renderHotTableWithProps({
+        data: [[2]],
+        licenseKey: 'non-commercial-and-evaluation',
+      }, true, hotTableRef);
+    }).not.toThrow();
+
+    expect(hotTableRef.current!.hotInstance!.rootContainer.id).not.toEqual('');
+  });
+
   it('should pass the provided properties to the Handsontable instance', async () => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
