@@ -55,6 +55,16 @@ Unit conversions, all constants at the top of `types/xlsx.ts`:
 
 Other rules:
 
+- **`_createTypeFormatter` resolves the engine as `options.engine ?? engines[format]`, never by spreading
+  the options over a default.** It used to build `{ engine: <configured>, ...options }`, so a caller's
+  `engine: null` or `engine: undefined` WON, and `types/xlsx.ts` then mapped that `null` to the built-in
+  engine — a grid configured `exportFile: { engines: { xlsx: ExcelJS } }` silently wrote through the
+  native engine on `downloadFileAsync('xlsx', { engine: null })`, against the `ExportOptions.engine`
+  JSDoc. `null` and `undefined` mean "no override" on both sides now, through
+  `resolveEngineOverride(override, configured)` in `../../utils/xlsxEngine/detect.ts`, which `importFile`
+  uses too — change one plugin's resolution and you have re-opened the drift. `types/xlsx.ts` still maps a
+  RESOLVED `null`/`undefined` to native, which is the `engines`-names-no-xlsx fallback the engine table
+  documents.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet

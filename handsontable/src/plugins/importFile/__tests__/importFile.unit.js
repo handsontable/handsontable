@@ -130,6 +130,8 @@ describe('ImportFile#supportsImportFormat', () => {
     expect(supports(true, 'xlsx')).toBe(true);
     expect(supports({}, 'xlsx')).toBe(true);
     expect(supports({ engines: {} }, 'xlsx')).toBe(true);
+    // A map that names another format names no xlsx engine either, so xlsx still falls back.
+    expect(supports({ engines: { csv: ExcelJS } }, 'xlsx')).toBe(true);
     expect(supports(undefined, 'xls')).toBe(false);
     expect(supports(undefined, 'csv')).toBe(false);
   });
@@ -213,11 +215,12 @@ describe('ImportFile#importFromArrayBuffer', () => {
     const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
     const noEngine = pluginWithFakeHot(undefined).plugin;
 
-    // `engines` is keyed by format, so a format with no engine of its own is named as such. The
-    // message also says omitting `engines` altogether uses the built-in engine instead, so this
-    // does not read as contradicting exportFile's silent fallback in that case.
+    // `engines` is keyed by format, so a format the map does not name falls back to the built-in
+    // engine — the same thing `supportsImportFormat` predicts and `exportFile` does. The refusal
+    // then comes from that engine's own format check and names it, so the message proves which
+    // engine the fallback picked.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values')))
-      .rejects.toThrow(/no engine is configured for "csv".*Omit "engines" entirely.*Configured formats: xlsx/);
+      .rejects.toThrow(/The "native" xlsx engine cannot import "csv" files.*Supported formats: xlsx/);
     // A per-call engine still goes through the format check of the engine it detects.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
       .rejects.toThrow(/cannot import "csv".*xlsx/);
@@ -238,6 +241,40 @@ describe('ImportFile#importFromArrayBuffer', () => {
     expect(result.engine).toEqual({ kind: 'native', version: null });
     expect(result.data[0][0]).toBe('Ana García');
     expect(calls.some(([method]) => method === 'updateSettings')).toBe(true);
+  });
+
+  it('should import through the built-in engine when engines is an empty map', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: {} }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: {} });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // The predicate and the import have to answer the same thing: an empty map injects nothing, so
+    // both take the built-in engine.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should import through the built-in engine when engines names another format only', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: { csv: ExcelJS } }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: { csv: ExcelJS } });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // `engines` is keyed by format, so a map without `xlsx` leaves xlsx uninjected — the same
+    // configuration `exportFile` falls back on, and the one the engine table documents.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should still refuse an engine of unknown shape configured for the format', async() => {
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: {} } });
+
+    // The fallback covers a MISSING entry only. An entry that is present and does not duck-type is
+    // a configuration mistake, and it keeps throwing rather than silently exporting the built-in
+    // engine's behavior.
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values')))
+      .rejects.toThrow(/Invalid xlsx engine module/);
   });
 
   it('should report layoutDirection as dropped when the grid direction disagrees with the sheet', async() => {

@@ -37,6 +37,8 @@ The built-in engine unpacks the archive with the Compression Streams API, which 
 
 The plugin reads `.xlsx` files with a built-in engine. To read through [ExcelJS](https://github.com/exceljs/exceljs) instead - for example to keep the behavior of a 19.0 integration - install ExcelJS 4.4 or later and pass it through the `engines` option: `importFile: { engines: { xlsx: ExcelJS } }`. The per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both engines and both directions.
 
+`engines` is keyed by format, so a map that names no `xlsx` engine reads `.xlsx` with the built-in engine, the same way `importFile: true` does. Pass a different engine for one call only with the `engine` option in `importFromArrayBuffer(format, buffer, options)` or `importFromBlob(format, blob, options)`. An `engine` of `null`, or no `engine` key at all, means no override: the call keeps the engine `engines` configured, or the built-in engine when `engines` names none for the format. The export direction resolves its own `engine` option the same way.
+
 ## Steps
 
 1. Enable the plugin.

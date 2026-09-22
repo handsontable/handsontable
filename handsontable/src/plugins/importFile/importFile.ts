@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
-import { detectXlsxEngine, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
+import { detectXlsxEngine, resolveEngineOverride, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
 import { DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
@@ -16,8 +16,8 @@ export const PLUGIN_PRIORITY = 245;
  */
 export interface ImportFileSettings {
   /**
-   * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
-   * built-in engine reads `.xlsx`.
+   * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it, or
+   * with a map that names no engine for the format, the built-in engine reads `.xlsx`.
    */
   engines?: Record<string, object>;
 }
@@ -67,7 +67,8 @@ export interface ImportOptions {
    */
   apply?: boolean;
   /**
-   * Per-call engine override.
+   * An xlsx engine module for this import only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
    */
   engine?: object;
   /**
@@ -264,12 +265,8 @@ function getPluginSettings(settings: unknown): ImportFileSettings | undefined {
  * The engine module configured for `format` under `engines`, keyed by format name the way the
  * option is documented and the way `exportFile` reads its own `engines`.
  */
-function configuredEngine(
-  hot: HotInstance, format: string
-): { engines: Record<string, object> | undefined; injected: object | undefined } {
-  const engines = getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines;
-
-  return { engines, injected: engines?.[format] };
+function configuredEngine(hot: HotInstance, format: string): object | undefined {
+  return getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines?.[format];
 }
 
 /**
@@ -277,7 +274,7 @@ function configuredEngine(
  * `null` instead of throwing when nothing usable was injected.
  */
 function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
-  const injected = override ?? configuredEngine(hot, format).injected;
+  const injected = resolveEngineOverride(override, configuredEngine(hot, format));
 
   try {
     return detectXlsxEngine(injected, PLUGIN_KEY);
@@ -288,21 +285,14 @@ function tryDetectEngine(hot: HotInstance, override: object | undefined, format:
 
 /**
  * Detects the engine from the per-call override or the plugin settings and checks it can read the
- * given format. Throws a Handsontable error when no engine is configured or the detected engine
- * cannot read the format.
+ * given format. An `engines` map that names no engine for `format` falls back to the built-in
+ * engine, which is what `supportsImportFormat` predicts and what `exportFile` does for the same
+ * configuration. Throws a Handsontable error when the injected value does not duck-type to a known
+ * engine, or when the detected engine cannot read the format.
  */
 function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
-  const { engines, injected } = configuredEngine(hot, format);
-
-  if (override === undefined && injected === undefined && engines && Object.keys(engines).length > 0) {
-    throwWithCause(
-      `ImportFile: no engine is configured for "${format}" files in the "engines" option. ` +
-      'Omit "engines" entirely to use the built-in engine instead of injecting one. ' +
-      `Configured formats: ${Object.keys(engines).join(', ')}.`
-    );
-  }
-
-  const detected = detectXlsxEngine(override ?? injected, PLUGIN_KEY);
+  const injected = resolveEngineOverride(override, configuredEngine(hot, format));
+  const detected = detectXlsxEngine(injected, PLUGIN_KEY);
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(

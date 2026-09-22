@@ -14,6 +14,16 @@ or an engine object.
 `detect.ts` decides. `undefined` → native; any other value must duck-type or it throws
 `Invalid xlsx engine module.` (public error text – the first sentence is asserted).
 
+**A per-call `engine` override resolves as `override ?? configured` in BOTH plugins**, through
+`resolveEngineOverride()` in `detect.ts` — so `null` and `undefined` both mean "no override" and
+neither downgrades a grid that configured ExcelJS to the built-in engine. The helper exists because
+the two plugins drifted: `exportFile` spread the caller's options over `{ engine: <configured> }`,
+so a per-call `engine: null` silently switched engines, while `importFile` threw
+`no engine is configured for "<format>" files` for a non-empty `engines` map that did not name the
+format — against this table, against its own `supportsImportFormat` (which answered `true` for
+exactly that shape) and against `exportFile`. The table's row IS the contract; both plugins now
+follow it. An entry that is PRESENT and does not duck-type still throws, in both directions.
+
 ## Traps in the native adapter
 
 - **Part child order is schema-fixed.** `<worksheet>`: dimension, sheetViews, sheetFormatPr, cols,

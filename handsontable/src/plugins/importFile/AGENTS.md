@@ -19,6 +19,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Traps
 
+- **`requireEngine` never refuses a MISSING `engines` entry, and `supportsImportFormat` is why.** An
+  `engines` map that names no engine for the format leaves the format uninjected, so it falls back to the
+  built-in engine — the row `../../utils/xlsxEngine/AGENTS.md` documents, and what `exportFile` does for
+  the same configuration. `requireEngine` used to throw `ImportFile: no engine is configured for
+  "<format>" files` there instead, which made `supportsImportFormat('xlsx')` answer `true` for a call that
+  always threw: a caller gating on the predicate got a false green, and mutating the throw's
+  `Object.keys(engines).length > 0` term survived the whole suite. Both entry points now resolve the
+  override through `resolveEngineOverride(override, configured)` from `../../utils/xlsxEngine/detect.ts`,
+  so `engine: null` per call also means "no override" rather than "built-in engine". The two refusals that
+  remain are an entry that IS present and does not duck-type (`Invalid xlsx engine module.`) and an engine
+  that cannot read the format.
 - **The adapter refuses a sheet before it allocates one.** `src/utils/xlsxEngine/limits.ts` caps a sheet at
   1,048,576 rows, 16,384 columns and 5,000,000 cells, and `readSheet` asserts all three from the DECLARED
   counts before the first row is read. A workbook is untrusted input: a file with one cell at `XFD1048576`

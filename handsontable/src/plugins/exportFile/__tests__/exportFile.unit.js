@@ -2,6 +2,7 @@ import { ExportFile } from '../exportFile';
 import DataProvider from '../dataProvider';
 import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
+import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
 import { _resetDeprecationWarnings } from '../../../helpers/console';
 
 beforeEach(() => {
@@ -39,6 +40,45 @@ describe('ExportFile#supportsExportFormat', () => {
   it('should return false for an unknown format even with engines configured', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'pdf')).toBe(false);
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), '')).toBe(false);
+  });
+});
+
+describe('ExportFile#_createTypeFormatter engine resolution', () => {
+  // `detectXlsxEngine` duck-types on a `Workbook` constructor, so this stands in for the real
+  // ExcelJS module. This file runs under jsdom, which ExcelJS itself cannot be loaded in.
+  const ExcelJS = { Workbook: class {} };
+
+  // The exporter resolves what it was handed exactly as `Xlsx#export` does, so the kind this
+  // reports is the engine the export would have run on.
+  const resolvedKind = (exportFileSettings, options) => detectXlsxEngine(
+    ExportFile.prototype._createTypeFormatter.call(fakeCtx(exportFileSettings), 'xlsx', options).options.engine
+      ?? undefined,
+    'exportFile'
+  ).kind;
+
+  it('should use the configured engine when the call passes no engine key', () => {
+    expect(resolvedKind({ engines: { xlsx: ExcelJS } }, {})).toBe('exceljs');
+    expect(resolvedKind({ engines: { xlsx: ExcelJS } }, undefined)).toBe('exceljs');
+  });
+
+  it('should keep the configured engine when the call passes engine: null or undefined', () => {
+    // `null`/`undefined` mean "no override", so they must not silently downgrade a grid that
+    // configured ExcelJS to the built-in engine — which is what spreading the options over the
+    // settings default used to do.
+    expect(resolvedKind({ engines: { xlsx: ExcelJS } }, { engine: null })).toBe('exceljs');
+    expect(resolvedKind({ engines: { xlsx: ExcelJS } }, { engine: undefined })).toBe('exceljs');
+  });
+
+  it('should let a real per-call engine win over the configured one', () => {
+    expect(resolvedKind({ engines: { xlsx: {} } }, { engine: ExcelJS })).toBe('exceljs');
+  });
+
+  it('should fall back to the built-in engine when neither the call nor the settings name one', () => {
+    expect(resolvedKind(undefined, {})).toBe('native');
+    expect(resolvedKind(true, {})).toBe('native');
+    expect(resolvedKind({ engines: {} }, {})).toBe('native');
+    expect(resolvedKind({ engines: { csv: ExcelJS } }, {})).toBe('native');
+    expect(resolvedKind({ engines: {} }, { engine: null })).toBe('native');
   });
 });
 

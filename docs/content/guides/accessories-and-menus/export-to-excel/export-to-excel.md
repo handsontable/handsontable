@@ -110,6 +110,8 @@ await exportPlugin.downloadFileAsync('xlsx', {
 });
 ```
 
+`engines` is keyed by format, so a map that names no `xlsx` engine writes `.xlsx` with the built-in engine, the same way `exportFile: true` does. An `engine` of `null`, or no `engine` key at all, means no override: the call keeps the engine `engines` configured, or the built-in engine when `engines` names none for the format. The [import direction](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md#engines) resolves its own `engine` option the same way.
+
 ## Example
 
 The table below is a Q1 sales report that demonstrates the main XLSX export features: nested column headers, numeric and checkbox cell types, a column summary total, merged cells, a custom border, a frozen first column, and a cell comment on Alice's row.

@@ -57,6 +57,18 @@ function toDetected(injected: unknown): DetectedXlsxEngine | null {
 }
 
 /**
+ * Resolves the engine module one call runs on: the per-call override when the caller passed one,
+ * otherwise the module configured for that format under the plugin's `engines` option.
+ *
+ * `null` and `undefined` mean the same thing on the override side — "no override" — so a per-call
+ * `engine: null` never bypasses a configured engine. Both plugins resolve the override through this
+ * helper so `importFile` and `exportFile` cannot drift apart again.
+ */
+export function resolveEngineOverride(override: unknown, configured: unknown): unknown {
+  return override ?? configured;
+}
+
+/**
  * Detects which xlsx engine was injected. Duck-typed, never version-based. `undefined` selects the
  * built-in engine; any other value must duck-type to a known engine or the call throws. Retries once
  * on `injected.default` for ESM/CJS interop before giving up. `optionName` names the plugin option

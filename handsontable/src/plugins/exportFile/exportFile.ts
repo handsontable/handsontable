@@ -3,6 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
+import { resolveEngineOverride } from '../../utils/xlsxEngine/detect';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
@@ -702,8 +703,10 @@ export class ExportFile extends BasePlugin {
   /**
    * Creates and returns a class formatter for the specified export type.
    *
-   * The engine for the requested format is looked up from the plugin's `engines`
-   * map and merged as a default so that per-call options can override it if needed.
+   * The engine for the requested format is the per-call `engine` option when the caller passed one,
+   * and the plugin's `engines` entry for that format otherwise. A per-call `null` or `undefined`
+   * means "no override", so it never bypasses a configured engine; with neither, the format's
+   * exporter falls back to the built-in engine.
    *
    * @private
    * @param {string} format Export format type eq. `'csv'` or `'xlsx'`.
@@ -717,10 +720,8 @@ export class ExportFile extends BasePlugin {
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
-    const engineFromSettings = engines?.[format];
-    const mergedOptions = engineFromSettings !== undefined
-      ? { engine: engineFromSettings, ...options }
-      : options;
+    const engine = resolveEngineOverride(options.engine, engines?.[format]);
+    const mergedOptions = engine !== undefined ? { ...options, engine } : options;
     const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
 
     if (formatter === null) {
