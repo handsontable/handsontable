@@ -240,7 +240,10 @@ describe('Formulas public API', () => {
       expect(getDataAtCell(0, 2)).toBe(3);
     });
 
-    it('should display the formula text instead of the calculated value once shown', async() => {
+    // Display-only, matching Excel/Sheets: `showFormulas()` changes what the cell PAINTS, not what
+    // `getDataAtCell()` reports. See the "does not affect other features" tests below for the
+    // sort/filter/validate proof that this boundary holds.
+    it('should display the formula text in the rendered cell without changing getDataAtCell()', async() => {
       handsontable({
         data: [['1', '2', '=A1+B1']],
         formulas: {
@@ -253,12 +256,13 @@ describe('Formulas public API', () => {
       formulas.showFormulas();
 
       expect(formulas.isShowingFormulas()).toBe(true);
-      expect(getDataAtCell(0, 2)).toBe('=A1+B1');
+      expect(getCell(0, 2).textContent).toBe('=A1+B1');
+      expect(getDataAtCell(0, 2)).toBe(3);
       // A non-formula cell is unaffected.
-      expect(getDataAtCell(0, 0)).toBe('1');
+      expect(getCell(0, 0).textContent).toBe('1');
     });
 
-    it('should revert to the calculated value after hideFormulas()', async() => {
+    it('should revert the rendered cell to the calculated value after hideFormulas()', async() => {
       handsontable({
         data: [['1', '2', '=A1+B1']],
         formulas: {
@@ -270,6 +274,33 @@ describe('Formulas public API', () => {
 
       formulas.showFormulas();
       formulas.hideFormulas();
+
+      expect(formulas.isShowingFormulas()).toBe(false);
+      expect(getCell(0, 2).textContent).toBe('3');
+      expect(getDataAtCell(0, 2)).toBe(3);
+    });
+
+    it('should reset to hidden on a disable/re-enable cycle, and reject calls while disabled', async() => {
+      const hot = handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+
+      formulas.showFormulas();
+      expect(formulas.isShowingFormulas()).toBe(true);
+
+      hot.updateSettings({ formulas: false });
+
+      // Calling the API while the plugin is disabled must not silently set the flag: there is no
+      // `modifyData` hook registered to act on it, so it would misreport a mode that shows nothing.
+      formulas.showFormulas();
+      expect(formulas.isShowingFormulas()).toBe(false);
+
+      hot.updateSettings({ formulas: { engine: HyperFormula } });
 
       expect(formulas.isShowingFormulas()).toBe(false);
       expect(getDataAtCell(0, 2)).toBe(3);
@@ -300,13 +331,15 @@ describe('Formulas public API', () => {
 
       // Only the origin cell has its own formula text to show; a spill cell has none of its own,
       // so it keeps displaying the value HyperFormula computed for it.
-      expect(getDataAtCell(2, 0)).toBe('=TRANSPOSE(A1:B2)');
-      expect(getDataAtCell(2, 1)).toBe(3);
-      expect(getDataAtCell(3, 0)).toBe(2);
-      expect(getDataAtCell(3, 1)).toBe(4);
+      expect(getCell(2, 0).textContent).toBe('=TRANSPOSE(A1:B2)');
+      expect(getCell(2, 1).textContent).toBe('3');
+      expect(getCell(3, 0).textContent).toBe('2');
+      expect(getCell(3, 1).textContent).toBe('4');
     });
 
     it('should copy the formula text, not the calculated value, while formulas are shown', async() => {
+      spyOn(document, 'execCommand');
+
       handsontable({
         data: [['1', '2', '=A1+B1']],
         formulas: {
@@ -319,8 +352,96 @@ describe('Formulas public API', () => {
 
       formulas.showFormulas();
 
-      expect(copyPaste.getRangedData([{ startRow: 0, startCol: 2, endRow: 0, endCol: 2 }]))
-        .toEqual([['=A1+B1']]);
+      await selectCell(0, 2);
+
+      const copyEvent = getClipboardEvent();
+
+      copyPaste.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('=A1+B1');
+    });
+
+    it('should copy the calculated value, not the formula text, while formulas are hidden', async() => {
+      spyOn(document, 'execCommand');
+
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const copyPaste = getPlugin('copyPaste');
+
+      await selectCell(0, 2);
+
+      const copyEvent = getClipboardEvent();
+
+      copyPaste.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('3');
+    });
+
+    describe('does not affect other Handsontable features while formulas are shown', () => {
+      it('should sort a formula column by its calculated value, not its formula text', async() => {
+        handsontable({
+          // The formula text in column 1, read row by row, is already ascending ('=A1' < '=A2' <
+          // '=A3'): a leak that sorted by formula text would leave the rows in this original
+          // order. Sorting by the calculated value (3, 1, 2) reorders them.
+          data: [
+            ['3', '=A1'],
+            ['1', '=A2'],
+            ['2', '=A3'],
+          ],
+          columnSorting: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        getPlugin('formulas').showFormulas();
+        getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+        expect(getDataAtCol(0)).toEqual(['1', '2', '3']);
+      });
+
+      it('should list a formula column\'s calculated values, not its formula text, in the filter-by-value dropdown', async() => {
+        handsontable({
+          data: [
+            ['1', '2', '=A1+B1'],
+            ['3', '4', '=A2+B2'],
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        getPlugin('formulas').showFormulas();
+
+        await dropdownMenu(2);
+
+        expect($(byValueBoxRootElement()).find('label:eq(0)').text()).toBe('3');
+      });
+
+      it('should validate a numeric formula column against its calculated value, not its formula text', async() => {
+        handsontable({
+          data: [['1', '2', '=A1+B1']],
+          columns: [{}, {}, { type: 'numeric' }],
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        getPlugin('formulas').showFormulas();
+
+        // eslint-disable-next-line handsontable/require-await
+        await new Promise(resolve => validateCells(resolve));
+
+        expect(getCellMeta(0, 2).valid).toBe(true);
+      });
     });
 
     // The legacy jQuery-simulated `keydown`/`keyup` events this suite's `keyDownUp()` helper builds
@@ -329,7 +450,7 @@ describe('Formulas public API', () => {
     // that's covered by a Playwright spec instead (`tests/e2e/formulas-show-formulas.spec.ts`). This
     // asserts the wiring a unit-level test CAN prove: exactly one shortcut is registered for the
     // real key combo, and invoking it runs the toggle.
-    it('should register exactly one grid shortcut for control/meta+backquote that toggles the mode', async() => {
+    it('should register exactly one grid shortcut for control+backquote that toggles the mode', async() => {
       handsontable({
         data: [['1', '2', '=A1+B1']],
         formulas: {
@@ -339,7 +460,7 @@ describe('Formulas public API', () => {
 
       const formulas = getPlugin('formulas');
       const gridContext = hot().getShortcutManager().getContext('grid');
-      const shortcuts = gridContext.getShortcuts(['control/meta', 'backquote']);
+      const shortcuts = gridContext.getShortcuts(['control', 'backquote']);
 
       expect(shortcuts.length).toBe(1);
 

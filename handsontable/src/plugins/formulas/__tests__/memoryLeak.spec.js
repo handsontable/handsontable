@@ -462,7 +462,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEventsNew.valuesUpdated.length).toBe(2);
   });
 
-  it('should not register the Ctrl+`/Cmd+` toggle shortcut twice after a disable/re-enable cycle', async() => {
+  it('should not register the Ctrl+` toggle shortcut twice after a disable/re-enable cycle', async() => {
     const hot = handsontable({
       data: [['1', '2', '=A1+B1']],
       formulas: {
@@ -474,7 +474,7 @@ describe('Formulas memory leak check', () => {
     hot.updateSettings({ formulas: { engine: HyperFormula } });
 
     const gridContext = hot.getShortcutManager().getContext('grid');
-    const shortcuts = gridContext.getShortcuts(['control/meta', 'backquote']);
+    const shortcuts = gridContext.getShortcuts(['control', 'backquote']);
 
     // A shortcut left registered from the disabled instance would leave two callbacks in the group,
     // which would toggle the flag back off in the same keypress instead of leaving it on.

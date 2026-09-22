@@ -3,11 +3,14 @@ import { FormulasShowFormulasPage } from '../fixtures/pages/FormulasShowFormulas
 
 /**
  * DEV-207: `showFormulas()`/`hideFormulas()` make a formula cell display its formula text instead
- * of its calculated value. The grid runs `renderMode: 'onChange'`, so these are real-browser checks
- * of what a Jasmine unit-style assertion on `getDataAtCell()` cannot prove: that the toggle actually
- * repaints the DOM, that the real `Ctrl`+`` ` ``/`Cmd`+`` ` `` keypress reaches the shortcut (a
- * synthetic Jasmine `keydown` cannot carry the real `keyCode` a browser assigns to the backquote
- * key), and that a `HYPERLINK` cell stops rendering as a link once its raw formula text is shown.
+ * of its calculated value - display-only, like Excel/Sheets: `getDataAtCell()`, sorting, filtering
+ * and validation are unaffected (pinned in the Jasmine suite, `publicAPI.spec.js`). The grid runs
+ * `renderMode: 'onChange'`, so these are real-browser checks of what a Jasmine unit-style assertion
+ * cannot prove: that the toggle actually repaints the DOM, that the real `Ctrl`+`` ` `` keypress
+ * reaches the shortcut (a synthetic Jasmine `keydown` cannot carry the real `keyCode` a browser
+ * assigns to the backquote key - and the binding is `Control` only, not `Control/Meta`: `Cmd`+`` ` ``
+ * is the macOS "move focus to the next window" shortcut), and that a `HYPERLINK` cell stops
+ * rendering as a link once its raw formula text is shown.
  */
 test.describe('Formulas: showFormulas() / hideFormulas()', () => {
   let grid: FormulasShowFormulasPage;
@@ -28,16 +31,16 @@ test.describe('Formulas: showFormulas() / hideFormulas()', () => {
     await expect(grid.cell(0, 0)).toHaveText('1');
   });
 
-  test('toggles with a real Ctrl+`/Cmd+` keypress', async() => {
+  test('toggles with a real Ctrl+` keypress', async() => {
     await grid.goto();
     await grid.selectCell(0, 0);
 
-    await grid.page.keyboard.press('ControlOrMeta+Backquote');
+    await grid.page.keyboard.press('Control+Backquote');
 
     expect(await grid.isShowingFormulas()).toBe(true);
     await expect(grid.cell(0, 2)).toHaveText('=A1+B1');
 
-    await grid.page.keyboard.press('ControlOrMeta+Backquote');
+    await grid.page.keyboard.press('Control+Backquote');
 
     expect(await grid.isShowingFormulas()).toBe(false);
     await expect(grid.cell(0, 2)).toHaveText('3');

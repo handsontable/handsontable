@@ -34,6 +34,7 @@ import {
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
+import { fastInnerText } from '../../helpers/dom/element';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -42,7 +43,8 @@ import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
-import type { CellChange } from '../../settings';
+import type { CellChange, CellValue } from '../../settings';
+import type { RangeType } from '../../core/types';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
@@ -121,6 +123,49 @@ function isFormulasSettingsObject(value: unknown): value is FormulasPluginSettin
  */
 function hasValueProperty(candidate: unknown): candidate is { value: unknown } {
   return typeof candidate === 'object' && candidate !== null && 'value' in candidate;
+}
+
+/**
+ * Reconstructs the visual `(row, column)` pairs `CopyPaste#getRangedData` walks to build the `data`
+ * array `beforeCopy`/`beforeCut` receive, from the same `coords` argument those hooks receive:
+ * `data[i][j]` corresponds to `rows[i]`/`columns[j]`. A distinct-rows array and a distinct-columns
+ * array, each built by visiting every range in order and keeping only the first occurrence of each
+ * index - the same shape `normalizeRanges()` in `../copyPaste/copyableRanges.ts` produces, kept as a
+ * local copy rather than an import to avoid a cross-plugin dependency on that plugin's internal
+ * module. Keep the two in sync if that algorithm changes.
+ *
+ * @param {RangeType[]} coords The ranges passed to `beforeCopy`/`beforeCut`.
+ * @returns {{rows: number[], columns: number[]}} The distinct rows and columns, in `data` order.
+ */
+function copiedRowsAndColumns(coords: RangeType[]): { rows: number[]; columns: number[] } {
+  const rows: number[] = [];
+  const columns: number[] = [];
+  const seenRows = new Set<number>();
+  const seenColumns = new Set<number>();
+
+  coords.forEach(({ startRow, endRow, startCol, endCol }) => {
+    const minRow = Math.min(startRow, endRow);
+    const maxRow = Math.max(startRow, endRow);
+
+    for (let row = minRow; row <= maxRow; row++) {
+      if (!seenRows.has(row)) {
+        seenRows.add(row);
+        rows.push(row);
+      }
+    }
+
+    const minCol = Math.min(startCol, endCol);
+    const maxCol = Math.max(startCol, endCol);
+
+    for (let col = minCol; col <= maxCol; col++) {
+      if (!seenColumns.has(col)) {
+        seenColumns.add(col);
+        columns.push(col);
+      }
+    }
+  });
+
+  return { rows, columns };
 }
 
 export const PLUGIN_KEY = 'formulas';
@@ -261,10 +306,13 @@ export class Formulas extends BasePlugin {
 
   /**
    * Whether formula cells display their formula text (`showFormulas()`) instead of their
-   * calculated value. Read by `#onModifyData` (the display/copy path) and `#onAfterRenderer` (so a
-   * `HYPERLINK` cell stops rendering as a link while its formula text is shown). The source-data
-   * read path (`#onModifySourceData`) already reports the formula text regardless of this flag,
-   * which is what lets the cell editor show it whether or not this mode is on.
+   * calculated value. Deliberately NOT read by `#onModifyData`: this is display-only, matching
+   * Excel/Sheets, so `getDataAtCell()` and everything reading through it - sorting, filtering,
+   * validation - stay on the calculated value. Read instead by `#onAfterRenderer` (paints the
+   * formula text over the rendered value, and stops a `HYPERLINK` cell from rendering as a link
+   * while its formula text is shown) and `#onBeforeCopyOrCut` (rewrites what's copied/cut to match).
+   * The source-data read path (`#onModifySourceData`) already reports the formula text regardless of
+   * this flag, which is what lets the cell editor show it whether or not this mode is on.
    */
   #showFormulasFlag = false;
 
@@ -881,6 +929,8 @@ export class Formulas extends BasePlugin {
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    this.addHook('beforeCopy', this.#onBeforeCopyOrCut);
+    this.addHook('beforeCut', this.#onBeforeCopyOrCut);
 
     this.#registerToggleFormulasShortcut();
 
@@ -1187,11 +1237,11 @@ export class Formulas extends BasePlugin {
   /**
    * Makes every formula cell display its formula text (for example `=SUM(A1:A2)`) instead of its
    * calculated value, until {@link Formulas#hideFormulas} is called. Copying a formula cell in this
-   * mode copies its formula text, matching what is on screen. Toggled by default with `Ctrl`+`` ` ``
-   * (or `Cmd`+`` ` `` on macOS).
+   * mode copies its formula text, matching what is on screen. Toggled by default with
+   * `Ctrl`+`` ` ``. Does nothing while the plugin is disabled.
    */
   showFormulas(): void {
-    if (this.#showFormulasFlag) {
+    if (!this.enabled || this.#showFormulasFlag) {
       return;
     }
 
@@ -1201,10 +1251,11 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reverts {@link Formulas#showFormulas}: formula cells display their calculated value again.
+   * Reverts {@link Formulas#showFormulas}: formula cells display their calculated value again. Does
+   * nothing while the plugin is disabled.
    */
   hideFormulas(): void {
-    if (!this.#showFormulasFlag) {
+    if (!this.enabled || !this.#showFormulasFlag) {
       return;
     }
 
@@ -1260,19 +1311,25 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Registers the `Ctrl`+`` ` ``/`Cmd`+`` ` `` shortcut that toggles {@link Formulas#showFormulas} /
+   * Registers the `Ctrl`+`` ` `` shortcut that toggles {@link Formulas#showFormulas} /
    * {@link Formulas#hideFormulas}. The plugin's own `registerShortcuts()` is a deprecated no-op kept
    * for backward compatibility, so this uses its own group name instead of that method.
    *
    * The key name is `'backquote'`, not the literal `` ` `` character: `normalizeEventKey()`
    * (`shortcuts/utils.ts`) maps a real backquote keypress (`keyCode`/`which` 192) through its
    * `specialCharactersSet` to the string `'backquote'`, never to the character itself.
+   *
+   * `Control`, not `Control/Meta`: on macOS, `Cmd`+`` ` `` is the system "move focus to the next
+   * window" shortcut, so Chrome consumes it before the page ever sees the keydown - the same reason
+   * `MergeCells` binds `['Control', 'm']` instead of `Control/Meta`. Excel for Mac and Google Sheets
+   * both use `Ctrl`+`` ` `` on macOS too, so this matches the real product convention, not just the
+   * OS-conflict workaround.
    */
   #registerToggleFormulasShortcut() {
     this.hot.getShortcutManager()
       .getContext('grid')
       ?.addShortcut({
-        keys: [['Control/Meta', 'backquote']],
+        keys: [['Control', 'backquote']],
         callback: () => {
           if (this.isShowingFormulas()) {
             this.hideFormulas();
@@ -2713,15 +2770,6 @@ export class Formulas extends BasePlugin {
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
-
-    // `showFormulas()` mode: report the formula text instead of the calculated value, exactly as
-    // `#onModifySourceData` already does for the source-data read path (the editor, copy/paste).
-    if (this.#showFormulasFlag) {
-      valueHolder.value = this.engine!.getCellSerialized(address);
-
-      return;
-    }
-
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the
@@ -2742,16 +2790,27 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `afterRenderer` hook callback. Wraps the already rendered content of a `HYPERLINK` cell in an
-   * anchor. The cell keeps its own renderer and its cell meta is left untouched, so disabling the
-   * plugin or clearing the formula needs no cleanup.
+   * `afterRenderer` hook callback. Paints `showFormulas()` mode's formula text over the already
+   * rendered calculated value, and wraps the already rendered content of a `HYPERLINK` cell in an
+   * anchor. Paint-only: neither write touches the data model, so `getDataAtCell()`, sorting,
+   * filtering, and validation never see the formula text - only the DOM does. The cell keeps its
+   * own renderer and its cell meta is left untouched, so disabling the plugin or clearing the
+   * formula needs no cleanup.
    *
    * @param {HTMLTableCellElement} TD The rendered cell element.
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    */
   #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
-    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
+    if (this.#internalOperationPending) {
+      return;
+    }
+
+    if (this.#showFormulasFlag) {
+      this.#paintFormulaText(TD, row, column);
+    }
+
+    if (!this.#hyperlinksEnabled) {
       return;
     }
 
@@ -2763,7 +2822,9 @@ export class Formulas extends BasePlugin {
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
 
     // While formulas are shown as raw text, the rendered content is the formula itself, not the
-    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen.
+    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen. Also,
+    // `#paintFormulaText` above already replaced the content, wiping out any anchor recycled from a
+    // previous paint.
     if (this.#showFormulasFlag) {
       this.#hyperlinkCells.delete(hyperlinkKey);
 
@@ -2800,6 +2861,76 @@ export class Formulas extends BasePlugin {
     // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
     // containing markup stays text.
     wrapCellContent(TD, link);
+  };
+
+  /**
+   * Overwrites a FORMULA/ARRAYFORMULA cell's already-rendered content with its formula text. An
+   * `ARRAY` cell (a non-origin spill cell) has no formula text of its own - `getCellSerialized()`
+   * would return its raw, unformatted value for it, skipping the date/time conversion and error
+   * unwrapping the normal value path applies - so it is left showing its calculated value, same as
+   * `VALUE`/`EMPTY`.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #paintFormulaText(TD: HTMLTableCellElement, row: number, column: number) {
+    const cellType = this.getCellType(row, column);
+
+    if (cellType !== 'FORMULA' && cellType !== 'ARRAYFORMULA') {
+      return;
+    }
+
+    const address = {
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
+      sheet: this.sheetId,
+    };
+
+    fastInnerText(TD, String(this.engine!.getCellSerialized(address)));
+  }
+
+  /**
+   * `beforeCopy`/`beforeCut` hook callback. While formulas are shown, rewrites each copied/cut
+   * FORMULA/ARRAYFORMULA cell's value to its formula text, matching what is on screen - mutating
+   * `data` in place, which is how both hooks let a listener reshape what actually reaches the
+   * clipboard (`CopyPaste` copies from this same array afterward). This never touches the data
+   * model, so `getDataAtCell()` and everything reading through it (sorting, filtering, validation)
+   * are unaffected.
+   *
+   * @param {Array[]} data An array of arrays with the copied/cut data.
+   * @param {RangeType[]} coords The ranges being copied/cut.
+   */
+  #onBeforeCopyOrCut = (data: CellValue[][], coords: RangeType[]) => {
+    if (!this.#showFormulasFlag) {
+      return;
+    }
+
+    const { rows, columns } = copiedRowsAndColumns(coords);
+
+    rows.forEach((row, rowIndex) => {
+      // A copied column header is a negative-indexed row (`CopyPaste#getRangedData`), never a
+      // formula cell.
+      if (row < 0) {
+        return;
+      }
+
+      columns.forEach((column, columnIndex) => {
+        const cellType = this.getCellType(row, column);
+
+        if (cellType !== 'FORMULA' && cellType !== 'ARRAYFORMULA') {
+          return;
+        }
+
+        const address = {
+          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
+          sheet: this.sheetId,
+        };
+
+        data[rowIndex][columnIndex] = this.engine!.getCellSerialized(address);
+      });
+    });
   };
 
   /**

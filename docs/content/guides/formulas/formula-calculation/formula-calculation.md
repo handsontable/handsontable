@@ -766,10 +766,15 @@ formulas.isShowingFormulas(); // false
 While formulas are shown, copying or cutting a formula cell copies its formula text, matching what's
 on screen.
 
+This mode is display-only. Sorting, the [filter-by-value list](@/guides/columns/column-filter/column-filter.md),
+and cell validation keep reading each formula cell's calculated value, not its formula text - the
+same as in Excel and Google Sheets.
+
 ### Keyboard shortcut
 
-Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> (<kbd>**Cmd**</kbd>+<kbd>**`**</kbd> on macOS) to toggle
-between showing formulas and showing values.
+Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas and showing values.
+On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
+`Cmd`+`` ` `` is the system's window-cycling shortcut.
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
