@@ -1,6 +1,6 @@
 import type { DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
-import type { CellSnapshot, MergeSnapshot, SheetSnapshot } from '../../../model';
+import type { CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
 import { XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
@@ -69,6 +69,24 @@ function resolveMerges(
 }
 
 /**
+ * The text a cell value must be written as, or `null` when the value can be written as a number or
+ * a boolean. A non-finite number is the case this exists for: `NaN`, `Infinity` and `-Infinity`
+ * are all `typeof 'number'` and would otherwise reach `<v>` verbatim, which Excel refuses to open.
+ * It is a representation, not a lost feature, so nothing is recorded in `dropped`.
+ */
+function stringCellText(value: CellValue): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+/**
  * Writes one `<c>` element. A covered merge cell keeps its style and loses its content.
  */
 function writeCell(
@@ -91,7 +109,11 @@ function writeCell(
   }
 
   if (cell.formula !== null) {
-    const { text, result } = cell.formula;
+    const { text } = cell.formula;
+    const cached = cell.formula.result;
+    // A cached result is written into `<v>` just like a plain value, so a non-finite number is
+    // demoted to its text form here too and the cell is then typed `str`.
+    const result = typeof cached === 'number' && !Number.isFinite(cached) ? String(cached) : cached;
     const hasResult = 'result' in cell.formula && result !== undefined && result !== null;
     let t: 'str' | 'b' | undefined;
 
@@ -121,9 +143,10 @@ function writeCell(
   }
 
   const { value } = cell;
+  const asString = stringCellText(value);
 
-  if (typeof value === 'string') {
-    w.open('c', { r: ref, s: styleAttr, t: 's' }).leaf('v', undefined, String(strings.add(value))).close();
+  if (asString !== null) {
+    w.open('c', { r: ref, s: styleAttr, t: 's' }).leaf('v', undefined, String(strings.add(asString))).close();
   } else if (typeof value === 'boolean') {
     w.open('c', { r: ref, s: styleAttr, t: 'b' }).leaf('v', undefined, value ? '1' : '0').close();
   } else {

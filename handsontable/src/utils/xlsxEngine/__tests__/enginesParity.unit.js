@@ -462,6 +462,36 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
     });
   });
 
+  it('writes a row of NaN, Infinity and -Infinity as text on the native engine, and pins ExcelJS still writing them raw', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = NaN;
+      sheet.cell(1, 2).value = Infinity;
+      sheet.cell(1, 3).value = -Infinity;
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+    const valuesOf = snapshot => snapshot.sheets[0].rows[0].map(cell => (cell === null ? null : cell.value));
+
+    // The native writer refuses to put a non-finite number in a `<v>`: `<v>NaN</v>` is not a legal
+    // cell value and Excel offers to repair such a file. It writes the three as shared strings
+    // instead, and BOTH readers agree on what came out, so the demotion is not something only
+    // native's own reader understands.
+    expect(valuesOf(nn)).toEqual(['NaN', 'Infinity', '-Infinity']);
+    expect(valuesOf(ne)).toEqual(['NaN', 'Infinity', '-Infinity']);
+
+    // Finding, pinned rather than normalized: ExcelJS's writer has no such guard and still emits
+    // `<v>NaN</v>` / `<v>Infinity</v>` verbatim — the file Excel refuses to open. The two readers
+    // then disagree about what that even is: the native reader rejects a `<v>` that does not parse
+    // to a finite number and reports an empty cell, while ExcelJS's own reader hands the non-finite
+    // number straight back. Nothing in this repository can fix that writer, so the export plugin
+    // coerces a non-finite number to text before either engine sees it
+    // (`exportFile/__tests__/xlsxNonFiniteValues.unit.js`); this leg describes only a snapshot
+    // handed straight to the ExcelJS adapter.
+    expect(valuesOf(en)).toEqual([null, null, null]);
+    expect(valuesOf(ee)).toEqual([NaN, Infinity, -Infinity]);
+  });
+
   it('documents that native\'s built-in numFmt id 22 differs from ExcelJs\'s canonical string for the same id', async() => {
     const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
       const sheet = new SheetBuilder('Sheet1');

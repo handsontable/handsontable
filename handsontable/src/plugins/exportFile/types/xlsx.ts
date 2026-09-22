@@ -122,7 +122,15 @@ function truncateSheetName(name: string, maxLength: number): string {
  * branch.
  */
 function toPrimitiveResult(value: unknown): CellValue {
-  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  // A non-finite number is not a legal `<v>` content. HyperFormula reports its own errors as
+  // objects (which fall through to `null` below), but a ColumnSummary destination takes its cached
+  // result straight from the displayed value, so an average over an empty range reaches this as
+  // `NaN` and a division by zero as `Infinity`. Both are cached as text instead.
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : stringify(value);
+  }
+
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
     return value;
   }
 
@@ -787,13 +795,16 @@ class Xlsx extends BaseType {
     }
 
     if (meta.type === 'numeric') {
+      // `NaN`, `Infinity` and `-Infinity` are all `typeof 'number'`, and none of them is a legal
+      // `<v>` content: Excel refuses to open a file that carries one. They fall back to the same
+      // text the not-a-number branch below produces, so the cell is written as a string cell.
       if (typeof value === 'number') {
-        return value;
+        return Number.isFinite(value) ? value : stringify(value);
       }
 
       const numericValue = Number(value);
 
-      return Number.isNaN(numericValue) ? stringify(value) : numericValue;
+      return Number.isFinite(numericValue) ? numericValue : stringify(value);
     }
 
     return stringify(value);

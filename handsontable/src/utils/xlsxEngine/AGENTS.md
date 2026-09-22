@@ -58,6 +58,17 @@ or an engine object.
   and `PROTECTION_INVERTED_OPTIONS` covers both on read — exactly what ExcelJS does. Writing them
   unconditionally (which the writer used to do) made ExcelJS read native bytes back as
   `objects: false, scenarios: false` on a sheet nobody had locked down.
+- **A non-finite number never reaches `<v>`.** `NaN`, `Infinity` and `-Infinity` are all
+  `typeof 'number'`, and `<v>NaN</v>` is not a legal cell value — Excel opens such a file with the
+  "repair" dialog. `exportFile/types/xlsx.ts` coerces them to their text form at the value
+  coercion (`#getCellValue`) and at the cached formula result (`toPrimitiveResult`), so neither
+  engine ever sees one from an export. The native writer guards again in `writeCell`
+  (`parts/worksheetWriter.ts`, `stringCellText`): such a value is added to the shared-string table
+  and written as a string cell, and a cached formula result is demoted the same way and typed
+  `str`. Nothing is recorded in `dropped` — it is a representation, not a lost feature. **ExcelJS's
+  writer has no such guard** and still emits `<v>NaN</v>`; the two readers then disagree about it
+  (native reports an empty cell, ExcelJS hands the non-finite number back), which
+  `enginesParity.unit.js` pins with both values rather than normalizing.
 - **The numeric DEFLATE level is ignored** – `CompressionStream` has none. `false` stores.
 - **The built-in numFmt table follows ECMA-376, not ExcelJS**, and exactly ONE id disagrees: id 22
   is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. Ids 39 and
