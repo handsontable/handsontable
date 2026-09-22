@@ -1,6 +1,6 @@
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
-import type { CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
+import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
 import { XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
@@ -93,6 +93,70 @@ function stringCellText(value: CellValue): string | null {
 }
 
 /**
+ * The `<v>` text of a cached formula result. A boolean is written as OOXML spells it.
+ */
+function formulaResultText(result: CellValue | undefined): string {
+  if (typeof result === 'boolean') {
+    return result ? '1' : '0';
+  }
+
+  return String(result);
+}
+
+/**
+ * Writes a `<c>` element holding a formula, with its cached result when the snapshot carries one.
+ */
+function writeFormulaCell(
+  w: XmlWriter,
+  ref: string,
+  styleAttr: number | undefined,
+  formula: CellFormula,
+): void {
+  const { text } = formula;
+  const cached = formula.result;
+  // A cached result is written into `<v>` just like a plain value, so a non-finite number is
+  // demoted to its text form here too and the cell is then typed `str`.
+  const result = typeof cached === 'number' && !Number.isFinite(cached) ? String(cached) : cached;
+  const hasResult = 'result' in formula && result !== undefined && result !== null;
+  let t: 'str' | 'b' | undefined;
+
+  if (hasResult && typeof result === 'string') {
+    t = 'str';
+  } else if (hasResult && typeof result === 'boolean') {
+    t = 'b';
+  }
+
+  w.open('c', { r: ref, s: styleAttr, t }).leaf('f', undefined, text);
+
+  if (hasResult) {
+    w.leaf('v', undefined, formulaResultText(result));
+  }
+
+  w.close();
+}
+
+/**
+ * Writes a `<c>` element holding a plain value, typed by the shape the value has.
+ */
+function writeValueCell(
+  w: XmlWriter,
+  ref: string,
+  styleAttr: number | undefined,
+  value: CellValue,
+  strings: SharedStringTable,
+): void {
+  const asString = stringCellText(value);
+
+  if (asString !== null) {
+    w.open('c', { r: ref, s: styleAttr, t: 's' }).leaf('v', undefined, String(strings.add(asString))).close();
+  } else if (typeof value === 'boolean') {
+    w.open('c', { r: ref, s: styleAttr, t: 'b' }).leaf('v', undefined, value ? '1' : '0').close();
+  } else {
+    w.open('c', { r: ref, s: styleAttr }).leaf('v', undefined, String(value)).close();
+  }
+}
+
+/**
  * Writes one `<c>` element. A covered merge cell keeps its style and loses its content.
  */
 function writeCell(
@@ -115,49 +179,12 @@ function writeCell(
   }
 
   if (cell.formula !== null) {
-    const { text } = cell.formula;
-    const cached = cell.formula.result;
-    // A cached result is written into `<v>` just like a plain value, so a non-finite number is
-    // demoted to its text form here too and the cell is then typed `str`.
-    const result = typeof cached === 'number' && !Number.isFinite(cached) ? String(cached) : cached;
-    const hasResult = 'result' in cell.formula && result !== undefined && result !== null;
-    let t: 'str' | 'b' | undefined;
-
-    if (hasResult && typeof result === 'string') {
-      t = 'str';
-    } else if (hasResult && typeof result === 'boolean') {
-      t = 'b';
-    }
-
-    w.open('c', { r: ref, s: styleAttr, t }).leaf('f', undefined, text);
-
-    if (hasResult) {
-      let resultText: string;
-
-      if (typeof result === 'boolean') {
-        resultText = result ? '1' : '0';
-      } else {
-        resultText = String(result);
-      }
-
-      w.leaf('v', undefined, resultText);
-    }
-
-    w.close();
+    writeFormulaCell(w, ref, styleAttr, cell.formula);
 
     return true;
   }
 
-  const { value } = cell;
-  const asString = stringCellText(value);
-
-  if (asString !== null) {
-    w.open('c', { r: ref, s: styleAttr, t: 's' }).leaf('v', undefined, String(strings.add(asString))).close();
-  } else if (typeof value === 'boolean') {
-    w.open('c', { r: ref, s: styleAttr, t: 'b' }).leaf('v', undefined, value ? '1' : '0').close();
-  } else {
-    w.open('c', { r: ref, s: styleAttr }).leaf('v', undefined, String(value)).close();
-  }
+  writeValueCell(w, ref, styleAttr, cell.value, strings);
 
   return false;
 }

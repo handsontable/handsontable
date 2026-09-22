@@ -95,6 +95,189 @@ function containsTextFormula(operator: string, text: string, topLeft: string): s
 }
 
 /**
+ * The attributes every `<cfRule>` carries, whatever its kind. `containsText` overwrites `type`
+ * with the schema name its operator spells out.
+ */
+type CfRuleBase = {
+  type: string;
+  dxfId: number | undefined;
+  priority: number;
+};
+
+/**
+ * What one rule writer needs besides the `XmlWriter` itself.
+ */
+interface CfRuleContext {
+  rule: RuleObject;
+  base: CfRuleBase;
+  formulae: string[];
+  ref: string;
+  dropped: DroppedFeatures;
+}
+
+/**
+ * Writes one `<cfRule>` of a known kind. `false` means nothing was written — the rule was recorded
+ * in `dropped` instead.
+ */
+type CfRuleWriter = (w: XmlWriter, context: CfRuleContext) => boolean;
+
+/**
+ * An `expression` rule, which is nothing but its formula and so is dropped without one.
+ */
+const writeExpressionRule: CfRuleWriter = (w, { base, formulae, dropped }) => {
+  if (formulae.length === 0) {
+    dropped.record(DROPPED_FEATURES.conditionalFormattingExpression);
+
+    return false;
+  }
+
+  w.open('cfRule', base).leaf('formula', undefined, formulae[0]).close();
+
+  return true;
+};
+
+/**
+ * A `cellIs` rule, whose operator decides how many formulae it takes.
+ */
+const writeCellIsRule: CfRuleWriter = (w, { rule, base, formulae }) => {
+  w.open('cfRule', { ...base, operator: readString(rule, 'operator') ?? 'equal' });
+  formulae.forEach(formula => w.leaf('formula', undefined, formula));
+  w.close();
+
+  return true;
+};
+
+/**
+ * A `containsText` rule, written under the schema name its operator spells out, with the formula
+ * that name means when the rule carries none.
+ */
+const writeContainsTextRule: CfRuleWriter = (w, { rule, base, formulae, ref }) => {
+  const declaredOperator = readString(rule, 'operator');
+  const operator = declaredOperator !== undefined && CONTAINS_TEXT_TYPES.has(declaredOperator)
+    ? declaredOperator
+    : 'containsText';
+  const text = readString(rule, 'text') ?? '';
+  const textAttr = operator === 'containsText' && text !== '' ? text : undefined;
+
+  w.open('cfRule', { ...base, type: operator, operator, text: textAttr });
+  w.leaf('formula', undefined, formulae[0] ?? containsTextFormula(operator, text, topLeftOf(ref)));
+  w.close();
+
+  return true;
+};
+
+/**
+ * A `top10` rule, which needs no formula child and is therefore written self-closing.
+ */
+const writeTop10Rule: CfRuleWriter = (w, { rule, base }) => {
+  w.leaf('cfRule', {
+    ...base,
+    rank: readNumber(rule, 'rank') ?? DEFAULT_TOP10_RANK,
+    percent: rule.percent === true ? '1' : undefined,
+    bottom: rule.bottom === true ? '1' : undefined,
+  });
+
+  return true;
+};
+
+/**
+ * An `aboveAverage` rule, which needs no formula child either.
+ */
+const writeAboveAverageRule: CfRuleWriter = (w, { rule, base }) => {
+  w.leaf('cfRule', { ...base, aboveAverage: rule.aboveAverage === false ? '0' : undefined });
+
+  return true;
+};
+
+/**
+ * A `timePeriod` rule, which is dropped without both its period and its formula.
+ */
+const writeTimePeriodRule: CfRuleWriter = (w, { rule, base, formulae, dropped }) => {
+  const timePeriod = readString(rule, 'timePeriod');
+
+  if (formulae.length === 0 || timePeriod === undefined) {
+    dropped.record(DROPPED_FEATURES.conditionalFormattingTimePeriod);
+
+    return false;
+  }
+
+  w.open('cfRule', { ...base, timePeriod }).leaf('formula', undefined, formulae[0]).close();
+
+  return true;
+};
+
+/**
+ * The rule kinds this writer supports, by the `type` the export option carries. A `Map` rather
+ * than an object literal: `type` is the caller's own untrusted string, and a plain object would
+ * answer `constructor` or `toString` with something inherited from `Object.prototype`.
+ */
+const RULE_WRITERS = new Map<string, CfRuleWriter>([
+  ['expression', writeExpressionRule],
+  ['cellIs', writeCellIsRule],
+  ['containsText', writeContainsTextRule],
+  ['top10', writeTop10Rule],
+  ['aboveAverage', writeAboveAverageRule],
+  ['timePeriod', writeTimePeriodRule],
+]);
+
+/**
+ * The priority one rule is written with: the one it declares, or the next number of the sheet's
+ * running counter, which the rule then consumes.
+ */
+function nextRulePriority(rule: RuleObject, priority: PriorityCounter): number {
+  const declared = readNumber(rule, 'priority');
+
+  if (declared !== undefined) {
+    return declared;
+  }
+
+  const assigned = priority.next;
+
+  priority.next += 1;
+
+  return assigned;
+}
+
+/**
+ * Writes one rule of a block, or records why it was skipped. Returns whether anything was written.
+ *
+ * The differential style and the running priority are resolved BEFORE the kind is looked up, so an
+ * unsupported kind still registers its style and still consumes a priority number — exactly what
+ * the single `switch` this dispatch replaced did.
+ */
+function writeRule(
+  w: XmlWriter,
+  candidate: unknown,
+  ref: string,
+  styles: StyleTable,
+  priority: PriorityCounter,
+  dropped: DroppedFeatures,
+): boolean {
+  const rule = isPlainObject(candidate) ? candidate : null;
+  const type = rule === null ? undefined : readString(rule, 'type');
+
+  if (rule === null || type === undefined) {
+    dropped.record(DROPPED_FEATURES.conditionalFormattingInvalid);
+
+    return false;
+  }
+
+  const formulae = Array.isArray(rule.formulae) ? rule.formulae.map(String) : [];
+  const style = readStyle(rule, 'style');
+  const dxfId = style === undefined ? undefined : styles.dxfIndex(style);
+  const base: CfRuleBase = { type, dxfId, priority: nextRulePriority(rule, priority) };
+  const writeKind = RULE_WRITERS.get(type);
+
+  if (writeKind === undefined) {
+    dropped.record(`conditionalFormatting:${type}`);
+
+    return false;
+  }
+
+  return writeKind(w, { rule, base, formulae, ref, dropped });
+}
+
+/**
  * Serializes one `<conditionalFormatting>` block. Rule kinds outside the PoC set are recorded as
  * `conditionalFormatting:<type>` and skipped; an empty block is not written at all.
  */
@@ -111,88 +294,9 @@ export function conditionalFormattingXml(
   w.open('conditionalFormatting', { sqref: ref });
 
   rules.forEach((candidate) => {
-    const rule = isPlainObject(candidate) ? candidate : null;
-    const type = rule === null ? undefined : readString(rule, 'type');
-
-    if (rule === null || type === undefined) {
-      dropped.record(DROPPED_FEATURES.conditionalFormattingInvalid);
-
-      return;
+    if (writeRule(w, candidate, ref, styles, priority, dropped)) {
+      written += 1;
     }
-
-    const formulae = Array.isArray(rule.formulae) ? rule.formulae.map(String) : [];
-    const style = readStyle(rule, 'style');
-    const dxfId = style === undefined ? undefined : styles.dxfIndex(style);
-    const declaredPriority = readNumber(rule, 'priority');
-    let rulePriority: number;
-
-    if (declaredPriority !== undefined) {
-      rulePriority = declaredPriority;
-    } else {
-      rulePriority = priority.next;
-      priority.next += 1;
-    }
-
-    const base = { type, dxfId, priority: rulePriority };
-
-    switch (type) {
-      case 'expression':
-        if (formulae.length === 0) {
-          dropped.record(DROPPED_FEATURES.conditionalFormattingExpression);
-
-          return;
-        }
-
-        w.open('cfRule', base).leaf('formula', undefined, formulae[0]).close();
-        break;
-      case 'cellIs':
-        w.open('cfRule', { ...base, operator: readString(rule, 'operator') ?? 'equal' });
-        formulae.forEach(formula => w.leaf('formula', undefined, formula));
-        w.close();
-        break;
-      case 'containsText': {
-        const declaredOperator = readString(rule, 'operator');
-        const operator = declaredOperator !== undefined && CONTAINS_TEXT_TYPES.has(declaredOperator)
-          ? declaredOperator
-          : 'containsText';
-        const text = readString(rule, 'text') ?? '';
-        const textAttr = operator === 'containsText' && text !== '' ? text : undefined;
-
-        w.open('cfRule', { ...base, type: operator, operator, text: textAttr });
-        w.leaf('formula', undefined, formulae[0] ?? containsTextFormula(operator, text, topLeftOf(ref)));
-        w.close();
-        break;
-      }
-      case 'top10':
-        w.leaf('cfRule', {
-          ...base,
-          rank: readNumber(rule, 'rank') ?? DEFAULT_TOP10_RANK,
-          percent: rule.percent === true ? '1' : undefined,
-          bottom: rule.bottom === true ? '1' : undefined,
-        });
-        break;
-      case 'aboveAverage':
-        w.leaf('cfRule', { ...base, aboveAverage: rule.aboveAverage === false ? '0' : undefined });
-        break;
-      case 'timePeriod': {
-        const timePeriod = readString(rule, 'timePeriod');
-
-        if (formulae.length === 0 || timePeriod === undefined) {
-          dropped.record(DROPPED_FEATURES.conditionalFormattingTimePeriod);
-
-          return;
-        }
-
-        w.open('cfRule', { ...base, timePeriod }).leaf('formula', undefined, formulae[0]).close();
-        break;
-      }
-      default:
-        dropped.record(`conditionalFormatting:${type}`);
-
-        return;
-    }
-
-    written += 1;
   });
 
   w.close();
