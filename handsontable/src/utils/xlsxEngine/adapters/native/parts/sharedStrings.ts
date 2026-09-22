@@ -1,6 +1,6 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_WORKBOOK_CELLS } from '../../../limits';
-import { tokenizeXml } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml } from '../xml/tokenizer';
 import { XmlWriter, decodeOoxmlEscapes, needsSpacePreserve } from '../xml/writer';
 import { MAIN_NS } from './package';
 
@@ -90,8 +90,12 @@ export function parseSharedStrings(xml: string): ParsedSharedStrings {
   let inText = false;
   let inPhonetic = false;
 
+  const localName = createLocalName();
+
   tokenizeXml(xml, {
-    open(name, _attrs, selfClosing) {
+    open(rawName, _attrs, selfClosing) {
+      const name = localName(rawName);
+
       if (name === 'si') {
         current = [];
         isRich = false;
@@ -108,7 +112,9 @@ export function parseSharedStrings(xml: string): ParsedSharedStrings {
         current.push(text);
       }
     },
-    close(name) {
+    close(rawName) {
+      const name = localName(rawName);
+
       if (name === 't') {
         inText = false;
       } else if (name === 'rPh') {

@@ -1,5 +1,5 @@
 import type { CellStyleSnapshot } from '../../../model';
-import { tokenizeXml, type XmlAttributes, type XmlHandlers } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml, type XmlAttributes, type XmlHandlers } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
 
@@ -516,8 +516,11 @@ export function parseStyles(xml: string): ParsedStyles {
    */
   const section = (): string | undefined => path[1];
 
+  const localName = createLocalName();
+
   const handlers: XmlHandlers = {
-    open(name, attrs, selfClosing) {
+    open(rawName, attrs, selfClosing) {
+      const name = localName(rawName);
       const parent = path[path.length - 1];
 
       if (!selfClosing) {
@@ -668,7 +671,9 @@ export function parseStyles(xml: string): ParsedStyles {
         handlers.close?.(name);
       }
     },
-    close(name) {
+    close(rawName) {
+      const name = localName(rawName);
+
       if (path[path.length - 1] === name) {
         path.pop();
       }

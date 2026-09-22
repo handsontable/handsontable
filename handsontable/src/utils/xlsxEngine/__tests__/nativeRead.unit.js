@@ -10,6 +10,8 @@ import { DroppedFeatures } from '../capabilities';
 import { MAX_INPUT_BYTES } from '../limits';
 import { SheetBuilder } from '../builder';
 import { createWorkbookSnapshot } from '../model';
+import { readZip } from '../adapters/native/zip/reader';
+import { writeZip } from '../adapters/native/zip/writer';
 
 function load(name) {
   const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
@@ -260,5 +262,63 @@ describe('nativeAdapter.read: merge members with no <c> element of their own', (
 
     expect(viaExcelJs.sheets[0].rows[0]).toHaveLength(2);
     expect(viaExcelJs.sheets[0].rows[0][1]).toBeNull();
+  });
+});
+
+/**
+ * Rewrites one XML part so that every element of its DEFAULT namespace carries an `x:` prefix,
+ * and the default namespace declaration becomes a declaration of that prefix. Attributes are left
+ * exactly as written, and an element that already carries a prefix (`vt:lpstr`, `x14ac:…`) is
+ * skipped — the name pattern stops at the colon, so the lookahead never matches.
+ *
+ * @param {string} xml The part text.
+ * @returns {string}
+ */
+function prefixElements(xml) {
+  return xml
+    .replace(/xmlns="/g, 'xmlns:x="')
+    .replace(/<(\/?)([A-Za-z_][\w.-]*)(?=[\s/>])/g, (match, slash, name) => `<${slash}x:${name}`);
+}
+
+/**
+ * Repacks a fixture with every XML part's elements namespace-prefixed.
+ *
+ * @param {string} name The fixture name.
+ * @returns {Promise<ArrayBuffer>}
+ */
+async function loadPrefixed(name) {
+  const zip = await readZip(load(name));
+  const encoder = new TextEncoder();
+  const entries = [];
+
+  for (const partName of zip.names()) {
+    // eslint-disable-next-line no-await-in-loop
+    const text = await zip.text(partName);
+
+    entries.push({ name: partName, data: encoder.encode(prefixElements(text)) });
+  }
+
+  const bytes = await writeZip(entries, true);
+
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+describe('nativeAdapter.read with namespace-prefixed parts', () => {
+  it('should read a workbook whose main-namespace elements all carry a prefix exactly as the unprefixed one', async() => {
+    // Excel and Google Sheets bind the main namespace as the default one, but nothing in the
+    // schema requires that — a generator may write `<x:worksheet xmlns:x="…"><x:c>`. The readers
+    // used to switch on the raw element name, so such a file read back as an empty sheet with no
+    // styles and no shared strings, silently.
+    for (const name of ['values', 'styles']) {
+      const plainDropped = new DroppedFeatures();
+      const prefixedDropped = new DroppedFeatures();
+      // eslint-disable-next-line no-await-in-loop
+      const plain = await nativeAdapter.read(load(name), undefined, plainDropped);
+      // eslint-disable-next-line no-await-in-loop
+      const prefixed = await nativeAdapter.read(await loadPrefixed(name), undefined, prefixedDropped);
+
+      expect(prefixed).toEqual(plain);
+      expect(prefixedDropped.list()).toEqual(plainDropped.list());
+    }
   });
 });

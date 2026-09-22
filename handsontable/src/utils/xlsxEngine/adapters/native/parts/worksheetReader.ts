@@ -6,7 +6,7 @@ import { MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS 
 import {
   createCellSnapshot, createSheetSnapshot, type CellSnapshot, type CellValue, type SheetSnapshot,
 } from '../../../model';
-import { tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { decodeOoxmlEscapes } from '../xml/writer';
 import { cfRuleFromXml } from './conditionalFormatting';
 import { PROTECTION_INVERTED_OPTIONS } from './protection';
@@ -372,8 +372,16 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
     target.locked = xf.locked;
   };
 
+  // Element names are matched with the ROOT element's namespace prefix stripped: a generator may
+  // bind the main namespace to a prefix (`<x:worksheet xmlns:x="…"><x:c>`), and the whole sheet
+  // would otherwise read as empty. Attribute names keep their prefix, and so does an `<extLst>`
+  // extension element, whose local names collide with this schema's.
+  const localName = createLocalName();
+
   tokenizeXml(xml, {
-    open(name, attrs, selfClosing) {
+    open(rawName, attrs, selfClosing) {
+      const name = localName(rawName);
+
       switch (name) {
         case 'dimension': {
           const dimension = attrs.ref === undefined ? null : parseDimension(attrs.ref);
@@ -598,7 +606,9 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
         cfFormula.push(text);
       }
     },
-    close(name) {
+    close(rawName) {
+      const name = localName(rawName);
+
       switch (name) {
         case 'v':
           inValue = false;

@@ -1,4 +1,4 @@
-import { tokenizeXml } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml } from '../xml/tokenizer';
 import { XmlWriter, decodeOoxmlEscapes, needsSpacePreserve } from '../xml/writer';
 import { MAIN_NS } from './package';
 
@@ -94,8 +94,12 @@ export function parseComments(xml: string): Map<string, string> {
   let inText = false;
   let inPhonetic = false;
 
+  const localName = createLocalName();
+
   tokenizeXml(xml, {
-    open(name, attrs, selfClosing) {
+    open(rawName, attrs, selfClosing) {
+      const name = localName(rawName);
+
       if (name === 'comment') {
         ref = attrs.ref ?? null;
         parts = [];
@@ -110,7 +114,9 @@ export function parseComments(xml: string): Map<string, string> {
         parts.push(text);
       }
     },
-    close(name) {
+    close(rawName) {
+      const name = localName(rawName);
+
       if (name === 't') {
         inText = false;
       } else if (name === 'rPh') {

@@ -1,5 +1,5 @@
 import type { SheetSnapshot } from '../../../model';
-import { tokenizeXml } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 
 /**
@@ -232,10 +232,11 @@ export function appXml(sheetNames: string[]): string {
  */
 export function parseRels(xml: string): Relationship[] {
   const rels: Relationship[] = [];
+  const localName = createLocalName();
 
   tokenizeXml(xml, {
-    open(name, attrs) {
-      if (name === 'Relationship' || name.endsWith(':Relationship')) {
+    open(rawName, attrs) {
+      if (localName(rawName) === 'Relationship') {
         rels.push({ id: attrs.Id ?? '', type: attrs.Type ?? '', target: attrs.Target ?? '' });
       }
     },
@@ -272,9 +273,12 @@ export function resolvePartPath(basePart: string, target: string): string {
 export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date1904: boolean } {
   const sheets: WorkbookSheetEntry[] = [];
   let date1904 = false;
+  const localName = createLocalName();
 
   tokenizeXml(xml, {
-    open(name, attrs) {
+    open(rawName, attrs) {
+      const name = localName(rawName);
+
       if (name === 'sheet') {
         const state = attrs.state === 'hidden' || attrs.state === 'veryHidden' ? attrs.state : 'visible';
 

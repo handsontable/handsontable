@@ -69,6 +69,21 @@ or an engine object.
   writer has no such guard** and still emits `<v>NaN</v>`; the two readers then disagree about it
   (native reports an empty cell, ExcelJS hands the non-finite number back), which
   `enginesParity.unit.js` pins with both values rather than normalizing.
+- **Element matching is prefix-INSENSITIVE in the main parts and prefix-SENSITIVE in VML.** Excel
+  and Google Sheets bind the main namespace as the default one, but nothing requires it: a
+  generator may write `<x:worksheet xmlns:x="…"><x:c>`, and the readers used to switch on the raw
+  element name, so such a file read back as an empty sheet — silently. Every reader of a main
+  OOXML part (worksheet, workbook, styles, sharedStrings, comments, `.rels`) now runs its element
+  names through a per-part `createLocalName()` from `xml/tokenizer.ts`. Three rules hold it
+  together. It strips **only the prefix the part's ROOT element carries** — which is in the main
+  namespace by definition — so a file written the usual way is normalized not at all; stripping
+  every prefix instead made `x14:conditionalFormatting` inside an `<extLst>` read as a second,
+  empty conditional-formatting block on ExcelJS-written bytes, which the four-way parity test
+  caught. **Attribute names keep their prefix** — `r:id` is a different attribute from `id` and is
+  what resolves a sheet to its part, so the normalizer is never applied to an attribute key. And
+  **VML is the other side**: the tokenizer delivers names with their prefix because `x:ClientData`
+  and friends are matched WITH it. Today only the VML *writer* exists (`parts/comments.ts`), so
+  nothing reads one — if a VML reader is ever added, it must not normalize.
 - **The numeric DEFLATE level is ignored** – `CompressionStream` has none. `false` stores.
 - **The built-in numFmt table follows ECMA-376, not ExcelJS**, and exactly ONE id disagrees: id 22
   is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. Ids 39 and

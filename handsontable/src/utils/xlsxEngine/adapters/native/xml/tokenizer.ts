@@ -54,6 +54,37 @@ export function decodeXmlEntities(text: string): string {
 }
 
 /**
+ * Creates the element-name normalizer the reader of a main OOXML part matches its `switch` on.
+ *
+ * Excel and Google Sheets bind the main namespace as the DEFAULT one, but nothing requires it: a
+ * generator may write `<x:worksheet xmlns:x="…"><x:c>`, and a reader switching on the raw name
+ * then sees an empty sheet. The returned function learns the prefix from the part's ROOT element —
+ * which is in the main namespace by definition — and strips exactly that one, so a file written
+ * the usual way is normalized not at all.
+ *
+ * Stripping EVERY prefix instead would be wrong: an `<extLst>` carries extension elements such as
+ * `x14:conditionalFormatting` whose local names collide with the main schema's, and the native
+ * reader read one as a second, empty conditional-formatting block on ExcelJS-written bytes.
+ *
+ * Never apply the result to an ATTRIBUTE name — `r:id` is a different attribute from `id`, and it
+ * is what resolves a sheet to its part. Never apply it to a VML part either: those element names
+ * are matched WITH their `x:` prefix on purpose.
+ */
+export function createLocalName(): (name: string) => string {
+  let prefix: string | null = null;
+
+  return (name: string): string => {
+    if (prefix === null) {
+      const colon = name.indexOf(':');
+
+      prefix = colon === -1 ? '' : name.slice(0, colon + 1);
+    }
+
+    return prefix !== '' && name.startsWith(prefix) ? name.slice(prefix.length) : name;
+  };
+}
+
+/**
  * Throws the one malformed-input error every failure path shares.
  */
 function malformed(offset: number): never {
@@ -77,7 +108,8 @@ function isNameEnd(code: number): boolean {
 /**
  * Tokenizes an XML document forward-only, calling the handlers as it goes. No tree is built; the
  * caller keeps whatever state it needs. Names keep their namespace prefix (`x:ClientData`,
- * `r:id`). The prolog, comments and a DOCTYPE are skipped without interpretation; CDATA is
+ * `r:id`); a reader of a main OOXML part normalizes an element's prefix with `createLocalName()`,
+ * and an attribute name is always matched as written. The prolog, comments and a DOCTYPE are skipped without interpretation; CDATA is
  * delivered as text.
  */
 export function tokenizeXml(xml: string, handlers: XmlHandlers): void {
