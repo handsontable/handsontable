@@ -61,7 +61,9 @@ test('the index-based header helpers resolve the index inside ONE header row', (
   // The indexing itself lives in the shared resolver, so the ban has to reach there too.
   const resolver = bodyOf(source, 'headerCellAt');
 
-  assert.doesNotMatch(resolver, /getByRole\(/,
+  // A method call, so the dot matters: the refusal message names `getByRole` as the alternative to
+  // reach for, and that mention is not a role lookup.
+  assert.doesNotMatch(resolver, /\.getByRole\(/,
     'headerCellAt() must resolve the index from the scoped selectors it is given, not from a role lookup');
 });
 
@@ -92,6 +94,36 @@ test('a source index is mapped through the rendered window before it indexes the
   assert.doesNotMatch(finder, /thead tr:last-child/,
     'the mapping must not be read off the header row — a header\'s aria-colindex restarts at the '
     + 'window, which is the very thing being corrected for');
+});
+
+test('a grid with no data rows refuses rather than treating the index as its own position', () => {
+  // The window is read from the cells, so a grid with `colHeaders` and no data carries nothing to read
+  // it from — `empty-data-state-demo` renders its headers over zero body rows, and headers virtualize
+  // there like anywhere else. Returning the wanted index as its own position would put the guess back
+  // in, and past the rendered count it degrades into a Playwright timeout with nothing to read, which
+  // is the opposite of what the refusal exists for. Flagged in review; the other pins constrain the
+  // refusal shape but not this early return.
+  const source = read('visual-tests/src/page-helpers.ts');
+  const finder = bodyOf(source, 'positionInRenderedWindow');
+  const resolver = bodyOf(source, 'headerCellAt');
+
+  assert.match(finder, /rows\.length === 0/, 'positionInRenderedWindow() must still handle a grid with no rows');
+  assert.doesNotMatch(finder, /position:\s*wanted/,
+    'the no-rows branch must not return the wanted index as its own position — there is no absolute '
+    + 'index in the DOM to justify it');
+
+  const emptyBranch = finder.slice(finder.indexOf('rows.length === 0'), finder.indexOf('if (which ==='));
+
+  assert.match(emptyBranch, /position:\s*-1/, 'the no-rows branch must refuse');
+  assert.match(emptyBranch, /rendered:\s*\[\]/,
+    'the no-rows branch must return an empty window, which is how the caller tells "cannot tell" apart '
+    + 'from "scrolled out of view"');
+
+  // And the two refusals must read differently, or the message sends the reader after a scroll
+  // position that was never the problem.
+  assert.match(resolver, /rendered\.length === 0/,
+    'headerCellAt() must distinguish "no data rows to read the window from" from "not rendered"');
+  assert.match(resolver, /no data rows/, 'the no-data refusal must say so in words');
 });
 
 test('a target outside the rendered window is refused, not approximated', () => {

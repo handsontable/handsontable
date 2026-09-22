@@ -343,7 +343,10 @@ element screenshots and the settle the fixture does for you):
   window instead of clicking the nearest header. `helpers.findCell()` and
   `helpers.findDropdownMenuExpander()` are still plain `nth-of-type` and carry the same limit — right
   for every spec today, because they all run at scroll start, and worth knowing before you write one
-  that does not.
+  that does not. On a grid with **no data rows** there is no absolute index in the DOM at all
+  (`empty-data-state-demo` renders headers over zero body rows, and those headers virtualize like any
+  other), so `headerCellAt()` refuses there instead of guessing — address such a header by name, or by
+  index only if it is frozen, since the corner overlay renders exactly that prefix.
 - **The fixture drops a stray native selection before every capture, and under a focused text control
   the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
   text-selection highlight (a header label a click sequence left selected). With an input or textarea

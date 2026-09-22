@@ -412,19 +412,29 @@ const FROZEN_ROW_HEADER_CELLS = '.ht_clone_top_inline_start_corner tbody > tr > 
  * that the master renders at the head of the window needs no special case — it is simply found where
  * it is.
  *
+ * A grid with no data rows carries no absolute index at all, so this refuses there rather than
+ * guessing — an empty `rendered` is how the caller tells that case apart from a target that is simply
+ * scrolled out of view.
+ *
  * @param {Locator} table The grid's root locator.
  * @param {number} index Zero-based source column or row index.
  * @param {'column' | 'row'} axis Which axis `index` counts along.
  * @returns {Promise<{position: number, rendered: number[]}>} The position within the rendered window
- * (-1 when the target is not rendered), and every source index the window currently holds.
+ * (-1 when the target is not rendered, or when no data row exists to read the window from), and every
+ * source index the window currently holds (empty in that second case).
  */
 async function positionInRenderedWindow(table: Locator, index: number, axis: 'column' | 'row') {
   return table.evaluate((grid, [wanted, which]: [number, string]) => {
     const rows = [...grid.querySelectorAll('.ht_master tbody tr')];
 
     if (rows.length === 0) {
-      // An empty grid renders no window to be offset by, so the index is its own position.
-      return { position: wanted, rendered: [wanted] };
+      // No data rows means no absolute index anywhere in the DOM: a header's own `aria-colindex` is
+      // window-relative, and the cells that carry the absolute one are what is missing. Headers still
+      // virtualize on a grid with `colHeaders` and no data (`empty-data-state-demo` renders its
+      // headers over zero body rows), so treating the index as its own position here would be the
+      // guess this function exists to remove — and past the rendered count it degrades into a
+      // Playwright timeout with nothing to read. Refuse, and let the caller say why.
+      return { position: -1, rendered: [] };
     }
 
     if (which === 'row') {
@@ -480,9 +490,16 @@ async function headerCellAt(
   const { position, rendered } = await positionInRenderedWindow(table, index, axis);
 
   if (position < 0) {
-    throw new Error(`${axis} ${index} is not rendered, so it has no header to click. The grid currently `
-      + `renders ${axis}s ${rendered[0]}-${rendered[rendered.length - 1]}; scroll the target into view `
-      + 'first, or address the header by name. See headerCellAt() in visual-tests/src/page-helpers.ts.');
+    throw new Error(rendered.length === 0
+      ? `${axis} ${index} cannot be addressed by index on a grid with no data rows: the only absolute `
+        + 'column and row indexes the grid puts in the DOM are the ones on cells, and there are none, '
+        + 'while the headers themselves still virtualize. Address the header by name instead '
+        + '(getByRole(\'columnheader\', { name })). A FROZEN header is still addressable by index, '
+        + 'because the corner overlay renders exactly that prefix. See headerCellAt() in '
+        + 'visual-tests/src/page-helpers.ts.'
+      : `${axis} ${index} is not rendered, so it has no header to click. The grid currently renders `
+        + `${axis}s ${rendered[0]}-${rendered[rendered.length - 1]}; scroll the target into view first, `
+        + 'or address the header by name. See headerCellAt() in visual-tests/src/page-helpers.ts.');
   }
 
   return table.locator(cells).nth(position);
