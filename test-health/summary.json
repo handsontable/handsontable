@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-22T07:18:07.045Z",
+  "generatedAt": "2026-09-22T07:49:55.688Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 14,
+      "count7": 12,
       "count30": 14,
       "countAll": 14,
       "runs30": 8,
@@ -129,7 +129,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 5,
+      "count7": 4,
       "count30": 6,
       "countAll": 6,
       "runs30": 5,
