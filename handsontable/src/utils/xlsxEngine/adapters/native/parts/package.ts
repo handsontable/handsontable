@@ -48,7 +48,7 @@ export const REL_TYPES = {
 export const MAIN_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 export const R_NS = OFFICE_REL;
 
-const CONTENT_TYPES = {
+export const CONTENT_TYPES = {
   workbook: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml',
   worksheet: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml',
   styles: 'application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml',
@@ -226,6 +226,35 @@ export function appXml(sheetNames: string[]): string {
   w.leaf('AppVersion', undefined, '16.0300');
 
   return w.close().toString();
+}
+
+/**
+ * Parses the `<Override>` entries of `[Content_Types].xml` into a part path → content type map, the
+ * part paths normalized the way the archive keys its entries (no leading slash).
+ *
+ * The `<Default>` entries are deliberately not read: they map a file EXTENSION, and every part this
+ * reader resolves is an `.xml` one, so they cannot tell a worksheet from any other part. A part
+ * with no override is therefore reported as unknown rather than as its default type.
+ */
+export function parseContentTypes(xml: string): Map<string, string> {
+  const types = new Map<string, string>();
+  const localName = createLocalName();
+
+  tokenizeXml(xml, {
+    open(rawName, attrs) {
+      if (localName(rawName) !== 'Override' || attrs.PartName === undefined) {
+        return;
+      }
+
+      const partName = attrs.PartName.startsWith('/') ? attrs.PartName.slice(1) : attrs.PartName;
+
+      if (!types.has(partName)) {
+        types.set(partName, attrs.ContentType ?? '');
+      }
+    },
+  });
+
+  return types;
 }
 
 /**

@@ -153,6 +153,26 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   as well as the per-sheet one, because the sheet count and the inflate total are both refused
   before the first sheet. A new cap that reaches for `throwWithCause` directly still refuses the
   file, but its message is wrapped and it stops reading as this reader's own contract.
+- **A sheet's `r:id` is checked against `[Content_Types].xml` before the part is read as a worksheet.**
+  A relationship target is the file's own text and may name ANY part of the package: `Target="/[Content_
+  Types].xml"` normalizes back inside the archive, was tokenized as a worksheet and yielded an empty
+  sheet with no diagnostic. `read.ts` asks `isWorksheetPart()`, which trusts the package's own
+  `<Override>` where there is one (`parseContentTypes` in `parts/package.ts`, `<Default>` entries are
+  deliberately ignored — they map an extension, and every part here is `.xml`) and otherwise refuses the
+  parts the reader has already resolved for another purpose (`[Content_Types].xml`, the workbook, its
+  styles, its shared strings). A package carrying no `[Content_Types].xml` still reads, as before.
+- **`<sheetProtection>` is read through an ALLOW-LIST, not a shape test.** Both readers keep only the
+  names `SHEET_PROTECTION_OPTION_NAMES` (`model.ts`) declares. Copying every boolean-shaped attribute
+  put `constructor`, `toString` and `hasOwnProperty` on the snapshot as own properties, so a consumer
+  calling `options.hasOwnProperty(…)` threw; `__proto__` was always inert. `SheetProtectionOptions` is
+  the typed shape both adapters and `SheetBuilder#protect` now take.
+- **A duplicate ZIP entry name is refused.** The central directory is read into a `Map`, so the LAST
+  record won while several other ZIP readers resolve the FIRST — a crafted archive holding two
+  `sheet1.xml` entries then read differently here than in whatever inspected the file upstream. Excel
+  never writes one, so `zip/reader.ts` refuses it as a limit.
+- **`&#xD800;`–`&#xDFFF;` is left as written**, like every other invalid code point in
+  `decodeXmlEntities`. `String.fromCodePoint` accepts a surrogate and hands back an unpaired code unit
+  that travels through the whole import, and `TextEncoder` replaces it with U+FFFD on the way out.
 - **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
   matches the A1 shape, and `Number('0') - 1` handed `ensureRow(-1)` through the upper-bound check
   to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading

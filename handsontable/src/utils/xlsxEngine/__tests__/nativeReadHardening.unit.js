@@ -298,3 +298,49 @@ describe('native reader hardening: row and column zero', () => {
     await expect(read(bytes)).resolves.toBeDefined();
   });
 });
+
+describe('native reader hardening: the <sheetProtection> attribute allow-list', () => {
+  it('should keep the permissions the model declares and drop every other attribute', async() => {
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/worksheets/sheet1.xml'
+        ? text.replace('</worksheet>', '<sheetProtection sheet="1" formatColumns="0" objects="banana" '
+          + 'constructor="1" toString="1" hasOwnProperty="1" hashValue="x"/></worksheet>')
+        : text
+    ));
+    const workbook = await read(bytes);
+    const { protection } = workbook.sheets[0];
+
+    // `sheet` is stored as written, `formatColumns` is inverted back to "allowed", and nothing the
+    // model does not declare survives — `constructor` and friends used to become own properties,
+    // which made `options.hasOwnProperty(…)` throw for a consumer that called it.
+    expect(protection.options).toEqual({ sheet: true, formatColumns: true });
+    expect(Object.prototype.hasOwnProperty.call(protection.options, 'constructor')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(protection.options, 'toString')).toBe(false);
+    expect(protection.options.hasOwnProperty('sheet')).toBe(true); // eslint-disable-line no-prototype-builtins
+  });
+});
+
+describe('native reader hardening: the part a sheet resolves to', () => {
+  it('should refuse a sheet whose relationship targets a part that is not a worksheet', async() => {
+    // A relationship target is the file's own text: `/[Content_Types].xml` resolves back inside the
+    // archive and used to be tokenized as a worksheet, yielding an empty sheet with no diagnostic.
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/_rels/workbook.xml.rels'
+        ? text.replace(/Target="worksheets\/sheet1.xml"/, 'Target="/[Content_Types].xml"')
+        : text
+    ));
+
+    await expect(read(bytes)).rejects.toThrow(/the sheet "[^"]+" has no worksheet part\./);
+  });
+
+  it('should refuse a sheet pointed at the shared strings, and read the honest file it came from', async() => {
+    const hostile = await repack('values', (part, text) => (
+      part === 'xl/_rels/workbook.xml.rels'
+        ? text.replace(/Target="worksheets\/sheet1.xml"/, 'Target="sharedStrings.xml"')
+        : text
+    ));
+
+    await expect(read(hostile)).rejects.toThrow(/has no worksheet part\./);
+    await expect(read(await repack('values', (part, text) => text))).resolves.toBeDefined();
+  });
+});

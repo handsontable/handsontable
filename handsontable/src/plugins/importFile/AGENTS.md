@@ -66,6 +66,15 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   as HTML, so a promoted first row is markup: a cell reading `<img src=x onerror=…>` executes on render.
   `escapeHtml` (`helpers/string.ts`), not `stripTags` — stripping cuts everything from a `<` to the next
   `>`, so `5 < 10` would become `5 `. Cell VALUES are rendered as text and are deliberately left alone.
+- **A text VALUE that starts with `=` is escaped with a leading apostrophe, and only when the Formulas
+  plugin is enabled** (`escapeTextFormula` in `mapper.ts`, on the non-formula branch of `pushCellValue`).
+  Such a cell is a string in the file and inert in Excel, but the grid hands every `=`-leading string to
+  HyperFormula, so importing `=HYPERLINK("http://evil","x")` verbatim turned the file's TEXT into a live
+  formula the file never had. The apostrophe is the Formulas plugin's own escape
+  (`isEscapedFormulaExpression`/`unescapeFormulaExpression` in `plugins/formulas/utils.ts`), stripped again
+  on read, so the cell renders what the file carried. It must stay gated on `formulasEnabled`: with no
+  plugin to unescape it, the apostrophe would become part of the value. The DECLARED-formula path is
+  untouched — it is already gated, because `shift` is `null` unless the plugin is enabled.
 - **The lossy reads the adapter reports, and why each is only a report.** `hyperlink` (the text is kept, the
   URL is not — and a hyperlink's text may ITSELF be a rich-text run list, nested one level below the cell
   value, so both `hyperlinkText` and the `richText` report have to look there too), `richText` (the text is

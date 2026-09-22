@@ -1,3 +1,5 @@
+import type { SheetProtectionOptionName } from '../../../model';
+
 /**
  * The `<sheetProtection>` hash attributes Excel checks before it unprotects a sheet.
  */
@@ -21,7 +23,7 @@ export const SHEET_PASSWORD_SPIN_COUNT = 100000;
  * when the caller explicitly asked for `false`, exactly as ExcelJS does. Only `sheet` is stored
  * non-inverted.
  */
-export const PROTECTION_ALLOW_OPTIONS = [
+export const PROTECTION_ALLOW_OPTIONS: SheetProtectionOptionName[] = [
   'formatCells', 'formatColumns', 'formatRows', 'insertColumns', 'insertRows', 'insertHyperlinks',
   'deleteColumns', 'deleteRows', 'sort', 'autoFilter', 'pivotTables',
 ];
@@ -29,7 +31,7 @@ export const PROTECTION_ALLOW_OPTIONS = [
 /**
  * Options stored inverted in the file (attribute `1` = not allowed).
  */
-export const PROTECTION_INVERTED_OPTIONS = new Set([
+export const PROTECTION_INVERTED_OPTIONS = new Set<SheetProtectionOptionName>([
   ...PROTECTION_ALLOW_OPTIONS, 'selectLockedCells', 'selectUnlockedCells', 'objects', 'scenarios',
 ]);
 

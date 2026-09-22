@@ -85,6 +85,16 @@ describe('decodeXmlEntities', () => {
     expect(decodeXmlEntities('&#1114112;')).toBe('&#1114112;');
     expect(decodeXmlEntities('&#x10FFFF;')).toBe(String.fromCodePoint(0x10FFFF));
   });
+
+  it('should leave a reference to a lone surrogate as written, like any other invalid code point', () => {
+    // `String.fromCodePoint` accepts D800-DFFF and hands back an unpaired code unit, which then
+    // travels through the whole import and is replaced by U+FFFD when `TextEncoder` writes it out.
+    expect(decodeXmlEntities('a&#xD800;b')).toBe('a&#xD800;b');
+    expect(decodeXmlEntities('&#xDFFF;')).toBe('&#xDFFF;');
+    expect(decodeXmlEntities('&#56320;')).toBe('&#56320;');
+    // The code points on either side of the range still decode.
+    expect(decodeXmlEntities('&#xD7FF;&#xE000;')).toBe('\uD7FF\uE000');
+  });
 });
 
 describe('XmlWriter', () => {

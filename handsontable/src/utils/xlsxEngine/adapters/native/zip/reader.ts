@@ -91,6 +91,14 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
       throwWithCause(`The ZIP entry "${name}" uses ZIP64 sizes, which this reader does not accept.`);
     }
 
+    // A name may appear once. The map would keep the LAST record, while several other ZIP readers
+    // (and some Office tooling) resolve the FIRST — so a crafted archive holding two `sheet1.xml`
+    // entries reads differently here than in whatever inspected the file upstream. Excel never
+    // writes a duplicate, so refusing costs no real workbook anything.
+    if (entries.has(name)) {
+      throwLimitExceeded(`The ZIP entry "${name}" is declared twice, which this reader does not accept.`);
+    }
+
     entries.set(name, { method, compressedSize, uncompressedSize, localOffset });
     offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
   }

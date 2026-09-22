@@ -364,6 +364,21 @@ interface FormulaShift {
 }
 
 /**
+ * Escapes a plain text value that would otherwise become a live formula.
+ *
+ * A cell holding the TEXT `=HYPERLINK("http://…")` is inert in Excel - it is a string, not a
+ * formula - but the grid hands every `=`-leading string to HyperFormula, so importing it verbatim
+ * turned the file's text into a formula the file never had. The leading apostrophe is the escape
+ * the Formulas plugin already defines (`isEscapedFormulaExpression` in `plugins/formulas/utils.ts`,
+ * unescaped again on read), so the cell renders exactly the text the file carried.
+ *
+ * Only applied when the plugin is enabled: without it an apostrophe would be part of the value.
+ */
+function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
+  return formulasEnabled && typeof value === 'string' && value.startsWith('=') ? `'${value}` : value;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -375,8 +390,9 @@ interface FormulaShift {
  */
 function pushCellValue(
   pass: CellPass, cell: CellSnapshot, inferred: InferredType | null,
-  shift: FormulaShift | null, row: number, col: number, dropped: DroppedFeatures
+  row: number, col: number, scope: CollectContext
 ): void {
+  const { shift, dropped } = scope;
   const live = cell.formula && shift
     ? shiftFormulaReferences(cell.formula.text, shift.rowDelta, shift.colDelta)
     : null;
@@ -387,7 +403,9 @@ function pushCellValue(
     return;
   }
 
-  pass.data[pass.data.length - 1].push(toGridValue(cell, inferred));
+  pass.data[pass.data.length - 1].push(
+    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
+  );
 
   if (cell.formula) {
     pass.formulas.push({ row, col, formula: cell.formula.text });
@@ -539,7 +557,7 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, options, context, shift, dropped } = scope;
+  const { sheet, options, context, dropped } = scope;
   const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
   const inferred = inferredMeta?.inferred ?? null;
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
@@ -548,7 +566,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.metaByCell.set(`${row}:${col}`, meta);
   }
 
-  pushCellValue(pass, cell, inferred, shift, row, col, dropped);
+  pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
     if (context.commentsEnabled) {

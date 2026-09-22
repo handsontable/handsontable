@@ -424,6 +424,24 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toContain('formula:outOfRange');
   });
 
+  it('should escape a text value that starts with = when the formulas plugin is enabled', () => {
+    // The cell is a STRING in the file, inert in Excel. The grid hands every `=`-leading string to
+    // HyperFormula, so importing it verbatim turns the file's text into a formula it never had.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('=HYPERLINK("http://evil","x")')], [text('plain')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    // The leading apostrophe is the Formulas plugin's own text escape and is unescaped on read, so
+    // the cell renders the text the file carried.
+    expect(withFormulas.data[0][0]).toBe('\'=HYPERLINK("http://evil","x")');
+    expect(withFormulas.data[1][0]).toBe('plain');
+    // Without the plugin nothing evaluates the string, and an apostrophe would be part of the value.
+    expect(withoutFormulas.data[0][0]).toBe('=HYPERLINK("http://evil","x")');
+  });
+
   it('should keep cached values when importFormulas is false', () => {
     const sheet = createSheetSnapshot('Data');
 

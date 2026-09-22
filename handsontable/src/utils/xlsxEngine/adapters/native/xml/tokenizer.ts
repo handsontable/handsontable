@@ -28,13 +28,35 @@ const NAMED_ENTITIES: Record<string, string> = {
 const MAX_CODE_POINT = 0x10FFFF;
 
 /**
+ * The UTF-16 surrogate range. A code point in it is not a character: it only exists as half of a
+ * surrogate PAIR inside UTF-16 itself, and XML forbids a reference to one.
+ */
+const FIRST_SURROGATE = 0xD800;
+const LAST_SURROGATE = 0xDFFF;
+
+/**
+ * Whether a numeric character reference names a code point that can stand on its own.
+ */
+function isDecodableCodePoint(code: number): boolean {
+  if (!Number.isFinite(code) || code < 0 || code > MAX_CODE_POINT) {
+    return false;
+  }
+
+  return code < FIRST_SURROGATE || code > LAST_SURROGATE;
+}
+
+/**
  * Decodes the five predefined entities and numeric character references. Anything else is left
  * as written; this tokenizer never resolves a DTD, so no other entity can exist, and no entity can
  * expand into another one.
  *
  * A numeric reference out of Unicode's range is left as written rather than decoded: the input is
  * an untrusted file, and `String.fromCodePoint` answers an out-of-range value with a raw
- * `RangeError` that would escape this reader's `throwWithCause` contract.
+ * `RangeError` that would escape this reader's `throwWithCause` contract. A reference INTO the
+ * UTF-16 surrogate range (`&#xD800;`–`&#xDFFF;`) is left as written for the same reason — it names
+ * no character, `String.fromCodePoint` accepts it and hands back a lone surrogate that then travels
+ * through the whole import as an unpaired code unit, and `TextEncoder` replaces it with U+FFFD on
+ * the way back out, so the round trip loses it either way.
  */
 export function decodeXmlEntities(text: string): string {
   if (!text.includes('&')) {
@@ -46,7 +68,7 @@ export function decodeXmlEntities(text: string): string {
       const isHex = body.startsWith('#x');
       const code = Number.parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10);
 
-      return Number.isFinite(code) && code >= 0 && code <= MAX_CODE_POINT ? String.fromCodePoint(code) : match;
+      return isDecodableCodePoint(code) ? String.fromCodePoint(code) : match;
     }
 
     return NAMED_ENTITIES[body] ?? match;

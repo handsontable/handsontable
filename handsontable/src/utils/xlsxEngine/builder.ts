@@ -2,6 +2,7 @@ import {
   createCellSnapshot,
   createSheetSnapshot,
   type CellSnapshot,
+  type SheetProtectionOptions,
   type SheetSnapshot,
 } from './model';
 
@@ -111,7 +112,7 @@ export class SheetBuilder {
   /**
    * Enables sheet protection. An empty password means none.
    */
-  protect(password: string, options: Record<string, boolean> = {}): void {
+  protect(password: string, options: SheetProtectionOptions = {}): void {
     this.#sheet.protection = { enabled: true, password: password === '' ? null : password, options };
   }
 

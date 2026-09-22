@@ -230,6 +230,20 @@ describe('readZip', () => {
       .rejects.toThrow(/compression method 12/);
   });
 
+  it('should refuse an archive that declares the same entry name twice', async() => {
+    // Several ZIP readers resolve the FIRST record and this one kept the LAST, so a crafted archive
+    // holding two `dup.xml` entries read differently here than in whatever inspected it upstream.
+    const zip = await writeZip([
+      { name: 'dup.xml', data: encoder.encode('FIRST') },
+      { name: 'dup.xml', data: encoder.encode('SECOND') },
+    ], false);
+
+    const buffer = zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength);
+
+    await expect(readZip(buffer)).rejects.toThrow(/The ZIP entry "dup.xml" is declared twice/);
+    await expect(readZip(buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
   it('should reject a central directory record whose length fields run past the end record', async() => {
     const zip = await writeZip([{ name: 'x.bin', data: new Uint8Array(4) }], false);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);

@@ -3,7 +3,9 @@ import type { DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
 import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
 import { parseComments } from './parts/comments';
-import { parseRels, parseWorkbook, resolvePartPath, REL_TYPES, type Relationship } from './parts/package';
+import {
+  CONTENT_TYPES, parseContentTypes, parseRels, parseWorkbook, resolvePartPath, REL_TYPES, type Relationship,
+} from './parts/package';
 import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStrings';
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
 import { parseWorksheet, type WorkbookBudget } from './parts/worksheetReader';
@@ -48,6 +50,11 @@ function targetOf(rels: Relationship[], type: string, sourcePart: string): strin
 }
 
 /**
+ * The part `[Content_Types].xml` names, for a package that declares one.
+ */
+const CONTENT_TYPES_PART = '[Content_Types].xml';
+
+/**
  * Everything the package layer resolves before any sheet is read.
  */
 interface OpenedPackage {
@@ -58,6 +65,27 @@ interface OpenedPackage {
   date1904: boolean;
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
+  contentTypes: Map<string, string>;
+  packageParts: Set<string>;
+}
+
+/**
+ * Whether a part a sheet's `r:id` resolved to may be read as a worksheet.
+ *
+ * A relationship target is the file's own text, so it may name ANY part of the package: `xl/../../
+ * [Content_Types].xml` normalizes back inside the archive and was tokenized as a worksheet, which
+ * yielded an empty sheet with no diagnostic. The package's own declaration settles it where there
+ * is one; where there is none, the parts this reader has already resolved for another purpose are
+ * refused, so a sheet can never be the workbook, its styles or its shared strings.
+ */
+function isWorksheetPart(opened: OpenedPackage, partPath: string): boolean {
+  const declared = opened.contentTypes.get(partPath);
+
+  if (declared !== undefined) {
+    return declared === CONTENT_TYPES.worksheet;
+  }
+
+  return !opened.packageParts.has(partPath);
 }
 
 /**
@@ -77,6 +105,13 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
   const workbookRels = await relsOf(archive, workbookPath);
   const stylesPath = targetOf(workbookRels, REL_TYPES.styles, workbookPath);
   const stringsPath = targetOf(workbookRels, REL_TYPES.sharedStrings, workbookPath);
+  const packageParts = new Set([CONTENT_TYPES_PART, workbookPath]);
+
+  [stylesPath, stringsPath].forEach((path) => {
+    if (path !== null) {
+      packageParts.add(path);
+    }
+  });
 
   return {
     archive,
@@ -84,6 +119,10 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
     workbookRels,
     sheets,
     date1904,
+    packageParts,
+    contentTypes: archive.has(CONTENT_TYPES_PART)
+      ? parseContentTypes(await archive.text(CONTENT_TYPES_PART))
+      : new Map<string, string>(),
     styles: stylesPath && archive.has(stylesPath) ? parseStyles(await archive.text(stylesPath)) : EMPTY_STYLES,
     sharedStrings: stringsPath && archive.has(stringsPath)
       ? parseSharedStrings(await archive.text(stringsPath))
@@ -110,6 +149,11 @@ async function readSheets(
     if (sheetPath === null || !opened.archive.has(sheetPath)) {
       throwWithCause('The workbook could not be parsed by the native engine: '
         + `the sheet "${entry.name}" has no part.`);
+    }
+
+    if (!isWorksheetPart(opened, sheetPath)) {
+      throwWithCause('The workbook could not be parsed by the native engine: '
+        + `the sheet "${entry.name}" has no worksheet part.`);
     }
 
     // Sheets are read one at a time so the cell caps can refuse a workbook before the next sheet

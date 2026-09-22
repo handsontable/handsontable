@@ -7,7 +7,8 @@ import {
   throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../../../limits';
 import {
-  createCellSnapshot, createSheetSnapshot, type CellSnapshot, type CellValue, type SheetSnapshot,
+  createCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot, type CellValue,
+  type SheetProtectionOptions, type SheetSnapshot,
 } from '../../../model';
 import { decodeOoxmlEscapes } from '../xml/escapes';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
@@ -53,11 +54,6 @@ const MS_PER_DAY = 86400000;
  * 1900-02-29, so 1970-01-01 is day 25569.
  */
 const EXCEL_EPOCH_OFFSET = 25569;
-
-/**
- * `<sheetProtection>` attributes that describe the password hash rather than a permission.
- */
-const PROTECTION_HASH_ATTRS = new Set(['algorithmName', 'hashValue', 'saltValue', 'spinCount', 'password']);
 
 /**
  * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
@@ -544,12 +540,16 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           break;
         }
         case 'sheetProtection': {
-          const options: Record<string, boolean> = {};
+          const options: SheetProtectionOptions = {};
 
+          // An ALLOW-LIST, not a shape test: the element's attributes come verbatim from the file,
+          // and copying every boolean-shaped one kept an unknown attribute in the snapshot for the
+          // import's lifetime — including `constructor` and `toString`, which became own properties
+          // and made `options.hasOwnProperty(…)` throw for any consumer that called it.
           Object.keys(attrs).forEach((key) => {
             const raw = attrs[key];
 
-            if (PROTECTION_HASH_ATTRS.has(key) || !(raw === '1' || raw === 'true' || raw === '0' || raw === 'false')) {
+            if (!isProtectionOptionName(key) || !(raw === '1' || raw === 'true' || raw === '0' || raw === 'false')) {
               return;
             }
 

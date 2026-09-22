@@ -4,10 +4,12 @@ import {
   createCellSnapshot,
   createSheetSnapshot,
   createWorkbookSnapshot,
+  isProtectionOptionName,
   type CellFormula,
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValue,
+  type SheetProtectionOptions,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../model';
@@ -107,7 +109,7 @@ export interface ExcelJsWorksheet {
   getCell(rowNumber: number, colNumber: number): ExcelJsCell;
   mergeCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
   addConditionalFormatting(descriptor: { ref: string; rules: unknown[] }): void;
-  protect(password: string, options?: Record<string, boolean>): void | Promise<void>;
+  protect(password: string, options?: SheetProtectionOptions): void | Promise<void>;
   sheetProtection: Record<string, unknown> | undefined;
   conditionalFormattings: Array<{ ref: string; rules: unknown[] }>;
   rowCount: number;
@@ -603,9 +605,12 @@ function readSheetLayout(
     sheet.protection = {
       enabled: true,
       password: typeof password === 'string' && password !== '' ? password : null,
+      // Only the names the model declares are kept: ExcelJS hands back whatever the file carried,
+      // and an unknown attribute would otherwise live in the snapshot for the import's lifetime.
       options: Object.fromEntries(
-        Object.entries(options).filter(([, optionValue]) => typeof optionValue === 'boolean'),
-      ) as Record<string, boolean>,
+        Object.entries(options)
+          .filter(([key, optionValue]) => typeof optionValue === 'boolean' && isProtectionOptionName(key)),
+      ) as SheetProtectionOptions,
     };
   }
 
