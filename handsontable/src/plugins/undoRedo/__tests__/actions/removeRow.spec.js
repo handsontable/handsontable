@@ -49,6 +49,7 @@ describe('UndoRedo -> RemoveRow action', () => {
         [2, 4, jasmine.objectContaining({ visualRow: 2, visualCol: 4, row: 2, col: 4, prop: 4 })],
       ],
       removedMergedCells: [],
+      removedHiddenRows: [],
     });
   });
 
@@ -175,6 +176,77 @@ describe('UndoRedo -> RemoveRow action', () => {
       expect(changedProps).toContain('artist');
       expect(changedProps).toContain('category');
       expect(changedProps).toContain('label');
+    });
+  });
+
+  describe('DEV-134: undo restores rows hidden by the `hiddenRows` plugin', () => {
+    it('should re-hide a hidden row after undoing its removal', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+      expect(getPlugin('hiddenRows').isHidden(1)).toBe(true);
+      expect(getPlugin('hiddenRows').isHidden(3)).toBe(true);
+    });
+
+    it('should restore the full pre-removal hiding config for the exact reported repro ' +
+      '(hide rows, remove them via the context menu, undo)', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+        contextMenu: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([2, 3]);
+      await render();
+
+      await selectRows(2, 3);
+      getPlugin('contextMenu').executeCommand('remove_row');
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([2, 3]);
+
+      // Header selection must keep working - the ticket's second reported symptom.
+      await selectRows(0);
+
+      expect(getSelectedLast()).toEqual([0, -1, 0, 2]);
+    });
+
+    it('should not re-hide a row that was not hidden before the removal', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1]);
+      await render();
+
+      await alter('remove_row', 2, 1);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+      expect(getPlugin('hiddenRows').isHidden(2)).toBe(false);
+    });
+
+    it('should leave hiding state untouched when the `hiddenRows` plugin is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+      });
+
+      await alter('remove_row', 1, 1);
+
+      expect(() => {
+        getPlugin('undoRedo').undo();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
   });
 });

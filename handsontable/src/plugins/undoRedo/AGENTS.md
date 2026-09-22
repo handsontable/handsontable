@@ -36,6 +36,31 @@ here. Keep the visual walk `toPhysicalColumn(columnIndex + i)` — its order mus
 order that `undo()`'s `ascendingIndexes` / `sortByIndexes` pairing depends on; do not substitute
 `logicColumns` directly.
 
+## `RemoveRowAction` restores `hiddenRows` state, the same shape as `MergeCells` (DEV-134)
+
+`IndexMapper#removeIndexes()` unconditionally splices a plugin's `HidingMap` values for the removed
+physical rows (`translations/maps/booleanMap.ts` `remove()`), and `insertIndexes()` inserts **default**
+(not-hidden) values back on undo's `insert_row_above` — there is no memory of the prior flag. `hiddenRows`
+itself registers no `beforeRemoveRow`/`afterRemoveRow` hook, so without help every row hidden before a
+removal comes back visible on undo, and header selection can misbehave alongside it (the ticket's second
+symptom, resolved as a side effect of restoring the hiding state).
+
+The fix mirrors `MergeCells`'s pattern exactly: `collectHiddenRowsForRemoval(hot, index, amount)`
+(`utils.ts`) runs in the `beforeRemoveRow` closure — **before** the removal — and records every hidden
+**visual** row in the removed range as an absolute index, the same convention `collectAffectedMergedCells`
+uses. `restoreHiddenRows(hot, this.removedHiddenRows)` runs in `undo()` right after
+`restoreMergedCells()`, once `hot.alter('insert_row_above', ...)` has put the visual layout back exactly
+where it was — it calls the plugin's own public `hideRows()`, so `beforeHideRows`/`afterHideRows` fire
+normally.
+
+**Scoped to the non-nested-rows path**, gated by `hasNestedRowsSnapshot` the same way `removedMergedCells`
+is for that branch — DEV-134 is not about `nestedRows`, and combining hidden rows with a nested-row
+removal/restore would need its own physical-index-keyed capture, not built here. No redo-side change was
+needed: redo re-runs `hot.alter('remove_row', ...)`, which re-enters the same `beforeRemoveRow` listener
+and creates a **fresh** `RemoveRowAction` through `undoRedoPlugin.done()` — so the hidden state (already
+restored by the prior undo) is captured again automatically for the next undo, exactly like merged cells
+and cell metas already work.
+
 ## A throwing action resets the flag and is discarded
 
 Both `undo()` and `redo()` carry the same contract:
@@ -301,7 +326,8 @@ fix makes a green spec go red, suspect the spec.
 
 - The plugin whose change listeners this one bypasses: `../formulas/AGENTS.md`.
 - Actions whose snapshots this plugin takes: `../moveCells/AGENTS.md`, `../mergeCells/AGENTS.md`,
-  `../filters/AGENTS.md`, `../columnSorting/AGENTS.md`, `../customBorders/AGENTS.md`.
+  `../filters/AGENTS.md`, `../columnSorting/AGENTS.md`, `../customBorders/AGENTS.md`,
+  `../hiddenRows/AGENTS.md`.
 - Hook dispatch and the global bucket: `../../../.ai/HOOKS.md`, `../../core/hooks/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
