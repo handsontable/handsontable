@@ -144,7 +144,7 @@ export class DropdownMenu extends BasePlugin {
    * `'col_left'`, `'col_right'`, `'---------'`, `'remove_col'`, `'---------'`, `'clear_column'`,
    * `'---------'`, `'make_read_only'`, `'---------'`, `'alignment'`.
    *
-   * @returns {Array}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [
