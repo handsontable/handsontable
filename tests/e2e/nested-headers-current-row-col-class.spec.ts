@@ -63,6 +63,26 @@ test.describe('NestedHeaders vs currentRow/ColClassName (DEV-3012)', () => {
     await expect(grid.inlineStartCloneHeaderCells(SINGLE, CURRENT_ROW_CLASS)).toHaveCount(2);
   });
 
+  test('a multi-cell range (from !== to on the data axis) still reaches every header level', async () => {
+    // Rows 1-2, column 1 ("B") - a real range selection, not a single cell. `#applyRowColumnHighlights`
+    // is unconditional since DEV-3012 (previously gated behind `selectionMode !== 'single'`); this is
+    // the only test here that exercises it with `from !== to` on the data axis.
+    await grid.selectCells(FALSE, 1, 1, 2, 1);
+
+    // The column-header extent depends only on the header-level COUNT (a single column is selected),
+    // so those assertions match the single-cell case exactly.
+    await expect(grid.topCloneHeaderCells(FALSE, CURRENT_COL_CLASS)).toHaveCount(2);
+    await expect(grid.topCloneHeaderCells(FALSE, CURRENT_COL_CLASS).filter({ hasText: 'Group' })).toHaveCount(1);
+    await expect(grid.topCloneHeaderCells(FALSE, CURRENT_COL_CLASS).filter({ hasText: 'B' })).toHaveCount(1);
+    // The row-header highlight spans every SELECTED row too: 2 rows x 2 row-header columns (levels).
+    await expect(grid.inlineStartCloneHeaderCells(FALSE, CURRENT_ROW_CLASS)).toHaveCount(4);
+
+    // Both selected body rows carry the class, proving `from !== to` was actually forwarded rather
+    // than collapsed onto a single row.
+    await expect(grid.grid(FALSE).getByTestId('cell-1-1')).toHaveClass(new RegExp(`\\b${CURRENT_ROW_CLASS}\\b`));
+    await expect(grid.grid(FALSE).getByTestId('cell-2-1')).toHaveClass(new RegExp(`\\b${CURRENT_ROW_CLASS}\\b`));
+  });
+
   test('a flat single-level grid is unaffected (regression control)', async () => {
     await grid.selectCell(FLAT, 1, 1);
 

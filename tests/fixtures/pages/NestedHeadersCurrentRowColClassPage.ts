@@ -77,6 +77,19 @@ export class NestedHeadersCurrentRowColClassPage {
     }, [gridId, row, col] as const);
   }
 
+  /**
+   * Select a multi-cell body range through the API - `from !== to` on the data axis, exercising the
+   * `#applyRowColumnHighlights` path that is unconditional since DEV-3012 (previously gated behind
+   * `selectionMode !== 'single'`).
+   */
+  async selectCells(gridId: string, fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.evaluate(([id, fr, fc, tr, tc]) => {
+      (window as unknown as {
+        hots: Record<string, { selectCell: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void }>;
+      }).hots[id as string].selectCell(fr as number, fc as number, tr as number, tc as number);
+    }, [gridId, fromRow, fromCol, toRow, toCol] as const);
+  }
+
   /** Column-header cells (`th`) carrying the given class, scoped to the top overlay clone. */
   topCloneHeaderCells(gridId: string, className: string): Locator {
     return this.grid(gridId).locator('.ht_clone_top').locator(`th.${className}`);

@@ -72,6 +72,11 @@
       ['A', 'B', 'C2', 'D2'],
     ];
 
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
     /**
      * Build one grid. A constructor that throws stamps its message on the container instead of
      * taking the whole page down, so a failure reads as the real error rather than a bare
@@ -89,6 +94,7 @@
           rowHeaders: true,
           currentRowClassName: 'currentRow',
           currentColClassName: 'currentCol',
+          renderer: testIdRenderer,
           licenseKey: 'non-commercial-and-evaluation',
         }, settings));
       } catch (error) {
