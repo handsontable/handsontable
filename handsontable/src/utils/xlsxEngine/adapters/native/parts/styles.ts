@@ -240,6 +240,76 @@ interface XfEntry {
 }
 
 /**
+ * Writes one non-default `<xf>` of `<cellXfs>`, with the `apply…` flag of every table it points
+ * at away from the bootstrap row.
+ */
+function writeCellXf(w: XmlWriter, xf: XfEntry): void {
+  w.open('xf', {
+    numFmtId: xf.numFmtId,
+    fontId: xf.fontId,
+    fillId: xf.fillId,
+    borderId: xf.borderId,
+    xfId: 0,
+    applyNumberFormat: xf.numFmtId !== 0 ? '1' : undefined,
+    applyFont: xf.fontId !== 0 ? '1' : undefined,
+    applyFill: xf.fillId !== 0 ? '1' : undefined,
+    applyBorder: xf.borderId !== 0 ? '1' : undefined,
+    applyAlignment: xf.alignment ? '1' : undefined,
+    applyProtection: xf.locked === false ? '1' : undefined,
+  });
+
+  if (xf.alignment) {
+    w.leaf('alignment', {
+      horizontal: xf.alignment.horizontal,
+      vertical: xf.alignment.vertical === 'middle' ? 'center' : xf.alignment.vertical,
+    });
+  }
+
+  if (xf.locked === false) {
+    w.leaf('protection', { locked: '0' });
+  }
+
+  w.close();
+}
+
+/**
+ * Writes one `<dxf>`, the differential style a conditional-formatting rule points at.
+ */
+function writeDxf(w: XmlWriter, dxf: DxfStyle): void {
+  w.open('dxf');
+
+  if (dxf.font) {
+    writeFont(w, dxf.font, false);
+  }
+
+  // Child order inside `<dxf>` is font, numFmt, fill, border. Both halves must be present:
+  // a format code with no registered id cannot be referenced.
+  if (dxf.numFmt !== undefined && dxf.numFmtId !== undefined) {
+    w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: escapeNumFmtCode(dxf.numFmt) });
+  }
+
+  if (dxf.fill && (dxf.fill.fgColor || dxf.fill.bgColor)) {
+    w.open('fill').open('patternFill');
+
+    if (dxf.fill.fgColor) {
+      w.leaf('fgColor', { rgb: dxf.fill.fgColor.argb });
+    }
+
+    if (dxf.fill.bgColor) {
+      w.leaf('bgColor', { rgb: dxf.fill.bgColor.argb });
+    }
+
+    w.close().close();
+  }
+
+  if (dxf.border) {
+    writeBorder(w, dxf.border);
+  }
+
+  w.close();
+}
+
+/**
  * The style tables of a workbook being written. Index 0 of every table is the mandatory default
  * Excel expects; `xfIndex` hands out `0` for a cell with nothing to say.
  */
@@ -318,12 +388,41 @@ export class StyleTable {
   toXml(): string {
     const w = new XmlWriter().open('styleSheet', { xmlns: MAIN_NS });
 
-    if (this.#numFmts.size > 0) {
-      w.open('numFmts', { count: this.#numFmts.size });
-      this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: escapeNumFmtCode(code) }));
-      w.close();
+    this.#writeNumFmts(w);
+    this.#writeFonts(w);
+    this.#writeFills(w);
+    this.#writeBorders(w);
+
+    w.open('cellStyleXfs', { count: 1 }).leaf('xf', {
+      numFmtId: 0, fontId: 0, fillId: 0, borderId: 0,
+    }).close();
+
+    this.#writeCellXfs(w);
+
+    w.open('cellStyles', { count: 1 }).leaf('cellStyle', { name: 'Normal', xfId: 0, builtinId: 0 }).close();
+
+    this.#writeDxfs(w);
+
+    return w.close().toString();
+  }
+
+  /**
+   * Writes `<numFmts>`, which a workbook using only built-in codes does not have at all.
+   */
+  #writeNumFmts(w: XmlWriter): void {
+    if (this.#numFmts.size === 0) {
+      return;
     }
 
+    w.open('numFmts', { count: this.#numFmts.size });
+    this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: escapeNumFmtCode(code) }));
+    w.close();
+  }
+
+  /**
+   * Writes `<fonts>`. Index 0 is the bootstrap Calibri 11 the sheet expects to find there.
+   */
+  #writeFonts(w: XmlWriter): void {
     w.open('fonts', { count: this.#fonts.items.length });
     this.#fonts.items.forEach((font) => {
       if (font === null) {
@@ -334,7 +433,12 @@ export class StyleTable {
       }
     });
     w.close();
+  }
 
+  /**
+   * Writes `<fills>`. Indexes 0 and 1 are the mandatory `none` and `gray125`.
+   */
+  #writeFills(w: XmlWriter): void {
     w.open('fills', { count: this.#fills.items.length });
     this.#fills.items.forEach((fill) => {
       w.open('fill');
@@ -351,15 +455,22 @@ export class StyleTable {
       w.close();
     });
     w.close();
+  }
 
+  /**
+   * Writes `<borders>`. Index 0 is the empty border, written from an empty edge set.
+   */
+  #writeBorders(w: XmlWriter): void {
     w.open('borders', { count: this.#borders.items.length });
     this.#borders.items.forEach(border => writeBorder(w, border ?? {}));
     w.close();
+  }
 
-    w.open('cellStyleXfs', { count: 1 }).leaf('xf', {
-      numFmtId: 0, fontId: 0, fillId: 0, borderId: 0,
-    }).close();
-
+  /**
+   * Writes `<cellXfs>`. Index 0 is the all-default xf `xfIndex` hands out for a cell with nothing
+   * to say, and it carries no `apply…` flag at all.
+   */
+  #writeCellXfs(w: XmlWriter): void {
     w.open('cellXfs', { count: this.#xfs.items.length });
     this.#xfs.items.forEach((xf, index) => {
       if (index === 0) {
@@ -370,78 +481,24 @@ export class StyleTable {
         return;
       }
 
-      w.open('xf', {
-        numFmtId: xf.numFmtId,
-        fontId: xf.fontId,
-        fillId: xf.fillId,
-        borderId: xf.borderId,
-        xfId: 0,
-        applyNumberFormat: xf.numFmtId !== 0 ? '1' : undefined,
-        applyFont: xf.fontId !== 0 ? '1' : undefined,
-        applyFill: xf.fillId !== 0 ? '1' : undefined,
-        applyBorder: xf.borderId !== 0 ? '1' : undefined,
-        applyAlignment: xf.alignment ? '1' : undefined,
-        applyProtection: xf.locked === false ? '1' : undefined,
-      });
-
-      if (xf.alignment) {
-        w.leaf('alignment', {
-          horizontal: xf.alignment.horizontal,
-          vertical: xf.alignment.vertical === 'middle' ? 'center' : xf.alignment.vertical,
-        });
-      }
-
-      if (xf.locked === false) {
-        w.leaf('protection', { locked: '0' });
-      }
-
-      w.close();
+      writeCellXf(w, xf);
     });
     w.close();
+  }
 
-    w.open('cellStyles', { count: 1 }).leaf('cellStyle', { name: 'Normal', xfId: 0, builtinId: 0 }).close();
-
+  /**
+   * Writes `<dxfs>`, which is present even when empty: `styles.xml` needs the bootstrap row.
+   */
+  #writeDxfs(w: XmlWriter): void {
     if (this.#dxfs.items.length === 0) {
       w.leaf('dxfs', { count: 0 });
-    } else {
-      w.open('dxfs', { count: this.#dxfs.items.length });
-      this.#dxfs.items.forEach((dxf) => {
-        w.open('dxf');
 
-        if (dxf.font) {
-          writeFont(w, dxf.font, false);
-        }
-
-        // Child order inside `<dxf>` is font, numFmt, fill, border. Both halves must be present:
-        // a format code with no registered id cannot be referenced.
-        if (dxf.numFmt !== undefined && dxf.numFmtId !== undefined) {
-          w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: escapeNumFmtCode(dxf.numFmt) });
-        }
-
-        if (dxf.fill && (dxf.fill.fgColor || dxf.fill.bgColor)) {
-          w.open('fill').open('patternFill');
-
-          if (dxf.fill.fgColor) {
-            w.leaf('fgColor', { rgb: dxf.fill.fgColor.argb });
-          }
-
-          if (dxf.fill.bgColor) {
-            w.leaf('bgColor', { rgb: dxf.fill.bgColor.argb });
-          }
-
-          w.close().close();
-        }
-
-        if (dxf.border) {
-          writeBorder(w, dxf.border);
-        }
-
-        w.close();
-      });
-      w.close();
+      return;
     }
 
-    return w.close().toString();
+    w.open('dxfs', { count: this.#dxfs.items.length });
+    this.#dxfs.items.forEach(dxf => writeDxf(w, dxf));
+    w.close();
   }
 
   /**

@@ -1,7 +1,7 @@
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
 import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
-import { XmlWriter } from '../xml/writer';
+import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
 import { dataValidationsXml, type ValidationCell } from './dataValidation';
@@ -190,17 +190,39 @@ function writeCell(
 }
 
 /**
- * Serializes `xl/worksheets/sheetN.xml` for one snapshot. Child order is schema-fixed; a wrong
- * order makes Excel offer to "repair" the file.
+ * The extent `<dimension>` declares and every later pass iterates over.
  */
-export function worksheetXml(
-  sheet: SheetSnapshot,
-  styles: StyleTable,
-  strings: SharedStringTable,
-  dropped: DroppedFeatures,
-  passwordHash: ProtectionHash | null,
-): WorksheetWriteResult {
-  const { kept: merges, covered } = resolveMerges(sheet.merges, dropped);
+interface SheetExtent {
+  rowCount: number;
+  colCount: number;
+}
+
+/**
+ * What the `<sheetData>` pass needs besides the writer, and the shared state it reads.
+ */
+interface SheetDataContext {
+  sheet: SheetSnapshot;
+  extent: SheetExtent;
+  hiddenRows: Set<number>;
+  covered: Set<string>;
+  styles: StyleTable;
+  strings: SharedStringTable;
+}
+
+/**
+ * What the `<sheetData>` pass collects for the parts written after it.
+ */
+interface SheetDataResult {
+  comments: SheetComment[];
+  validations: ValidationCell[];
+  wroteFormula: boolean;
+}
+
+/**
+ * The last row and column the sheet reaches, across its cells, its sizes, its hidden indexes and
+ * its merges.
+ */
+function measureExtent(sheet: SheetSnapshot, merges: MergeSnapshot[]): SheetExtent {
   // Loops rather than `Math.max(...spread)`: a million-row sheet would overflow the argument list.
   let rowCount = Math.max(sheet.rows.length, sheet.rowHeights.length);
   let colCount = Math.max(1, sheet.colWidths.length);
@@ -218,16 +240,14 @@ export function worksheetXml(
     rowCount = Math.max(rowCount, m.row + m.rowspan);
     colCount = Math.max(colCount, m.col + m.colspan);
   });
-  const comments: SheetComment[] = [];
-  const validations: ValidationCell[] = [];
-  const hiddenRows = new Set(sheet.hiddenRows);
-  const hiddenCols = new Set(sheet.hiddenCols);
-  let wroteFormula = false;
 
-  const w = new XmlWriter().open('worksheet', { xmlns: MAIN_NS, 'xmlns:r': R_NS });
+  return { rowCount, colCount };
+}
 
-  w.leaf('dimension', { ref: rowCount === 0 ? 'A1' : `A1:${address(rowCount - 1, colCount - 1)}` });
-
+/**
+ * Writes `<sheetViews>`, with the frozen pane when the sheet declares one.
+ */
+function writeSheetViews(w: XmlWriter, sheet: SheetSnapshot): void {
   w.open('sheetViews').open('sheetView', { workbookViewId: 0, rightToLeft: sheet.rtl ? '1' : undefined });
 
   if (sheet.freeze) {
@@ -251,8 +271,29 @@ export function worksheetXml(
   }
 
   w.close().close();
-  w.leaf('sheetFormatPr', { defaultRowHeight: DEFAULT_ROW_HEIGHT_POINTS });
+}
 
+/**
+ * One `<col>` element, serialized on its own so an all-default column can be left out entirely.
+ */
+function colEntryXml(index: number, width: number | null, hidden: boolean): string {
+  const inner = new XmlWriter(false);
+
+  inner.leaf('col', {
+    min: index + 1,
+    max: index + 1,
+    width: width ?? undefined,
+    customWidth: width !== null ? '1' : undefined,
+    hidden: hidden ? '1' : undefined,
+  });
+
+  return inner.toString();
+}
+
+/**
+ * Writes `<cols>`, which is left out entirely when no column carries a width or is hidden.
+ */
+function writeCols(w: XmlWriter, sheet: SheetSnapshot, hiddenCols: Set<number>, colCount: number): void {
   const colEntries: string[] = [];
 
   for (let c = 0; c < colCount; c++) {
@@ -260,26 +301,73 @@ export function worksheetXml(
     const hidden = hiddenCols.has(c);
 
     if (width !== null || hidden) {
-      const inner = new XmlWriter(false);
-
-      inner.leaf('col', {
-        min: c + 1,
-        max: c + 1,
-        width: width ?? undefined,
-        customWidth: width !== null ? '1' : undefined,
-        hidden: hidden ? '1' : undefined,
-      });
-      colEntries.push(inner.toString());
+      colEntries.push(colEntryXml(c, width, hidden));
     }
   }
 
   if (colEntries.length > 0) {
     w.open('cols').raw(colEntries.join('')).close();
   }
+}
+
+/**
+ * The attributes of one `<row>`.
+ */
+function rowAttributes(rowIndex: number, height: number | null, hidden: boolean): XmlAttributeMap {
+  return {
+    r: rowIndex + 1,
+    ht: height ?? undefined,
+    customHeight: height !== null ? '1' : undefined,
+    hidden: hidden ? '1' : undefined,
+  };
+}
+
+/**
+ * Writes the `<c>` elements of one row, collecting the comments, the validations and whether a
+ * formula was written into `collected`.
+ */
+function writeRowCells(
+  w: XmlWriter,
+  context: SheetDataContext,
+  rowIndex: number,
+  row: Array<CellSnapshot | null>,
+  collected: SheetDataResult,
+): void {
+  const { covered, styles, strings } = context;
+
+  for (let c = 0; c < row.length; c++) {
+    const cell = row[c];
+
+    if (cell === null) {
+      continue;
+    }
+
+    const ref = address(rowIndex, c);
+
+    if (writeCell(w, ref, cell, covered.has(`${rowIndex}:${c}`), styles, strings)) {
+      collected.wroteFormula = true;
+    }
+
+    if (cell.comment !== null) {
+      collected.comments.push({ ref, row: rowIndex, col: c, text: cell.comment });
+    }
+
+    if (cell.validation !== null) {
+      collected.validations.push({ row: rowIndex, col: c, validation: cell.validation });
+    }
+  }
+}
+
+/**
+ * Writes `<sheetData>`. A row with no cell, no height and no hidden flag is written not at all.
+ */
+function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
+  const { sheet, extent, hiddenRows } = context;
+  const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
 
   w.open('sheetData');
 
-  for (let r = 0; r < rowCount; r++) {
+  for (let r = 0; r < extent.rowCount; r++) {
     const row = sheet.rows[r] ?? [];
     const height = sheet.rowHeights[r] ?? null;
     const hidden = hiddenRows.has(r);
@@ -289,84 +377,106 @@ export function worksheetXml(
       continue;
     }
 
-    w.open('row', {
-      r: r + 1,
-      ht: height ?? undefined,
-      customHeight: height !== null ? '1' : undefined,
-      hidden: hidden ? '1' : undefined,
-    });
-
-    for (let c = 0; c < row.length; c++) {
-      const cell = row[c];
-
-      if (cell === null) {
-        continue;
-      }
-
-      const ref = address(r, c);
-
-      if (writeCell(w, ref, cell, covered.has(`${r}:${c}`), styles, strings)) {
-        wroteFormula = true;
-      }
-
-      if (cell.comment !== null) {
-        comments.push({ ref, row: r, col: c, text: cell.comment });
-      }
-
-      if (cell.validation !== null) {
-        validations.push({ row: r, col: c, validation: cell.validation });
-      }
-    }
-
+    w.open('row', rowAttributes(r, height, hidden));
+    writeRowCells(w, context, r, row, collected);
     w.close();
   }
 
   w.close();
 
-  if (sheet.protection?.enabled) {
-    const { options } = sheet.protection;
-    const attrs: Record<string, string | undefined> = { sheet: '1' };
+  return collected;
+}
 
-    if (options.selectLockedCells === false) {
-      attrs.selectLockedCells = '1';
-    }
-
-    if (options.selectUnlockedCells === false) {
-      attrs.selectUnlockedCells = '1';
-    }
-
-    // `objects` and `scenarios` default to "allowed" like every other permission, so the attribute
-    // is written only when the caller locked them down. Writing them unconditionally made ExcelJS's
-    // reader — which inverts both — report `objects: false, scenarios: false` on native bytes.
-    if (options.objects === false) {
-      attrs.objects = '1';
-    }
-
-    if (options.scenarios === false) {
-      attrs.scenarios = '1';
-    }
-
-    PROTECTION_ALLOW_OPTIONS.forEach((key) => {
-      if (options[key] === true) {
-        attrs[key] = '0';
-      }
-    });
-
-    if (passwordHash) {
-      attrs.algorithmName = passwordHash.algorithmName;
-      attrs.hashValue = passwordHash.hashValue;
-      attrs.saltValue = passwordHash.saltValue;
-      attrs.spinCount = String(passwordHash.spinCount);
-    }
-
-    w.leaf('sheetProtection', attrs);
+/**
+ * Writes `<sheetProtection>`, which an unprotected sheet does not carry at all.
+ */
+function writeSheetProtection(w: XmlWriter, sheet: SheetSnapshot, passwordHash: ProtectionHash | null): void {
+  if (!sheet.protection?.enabled) {
+    return;
   }
 
-  if (merges.length > 0) {
-    w.open('mergeCells', { count: merges.length });
-    merges.forEach(merge => w.leaf('mergeCell', { ref: mergeRef(merge) }));
-    w.close();
+  const { options } = sheet.protection;
+  const attrs: Record<string, string | undefined> = { sheet: '1' };
+
+  if (options.selectLockedCells === false) {
+    attrs.selectLockedCells = '1';
   }
+
+  if (options.selectUnlockedCells === false) {
+    attrs.selectUnlockedCells = '1';
+  }
+
+  // `objects` and `scenarios` default to "allowed" like every other permission, so the attribute
+  // is written only when the caller locked them down. Writing them unconditionally made ExcelJS's
+  // reader — which inverts both — report `objects: false, scenarios: false` on native bytes.
+  if (options.objects === false) {
+    attrs.objects = '1';
+  }
+
+  if (options.scenarios === false) {
+    attrs.scenarios = '1';
+  }
+
+  PROTECTION_ALLOW_OPTIONS.forEach((key) => {
+    if (options[key] === true) {
+      attrs[key] = '0';
+    }
+  });
+
+  if (passwordHash) {
+    attrs.algorithmName = passwordHash.algorithmName;
+    attrs.hashValue = passwordHash.hashValue;
+    attrs.saltValue = passwordHash.saltValue;
+    attrs.spinCount = String(passwordHash.spinCount);
+  }
+
+  w.leaf('sheetProtection', attrs);
+}
+
+/**
+ * Writes `<mergeCells>`, which a sheet with no surviving merge does not carry at all.
+ */
+function writeMergeCells(w: XmlWriter, merges: MergeSnapshot[]): void {
+  if (merges.length === 0) {
+    return;
+  }
+
+  w.open('mergeCells', { count: merges.length });
+  merges.forEach(merge => w.leaf('mergeCell', { ref: mergeRef(merge) }));
+  w.close();
+}
+
+/**
+ * Serializes `xl/worksheets/sheetN.xml` for one snapshot. Child order is schema-fixed; a wrong
+ * order makes Excel offer to "repair" the file — this function IS that order.
+ */
+export function worksheetXml(
+  sheet: SheetSnapshot,
+  styles: StyleTable,
+  strings: SharedStringTable,
+  dropped: DroppedFeatures,
+  passwordHash: ProtectionHash | null,
+): WorksheetWriteResult {
+  const { kept: merges, covered } = resolveMerges(sheet.merges, dropped);
+  const extent = measureExtent(sheet, merges);
+  const { rowCount, colCount } = extent;
+  const hiddenRows = new Set(sheet.hiddenRows);
+  const hiddenCols = new Set(sheet.hiddenCols);
+
+  const w = new XmlWriter().open('worksheet', { xmlns: MAIN_NS, 'xmlns:r': R_NS });
+
+  w.leaf('dimension', { ref: rowCount === 0 ? 'A1' : `A1:${address(rowCount - 1, colCount - 1)}` });
+
+  writeSheetViews(w, sheet);
+  w.leaf('sheetFormatPr', { defaultRowHeight: DEFAULT_ROW_HEIGHT_POINTS });
+  writeCols(w, sheet, hiddenCols, colCount);
+
+  const { comments, validations, wroteFormula } = writeSheetData(w, {
+    sheet, extent, hiddenRows, covered, styles, strings,
+  });
+
+  writeSheetProtection(w, sheet, passwordHash);
+  writeMergeCells(w, merges);
 
   const priority = { next: maxRulePriority(sheet.conditionalFormatting) + 1 };
 
