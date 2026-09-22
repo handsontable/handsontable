@@ -101,6 +101,13 @@ export function checkboxRenderer(
       localeLowerCase(stringify(value), locale) ===
       localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
       input.checked = true;
+      // Reflect the checked state as the `checked` HTML attribute (via `defaultChecked`), not only as
+      // the IDL property. A custom renderer that chains this renderer and then rebuilds the cell with
+      // `TD.innerHTML += ...` re-serializes the cell; the IDL property is not serialized, so without the
+      // attribute the checkbox re-parses as unchecked on every render (handsontable/dev-handsontable#342).
+      // Only the checked branch sets it: `createInput()` returns a freshly cloned element on every
+      // render, so the attribute defaults to absent on the unchecked path with nothing to clear.
+      input.defaultChecked = true;
 
     } else if (value === cellProperties.uncheckedTemplate ||
       localeLowerCase(stringify(value), locale) ===
