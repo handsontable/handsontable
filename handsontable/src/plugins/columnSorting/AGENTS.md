@@ -188,6 +188,25 @@ state needs the same treatment.
 `enablePlugin()` carries a `// TODO: Workaround? It should be refactored / described.` guard on
 `this.hot.view` — the #6806 initialization-order problem described in `../base/AGENTS.md`.
 
+## Enabling via `updateSettings` must not sort twice (DEV-187)
+
+A `disabled → enabled` transition through `updateSettings()` (e.g. `hot.updateSettings({ columnSorting:
+{...} })` on a grid built without the option) runs the settings sort from **two** places in the same
+pass: `enablePlugin()`'s `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround above, which
+already fires because `view` exists by then) and `onUpdateSettings()`'s own tail call to
+`sortBySettings(pluginSettings)`. Left unguarded, that runs the comparator twice for the same sort -
+the original DEV-187 report blamed construction-time `initialConfig`, which was already fixed and
+measures single on develop; the survivor is this enable-via-`updateSettings` path.
+
+`onUpdateSettings()` captures `wasEnabled = this.enabled` **before** calling `super.onUpdateSettings()`
+(which is what may flip `enabled` from `false` to `true`), and only re-sorts when the plugin was
+`enabled` on **both** sides of that call. A fresh enable is left to `enablePlugin()` alone; an
+already-enabled plugin receiving a new sort config through `updateSettings` still re-sorts here as
+before. `MultiColumnSorting` overrides neither `onUpdateSettings()` nor `sortBySettings()` - its
+`enablePlugin()` override only adds an already-enabled early return before delegating to `super`,
+so it still runs the same #6806 workaround path - and it inherits this guard unchanged. Do not
+special-case it.
+
 ## Where to look next
 
 - Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../formulas/AGENTS.md`.

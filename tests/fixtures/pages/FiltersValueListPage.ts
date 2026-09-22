@@ -37,7 +37,8 @@ export class FiltersValueListPage {
    * @param {string} theme The active theme.
    * @param {string} bundle The active bundle.
    * @param {string} fixture The fixture file to open. The locale variant seeds Turkish values on a
-   *   `tr-TR` grid; everything else about the two pages is the same, so they share this object.
+   *   `tr-TR` grid, the value-order variant configures `filterValueComparator`; everything else
+   *   about these pages is the same, so they share this object.
    */
   constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
     this.page = page;
@@ -252,10 +253,14 @@ export class FiltersValueListPage {
   /**
    * Check the "filter by value" item carrying the given label.
    *
-   * The value box is about 110px tall and virtualized, so it holds roughly four rows. Target a
-   * row in the first three: pressing one at or past the fold makes Playwright scroll the inner
-   * list first, the row moves out from under the pointer, and the press lands outside the menu
-   * and closes it — a flake that hits about two runs in three.
+   * The value box is about 110px tall and virtualized, so it holds roughly four rows. A row at or
+   * past that fold used to flake — Playwright scrolled the inner list first, the row moved out
+   * from under the pointer, and the press landed outside the menu and closed it. DEV-1159 (#13544)
+   * fixed that in the product: the mouse single-scroll strategy skips the whole move for a
+   * non-oversized last-partial click, which is what keeps a real click on a virtualized checkbox
+   * from moving the list. So a below-fold value is a legitimate target, and
+   * `filters-value-list.spec.ts` keeps clicking one on purpose as coverage of that skip. Do not
+   * dodge the fold with a different value or `force: true` — see the Filters plugin's AGENTS.md.
    *
    * @param {string} label The value's visible label.
    */
@@ -310,7 +315,8 @@ export class FiltersValueListPage {
   /**
    * Uncheck the "filter by value" item carrying the given label.
    *
-   * Same fold hazard as `checkValue()` — target a row in the first three.
+   * Same virtualized fold as `checkValue()`, and the same answer: the product handles it since
+   * DEV-1159, so a below-fold value is a legitimate target.
    *
    * @param {string} label The value's visible label.
    */
@@ -351,6 +357,20 @@ export class FiltersValueListPage {
     await this.page.evaluate((newData) => {
       window.hot.updateSettings({ data: newData, filters: true });
     }, data);
+  }
+
+  /**
+   * Re-configure the grid with `updateSettings()`, the way a host application changes options at
+   * runtime. The payload crosses into the page, so it must be serializable, and any function it
+   * carries (a comparator, for example) is built inside the page from a source string.
+   *
+   * @param {string} settingsSource JavaScript source of an object literal, evaluated in the page.
+   */
+  async updateSettings(settingsSource: string): Promise<void> {
+    await this.page.evaluate((source) => {
+      // eslint-disable-next-line no-new-func
+      window.hot.updateSettings(new Function(`return (${source});`)());
+    }, settingsSource);
   }
 
   /**

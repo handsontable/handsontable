@@ -41,6 +41,13 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
+    sheetId: number | null,
+    // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
+    // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
+    engine: {
+      getSheetDimensions(sheetId: number): { width: number, height: number },
+      getSheetSerialized(sheetId: number): unknown[][],
+    } | null,
   };
   getPlugin(name: 'undoRedo'): {
     undo(): void,
@@ -251,8 +258,18 @@ declare global {
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
     /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
     htDropdownOptions: string[];
-    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    /** DEV-2938 / DEV-2978 fixtures: everything the page logged through `console.error`, in order. */
     consoleErrors?: string[];
+    /** DEV-2978 fixture: how many `setSheetContent` calls the bound engine has taken since the last reset. */
+    sheetWriteCount?: number;
+    /**
+     * DEV-2978 fixture, `sheet-switch` scenario: the shared HyperFormula instance the grid and the
+     * spec both address, so a spec can read a sheet the grid is not currently bound to.
+     */
+    htEngine?: {
+      getSheetId(name: string): number,
+      getSheetSerialized(sheetId: number): unknown[][],
+    };
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
     /** DEV-2938 fixture: how many times the grid has drawn since it was built. */

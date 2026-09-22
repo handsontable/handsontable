@@ -347,8 +347,8 @@ is visible in the PR list (applied by hand, like every other label here — the
 Checks scope router
 reads the box live and routes the Manual QA module only when ticked; its
 `sign-off` job then waits on the **`manual-qa` environment approval**: a
-designated reviewer (the environment's required-reviewers list; self-review
-is blocked — and an agent can request a check but never clear one) clicks
+designated reviewer (the environment's required-reviewers list — self-review
+is allowed by decision, and an agent can request a check but never clear one) clicks
 Approve on the workflow run, and GitHub records the approver as the
 sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
 without any job going red; a rejection turns CI Gate red. Unticked PRs

@@ -13,6 +13,7 @@ import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
 import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/sidebar.mjs';
+import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
@@ -662,7 +663,10 @@ function markdownRoutesIntegration(sidebars) {
       const destDir = dirname(dest);
 
       mkdirSync(destDir, { recursive: true });
-      writeFileSync(dest, md, 'utf-8');
+      // The agent note is appended per file, not stored in the route map, so
+      // llms-full.txt (built from the map) does not repeat it per page —
+      // buildLlmsFull() appends it once, at the end of the corpus.
+      writeFileSync(dest, md + AGENT_NOTE_MD, 'utf-8');
     }
 
     // The llms files live one level above _md, at the site root (/docs/).

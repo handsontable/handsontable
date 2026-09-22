@@ -2504,6 +2504,14 @@ export default (): Record<string, unknown> => {
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
      *
+     * The current-row and current-column indicators
+     * ([`currentRowClassName`](#currentRowClassName) and [`currentColClassName`](#currentColClassName))
+     * are selection feedback rather than header selection, so `'header'` does not remove them. They are
+     * hidden only when every selection type is off – `true`, or an array holding all of `'current'`,
+     * `'area'`, and `'header'`. The classes also mark the current row's and column's header cell, as
+     * they do with `false`, so `'header'` still leaves your `currentRowClassName` and
+     * `currentColClassName` on those header cells.
+     *
      * When set to any non-`false` value, the second-click deselect behavior
      * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
      * is also skipped. Without visible feedback, toggling layers off can cause unexpected
@@ -3307,6 +3315,64 @@ export default (): Record<string, unknown> => {
     filter: true,
 
     /**
+     * The `filterValueComparator` option sets the order of the values in the **Filter by value**
+     * list of the [`Filters`](@/api/filters.md) dropdown.
+     *
+     * By default the list places blank cells first and then sorts the values with a built-in
+     * comparator: numbers by value, text by character code, and `date`, `intl-date`, and
+     * `intl-datetime` cells chronologically. Set `filterValueComparator` to a function to replace
+     * that order. The function takes two cell values and returns a negative number, zero, or a
+     * positive number, like the callback of `Array.prototype.sort()`.
+     *
+     * The option cascades: set it at the grid level to order every column's list the same way,
+     * or inside [`columns`](#columns) to order one column. A column value overrides the grid value.
+     * A custom comparator also overrides the cell type's own comparator.
+     *
+     * Two details to know when you write the function:
+     * - A blank cell (`null`, `undefined`, or `''`) reaches the comparator as an empty string `''`.
+     * - The comparator only orders the list. It cannot add, hide, or remove a value, so it never
+     *   changes which rows the filter keeps.
+     *
+     * A value that is not a function is ignored, and the built-in order applies.
+     *
+     * The list is built once per column, and the comparator is read from the cell meta of the
+     * first row the list is built from. A per-cell value set through [`cells`](#cells) or
+     * [`cell`](#cell) is therefore not a reliable way to configure it. Set it at the grid level or
+     * inside `columns`.
+     *
+     * Read more:
+     * - [Column filter: Change the order of values in the filter list](@/guides/columns/column-filter/column-filter.md#change-the-order-of-values-in-the-filter-list)
+     * - [Plugins: `Filters`](@/api/filters.md)
+     * - [`filters`](#filters)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Filters
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * // order the "Priority" column by severity rather than alphabetically
+     * const priority = ['Critical', 'High', 'Medium', 'Low'];
+     *
+     * filters: true,
+     * columns: [
+     *   {
+     *     data: 'priority',
+     *     filterValueComparator: (a, b) => priority.indexOf(a) - priority.indexOf(b),
+     *   },
+     * ],
+     *
+     * // order every column's list with a locale-aware text comparison
+     * filters: true,
+     * filterValueComparator: (a, b) => String(a).localeCompare(String(b), 'de'),
+     * ```
+     */
+    filterValueComparator: undefined,
+
+    /**
      * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells'
      * search inputs are case-sensitive.
      *
@@ -3409,6 +3475,7 @@ export default (): Record<string, unknown> => {
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
+     * - [`filterValueComparator`](#filtervaluecomparator) – order the values in the **Filter by value** list
      *
      * @memberof Options#
      * @type {boolean|object}
