@@ -19,7 +19,7 @@ export class AppComponent {
     ['Helium', 'He', 2, 4.003, 9, -458.0, -452.1],
     ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
     ['Beryllium', 'Be', 4, 9.012, 11, 2348.6, 4478.8],
-    ['Boron', 'B', 5, 10.81, 11, 3768.8, 7100.6],
+    ['Boron', 'B', 5, 10.81, 15, 3768.8, 7100.6],
   ];
 
   readonly hotSettings: GridSettings = {
@@ -27,9 +27,9 @@ export class AppComponent {
     columns: [
       { title: 'Name' },
       { title: 'Symbol' },
-      { title: 'Atomic Number', type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
-      { title: 'Atomic Mass (u)', type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
-      { title: 'Known Isotopes', type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
+      { title: 'Atomic Number', type: 'numeric' },
+      { title: 'Atomic Mass (u)', type: 'numeric', numericFormat: { minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false } },
+      { title: 'Known Isotopes', type: 'numeric' },
       { title: 'Melting Point (°F)', type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
       { title: 'Boiling Point (°F)', type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
     ],

@@ -23,7 +23,7 @@ Use default column headers (A, B, C), or set them to custom values provided by a
 
 Column headers are gray-colored rows used to label each column or group of columns. By default, these headers are populated with letters in alphabetical order.
 
-To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `ID, Full name, Country, ...`.
+To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `Name, Symbol, Atomic Number, ...`.
 
 ## Default headers
 
@@ -326,8 +326,8 @@ A negative number is kept as it is, because numbers behave exactly as they did b
 read strings. A negative string is rejected, so a typo cannot collapse the header.
 
 The height you set is the header's **border-box** height: it includes the header's own top and
-bottom borders. A column header carries a 1px border on each side, so `columnHeaderHeight: 40`
-leaves a 38px content box for the label. Before Handsontable 19.0 the bottom border was dropped
+bottom borders. A column header carries a `1px` border on each side, so `columnHeaderHeight: 40`
+leaves a `38px` content box for the label. Before Handsontable 19.0 the bottom border was dropped
 while the grid sat at the top of its scroll range and added back as soon as you scrolled, so the
 same setting gave a `39px` content box unscrolled and `38px` scrolled. The header now keeps that border
 at every scroll position, which makes the option's result the same wherever the grid is scrolled to.
