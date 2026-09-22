@@ -30,6 +30,7 @@ To speed up the process of merging your changes, follow these rules:
     - `./wrappers/vue3/src/`
 7. **Ship a test with your change.** Every change to `handsontable/src/**` or `wrappers/**` must include a matching test change. This is not a courtesy — a **presence gate** enforces it on every PR (and locally, before you push). The *kind* of test follows the *kind* of change:
     - **User-visible** (rendering, editing, selection, keyboard, menus, overlays) → an **E2E** test. New E2E is **Playwright** (`tests/e2e/**/*.spec.ts`). The legacy Jasmine/Puppeteer `*.spec.js` suite is **frozen** — you may edit an existing spec, but **new `*.spec.js` files are blocked**; migrate a broken one to Playwright rather than patch it.
+    - **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, in addition to, never instead of the E2E test above — a screenshot proves pixels only; the rule is in `visual-tests/AGENTS.md` (Decision rule).
     - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` in a `__tests__/` directory next to the source.
     - **Public API / type surface** → a **type test**, `*.types.ts`.
     - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → its own test runner (separate pipeline).

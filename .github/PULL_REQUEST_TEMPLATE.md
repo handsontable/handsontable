@@ -13,8 +13,20 @@ Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 - Type tests (`*.types.ts`) updated if public API changed: <!-- paths -->
 - For a bug fix — the spec that fails without this fix: <!-- name -->
 - Demo page / recorded trace (for UI changes): <!-- link -->
+- Visual spec added/modified (`visual-tests/tests/**/*.spec.ts`, only for pixels no DOM probe can express — in addition to, never instead of the E2E above): <!-- paths, or "none"; rule: visual-tests/AGENTS.md → Decision rule -->
 
 <!--
+Visual budget: a change that grows the golden set (a new visual spec, a new
+capture) declares it with [visual budget: N – reason] in this description
+OUTSIDE any HTML comment — here, inside a comment, it is inert. N is the
+full-tier golden total after the change (1676 on 2026-09-18). The `Visual
+budget` step of Visual / Compare reads the live description and refuses
+undeclared net growth; a render under the checked-in budget asks you to lower
+visual-tests/visual-budget.json in the same PR. That step is the golden-budget
+guardrail (G3); until it lands, the marker is read by nothing and costs nothing.
+What earns a capture at all is visual-tests/AGENTS.md → Decision rule; the
+budget, with whether it has landed, is under Guardrails there.
+
 Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
 excluded) requires a new .changelogs/*.json entry — run `npm run changelog
 entry` AFTER opening the PR (the file is named after the PR number). Docs-,
