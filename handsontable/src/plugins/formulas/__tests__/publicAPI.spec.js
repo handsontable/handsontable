@@ -225,6 +225,94 @@ describe('Formulas public API', () => {
     });
   });
 
+  describe('showFormulas() / hideFormulas() / isShowingFormulas()', () => {
+    it('should report calculated values by default', async() => {
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+
+      expect(formulas.isShowingFormulas()).toBe(false);
+      expect(getDataAtCell(0, 2)).toBe(3);
+    });
+
+    it('should display the formula text instead of the calculated value once shown', async() => {
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+
+      formulas.showFormulas();
+
+      expect(formulas.isShowingFormulas()).toBe(true);
+      expect(getDataAtCell(0, 2)).toBe('=A1+B1');
+      // A non-formula cell is unaffected.
+      expect(getDataAtCell(0, 0)).toBe('1');
+    });
+
+    it('should revert to the calculated value after hideFormulas()', async() => {
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+
+      formulas.showFormulas();
+      formulas.hideFormulas();
+
+      expect(formulas.isShowingFormulas()).toBe(false);
+      expect(getDataAtCell(0, 2)).toBe(3);
+    });
+
+    it('should copy the formula text, not the calculated value, while formulas are shown', async() => {
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+      const copyPaste = getPlugin('copyPaste');
+
+      formulas.showFormulas();
+
+      expect(copyPaste.getRangedData([{ startRow: 0, startCol: 2, endRow: 0, endCol: 2 }]))
+        .toEqual([['=A1+B1']]);
+    });
+
+    it('should toggle via the Ctrl+`/Cmd+` shortcut', async() => {
+      handsontable({
+        data: [['1', '2', '=A1+B1']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const formulas = getPlugin('formulas');
+
+      await selectCell(0, 0);
+      await keyDownUp(['control/meta', '`']);
+
+      expect(formulas.isShowingFormulas()).toBe(true);
+
+      await keyDownUp(['control/meta', '`']);
+
+      expect(formulas.isShowingFormulas()).toBe(false);
+    });
+  });
+
   describe('coordinate space', () => {
     it('should use HyperFormula index space (not visual) for the argument and the returned coordinates', async() => {
       handsontable({

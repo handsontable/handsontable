@@ -128,6 +128,7 @@ export const PLUGIN_KEY = 'formulas';
 // `updatePlugin` also creates or switches the sheet, and dropping them would skip that.
 export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -257,6 +258,14 @@ export class Formulas extends BasePlugin {
    * render fills it again.
    */
   #hyperlinkCells = new Set<string>();
+
+  /**
+   * Whether formula cells display their formula text (`showFormulas()`) instead of their
+   * calculated value. Read by `#onModifyData` alone: the source-data read path
+   * (`#onModifySourceData`) already reports the formula text regardless of this flag, which is
+   * what lets the cell editor show it whether or not this mode is on.
+   */
+  #showFormulasFlag = false;
 
   /**
    * Flag needed to mark if Handsontable was initialized with no data.
@@ -681,6 +690,7 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
     this.#sheetResyncPending = false;
+    this.#showFormulasFlag = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
 
@@ -871,6 +881,8 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
 
+    this.#registerToggleFormulasShortcut();
+
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
     this.#refreshHyperlinksSetting();
@@ -891,6 +903,7 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unregisterToggleFormulasShortcut();
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
 
@@ -1170,6 +1183,45 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Makes every formula cell display its formula text (for example `=SUM(A1:A2)`) instead of its
+   * calculated value, until {@link Formulas#hideFormulas} is called. Copying a formula cell in this
+   * mode copies its formula text, matching what is on screen. Toggled by default with `Ctrl`+`` ` ``
+   * (or `Cmd`+`` ` `` on macOS).
+   */
+  showFormulas(): void {
+    if (this.#showFormulasFlag) {
+      return;
+    }
+
+    this.#showFormulasFlag = true;
+    this.hot.markAllCellsChanged();
+    this.hot.render();
+  }
+
+  /**
+   * Reverts {@link Formulas#showFormulas}: formula cells display their calculated value again.
+   */
+  hideFormulas(): void {
+    if (!this.#showFormulasFlag) {
+      return;
+    }
+
+    this.#showFormulasFlag = false;
+    this.hot.markAllCellsChanged();
+    this.hot.render();
+  }
+
+  /**
+   * Returns `true` when formula cells are currently displaying their formula text instead of their
+   * calculated value (see {@link Formulas#showFormulas}).
+   *
+   * @returns {boolean}
+   */
+  isShowingFormulas(): boolean {
+    return this.#showFormulasFlag;
+  }
+
+  /**
    * Returns the cells and cell ranges that depend on the provided cell or range (its out-neighbors in
    * HyperFormula's dependency graph). These are the cells whose formulas reference the given address.
    *
@@ -1203,6 +1255,36 @@ export class Formulas extends BasePlugin {
    */
   getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
     return this.engine!.getCellPrecedents(address);
+  }
+
+  /**
+   * Registers the `Ctrl`+`` ` ``/`Cmd`+`` ` `` shortcut that toggles {@link Formulas#showFormulas} /
+   * {@link Formulas#hideFormulas}. The plugin's own `registerShortcuts()` is a deprecated no-op kept
+   * for backward compatibility, so this uses its own group name instead of that method.
+   */
+  #registerToggleFormulasShortcut() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.addShortcut({
+        keys: [['Control/Meta', '`']],
+        callback: () => {
+          if (this.isShowingFormulas()) {
+            this.hideFormulas();
+          } else {
+            this.showFormulas();
+          }
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Removes the shortcut registered by `#registerToggleFormulasShortcut`.
+   */
+  #unregisterToggleFormulasShortcut() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -2625,6 +2707,15 @@ export class Formulas extends BasePlugin {
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
+
+    // `showFormulas()` mode: report the formula text instead of the calculated value, exactly as
+    // `#onModifySourceData` already does for the source-data read path (the editor, copy/paste).
+    if (this.#showFormulasFlag) {
+      valueHolder.value = this.engine!.getCellSerialized(address);
+
+      return;
+    }
+
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the

@@ -461,4 +461,25 @@ describe('Formulas memory leak check', () => {
     expect(internalEventsNew.sheetRenamed.length).toBe(2);
     expect(internalEventsNew.valuesUpdated.length).toBe(2);
   });
+
+  it('should not register the Ctrl+`/Cmd+` toggle shortcut twice after a disable/re-enable cycle', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+
+    hot.updateSettings({ formulas: false });
+    hot.updateSettings({ formulas: { engine: HyperFormula } });
+
+    const formulas = hot.getPlugin('formulas');
+
+    await selectCell(0, 0);
+    await keyDownUp(['control/meta', '`']);
+
+    // A shortcut left registered from the disabled instance would toggle the flag back off in the
+    // same keypress instead of leaving it on.
+    expect(formulas.isShowingFormulas()).toBe(true);
+  });
 });
