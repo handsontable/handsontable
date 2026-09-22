@@ -1,5 +1,5 @@
 import type { CellStyleSnapshot } from '../../../model';
-import { createLocalName, tokenizeXml, type XmlAttributes, type XmlHandlers } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
 
@@ -547,268 +547,527 @@ function flagOn(attrs: XmlAttributes): boolean {
 }
 
 /**
- * Parses `xl/styles.xml` into resolved cell formats and conditional-formatting styles.
+ * The four border edges as a set, for the type guard below.
  */
-export function parseStyles(xml: string): ParsedStyles {
-  const customNumFmts = new Map<number, string>();
-  const fonts: Array<Font | null> = [];
-  const fills: Array<Fill | null> = [];
-  const borders: Array<Border | null> = [];
-  const cellXfs: ResolvedXf[] = [];
-  const dxfs: DxfStyle[] = [];
-  const path: string[] = [];
-  let font: Font | null = null;
-  let fill: Fill | null = null;
-  let border: Border | null = null;
-  let edge: (typeof BORDER_EDGES)[number] | null = null;
-  let xf: {
-    numFmtId: number; fontId: number; fillId: number; borderId: number; alignment: Alignment | null;
-    locked: boolean | null;
-  } | null = null;
-  let dxf: DxfStyle | null = null;
-  let dxfFill: { bgColor?: { argb: string }; fgColor?: { argb: string } } | null = null;
+const BORDER_EDGE_SET = new Set<string>(BORDER_EDGES);
+
+/**
+ * Whether an element name is one of the four border edges.
+ */
+function isBorderEdge(name: string): name is (typeof BORDER_EDGES)[number] {
+  return BORDER_EDGE_SET.has(name);
+}
+
+/**
+ * The elements the font state machine owns. `<color>` is one of them: an edge color carries the
+ * same element name and is applied separately, one level below its edge.
+ */
+const FONT_ELEMENTS = new Set(['font', 'b', 'i', 'u', 'color']);
+
+/**
+ * The elements the fill state machine owns.
+ */
+const FILL_ELEMENTS = new Set(['fill', 'patternFill', 'fgColor', 'bgColor']);
+
+/**
+ * The elements the cell-format state machine owns.
+ */
+const XF_ELEMENTS = new Set(['xf', 'alignment', 'protection']);
+
+/**
+ * One `<xf>` of `<cellXfs>` while its children are being read.
+ */
+interface XfState {
+  numFmtId: number;
+  fontId: number;
+  fillId: number;
+  borderId: number;
+  alignment: Alignment | null;
+  locked: boolean | null;
+}
+
+/**
+ * The object itself when it carries anything, `null` when nothing was read into it.
+ */
+function nonEmpty<T extends object>(value: T | null): T | null {
+  return value && Object.keys(value).length > 0 ? value : null;
+}
+
+/**
+ * Applies a `<color>` to a font, ignoring a theme or indexed color the model cannot carry.
+ */
+function applyFontColor(font: Font, attrs: XmlAttributes): void {
+  const color = argbOf(attrs);
+
+  if (color) {
+    font.color = color;
+  }
+}
+
+/**
+ * Reads an `<alignment>`, or `null` when it declares neither axis.
+ */
+function readAlignment(attrs: XmlAttributes): Alignment | null {
+  const alignment: Alignment = {};
+
+  if (attrs.horizontal !== undefined) {
+    alignment.horizontal = attrs.horizontal;
+  }
+
+  if (attrs.vertical !== undefined) {
+    alignment.vertical = attrs.vertical === 'center' ? 'middle' : attrs.vertical;
+  }
+
+  return Object.keys(alignment).length > 0 ? alignment : null;
+}
+
+/**
+ * The state machine behind `parseStyles`. One instance reads one `xl/styles.xml`: the tokenizer is
+ * forward-only, so every table is assembled from an element's open event, its children and its
+ * close event, and the fields below are that half-built state.
+ */
+class StylesParser {
+  /**
+   * Custom number formats by the id the file gives them.
+   */
+  #customNumFmts = new Map<number, string>();
+
+  /**
+   * The workbook's fonts, by index.
+   */
+  #fonts: Array<Font | null> = [];
+
+  /**
+   * The workbook's fills, by index.
+   */
+  #fills: Array<Fill | null> = [];
+
+  /**
+   * The workbook's borders, by index.
+   */
+  #borders: Array<Border | null> = [];
+
+  /**
+   * The resolved cell formats, in `<cellXfs>` order.
+   */
+  #cellXfs: ResolvedXf[] = [];
+
+  /**
+   * The conditional-formatting styles, in `<dxfs>` order.
+   */
+  #dxfs: DxfStyle[] = [];
+
+  /**
+   * The open elements, innermost last. `#section()` reads the part's top-level table off it.
+   */
+  #path: string[] = [];
+
+  /**
+   * The `<font>` being read.
+   */
+  #font: Font | null = null;
+
+  /**
+   * The `<fill>` being read, when it is one of the workbook's own.
+   */
+  #fill: Fill | null = null;
+
+  /**
+   * The `<border>` being read.
+   */
+  #border: Border | null = null;
+
+  /**
+   * The border edge whose `<color>` child would apply, when one is open.
+   */
+  #edge: (typeof BORDER_EDGES)[number] | null = null;
+
+  /**
+   * The `<xf>` of `<cellXfs>` being read.
+   */
+  #xf: XfState | null = null;
+
+  /**
+   * The `<dxf>` being read.
+   */
+  #dxf: DxfStyle | null = null;
+
+  /**
+   * The `<fill>` being read, when it belongs to a `<dxf>`.
+   */
+  #dxfFill: { bgColor?: { argb: string }; fgColor?: { argb: string } } | null = null;
+
+  /**
+   * Strips the prefix this part's root element carries. Per instance, so it learns the prefix of
+   * the one part being read.
+   */
+  #localName = createLocalName();
+
+  /**
+   * Reads the part and returns the tables it resolved.
+   */
+  parse(xml: string): ParsedStyles {
+    tokenizeXml(xml, {
+      open: (rawName, attrs, selfClosing) => this.#open(rawName, attrs, selfClosing),
+      close: rawName => this.#close(rawName),
+    });
+
+    return {
+      cellXfs: this.#cellXfs.length > 0 ? this.#cellXfs : EMPTY_STYLES.cellXfs,
+      dxfs: this.#dxfs,
+    };
+  }
 
   /**
    * The section (`fonts`, `dxfs`, …) the parser is currently inside.
    */
-  const section = (): string | undefined => path[1];
+  #section(): string | undefined {
+    return this.#path[1];
+  }
 
-  const localName = createLocalName();
+  /**
+   * Handles an element's open event, and its close event too when it is self-closing.
+   */
+  #open(rawName: string, attrs: XmlAttributes, selfClosing: boolean): void {
+    const name = this.#localName(rawName);
+    const parent = this.#path[this.#path.length - 1];
 
-  const handlers: XmlHandlers = {
-    open(rawName, attrs, selfClosing) {
-      const name = localName(rawName);
-      const parent = path[path.length - 1];
+    if (!selfClosing) {
+      this.#path.push(name);
+    }
 
-      if (!selfClosing) {
-        path.push(name);
+    this.#openElement(name, attrs, parent);
+    this.#applyEdgeColor(name, attrs);
+
+    if (selfClosing) {
+      // A self-closing element (`<b/>`, `<xf …/>`, `<protection locked="0"/>`) gets no close
+      // event, so its close bookkeeping runs from here.
+      this.#close(name);
+    }
+  }
+
+  /**
+   * Routes an open element to the state machine that owns it.
+   */
+  #openElement(name: string, attrs: XmlAttributes, parent: string | undefined): void {
+    if (FONT_ELEMENTS.has(name)) {
+      this.#openFontChild(name, attrs, parent);
+    } else if (FILL_ELEMENTS.has(name)) {
+      this.#openFillChild(name, attrs);
+    } else if (name === 'border' || isBorderEdge(name)) {
+      this.#openBorderChild(name, attrs);
+    } else if (XF_ELEMENTS.has(name)) {
+      this.#openXfChild(name, attrs);
+    } else if (name === 'numFmt') {
+      this.#openNumFmt(attrs);
+    } else if (name === 'dxf') {
+      this.#dxf = {};
+    }
+  }
+
+  /**
+   * Applies a `<color>` that belongs to a border edge, which lives one level below the edge
+   * element and so is matched outside the font's own `<color>` handling.
+   */
+  #applyEdgeColor(name: string, attrs: XmlAttributes): void {
+    if (name === 'color' && this.#edge && this.#border) {
+      const side = this.#border[this.#edge];
+      const color = argbOf(attrs);
+
+      if (side && color) {
+        side.color = color;
+      }
+    }
+  }
+
+  /**
+   * Opens a `<numFmt>`, which belongs either to the workbook's table or to a `<dxf>`.
+   */
+  #openNumFmt(attrs: XmlAttributes): void {
+    if (attrs.formatCode === undefined) {
+      return;
+    }
+
+    const formatCode = attrs.formatCode.replace(/\\(.)/g, '$1');
+
+    // A `<numFmt>` inside a `<dxf>` belongs to that rule's style, not to the workbook's
+    // table, so it must not shadow an id the cell formats resolve against.
+    if (this.#section() === 'dxfs' && this.#dxf) {
+      this.#dxf.numFmt = formatCode;
+    } else if (attrs.numFmtId !== undefined) {
+      this.#customNumFmts.set(Number(attrs.numFmtId), formatCode);
+    }
+  }
+
+  /**
+   * Opens a `<font>` or one of its children.
+   */
+  #openFontChild(name: string, attrs: XmlAttributes, parent: string | undefined): void {
+    if (name === 'font') {
+      this.#font = {};
+
+      return;
+    }
+
+    const font = this.#font;
+
+    if (font === null) {
+      return;
+    }
+
+    if (name === 'b' && flagOn(attrs)) {
+      font.bold = true;
+    } else if (name === 'i' && flagOn(attrs)) {
+      font.italic = true;
+    } else if (name === 'u' && attrs.val !== 'none') {
+      font.underline = true;
+    } else if (name === 'color' && parent === 'font') {
+      applyFontColor(font, attrs);
+    }
+  }
+
+  /**
+   * Opens a `<fill>` or one of its children.
+   */
+  #openFillChild(name: string, attrs: XmlAttributes): void {
+    if (name === 'fill') {
+      this.#fill = null;
+      this.#dxfFill = this.#section() === 'dxfs' ? {} : null;
+    } else if (name === 'patternFill') {
+      this.#openPatternFill(attrs);
+    } else if (name === 'fgColor') {
+      this.#openFgColor(attrs);
+    } else if (name === 'bgColor') {
+      this.#openBgColor(attrs);
+    }
+  }
+
+  /**
+   * Opens a `<patternFill>`. Only a solid pattern of the workbook's own table becomes a fill; its
+   * color arrives with the `<fgColor>` child.
+   */
+  #openPatternFill(attrs: XmlAttributes): void {
+    if (this.#section() === 'fills' && attrs.patternType === 'solid') {
+      this.#fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+    }
+  }
+
+  /**
+   * Applies an `<fgColor>` to whichever fill is open. A workbook fill whose color the model cannot
+   * carry is dropped whole, because the fill is nothing but that color.
+   */
+  #openFgColor(attrs: XmlAttributes): void {
+    const fill = this.#fill;
+    const dxfFill = this.#dxfFill;
+
+    if (fill && this.#section() === 'fills') {
+      const color = argbOf(attrs);
+
+      this.#fill = color ? { ...fill, fgColor: color } : null;
+    } else if (dxfFill) {
+      const color = argbOf(attrs);
+
+      if (color) {
+        dxfFill.fgColor = color;
+      }
+    }
+  }
+
+  /**
+   * Applies a `<bgColor>`, which only a `<dxf>` fill carries.
+   */
+  #openBgColor(attrs: XmlAttributes): void {
+    const dxfFill = this.#dxfFill;
+
+    if (dxfFill) {
+      const color = argbOf(attrs);
+
+      if (color) {
+        dxfFill.bgColor = color;
+      }
+    }
+  }
+
+  /**
+   * Opens a `<border>` or one of its edges.
+   */
+  #openBorderChild(name: string, attrs: XmlAttributes): void {
+    if (name === 'border') {
+      this.#border = {};
+
+      return;
+    }
+
+    if (!isBorderEdge(name)) {
+      return;
+    }
+
+    const border = this.#border;
+
+    if (border && attrs.style !== undefined && attrs.style !== 'none') {
+      border[name] = { style: attrs.style };
+      this.#edge = name;
+    } else {
+      this.#edge = null;
+    }
+  }
+
+  /**
+   * Opens an `<xf>` of `<cellXfs>` or one of its children.
+   */
+  #openXfChild(name: string, attrs: XmlAttributes): void {
+    if (name === 'xf') {
+      if (this.#section() === 'cellXfs') {
+        this.#xf = {
+          numFmtId: Number(attrs.numFmtId ?? 0),
+          fontId: Number(attrs.fontId ?? 0),
+          fillId: Number(attrs.fillId ?? 0),
+          borderId: Number(attrs.borderId ?? 0),
+          alignment: null,
+          locked: null,
+        };
       }
 
-      switch (name) {
-        case 'numFmt': {
-          if (attrs.formatCode === undefined) {
-            break;
-          }
+      return;
+    }
 
-          const formatCode = attrs.formatCode.replace(/\\(.)/g, '$1');
+    const xf = this.#xf;
 
-          // A `<numFmt>` inside a `<dxf>` belongs to that rule's style, not to the workbook's
-          // table, so it must not shadow an id the cell formats resolve against.
-          if (section() === 'dxfs' && dxf) {
-            dxf.numFmt = formatCode;
-          } else if (attrs.numFmtId !== undefined) {
-            customNumFmts.set(Number(attrs.numFmtId), formatCode);
-          }
-          break;
+    if (xf === null) {
+      return;
+    }
+
+    if (name === 'alignment') {
+      xf.alignment = readAlignment(attrs);
+    } else if (name === 'protection' && (attrs.locked === '0' || attrs.locked === 'false')) {
+      xf.locked = false;
+    }
+  }
+
+  /**
+   * Handles an element's close event, whether the tokenizer fired it or `#open` did.
+   */
+  #close(rawName: string): void {
+    const name = this.#localName(rawName);
+
+    if (this.#path[this.#path.length - 1] === name) {
+      this.#path.pop();
+    }
+
+    this.#closeElement(name);
+  }
+
+  /**
+   * Routes a closing element to the table it completes.
+   */
+  #closeElement(name: string): void {
+    if (name === 'font') {
+      this.#closeFont();
+    } else if (name === 'fill') {
+      this.#closeFill();
+    } else if (isBorderEdge(name)) {
+      this.#edge = null;
+    } else if (name === 'border') {
+      this.#closeBorder();
+    } else if (name === 'xf') {
+      this.#closeXf();
+    } else if (name === 'dxf') {
+      this.#closeDxf();
+    }
+  }
+
+  /**
+   * Files a finished `<font>` under the table it belongs to.
+   */
+  #closeFont(): void {
+    const font = nonEmpty(this.#font);
+
+    if (this.#section() === 'dxfs' && this.#dxf) {
+      this.#dxf.font = font ?? undefined;
+    } else if (this.#section() === 'fonts') {
+      this.#fonts.push(font);
+    }
+
+    this.#font = null;
+  }
+
+  /**
+   * Files a finished `<fill>` under the table it belongs to.
+   */
+  #closeFill(): void {
+    const dxfFill = this.#dxfFill;
+
+    if (this.#section() === 'dxfs' && this.#dxf && dxfFill && (dxfFill.bgColor || dxfFill.fgColor)) {
+      this.#dxf.fill = { type: 'pattern', pattern: 'solid', ...dxfFill };
+    } else if (this.#section() === 'fills') {
+      this.#fills.push(this.#fill);
+    }
+
+    this.#fill = null;
+    this.#dxfFill = null;
+  }
+
+  /**
+   * Files a finished `<border>` under the table it belongs to.
+   */
+  #closeBorder(): void {
+    const border = nonEmpty(this.#border);
+
+    if (this.#section() === 'dxfs' && this.#dxf) {
+      this.#dxf.border = border ?? undefined;
+    } else if (this.#section() === 'borders') {
+      this.#borders.push(border);
+    }
+
+    this.#border = null;
+  }
+
+  /**
+   * Resolves a finished `<xf>` against the font, fill, border and number-format tables, which are
+   * all complete by the time `<cellXfs>` is reached: the schema puts them before it.
+   */
+  #closeXf(): void {
+    const xf = this.#xf;
+
+    if (xf === null) {
+      return;
+    }
+
+    const numFmt = xf.numFmtId === 0
+      ? null
+      : this.#customNumFmts.get(xf.numFmtId) ?? BUILT_IN_NUM_FMTS[xf.numFmtId] ?? null;
+    const resolvedFont = this.#fonts[xf.fontId] ?? null;
+    const resolvedFill = this.#fills[xf.fillId] ?? null;
+    const resolvedBorder = this.#borders[xf.borderId] ?? null;
+    const hasStyle = xf.alignment !== null || resolvedFont !== null
+      || resolvedFill !== null || resolvedBorder !== null;
+
+    this.#cellXfs.push({
+      numFmt: numFmt === 'General' ? null : numFmt,
+      style: hasStyle
+        ? {
+          alignment: xf.alignment, font: resolvedFont, fill: resolvedFill, border: resolvedBorder,
         }
-        case 'font':
-          font = {};
-          break;
-        case 'b':
-          if (font && flagOn(attrs)) {
-            font.bold = true;
-          }
-          break;
-        case 'i':
-          if (font && flagOn(attrs)) {
-            font.italic = true;
-          }
-          break;
-        case 'u':
-          if (font && attrs.val !== 'none') {
-            font.underline = true;
-          }
-          break;
-        case 'color':
-          if (parent === 'font' && font) {
-            const color = argbOf(attrs);
+        : null,
+      locked: xf.locked,
+    });
+    this.#xf = null;
+  }
 
-            if (color) {
-              font.color = color;
-            }
-          }
-          break;
-        case 'fill':
-          fill = null;
-          dxfFill = section() === 'dxfs' ? {} : null;
-          break;
-        case 'patternFill':
-          if (section() === 'fills' && attrs.patternType === 'solid') {
-            fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
-          }
-          break;
-        case 'fgColor':
-          if (fill && section() === 'fills') {
-            const color = argbOf(attrs);
+  /**
+   * Files a finished `<dxf>`, whose index is what a `cfRule/@dxfId` points at.
+   */
+  #closeDxf(): void {
+    if (this.#dxf) {
+      this.#dxfs.push(this.#dxf);
+      this.#dxf = null;
+    }
+  }
+}
 
-            fill = color ? { ...fill, fgColor: color } : null;
-          } else if (dxfFill) {
-            const color = argbOf(attrs);
-
-            if (color) {
-              dxfFill.fgColor = color;
-            }
-          }
-          break;
-        case 'bgColor':
-          if (dxfFill) {
-            const color = argbOf(attrs);
-
-            if (color) {
-              dxfFill.bgColor = color;
-            }
-          }
-          break;
-        case 'border':
-          border = {};
-          break;
-        case 'left':
-        case 'right':
-        case 'top':
-        case 'bottom':
-          if (border && attrs.style !== undefined && attrs.style !== 'none') {
-            border[name] = { style: attrs.style };
-            edge = name;
-          } else {
-            edge = null;
-          }
-          break;
-        case 'xf':
-          if (section() === 'cellXfs') {
-            xf = {
-              numFmtId: Number(attrs.numFmtId ?? 0),
-              fontId: Number(attrs.fontId ?? 0),
-              fillId: Number(attrs.fillId ?? 0),
-              borderId: Number(attrs.borderId ?? 0),
-              alignment: null,
-              locked: null,
-            };
-          }
-          break;
-        case 'alignment':
-          if (xf) {
-            const alignment: Alignment = {};
-
-            if (attrs.horizontal !== undefined) {
-              alignment.horizontal = attrs.horizontal;
-            }
-
-            if (attrs.vertical !== undefined) {
-              alignment.vertical = attrs.vertical === 'center' ? 'middle' : attrs.vertical;
-            }
-
-            xf.alignment = Object.keys(alignment).length > 0 ? alignment : null;
-          }
-          break;
-        case 'protection':
-          if (xf && (attrs.locked === '0' || attrs.locked === 'false')) {
-            xf.locked = false;
-          }
-          break;
-        case 'dxf':
-          dxf = {};
-          break;
-        default:
-          break;
-      }
-
-      // Edge colors live one level below the edge element.
-      if (name === 'color' && edge && border) {
-        const side = border[edge];
-        const color = argbOf(attrs);
-
-        if (side && color) {
-          side.color = color;
-        }
-      }
-
-      if (selfClosing) {
-        // A self-closing element (`<b/>`, `<xf …/>`, `<protection locked="0"/>`) gets no close
-        // event, so its close bookkeeping runs from here.
-        handlers.close?.(name);
-      }
-    },
-    close(rawName) {
-      const name = localName(rawName);
-
-      if (path[path.length - 1] === name) {
-        path.pop();
-      }
-
-      switch (name) {
-        case 'font':
-          if (section() === 'dxfs' && dxf) {
-            dxf.font = font && Object.keys(font).length > 0 ? font : undefined;
-          } else if (section() === 'fonts') {
-            fonts.push(font && Object.keys(font).length > 0 ? font : null);
-          }
-
-          font = null;
-          break;
-        case 'fill':
-          if (section() === 'dxfs' && dxf && dxfFill && (dxfFill.bgColor || dxfFill.fgColor)) {
-            dxf.fill = { type: 'pattern', pattern: 'solid', ...dxfFill };
-          } else if (section() === 'fills') {
-            fills.push(fill);
-          }
-
-          fill = null;
-          dxfFill = null;
-          break;
-        case 'left':
-        case 'right':
-        case 'top':
-        case 'bottom':
-          edge = null;
-          break;
-        case 'border':
-          if (section() === 'dxfs' && dxf) {
-            dxf.border = border && Object.keys(border).length > 0 ? border : undefined;
-          } else if (section() === 'borders') {
-            borders.push(border && Object.keys(border).length > 0 ? border : null);
-          }
-
-          border = null;
-          break;
-        case 'xf':
-          if (xf) {
-            const numFmt = xf.numFmtId === 0
-              ? null
-              : customNumFmts.get(xf.numFmtId) ?? BUILT_IN_NUM_FMTS[xf.numFmtId] ?? null;
-            const resolvedFont = fonts[xf.fontId] ?? null;
-            const resolvedFill = fills[xf.fillId] ?? null;
-            const resolvedBorder = borders[xf.borderId] ?? null;
-            const hasStyle = xf.alignment !== null || resolvedFont !== null
-              || resolvedFill !== null || resolvedBorder !== null;
-
-            cellXfs.push({
-              numFmt: numFmt === 'General' ? null : numFmt,
-              style: hasStyle
-                ? {
-                  alignment: xf.alignment, font: resolvedFont, fill: resolvedFill, border: resolvedBorder,
-                }
-                : null,
-              locked: xf.locked,
-            });
-            xf = null;
-          }
-          break;
-        case 'dxf':
-          if (dxf) {
-            dxfs.push(dxf);
-            dxf = null;
-          }
-          break;
-        default:
-          break;
-      }
-    },
-  };
-
-  tokenizeXml(xml, handlers);
-
-  return {
-    cellXfs: cellXfs.length > 0 ? cellXfs : EMPTY_STYLES.cellXfs,
-    dxfs,
-  };
+/**
+ * Parses `xl/styles.xml` into resolved cell formats and conditional-formatting styles.
+ */
+export function parseStyles(xml: string): ParsedStyles {
+  return new StylesParser().parse(xml);
 }
