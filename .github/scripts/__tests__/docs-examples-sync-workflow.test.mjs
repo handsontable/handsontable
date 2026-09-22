@@ -45,12 +45,34 @@ test('the gate step runs before the token mint, reading before/after SHAs', () =
 });
 
 test('the mint and dispatch steps are gated on needs_sync with fail-open polarity', () => {
-  // `!= 'false'` (not `== 'true'`): an unset/missing output from a future bug
-  // in the gate step is not the string "false", so both steps still proceed.
-  const guardCount = (source.match(/if: steps\.gate\.outputs\.needs_sync != 'false'/g) ?? []).length;
+  // Anchored to the full line (not a bare substring match): a substring match
+  // would still pass if the real `if:` grew an extra ANDed clause that
+  // narrows when this fires, which would silently defeat the guarantee this
+  // test exists to pin (a real review finding on this PR).
+  const guardLineRe = /^\s*if: steps\.gate\.outputs\.needs_sync != 'false'\s*$/gm;
+  const guardCount = (source.match(guardLineRe) ?? []).length;
 
-  assert.equal(guardCount, 2, 'both the mint and dispatch steps must carry the fail-open guard');
+  assert.equal(guardCount, 2, 'both the mint and dispatch steps must carry the fail-open guard, and nothing else');
   assert.doesNotMatch(source, /needs_sync == 'true'/);
+});
+
+test('the checkout and gate steps are continue-on-error, so their own failure cannot poison the mint/dispatch guard', () => {
+  // GitHub Actions implicitly ANDs a custom `if:` with success(). Without
+  // continue-on-error here, a genuine failure in either step (not just a
+  // clean `needs_sync=false`) would skip Mint/Dispatch regardless of what
+  // `needs_sync` says -- silently dropping a real sync. This is what the
+  // previous commit on this PR actually shipped, caught by review.
+  const checkoutBlock = source.slice(source.indexOf('name: Checkout docs content'), source.indexOf('name: Determine whether'));
+  const gateBlock = source.slice(source.indexOf('name: Determine whether'), source.indexOf('name: Mint GitHub App token'));
+
+  assert.match(checkoutBlock, /^\s*continue-on-error: true\s*$/m, 'the checkout step must be continue-on-error');
+  assert.match(gateBlock, /^\s*continue-on-error: true\s*$/m, 'the gate step must be continue-on-error');
+});
+
+test('the checkout only runs for a push -- workflow_dispatch has no before/after SHA for it to fetch', () => {
+  const checkoutBlock = source.slice(source.indexOf('name: Checkout docs content'), source.indexOf('name: Determine whether'));
+
+  assert.match(checkoutBlock, /^\s*if: github\.event_name == 'push'\s*$/m);
 });
 
 test('step order is validate branch, checkout, gate, mint, dispatch', () => {
