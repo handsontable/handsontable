@@ -81,7 +81,7 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the full list of entry options, see [Context menu with selected options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-selected-options).
 
-Setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the following items, in this order:
+With no other plugin adding its own entries, setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the following items, in this order -- this is also the value of [`DropdownMenu.DEFAULT_ITEMS`](@/api/dropdownMenu.md#default_items):
 
 | Key                                          | Action                                          |
 | --------------------------------------------- | ------------------------------------------------ |
@@ -96,7 +96,7 @@ Setting [`dropdownMenu`](@/api/options.md#dropdownmenu) to `true` shows the foll
 | [`---------`](@/api/dropdownMenu.md)          | A separator between the items in the menu        |
 | [`alignment`](@/api/dropdownMenu.md)          | Align the text in the column                     |
 
-This is also the value of [`DropdownMenu.DEFAULT_ITEMS`](@/api/dropdownMenu.md#default_items).
+The [`Filters`](@/api/filters.md) plugin and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin (see below) each add their own entries on top of this list when enabled -- they don't replace it. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
 
 Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
 
