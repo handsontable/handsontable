@@ -134,6 +134,57 @@ test('it catches a write however the method is spelled', () => {
   });
 });
 
+test('it covers the body flags of every client it claims to cover', () => {
+  // `CURL_TOOL` has always named wget and httpie, but the body flags were curl's alone, so
+  // `wget --post-file=approve.json` walked through — measured against the hook, not inferred. wget
+  // infers POST from its body exactly as curl does, and httpie is the one of the three that reads
+  // STDIN as the body, so a bare redirect is a write there.
+  const blocked = [
+    'wget --post-file=approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'wget --post-data approve.txt https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'wget --body-file=approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_deployments',
+    'http https://api.github.com/repos/x/y/actions/runs/1/pending_deployments < approve.json',
+  ];
+
+  blocked.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `the hook let a write through: ${command}`);
+  });
+
+  // curl ignores stdin unless asked for it, so a plain redirect beside a curl GET changes nothing and
+  // must not be blocked. The forms that DO make curl read stdin carry a body flag and are covered above.
+  assert.equal(
+    runHook(bash('curl -s https://api.github.com/repos/x/y/actions/runs/1/pending_deployments < /dev/null')).status,
+    0,
+    'curl does not read stdin without a body flag, so a redirect beside a GET is still a GET',
+  );
+});
+
+test('shell quote-splitting does not hide the endpoint', () => {
+  // bash resolves `pending_dep''loyments` to the real path before the client sees it, so a pattern
+  // that only reads the command as written misses an approval that will land. The same split works on
+  // a flag or a value, which is why every pattern is tested against the unquoted form too.
+  const blocked = [
+    'curl -d@approve.json https://api.github.com/repos/x/y/actions/runs/1/pending_dep\'\'loyments',
+    'gh api repos/x/y/actions/runs/1/pending_deployments -f "st"ate=approved',
+    'curl -X POST https://api.github.com/repos/x/y/actions/runs/1/pen\\ding_deployments',
+  ];
+
+  blocked.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 2, `quote-splitting hid an approval: ${command}`);
+  });
+
+  // Stripping quotes must not invent a match either: these are still reads.
+  const allowed = [
+    'grep -rn "pending_deployments" .ai/',
+    'git grep -F \'pending_deployments\'',
+    'gh api repos/x/y/actions/runs/1/pending_deployments --jq \'.[].state\'',
+  ];
+
+  allowed.forEach((command) => {
+    assert.equal(runHook(bash(command)).status, 0, `the hook blocked a read: ${command}`);
+  });
+});
+
 test('it judges Bash only, and survives a payload it cannot read', () => {
   // A PreToolUse hook that threw on a malformed payload would block every Bash call in the session,
   // so the unreadable cases must exit 0 rather than fail closed.

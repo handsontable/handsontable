@@ -180,11 +180,11 @@ Seven things about this pipeline are worth knowing before changing it.
   (`report-url` output), so "View deployment" opens it. The job asserts an approval is recorded through the
   approvals API and fails closed: a missing or unprotected environment turns the job red rather than waving
   the differences through, so the environment must exist with required reviewers before the first pull
-  request with differences runs. "Prevent self-review" is deliberately **off** on `visual-approval`, on
-  `manual-qa` and on `docs-visual-approval` (decided 2026-09-17): the reviewer list is the whole team, and an author approving their own
-  run is accepted — the deployment review records who clicked, and that name is the accountability. The
-  assertion does not check who approved, though the approvals API would let it, so this is policy rather
-  than a limit of the job.
+  request with differences runs. "Prevent self-review" is deliberately **off** on every approval
+  environment, and the assertion does not check who approved even though the approvals API would let
+  it. Both are policy, and the reasoning for them — with the rule that an agent must never approve a
+  deployment — lives once in [`.ai/CI.md`](../.ai/CI.md) rather than in each place that pauses on an
+  environment.
   Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same
   header), because there is no re-run here to refresh it and the request would otherwise read as pending
   through merge. Fork and Dependabot runs are approved the same way — the reviewer's click

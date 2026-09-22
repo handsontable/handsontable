@@ -27,13 +27,18 @@
  * model; exit 0 lets it through. Anything unparseable exits 0 — a hook that fails closed on a
  * malformed payload would block every Bash command in the session.
  *
- * Two limits to know, because neither is visible from the code and both mean this is a guardrail
+ * Three limits to know, because none is visible from the code and each means this is a guardrail
  * rather than a boundary. Claude Code reads `.claude/settings.json` when a session STARTS, and it
  * resolves `$CLAUDE_PROJECT_DIR` to the main checkout — so this hook first takes effect in sessions
  * opened after it reaches that checkout, and it fails open in a linked worktree whose branch carries
- * a copy the main checkout does not have yet (`.ai/WORKTREES.md`). And it binds this agent, not the
- * credentials: anyone holding the same token can still call the endpoint from a plain terminal. The
- * control that does not depend on either is the reviewer list on the environment itself.
+ * a copy the main checkout does not have yet (`.ai/WORKTREES.md`). It binds this agent, not the
+ * credentials: anyone holding the same token can still call the endpoint from a plain terminal. And
+ * it only knows the HTTP clients it names — a one-off `node`, `python` or `deno` script that calls
+ * `fetch` reaches the endpoint with none of the flag patterns matching, which is the natural next
+ * move once curl is refused. Only the two tool-agnostic patterns still cover that shape, and only
+ * when the method or the decision is written in the command rather than read from a file. Widening
+ * the tool list does not fix it, because such a script carries no recognizable flags at all.
+ * The control that depends on none of the three is the reviewer list on the environment itself.
  */
 import { readFileSync } from 'node:fs';
 
@@ -89,6 +94,17 @@ const GH_API_WRITE = /\bgh\s+api\b[\s\S]*?(?:^|\s)(?:-f|-F|--field|--raw-field|-
 // `-d@approve.json` is the shape that leaves no `state` anywhere in the command to match.
 const CURL_BODY = /(?:^|\s)(?:-[dFT]|--data(?:-\w+)?|--json|--form|--upload-file)(?:[\s=@'"{[]|$)/i;
 
+// wget spells its body differently, and `CURL_TOOL` has always named wget. `--post-file=approve.json`
+// makes wget POST with no method and no `state` in the command, so without this it went through —
+// measured, not assumed.
+const WGET_BODY = /(?:^|\s)--(?:post|body)-(?:data|file)(?:[\s=@'"{[]|$)/i;
+
+// httpie is the one of the three that reads STDIN as the request body and infers POST from it, so a
+// bare redirect is a write there. curl ignores stdin unless asked (`-d @-`, `-T -`), both of which
+// `CURL_BODY` already covers, so a plain `curl URL < file` is a GET and stays allowed.
+const HTTPIE = /\bhttp\b/i;
+const STDIN_REDIRECT = /(?:^|\s)<\s*\S/;
+
 /**
  * Read all of stdin synchronously.
  *
@@ -115,15 +131,28 @@ if (payload?.tool_name !== 'Bash') {
 
 const command = payload?.tool_input?.command ?? '';
 
-// The endpoint AND a way to write to it. `CURL_BODY` is the one that has to be paired with its tool:
-// its flags are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
+// Shell quoting is not syntax to a regex. bash resolves `pending_dep''loyments` to the real endpoint
+// before curl ever sees it, and the same split works on any flag or value, so every pattern is tested
+// against the command with quotes and backslashes removed as well as against the command as written.
+// Testing both forms rather than only the stripped one keeps the quoted patterns intact — the body
+// flags accept a quote as their trailing character, and stripping first would hide that.
+//
+// What this does NOT close: a command that builds the string at runtime — base64, command
+// substitution, a variable assembled earlier in the session. A regex over shell text cannot follow
+// that, and pretending otherwise would be worse than saying so.
+const forms = [command, command.replace(/['"\\]/g, '')];
+const hits = pattern => forms.some(form => pattern.test(form));
+
+// The endpoint AND a way to write to it. The body flags are the ones that have to be paired with a
+// tool: they are ordinary flags of ordinary tools — `git grep -F` is fixed-strings, `grep -d` is
 // --directories — so matching them alone would block a search over the files that describe this gate.
 // A command that names no HTTP client is not reaching the endpoint whatever its flags say.
-if (!PENDING_DEPLOYMENTS.test(command)
-  || !(EXPLICIT_METHOD.test(command)
-    || DECISION.test(command)
-    || GH_API_WRITE.test(command)
-    || (CURL_TOOL.test(command) && CURL_BODY.test(command)))) {
+if (!hits(PENDING_DEPLOYMENTS)
+  || !(hits(EXPLICIT_METHOD)
+    || hits(DECISION)
+    || hits(GH_API_WRITE)
+    || (hits(CURL_TOOL) && (hits(CURL_BODY) || hits(WGET_BODY)))
+    || (hits(HTTPIE) && hits(STDIN_REDIRECT)))) {
   process.exit(0);
 }
 
