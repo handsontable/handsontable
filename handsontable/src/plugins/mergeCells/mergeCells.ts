@@ -789,34 +789,16 @@ export class MergeCells extends BasePlugin {
    * @param {MergedCellCoords} mergedCell The merged cell whose meta should be reset.
    */
   #resetMergedCellMeta(mergedCell: MergedCellCoords) {
-    // A `loadData` (or `updateSettings({ data })`) with a smaller dataset leaves the collection
-    // holding the previous grid's coordinates, while the core has already dropped the cell meta
-    // behind them. `removeCellMeta` asserts an in-range index, so clearing such a merge threw
-    // "Expecting an unsigned number" and took every `mergeCells` reconfiguration down with it.
-    // A cell past the grid no longer exists and has no meta to clear, so it is skipped - and no
-    // `beforeRemoveCellMeta` veto is lost either, since no listener can be asked about a cell that
-    // is not there. An in-range cell keeps the behavior it had.
-    const rowCount = this.hot.countRows();
-    const colCount = this.hot.countCols();
-
+    // A shrinking `loadData` or `updateData` leaves the collection holding the previous grid's
+    // coordinates. `Core#removeCellMeta` reads an out-of-range index as the physical one (the way
+    // `setCellMeta` writes one), so those cells are cleared by the same coordinates the merge was
+    // recorded with - which matters on the `updateData` path, where the meta is still there.
     rangeEach(0, mergedCell.rowspan - 1, (i) => {
-      if (mergedCell.row + i >= rowCount) {
-        return;
-      }
-
       rangeEach(0, mergedCell.colspan - 1, (j) => {
-        if (mergedCell.col + j >= colCount) {
-          return;
-        }
-
         this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'hidden');
         this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'copyable');
       });
     });
-
-    if (mergedCell.row >= rowCount || mergedCell.col >= colCount) {
-      return;
-    }
 
     this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'spanned');
     this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'rowspan');

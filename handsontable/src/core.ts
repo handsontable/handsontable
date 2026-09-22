@@ -5390,6 +5390,10 @@ export default function Core(
   /**
    * Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
    *
+   * An index that lies outside the grid's current range is not translated - it is used as the physical index as it
+   * is, the same way {@link Core#setCellMeta} writes one. That keeps a coordinate captured before the data shrank
+   * (through `updateData`, which keeps the cell meta) addressing the record it was written to.
+   *
    * @memberof Core#
    * @function removeCellMeta
    * @param {number} row Visual row index.
@@ -5399,7 +5403,16 @@ export default function Core(
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row: number, column: number, key: string) {
-    const [physicalRow, physicalColumn] = [instance.toPhysicalRow(row), instance.toPhysicalColumn(column)];
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < instance.countRows()) {
+      physicalRow = instance.toPhysicalRow(row);
+    }
+
+    if (column < instance.countCols()) {
+      physicalColumn = instance.toPhysicalColumn(column);
+    }
 
     let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
@@ -5526,6 +5539,10 @@ export default function Core(
    * suppresses renders that other operations would have triggered, so it still needs a
    * [render()](@/api/core.md#render) inside its callback. For why the repaint is a separate step, see the
    * [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
+   *
+   * An index that lies outside the grid's current range is not translated - it is used as the physical index as it
+   * is. {@link Core#removeCellMeta} reads such an index the same way, so a key written past the current range can
+   * be removed again by the same coordinates.
    *
    * @memberof Core#
    * @function setCellMeta

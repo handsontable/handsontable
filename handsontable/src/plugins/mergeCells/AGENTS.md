@@ -213,12 +213,11 @@ move together, and removing either one turns a spec red.
 
 ## A shrinking `loadData` leaves the collection addressing cells that are gone
 
-The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`)
-replaces the dataset while `mergedCellsCollection` keeps the previous grid's merges. Nothing draws
-them past the grid, but `#resetMergedCellMeta` walks every cell a dropped merge covers into
-`removeCellMeta` — `hidden` and `copyable` per cell, then `spanned`, `rowspan`, `colspan` on the
-master — and `removeCellMeta` translates unconditionally, so an out-of-range index becomes `null`
-and the meta manager's `assertUnsignedKey` throws. On 8x8 data merged at
+The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`,
+which routes to `updateData`) replaces the dataset while `mergedCellsCollection` keeps the previous
+grid's merges. Nothing draws them past the grid, but `#resetMergedCellMeta` walks every cell a
+dropped merge covers into `removeCellMeta` — `hidden` and `copyable` per cell, then `spanned`,
+`rowspan`, `colspan` on the master. On 8x8 data merged at
 `{ row: 6, col: 6, rowspan: 2, colspan: 2 }` followed by a 3x3 `loadData`, both
 `updateSettings({ mergeCells: [] })` and `updateSettings({ mergeCells: [in-range area] })` threw
 `Assertion failed: Expecting an unsigned number` — a pre-existing defect, reproducible on released
@@ -226,18 +225,27 @@ and the meta manager's `assertUnsignedKey` throws. On 8x8 data merged at
 `updateSettings({ mergeCells, … })`: importing a smaller sheet over a previous import whose merge
 sat near the bottom or right edge threw mid-import.
 
-`#resetMergedCellMeta` therefore **skips any cell whose visual row is `>= countRows()` or visual
-column `>= countCols()`**, and the same bound gates the three master-cell removals. There is no cell
-left to clear, and no veto to honor either — a `beforeRemoveCellMeta` listener cannot be asked about
-a cell that does not exist. An in-range cell keeps the behavior it had.
+**The cause was a core asymmetry, and it is fixed in `Core#removeCellMeta`, not here.**
+`Core#setCellMeta` passes an index outside the current range through as the physical one;
+`removeCellMeta` used to translate unconditionally, so such an index became `null` and the meta
+manager's `assertUnsignedKey` threw. `removeCellMeta` now reads an out-of-range index the same way
+its sibling writes one, so `#resetMergedCellMeta` carries **no bounds guard**: it removes the meta
+by the raw coordinates the merge was recorded with, and a plugin-local guard here would be a second
+copy of a core-owned rule (it was one, for two commits).
 
-**That guard is the single funnel and needs no sibling.** `#resetMergedCellMeta` is the plugin's only
-walk into `removeCellMeta` (the writing side, `mergeRange`, only ever addresses the live range the
-user selected, and `MergedCellsCollection#clear()` reaches the DOM through `getCell()`, which answers
-`null` out of range). Every reset path funnels through it: `clearCollections()` (called by
-`disablePlugin()`, so by `updatePlugin()` and therefore by the whole `mergeCells` settings path, and
-by SheetsBar's `resetViewState`) and `unmergeRange()` (the context menu, `Ctrl`+`M`, `unmerge()`, the
-paste handler and every UndoRedo merge action).
+The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
+(`metaManager.clearCellsCache()`); `updateData` — and therefore `updateSettings({ data })` — keeps
+it by physical row. So after a shrink through `updateData`, a reset, and a regrow, the old merge's
+`hidden` / `copyable` / `spanned` / `rowspan` / `colspan` are still on live cells unless the reset
+actually clears them; skipping the write left `getCopyableText()` blanking the old merge area.
+
+**`#resetMergedCellMeta` is the single funnel.** It is the plugin's only walk into `removeCellMeta`
+(the writing side, `mergeRange`, only ever addresses the live range the user selected, and
+`MergedCellsCollection#clear()` reaches the DOM through `getCell()`, which answers `null` out of
+range). Every reset path funnels through it: `clearCollections()` (called by `disablePlugin()`, so by
+`updatePlugin()` and therefore by the whole `mergeCells` settings path, and by SheetsBar's
+`resetViewState`) and `unmergeRange()` (the context menu, `Ctrl`+`M`, `unmerge()`, the paste handler
+and every UndoRedo merge action).
 
 **The `afterLoadData` hook was deliberately NOT added**, for two reasons beyond the CustomBorders one
 (the core clears cell meta on `loadData` and keeps it on `updateData`, so a hook that cleared the
@@ -248,8 +256,12 @@ kept with stale visual coordinates while their rows are trimmed, and which is re
 those rows come back. A bounds test there cannot tell "the dataset shrank" from "these coordinates
 are frozen from the moment the merge was purged". Second, `sheetsBar`'s `resetViewState` documents
 that it *relies* on the collection surviving `loadData` and clears it itself through
-`clearCollections()`. Pinned by `__tests__/shrinkingLoadData.unit.js`, including a same-size control
-proving an in-range merge still has its `spanned`/`rowspan`/`colspan`/`hidden` meta removed.
+`clearCollections()`. Pinned by `__tests__/shrinkingLoadData.unit.js`, which covers the bottom-only,
+right-only, corner and exact-boundary (`row === countRows()`) shapes, a same-size control proving an
+in-range merge still has its `spanned`/`rowspan`/`colspan`/`hidden` meta removed, and the
+`updateData` shrink → reset → regrow regression (the meta is gone and `getCopyableText()` returns
+the cell values). The core rule itself is pinned by
+`src/__tests__/core/removeCellMeta.unit.js`.
 
 ## `disablePlugin()` clears the field, so copy first
 

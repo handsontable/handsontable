@@ -86,27 +86,39 @@ split across batches still merge correctly. A plain synchronous call owns and cl
 
 ## A shrinking `loadData` leaves the model addressing cells that are gone
 
-The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`)
-replaces the dataset while `savedBorders` keeps the previous grid's coordinates. Nothing renders
-them - `#syncViewportSelections` only materializes borders inside the rendered range - but
-`#resetBorderModel` walks the whole model into `#writeBordersMeta(row, col, null)`, and
-`removeCellMeta` asserts an in-range index. On 8x8 data bordered at `{ row: 7, col: 7 }` followed by
-a 3x3 `loadData`, `updateSettings({ customBorders: [] })`, `updateSettings({ customBorders: [in-range
+The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`,
+which routes to `updateData`) replaces the dataset while `savedBorders` keeps the previous grid's
+coordinates. Nothing renders them - `#syncViewportSelections` only materializes borders inside the
+rendered range - but `#resetBorderModel` walks the whole model into
+`#writeBordersMeta(row, col, null)`. On 8x8 data bordered at `{ row: 7, col: 7 }` followed by a 3x3
+`loadData`, `updateSettings({ customBorders: [] })`, `updateSettings({ customBorders: [in-range
 entry] })` and `clearBorders()` all threw `Assertion failed: Expecting an unsigned number` - a
 pre-existing defect, reproducible on released 18.1.1.
 
-`#resetBorderModel` therefore **drops an entry whose `row >= countRows()` or `col >= countCols()`
-without a meta write**. There is no cell to clear, and no veto to honor either: a
-`beforeRemoveCellMeta` listener cannot be asked about a cell that does not exist. An in-range entry
-keeps the vetoed-removal behavior unchanged.
+**The cause was a core asymmetry, and it is fixed in `Core#removeCellMeta`, not here.**
+`Core#setCellMeta` passes an index outside the current range through as the physical one;
+`removeCellMeta` used to translate unconditionally, so such an index became `null` and the meta
+manager's `assertUnsignedKey` threw. `removeCellMeta` now reads an out-of-range index the same way
+its sibling writes one, so `#resetBorderModel` carries **no bounds guard**: every entry takes the
+normal `#writeBordersMeta(row, col, null)` path by the raw coordinates it was recorded with, and the
+vetoed-removal behavior is unchanged for all of them.
+
+The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
+(`metaManager.clearCellsCache()`); `updateData` - and therefore `updateSettings({ data })` - keeps it
+by physical row. So after a shrink through `updateData`, a reset, and a regrow, the old `borders`
+meta is still on a live cell unless the reset actually clears it, which is the state this file's
+`getBorders()`/`getCellMeta().borders` rule forbids.
 
 **The `afterLoadData` hook was deliberately NOT added.** The core clears cell meta on `loadData` and
 keeps it on `updateData`, so a hook that cleared the model would remove borders the user still sees
 after a same-size `loadData` - a visible behavior change with no ticket behind it. A hook that only
-pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that walked
-the model into `removeCellMeta`, and the guard there already covers every caller (`clearBorders()`,
-`changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`,
-including a same-size control proving an in-range entry still has its meta removed.
+pruned out-of-range entries would be redundant: `#resetBorderModel` is the single place that walks
+the model into `removeCellMeta`, and it covers every caller (`clearBorders()`,
+`changeBorderSettings()`, `updateSettings`). Pinned by `__tests__/shrinkingLoadData.unit.js`, which
+covers the bottom-only, right-only, corner and exact-boundary (`row === countRows()`) shapes, a
+same-size control proving an in-range entry still has its meta removed, and the `updateData`
+shrink -> reset -> regrow regression. The core rule itself is pinned by
+`src/__tests__/core/removeCellMeta.unit.js`.
 
 ## `setCellMeta('borders', …)` written directly is supported
 
