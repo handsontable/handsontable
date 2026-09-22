@@ -275,6 +275,37 @@ describe('Formulas public API', () => {
       expect(getDataAtCell(0, 2)).toBe(3);
     });
 
+    it('should show the formula text only on an array formula\'s origin cell, leaving its spill' +
+      ' cells at their calculated values', async() => {
+      handsontable({
+        data: [
+          ['1', '2'],
+          ['3', '4'],
+          [null, null],
+          [null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
+
+      const formulas = getPlugin('formulas');
+
+      expect(formulas.getCellType(2, 0)).toBe('ARRAYFORMULA');
+      expect(formulas.getCellType(3, 1)).toBe('ARRAY');
+
+      formulas.showFormulas();
+
+      // Only the origin cell has its own formula text to show; a spill cell has none of its own,
+      // so it keeps displaying the value HyperFormula computed for it.
+      expect(getDataAtCell(2, 0)).toBe('=TRANSPOSE(A1:B2)');
+      expect(getDataAtCell(2, 1)).toBe(3);
+      expect(getDataAtCell(3, 0)).toBe(2);
+      expect(getDataAtCell(3, 1)).toBe(4);
+    });
+
     it('should copy the formula text, not the calculated value, while formulas are shown', async() => {
       handsontable({
         data: [['1', '2', '=A1+B1']],
@@ -292,7 +323,13 @@ describe('Formulas public API', () => {
         .toEqual([['=A1+B1']]);
     });
 
-    it('should toggle via the Ctrl+`/Cmd+` shortcut', async() => {
+    // The legacy jQuery-simulated `keydown`/`keyup` events this suite's `keyDownUp()` helper builds
+    // do not carry a real `which`/`keyCode` for the backquote key (there's no entry for it in
+    // `KEY_CODES_MAP`), so a simulated press cannot prove the shortcut fires on a genuine keypress -
+    // that's covered by a Playwright spec instead (`tests/e2e/formulas-show-formulas.spec.ts`). This
+    // asserts the wiring a unit-level test CAN prove: exactly one shortcut is registered for the
+    // real key combo, and invoking it runs the toggle.
+    it('should register exactly one grid shortcut for control/meta+backquote that toggles the mode', async() => {
       handsontable({
         data: [['1', '2', '=A1+B1']],
         formulas: {
@@ -301,13 +338,16 @@ describe('Formulas public API', () => {
       });
 
       const formulas = getPlugin('formulas');
+      const gridContext = hot().getShortcutManager().getContext('grid');
+      const shortcuts = gridContext.getShortcuts(['control/meta', 'backquote']);
 
-      await selectCell(0, 0);
-      await keyDownUp(['control/meta', '`']);
+      expect(shortcuts.length).toBe(1);
+
+      shortcuts[0].callback();
 
       expect(formulas.isShowingFormulas()).toBe(true);
 
-      await keyDownUp(['control/meta', '`']);
+      shortcuts[0].callback();
 
       expect(formulas.isShowingFormulas()).toBe(false);
     });

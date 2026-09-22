@@ -473,13 +473,11 @@ describe('Formulas memory leak check', () => {
     hot.updateSettings({ formulas: false });
     hot.updateSettings({ formulas: { engine: HyperFormula } });
 
-    const formulas = hot.getPlugin('formulas');
+    const gridContext = hot.getShortcutManager().getContext('grid');
+    const shortcuts = gridContext.getShortcuts(['control/meta', 'backquote']);
 
-    await selectCell(0, 0);
-    await keyDownUp(['control/meta', '`']);
-
-    // A shortcut left registered from the disabled instance would toggle the flag back off in the
-    // same keypress instead of leaving it on.
-    expect(formulas.isShowingFormulas()).toBe(true);
+    // A shortcut left registered from the disabled instance would leave two callbacks in the group,
+    // which would toggle the flag back off in the same keypress instead of leaving it on.
+    expect(shortcuts.length).toBe(1);
   });
 });

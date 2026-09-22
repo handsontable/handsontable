@@ -261,9 +261,10 @@ export class Formulas extends BasePlugin {
 
   /**
    * Whether formula cells display their formula text (`showFormulas()`) instead of their
-   * calculated value. Read by `#onModifyData` alone: the source-data read path
-   * (`#onModifySourceData`) already reports the formula text regardless of this flag, which is
-   * what lets the cell editor show it whether or not this mode is on.
+   * calculated value. Read by `#onModifyData` (the display/copy path) and `#onAfterRenderer` (so a
+   * `HYPERLINK` cell stops rendering as a link while its formula text is shown). The source-data
+   * read path (`#onModifySourceData`) already reports the formula text regardless of this flag,
+   * which is what lets the cell editor show it whether or not this mode is on.
    */
   #showFormulasFlag = false;
 
@@ -904,6 +905,7 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     this.#unregisterToggleFormulasShortcut();
+    this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
 
@@ -1261,12 +1263,16 @@ export class Formulas extends BasePlugin {
    * Registers the `Ctrl`+`` ` ``/`Cmd`+`` ` `` shortcut that toggles {@link Formulas#showFormulas} /
    * {@link Formulas#hideFormulas}. The plugin's own `registerShortcuts()` is a deprecated no-op kept
    * for backward compatibility, so this uses its own group name instead of that method.
+   *
+   * The key name is `'backquote'`, not the literal `` ` `` character: `normalizeEventKey()`
+   * (`shortcuts/utils.ts`) maps a real backquote keypress (`keyCode`/`which` 192) through its
+   * `specialCharactersSet` to the string `'backquote'`, never to the character itself.
    */
   #registerToggleFormulasShortcut() {
     this.hot.getShortcutManager()
       .getContext('grid')
       ?.addShortcut({
-        keys: [['Control/Meta', '`']],
+        keys: [['Control/Meta', 'backquote']],
         callback: () => {
           if (this.isShowingFormulas()) {
             this.hideFormulas();
@@ -2754,8 +2760,17 @@ export class Formulas extends BasePlugin {
     // from the current formula instead of inheriting whatever the previous pass resolved.
     unwrapLinks(TD, `a.${HYPERLINK_CLASS_NAME}`);
 
-    const href = this.#getHyperlinkHref(row, column);
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
+
+    // While formulas are shown as raw text, the rendered content is the formula itself, not the
+    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen.
+    if (this.#showFormulasFlag) {
+      this.#hyperlinkCells.delete(hyperlinkKey);
+
+      return;
+    }
+
+    const href = this.#getHyperlinkHref(row, column);
 
     if (href === null) {
       this.#hyperlinkCells.delete(hyperlinkKey);
