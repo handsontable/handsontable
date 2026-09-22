@@ -312,6 +312,8 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
 
+**The gate warns when only a screenshot covers a source change:** a source change draws the non-blocking `visual-only-coverage` advisory when every change the gate counts as *coverage* is a capture spec under `visual-tests/tests/`. It is not "the only test change" — a deleted `tests/e2e` spec or a new Jasmine `*.spec.js` is not coverage to the gate, so either can sit beside the capture spec and the advisory still fires. The criterion that decides whether such a spec keeps counting as coverage, and the recipe that tallies the warning, are in `.ai/LOCAL-ENFORCEMENT.md`.
+
 **The Jasmine suite is frozen — and migrates by attrition:**
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
 - **Editing** an existing `*.spec.js` for routine maintenance is fine.
