@@ -14,7 +14,8 @@ on:
       - 'docs/content/recipes/**'
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,6 +26,27 @@ jobs:
     name: Trigger examples snapshot import
     runs-on: ubuntu-latest
     steps:
+      # Full history (not a shallow clone) so BEFORE_SHA/AFTER_SHA below are
+      # reachable, and sparse/blobless so this stays a cheap partial checkout,
+      # not a full monorepo clone, for a job that previously checked out
+      # nothing at all. `.github` must be listed too (cone-mode sparse-checkout
+      # only materializes the directories named here, plus top-level files) --
+      # without it, the gate step below has no `.github/scripts/*.mjs` to run
+      # and fails before its own try/catch ever executes, which -- through the
+      # implicit `success()` in the later steps' `if:` -- would silently skip
+      # the dispatch instead of running it. Exactly the failure mode this gate
+      # exists to prevent.
+      - name: Checkout docs content
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            docs/content/guides
+            docs/content/recipes
+            .github
+          persist-credentials: false
+
       # Push events are already filtered by the branch patterns above, but
       # workflow_dispatch bypasses that filter, so validate the ref here
       # instead of dispatching a branch the importer in handsontable/examples
@@ -38,11 +60,30 @@ jobs:
             exit 1
           fi
 
+      # Deterministic (DEV-3029): example content is never inline in a guide's
+      # .md -- it's referenced from sibling files beside it -- so whether a
+      # push touches example content is a diff-matching problem, not a
+      # judgment call. Skips the mint + dispatch below when nothing under the
+      # matched paths is example-relevant, saving the cross-repo call for a
+      # prose-only doc commit (a typo fix, a wording tweak, a link repair).
+      - name: Determine whether the change touches example content
+        id: gate
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.after }}
+        run: node .github/scripts/docs-examples-gate.mjs
+
       # Mint a short-lived, repository-scoped token from the GitHub App.
       # The built-in GITHUB_TOKEN cannot reach another repository, so a
       # cross-repo dispatch requires an App installation token (or a PAT).
+      #
+      # `!= 'false'` (not `== 'true'`) is deliberate: if the gate step above
+      # ever fails to set its output, an unset value is not the string
+      # "false", so this -- and the dispatch step below -- still proceed. The
+      # fail-open guarantee is structural, not just a property of the script.
       - name: Mint GitHub App token
         id: app-token
+        if: steps.gate.outputs.needs_sync != 'false'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
         with:
           app-id: ${{ secrets.EXAMPLES_SYNC_APP_ID }}
@@ -51,6 +92,7 @@ jobs:
           repositories: examples
 
       - name: Send repository_dispatch to handsontable/examples
+        if: steps.gate.outputs.needs_sync != 'false'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           DOCS_BRANCH: ${{ github.ref_name }}
