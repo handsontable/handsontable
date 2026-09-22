@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed rows hidden by the hiddenRows plugin becoming visible after undoing their removal.",
+  "title": "Fixed rows hidden by the hiddenRows plugin becoming visible and row-header selection misbehaving after undoing their removal.",
   "type": "fixed",
   "issueOrPR": 13613,
   "breaking": false,

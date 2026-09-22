@@ -237,13 +237,16 @@ describe('UndoRedo -> RemoveRow action', () => {
         hiddenRows: true,
       });
 
-      getPlugin('hiddenRows').hideRows([1]);
+      // Rows 1 and 3 are hidden, row 2 is not - all three are removed together so the removed
+      // range actually overlaps both a hidden and a non-hidden row. Without that overlap this
+      // test would pass even with the fix reverted, since nothing in [2, 2] was ever hidden.
+      getPlugin('hiddenRows').hideRows([1, 3]);
       await render();
 
-      await alter('remove_row', 2, 1);
+      await alter('remove_row', 1, 3);
       getPlugin('undoRedo').undo();
 
-      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
       expect(getPlugin('hiddenRows').isHidden(2)).toBe(false);
     });
 
@@ -257,6 +260,9 @@ describe('UndoRedo -> RemoveRow action', () => {
       expect(() => {
         getPlugin('undoRedo').undo();
       }).not.toThrowWithCause(undefined, { handsontable: true });
+
+      // The row data itself must still come back on this no-hiddenRows path.
+      expect(getDataAtCell(1, 0)).toBe('A2');
     });
 
     it('should keep restoring the hidden row across an undo -> redo -> undo cycle', async() => {
