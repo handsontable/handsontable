@@ -126,6 +126,57 @@ export function collectAffectedMergedCells(hot: HotInstance, axis: 'row' | 'col'
 }
 
 /**
+ * Collects the visual row indexes within a removed range that the `hiddenRows` plugin had hidden.
+ * `IndexMapper#removeIndexes()` splices those flags out of the plugin's `HidingMap` unconditionally,
+ * with no memory of the prior value, so this must run before the removal - same timing as
+ * `collectAffectedMergedCells`.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} start First visual row being removed.
+ * @param {number} amount Number of rows being removed.
+ * @returns {number[]} Visual row indexes that were hidden.
+ */
+export function collectHiddenRowsForRemoval(hot: HotInstance, start: number, amount: number): number[] {
+  const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+
+  if (!hiddenRowsPlugin?.enabled) {
+    return [];
+  }
+
+  const hiddenRows: number[] = [];
+
+  rangeEach(start, start + amount - 1, (visualRow) => {
+    if (hiddenRowsPlugin.isHidden(visualRow)) {
+      hiddenRows.push(visualRow);
+    }
+  });
+
+  return hiddenRows;
+}
+
+/**
+ * Re-hides rows the `hiddenRows` plugin had hidden before the removal this undo reverses. Called
+ * after the rows are re-inserted at their original visual positions, so the recorded absolute visual
+ * indexes address the same rows again - the same convention `restoreMergedCells` uses.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number[]} hiddenRows Visual row indexes to re-hide.
+ */
+export function restoreHiddenRows(hot: HotInstance, hiddenRows: number[]): void {
+  if (!hiddenRows || hiddenRows.length === 0) {
+    return;
+  }
+
+  const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+
+  if (!hiddenRowsPlugin?.enabled) {
+    return;
+  }
+
+  hiddenRowsPlugin.hideRows(hiddenRows);
+}
+
+/**
  * The change source that owns the merge-geometry snapshot. Only a paste destroys merge areas, so
  * only a paste's own action may carry the geometry.
  */
