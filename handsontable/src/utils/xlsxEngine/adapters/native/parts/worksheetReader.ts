@@ -260,6 +260,32 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
   };
 
   /**
+   * Finishes the `<cfRule>` being read, appending it to the block that carries it.
+   *
+   * A rule kind that needs no `<formula>` child is written self-closing — `top10`, `aboveAverage`
+   * and `duplicateValues` all are, by both this engine's writer and ExcelJS's — and a self-closing
+   * element fires no close event, so this also runs from the open handler. Without that the rule
+   * was read as if it were not in the file at all, on both engines' bytes.
+   */
+  const finishCfRule = (): void => {
+    if (cf && cfRule) {
+      cf.rules.push(cfRuleFromXml(cfRule.attrs, cfRule.formulae, ctx.styles.dxfs as DxfStyle[]));
+      cfRule = null;
+    }
+  };
+
+  /**
+   * Finishes the `<conditionalFormatting>` block being read. It too can arrive self-closing, when
+   * the writer that produced it recognized none of the block's rules.
+   */
+  const finishConditionalFormatting = (): void => {
+    if (cf) {
+      sheet.conditionalFormatting.push(cf);
+      cf = null;
+    }
+  };
+
+  /**
    * Finishes the `<c>` being read.
    */
   const finishCell = (state: CellState): void => {
@@ -524,10 +550,18 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           break;
         case 'conditionalFormatting':
           cf = { ref: attrs.sqref ?? '', rules: [] };
+
+          if (selfClosing) {
+            finishConditionalFormatting();
+          }
           break;
         case 'cfRule':
           if (cf) {
             cfRule = { attrs, formulae: [] };
+
+            if (selfClosing) {
+              finishCfRule();
+            }
           }
           break;
         case 'formula':
@@ -610,16 +644,10 @@ export function parseWorksheet(xml: string, ctx: WorksheetReadContext): SheetSna
           cfFormula = null;
           break;
         case 'cfRule':
-          if (cf && cfRule) {
-            cf.rules.push(cfRuleFromXml(cfRule.attrs, cfRule.formulae, ctx.styles.dxfs as DxfStyle[]));
-            cfRule = null;
-          }
+          finishCfRule();
           break;
         case 'conditionalFormatting':
-          if (cf) {
-            sheet.conditionalFormatting.push(cf);
-            cf = null;
-          }
+          finishConditionalFormatting();
           break;
         default:
           break;

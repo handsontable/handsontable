@@ -28,13 +28,43 @@ or an engine object.
 - **Shared formulas are translated per slave** with `translateSharedFormula` (relative components
   move, `$` components stay) – not `shiftFormulaReferences`, which moves `$` too on purpose.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
+- **Merge members are MATERIALIZED on read, to match ExcelJS.** The writer emits no `<c>` element
+  for a covered cell that carries no style, so the reader's `<c>`-derived width alone left the row
+  a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
+  dropped the merge entirely from the native engine's own export/import round trip. The merge pass
+  in `parts/worksheetReader.ts` pads every row of a merge's row range with `null` up to the merge's
+  last column and grows `width` to it. Three rules hold that together: the clamp bound is the
+  **dimension** (`Math.max(width, declaredCols, 1)`, the same bound the validation pass uses), so a
+  merge reaching past what the file declares stays clamped rather than widening the sheet on a
+  hostile file's say-so; the `chargeSpan` stays **before** the walk (see the span-budget trap
+  below), and the padding costs nothing new because that span was already charged; and
+  `assertSheetFits` runs afterwards with the grown width, so a whole-sheet merge is still refused.
 - **`locked: null` means locked** (OOXML default). Only `<protection locked="0"/>` yields `false`.
-- **Theme and indexed colors are not resolved** (parity with ExcelJS): a font or fill with no `rgb`
-  attribute resolves to nothing. Resolving them is a documented follow-up.
+- **Theme and indexed colors are not resolved**: a font or fill with no `rgb` attribute resolves to
+  nothing (`argbOf()` accepts 6/8-hex `rgb` only). This is **not** full parity with ExcelJS, despite
+  what an earlier version of this file and the parity matrix said. The FONT half agrees, because the
+  model tracks an argb color and nothing else. The FILL half does not: `CellStyleSnapshot['fill']`
+  declares `fgColor: { argb: string }`, so the native reader drops a theme fill entirely while the
+  ExcelJS adapter passes ExcelJS's own object through and leaks `{ theme: N }` into that field.
+  Native is the side that honors the contract, so the difference is pinned in
+  `enginesParity.unit.js` rather than "fixed" by widening the model. Resolving the theme palette is
+  still the documented follow-up that would close it on both sides.
+- **A solid fill writes `<fgColor>` only.** The writer used to add a companion
+  `<bgColor indexed="64"/>`, which its own reader ignored while ExcelJS's surfaced it as
+  `bgColor: { indexed: 64 }` — so the same fill read differently depending on who wrote the bytes.
+  ExcelJS's writer emits none either, and such files open in Excel and LibreOffice.
+- **`objects` and `scenarios` are inverted permissions like every other**, not plain booleans. The
+  writer emits `objects="1"` / `scenarios="1"` only when the caller explicitly asked for `false`,
+  and `PROTECTION_INVERTED_OPTIONS` covers both on read — exactly what ExcelJS does. Writing them
+  unconditionally (which the writer used to do) made ExcelJS read native bytes back as
+  `objects: false, scenarios: false` on a sheet nobody had locked down.
 - **The numeric DEFLATE level is ignored** – `CompressionStream` has none. `false` stores.
-- **The built-in numFmt table follows ECMA-376, not ExcelJS**: id 22 is `m/d/yy h:mm` (ExcelJS has
-  `m/d/yy "h":mm`), ids 39/40 differ from ExcelJS by a space. No fixture uses them; a parity
-  assertion on those ids would fail.
+- **The built-in numFmt table follows ECMA-376, not ExcelJS**, and exactly ONE id disagrees: id 22
+  is `m/d/yy h:mm` where ExcelJS's `lib/xlsx/defaultnumformats.js` has `m/d/yy "h":mm`. Ids 39 and
+  40 carry the identical string in both tables — an earlier version of this file claimed they
+  differ "by a space" and that was wrong. All three are now pinned by `enginesParity.unit.js`: id
+  22 asserts the divergence on the one leg that shows it (native bytes read by ExcelJS), 39 and 40
+  assert four-way equality.
 - **Jest has no Web streams of its own**: `test/cryptoSetup.js` installs `CompressionStream` and
   `DecompressionStream` from `node:stream/web` into the sandbox (Jest 27's node environment copies a
   fixed allow-list of globals). Remove that and every adapter test fails with `ReferenceError`.
@@ -56,6 +86,20 @@ or an engine object.
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no
   style. `importFile/mapper.ts` records the dropped feature merely on SEEING a non-null style, so
   the two engines legitimately produce different `result.dropped` lists. The import guide says so.
+- **A self-closing `<cfRule/>` needs its own finish call.** The XML tokenizer fires no close event
+  for a self-closed element, and `top10`, `aboveAverage` and `duplicateValues` need no `<formula>`
+  child, so both engines' writers emit them self-closing — the rule was read as if it were not in
+  the file at all, on ExcelJS-written bytes too. `finishCfRule`/`finishConditionalFormatting` in
+  `parts/worksheetReader.ts` run from the open handler as well as the close handler. Any new
+  element whose state is assembled across open and close needs the same treatment.
+- **`enginesParity.unit.js` is the parity checklist.** Every capability in the matrix is proven
+  there or in a test it names. The shape is FOUR-WAY: a snapshot is built twice (two independent
+  objects), written by both engines, and each engine's bytes are then read by BOTH readers —
+  `nn`/`ne`/`en`/`ee`. `nn` and `ee` alone would only prove each engine agrees with itself; the
+  cross legs are what catch a writer emitting something only its own reader understands. Three
+  normalizations are reused from `nativeRead.unit.js` and no fourth may be added: a real divergence
+  is asserted explicitly with both actual values instead (id 22, the theme fill, the CF rule-kind
+  subset, the two sheet-name rows, the `lossy.xlsx` dropped ORDER).
 - **`nativeRead.unit.js` ends with a parity test against the ExcelJS adapter on six fixtures**, and
   it normalizes exactly three known differences: conditional-formatting rules compared by `ref`
   only, numbers rounded to nine decimals (ExcelJS loses ulps round-tripping a time serial through a
