@@ -16,10 +16,10 @@ A screenshot proves pixels only. Capture one screenshot per distinct visual stat
 
 ## Custom Fixture: `tablePage`
 
-Import the custom test runner instead of the default Playwright `test` (the `visualTest` name is the declaration form described under Screenshot Workflow; until it lands the export is `test`):
+Import the custom test runner instead of the default Playwright `test`:
 
 ```typescript
-import { visualTest, expect } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 ```
 
 The `tablePage` fixture (defined in `visual-tests/src/test-runner.ts`) automatically:
@@ -40,11 +40,11 @@ Use `__filename` as the first argument. The runner auto-generates the test title
 Every test follows this pattern: reach a visual state, assert it, capture it once. A second capture is a second visual state, never a second angle on the same one.
 
 ```typescript
-import { visualTest, expect } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
-visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }, async({ tablePage }) => {
+test(__filename, async({ tablePage }) => {
   const cell = await selectCell(0, 2);
 
   // One visual state: the focused cell. Assert it before the capture — a screenshot on the line
@@ -57,7 +57,7 @@ visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], 
 
 Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 
-The `visualTest()` declaration names the variants the spec renders on and is the shape every spec is moving to (G2 under `visual-tests/AGENTS.md` → Guardrails against bloat and flakes). Until it lands, the call is `test(__filename, …)` from the same module; the assertion between the action and the capture applies either way.
+G2 (`visual-tests/AGENTS.md` → Guardrails against bloat and flakes) replaces the call with `visualTest(title, { themes, browsers, wrappers }, fn)`, which declares the variants the spec renders on instead of leaving them implicit. These examples change to that shape in the same pull request that adds the export, so what is written here is always what the module exports. The assertion between the action and the capture applies either way.
 
 ## Test Organization
 
@@ -72,7 +72,7 @@ The variants a spec renders on are its declaration: `wrappers: []` keeps it js-o
 For tests targeting a specific demo route (not the default `/` grid), use the `goto` fixture:
 
 ```typescript
-visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }, async({ goto, tablePage }) => {
+test(__filename, async({ goto, tablePage }) => {
   await goto(
     helpers.setBaseUrl('/my-feature-demo').getFullUrl()
   );

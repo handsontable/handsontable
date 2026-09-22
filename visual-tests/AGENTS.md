@@ -13,13 +13,13 @@ Cloudflare R2.
 ## Test Pattern
 
 ```typescript
-import { visualTest, expect } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { openContextMenu } from '../../../src/page-helpers';
 
 // One capture per distinct visual state, and the state asserted before the capture. What earns a
-// capture at all is the decision rule below; the declaration names the variants this spec renders on.
-visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }, async({ tablePage }) => {
+// capture at all is the decision rule below.
+test(__filename, async({ tablePage }) => {
   const cell = tablePage.locator('.ht_master td').first();
 
   // State 1: the focused cell. Assert the state, then photograph it — a capture on the line after
@@ -36,11 +36,16 @@ visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], 
 });
 ```
 
-The `visualTest()` declaration is the shape every spec is moving to (G2 under
-[Guardrails](#guardrails-against-bloat-and-flakes)). Until it lands, the call is `test(__filename, …)`
-from the same module plus the conditional `test.skip(condition, why)` described under
-[Determinism](#determinism); everything else in the example — an assertion between each action and its
-capture, one capture per visual state — applies today.
+That fence is what `test-runner.ts` exports **today**, and it is meant to be copied. A spec also scopes
+itself to a framework or a browser with the conditional `test.skip(condition, why)` described under
+[Determinism](#determinism).
+
+G2 (under [Guardrails](#guardrails-against-bloat-and-flakes)) replaces the call with
+`visualTest(title, { themes, browsers, wrappers }, fn)`, which declares the variants the spec renders on
+instead of leaving them implicit. **This example changes to that shape in the same pull request that
+adds the export** — not before, because an example that imports a name the module does not have is
+copied long before the paragraph under it is read. Everything else here is unaffected by that change:
+an assertion between each action and its capture, one capture per visual state.
 
 ## Key Rules
 
