@@ -83,7 +83,7 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ## Set the column width in an array
 
-In this example, the first four columns are `30px`, `40px`, `50px`, and `60px` wide, and the remaining columns are `90px` each.
+In this example, each of the ten columns gets its own width, from `70px` for the narrowest column to `160px` for the widest. Every width is wide enough for the column's header and data.
 
 ::: tip
 
@@ -284,10 +284,6 @@ hot.render();
 ::: only-for javascript
 
 Try it in the demo below: drag a column header to resize it, then select **Clear manual sizes**, which runs the snippet above.
-
-:::
-
-::: only-for javascript
 
 ::: example #example4 --html 1 --js 2 --ts 3
 

@@ -18,14 +18,14 @@ export class AppComponent {
     ['H', 'Hydrogen', 'Nonmetal'],
     ['He', 'Helium', 'Noble gas'],
     ['Li', 'Lithium', 'Alkali metal'],
-    ['Be', 'Beryllium', 'Alkaline earth'],
+    ['Be', 'Beryllium', 'Alkaline earth metal'],
     ['B', 'Boron', 'Metalloid'],
   ];
 
   readonly hotSettings: GridSettings = {
     width: '100%',
     height: 'auto',
-    colHeaders: ['Symbol', 'Name', 'Group'],
+    colHeaders: ['Symbol', 'Name', 'Category'],
     rowHeaders: true,
     stretchH: 'all',
     contextMenu: true,

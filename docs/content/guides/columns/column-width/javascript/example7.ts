@@ -11,12 +11,12 @@ new Handsontable(container, {
     ['H', 'Nonmetal', 1],
     ['He', 'Noble gas', 2],
     ['Li', 'Alkali metal', 3],
-    ['Be', 'Alkaline earth', 4],
+    ['Be', 'Alkaline earth metal', 4],
     ['B', 'Metalloid', 5],
   ],
   width: '100%',
   height: 'auto',
-  colHeaders: ['Symbol', 'Group', 'Atomic Number'],
+  colHeaders: ['Symbol', 'Category', 'Atomic Number'],
   rowHeaders: true,
   columns: [
     { width: 90 },
@@ -24,7 +24,7 @@ new Handsontable(container, {
     { width: 60 },
   ],
   modifyColWidth(width, column) {
-    if (column === 1 && width > 150) {
+    if (column === 1 && width > 120) {
       return 100;
     }
   },
