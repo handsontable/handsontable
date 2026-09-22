@@ -386,7 +386,6 @@ export function EditorComponent<T = any>({
         callback: (event: KeyboardEvent) =>
           shortcut.callback({ value: currentValue.current, setValue, finishEditing }, event),
       })),
-      // @ts-expect-error `addShortcuts`'s second argument type doesn't expose `group` here.
       contextConfig
       );
     }

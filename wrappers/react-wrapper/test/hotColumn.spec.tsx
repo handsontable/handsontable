@@ -404,7 +404,6 @@ describe('Editor configuration using React components', () => {
         }}>
         <HotColumn/>
         <HotColumn>
-          {/* @ts-expect-error `hot-editor` is deliberately invalid: testing the obsolete-API warning. */}
           <EditorComponent hot-editor></EditorComponent>
         </HotColumn>
       </HotTable>

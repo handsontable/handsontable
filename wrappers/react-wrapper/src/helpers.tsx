@@ -17,7 +17,7 @@ let bulkComponentContainer: DocumentFragment | null = null;
  * Warning message for the `autoRowSize`/`autoColumnSize` compatibility check.
  */
 export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRowSize`/`autoColumnSize` options, ' +
-  'which are not compatible with the component-based renderers`. Disable `autoRowSize` and `autoColumnSize` to ' +
+  'which are not compatible with the component-based renderers. Disable `autoRowSize` and `autoColumnSize` to ' +
   'prevent row and column misalignment.';
 
 /**

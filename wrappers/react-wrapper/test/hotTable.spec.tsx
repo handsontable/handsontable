@@ -932,7 +932,6 @@ describe('Editor configuration using React components', () => {
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
         }}>
-        {/* @ts-expect-error `hot-editor` is deliberately invalid: testing the obsolete-API warning. */}
         <EditorComponent hot-editor></EditorComponent>
       </HotTable>
     ));
