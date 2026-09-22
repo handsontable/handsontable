@@ -1504,6 +1504,18 @@ export const REGISTERED_HOOKS = [
   'beforeCellAlignment',
 
   /**
+   * Fired before toggling the read-only state of the selected cells, from the context menu or column
+   * menu "Read only" item.
+   *
+   * @event Hooks#beforeReadOnlyToggle
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of booleans (the previous `readOnly` state) indexed by visual column.
+   * @param {CellRange[]} ranges An array of `CellRange` coordinates where the read-only state will be applied.
+   * @param {boolean} readOnly The new read-only state being applied to every affected cell.
+   */
+  'beforeReadOnlyToggle',
+
+  /**
    * Fired before one or more cells are changed.
    *
    * Use this hook to silently alter the user's changes before Handsontable re-renders.

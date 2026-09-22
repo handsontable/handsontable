@@ -11,8 +11,8 @@ every `updateSettings()` call whatever the payload.
 
 ```
 cellAlignment  columnMove  columnSort  createColumn  createRow  dataChange
-filters  fixedCounts  mergeCells  moveCells  removeColumn  removeRow
-rowMove  unmergeCells
+filters  fixedCounts  mergeCells  moveCells  readOnlyToggle  removeColumn
+removeRow  rowMove  unmergeCells
 ```
 
 Adding an action means a new file plus a registration in `actions/index.ts`. Do not add a branch to
@@ -230,6 +230,28 @@ Falling back to a horizontal alignment when nothing was recorded used to leave t
 undoing a *vertical* alignment, and made the class name grow on every undo/redo cycle. Restore exactly what
 was recorded, including "nothing". Header coordinates are skipped — alignment classes are collected within
 cell ranges only.
+
+## `ReadOnlyToggleAction` is `CellAlignmentAction`'s pattern applied to a plain boolean (DEV-136)
+
+`Core#setCellMeta` fires exactly one `beforeSetCellMeta`/`afterSetCellMeta` pair **per cell**, with no bulk
+variant, and the context-menu/column-menu "Read only" item (`contextMenu/predefinedItems/readOnly.ts`)
+calls it once per selected cell in a loop. A naive action listening to `afterSetCellMeta` directly would
+therefore push one undo entry per cell instead of one per click. The fix is the same shape
+`CellAlignmentAction` already uses for its own `setCellMeta('className', …)` writes: the menu item captures
+a per-cell `stateBefore` snapshot (`getReadOnlyStates()` in `contextMenu/utils.ts`, the `readOnly` twin of
+`getAlignmentClasses()`) and fires a bespoke `beforeReadOnlyToggle` hook **once**, after the snapshot and
+before the mutation loop; this action's `startRegisteringEvents()` is the only listener and turns that one
+firing into one `done()` call. No new IGNORE-flag plumbing was needed: `UndoRedo.ignoreNewActions` (already
+set for the duration of `undo()`/`redo()`) suppresses the action's own replay from re-triggering
+`afterSetCellMeta`-driven recording, the same mechanism `removeRow.ts`'s existing nested-meta restore
+already relies on. Unlike alignment (which recomputes the new class via `align()` on redo, because the
+alignment axis is per-cell), a read-only toggle applies one uniform boolean to every affected cell, so
+`redo()` just replays the recorded `readOnly` value — only `undo()` needs the per-cell `stateBefore` map, to
+put a mixed-state selection back exactly as it was rather than to a single value.
+
+A future `setCellMeta`-driven action should default to this pattern (bespoke `before*` hook fired once by
+the caller, not a listener on `afterSetCellMeta` itself) unless the caller already has some other natural
+per-operation boundary to hook.
 
 ## Undo/redo bypasses the Formulas plugin's change listeners
 

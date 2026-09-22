@@ -8,6 +8,7 @@ import { DataChangeAction } from './dataChange';
 import { FiltersAction } from './filters';
 import { MergeCellsAction } from './mergeCells';
 import { MoveCellsAction } from './moveCells';
+import { ReadOnlyToggleAction } from './readOnlyToggle';
 import { RemoveColumnAction } from './removeColumn';
 import { RemoveRowAction } from './removeRow';
 import { RowMoveAction } from './rowMove';
@@ -30,6 +31,7 @@ export function registerActions(hot: HotInstance, undoRedoPlugin: unknown) {
     FiltersAction,
     MergeCellsAction,
     MoveCellsAction,
+    ReadOnlyToggleAction,
     RemoveColumnAction,
     RemoveRowAction,
     RowMoveAction,

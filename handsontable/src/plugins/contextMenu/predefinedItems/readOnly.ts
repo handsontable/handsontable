@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { checkSelectionConsistency, getSelectionCheckState } from '../utils';
+import { checkSelectionConsistency, getReadOnlyStates, getSelectionCheckState } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
@@ -46,11 +46,18 @@ export default function readOnlyItem() {
         ranges,
         (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
       );
+      const stateBefore = getReadOnlyStates(
+        ranges,
+        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
+      );
+      const readOnly = !atLeastOneReadOnly;
+
+      this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {
           if (row >= 0 && col >= 0) {
-            this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+            this.setCellMeta(row, col, 'readOnly', readOnly);
           }
         });
       }

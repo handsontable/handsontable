@@ -586,6 +586,8 @@ export interface GridSettings {
     event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
     type: string, alignmentClass: string) => void;
+  beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
+    readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
