@@ -1,6 +1,6 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
-import type { DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
@@ -318,7 +318,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
   const meta: ImportColumn | null = source ? { type: 'dropdown', source } : null;
 
   if (!meta) {
-    scope.dropped.record('dataValidation:unresolvedList');
+    scope.dropped.record(DROPPED_FEATURES.dataValidationUnresolvedList);
   }
 
   scope.listMetaByFormula.set(key, meta);
@@ -334,7 +334,7 @@ function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: 
   const { inferred, meta } = inferredMeta;
 
   if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
+    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
   }
 
   if (cell.validation) {
@@ -423,7 +423,7 @@ function pushCellValue(
     pass.formulas.push({ row, col, formula: cell.formula.text });
 
     if (shift) {
-      dropped.record('formula:outOfRange');
+      dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
   }
 }
@@ -975,7 +975,7 @@ function mapConditionalFormatting(
     // Flag a token the parser refused, not a difference in counts: a parser that one day coalesces
     // duplicate rectangles must not read as a loss.
     if (tokens.some(token => parseRangeRef(token) === null)) {
-      dropped.record('conditionalFormatting:unparsedRef');
+      dropped.record(DROPPED_FEATURES.conditionalFormattingUnparsedRef);
     }
 
     ranges.forEach((range) => {
@@ -1143,14 +1143,14 @@ export function mapWorkbook(
 
   if (options.importStyles) {
     if (pass.droppedBorders) {
-      dropped.record('cellStyles:borders');
+      dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
   } else if (pass.sawStyle) {
-    dropped.record('cellStyles');
+    dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
   if (pass.droppedComments) {
-    dropped.record('comments');
+    dropped.record(DROPPED_FEATURES.comments);
   }
 
   const result: MappedResult = {

@@ -202,7 +202,7 @@ interface SheetExtent {
  */
 interface SheetDataContext {
   sheet: SheetSnapshot;
-  extent: SheetExtent;
+  rowCount: number;
   hiddenRows: Set<number>;
   covered: Set<string>;
   styles: StyleTable;
@@ -362,12 +362,12 @@ function writeRowCells(
  * Writes `<sheetData>`. A row with no cell, no height and no hidden flag is written not at all.
  */
 function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
-  const { sheet, extent, hiddenRows } = context;
+  const { sheet, rowCount, hiddenRows } = context;
   const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
 
   w.open('sheetData');
 
-  for (let r = 0; r < extent.rowCount; r++) {
+  for (let r = 0; r < rowCount; r++) {
     const row = sheet.rows[r] ?? [];
     const height = sheet.rowHeights[r] ?? null;
     const hidden = hiddenRows.has(r);
@@ -396,7 +396,7 @@ function writeSheetProtection(w: XmlWriter, sheet: SheetSnapshot, passwordHash: 
   }
 
   const { options } = sheet.protection;
-  const attrs: Record<string, string | undefined> = { sheet: '1' };
+  const attrs: XmlAttributeMap = { sheet: '1' };
 
   if (options.selectLockedCells === false) {
     attrs.selectLockedCells = '1';
@@ -458,8 +458,7 @@ export function worksheetXml(
   passwordHash: ProtectionHash | null,
 ): WorksheetWriteResult {
   const { kept: merges, covered } = resolveMerges(sheet.merges, dropped);
-  const extent = measureExtent(sheet, merges);
-  const { rowCount, colCount } = extent;
+  const { rowCount, colCount } = measureExtent(sheet, merges);
   const hiddenRows = new Set(sheet.hiddenRows);
   const hiddenCols = new Set(sheet.hiddenCols);
 
@@ -472,7 +471,7 @@ export function worksheetXml(
   writeCols(w, sheet, hiddenCols, colCount);
 
   const { comments, validations, wroteFormula } = writeSheetData(w, {
-    sheet, extent, hiddenRows, covered, styles, strings,
+    sheet, rowCount, hiddenRows, covered, styles, strings,
   });
 
   writeSheetProtection(w, sheet, passwordHash);

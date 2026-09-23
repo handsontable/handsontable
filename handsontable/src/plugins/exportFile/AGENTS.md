@@ -126,8 +126,12 @@ Other rules:
 - **Every dropped-feature name the export can report is a row in the export guide's dropped-features
   table**, the same rule `importFile/AGENTS.md` states for the import direction: add to both or neither.
   The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
-  `DroppedFeatureName` narrows `DroppedFeatures#record()` to them — they are public output, so a typo in
-  one adapter would otherwise produce a different key for the same condition with nothing to catch it.
+  `DroppedFeatureName` narrows `DroppedFeatures#record()` to exactly those members — they are public
+  output, so a typo at one site would otherwise produce a different key for the same condition with
+  nothing to catch it. A name whose tail is the file's own value (an unsupported validation type, rule
+  kind or number format) is built by `DroppedFeatures#recordUnsupported(group, value)` instead, which
+  checks the group and leaves only the data-driven tail free; `record()` takes no template literal, so a
+  hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
   The write direction owns `compressionLevel`, `merge:overlap` and the four `conditionalFormatting:*`
   names; the read direction's are in the import guide.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an

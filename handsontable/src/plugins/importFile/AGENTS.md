@@ -306,6 +306,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   only records (`DroppedFeatures.record`); `importFile.ts` calls `dropped.warn(detected.kind)` exactly once
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
   sheet.
+- **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
+  raise seven names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
+  `conditionalFormatting:unparsedRef`, `dataValidation:unresolvedList`, `formula:outOfRange`,
+  `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
+  (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
+  is a row in the import guide's dropped-features table. The one name built from the file's own value,
+  `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`.
 - **Merges, hidden rows/columns, and frozen panes are cropped to the import window**, not dropped outright.
   A `range`, a promoted header row, or a dropped row-header column each shift the window; a merge that
   crosses it is cropped to what remains inside, and only dropped when nothing or a single cell remains.

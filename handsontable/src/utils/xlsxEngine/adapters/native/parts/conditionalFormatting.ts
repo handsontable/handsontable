@@ -1,4 +1,4 @@
-import { isObject, isPlainObject } from '../../../../../helpers/object';
+import { isPlainObject } from '../../../../../helpers/object';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import type { XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
@@ -56,7 +56,7 @@ function readString(rule: RuleObject, key: string): string | undefined {
 function readStyle(rule: RuleObject, key: string): DxfStyle | undefined {
   const value = rule[key];
 
-  return isObject(value) ? (value as DxfStyle) : undefined;
+  return isPlainObject(value) ? (value as DxfStyle) : undefined;
 }
 
 /**
@@ -269,7 +269,7 @@ function writeRule(
   const writeKind = RULE_WRITERS.get(type);
 
   if (writeKind === undefined) {
-    dropped.record(`conditionalFormatting:${type}`);
+    dropped.recordUnsupported('conditionalFormatting', type);
 
     return false;
   }

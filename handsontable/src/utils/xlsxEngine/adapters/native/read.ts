@@ -28,6 +28,13 @@ async function relsOf(archive: ZipArchive, partPath: string): Promise<Relationsh
  * Indexes relationships by id, so a per-sheet lookup does not scan the whole list. A workbook
  * declaring N sheets and N relationships made that scan cost O(sheets x rels): 625 kB of XML spent
  * 15.6 s in it, while the same file with one relationship spent 2.2 s.
+ *
+ * It narrows what a duplicate id resolves to, on purpose: the FIRST relationship carrying an id
+ * wins and `targetOf` then type-filters that one entry, where the scan it replaced filtered across
+ * every relationship carrying the id. So a malformed workbook declaring `rId1` twice - styles
+ * first, worksheet second - used to read the sheet and is now refused with "the sheet X has no
+ * part". An id is unique per part by the OPC spec, so the file was already lying about which part
+ * it names, and refusing it is the answer this reader gives every other ambiguous archive.
  */
 function relsById(rels: Relationship[]): Map<string, Relationship> {
   const byId = new Map<string, Relationship>();
@@ -159,9 +166,7 @@ async function readSheets(
         + `the sheet "${entry.name}" has no worksheet part.`);
     }
 
-    // Sheets are read one at a time so the cell caps can refuse a workbook before the next sheet
-    // is allocated.
-    // eslint-disable-next-line no-await-in-loop -- see the comment above.
+    // eslint-disable-next-line no-await-in-loop -- the per-sheet sequencing this function's JSDoc states.
     const sheetRels = await relsOf(opened.archive, sheetPath);
     const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
     const comments = commentsPath && opened.archive.has(commentsPath)

@@ -1,6 +1,7 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../../capabilities';
 import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
+import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../../../dates';
 import { translateSharedFormula } from '../../../formulaRefs';
 import {
   MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwCellLimit,
@@ -42,18 +43,6 @@ export interface WorksheetReadContext {
  * Serial-number offset between the 1904 and 1900 date systems (4 years and 1 day).
  */
 const DATE_1904_OFFSET = 1462;
-
-/**
- * Milliseconds in one day, the unit an ISO date has to be divided by to become a serial number.
- */
-const MS_PER_DAY = 86400000;
-
-/**
- * Serial-number offset between the Unix epoch and the 1900 date system's day zero. The system
- * counts from 1899-12-30 rather than 1899-12-31 because it reproduces Lotus 1-2-3's non-existent
- * 1900-02-29, so 1970-01-01 is day 25569.
- */
-const EXCEL_EPOCH_OFFSET = 25569;
 
 /**
  * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
@@ -893,7 +882,7 @@ class WorksheetParser {
         sqref: validation.sqref, formulae: validation.formulae, allowBlank: validation.allowBlank,
       });
     } else {
-      this.#ctx.dropped.record(`dataValidation:${validation.type}`);
+      this.#ctx.dropped.recordUnsupported('dataValidation', validation.type);
     }
 
     this.#validation = null;
@@ -1166,9 +1155,9 @@ class WorksheetParser {
 
     sheet.rowHeights.length = this.#rows.length;
 
-    const finalLayoutCols = Math.max(this.#width, this.#layoutColCount);
+    const finalLayoutColumns = Math.max(this.#width, this.#layoutColCount);
 
-    while (sheet.colWidths.length < finalLayoutCols) {
+    while (sheet.colWidths.length < finalLayoutColumns) {
       sheet.colWidths.push(null);
     }
 

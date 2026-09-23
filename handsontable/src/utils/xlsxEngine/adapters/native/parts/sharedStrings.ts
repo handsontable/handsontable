@@ -1,4 +1,3 @@
-import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_WORKBOOK_CELLS, throwLimitExceeded } from '../../../limits';
 import { needsSpacePreserve } from '../xml/escapes';
 import { collectRichTextRuns } from '../xml/richText';

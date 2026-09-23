@@ -98,6 +98,9 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
     // entries reads differently here than in whatever inspected the file upstream. Excel never
     // writes a duplicate, so refusing costs no real workbook anything.
     if (entries.has(name)) {
+      // Refused through the limit thrower although the archive is malformed rather than too large:
+      // the message names what this reader accepts, and `read.ts` re-throws a tagged error as it
+      // stands instead of wrapping it in "The workbook could not be parsed by the native engine".
       throwLimitExceeded(`The ZIP entry "${name}" is declared twice, which this reader does not accept.`);
     }
 

@@ -4,6 +4,12 @@
 fills it through `SheetBuilder`; `importFile` reads it. Nothing outside `adapters/` touches OOXML
 or an engine object.
 
+Anything both adapters need is declared once on this layer, never twice under two names:
+`limits.ts` (the caps and their refusals), `compression.ts`, `sheetNames.ts`, `cellRef.ts`,
+`units.ts` and `dates.ts` (`MS_PER_DAY`, `EXCEL_EPOCH_UTC`, `EXCEL_EPOCH_OFFSET` — which the two
+adapters and both plugins' date conversions import). A constant that lands in one adapter and is
+then copied into the other is the drift these modules exist to prevent.
+
 ## Engines
 
 | Kind | Selected when | Adapter | Notes |
@@ -38,15 +44,22 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
 - **Shared formulas are translated per slave** with `translateSharedFormula` (relative components
   move, `$` components stay) – not `shiftFormulaReferences`, which moves `$` too on purpose.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
+- **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is
+  a one-line wrapper over `WorksheetParser` in `parts/worksheetReader.ts`: the tokenizer is
+  forward-only, so a `<c>`, a `<cfRule>` and a `<dataValidation>` are each assembled across their
+  open event, their children's text and their close event, and the half-built state is the class's
+  `#` fields. `#chargeSpan`, `#ensureRow`, `#cellAt`, `#finishCfRule` and
+  `#finishConditionalFormatting` are private methods of it, not free functions — grep them with the
+  `#`. `assertSheetRectangle`, `assertSheetFits` and `parseWorksheet` are the module's own exports.
 - **Merge members are MATERIALIZED on read, to match ExcelJS.** The writer emits no `<c>` element
   for a covered cell that carries no style, so the reader's `<c>`-derived width alone left the row
   a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
   dropped the merge entirely from the native engine's own export/import round trip. The merge pass
   in `parts/worksheetReader.ts` pads every row of a merge's row range with `null` up to the merge's
   last column and grows `width` to it. Three rules hold that together: the clamp bound is the
-  **dimension** (`Math.max(width, declaredCols, 1)`, the same bound the validation pass uses), so a
-  merge reaching past what the file declares stays clamped rather than widening the sheet on a
-  hostile file's say-so; the `chargeSpan` stays **before** the walk (see the span-budget trap
+  **dimension** (`Math.max(this.#width, this.#declaredColumns, 1)`, the same bound the validation
+  pass uses), so a merge reaching past what the file declares stays clamped rather than widening the
+  sheet on a hostile file's say-so; the `#chargeSpan` stays **before** the walk (see the span-budget trap
   below), and the padding costs nothing new because that span was already charged; and
   `assertSheetFits` runs afterwards with the grown width, so a whole-sheet merge is still refused.
 - **`locked: null` means locked** (OOXML default). Only `<protection locked="0"/>` yields `false`.
@@ -72,12 +85,13 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   `typeof 'number'`, and `<v>NaN</v>` is not a legal cell value — Excel opens such a file with the
   "repair" dialog. `exportFile/types/xlsx.ts` coerces them to their text form at the value
   coercion (`#getCellValue`) and at the cached formula result (`toPrimitiveResult`), so neither
-  engine ever sees one from an export. The native writer guards again in `writeCell`
+  engine ever sees one from an export. The native writer guards again in `writeValueCell`
   (`parts/worksheetWriter.ts`, `stringCellText`): such a value is added to the shared-string table
-  and written as a string cell, and a cached formula result is demoted the same way and typed
-  `str`. Nothing is recorded in `dropped` — it is a representation, not a lost feature. **ExcelJS's
-  writer has no such guard** and still emits `<v>NaN</v>`; the two readers then disagree about it
-  (native reports an empty cell, ExcelJS hands the non-finite number back), which
+  and written as a string cell. A cached formula result is demoted the same way and typed `str` in
+  `writeFormulaCell`, the sibling `writeCell` dispatches to — `writeCell` itself now only picks
+  between the two. Nothing is recorded in `dropped` — it is a representation, not a lost feature.
+  **ExcelJS's writer has no such guard** and still emits `<v>NaN</v>`; the two readers then disagree
+  about it (native reports an empty cell, ExcelJS hands the non-finite number back), which
   `enginesParity.unit.js` pins with both values rather than normalizing.
 - **Element matching is prefix-INSENSITIVE in the main parts and prefix-SENSITIVE in VML.** Excel
   and Google Sheets bind the main namespace as the default one, but nothing requires it: a
@@ -102,7 +116,7 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   concatenation) and `TextEncoder` then copies it into a `Uint8Array`, so a large sheet holds the
   UTF-16 string and its UTF-8 copy at once and the main thread does not yield between rows or
   between sheets. Only the DEFLATE (`zip/writer.ts`) and the password hash yield at all. The read
-  side has explicit budgets for exactly this cost (`MAX_SHEET_CELLS`, `chargeSpan`); the write side
+  side has explicit budgets for exactly this cost (`MAX_SHEET_CELLS`, `#chargeSpan`); the write side
   has NONE, deliberately — the caller asked for this data — and it is no worse than the ExcelJS
   path, whose non-streaming writer is synchronous per sheet too. The export guide says so in its
   engines section. If a yield is ever added, it belongs between sheets in `write.ts`, not inside
@@ -133,7 +147,7 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   and so passes every per-sheet cap, and a `sqref` may repeat one whole-column range any number of
   times; a `<mergeCell ref="A1:XFD1048576"/>` is the third span kind and costs the same full-sheet
   walk per occurrence. Measured on the unbudgeted reader: 2.6 kB of XML cost ~6 s of synchronous CPU,
-  linear in repeats. `chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a
+  linear in repeats. `#chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a
   hostile file is refused after a few multiplications rather than five million array writes. Never
   move that charge after the walk.
 - **The SHEET LIST and the INFLATED BYTES are budgeted too, and a part is inflated once per read.**
@@ -190,7 +204,12 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   tags `error.cause.limit`, and `isLimitError()` is what `read.ts` asks — on the `openPackage` path
   as well as the per-sheet one, because the sheet count and the inflate total are both refused
   before the first sheet. A new cap that reaches for `throwWithCause` directly still refuses the
-  file, but its message is wrapped and it stops reading as this reader's own contract.
+  file, but its message is wrapped and it stops reading as this reader's own contract. The three
+  per-sheet sentences are owned by `throwRowLimit`/`throwColumnLimit`/`throwCellLimit`
+  (`limits.ts`) and BOTH adapters raise them through those helpers, so the two engines cannot word
+  the same refusal differently; the ExcelJS adapter's workbook-cells refusal is still a plain
+  `throwWithCause`, which is why `isLimitError()` answers `false` for that one (nothing asks it on
+  that path — `read.ts` is the native reader's).
 - **A sheet's `r:id` is checked against `[Content_Types].xml` before the part is read as a worksheet,
   and BOTH `<Override>` and `<Default>` type a part.** A relationship target is the file's own text and
   may name ANY part of the package: `Target="/[Content_Types].xml"` normalizes back inside the archive,
@@ -218,21 +237,22 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   `decodeXmlEntities`. `String.fromCodePoint` accepts a surrogate and hands back an unpaired code unit
   that travels through the whole import, and `TextEncoder` replaces it with U+FFFD on the way out.
 - **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
-  matches the A1 shape, and `Number('0') - 1` handed `ensureRow(-1)` through the upper-bound check
+  matches the A1 shape, and `Number('0') - 1` handed `#ensureRow(-1)` through the upper-bound check
   to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading
   'length')`, an internal `TypeError` in place of a refusal. A reference that does not match at all
   (`1A`, an empty `r`) is still ignored silently; only a well-shaped `A0` is refused, on the cell
   path AND on the comment-anchor path, where the worksheet is well formed and a note in
-  `comments{N}.xml` took the whole import down. `ensureRow` keeps a `rowIndex < 0` guard as belt and
+  `comments{N}.xml` took the whole import down. `#ensureRow` keeps a `rowIndex < 0` guard as belt and
   braces.
 - **`<dimension>` pre-allocation is DELIBERATELY still eager.** `<dimension ref="A1:A1048576"/>` is
   32 bytes that materialize a million row arrays (238 MB of RSS, measured), and it is left that way:
-  `rows` IS the snapshot's own array (`const { rows } = sheet;`), the declared tail rows are part of
-  what the reader returns (ExcelJS reports the same `rowCount` from the same declaration), and
-  `sheet.rowHeights` is padded to `rows.length` regardless — so allocating them lazily would defer
-  the cost, not remove it, while `rows.length` is the sheet's row count at six more sites (the
-  `cellAt` cell-product cap, the merge clamp, the validation clamp, `assertSheetFits`, the padding
-  pass and `rowHeights`). `MAX_WORKBOOK_CELLS` is what bounds the total across sheets.
+  `#rows` IS the snapshot's own array (the constructor aliases it: `this.#rows = this.#sheet.rows;`),
+  the declared tail rows are part of what the reader returns (ExcelJS reports the same `rowCount`
+  from the same declaration), and `sheet.rowHeights` is padded to `#rows.length` regardless — so
+  allocating them lazily would defer the cost, not remove it, while `#rows.length` is the sheet's
+  row count at six more sites (the `#cellAt` cell-product cap, the merge clamp, the validation
+  clamp, `assertSheetFits`, the padding pass and `rowHeights`). `MAX_WORKBOOK_CELLS` is what bounds
+  the total across sheets.
 - **The native reader reports `cellStyles` on fewer workbooks than ExcelJS, on purpose.** ExcelJS
   resolves a cell's default font and fill into a style object whenever the cell carries any format
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no
@@ -241,7 +261,7 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
 - **A self-closing `<cfRule/>` needs its own finish call.** The XML tokenizer fires no close event
   for a self-closed element, and `top10`, `aboveAverage` and `duplicateValues` need no `<formula>`
   child, so both engines' writers emit them self-closing — the rule was read as if it were not in
-  the file at all, on ExcelJS-written bytes too. `finishCfRule`/`finishConditionalFormatting` in
+  the file at all, on ExcelJS-written bytes too. `#finishCfRule`/`#finishConditionalFormatting` in
   `parts/worksheetReader.ts` run from the open handler as well as the close handler. Any new
   element whose state is assembled across open and close needs the same treatment.
 - **`enginesParity.unit.js` is the parity checklist.** Every capability in the matrix is proven

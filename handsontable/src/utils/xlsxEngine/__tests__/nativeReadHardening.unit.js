@@ -1,8 +1,6 @@
 /**
  * @jest-environment node
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { nativeAdapter } from '../adapters/native';
 import { DroppedFeatures } from '../capabilities';
 import {
@@ -12,21 +10,10 @@ import { assertSheetFits } from '../adapters/native/parts/worksheetReader';
 import { crc32 } from '../adapters/native/zip/crc32';
 import { readZip } from '../adapters/native/zip/reader';
 import { writeZip } from '../adapters/native/zip/writer';
+import { loadFixture, toArrayBuffer } from './helpers/fixtures';
 
 const encoder = new TextEncoder();
 const EOCD_SIGNATURE = 0x06054b50;
-
-/**
- * Loads a fixture as an `ArrayBuffer`.
- *
- * @param {string} name The fixture name, without the extension.
- * @returns {ArrayBuffer}
- */
-function load(name) {
-  const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
-
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-}
 
 /**
  * Repacks a fixture, passing every part through `transform`. Building the hostile input this way
@@ -38,7 +25,7 @@ function load(name) {
  * @returns {Promise<Uint8Array>}
  */
 async function repack(name, transform) {
-  const zip = await readZip(load(name));
+  const zip = await readZip(loadFixture(name));
   const entries = [];
 
   for (const partName of zip.names()) {
@@ -49,16 +36,6 @@ async function repack(name, transform) {
   }
 
   return writeZip(entries, true);
-}
-
-/**
- * Detaches a `Uint8Array` into the `ArrayBuffer` the adapter takes.
- *
- * @param {Uint8Array} bytes The archive bytes.
- * @returns {ArrayBuffer}
- */
-function toArrayBuffer(bytes) {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
 /**

@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { detectXlsxEngine, resolveEngineOverride, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
-import { DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
 import type { ImportedBorder } from './styles';
@@ -321,7 +321,7 @@ function recordLayoutDirectionMismatch(
   }
 
   if (mapped.layoutDirection !== (hot.isRtl() ? 'rtl' : 'ltr')) {
-    dropped.record('layoutDirection');
+    dropped.record(DROPPED_FEATURES.layoutDirection);
   }
 }
 

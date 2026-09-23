@@ -14,7 +14,11 @@ import {
   type WorkbookSnapshot,
 } from '../model';
 import { parseRangeRef } from '../cellRef';
-import { MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../limits';
+import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
+import {
+  MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwCellLimit,
+  throwColumnLimit, throwRowLimit,
+} from '../limits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -339,14 +343,11 @@ async function writeSheetFeatures(
   worksheet.state = sheet.state;
 }
 
-const MS_PER_DAY = 86400000;
-const UNIX_EPOCH_SERIAL = 25569;
-
 /**
  * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number.
  */
 function dateToSerial(date: Date): number {
-  return (date.getTime() / MS_PER_DAY) + UNIX_EPOCH_SERIAL;
+  return (date.getTime() / MS_PER_DAY) + EXCEL_EPOCH_OFFSET;
 }
 
 /**
@@ -486,7 +487,7 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
       allowBlank: source.dataValidation.allowBlank ?? true,
     };
   } else if (source.dataValidation?.type) {
-    dropped.record(`dataValidation:${source.dataValidation.type}`);
+    dropped.recordUnsupported('dataValidation', source.dataValidation.type);
   }
 
   if (typeof source.protection?.locked === 'boolean') {
@@ -637,16 +638,11 @@ function assertSheetFits(
   name: string, rowCount: number, cellColCount: number, layoutColCount: number, budget: WorkbookBudget
 ): void {
   if (rowCount > MAX_SHEET_ROWS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} rows, above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`
-    );
+    throwRowLimit(name, rowCount);
   }
 
   if (layoutColCount > MAX_SHEET_COLUMNS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${layoutColCount} columns, ` +
-      `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`
-    );
+    throwColumnLimit(name, layoutColCount);
   }
 
   // The product is measured against the CELL column count, never the layout one. Excel writes a
@@ -654,10 +650,7 @@ function assertSheetFits(
   // expands it into 16384 `Column` objects — so a 400-row, one-column workbook would otherwise be
   // refused as "400 × 16384 cells". A column declaration costs one object, not one per row.
   if (rowCount * cellColCount > MAX_SHEET_CELLS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, ` +
-      `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`
-    );
+    throwCellLimit(name, rowCount, cellColCount);
   }
 
   // A sheet of rows with no cells still costs one array per row, so it counts one column wide; and
@@ -866,7 +859,7 @@ export const excelJsAdapter: XlsxEngineAdapter = {
 
       writeColumnLayout(worksheet, sheet);
       wroteFormula = writeRows(worksheet, sheet) || wroteFormula;
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- one sheet at a time: `protect()` hashes the password.
       await writeSheetFeatures(worksheet, sheet, dropped);
     }
 
