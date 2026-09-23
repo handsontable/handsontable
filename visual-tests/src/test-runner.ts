@@ -1,7 +1,14 @@
 import path from 'path';
-import { test as baseTest, expect, Page } from '@playwright/test';
+import { test as baseTest, expect, Page, TestInfo } from '@playwright/test';
 import { helpers } from './helpers';
 import PageHolder from './page-holder';
+import { CLASSIC, CROSS_BROWSERS, JS_VARIANTS, REFERENCE_FRAMEWORK, WRAPPERS } from './config.mjs';
+import {
+  VISUAL_VARIANTS_ANNOTATION,
+  WRAPPERS_REASON_UNAUDITED,
+  isDeclared,
+  normalizeDeclaration,
+} from '../lib/visual-declarations.mjs';
 
 helpers.init();
 
@@ -494,6 +501,36 @@ type TestParams = {
   goto: (url: string) => Promise<void>;
 };
 
+/**
+ * The spec file a test was declared in, as an absolute path.
+ *
+ * Not `testInfo.file`: that is the file `test()` was CALLED from, and since `visualTest()` registers every
+ * spec it is this file for all of them — measured on Playwright 1.60.0, where a helper that calls `test()`
+ * puts its own path there and its own line in the report's location. Every golden path is keyed on the spec
+ * file: `helpers.setTestDetails()` turns it into `screenshotDirName`, and `helpers.screenshotPath()` reads
+ * `/cross-browser/` out of it to pick the layout. Reading `testInfo.file` here would collapse all 1676
+ * records onto one name, which is a silent catastrophe rather than a failure.
+ *
+ * The file suite's title is the spec path relative to the run's root, and Playwright destructures its own
+ * `titlePath()` as `[file, ...titles]` when it builds a test id, so that is the value to read. The guard
+ * makes a future change in that shape fail loudly on the first capture instead of rewriting the baseline.
+ *
+ * @param {TestInfo} testInfo The running test's info.
+ * @returns {string} The absolute path of the `.spec.ts` file that declared the test.
+ */
+function specFilePath(testInfo: TestInfo): string {
+  const [relativeSpecPath] = testInfo.titlePath;
+
+  if (typeof relativeSpecPath !== 'string' || !relativeSpecPath.endsWith('.spec.ts')) {
+    throw new Error('Cannot tell which spec file declared this test: testInfo.titlePath[0] is '
+      + `${JSON.stringify(relativeSpecPath)}, not a path ending in .spec.ts. Every golden path is derived `
+      + 'from the spec file, so capturing under a wrong name would rewrite the baseline. See '
+      + 'specFilePath() in src/test-runner.ts.');
+  }
+
+  return path.join(testInfo.config.rootDir, relativeSpecPath);
+}
+
 // Define your custom fixture
 const test = baseTest.extend<TestParams>({
   async tablePage({ page }, use, testInfo) {
@@ -530,7 +567,7 @@ const test = baseTest.extend<TestParams>({
 
     helpers.setTestDetails({
       rootDir: testInfo.config.rootDir,
-      testFilePath: testInfo.file,
+      testFilePath: specFilePath(testInfo),
       browser: testInfo.project.name,
       testedPageUrl: page.url(),
     });
@@ -581,7 +618,7 @@ const test = baseTest.extend<TestParams>({
 
       helpers.setTestDetails({
         rootDir: testInfo.config.rootDir,
-        testFilePath: testInfo.file,
+        testFilePath: specFilePath(testInfo),
         browser: testInfo.project.name,
         testedPageUrl: page.url(),
       });
@@ -608,5 +645,98 @@ const test = baseTest.extend<TestParams>({
   }
 });
 
-// Export the custom fixture
-export { expect, test, waitForScrollbarClearanceToClose };
+/**
+ * What a spec declares it renders on. `themes` is the js axis — `CLASSIC` plus any of `THEMES`, because the
+ * bare run is a variant like any other and only differs in having no name to pass through `HOT_THEME`.
+ * `browsers` is the cross-browser leg's projects. `wrappers` are the wrappers that hold a golden of this
+ * spec, and `wrappersReason` says what their render proves; it is mandatory whenever `wrappers` is not
+ * empty. `lib/visual-declarations.mjs` validates the whole shape.
+ *
+ * All three axes are required on purpose, although `normalizeDeclaration()` defaults each one: what a
+ * spec costs is meant to be readable in the spec, so the default is a shape you copy (from the template,
+ * or from the example in `AGENTS.md`) rather than a shape you get by leaving a key out. The defaulting
+ * exists so a half-written declaration cannot render on a variant nobody named.
+ */
+export type VisualDeclaration = {
+  themes: string[];
+  browsers: string[];
+  wrappers: string[];
+  wrappersReason?: string;
+};
+
+/**
+ * The test body, as Playwright types it for this tier's fixtures.
+ */
+type VisualTestBody = Parameters<typeof test>[2];
+
+/**
+ * Registers a visual spec and states, in the spec itself, which variants it produces goldens for.
+ *
+ * The runner still launches every variant the tier asks for (`scripts/run-tests.mjs` runs one Playwright
+ * pass per framework and one per theme); a variant this spec does not declare skips here. Both skips are
+ * file-scope modifiers, which is what makes them free and also why a file may hold only one declaration:
+ * a modifier declared at file scope applies to every test in the file, so the skips of two `visualTest()`
+ * calls COMBINE. The file then renders only the variants both declarations name — the intersection, which
+ * can be empty, so a variant either declaration asked for on its own can stop rendering entirely
+ * (measured: `main`-only and `horizon`-only declarations in one file render nothing under `HOT_THEME=main`).
+ * The static sweep in `lib/__tests__/visual-declarations.test.mjs` enforces the one-declaration rule;
+ * `tests/cross-browser/copy-paste.spec.ts` is the only file with several tests today and all five agree.
+ *
+ * The framework and theme axis uses the boolean form, which Playwright resolves at collection and never
+ * dispatches to a worker: measured, the 69 js-only skips added nothing to the 3.5 s collection, while the
+ * in-body form they replace cost about 40 ms per test on CI's single worker because the page fixture is set
+ * up before the skip is reached. The browser axis has to use the callback form, because no project
+ * information exists at file scope otherwise — and `browserName` has to come from the fixture, not from
+ * `testInfo.project.use`, which is undefined here (the cross-browser config builds its projects from
+ * `devices[...]`, which carries `defaultBrowserType`).
+ *
+ * The declaration is also attached as a static `annotation`, which `npx playwright test --list
+ * --reporter=json` reports for every collected test, skipped ones included. That is the only form a reader
+ * outside the run can trust: the callback skip above is evaluated in a worker and never reaches `--list`.
+ *
+ * @param {string} title The test title — `__filename` for a spec whose file name is its name, or a plain
+ * string for the cross-browser specs that loop over demo routes.
+ * @param {VisualDeclaration} variants Which variants this spec renders on.
+ * @param {VisualTestBody} body The test body.
+ * @returns {void} Registers the test, the way `test()` does.
+ */
+export function visualTest(title: string, variants: VisualDeclaration, body: VisualTestBody) {
+  // The title doubles as the label a validation failure carries: it is `__filename` for every spec but
+  // the five looped cross-browser ones, and their plain titles are unique too, so whichever a spec used
+  // is enough to find it. Without it the message states the rule and leaves the author guessing which of
+  // the 112 specs broke it.
+  const declaration = normalizeDeclaration(variants, title);
+  // `helpers.init()` ran at import, so both are already resolved. An unset HOT_THEME is the bare run, which
+  // is what `CLASSIC` names; the token never travels back through the environment.
+  const framework = helpers.hotWrapper;
+  const theme = helpers.hotTheme || CLASSIC;
+  const variantName = framework === REFERENCE_FRAMEWORK ? `${framework}/${theme}` : framework;
+
+  test.skip(
+    !isDeclared(declaration, { framework, theme }),
+    `Visual variant not declared by this spec: ${variantName}.`
+  );
+  test.skip(
+    ({ browserName }) => !declaration.browsers.includes(browserName),
+    `Visual browsers declared by this spec: ${declaration.browsers.join(', ')}.`
+  );
+
+  return test(
+    title,
+    { annotation: { type: VISUAL_VARIANTS_ANNOTATION, description: JSON.stringify(declaration) } },
+    body
+  );
+}
+
+// Export the custom fixture, the declaration API, and the vocabulary a spec declares with, so a spec needs
+// one import for all of it.
+export {
+  expect,
+  test,
+  waitForScrollbarClearanceToClose,
+  CLASSIC,
+  JS_VARIANTS,
+  WRAPPERS,
+  CROSS_BROWSERS,
+  WRAPPERS_REASON_UNAUDITED,
+};

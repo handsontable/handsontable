@@ -1,11 +1,16 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
  * Checks whether the hovering the menu items (e.g "Read only" entry) clears the state of the
  * focus order of the filters components.
  */
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const table = tablePage.locator(helpers.selectors.mainTable);
 
   await table.waitFor();

@@ -1812,6 +1812,9 @@ export default (): Record<string, unknown> => {
      * The `currentColClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected columns.
      *
+     * With nested or grouped column headers (the `nestedHeaders` plugin), the class name reaches
+     * every header level above the selected column, not only the leaf level.
+     *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -1878,6 +1881,9 @@ export default (): Record<string, unknown> => {
     /**
      * The `currentRowClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected rows.
+     *
+     * With multiple row-header columns (added through the `afterGetRowHeaderRenderers` hook), the
+     * class name reaches every row-header column, not only the first one.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)

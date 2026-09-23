@@ -112,6 +112,56 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
+
+Every other plugin reads cells through `modifyData`, and this listener is what puts the new data into the
+engine (`setSheetContent`). At the default order it ran after AutoColumnSize's full sweep — that plugin has
+the lowest `PLUGIN_PRIORITY` — so the sweep measured formula columns against the previous dataset's results,
+and the `valuesUpdated` batch this listener triggers queued every changed cell for a second synchronous full
+rescan. This listener moved rather than that one because moving the sweep later changed what every other
+`afterLoadData` listener sees: AutoRowSize measures row heights against the sweep's widths, and host
+callbacks read `getColWidth()`. `afterUpdateData` carries the same order for symmetry. The `updateSettings`
+data path is unaffected either way — with `source === 'updateSettings'` this listener returns early and the
+engine is fed from `afterCellMetaReset`.
+
+**The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
+carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+`enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
+branch (measured with the engine methods spied; the reference rewrite that
+`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
+init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
+`setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
+instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity
+sequence and sends nothing, and the move that follows reaches the engine once through `syncMoves()`. The
+spec's `loadData()` case pins the formula staying `=A1+10`. Do not "restore" the `setColumnOrder` path by
+postponing `setupSyncEndpoint()` behind the moves without re-measuring that case.
+
+## The per-cell read path caches "the engine holds my sheet" (DEV-2905)
+
+`modifyData` and `modifySourceData` fire once per cell of every bulk read (AutoColumnSize sampling, the
+filters column scan), so `#onModifyData` is the plugin's hottest path. Two rules keep it cheap:
+
+- **`#hasOwnSheet()` replaces `engine.doesSheetExist(this.sheetName)` on those two hooks.** The answer is
+  cached in `#ownSheetExists` and dropped to `null` from every place the answer can change: the engine's own
+  `sheetAdded` / `sheetRenamed` / `sheetRemoved` listeners (engine-wide, so a second instance on the same
+  engine removing this instance's sheet still invalidates it), `#updateSheetNameAndSheetId()`, the `engine`
+  assignments in `enablePlugin` / `disablePlugin` / `destroy`, and the plugin's own `engine.undo()` /
+  `engine.redo()` calls — HyperFormula's undo and redo add, remove, and rename sheets through its
+  `UndoRedo` operations, which emit no sheet event. A host calling `engine.undo()` directly on a sheet
+  operation is the one path left uncovered; it also desyncs the two undo stacks, so it is unsupported
+  regardless. A new invalidation point is needed whenever a new path writes `sheetName`, `sheetId`, or
+  `engine` without going through those. `#onEngineSheetRemoved` still does not null `sheetName` — the
+  cached `false` is what protects reads after an external `removeSheet` of the own sheet
+  (`__tests__/ownSheetCache.unit.js`, `tests/e2e/sheet-switch-autosize.spec.ts`).
+- **One address translation per read, on both hooks.** `#toEngineAddress()` does the `toPhysical*` bounds
+  check and the two axis-syncer translations once; the type lookup, the dimensions check, and the value
+  read share the result. Keep the `VALUE` / `EMPTY` early return — it hands back the raw source string
+  (after `unescapeFormulaExpression`), while `getCellValue` would return the engine's parsed value (numeric
+  strings as numbers, date text as serials), and array-spill cells have an empty source value yet a real
+  engine value, so the type branch cannot be replaced by a check on the source value either.
+
 ## Engine settings: `maxRows` / `maxColumns` do NOT reach the engine
 
 HyperFormula's own default sheet size is 40000. Handsontable used to pass its `maxRows`, which defaults to

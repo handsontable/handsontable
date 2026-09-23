@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import {
   rowsCount,
@@ -8,7 +8,11 @@ import {
   filterByCondition,
 } from '../../src/page-helpers';
 
-test('Test filtering', async({ tablePage }) => {
+visualTest('Test filtering', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   expect(await rowsCount()).toBe(16);
 
   await openHeaderDropdownMenu('Country');
