@@ -25,6 +25,14 @@ const fruits = [
   'Watermelon',
 ];
 
+const data = [
+  ['Apple', 'Apple'],
+  ['Banana', 'Banana'],
+  ['Cherry', 'Cherry'],
+  ['Mango', 'Mango'],
+  ['Orange', 'Orange'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -32,13 +40,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['Apple', 'Apple'],
-        ['Banana', 'Banana'],
-        ['Cherry', 'Cherry'],
-        ['Mango', 'Mango'],
-        ['Orange', 'Orange'],
-      ]}
+      data={data}
       colHeaders={['Filter: true (default)', 'Filter: false']}
       columns={[
         {

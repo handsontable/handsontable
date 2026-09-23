@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Wireless mouse', 142],
+  ['USB-C cable', 67],
+  ['Mechanical keyboard', -5],
+  ['Laptop stand', 38],
+  ['HDMI adapter', 210],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['Wireless mouse', 142],
-        ['USB-C cable', 67],
-        ['Mechanical keyboard', -5],
-        ['Laptop stand', 38],
-        ['HDMI adapter', 210],
-      ]}
+      data={data}
       colHeaders={['Product', 'Stock']}
       rowHeaders={true}
       comments={true}

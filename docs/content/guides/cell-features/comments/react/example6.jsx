@@ -5,6 +5,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Update API docs', 'Ana García', 'In progress'],
+  ['Deploy hotfix', 'James Okafor', 'Blocked'],
+  ['Review pull requests', 'Li Wei', 'Done'],
+  ['Plan Q3 roadmap', 'Maria Santos', 'In progress'],
+  ['Refactor auth module', 'David Kim', 'In review'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('');
@@ -43,13 +51,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['Update API docs', 'Ana García', 'In progress'],
-          ['Deploy hotfix', 'James Okafor', 'Blocked'],
-          ['Review pull requests', 'Li Wei', 'Done'],
-          ['Plan Q3 roadmap', 'Maria Santos', 'In progress'],
-          ['Refactor auth module', 'David Kim', 'In review'],
-        ]}
+        data={data}
         colHeaders={['Task', 'Assignee', 'Status']}
         rowHeaders={true}
         comments={true}

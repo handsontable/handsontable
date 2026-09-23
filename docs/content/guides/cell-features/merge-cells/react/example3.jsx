@@ -5,6 +5,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['North America', 420000, 465000, 501000],
+  ['Europe', 388000, 402000, 411000],
+  ['APAC', 275000, 298000, 312000],
+  ['Latin America', 142000, 151000, 158000],
+  ['Middle East', 96000, 101000, 108000],
+];
+
 const ExampleComponent = () => {
   const [output, setOutput] = useState('');
 
@@ -19,13 +27,7 @@ const ExampleComponent = () => {
           'Select cells, then press Ctrl+M (or use the context menu) to merge or unmerge them. Hook activity appears here.'}
       </output>
       <HotTable
-        data={[
-          ['North America', 420000, 465000, 501000],
-          ['Europe', 388000, 402000, 411000],
-          ['APAC', 275000, 298000, 312000],
-          ['Latin America', 142000, 151000, 158000],
-          ['Middle East', 96000, 101000, 108000],
-        ]}
+        data={data}
         colHeaders={['Region', 'Jan 2025', 'Feb 2025', 'Mar 2025']}
         rowHeaders={true}
         height="auto"
@@ -34,16 +36,22 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         beforeMergeCells={(cellRange) => {
-          logEvent(`beforeMergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
+          logEvent(
+            `beforeMergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`,
+          );
         }}
         afterMergeCells={(cellRange, mergeParent) => {
           logEvent(`afterMergeCells: merged into ${mergeParent.rowspan} row(s) by ${mergeParent.colspan} column(s).`);
         }}
         beforeUnmergeCells={(cellRange) => {
-          logEvent(`beforeUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
+          logEvent(
+            `beforeUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`,
+          );
         }}
         afterUnmergeCells={(cellRange) => {
-          logEvent(`afterUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
+          logEvent(
+            `afterUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`,
+          );
         }}
         licenseKey="non-commercial-and-evaluation"
       />
