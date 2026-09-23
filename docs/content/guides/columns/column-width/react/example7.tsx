@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['SKU-4821', 'Bolt', 142],
+  ['SKU-0093', 'Stainless steel mounting bracket', 67],
+  ['SKU-1147', 'Washer', 210],
+  ['SKU-2205', 'Hex nut assortment pack', 38],
+  ['SKU-3310', 'Cable tie', 95],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['SKU-4821', 'Bolt', 142],
-        ['SKU-0093', 'Stainless steel mounting bracket', 67],
-        ['SKU-1147', 'Washer', 210],
-        ['SKU-2205', 'Hex nut assortment pack', 38],
-        ['SKU-3310', 'Cable tie', 95],
-      ]}
+      data={data}
       width="100%"
       height="auto"
       colHeaders={['SKU', 'Product', 'Stock']}

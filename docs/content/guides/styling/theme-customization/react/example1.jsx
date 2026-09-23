@@ -5,6 +5,14 @@ import 'handsontable/styles/ht-theme-main.css';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
+  ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
+  ['Sam Wilson', 'samwilson@example.com', 'Chicago', 41, 'Manager'],
+  ['Emily Johnson', 'emilyj@example.com', 'San Francisco', 35, 'Developer'],
+  ['Michael Brown', 'mbrown@example.com', 'Boston', 38, 'Analyst'],
+];
+
 const ExampleComponent = () => {
   return (
     <>
@@ -25,13 +33,7 @@ const ExampleComponent = () => {
 
       <HotTable
         themeName="ht-theme-main"
-        data={[
-          ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
-          ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
-          ['Sam Wilson', 'samwilson@example.com', 'Chicago', 41, 'Manager'],
-          ['Emily Johnson', 'emilyj@example.com', 'San Francisco', 35, 'Developer'],
-          ['Michael Brown', 'mbrown@example.com', 'Boston', 38, 'Analyst'],
-        ]}
+        data={data}
         colHeaders={['Name', 'Email', 'City', 'Age', 'Position']}
         columns={[
           { data: 0, type: 'text' },
