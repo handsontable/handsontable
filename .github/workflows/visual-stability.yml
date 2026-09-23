@@ -13,9 +13,12 @@ name: Visual stability
 # way twice. The two run on the same nights — this one thirty minutes after the
 # nightly, so they do not contend for runner slots at the same instant — so a
 # flake and a drift seen the same morning can be told apart, for the captures
-# this run renders: one it calls unstable is a flake, one it calls stable but the
-# nightly calls changed is drift. On the schedule it renders three times; a
-# dispatch keeps ten, the DEV-2797 acceptance count.
+# this run renders: one it calls unstable is a flake. One it calls stable but
+# the nightly calls changed is drift or a poisoned golden: compare the nightly's
+# render (its sha256 is on the ledger) with the golden before looking for the
+# commit. Three agreeing runners do not rule out a rare flake. On the schedule
+# it renders on three runners; a dispatch keeps ten, the DEV-2797 acceptance
+# count.
 #
 # It publishes nothing, comments nowhere, and never touches `base/<branch>`; the
 # verdict lives in the job summary. The one secret it reads is the Slack webhook,
@@ -27,12 +30,20 @@ name: Visual stability
 # rather than a local repeat.
 #
 # Scope is narrow by default — the filters family plus the RTL selection spec,
-# the two groups that produced every sighting — so a night costs three short
-# jobs, not three full suites. A dispatch can widen it to the whole suite
-# (`scope: full`) for one investigation; the schedule never does. A trim that
-# drops `classic` or the chosen theme from a filters spec (the consolidation
-# work) makes this matrix report those captures as missing, which is the matrix
-# telling you to update `MULTI_SPECS`, not a flake.
+# the two groups that produced every sighting — so a night renders on three
+# runners (the matrix still starts ten jobs, and seven stop at their first
+# step), not three full suites. A dispatch can widen the spec lists to every
+# spec (`scope: full`) for one investigation; the schedule never does. `full`
+# keeps the same variants: js on chromium in classic plus the chosen theme,
+# and the cross-browser specs on chromium and firefox. No wrapper, no WebKit,
+# and no other theme renders.
+#
+# A trim that drops `classic` or the chosen theme from a filters spec (the
+# consolidation work) does not turn this matrix red. The spec skips that pass
+# in every render, so its captures leave the set the verdict judges, and the
+# run stays green while it measures less. After such a trim, render a theme the
+# filters specs still declare: the `theme` input, and the schedule's
+# `main-dark` fallback with it.
 on:
   schedule:
     # 02:30 UTC Tue–Sat: the nightly's `0 2 * * 2-6` nights, thirty minutes later.
@@ -50,7 +61,7 @@ on:
         default: 'main-dark'
         options: ['main', 'main-dark', 'horizon', 'horizon-dark']
       scope:
-        description: 'What to render: the specs under investigation, or the whole suite (js and cross-browser)'
+        description: 'What to render: the specs under investigation, or every spec in the same variants (js: classic plus the theme, on chromium; cross-browser: chromium and firefox)'
         type: choice
         default: 'investigation'
         options: ['investigation', 'full']
@@ -125,7 +136,7 @@ jobs:
         run: npx --no playwright install-deps chromium firefox
         working-directory: visual-tests
 
-      # No Build stage to download from on a dispatch, so this composes the same
+      # No Build stage to download from on a dispatch or the schedule, so this composes the same
       # screenshot tree visual.yml's artifact-fallback path does: the ES + CJS
       # build, the language packs, the type declarations the regenerated
       # `exports` map names (partial-packaging.test.mjs pins that pairing), and
@@ -193,7 +204,7 @@ jobs:
       # screenshot path, so an iteration keeps whatever the LAST attempt drew. That hides exactly what
       # this matrix measures: a stuck band now throws, Playwright re-runs the spec, and the retry's
       # clean capture is the one compared. With no retries a stuck band becomes the missing-capture
-      # signal the verdict already reports. It costs nothing on a dispatch.
+      # signal the verdict already reports. It costs nothing here.
       #
       # A status collected per render instead of `bash -e`'s first-failure exit. Actions runs this
       # block with -e, so one `selection` spec using up its budget ended the step and the two filters
@@ -263,9 +274,11 @@ jobs:
         run: node ./visual-tests/scripts/stability-verdict.mjs runs >> "$GITHUB_STEP_SUMMARY"
 
   # A failed scheduled run posts to Slack, the way the nightly does, because nobody
-  # watches a 02:30 run. The run fails when a runner pair differs past the gate's
-  # tolerances, a capture is missing from a render, or no render finished; a byte
-  # difference the tolerances absorb is listed in the summary and fails nothing.
+  # watches a 02:30 run. A night fails when a render job fails (a spec failed
+  # outright, or the build or the preview server did), fewer than two renders
+  # were uploaded, a runner pair could not be compared or differs past the gate's
+  # tolerances, or a capture is missing from a render. A byte difference the
+  # tolerances absorb is listed in the summary and fails nothing.
   # `failure()` is the status function the job needs:
   # without one, GitHub ANDs the implicit success() onto the condition and the job
   # can never run when a job it needs failed (.ai/CI.md). The schedule only — whoever
@@ -287,5 +300,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":warning: Visual stability on ${{ github.ref_name }} found captures that differ between runners past the gate's tolerances, a missing capture, or no render.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
+              "text": ":warning: Visual stability on ${{ github.ref_name }} failed: a render job failed, runners differ past the gate's tolerances, or a capture is missing.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
             }

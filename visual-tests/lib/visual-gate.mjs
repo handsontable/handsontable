@@ -13,8 +13,8 @@
  *
  * The visual quarantine (`./visual-quarantine.mjs`) arrives already applied: the caller passes a report
  * whose `failedItems` no longer holds the quarantined items, and the two lists to print. So the verdict
- * math is the same whether a quarantine exists or not — a run whose only differences are quarantined is
- * `clean` because nothing else differed — and the defaults leave the comment byte-identical for the docs
+ * math is the same whether a quarantine exists or not – a run whose only differences are quarantined is
+ * `clean` because nothing else differed – and the defaults leave the comment byte-identical for the docs
  * suite, which never has one.
  */
 
@@ -58,8 +58,9 @@ const DEFAULT_LABELS = {
  * reachable). Defaults are the core suite's.
  * @param {Array<{item: string, entry: object}>} [options.quarantined] Changed items a live quarantine entry
  * covered, already removed from `report.failedItems`: listed, never counted as changed.
- * @param {Array<{item: string, entry: object}>} [options.expired] Changed items under an expired entry, still
- * in `report.failedItems`: counted, and listed so the reader sees why they block again.
+ * @param {Array<{item: string, entry: object}>} [options.expired] Changed items under an entry that does not
+ * hold (expired, or never valid), still in `report.failedItems`: counted, and listed so the reader sees why
+ * they block.
  * @returns {Verdict} The verdict.
  */
 export function evaluate({
@@ -68,7 +69,7 @@ export function evaluate({
 }) {
   const { title, environment, artifact } = { ...DEFAULT_LABELS, ...labels };
   // The quarantined items were compared and did differ; they only stopped counting as changed. So the
-  // "was anything compared" checks below count them back in — a run whose only differences are
+  // "was anything compared" checks below count them back in – a run whose only differences are
   // quarantined, with nothing passing, is not "nothing was compared".
   const quarantinedCount = quarantined.length;
   const listed = quarantineLines(quarantined, expired);
@@ -228,8 +229,9 @@ export function evaluate({
           `## ${title} — no changes outside the quarantine`,
           '',
           `${passed} screenshots match the golden records. ${quarantinedCount} quarantined screenshot`
-            + `${quarantinedCount === 1 ? '' : 's'} differed; ${quarantinedCount === 1 ? 'it is' : 'they are'} `
-            + 'listed below and do not hold this pull request.',
+            + `${quarantinedCount === 1 ? '' : 's'} differed; `
+            + `${quarantinedCount === 1 ? 'it is listed below and does not' : 'they are listed below and do not'} `
+            + 'hold this pull request.',
           '',
           ...listed,
         ].join('\n'),

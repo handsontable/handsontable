@@ -401,7 +401,7 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
   // `Visual nightly` is the only run the weekday full render's compare record arrives on; a pull request's
-  // arrives on its `Tests` run. `Visual seed` must stay out — its differences are the merge's own.
+  // arrives on its `Tests` run. `Visual seed` must stay out – its differences are the merge's own.
   assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly'\]/);
   assert.doesNotMatch(workflow, /workflows: \[[^\]]*'Visual seed'/, 'a seed\'s differences are not flakes');
   assert.match(workflow, /conclusion != 'cancelled'/, 'collects every completed run, not only failures');
@@ -556,7 +556,7 @@ const VISUAL_RECORD = {
 test('parseVisualRecord keeps changed captures with their leg, spec and render hash', () => {
   const entries = parseVisualRecord(VISUAL_RECORD, runContextFromRun(RUN));
 
-  // New and deleted items are structure — a renamed spec, a missing seed — not flakes.
+  // New and deleted items are structure – a renamed spec, a missing seed – not flakes.
   assert.equal(entries.length, 2);
   assert.deepEqual(entries.map(e => [e.tier, e.leg, e.status]), [
     ['visual', 'js/chromium-theme-main', 'failed'],
@@ -572,7 +572,7 @@ test('parseVisualRecord keeps changed captures with their leg, spec and render h
 
 test('a seed record adds nothing to the ledger', () => {
   // A seed's differences are what its merged commit changed. Ingesting them would file every intended
-  // change as a flake — and a seed-tier record also arrives through `Tests`, on the master push.
+  // change as a flake – and a seed-tier record also arrives through `Tests`, on the master push.
   assert.deepEqual(parseVisualRecord({ ...VISUAL_RECORD, tier: 'seed' }, runContextFromRun(RUN)), []);
 });
 
@@ -615,6 +615,12 @@ test('a visual capture needs a ticket after two runs, even on one branch, and no
 
   assert.equal(twoNights.rows[0].needsTicket, true, 'the same capture red on two nights needs a ticket');
 
+  const markdown = renderStepSummary({ run, added: [], notes: [], summary: twoNights, pageUrl: 'x' });
+
+  assert.ok(markdown.includes('- multi-frameworks/filters/escaping-the-menu-12 '
+    + '(`visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts`) — 2 run(s), legs: '
+    + 'js/chromium-theme-main\n'), 'a visual row states its runs, not branches and reruns it never has');
+
   const quarantined = aggregate(ledgerOf([
     { ...otherLeg, runId: 'n1', branch: 'develop', seenAt: at(1) },
     { ...otherLeg, runId: 'n2', branch: 'develop', seenAt: at(2) },
@@ -630,7 +636,23 @@ test('the Compare job uploads its record under the prefix the collector classifi
   const visual = readFileSync(path.join(root, '.github/workflows/visual.yml'), 'utf8');
   const health = readFileSync(path.join(root, '.github/workflows/test-health.yml'), 'utf8');
 
-  assert.ok(visual.includes(`name: ${VISUAL_ARTIFACT_PREFIX}\${{ inputs.tier }}`),
+  // Read inside the two steps, never from the whole file: a commented-out or moved line must not pass.
+  const stepOf = (workflow, name) => {
+    const start = workflow.indexOf(`      - name: ${name}\n`);
+
+    assert.notEqual(start, -1, `lost the step: ${name}`);
+    const next = workflow.indexOf('\n      - ', start + 1);
+
+    return workflow.slice(start, next === -1 ? undefined : next);
+  };
+  const upload = stepOf(visual, 'Upload the visual compare record');
+  const download = stepOf(health, 'Download the run\'s test artifacts');
+
+  assert.ok(upload.includes(`\n          name: ${VISUAL_ARTIFACT_PREFIX}\${{ inputs.tier }}\n`),
     'visual.yml must upload the record under the prefix the collector classifies by');
-  assert.ok(health.includes(`|${VISUAL_ARTIFACT_PREFIX})`), 'test-health.yml must download the visual records');
+  const families = /test\("\^\(playwright-report-\|puppeteer-failed-specs-\|visual-compare-\)"\)/;
+
+  assert.match(download, new RegExp(`\\n\\s+--jq '[^'\\n]*${families.source}`),
+    'test-health.yml must download the visual records');
+  assert.ok(download.includes(`|${VISUAL_ARTIFACT_PREFIX})`));
 });

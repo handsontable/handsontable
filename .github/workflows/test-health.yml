@@ -1,6 +1,6 @@
 # The cross-run flake ledger.
 #
-# Runs after every completed `Tests`, `Develop`, `Publish` or `Visual nightly` run
+# Runs after every completed `Tests`, `Develop`, `Publish`, or `Visual nightly` run
 # and collects every flaky or failed test it left behind as artifacts — the
 # Playwright JSON report of each failed leg (`playwright-report-*`, which a green
 # leg uploads too when a flaky test was under quarantine), the Puppeteer runner's
@@ -43,7 +43,7 @@ on:
   workflow_dispatch:
     inputs:
       run-id:
-        description: 'Id of the Tests, Develop, Publish or Visual nightly run to collect (backfill, or testing a change to this workflow)'
+        description: 'Id of the Tests, Develop, Publish, or Visual nightly run to collect (backfill, or testing a change to this workflow)'
         required: true
         type: string
 

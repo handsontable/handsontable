@@ -434,4 +434,8 @@ The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
 `lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
 proves the exit codes end to end by running synthetic projects in a child
 process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
-policy module; change them there and in this section together.
+policy module; change them there, in this section, in the G5 bullet of
+`visual-tests/AGENTS.md`, and in `visual-tests/visual-quarantine.json`'s
+`$comment` together. The visual quarantine imports them, and
+`visual-tests/lib/__tests__/visual-quarantine.test.mjs` pins 6 and 30, so it
+fails until you do.

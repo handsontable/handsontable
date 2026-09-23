@@ -334,6 +334,13 @@ test('differences that are all quarantined read clean, and are listed rather tha
   assert.ok(v.comment.includes(`- \`${parked[0].item}\` — DEV-1234 until 2026-10-10 — focus timer`),
     'each quarantined item is listed with its entry');
   assert.match(v.summary, /1 quarantined one\(s\) differed/);
+  assert.ok(v.comment.includes('1 quarantined screenshot differed; it is listed below and does not hold this '
+    + 'pull request.'));
+
+  const two = evaluate({ report: report({ passed: 10 }), quarantined: [...parked, { ...parked[0], item: 'b.png' }] });
+
+  assert.ok(two.comment.includes('2 quarantined screenshots differed; they are listed below and do not hold '
+    + 'this pull request.'));
 });
 
 test('a real change next to a quarantined one still needs approval, and both are shown', () => {
@@ -359,6 +366,13 @@ test('quarantined differences with nothing else compared are not "nothing was co
   assert.equal(v.blocked, false);
   assert.equal(v.verdict, 'clean');
   assert.doesNotMatch(v.comment, /nothing was compared/);
+
+  // The torn-manifest guard: a bootstrap probe with quarantined differences means a baseline existed, so
+  // the run is judged rather than promoted over the real records.
+  const torn = evaluate({ report: report({}), bootstrap: true, quarantined: parked });
+
+  assert.notEqual(torn.verdict, 'bootstrap');
+  assert.equal(torn.verdict, 'clean');
 });
 
 test('with no quarantine the comment is byte-identical to what it was, for both suites', () => {

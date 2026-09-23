@@ -11,6 +11,7 @@ import {
   VISUAL_QUARANTINE_ITEM_CAP,
   expandItems,
   isLive,
+  lapseOf,
   partitionReport,
   quarantineLines,
   quarantineLookup,
@@ -45,8 +46,8 @@ const SHAPE_PROBLEM = 'visual-quarantine.json must be an object with an `entries
 
 test('the checked-in quarantine holds today', () => {
   // The ratchet, and deliberately on the real clock: the day after an entry expires, this fails on every
-  // pull request until the entry is removed or renewed. That blocks unrelated work on purpose — a visual
-  // quarantine left to lapse quietly is a golden nobody is fixing — so the message names the remedy.
+  // pull request until the entry is removed or renewed. That blocks unrelated work on purpose – a visual
+  // quarantine left to lapse quietly is a golden nobody is fixing – so the message names the remedy.
   const file = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'visual-quarantine.json'), 'utf8'));
 
   assert.deepEqual(validateQuarantineFile(file, new Date(), { crossBrowserSpecs: CROSS_BROWSER, specExists }), []);
@@ -116,10 +117,10 @@ test('the caps count entries and the items their legs expand to', () => {
   const seven = Array.from({ length: 7 },
     (_, i) => entry({ capture: `multi-frameworks/filters/escaping-the-menu-${i + 1}` }));
 
-  assert.match(validate(seven).join('\n'), /7 captures are quarantined and the cap is 6/);
+  assert.match(validate(seven).join('\n'), /7 entries are in the quarantine and the cap is 6/);
 
-  // Twelve items at most, one per leg: two entries on all eight multi-framework legs is sixteen, which is
-  // why an author has to name the variants that flake instead of parking a capture everywhere.
+  // Twelve items at most, one per leg: one capture parked on all eight multi-framework legs is within the
+  // cap, and a second one parked everywhere is not.
   const everywhere = LEGS.filter(leg => !leg.startsWith('cross-browser/'));
 
   assert.equal(everywhere.length, 8, 'a multi-framework capture renders on eight variants');
@@ -130,13 +131,40 @@ test('the caps count entries and the items their legs expand to', () => {
 
   assert.match(validate(sixteen).join('\n'), /16 items are quarantined and the cap is 12/);
   assert.deepEqual(validate(sixteen.slice(0, 1)), [], 'eight items are within the cap');
+
+  // Only live items count: an expired entry on the same eight legs is its own problem, not a ninth item.
+  const oneLapsed = [entry({ legs: everywhere, expires: '2026-09-01' }), sixteen[1]];
+  const problems = validate(oneLapsed).join('\n');
+
+  assert.match(problems, /expired on 2026-09-01/);
+  assert.doesNotMatch(problems, /items are quarantined/, 'the expired entry\'s legs are not counted');
 });
 
-test('expandItems gives one item per leg', () => {
+test('expandItems gives one item per leg, and none for a malformed entry', () => {
   assert.deepEqual(expandItems(entry({ legs: ['js/chromium', 'react-wrapper/chromium'] })), [
     `js/chromium/${CAPTURE}.png`,
     `react-wrapper/chromium/${CAPTURE}.png`,
   ]);
+  // The gate and the nightly read the file before anything validates it, so a malformed entry must cover
+  // nothing rather than throw a TypeError into the comment.
+  [null, 'x', { capture: CAPTURE, legs: 'js/chromium' }, { legs: ['js/chromium'] }].forEach((bad) => {
+    assert.deepEqual(expandItems(bad), [], JSON.stringify(bad));
+  });
+});
+
+test('lapseOf separates an expired entry from one that never held', () => {
+  assert.equal(lapseOf(entry(), NOW), null);
+  assert.deepEqual(lapseOf(entry({ expires: '2026-09-01' }), NOW), { expired: true, reason: 'expired on 2026-09-01' });
+
+  const beyond = lapseOf(entry({ expires: '2027-06-01' }), NOW);
+
+  assert.equal(beyond.expired, false, 'a date beyond the horizon has not expired, it never held');
+  assert.match(beyond.reason, /within 30 days/);
+  assert.equal(lapseOf(entry({ taskId: 'nope' }), NOW).expired, false);
+  [null, { capture: CAPTURE, legs: 'js/chromium' }].forEach((bad) => {
+    assert.deepEqual(lapseOf(bad, NOW),
+      { expired: false, reason: 'not a valid entry: it needs a `capture` and a non-empty `legs` array' });
+  });
 });
 
 test('an entry is live until the end of its expiry day, and only within the horizon', () => {
@@ -170,7 +198,21 @@ test('partitionReport parks only changed items under a live entry, and says why 
   assert.deepEqual(rest.passedItems, report.passedItems);
   assert.deepEqual(quarantined.map(q => q.item), [quarantinedItem]);
   assert.deepEqual(expired.map(e => e.item), [expiredItem], 'an expired entry blocks again and says so');
+  assert.deepEqual(expired.map(e => [e.expired, e.reason]), [[true, 'expired on 2026-09-01']]);
   assert.deepEqual(report.failedItems.length, 3, 'the input report is not mutated');
+});
+
+test('partitionReport says why an entry that never held does not, and survives a malformed one', () => {
+  const beyondItem = `js/chromium-theme-main-dark/${CAPTURE}.png`;
+  const report = { failedItems: [beyondItem], newItems: [], deletedItems: [], passedItems: [] };
+  const entries = [null, { capture: CAPTURE, legs: 'js/chromium' }, entry({ expires: '2027-06-01' })];
+  const { report: rest, quarantined, expired } = partitionReport(report, entries, NOW);
+
+  assert.deepEqual(rest.failedItems, [beyondItem], 'it still blocks');
+  assert.deepEqual(quarantined, []);
+  assert.equal(expired.length, 1);
+  assert.equal(expired[0].expired, false, 'not listed as expired: its date has not come');
+  assert.match(expired[0].reason, /within 30 days; 2027-06-01 is further away/);
 });
 
 test('partitionReport passes a missing report through', () => {
@@ -198,4 +240,12 @@ test('the listing is empty with nothing to list, so a suite with no quarantine r
   assert.ok(lines.includes(`- \`a.png\` — DEV-1234 until 2026-10-10 — ${WHY}`));
   assert.ok(lines.includes('### Expired quarantine — blocking again'));
   assert.ok(lines.some(line => /Remove the entry from visual-tests\/visual-quarantine\.json/.test(line)));
+  assert.ok(!lines.includes('### Quarantine entry not in force — blocking'), 'no heading without an item');
+
+  const invalid = quarantineLines([], [{ item: 'c.png', entry: null, expired: false, reason: 'not a valid entry' }]);
+
+  assert.deepEqual(invalid.slice(0, 3), ['### Quarantine entry not in force — blocking', '',
+    '- `c.png` — not a valid entry']);
+  assert.ok(!invalid.includes('### Expired quarantine — blocking again'), 'an invalid entry is not called expired');
+  assert.ok(invalid.some(line => /Checks \/ tooling tests. names what is wrong/.test(line)));
 });

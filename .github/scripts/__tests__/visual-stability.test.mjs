@@ -5,16 +5,16 @@ import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 // The stability matrix is the acceptance instrument for visual-suite flakes: it
-// renders one commit on N runners and reports what differed. Two properties make
-// it safe to dispatch from any branch without a fork guard, and both are the kind
-// that erode silently:
+// renders one commit on N runners and reports what differed, on a dispatch and
+// every weekday night. Two properties make it safe to run from any branch without
+// a fork guard, and both are the kind that erode silently:
 //
-//   1. it must stay credential-free and write nothing: no secret, no comment, no
-//      label, no publish — the verdict goes to the job summary only. The moment a
-//      step writes through the API it needs the canonical fork guard and a place
-//      in fork-guards.test.mjs;
-//   2. it must stay a probe, not a second suite: only the spec groups under
-//      investigation render, or a dispatch costs ten full renders.
+//   1. it writes nothing and reads one secret, the Slack webhook, in the `notify`
+//      job alone: no comment, no label, no publish, and the verdict goes to the job
+//      summary. The moment a step writes through the API it needs the canonical
+//      fork guard and a place in fork-guards.test.mjs;
+//   2. it stays a probe, not a second suite: by default only the spec groups under
+//      investigation render, and `scope: full` is a dispatch-only widening.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.

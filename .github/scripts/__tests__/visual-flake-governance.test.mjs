@@ -1,14 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 // The workflow half of G5 (visual-tests/AGENTS.md, Guardrails): the Compare job leaves a record for the
 // flake ledger on every run, and names the quarantine the verdict, the nightly report and the record apply.
-// Both are the kind of wiring that erodes silently — a record step moved behind the verdict disappears on
-// exactly the runs that failed, and a quarantine read by default reaches the docs gate that shares
-// visual-gate.mjs. Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the repo root.
+// Both are the kind of wiring that erodes silently: a record step that loses its `!cancelled()` disappears
+// on exactly the runs that failed, one moved behind the verdict stops being a record of the comparison
+// alone, an upload out of a dot-directory without `include-hidden-files` matches nothing and still passes,
+// and a quarantine read by default reaches the docs gate that shares visual-gate.mjs. Text-based, like
+// fork-guards.test.mjs: no YAML parser is a dependency of the repo root.
 
 const root = repoRoot();
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
@@ -69,7 +71,7 @@ test('the record steps run whenever something was compared, even after a failure
   assert.ok(existsSync(path.join(root, 'visual-tests/scripts/compare-record.mjs')));
 });
 
-test('the record upload is overwritable, short-lived, and never fails the job on a missing file', () => {
+test('the record upload reaches into .reg, is overwritable and short-lived, and warns on a missing file', () => {
   const upload = stepOf(visual, 'Upload the visual compare record').body;
 
   // Pinned to a commit, with the release it came from beside it.
@@ -80,8 +82,65 @@ test('the record upload is overwritable, short-lived, and never fails the job on
   assert.match(upload, /^ {10}overwrite: true$/m);
   // Three days, matching what the ledger's `workflow_dispatch` backfill can still reach.
   assert.match(upload, /^ {10}retention-days: 3$/m);
-  // The script never fails the job; a record it could not write must not fail the upload either.
-  assert.match(upload, /^ {10}if-no-files-found: ignore$/m);
+  // `.reg` is a dot-directory: upload-artifact skips hidden paths by default, and the step first shipped
+  // matching nothing and reporting success (run 35890120393 uploaded no record).
+  assert.match(upload, /^ {10}include-hidden-files: true$/m);
+  // A record the script could not write is a warning, never a failed upload, and never silent.
+  assert.match(upload, /^ {10}if-no-files-found: warn$/m);
+});
+
+test('no artifact upload reads from a dot-directory without include-hidden-files', () => {
+  // The trap the record step fell into, pinned repo-wide: the upload matches nothing, and the step is
+  // green. One pre-existing step is known and tracked on its own, because turning it on uploads the whole
+  // `.reg` tree on every run with differences; when it is fixed, this list must lose it.
+  const known = ['.github/workflows/visual.yml: Upload the visual diff report'];
+  const files = [
+    ...readdirSync(path.join(root, '.github/workflows')).filter(name => name.endsWith('.yml'))
+      .map(name => `.github/workflows/${name}`),
+    ...readdirSync(path.join(root, '.github/actions')).map(name => `.github/actions/${name}/action.yml`)
+      .filter(rel => existsSync(path.join(root, rel))),
+  ];
+  const offenders = [];
+
+  files.forEach((rel) => {
+    const lines = read(rel).split('\n');
+
+    lines.forEach((line, index) => {
+      // A step starts at a `- ` list item and runs until the next line at or left of its dash.
+      const dash = line.search(/- \S/);
+
+      if (dash === -1 || line.slice(0, dash).trim() !== '') {
+        return;
+      }
+
+      let end = index + 1;
+
+      while (end < lines.length && (lines[end].trim() === '' || lines[end].search(/\S/) > dash)) {
+        end += 1;
+      }
+
+      const block = lines.slice(index, end).join('\n');
+
+      if (!/^\s*-? ?uses: actions\/upload-artifact@/m.test(block)) {
+        return;
+      }
+
+      // `path:` holds one path or, after `|`, one per line.
+      const listed = block.match(/^(\s+)path: \|\n((?:\1\s+\S.*\n?)+)/m);
+      const paths = listed
+        ? listed[2].split('\n').map(value => value.trim()).filter(Boolean)
+        : [...block.matchAll(/^\s+path: (\S+)/gm)].map(match => match[1]);
+      const hidden = paths.some(value => value.split('/').some(segment => /^\.[^./]/.test(segment)));
+      const name = (block.match(/^\s*-? ?name: (.+)$/m) ?? [])[1] ?? `line ${index + 1}`;
+
+      if (hidden && !/^\s+include-hidden-files: true$/m.test(block)) {
+        offenders.push(`${rel}: ${name}`);
+      }
+    });
+  });
+
+  assert.ok(files.length > 20, 'the sweep found the workflows');
+  assert.deepEqual(offenders, known);
 });
 
 test('the quarantine is named once for the core suite, and the file it names exists', () => {
@@ -97,9 +156,17 @@ test('the docs suite never reads the core quarantine', () => {
   // visual-gate.mjs serves the docs suite too, and reads the quarantine only when the variable is set. The
   // docs action must therefore never set it, and must not run inside visual.yml, whose env does.
   const action = read('.github/actions/docs-visual-run/action.yml');
+  // The action's env is also whatever the calling workflow sets, so every caller is checked too.
+  const callers = readdirSync(path.join(root, '.github/workflows'))
+    .filter(name => name.endsWith('.yml'))
+    .filter(name => read(`.github/workflows/${name}`).includes('docs-visual-run'));
 
   assert.doesNotMatch(action, /VISUAL_QUARANTINE_FILE/);
   assert.doesNotMatch(visual, /docs-visual-run/);
+  assert.ok(callers.length >= 3, `the docs callers were found: ${callers.join(', ')}`);
+  callers.forEach((name) => {
+    assert.doesNotMatch(read(`.github/workflows/${name}`), /VISUAL_QUARANTINE_FILE/, name);
+  });
 
   const gate = read('visual-tests/scripts/visual-gate.mjs');
   const helper = read('visual-tests/scripts/utils/quarantine.mjs');

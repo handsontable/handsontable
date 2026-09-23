@@ -267,8 +267,8 @@ export function parseJasmineRecord(record, run) {
 /**
  * Entries for every changed capture in a visual compare record.
  *
- * Changed items only. A new or deleted item is structure — a renamed spec, a changed capture count, a
- * baseline the seed has not written yet — and recurring structure is a missing seed, not a flake. And no
+ * Changed items only. A new or deleted item is structure – a renamed spec, a changed capture count, a
+ * baseline the seed has not written yet – and recurring structure is a missing seed, not a flake. And no
  * entry at all for a seed's record: a seed's differences are what its merged commit changed, so ingesting
  * them would file every intended change as a flake. The seed's workflow is not in `test-health.yml`'s list
  * either; skipping the tier here is what keeps a seed-tier record that arrives through `Tests` (the master
@@ -515,7 +515,7 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       // A quarantined test already names its owning task, so it does not also count as needing one.
       // A visual capture uses the raw run count: nothing in that tier is ever `flaky` (no retry reaches
       // the comparison), and the nightly is one branch by construction, so the shared rule could never
-      // flag the recurrence the ledger most needs to see — the same capture red on two nights.
+      // flag the recurrence the ledger most needs to see – the same capture red on two nights.
       needsTicket: !last.quarantine && (last.tier === 'visual'
         ? runs30 >= ticketThresholdRuns
         : (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)),

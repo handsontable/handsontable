@@ -8,20 +8,25 @@
  * covers, and writes `.reg/visual-compare-<tier>-<sha>.json` for the upload step.
  *
  * It never fails the job. The record is evidence for the ledger, not a verdict, so a problem writing it is a
- * `::warning` and a missing record, never a red Compare over an otherwise fine build.
+ * `::warning` and a missing record, never a red Compare over an otherwise fine build. A quarantine file that
+ * cannot be read is a `::warning` too, and the record goes out unstamped: the gate and the nightly report
+ * fail on that file with the reason, and the ledger should not lose the run as well.
+ *
+ * `VISUAL_GATE_DIR` moves the `.reg/` directory it reads and writes, as it does for `visual-gate.mjs` and
+ * `seed-report.mjs`. Nothing in CI sets it for this script; the tests do.
  *
  * Usage: node visual-tests/scripts/compare-record.mjs
  */
 
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { buildRecord, recordFileName } from '../lib/visual-compare-record.mjs';
 import { quarantineLookup } from '../lib/visual-quarantine.mjs';
 import { readQuarantineEntries } from './utils/quarantine.mjs';
 
 const PACKAGE_ROOT = join(import.meta.dirname, '..');
-const REG_DIR = join(PACKAGE_ROOT, '.reg');
+const REG_DIR = process.env.VISUAL_GATE_DIR ? resolve(process.env.VISUAL_GATE_DIR) : join(PACKAGE_ROOT, '.reg');
 
 try {
   let report = null;
@@ -45,6 +50,14 @@ try {
   // A pull request's own head, not the merge commit GitHub builds: the ledger and a reader comparing two
   // runs both think in the commit the author pushed.
   const sha = process.env.HEAD_SHA || process.env.GITHUB_SHA || '';
+  let quarantineOf = () => null;
+
+  try {
+    quarantineOf = quarantineLookup(readQuarantineEntries(process.env.VISUAL_QUARANTINE_FILE), new Date());
+  } catch (error) {
+    console.log(`::warning title=Visual compare record::The quarantine was not applied: ${error.message}`);
+  }
+
   const record = buildRecord({
     report,
     tier,
@@ -58,7 +71,7 @@ try {
     },
     crossBrowserSpecs,
     hashOf,
-    quarantineOf: quarantineLookup(readQuarantineEntries(process.env.VISUAL_QUARANTINE_FILE), new Date()),
+    quarantineOf,
   });
   const file = join(REG_DIR, recordFileName(tier, sha));
 

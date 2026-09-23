@@ -9,7 +9,8 @@
  * reads `.reg/out.json` and the environment, appends the Markdown to `$GITHUB_STEP_SUMMARY`,
  * writes `verdict` and `report-url` to `$GITHUB_OUTPUT`, and sets the exit code. The seed tier
  * never fails on a difference, so `visual.yml` can run this before the reconcile step; the nightly
- * fails on any difference, and that failure is the run's verdict.
+ * fails on any difference outside the visual quarantine (`VISUAL_QUARANTINE_FILE`: a quarantined changed
+ * item is listed, not failed), and that failure is the run's verdict.
  *
  * Usage: node visual-tests/scripts/seed-report.mjs
  */
@@ -43,21 +44,22 @@ const tier = process.env.VISUAL_TIER || 'seed';
 
 // The nightly only. A seed never blocks on a difference, and a quarantined capture must still land in
 // the baseline exactly as it rendered, so the seed tier is left untouched. A named file that cannot be
-// read fails the nightly with the reason, rather than holding it on a flake it was told to report.
+// read fails the nightly with the reason, rather than holding it on a flake it was told to report; the
+// run is still summarized, unpartitioned, so the reader sees what differed as well as why.
 let partition = { report, quarantined: [], expired: [] };
+let quarantineError = null;
 
 if (tier === 'full') {
   try {
     partition = partitionReport(report, readQuarantineEntries(process.env.VISUAL_QUARANTINE_FILE), new Date());
   } catch (error) {
-    console.error(`::error::${error.message}`);
-    process.exit(1);
+    quarantineError = error.message;
   }
 
   partition.quarantined.forEach(({ item, entry }) => console.log('::warning title=Quarantined capture '
     + `(${entry.taskId})::${item} differed; quarantined until ${entry.expires}, reported and not failing the run.`));
-  partition.expired.forEach(({ item, entry }) => console.log('::warning title=Expired quarantine '
-    + `(${entry.taskId})::${item} differed and its quarantine expired on ${entry.expires}; it fails the run again.`));
+  partition.expired.forEach(({ item, reason }) => console.log('::warning title=Quarantine not in force::'
+    + `${item} differed and its quarantine entry does not hold (${reason}); it fails the run.`));
 }
 
 const result = summarizeBuild({
@@ -74,10 +76,14 @@ const result = summarizeBuild({
   runUrl,
 });
 
+const markdown = quarantineError
+  ? `${result.markdown}\n**The quarantine could not be applied, so this run fails:** ${quarantineError}\n`
+  : result.markdown;
+
 if (process.env.GITHUB_STEP_SUMMARY) {
-  await writeFile(process.env.GITHUB_STEP_SUMMARY, `${result.markdown}\n`, { flag: 'a' });
+  await writeFile(process.env.GITHUB_STEP_SUMMARY, `${markdown}\n`, { flag: 'a' });
 } else {
-  console.log(result.markdown);
+  console.log(markdown);
 }
 
 // A seed whose merge changed variants the pull request never rendered gets a
@@ -101,6 +107,11 @@ if (process.env.GITHUB_OUTPUT) {
 }
 
 console.log(result.summary);
+
+if (quarantineError) {
+  console.error(`::error::${quarantineError}`);
+  process.exitCode = 1;
+}
 
 if (result.blocking) {
   console.error(`::error::${result.summary}`);

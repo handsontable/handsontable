@@ -92,9 +92,9 @@ function itemsOf(report, bucket) {
  * table's. Injectable for tests.
  * @param {Array<{item: string, entry: object}>} [options.quarantined] For the nightly only: changed items a
  * live quarantine entry covered, already removed from `report.failedItems`. Listed, never blocking. The seed
- * is never given any — it never blocks on a difference, and its differences are the merge's own.
+ * is never given any – it never blocks on a difference, and its differences are the merge's own.
  * @param {Array<{item: string, entry: object}>} [options.expired] For the nightly only: changed items under an
- * expired entry, still in `report.failedItems`.
+ * entry that does not hold (expired, or never valid), still in `report.failedItems`.
  * @returns {BuildSummary} The summary.
  */
 export function summarizeBuild({

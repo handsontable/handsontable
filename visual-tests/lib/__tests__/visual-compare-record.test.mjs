@@ -107,7 +107,8 @@ test('buildRecord lists what differed, with the render hash, and counts the pass
     run: { branch: 'feature/x', sha: 'abc', event: 'pull_request', runId: '42', runAttempt: 1 },
     crossBrowserSpecs: CROSS_BROWSER,
     hashOf: item => `sha-of-${item}`,
-    quarantineOf: item => (item.includes('escaping') ? 'DEV-1234 until 2026-10-01 — timer' : null),
+    // A lookup that covers every path, so the record's own rule is what keeps new and deleted items unstamped.
+    quarantineOf: () => 'DEV-1234 until 2026-10-01 — timer',
   });
 
   assert.equal(record.version, RECORD_VERSION);
@@ -122,7 +123,9 @@ test('buildRecord lists what differed, with the render hash, and counts the pass
   assert.equal(changed.capture, 'multi-frameworks/filters/escaping-the-menu-12');
   assert.equal(changed.actualSha256, 'sha-of-js/chromium-theme-main/multi-frameworks/filters/escaping-the-menu-12.png');
   assert.equal(changed.quarantine, 'DEV-1234 until 2026-10-01 — timer');
+  // The gate and the nightly quarantine changed items only, so the record never stamps anything else.
   assert.equal(added.quarantine, null);
+  assert.equal(deleted.quarantine, null);
   // A deleted item has no render, so there is nothing to hash.
   assert.equal(deleted.actualSha256, null);
   // The record is written before the verdict and never carries it.

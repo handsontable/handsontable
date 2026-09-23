@@ -22,8 +22,8 @@
  *   VISUAL_GATE_REPORT_PATH   the report's path under the actual key (default: "index.html")
  *
  * One more is the core suite's alone: `VISUAL_QUARANTINE_FILE`, the known-flaky captures that are reported
- * rather than held (`../lib/visual-quarantine.mjs`). Explicit, never a default, so the docs suite — which
- * runs this same script from `./docs` — never reads the core file.
+ * rather than held (`../lib/visual-quarantine.mjs`). Explicit, never a default, so the docs suite – which
+ * runs this same script from `./docs` – never reads the core file.
  *
  * Usage: node visual-tests/scripts/visual-gate.mjs
  */
@@ -63,10 +63,10 @@ const published = process.env.VISUAL_PUBLISHED !== 'false';
 const runUrl = process.env.VISUAL_RUN_URL ?? '';
 const reportUrl = published && domain && actualKey ? `https://${domain}/${actualKey}/${reportPath}` : '';
 
-// The quarantine is applied before the verdict and only here: the budget step reads the raw `out.json`,
-// so a quarantined item still counts as rendered there. A named file that cannot be read is a comparison
-// the gate cannot judge — reading it as empty would hold the pull request on a flake it was told to
-// report, and say nothing about why.
+// The quarantine is applied in memory, before the verdict (`seed-report.mjs` does the same for the
+// nightly). `out.json` on disk stays raw, so the budget step still counts a quarantined item as rendered.
+// A named file that cannot be read is a comparison the gate cannot judge: reading it as empty would hold
+// the pull request on a flake it was told to report, and say nothing about why.
 let quarantine = { report, quarantined: [], expired: [] };
 let quarantineError = null;
 
@@ -112,8 +112,14 @@ if (process.env.GITHUB_OUTPUT) {
 if (verdict.blocked) {
   console.error(verdict.summary);
   console.error('');
-  console.error('This is a comparison failure, not a visual difference. Check the');
-  console.error('`Compare against the golden records` step above for the cause.');
+
+  if (quarantineError) {
+    console.error('The quarantine `VISUAL_QUARANTINE_FILE` names could not be read. Fix that file;');
+    console.error('the comparison itself may be fine.');
+  } else {
+    console.error('This is a comparison failure, not a visual difference. Check the');
+    console.error('`Compare against the golden records` step above for the cause.');
+  }
 
   process.exitCode = 1;
 } else {

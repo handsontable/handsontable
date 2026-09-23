@@ -4,12 +4,12 @@
  *
  * Explicit on purpose: the file is read only when `VISUAL_QUARANTINE_FILE` names it. `visual-gate.mjs`
  * also serves the docs suite (`.github/actions/docs-visual-run`), whose items can never match a core
- * capture — an implicit default would make that a silent no-op today and a contract nobody chose. The
+ * capture – an implicit default would make that a silent no-op today and a contract nobody chose. The
  * core workflow sets the variable; the docs action does not, and a test pins both.
  *
  * An unreadable or wrongly shaped file is an error rather than an empty quarantine: reading it as empty
  * would unblock nothing, which is safe, but it would also hide that the file is broken. An entry that is
- * merely invalid (a bad date, a missing leg) is not an error here — `partitionReport()` never treats it as
+ * merely invalid (a bad date, a missing leg) is not an error here – `partitionReport()` never treats it as
  * live, so its items keep blocking, and the tooling suite reports the entry on every pull request.
  */
 

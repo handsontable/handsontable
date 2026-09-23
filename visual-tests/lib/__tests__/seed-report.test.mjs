@@ -272,6 +272,13 @@ test('a nightly whose only differences are quarantined does not block, and lists
   assert.match(s.summary, /, 1 quarantined\.$/, 'the job log still says what differed');
 });
 
+test('a nightly whose only differences are quarantined, with nothing passing, still compared something', () => {
+  const s = build({ tier: 'full', report: report({}), quarantined: parked });
+
+  assert.notEqual(s.verdict, 'error', 'the parked items were compared and did differ');
+  assert.equal(s.blocking, false);
+});
+
 test('a nightly with an expired entry blocks again and says why', () => {
   const s = build({ tier: 'full', report: report({ changed: 1, passed: 1675 }), expired: parked });
 

@@ -1,11 +1,12 @@
 /**
  * The visual compare record: what one Compare job found, in a shape the cross-run flake ledger reads.
  *
- * Pure: `scripts/compare-record.mjs` reads `.reg/out.json`, hashes the changed items and writes the file.
+ * Pure: `scripts/compare-record.mjs` reads `.reg/out.json`, hashes each changed and new item's render, and
+ * writes the file.
  *
  * Until this record existed a visual flake had no memory. The pull request gate and the nightly both said
  * "changed" and moved on, so the second sighting of the same capture on an unrelated pull request was
- * rediscovered from scratch — which is how the filters family and the WebKit selection captures (DEV-2797)
+ * rediscovered from scratch – which is how the filters family and the WebKit selection captures (DEV-2797)
  * flaked for weeks before anyone could say how often. The functional tier had the ledger for that since
  * the flake-ledger work (`.github/workflows/test-health.yml`); this record is how the visual tier joins it:
  * every Compare uploads one, green or red, as a `visual-compare-<tier>` artifact, and
@@ -15,12 +16,13 @@
  *
  * - **An item is identified by its capture, not by its path.** The path carries the variant
  *   (`js/chromium-theme-main-dark/…`), and a capture that differs on two themes in one run is one
- *   recurrence, not two — the rule the ledger already applies to the two `-min` legs of the functional
+ *   recurrence, not two – the rule the ledger already applies to the two `-min` legs of the functional
  *   suite. So the record splits every path into its `leg` (the variant prefix) and its `capture` (the
  *   rest, without `.png`), and the ledger keys on the capture.
- * - **Each changed item carries the sha256 of the render.** That mechanizes the byte-equality diagnostic
- *   `visual-tests/AGENTS.md` describes by hand: when two unrelated pull requests fail on the same item
- *   with identical bytes, the render is deterministic and the golden record is the odd one out.
+ * - **Each changed or new item carries the sha256 of its render** (a deleted item has none). That is the
+ *   input to the byte-equality diagnostic `visual-tests/AGENTS.md` describes: when two unrelated pull
+ *   requests fail on the same item with identical bytes, the render is deterministic and the golden record
+ *   is the odd one out. The record keeps the hash; comparing two of them is still the reader's step.
  * - **The record is written before the verdict and the budget, and never carries either.** It is data
  *   about the comparison, taken the moment the comparison ends, so the same step serves the credentialed
  *   and the credential-free paths and a pull request whose verdict step later fails still leaves its
@@ -36,7 +38,7 @@ export const RECORD_VERSION = 1;
  * The inverse of `helpers.screenshotPath()` (src/helpers.ts). A js or wrapper path is
  * `<framework>/<browser>[-theme-<theme>]/<spec path under tests/>-<N>.png`. A cross-browser path is
  * `cross-browser/<browser>/<spec basename><safeUrl>-<N>.png`, where `safeUrl` is the demo's pathname with
- * every non-word character turned into `-` and is empty on the root page — so the spec cannot be read off
+ * every non-word character turned into `-` and is empty on the root page – so the spec cannot be read off
  * the path alone and is matched against the cross-browser spec basenames, longest first. Measured on
  * 2026-09-23 against the live `base/develop/out.json`: all 1676 items map to a spec on disk, and no
  * cross-browser basename is a dash-boundary prefix of another, so the longest-first rule never has to
@@ -102,7 +104,8 @@ export function itemToSpec(item, crossBrowserSpecs) {
  * @param {(item: string) => string | null} [options.hashOf] The sha256 of an item's rendered file, or `null`
  * when it is absent. A deleted item has no render, so it is never asked.
  * @param {(item: string) => string | null} [options.quarantineOf] The quarantine entry text covering an item
- * (`DEV-1234 until 2026-10-08 — why`), or `null`.
+ * (`DEV-1234 until 2026-10-08 — why`), or `null`. Asked for changed items only: the gate and the nightly
+ * quarantine nothing else, so a new or deleted item under an entry is stamped `null` and still blocks.
  * @returns {object} The record.
  */
 export function buildRecord({
@@ -119,7 +122,7 @@ export function buildRecord({
       spec: origin?.spec ?? null,
       capture: origin?.capture ?? null,
       actualSha256: status === 'deleted' ? null : hashOf(item),
-      quarantine: quarantineOf(item),
+      quarantine: status === 'changed' ? quarantineOf(item) : null,
     };
   };
 
