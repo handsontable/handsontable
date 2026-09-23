@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { format, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import { CellProperties } from 'handsontable/settings';
@@ -94,10 +94,10 @@ const cellDefinition: Pick<
   'renderer' | 'validator' | 'editor'
 > = {
   validator: (value, callback) => {
-    callback(!value || isValid(new Date(value)));
+    callback(!value || isValid(parseISO(value)));
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
-    const date = new Date(value);
+    const date = parseISO(value);
 
     td.innerText = value && isValid(date) ? format(date, cellProperties.renderFormat) : value || '';
   }),

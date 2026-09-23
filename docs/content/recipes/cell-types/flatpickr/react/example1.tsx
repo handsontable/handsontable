@@ -1,6 +1,6 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { format, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import { CellProperties } from 'handsontable/settings';
@@ -90,11 +90,11 @@ interface FlatpickrEditorInstance {
 }
 
 const flatpickrValidator = (value: string, callback: (valid: boolean) => void) => {
-  callback(!value || isValid(new Date(value)));
+  callback(!value || isValid(parseISO(value)));
 };
 
 const flatpickrRenderer = rendererFactory(({ td, value, cellProperties }) => {
-  const date = new Date(value);
+  const date = parseISO(value);
 
   td.innerText = value && isValid(date) ? format(date, cellProperties.renderFormat) : value || '';
 });
