@@ -1,0 +1,42 @@
+{
+  "comment": [
+    "The size of the golden set, as a number somebody has to change on purpose.",
+    "",
+    "`prefixes` is the full-tier count per variant prefix, measured from base/develop. A build is",
+    "judged per prefix rather than on the total, because a pr-tier build renders two of the eleven and",
+    "comparing its 480 records against 1676 would pass anything.",
+    "",
+    "`captureCap` is the per-spec ceiling. `capExceptions` lists the specs already over it with the",
+    "ticket that will bring them down; an exception without a ticket is refused, so the list cannot",
+    "quietly become the policy.",
+    "",
+    "Growing any number needs `[visual budget: N - reason]` in the pull-request description, where N is",
+    "the new total. Shrinking one is free, and expected: a trimming pull request lowers the file in the",
+    "same change that deletes the records."
+  ],
+  "prefixes": {
+    "js/chromium/": 240,
+    "js/chromium-theme-main/": 240,
+    "js/chromium-theme-main-dark/": 240,
+    "js/chromium-theme-horizon/": 240,
+    "js/chromium-theme-horizon-dark/": 240,
+    "angular-wrapper/chromium/": 92,
+    "react-wrapper/chromium/": 92,
+    "vue3/chromium/": 92,
+    "cross-browser/chromium/": 68,
+    "cross-browser/firefox/": 66,
+    "cross-browser/webkit/": 66
+  },
+  "captureCap": 4,
+  "capExceptions": {
+    "multi-frameworks/filters/escaping-the-menu": { "captures": 16, "ticket": "DEV-2981" },
+    "multi-frameworks/filters/tab-navigation-through-all-components": { "captures": 15, "ticket": "DEV-2981" },
+    "multi-frameworks/filters/shift-tab-navigation-through-all-components": { "captures": 9, "ticket": "DEV-2981" },
+    "multi-frameworks/filters/entering-and-escaping-by-value-lists": { "captures": 7, "ticket": "DEV-2981" },
+    "multi-frameworks/filters/accepting-by-enter": { "captures": 5, "ticket": "DEV-2981" },
+    "js-only/pagination/auto-page-size-table-with-defined-size": { "captures": 9, "ticket": "DEV-2981" },
+    "js-only/pagination/auto-page-size-table-without-defined-size": { "captures": 7, "ticket": "DEV-2981" },
+    "js-only/sheetsBar/tabs": { "captures": 6, "ticket": "DEV-2981" },
+    "js-only/dialog/dialog-focus": { "captures": 5, "ticket": "DEV-2981" }
+  }
+}

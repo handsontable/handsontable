@@ -568,6 +568,75 @@ jobs:
 
           node ./visual-tests/scripts/visual-gate.mjs
 
+      # The budget gate BLOCKS on a missing marker, and the marker lives in the
+      # pull-request description — so it has to read the LIVE description, the
+      # way checks.yml's advisory check does. `github.event.pull_request.body` is
+      # the payload as it was when the run was triggered: `test.yml` has no
+      # `edited` trigger, so adding the marker starts no run, and re-running
+      # replays the same frozen body. The gate would print a remedy the author
+      # cannot apply without pushing a commit and paying a full re-render.
+      #
+      # Read-only, so it works on the fork and Dependabot tokens. `continue-on-error`
+      # plus the script's own try/catch means a failed read falls back to the
+      # payload body rather than failing the job — a stale body can only ask for
+      # a marker that is already there, which is a false RED, never a false green.
+      - name: Read the live pull-request body
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        continue-on-error: true
+        env:
+          BODY_FILE: ${{ runner.temp }}/pr-body.md
+        with:
+          script: |
+            try {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              });
+              require('node:fs').writeFileSync(process.env.BODY_FILE, pr.body || '');
+            } catch (error) {
+              core.warning(`Could not read the live PR body (${error.message}); `
+                + 'the visual budget falls back to the event payload.');
+            }
+
+      # The budget file as the BASE branch has it, which is what makes "did this
+      # pull request grow the set" answerable. Keying the marker on reg-suit's
+      # new-vs-deleted counts instead is wrong twice: a rename nets to zero while
+      # the set grows, and a bootstrap build (no baseline) reports every record as
+      # new, so the check had to be switched off there — which left the first pull
+      # request into a new base branch able to add any number of records and raise
+      # the ceiling to match, in the same commit, with nothing red. A shallow fetch
+      # of one ref is cheap; a missing file is reported in the comment rather than
+      # passing silently.
+      - name: Read the base branch's visual budget
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          BASE_BUDGET_FILE: ${{ runner.temp }}/base-visual-budget.json
+        run: |
+          git fetch --depth=1 origin "$BASE_REF" \
+            && git show FETCH_HEAD:visual-tests/visual-budget.json > "$BASE_BUDGET_FILE" \
+            || echo "::warning::Could not read visual-budget.json on $BASE_REF; the growth check is skipped."
+
+      # The golden set's size, as a number somebody has to change on purpose.
+      # Runs AFTER the verdict because it prepends its section to the comment the
+      # verdict wrote, and BEFORE the mirror so the job summary carries both. It
+      # needs no credentials of its own.
+      #
+      # `always()` for the same reason the verdict has it: a comparison that
+      # failed still rendered something, and a build that grew the set by 200
+      # records while failing for an unrelated reason is exactly when nobody
+      # looks. The body goes through the environment and a file rather than into
+      # the script line, so a description containing backticks is text, not shell.
+      - name: Visual budget
+        if: always() && github.event_name == 'pull_request'
+        env:
+          VISUAL_PR_BODY_FILE: ${{ runner.temp }}/pr-body.md
+          VISUAL_PR_BODY: ${{ github.event.pull_request.body }}
+          VISUAL_BUDGET_BASE_FILE: ${{ runner.temp }}/base-visual-budget.json
+        run: node ./visual-tests/scripts/visual-budget.mjs
+
       # One sticky comment, rewritten in place, carrying the counts, the report
       # link and how to accept the changes. Fork runs have no write token, so
       # they are excluded by the same guard the rest of the repo uses.
