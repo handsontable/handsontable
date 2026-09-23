@@ -28,11 +28,10 @@ const ExampleComponent = () => {
       <HotColumn
         headerClassName="htRight bold-text italic-text"
         type="numeric"
-        numericFormat={{ maximumFractionDigits: 0, useGrouping: false }}
       />
       <HotColumn
         type="numeric"
-        numericFormat={{ minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false }}
+        numericFormat={{ minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false }}
       />
     </HotTable>
   );

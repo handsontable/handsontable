@@ -30,7 +30,7 @@ export class AppComponent {
     height: 'auto',
     stretchH: 'all',
     headerClassName: 'htCenter',
-    columns: [{ headerClassName: 'htRight' }, { headerClassName: 'htLeft' }, { type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } }]
+    columns: [{ headerClassName: 'htRight' }, { headerClassName: 'htLeft' }, { type: 'numeric' }]
   };
 }
 /* end-file */

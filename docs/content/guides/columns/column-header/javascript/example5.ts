@@ -23,7 +23,7 @@ const hot = new Handsontable(container, {
   columns: [
     { headerClassName: 'italic-text' },
     { headerClassName: 'bold-text italic-text' },
-    { headerClassName: 'htRight bold-text italic-text', type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
+    { headerClassName: 'htRight bold-text italic-text', type: 'numeric' },
     { type: 'numeric', numericFormat: { minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false } },
   ],
   licenseKey: 'non-commercial-and-evaluation',

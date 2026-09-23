@@ -25,7 +25,7 @@ const ExampleComponent = () => {
     >
       <HotColumn headerClassName="htRight" />
       <HotColumn headerClassName="htLeft" />
-      <HotColumn type="numeric" numericFormat={{ maximumFractionDigits: 0, useGrouping: false }} />
+      <HotColumn type="numeric" />
     </HotTable>
   );
 };
