@@ -147,18 +147,42 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   (`parts/package.ts`), so the count is rejected while `xl/workbook.xml` is still being read and
   **before any sheet part is inflated** — never in `read.ts`, which already holds the list.
   `MAX_INFLATED_TOTAL_BYTES` (256 MB, twice `MAX_INPUT_BYTES`) is charged in `zip/reader.ts` for
-  every entry the read inflates, on the size the central directory DECLARES (clamped to
-  `MAX_INFLATED_ENTRY_BYTES`, which is also the ceiling the inflate is given), so a part past the
-  budget is refused before a byte of it is materialized — that is what closes the 408 kB archive
-  holding one 400 MB part, which was inside every per-entry cap and cost 1.9 GB of RSS. The
-  per-entry cap stays 512 MB and is checked FIRST, so both caps stay reachable and each keeps its
-  own message. `ZipArchive.text()` MEMOIZES per entry name for the archive's lifetime and
-  `readWorkbook` calls `release()` in a `finally`, so N sheets pointing at one part cost one inflate
-  and an honest multi-sheet file stops re-reading `styles.xml`; the memo cannot become the bomb
-  because every cached string's bytes were charged against the same total. And `assertSheetFits`
-  charges a floor of one unit per sheet, so `declaredCells` advances on an empty sheet.
-  `MAX_INFLATED_ENTRY_BYTES` alone was never a bound on a workbook: `openPackage` holds
+  every entry the read reads — that is what closes the 408 kB archive holding one 400 MB part, which
+  was inside every per-entry cap and cost 1.9 GB of RSS. The per-entry cap stays 512 MB and is
+  checked FIRST, on the declared size, so both caps stay reachable and each keeps its own message.
+  And `assertSheetFits` charges a floor of one unit per sheet, so `declaredCells` advances on an
+  empty sheet. `MAX_INFLATED_ENTRY_BYTES` alone was never a bound on a workbook: `openPackage` holds
   `styles.xml`, `sharedStrings.xml` and a sheet as simultaneous strings.
+- **CHARGE WHAT WAS PRODUCED, NEVER WHAT WAS DECLARED — and the declaration is still what bounds the
+  work.** The total budget used to be charged on the size the central directory claims, which broke
+  in both directions at once. A STORED entry returns `compressedSize` bytes and was charged its
+  `uncompressedSize`, so a record declaring one byte beside a 32 MB stored region was billed one
+  byte for 32 MB of output; 128 such records over ONE region (a 33.6 MB file) then killed the Node
+  process in `NewStringFromUtf8`, and 512 over a 2 MB region cost 1.3 GB of RSS from a 2.3 MB file.
+  In the other direction a declaration lying HIGH refused a file the reader could have read
+  perfectly (300 MB claimed over 101 real bytes). Three rules hold it down now, and each closes a
+  different half. (1) A stored entry whose two sizes disagree is REFUSED — that is malformed by the
+  spec, and `zip/writer.ts` never writes one. (2) The charge is the byte count the entry really
+  produced (`data.byteLength` stored, the inflate's own output length for DEFLATE), while the
+  DEFLATE ceiling is `min(declared, MAX_INFLATED_ENTRY_BYTES, remaining budget + 1)` — so the budget
+  is enforced BEFORE the bytes exist, and that `+ 1` is deliberate: the stream stops one byte past
+  what the budget allows so the refusal comes from the budget's own message rather than from the
+  entry's ceiling. (3) ALIASES ARE DEDUPLICATED BY REGION AND THE CACHE IS BUDGETED. `text()`
+  memoizes on `method:localOffset:compressedSize`, not on the entry NAME, because N central records
+  may name one local record and a name-keyed memo then held one decoded copy per name; and the
+  decoded string is charged against the same total (UTF-16 code units × 2, the worst case), so the
+  memo can never hold more than the archive was allowed to cost however the bytes were obtained.
+  That charge is what makes a part cost roughly 3× its inflated size against the budget — deliberate,
+  because that is what it costs in memory. `readWorkbook` still calls `release()` in a `finally`, and
+  N sheets pointing at one part still cost one read.
+- **A text part is decoded AS IT INFLATES, and never materialized as bytes.** `pump()` in
+  `zip/streams.ts` held the chunk list and the joined copy at once and `text()` then added the
+  decoded string, so a 200 MB part cost 1.15 GB of RSS — the 256 MB budget really cost 3–5× that.
+  Every part this reader inflates is XML, so `inflateRawText()` decodes each chunk through ONE
+  `TextDecoder` in `{ stream: true }` mode (which is what keeps a multi-byte character split across
+  a chunk boundary correct) and returns the text plus the byte count the budget is charged. The
+  byte-collecting `inflateRaw()` stays for the writer's round trip and for tests. A BOM is still
+  stripped, because the decoder sees the stream's first bytes first.
 - **A limit refusal is recognized by a FLAG on the error, not by its wording.** `read.ts` re-throws
   a cap's own message instead of wrapping it in `The workbook could not be parsed by the native
   engine: …`, and it used to decide that with `/limit this reader accepts/` against the message.

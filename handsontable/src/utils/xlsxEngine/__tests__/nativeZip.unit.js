@@ -245,6 +245,22 @@ describe('readZip', () => {
     await expect(archive.text('big.bin')).rejects.toThrow(/inflates above the 50-byte limit/);
   });
 
+  it('should accept a deflated entry whose declared size lies HIGH, charging what it produced', async() => {
+    // The budget is charged for the bytes an entry really produced, never for the size it claimed:
+    // a declaration of 300 MB over a hundred real bytes bounds the inflate (it is the ceiling) and
+    // costs the archive a hundred bytes, where charging the claim refused a perfectly readable file.
+    const zip = await writeZip([{ name: 'small.xml', data: encoder.encode('<a/>'.repeat(25)) }], true);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const central = centralDirectoryOffset(view, zip);
+
+    // Central header offset 24 holds the uncompressed size; lie UP, far above what the stream holds.
+    view.setUint32(central + 24, 300 * 1024 * 1024, true);
+
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    expect(await archive.text('small.xml')).toBe('<a/>'.repeat(25));
+  });
+
   it('should reject an unknown compression method', async() => {
     const zip = await writeZip([{ name: 'x.bin', data: new Uint8Array(4) }], false);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);

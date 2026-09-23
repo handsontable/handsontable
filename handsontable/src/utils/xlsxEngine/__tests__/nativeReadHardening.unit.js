@@ -9,6 +9,7 @@ import {
   MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, MAX_WORKBOOK_SHEETS,
 } from '../limits';
 import { assertSheetFits } from '../adapters/native/parts/worksheetReader';
+import { crc32 } from '../adapters/native/zip/crc32';
 import { readZip } from '../adapters/native/zip/reader';
 import { writeZip } from '../adapters/native/zip/writer';
 
@@ -222,23 +223,30 @@ describe('native reader hardening: the workbook sheet count', () => {
 });
 
 describe('native reader hardening: the inflated-bytes budget', () => {
-  it('should refuse a workbook whose parts together inflate above the total budget', async() => {
-    // Two parts, each inside the per-entry cap, together past the workbook total. Without a total,
-    // `openPackage` alone can hold three parts at once and nothing bounds their sum.
-    const half = Math.floor(MAX_INFLATED_TOTAL_BYTES * 0.75);
-    let bytes = await repack('values', (part, text) => text);
+  it('should refuse a workbook whose parts really inflate above the total budget', async() => {
+    // A part that REALLY inflates past the budget, not one that merely declares it: the charge is
+    // what the entry produced, so a padded part is the only thing the total can refuse. A decoded
+    // part costs its bytes plus its UTF-16 string, which is why 90 MB of padding is over a 256 MB
+    // budget, and the archive itself stays a few hundred kilobytes.
+    const padding = 90 * 1024 * 1024;
 
-    bytes = declareInflatedSize(bytes, 'xl/styles.xml', half);
-    bytes = declareInflatedSize(bytes, 'xl/worksheets/sheet1.xml', half);
+    expect(padding).toBeLessThan(MAX_INFLATED_ENTRY_BYTES);
+    expect(padding * 3).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
+
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/styles.xml' ? `<!--${' '.repeat(padding)}-->${text}` : text
+    ));
 
     await expect(read(bytes)).rejects.toThrow(
       new RegExp(`brings the inflated total to \\d+ bytes, above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
     );
   });
 
-  it('should refuse a single part that inflates above the total budget though it is inside the per-entry cap', async() => {
-    // The measured case: a 408 kB archive holding one 400 MB part, which was inside every declared
-    // cap and cost 1.9 GB of resident memory before it resolved.
+  it('should read a part whose declared size lies HIGH, charging what it really produced', async() => {
+    // The other side of charging the produced bytes: a central directory declaring 400 MB for a
+    // part that inflates to a few hundred bytes used to be refused by the total budget, so a
+    // readable file was rejected on the strength of its own claim. The declaration still bounds the
+    // work (it is the inflate's ceiling); it no longer decides the charge.
     const fourHundredMegabytes = 400 * 1024 * 1024;
 
     expect(fourHundredMegabytes).toBeLessThan(MAX_INFLATED_ENTRY_BYTES);
@@ -247,9 +255,9 @@ describe('native reader hardening: the inflated-bytes budget', () => {
 
     bytes = declareInflatedSize(bytes, 'xl/styles.xml', fourHundredMegabytes);
 
-    await expect(read(bytes)).rejects.toThrow(
-      new RegExp(`brings the inflated total to \\d+ bytes, above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
-    );
+    const snapshot = await read(bytes);
+
+    expect(snapshot.sheets.length).toBe(1);
   });
 
   it('should still refuse a single entry at the per-entry cap, with the per-entry message', async() => {
@@ -378,5 +386,154 @@ describe('native reader hardening: the part a sheet resolves to', () => {
 
     await expect(read(hostile)).rejects.toThrow(/has no worksheet part\./);
     await expect(read(await repack('values', (part, text) => text))).resolves.toBeDefined();
+  });
+});
+
+/**
+ * Builds a ZIP by hand: ONE stored local record, plus one central-directory record per alias, all
+ * of them pointing at that single local record. `writeZip` cannot produce this — it writes one
+ * local record per entry — and the central directory is what an archive's entries are read from, so
+ * N differently named records may share one region and each declare its own sizes for it.
+ *
+ * @param {Uint8Array} data The stored region's bytes.
+ * @param {Array} aliases One `{ name, size, uncompressedSize }` per central-directory record; the
+ *                        two sizes default to the region's own length.
+ * @returns {ArrayBuffer}
+ */
+function craftAliasedArchive(data, aliases) {
+  const names = aliases.map(alias => encoder.encode(alias.name));
+  const crc = crc32(data);
+  const localSize = 30 + names[0].byteLength + data.byteLength;
+  const centralSize = names.reduce((sum, name) => sum + 46 + name.byteLength, 0);
+  const out = new Uint8Array(localSize + centralSize + 22);
+  const view = new DataView(out.buffer);
+
+  view.setUint32(0, 0x04034b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint32(14, crc, true);
+  view.setUint32(18, data.byteLength, true);
+  view.setUint32(22, data.byteLength, true);
+  view.setUint16(26, names[0].byteLength, true);
+  out.set(names[0], 30);
+  out.set(data, 30 + names[0].byteLength);
+
+  let offset = localSize;
+
+  aliases.forEach((alias, index) => {
+    const compressed = alias.size ?? data.byteLength;
+
+    view.setUint32(offset, 0x02014b50, true);
+    view.setUint16(offset + 4, 20, true);
+    view.setUint16(offset + 6, 20, true);
+    view.setUint32(offset + 16, crc, true);
+    view.setUint32(offset + 20, compressed, true);
+    view.setUint32(offset + 24, alias.uncompressedSize ?? compressed, true);
+    view.setUint16(offset + 28, names[index].byteLength, true);
+    view.setUint32(offset + 42, 0, true);
+    out.set(names[index], offset + 46);
+    offset += 46 + names[index].byteLength;
+  });
+
+  view.setUint32(offset, 0x06054b50, true);
+  view.setUint16(offset + 8, aliases.length, true);
+  view.setUint16(offset + 10, aliases.length, true);
+  view.setUint32(offset + 12, centralSize, true);
+  view.setUint32(offset + 16, localSize, true);
+
+  return out.buffer;
+}
+
+/**
+ * Counts `TextDecoder#decode` calls, which is what one part read costs that nothing else does on
+ * the stored path — the archive holds no compressed data to count inflates of.
+ *
+ * @returns {{ count: Function, restore: Function }}
+ */
+function countDecodes() {
+  const original = TextDecoder.prototype.decode;
+  let calls = 0;
+
+  TextDecoder.prototype.decode = function countingDecode(...args) {
+    calls += 1;
+
+    return original.apply(this, args);
+  };
+
+  return {
+    count: () => calls,
+    restore: () => {
+      TextDecoder.prototype.decode = original;
+    },
+  };
+}
+
+describe('native reader hardening: central-directory aliases', () => {
+  it('should decode one region once however many names alias it', async() => {
+    // The measured bomb: 128 names over one 32 MB stored region killed the process outright, in the
+    // decode. The memo is keyed by the REGION an entry points at rather than by its name, so the
+    // second alias and every one after it is free.
+    const region = encoder.encode('<worksheet/>'.padEnd(300_000, ' '));
+    const aliases = [];
+
+    for (let i = 0; i < 64; i++) {
+      aliases.push({ name: `xl/worksheets/sheet${i}.xml` });
+    }
+
+    const archive = await readZip(craftAliasedArchive(region, aliases));
+    const decodes = countDecodes();
+
+    try {
+      const texts = [];
+
+      for (const alias of aliases) {
+        // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+        texts.push(await archive.text(alias.name));
+      }
+
+      expect(texts.length).toBe(64);
+      expect(new Set(texts).size).toBe(1);
+      expect(decodes.count()).toBe(1);
+    } finally {
+      decodes.restore();
+    }
+  });
+
+  it('should charge every alias the memo cannot collapse, and refuse them by the total budget', async() => {
+    // Aliases the memo CANNOT collapse: one region, one offset, but a different declared size each,
+    // so every one of them is a distinct read. Each costs its bytes plus its decoded string, so a
+    // 1.5 MB region reached over 64 such records is charged past the 256 MB budget — which is the
+    // point: the charge now follows what the archive produced, so the cache cannot outgrow it.
+    const region = encoder.encode('<worksheet/>'.padEnd(1_500_000, ' '));
+    const aliases = [];
+
+    for (let i = 0; i < 64; i++) {
+      aliases.push({ name: `xl/worksheets/sheet${i}.xml`, size: region.byteLength - i });
+    }
+
+    const archive = await readZip(craftAliasedArchive(region, aliases));
+    const readAll = async() => {
+      for (const alias of aliases) {
+        // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+        await archive.text(alias.name);
+      }
+    };
+
+    await expect(readAll()).rejects.toThrow(
+      new RegExp(`brings the inflated total to \\d+ bytes, above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
+    );
+  });
+
+  it('should refuse a stored entry whose two declared sizes disagree', async() => {
+    // The lie that bypassed the budget: a stored entry returns its COMPRESSED bytes, so a record
+    // declaring one uncompressed byte beside a 1.5 MB compressed size was charged a single byte for
+    // 1.5 MB of output. A well-formed ZIP declares the two equal for a stored entry.
+    const region = encoder.encode('<worksheet/>'.padEnd(1500, ' '));
+    const archive = await readZip(craftAliasedArchive(region, [
+      { name: 'xl/worksheets/sheet1.xml', size: region.byteLength, uncompressedSize: 1 },
+    ]));
+
+    await expect(archive.text('xl/worksheets/sheet1.xml'))
+      .rejects.toThrow(/a stored entry's two sizes must agree/);
+    await expect(archive.text('xl/worksheets/sheet1.xml')).rejects.toMatchObject({ cause: { handsontable: true } });
   });
 });

@@ -15,18 +15,31 @@ function ownedCopy(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * Pushes `bytes` through a transform stream and collects the output, refusing to collect more
- * than `maxBytes`. The write side is started and left running while the read loop drains the
- * readable, which is what keeps a transform with backpressure from deadlocking.
+ * The result of a streamed inflate: the decoded text, and the number of BYTES the stream produced.
+ * The byte count is what the archive budget is charged, because it is what the entry really cost -
+ * the declared size is the file's own claim and may be either a lie or absent.
  */
-async function pump(
+export interface InflatedText {
+  text: string;
+  byteLength: number;
+}
+
+/**
+ * Pushes `bytes` through a transform stream and hands each output chunk to `onChunk`, refusing to
+ * produce more than `maxBytes`. The write side is started and left running while the read loop
+ * drains the readable, which is what keeps a transform with backpressure from deadlocking.
+ *
+ * The caller decides what to do with a chunk: collecting them costs the whole output twice (the
+ * chunk list and the joined copy), which a text reader avoids by decoding each chunk as it arrives.
+ */
+async function drain(
   bytes: Uint8Array,
   transform: CompressionStream | DecompressionStream,
-  maxBytes: number
-): Promise<Uint8Array> {
+  maxBytes: number,
+  onChunk: (chunk: Uint8Array) => void
+): Promise<number> {
   const writer = transform.writable.getWriter();
   const reader = transform.readable.getReader();
-  const chunks: Uint8Array[] = [];
   let total = 0;
   let writeError: unknown = null;
 
@@ -55,7 +68,7 @@ async function pump(
         throwLimitExceeded(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
       }
 
-      chunks.push(value);
+      onChunk(value);
     }
   } catch (error) {
     if ((error as { cause?: { handsontable?: boolean } }).cause?.handsontable) {
@@ -71,6 +84,20 @@ async function pump(
     throwWithCause(`The archive entry could not be processed: ${(writeError as Error).message}`);
   }
 
+  return total;
+}
+
+/**
+ * Collects a transform's whole output into one buffer. This holds the chunk list and the joined
+ * copy at the same time, so a caller that only wants text should take the streaming path below.
+ */
+async function pump(
+  bytes: Uint8Array,
+  transform: CompressionStream | DecompressionStream,
+  maxBytes: number
+): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  const total = await drain(bytes, transform, maxBytes, chunk => chunks.push(chunk));
   const out = new Uint8Array(total);
   let offset = 0;
 
@@ -115,4 +142,25 @@ export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Ar
   assertStreamAvailable('DecompressionStream');
 
   return pump(bytes, new DecompressionStream('deflate-raw'), maxBytes);
+}
+
+/**
+ * Decompresses raw DEFLATE bytes straight into text, refusing output above `maxBytes`.
+ *
+ * Every part this reader inflates is XML, and collecting the bytes first costs the whole part three
+ * times over: the chunk list, the joined copy, and the decoded string. Decoding each chunk as it
+ * arrives - through ONE decoder in `stream: true` mode, so a multi-byte character split across a
+ * chunk boundary still decodes correctly - drops the first two of those. A byte-order mark is still
+ * stripped, because the decoder sees the stream's first bytes first.
+ */
+export async function inflateRawText(bytes: Uint8Array, maxBytes: number): Promise<InflatedText> {
+  assertStreamAvailable('DecompressionStream');
+
+  const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
+  let text = '';
+  const byteLength = await drain(bytes, new DecompressionStream('deflate-raw'), maxBytes, (chunk) => {
+    text += decoder.decode(chunk, { stream: true });
+  });
+
+  return { text: text + decoder.decode(), byteLength };
 }

@@ -1,12 +1,14 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
 import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
-import { inflateRaw } from './streams';
+import { inflateRawText } from './streams';
 
 /**
  * A read-only view of an opened archive. Entries are inflated on demand, one at a time, and each
- * entry is inflated at most once: `text()` memoizes its result for the archive's lifetime, so N
- * sheets pointing at one part cost one inflate rather than N. `release()` drops that cache.
+ * REGION is inflated at most once: `text()` memoizes its result for the archive's lifetime, keyed
+ * by the local region an entry points at rather than by its name, so N sheets pointing at one part
+ * - and N differently named records aliasing one local record - cost one inflate rather than N.
+ * `release()` drops that cache.
  */
 export interface ZipArchive {
   names(): string[];
@@ -124,12 +126,15 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   let inflatedTotal = 0;
 
   /**
-   * Charges an entry's inflated size against the archive-wide budget. The per-entry cap bounds one
-   * part and the input cap bounds the compressed file; neither bounds the sum, so a handful of
-   * parts each just under the per-entry cap, or one part amplified a thousandfold out of a few
-   * hundred kilobytes, stayed inside every declared limit. The charge runs on the size the central
-   * directory declares (clamped to the per-entry cap, which is also the ceiling the inflate itself
-   * is given), so an entry past the budget is refused before a byte of it is materialized.
+   * Charges bytes against the archive-wide budget. The per-entry cap bounds one part and the input
+   * cap bounds the compressed file; neither bounds the sum, so a handful of parts each just under
+   * the per-entry cap, or one part amplified a thousandfold out of a few hundred kilobytes, stayed
+   * inside every declared limit.
+   *
+   * What is charged is always what was PRODUCED - never what the central directory declared. A
+   * declaration is the file's own claim: charging it let a stored entry returning its compressed
+   * bytes be billed one byte while it yielded thirty megabytes, and it refused a readable file whose
+   * declaration lied high. The declared size still bounds the work, as the inflate's ceiling.
    */
   function chargeInflated(name: string, byteLength: number): void {
     inflatedTotal += byteLength;
@@ -141,24 +146,9 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   /**
-   * Slices and inflates one entry's bytes.
+   * Locates one entry's stored bytes, refusing an entry whose header does not describe them.
    */
-  async function entryBytes(name: string): Promise<Uint8Array> {
-    const entry = entries.get(name);
-
-    if (entry === undefined) {
-      throwWithCause(`The archive has no entry named "${name}".`);
-    }
-
-    if (entry.uncompressedSize > MAX_INFLATED_ENTRY_BYTES) {
-      throwLimitExceeded(`The ZIP entry "${name}" declares ${entry.uncompressedSize} bytes, `
-        + `above the ${MAX_INFLATED_ENTRY_BYTES}-byte limit this reader accepts.`);
-    }
-
-    const inflatedSize = Math.min(entry.uncompressedSize, MAX_INFLATED_ENTRY_BYTES);
-
-    chargeInflated(name, inflatedSize);
-
+  function entrySlice(name: string, entry: CentralEntry): Uint8Array {
     const { localOffset } = entry;
 
     if (localOffset + LOCAL_HEADER_SIZE > bytes.byteLength
@@ -175,29 +165,82 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       throwWithCause(`The ZIP entry "${name}" runs past the end of the file.`);
     }
 
-    const data = bytes.subarray(start, end);
-
-    // The central directory is the authoritative source for this entry (the module comment above),
-    // so the inflate cap is the SMALLER of the entry's own declared size and the reader's ceiling —
-    // never the ceiling alone, or an entry declaring a small size could still inflate past it.
-    return entry.method === 8 ? inflateRaw(data, inflatedSize) : data;
+    return bytes.subarray(start, end);
   }
 
   /**
-   * Decodes one entry as text, inflating it only the first time it is asked for. The cache is
-   * bounded by the same total-bytes budget that bounds the inflating, so it cannot itself grow past
-   * what the archive was allowed to cost.
+   * Reads one entry as text, charging the budget for the bytes it really produced.
+   *
+   * A STORED entry is its own inflated form, so a well-formed ZIP declares its two sizes equal and
+   * one that does not is refused: the reader returns `compressedSize` bytes for it, so a record
+   * declaring one uncompressed byte beside a thirty-megabyte compressed size was charged a single
+   * byte for thirty megabytes of output, and the whole archive budget was bypassed by it.
+   *
+   * A DEFLATE entry is bounded BEFORE its bytes exist, by the smallest of three ceilings: its own
+   * declared size, the per-entry cap, and one byte past what the total budget still allows. That
+   * last one is what keeps the budget's own message reachable - the stream stops one byte over, and
+   * the charge below refuses with the total rather than with the entry's ceiling.
+   */
+  async function entryText(name: string): Promise<string> {
+    const entry = entries.get(name);
+
+    if (entry === undefined) {
+      throwWithCause(`The archive has no entry named "${name}".`);
+    }
+
+    if (entry.uncompressedSize > MAX_INFLATED_ENTRY_BYTES) {
+      throwLimitExceeded(`The ZIP entry "${name}" declares ${entry.uncompressedSize} bytes, `
+        + `above the ${MAX_INFLATED_ENTRY_BYTES}-byte limit this reader accepts.`);
+    }
+
+    const data = entrySlice(name, entry);
+
+    if (entry.method === 0) {
+      if (entry.compressedSize !== entry.uncompressedSize) {
+        throwWithCause(`The stored ZIP entry "${name}" declares ${entry.compressedSize} compressed bytes `
+          + `and ${entry.uncompressedSize} uncompressed bytes; a stored entry's two sizes must agree.`);
+      }
+
+      chargeInflated(name, data.byteLength);
+
+      return decoder.decode(data);
+    }
+
+    const ceiling = Math.min(
+      entry.uncompressedSize,
+      MAX_INFLATED_ENTRY_BYTES,
+      MAX_INFLATED_TOTAL_BYTES - inflatedTotal + 1
+    );
+    const inflated = await inflateRawText(data, ceiling);
+
+    chargeInflated(name, inflated.byteLength);
+
+    return inflated.text;
+  }
+
+  /**
+   * Decodes one entry as text, reading it only the first time its REGION is asked for.
+   *
+   * The memo is keyed by the local record an entry points at, not by the entry's name: a central
+   * directory may list any number of differently named records against one local offset, and a
+   * name-keyed memo then held one decoded copy per name - 128 names over a 32 MB region killed the
+   * process outright. The cached string is charged against the same budget as the bytes it came
+   * from (UTF-16 code units, two bytes each - the worst case; V8 stores a Latin-1 string in one),
+   * so the cache can never hold more than the archive was allowed to cost however it was obtained.
    */
   async function text(name: string): Promise<string> {
-    const cached = texts.get(name);
+    const entry = entries.get(name);
+    const key = entry === undefined ? name : `${entry.method}:${entry.localOffset}:${entry.compressedSize}`;
+    const cached = texts.get(key);
 
     if (cached !== undefined) {
       return cached;
     }
 
-    const decoded = decoder.decode(await entryBytes(name));
+    const decoded = await entryText(name);
 
-    texts.set(name, decoded);
+    chargeInflated(name, decoded.length * 2);
+    texts.set(key, decoded);
 
     return decoded;
   }
