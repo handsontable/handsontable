@@ -1,5 +1,5 @@
 import { helpers } from '../../src/helpers';
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   selectCell,
   setColumnSorting,
@@ -7,7 +7,11 @@ import {
   SortDirection,
 } from '../../src/page-helpers';
 
-test('Test column multi-sorting', async({ tablePage }) => {
+visualTest('Test column multi-sorting', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   await setColumnSorting('Country', SortDirection.Descending);
   await setAdditionalColumnSorting('Qty', SortDirection.Ascending);
 

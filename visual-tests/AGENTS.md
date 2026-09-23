@@ -13,13 +13,18 @@ Cloudflare R2.
 ## Test Pattern
 
 ```typescript
-import { test, expect } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { openContextMenu } from '../../../src/page-helpers';
 
 // One capture per distinct visual state, and the state asserted before the capture. What earns a
-// capture at all is the decision rule below.
-test(__filename, async({ tablePage }) => {
+// capture at all is the decision rule below; the declaration names the variants this spec renders on,
+// and this one is the default for a new spec — two themes, one browser, no wrapper.
+visualTest(__filename, {
+  themes: ['main', 'main-dark'],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ tablePage }) => {
   const cell = tablePage.locator('.ht_master td').first();
 
   // State 1: the focused cell. Assert the state, then photograph it — a capture on the line after
@@ -36,16 +41,9 @@ test(__filename, async({ tablePage }) => {
 });
 ```
 
-That fence is what `test-runner.ts` exports **today**, and it is meant to be copied. A spec also scopes
-itself to a framework or a browser with the conditional `test.skip(condition, why)` described under
-[Determinism](#determinism).
-
-G2 (under [Guardrails](#guardrails-against-bloat-and-flakes)) replaces the call with
-`visualTest(title, { themes, browsers, wrappers }, fn)`, which declares the variants the spec renders on
-instead of leaving them implicit. **This example changes to that shape in the same pull request that
-adds the export** — not before, because an example that imports a name the module does not have is
-copied long before the paragraph under it is read. Everything else here is unaffected by that change:
-an assertion between each action and its capture, one capture per visual state.
+Every spec registers through `visualTest()` and declares the variants it renders on; a bare `test(` and a
+spec-side `test.skip(` are both lint errors. The axes, the default, and the two invariants are
+[Variant declaration](#variant-declaration) below.
 
 ## Key Rules
 
@@ -65,6 +63,71 @@ Three measured facts behind the rule (2026-09-18, `visual-tests/tests`):
 - **A feature on its own route is js-only by construction.** The react and angular demos serve `/` and `/scenario-grid` (`react-wrapper/demo/src/index.tsx`, `angular-wrapper/demo/src/app/app.config.ts`); the vue3 demo has no router and serves `/` only — so a spec on `/<feature>-demo` renders no wrapper and declares none. Wrapper parity for a *new* feature is therefore a trade-off to state in the pull request, not a default: either extend `/` under a `[visual budget: N – reason]` marker (every spec on `/` re-captures, and the demo config must stay identical across all four frameworks — the js-copied baseline gotcha below), or add the route to the react-router routes, the Angular routes, and the Vue demo — a per-framework change, not a Navigo edit. Neither is "mirror the route in all four demos": no multi-frameworks spec uses a route today, and the copied baseline only ever compares what a wrapper actually renders.
 
 This section is the one source of the rule; every other surface (`handsontable/.ai/TESTING.md`, the root `AGENTS.md`, the `visual-testing` and `creating-visual-test-examples` skills, the PR template, the `pr-creation` and `handsontable-code-review` skills, `.ai/LOCAL-ENFORCEMENT.md`) carries one sentence and a link here. `.github/scripts/__tests__/visual-decision-rule.test.mjs` pins the paragraph to this file and the link to each surface.
+
+## Variant declaration
+
+The decision rule says whether a capture is earned. This says how many goldens it costs. A spec declares
+the variants it renders on, and an undeclared one skips at file scope:
+
+```typescript
+visualTest(__filename, {
+  themes: JS_VARIANTS,                            // 'classic' plus any of main, main-dark, horizon, horizon-dark
+  browsers: ['chromium'],                         // more than chromium only under tests/cross-browser/
+  wrappers: WRAPPERS,                             // angular-wrapper, react-wrapper, vue3
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,      // mandatory whenever wrappers is not empty
+}, async({ tablePage }) => { … });
+```
+
+- **The default for a new spec is `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }`** —
+  two goldens per capture, not five, and eight under `tests/multi-frameworks/`. Add `classic` when the spec
+  is about the bare delivery path, a horizon theme when the pixels being judged are theme tokens rather
+  than geometry, and a wrapper only when its render proves something the js render does not.
+- **`classic` is a token inside `themes`,** not a separate flag. The bare run is a variant like any other
+  and only differs in having no name to pass through `HOT_THEME`, which is what makes
+  `helpers.screenshotPath()` drop the `-theme-` suffix. The token lives in declarations only — passing it
+  through the environment would request a theme that does not exist.
+- **Two invariants, both enforced at load.** `wrappers` non-empty implies `themes` includes `classic`,
+  because a wrapper run never sets `HOT_THEME` and the seed's wrapper goldens are the bare js render
+  copied. And `wrappers` non-empty implies a `wrappersReason`: three goldens a capture is the most
+  expensive thing a spec can ask for, so that axis argues for itself in the file.
+- **One declaration per file.** Both skips are file-scope modifiers, so they apply to every test in the
+  file and the skips of two `visualTest()` calls combine: the file renders only the variants both
+  declarations name — the intersection, which can be empty, so a variant either one asked for on its own
+  can stop rendering entirely. `tests/cross-browser/copy-paste.spec.ts` is the only file with several
+  tests and all five agree.
+- **Over-declaration is silent, so it is a static error.** The main Playwright config has one chromium
+  project and ignores `tests/cross-browser/**`; the cross-browser leg sets neither `HOT_THEME` nor
+  `HOT_FRAMEWORK`. A js-only spec naming `firefox`, or a cross-browser spec naming a theme or a wrapper,
+  renders nothing extra and inflates every derived count from then on.
+  `lib/__tests__/visual-declarations.test.mjs` rejects both shapes.
+- **The declaration codemod wrote today's behavior out, so no golden moved.** js-only declares the five js
+  variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
+  seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
+  cross-browser projects they actually need — `copy-paste.spec.ts` names chromium alone, which is what
+  it rendered before the declaration existed. The 23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` — none of those wrapper
+  declarations has been argued for yet, and the constant's name is the grep the audit runs.
+- **The golden set is now the sum of the declarations intersected with the tier.**
+  `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
+  per-prefix totals against the live baseline (1676 records on 2026-09-18), printing the implied total. A
+  trim or a new spec moves a number there, which is the review a description cannot give.
+- **`npx playwright test --list --reporter=json` reports every declaration** as a `visual-variants`
+  annotation, including on a spec the current variant skips. That is the only form a reader outside the
+  run can trust: the browser axis uses the callback form of `test.skip`, which Playwright evaluates in a
+  worker and never reports in `--list`. Read the spec path from the enclosing suite's `file`, never from
+  the test's own `spec.file` — see the next bullet for why that one names the runner.
+- **Every test's reported location is now `src/test-runner.ts`,** because Playwright records the file and
+  line a test was registered from and `visualTest()` registers all of them. `--list` therefore prints
+  `92 tests in 1 file` and `129 tests in 2 files` where it printed `92 tests in 92 files` and
+  `129 tests in 20 files`; the HTML report's per-test location link points at the runner, and the JSON
+  reporter's `spec.file` reads `../src/test-runner.ts` for all 92. Nothing downstream reads it: the visual
+  configs use the `html` reporter, `visual.yml` uploads screenshot tarballs rather than a
+  `playwright-report-*` artifact, and the flake ledger (`.github/scripts/lib/test-health.mjs`) collects
+  only the `Tests`, `Develop` and `Publish` runs' Playwright JSON. The spec path itself is never lost —
+  the enclosing file suite still carries it, `testInfo.outputDir` is still derived from it, and every
+  golden path goes through `specFilePath()` in `src/test-runner.ts` rather than through `testInfo.file`.
+  What the collapse costs is one click in the report, and the trade was taken with that in view:
+  a file-scope skip costs nothing, and the in-body form it replaces cost about 40 ms per test on CI's
+  single worker.
 
 ## Golden snapshots: js-copied baselines (critical gotcha)
 
@@ -93,9 +156,12 @@ requests: a build rendered 1646 golden records and the visual stage added a mean
 request run. The golden set is 1676 records on 2026-09-18 (`base/develop/out.json`, read cache-busted as
 described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox /
 webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
-Every js-only spec renders five times (the bare chromium run — the "classic" delivery path,
+Every js-only spec renders five times today (the bare chromium run — the "classic" delivery path,
 where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
-times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers. The
+times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
+but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
+renders is its [variant declaration](#variant-declaration), and a new spec renders two themes by default,
+so "every js variant renders the same count" stops holding with the first spec that takes the default. The
 bare run was byte-identical to `main` on 199 of its then 234 records (240 today) — it is a delivery-path
 parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
@@ -146,6 +212,15 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
   unless a stale variant lingers in R2, and then it logs what it removed. This is also why the golden
   set keeps the seed's full shape by design: every tier compares against an exact subset of one
   baseline, and `visual-gate.mjs` needs no idea that tiers exist.
+- **A spec that stops declaring a variant reports that variant's goldens as DELETED, once.** The prune
+  knows prefixes, not [declarations](#variant-declaration), so a trimming pull request compares the
+  variants it no longer renders against goldens that are still there: reg-suit calls each one deleted, and
+  a deleted item alone is the `changed` verdict, so the pull request needs one environment approval. That
+  is the expected shape of a trim, not a regression — read the deleted list as the price the trim is
+  paying. After the merge the seed lists the deletions (non-blocking) and `aws s3 sync --delete` removes
+  them, and from then on it is clean. Making the prune declaration-aware would hide the one review-worthy
+  event a trim has, so it is deliberately not done. Expect a trim to show `deleted > 0` and a golden total
+  under the budget at the same time.
 - **`nightly/<branch>/` is a report, never a baseline.** The nightly resolves
   `REG_EXPECTED_KEY=base/develop` and `REG_ACTUAL_KEY=nightly/develop`, a fixed key rewritten each night
   (only the latest nightly report is kept, so nothing needs purging), and `VISUAL_WRITES_BASE=false` keeps
@@ -332,8 +407,9 @@ A visual spec has no assertion of its own — the screenshot is the assertion �
 page is in when `screenshot()` runs is what the golden records. The rules that keep that state the
 same on every render, enforced at `error` by `visual-tests/.eslintrc.js` (the functional tier's bans
 from `tests/.eslintrc.cjs`, with one deliberate difference — the conditional `test.skip(condition, why)`
-stays legal here because it is how js-only and chromium-only specs declare their variant — plus a ban on
-element screenshots and the settle the fixture does for you):
+stays legal in `src/`, because that is the form `visualTest()` emits from a
+[variant declaration](#variant-declaration) — plus a ban on element screenshots and the settle the fixture
+does for you):
 
 - **Assert the state the capture is meant to show before capturing.** After any action that changes
   focus, opens or closes an element, or scrolls, wait for that state with a web-first assertion —
@@ -399,9 +475,13 @@ element screenshots and the settle the fixture does for you):
   such sleeps; each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
   debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
   needs the same line naming its own task, or it does not land.
-- **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too; the
-  conditional `test.skip(condition, why)` that scopes a spec to a framework or a browser is the one legal
-  skip, and an element capture is a clipped `tablePage.screenshot()` so the settle still runs.
+- **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too, and an
+  element capture is a clipped `tablePage.screenshot()` so the settle still runs. Under
+  `tests/**/*.spec.ts` two more shapes are errors: a bare `test(`, and any `test.skip(` at all. A spec
+  names its variants in its [declaration](#variant-declaration) and `visualTest()` emits the skip; a
+  hand-written one applies at file scope too, so the two would combine and the declaration would stop
+  describing what renders. `tests/cross-browser/merging.spec.ts` parks a test behind its own disable line
+  and is the one exception.
 - **The fixture refuses to photograph a grid whose stylesheet never arrived.** The js demo loads its
   theme and each route's CSS as `<link class="dynamic-css">` and waits for `load` before it builds the
   grid, but `load` is not proof of a stylesheet: vite's preview server answers an unknown path with
@@ -458,13 +538,19 @@ which of these run locally and which only in CI.
 - **G1 · The decision rule** — landed. One canonical paragraph, [Decision rule](#decision-rule) above,
   linked from every authoring surface and pinned by `.github/scripts/__tests__/visual-decision-rule.test.mjs`
   (the paragraph occurs once, each surface carries the link, the sentences it replaced are gone).
-- **G2 · The variant declaration** — not yet landed. Every spec will declare what it renders on through
-  `visualTest(__filename, { themes, browsers, wrappers, wrappersReason }, fn)` (`src/test-runner.ts`),
-  with `classic` a token in `themes`, `wrappersReason` mandatory when `wrappers` is non-empty, and the
-  default for a new spec `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }` — two
-  renders, not five. The [Test Pattern](#test-pattern) above shows that shape; until it lands, a spec is
-  `test(__filename, …)` plus the conditional `test.skip(condition, why)` described under Determinism, and
-  "every js variant renders the same count" stays true only until the first spec declares two themes.
+- **G2 · The variant declaration** — landed. Every spec declares what it renders on through
+  `visualTest(title, { themes, browsers, wrappers, wrappersReason }, fn)` (`src/test-runner.ts`), with
+  `classic` a token in `themes`, `wrappersReason` mandatory when `wrappers` is non-empty, and the default
+  for a new spec `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }` — two renders,
+  not five. An undeclared variant skips at file scope for nothing, so the golden set is the sum of the
+  declarations intersected with the tier. The rules and the invariants are
+  [Variant declaration](#variant-declaration) above; `lib/visual-declarations.mjs` validates them at load,
+  `lib/__tests__/visual-declarations.test.mjs` sweeps the spec tree and derives the eleven per-prefix
+  totals from what is checked in, and `.eslintrc.js` bans a bare `test(` and a spec-side `test.skip(`. The
+  codemod that landed it wrote today's rendered set out on all 111 live specs — every one but the parked
+  `cross-browser/merging.spec.ts` — so no golden record moved; the
+  23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` until the consolidation audit gives each one
+  a reason of its own.
 - **G3 · The golden budget** — not yet landed. `visual-tests/visual-budget.json` holds one count per
   golden prefix (the eleven keys the prune uses) and a per-spec capture cap keyed by reg-suit stem, each
   exception carrying a ticket; the `Visual budget` step of the Compare job reads `.reg/out.json`, blocks a

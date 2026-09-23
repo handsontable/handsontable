@@ -32,8 +32,9 @@ const WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS = [
 // input focused on a 10 ms timer) are exactly that. The 2024 import carries fixed sleeps at 40-odd
 // sites; each one now wears an eslint-disable line naming the task, the convention `tests/AGENTS.md`
 // uses for `test.fixme`, so the debt is counted and greppable while it is paid down. `.skip` is banned
-// in its bare and titled forms only: the two-argument conditional form (`test.skip(condition, why)`)
-// is how the js-only specs and the chromium-only clipboard specs declare their variant, and it stays.
+// in its bare and titled forms only: the two-argument conditional form (`test.skip(condition, why)`) is
+// what `visualTest()` in `src/test-runner.ts` emits from a spec's variant declaration, so it stays legal
+// here. A spec no longer writes one itself — see SPEC_DECLARATION_RESTRICTIONS below.
 const DETERMINISM_RESTRICTIONS = [
   {
     selector: 'CallExpression[callee.property.name="waitForTimeout"]',
@@ -74,9 +75,9 @@ const DETERMINISM_RESTRICTIONS = [
       + 'CallExpression[callee.property.name="skip"]'
       + '[arguments.1.type=/^(ArrowFunctionExpression|FunctionExpression)$/]',
     message: 'No skipped test (.skip) — a skipped capture proves nothing and its golden lingers. Fix it or '
-      + 'remove it; the conditional `test.skip(condition, why)` form that scopes a spec to a framework or '
-      + 'browser stays legal. A parked test carries `// eslint-disable-next-line no-restricted-syntax -- '
-      + 'DEV-1234: <why>` naming the owning task.',
+      + 'remove it; the conditional `test.skip(condition, why)` form that `visualTest()` emits from a '
+      + 'variant declaration stays legal. A parked test carries `// eslint-disable-next-line '
+      + 'no-restricted-syntax -- DEV-1234: <why>` naming the owning task.',
   },
   {
     // `locator.screenshot()` (or `elementHandle.screenshot()`) skips the wrapper in src/test-runner.ts that
@@ -94,6 +95,32 @@ const DETERMINISM_RESTRICTIONS = [
     selector: 'CallExpression[callee.property.name="fixme"]',
     message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming '
       + 'the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`).',
+  },
+];
+// The two shapes a spec must not write once `visualTest()` exists, scoped to `tests/**/*.spec.ts` so the
+// conditional skip stays legal in `src/`, which is where it is emitted from now. A bare `test()` renders on
+// every variant the tier launches and states nothing, which is how the golden set grew from 1646 to 1676
+// records in nine days with no number to review; a spec-side `test.skip()` is the ad hoc scoping the
+// declaration replaces, and the two together would fight — a file-scope modifier applies to every test in
+// the file, so a hand-written skip beside a declaration COMBINES with the one `visualTest()` emits: the
+// file renders only what both allow, which can be nothing, and the declaration stops describing what
+// renders. `tests/cross-browser/merging.spec.ts` is the one exception: it parks a
+// test that renders nothing and already carries its own disable line.
+const SPEC_DECLARATION_RESTRICTIONS = [
+  {
+    selector: 'CallExpression[callee.type="Identifier"][callee.name="test"]',
+    message: 'Declare the variants with visualTest(title, { themes, browsers, wrappers }, fn) instead of '
+      + 'test() — a bare test() renders on every variant the tier launches and says so nowhere, so nothing '
+      + 'can derive or review the golden count. '
+      + 'See visual-tests/AGENTS.md (Guardrails against bloat and flakes).',
+  },
+  {
+    selector: 'CallExpression[callee.object.name="test"][callee.property.name="skip"]',
+    message: 'A spec does not call test.skip() to scope itself — name the variants in its visualTest() '
+      + 'declaration and visualTest() emits the skip. A hand-written skip beside a declaration applies at '
+      + 'file scope too, so the two combine: the file renders only what both allow, which can be nothing, '
+      + 'and the declaration stops describing what renders. A parked test carries '
+      + '`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`.',
   },
 ];
 // A rule setting replaces the inherited one rather than merging with it, so the airbnb list every
@@ -129,6 +156,20 @@ module.exports = {
           ...AIRBNB_RESTRICTED_SYNTAX,
           ...WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS,
           ...DETERMINISM_RESTRICTIONS,
+        ],
+      }
+    },
+    {
+      // Everything a spec must not write, on top of the `*.ts` rules above. One entry on purpose: the
+      // capture-adjacency and docblock rules land in this same entry, so a spec is judged by one glob.
+      files: ['tests/**/*.spec.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          ...AIRBNB_RESTRICTED_SYNTAX,
+          ...WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS,
+          ...DETERMINISM_RESTRICTIONS,
+          ...SPEC_DECLARATION_RESTRICTIONS,
         ],
       }
     },
