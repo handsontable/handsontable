@@ -3,11 +3,14 @@
  * Pre-push gate (invoked by lefthook). The local, fast mirror of the CI
  * enforcement: a change must carry a test, and any changed Playwright spec is
  * run so a new test is proven before it is pushed. Bypassable with
- * `git push --no-verify` — CI is the real guarantee.
+ * `git push --no-verify` — CI re-runs these checks, but it runs the presence
+ * gate with GATE_MODE=warn, so this hook is the one place a missing test blocks.
  *
  * Scoped to stay fast: it runs the presence gate (no build), the determinism
- * ratchet on the changed spec files, and only the Playwright specs the push
- * touches. The full unit/E2E suites are CI's job.
+ * ratchet on the changed spec files, only the Playwright specs the push
+ * touches, and only the unit tests it touches (each through `npm run
+ * test:unit`, which runs `build:styles` first). The full unit/E2E suites are
+ * CI's job.
  */
 import { execSync, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -436,12 +439,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     recordGreen(root, toRun);
   }
 
-  // 5) Run any changed Jest unit test — fast (jest maps to src, no build). One
-  //    jest per file (a single, shell-safe --testPathPattern; never a `|`-joined
-  //    regex — run.mjs appends it to a shell command unquoted). Only existing
-  //    files (a session may record a path that was later removed). An infra
-  //    failure (jest could not start) warns instead of blocking; CI is
-  //    authoritative.
+  // 5) Run any changed Jest unit test. Jest maps imports to src, so no bundle is
+  //    built, but `test:unit` runs `build:styles` first (scripts/tasks.json),
+  //    once per file below. One jest per file (a single, shell-safe
+  //    --testPathPattern; never a `|`-joined regex — run.mjs appends it to a
+  //    shell command unquoted). Only existing files (a session may record a
+  //    path that was later removed). An infra failure (jest could not start)
+  //    warns instead of blocking; CI is authoritative.
   const unitFiles = changedUnitTests(changed).filter(f => existsSync(path.join(root, f)));
 
   if (unitFiles.length > 0) {

@@ -4,6 +4,8 @@ Every change passes these **local** gates before it reaches CI. This is agent-fi
 human-second: the **git hooks (lefthook) are the enforcement floor for everyone**, and
 the **Claude Code hooks add an earlier, agent-time layer** on top. `--no-verify`
 bypasses the git hooks, but CI re-runs the same checks — never rely on the bypass.
+One of them does not block in CI: the presence gate runs there with `GATE_MODE: warn`,
+so a missing test pushed with `--no-verify` reaches the PR as a warning, not a red check.
 
 Setup is automatic: `pnpm install` runs the root `prepare` script
 (`scripts/prepare-dev-env.mjs`), which wires the lefthook git hooks **and** syncs
@@ -15,13 +17,16 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 
 | When | Gate | Runs | Blocks on |
 |---|---|---|---|
-| Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
-| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
+| Agent-time (Claude Code) | `SessionStart` | `scripts/claude/setup-worktree.mjs --check`: reports what a linked worktree is missing, silent outside one | never (the command ends in `\|\| true`) |
+| Agent-time (Claude Code) | `PreToolUse` (Bash) | `scripts/claude/deny-deployment-approval.mjs` | a command that names an HTTP client and the `/pending_deployments` endpoint, so an agent cannot clear a human approval gate |
+| Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited file when it matches `*.(spec\|unit).[jt]sx?` | genuine lint errors in that file |
+| Agent-time (Claude Code) | `Stop` (turn end; 120 s timeout in `.claude/settings.json`) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
 | **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
-| CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
+| CI | `test.yml` + gates | the same checks (the ratchet is a step of `Lint / core`); the presence gate runs with `GATE_MODE: warn` in `checks.yml` | see the pipeline; a missing test is a warning here, not a block |
 
-Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
+Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.** The
+presence gate is the exception: its one blocking run is pre-push.
 
 **The changelog entry-filename check** (`assertEntryFilenames` in `bin/changelog`,
 pure logic in `bin/lib/entry-filenames.js`). It asserts that every
@@ -46,11 +51,10 @@ where the violations that prompted it were written, while git hooks do run.
 and `handsontable/no-skipped-test` are `warn` in `handsontable/.eslintrc.js`, and
 nothing else consumes warnings — `npm run lint` exits 0 with them. The ratchet
 closes that gap without red-walling the debt: it lints only the changed
-`handsontable/{src,test}/**/*.{spec,unit}.js` files (`*.unit.ts` is in the
-candidate set too, and is covered the moment the frozen-tier override in
-`handsontable/.eslintrc.js` — `files: ['*.unit.js', '*.spec.js']` today — names
-`*.unit.ts`; until then ESLint reports none of the three rules there, and a
-candidate with no findings never blocks), intersects the warnings
+`handsontable/{src,test}/**/*.{spec,unit}.js` and `*.unit.ts` files (the
+frozen-tier override in `handsontable/.eslintrc.js` names `*.unit.js`,
+`*.unit.ts`, and `*.spec.js`, so ESLint reports the three rules in all of them),
+intersects the warnings
 with the lines the branch **added** (`git diff -U0` against the merge-base), and
 **exits 1 when any of the three rules fires on an added line**. A pre-existing
 occurrence on an unchanged line stays a warning. `RATCHETED_RULES` in the lib is
@@ -66,8 +70,9 @@ so the local scope is exactly the CI scope. Three things to know:
   whole branch, so a plain `git mv` of a debt-laden spec adds no line and does
   not block; only the lines you changed inside it count.
 - **How to satisfy it:** wait for the *condition*, not the clock —
-  `await waitUntil(() => …)`, a hook promise, or `waitForNextAnimationFrames()`
-  (`handsontable/test/helpers/common.js`). A broken or flaky legacy spec migrates
+  `await waitUntil(() => …)` (`handsontable/test/helpers/common.js`) or a hook
+  promise. `waitForNextAnimationFrames()` is not a way out: the same rule flags
+  it for any frame count except a literal `0`. A broken or flaky legacy spec migrates
   to Playwright (`tests/e2e/`) instead of gaining a delay. For a genuine
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
@@ -99,8 +104,10 @@ so the local scope is exactly the CI scope. Three things to know:
   finding list is non-empty. The output is Markdown; CI `tee`s it into the step
   summary.
 
-**Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
-Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of
+**Changed unit tests** run too, in both the Stop hook and pre-push: one
+`npm run test:unit` per touched unit file. Jest maps imports to `src`, so no bundle
+is built, but `test:unit` runs `build:styles` first (`before` in
+`handsontable/scripts/tasks.json`), once per touched file. A Jest *infra* failure (couldn't start) warns instead of
 blocking (CI is authoritative), the same way the presence gate skips a config gap.
 **A run that was killed is the same case.** A child aborted by Node on buffer
 overflow (`ENOBUFS`) or by a signal produced no verdict — `spawnSync` returns
@@ -191,7 +198,8 @@ push that run is `skipped` and holds no annotations. Measured 2026-09-18 on
 The annotations live only on the runs against the pull request's head SHAs.
 
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
-for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
+for a hook): the `Changed-line coverage floor (warn)` step of the `Unit / test`
+job (`unit.yml`) measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
 report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
@@ -293,7 +301,7 @@ Machine-enforced by the presence gate; full decision rules in
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.
 - **When red, diagnose which is wrong** — the code or the test's expectation — and fix whichever genuinely is. The code is the prime *suspect*, not a rule.
-- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Lint + the weakening detector enforce this.)
+- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Enforcement differs per item. Lint blocks a focused test, and in `tests/` any skip. In `handsontable/`, the ratchet blocks a new skip or `it.flaky` on an added line. The weakening detector only warns on a removed or loosened assertion. A test with no assertion gets a `handsontable/require-assertion-in-test` warning in `handsontable/` that blocks nothing, and no check at all in `tests/`, so review owns it.)
 - **Bug fix → failing test first:** turn the repro into a test that fails *for the right reason*, then fix; it stays as a regression guard so nobody re-checks it by hand.
 - **Run the impacted test green locally** before commit/push, and state the result with the run's evidence. For E2E that means **only the specs you created/changed** (the Stop hook and pre-push select exactly those); the full suite runs in PR CI and the develop nightly — never locally.
 - **Coverage is the floor** (necessary); **mutation/meaningfulness is the ceiling** (sufficient). Never pad coverage with hollow tests.
@@ -426,7 +434,7 @@ dodge writing tests.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too. A custom ESLint rule is machinery as well: it gets RuleTester coverage in `handsontable/.config/plugin/eslint/__tests__/*.test.mjs` (ESLint's `RuleTester` pointed at `node:test`'s `describe`/`it`), run by `npm run test:eslint-rules` in `handsontable/` (a `scripts/tasks.json` task) from CI's `Lint / core` job — **not** from the root `test:tooling` glob. That script backs the `Checks / tooling tests` job, which is checkout + Node only, so a test that imports `eslint` dies there with `ERR_MODULE_NOT_FOUND` and red-walls every PR; keep the root glob dependency-free. Name every test file in that task as a literal path, with **no glob**: `node --test` exits 1 (`Could not find`) only when nothing in the list matched *and* every pattern is literal — a glob anywhere, even next to an explicit path, turns a missing file into a green `tests 0`, and a second literal file that still exists masks a renamed first one the same way, so a rename would leave the step passing with nothing, or less, run (`handsontable/test/__tests__/eslintRulesTask.unit.js` pins the list in both directions — every file in the directory named, every named file present — and bans glob characters). A scorer smell signal — a determinism smell or a warning-tier structure smell — gets a `counterexamples/` fixture named after the smell (`evals/README.md`), and `evals/__tests__/` is in the root glob. A new test directory that is in neither script never runs anywhere.
 - **A custom ESLint rule edit is live only while its hard link holds.** `eslint-plugin-handsontable` is a `file:` dependency, and pnpm materializes it under `node_modules/.pnpm/` as **hard links** to the source files (same inode, link count 2 — check with `stat`), not a symlink to the directory. An edit that writes the file **in place** is therefore live at once, with no reinstall. The trap is the write that replaces the inode: an editor's save-then-rename (atomic save), `sed -i`, a branch switch or `git checkout` that rewrites the file, a fresh worktree, and always a **brand-new rule file**, which the store has never seen. After any of those, every lint run — the hooks, `npm run lint`, a `--format json` debt count — executes the rule as it was at the last install, while the RuleTester tests (which import the source file) already pass. `pnpm install --frozen-lockfile --offline` (under a minute) relinks it; verify with `stat` (same inode) or `diff` against the store copy before trusting a lint result that disagrees with the tests.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. In CI, a blocking diff gate takes its base from the merge-base with the base branch's **live tip** (`origin/<base.ref>`, fetched in the job), never from the payload's frozen `base.sha` — see the ratchet's *Which base* above. A hook that fires on a false positive gets disabled — that is worse than no hook.
-- **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
+- **Must stay fast.** No bundle build in the pre-push or agent hooks; run only the **changed scope**. The one build step they pay today is `build:styles`, which `npm run test:unit` runs before Jest, once per touched unit file. Heavy/full-suite work is CI's job.
 - **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.
 - **Know who reads your stderr.** Claude Code forwards a hook's stderr to the agent only on **exit 2**. A non-blocking leg's note lands in the debug log unless a later leg in the same run blocks, so treat those notes as best-effort and never make the flow depend on the agent reading one.
 - **Floor for everyone.** The git hooks must work without Claude Code; the agent hooks are additive, never the only line of defense.

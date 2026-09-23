@@ -31,19 +31,13 @@ export const RATCHETED_RULES = Object.freeze([
 ]);
 
 /**
- * Where the ratcheted rules apply: the `*.unit.js` / `*.spec.js` override in
- * `handsontable/.eslintrc.js`, plus the TypeScript unit tests that share the
- * same trees. Restricted to `src/` and `test/` — the two trees the package's
- * `lint:eslint` task covers — so the local run stays a subset of CI's lint
- * scope (`dist/` and `tmp/` are build output and never linted). The Playwright
- * tier (`tests/e2e/*.spec.ts`) is deliberately absent: its own config bans
- * `sleep()` / `waitForTimeout()` at `error`, so there is nothing to ratchet.
- *
- * `*.unit.ts` is a candidate, not yet a covered tree: the override that turns
- * the three rules on names `*.unit.js` / `*.spec.js` only, so ESLint reports
- * none of them for a `.unit.ts` file and the intersection is empty — a
- * candidate with no findings never blocks. The moment that override names
- * `*.unit.ts`, the ratchet covers it with no change here.
+ * Where the ratcheted rules apply: the `*.unit.js` / `*.unit.ts` / `*.spec.js`
+ * override in `handsontable/.eslintrc.js`. Restricted to `src/` and `test/` —
+ * the two trees the package's `lint:eslint` task covers — so the local run
+ * stays a subset of CI's lint scope (`dist/` and `tmp/` are build output and
+ * never linted). The Playwright tier (`tests/e2e/*.spec.ts`) is deliberately
+ * absent: its own config bans `sleep()` / `waitForTimeout()` at `error`, so
+ * there is nothing to ratchet.
  *
  * @type {ReadonlyArray<RegExp>}
  */
@@ -248,8 +242,9 @@ export function formatReport(findings) {
     '',
     ...findings.map(f => `- \`${f.file}:${f.line}\` — \`${f.ruleId}\`: ${f.message}`),
     '',
-    'Fix: wait for the condition instead of the clock — `await waitUntil(() => …)`, a hook promise, or '
-      + '`waitForNextAnimationFrames()` (`handsontable/test/helpers/common.js`). A broken or flaky legacy spec '
+    'Fix: wait for the condition instead of the clock — `await waitUntil(() => …)` '
+      + '(`handsontable/test/helpers/common.js`) or a hook promise. `waitForNextAnimationFrames()` is a fixed '
+      + 'wait too: the rule flags it for any frame count except a literal `0`. A broken or flaky legacy spec '
       + 'migrates to Playwright (`tests/e2e/`). For a genuine exception, disable the rule on that line with a '
       + 'ticket: `// eslint-disable-next-line <rule> -- <TICKET>: <why no condition exists>`. '
       + 'Rules: `.ai/LOCAL-ENFORCEMENT.md`.',

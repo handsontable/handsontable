@@ -19,7 +19,7 @@
 **Run Commands:**
 ```bash
 # From handsontable/ directory:
-npm run test:unit                  # Run all Jest unit tests (~216 files)
+npm run test:unit                  # Run all Jest unit tests (~431 files, Walkontable's test/unit/ included)
 npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~946 spec files)
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
@@ -95,7 +95,7 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 **Naming:**
 - Unit tests: `{feature}.unit.js` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
 - E2E tests: `{featureName}.spec.js` — the filename must match the method, hook, or setting name exactly (e.g., `selectCell.spec.js`, `afterChange.spec.js`, `height.spec.js`)
-- Type tests: `*.types.ts` in `test/types/`
+- Type tests: `*.types.ts` in the `__tests__/` dir next to the source (`test/types/tsconfig.json` compiles them)
 
 **Structure Examples:**
 ```
@@ -298,7 +298,7 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 
 ## What to test, and in which framework (Pillar 1)
 
-**Aim for a low number of extremely meaningful tests.** Coverage is the **floor**, not the goal: new code must be exercised (the unit coverage gate + SonarCloud enforce this, and it may extend to E2E), but coverage only proves a line *ran* — a test that executes it while asserting nothing, or asserting the *buggy* output, is worse than none. So: **hit the coverage floor with tests that meaningfully assert behavior** — never pad coverage with hollow tests, and never skip it either. Two principles govern every test here (full discipline in the `test-writing-discipline` skill):
+**Aim for a low number of extremely meaningful tests.** Coverage is the **floor**, not the goal: new code must be exercised (the unit changed-line coverage floor reports it on the PR, warn-only; SonarCloud measures no coverage, because `sonar-project.properties` excludes all of it), but coverage only proves a line *ran* — a test that executes it while asserting nothing, or asserting the *buggy* output, is worse than none. So: **hit the coverage floor with tests that meaningfully assert behavior** — never pad coverage with hollow tests, and never skip it either. Two principles govern every test here (full discipline in the `test-writing-discipline` skill):
 
 - **Green is not the goal — correct behavior is.** Write the test from the *intended* behavior (ideally before the code). When it is red, **diagnose which is actually wrong — the code or the test's expectation — and fix whichever genuinely is.** The code is the prime *suspect*, not a rule: if the test mis-encoded the intended behavior, fix the test (tighten it toward the real behavior). What is never allowed is reaching green by weakening/skipping/loosening a test to match output you have not confirmed is correct.
 - **Handsontable is a library, not an app** — it *implements* the low-level interactions, so tests validate **granular user actions**: scroll (incl. momentum), hover, drag / fill-handle / resize / move, keyboard, IME, touch, RTL, virtualization edges — not app happy-paths. Judge a test by whether it would **catch a real bug in the code it covers**, not only by whether it covers the line.
@@ -566,7 +566,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Type Tests (`*.types.ts`):**
 - Tool: tsc (TypeScript compiler only)
-- Location: `test/types/`
+- Location: `src/**/__tests__/` (82 files); `npm run test:types` compiles them with `test/types/tsconfig.json`
 - Purpose: Verify TypeScript type definitions generated into `handsontable/tmp/` from the `.ts` sources
 
 **Walkontable Tests:**
@@ -704,9 +704,13 @@ it('should maintain selections after render', async() => {
 ```javascript
 {
   testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js'],
-  testRegex: '\\.unit\\.js$',
+  setupFiles: ['<rootDir>/test/cryptoSetup.js'],
+  roots: ['<rootDir>/src', '<rootDir>/test'],
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['json', 'lcov', 'clover'],
+  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js', '<rootDir>/test/jsdomThemeVars.js'],
+  testRegex: '\\.(unit\\.js|unit\\.ts)$',
+  testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   testRunner: 'jest-jasmine2',
   moduleNameMapper: {
     '^handsontable(.*)$': '<rootDir>/src$1',

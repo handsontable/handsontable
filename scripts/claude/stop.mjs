@@ -3,12 +3,13 @@
  * Claude Code Stop hook. When the agent ends a turn, verify the tests it
  * touched this session. Blocks (exit 2, which returns control to the agent with
  * the message) only on unambiguous problems:
- *   - a NEW Jasmine spec was created (new E2E must be Playwright), or
- *   - a Playwright spec the session touched now fails.
+ *   - a NEW Jasmine spec was created (new E2E must be Playwright),
+ *   - a Playwright spec the session touched now fails, or
+ *   - a unit test the session touched now fails.
  *
  * It does NOT hard-block on "source changed without a test" — that fires every
- * turn and would be hostile mid-task; pre-push and CI enforce existence, where
- * the `Refactor-only:` escape is available.
+ * turn and would be hostile mid-task; pre-push enforces existence (CI only
+ * warns), where the `Refactor-only:` escape is available.
  */
 import { execSync, spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
@@ -167,10 +168,12 @@ if (toRun.length > 0) {
   }
 }
 
-// Run any changed Jest unit test the session touched — fast (jest maps to src,
-// no build). One jest per existing file (a single, shell-safe --testPathPattern;
-// never a `|`-joined regex, which run.mjs would append to a shell unquoted). An
-// infra failure (jest could not start) does not block the turn.
+// Run any changed Jest unit test the session touched. Jest maps imports to src,
+// so no bundle is built, but `test:unit` runs `build:styles` first
+// (handsontable/scripts/tasks.json), once per file below. One jest per existing
+// file (a single, shell-safe --testPathPattern; never a `|`-joined regex, which
+// run.mjs would append to a shell unquoted). An infra failure (jest could not
+// start) does not block the turn.
 const unitFiles = changedUnitTests(paths).filter(f => existsSync(path.join(root, f)));
 
 for (const file of unitFiles) {

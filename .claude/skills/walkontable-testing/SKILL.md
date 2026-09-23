@@ -10,15 +10,15 @@ description: Use when writing tests for the Walkontable rendering engine - has i
 
 ## Separate Test Pipeline
 
-Walkontable has its own dedicated test runner. Do NOT run Walkontable tests through the main `test:e2e` or `test:unit` commands -- they will not be picked up.
+Walkontable's specs have their own dedicated test runner. Do NOT run them through the main `test:e2e` command -- they will not be picked up.
 
-- **Run command:** `npm run test:walkontable --prefix handsontable`
+- **Run command:** `npm run test:walkontable --prefix handsontable` (the `test/spec/` specs)
 - **Test location:** `src/3rdparty/walkontable/test/`
 
 The directory contains two sub-pipelines:
 
-- `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap)
-- `test/unit/` -- Unit-style specs for calculators, filters, renderers, and utilities
+- `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap). Only `test:walkontable` runs them.
+- `test/unit/` -- Unit-style tests for calculators, filters, renderers, and utilities (47 `*.unit.ts`/`*.unit.js` files). These are Jest tests: the core `jest.config.js` picks them up, so the main `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
 
 ## Writing Tests
 

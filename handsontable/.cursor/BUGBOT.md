@@ -29,5 +29,5 @@ For core development rules, read:
 
 ## Testing
 
-- Behavior changes should include both `.unit.js` and/or `.spec.js` tests.
+- Behavior changes need the test kind the change calls for (decision table in `handsontable/.ai/TESTING.md`): a Jest unit test (`*.unit.js` / `*.unit.ts`) for logic, a Playwright spec (`tests/e2e/*.spec.ts`) for anything a user can see or do. A new Jasmine `*.spec.js` is not allowed (pre-push blocks it, CI only warns), so flag one; edits to existing ones are fine.
 - Favor E2E tests over unit tests. If a unit test would require mocking, write an E2E test instead.

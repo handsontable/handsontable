@@ -94,10 +94,9 @@ test('every ratcheted rule is warn-level for a .spec.js and a .unit.js path in h
   // id→level map over all overrides would pass with the rules configured for
   // some unrelated glob, which is exactly the mismatch it cannot catch.
   //
-  // `*.unit.ts` is deliberately not asserted: RATCHETED_FILES lists it, but the
-  // override that turns these rules on does not name it today, so a `.unit.ts`
-  // file yields no findings and cannot block. The moment the override names
-  // `*.unit.ts`, the ratchet covers it with no change here.
+  // `*.unit.ts` is in RATCHETED_FILES and in the override that turns these
+  // rules on, so the ratchet covers it. No `.unit.ts` path is listed below,
+  // though, so this test does not pin that override's glob.
   const require = createRequire(import.meta.url);
   // The config lives at a path resolved from the repo root at runtime; the rule wants a literal.
   // eslint-disable-next-line import/no-dynamic-require

@@ -69,7 +69,7 @@ exactly along the bundle axis is about the bundles, not about timing. Why that
 happens, how to tell a stale bundle from a genuine `full.min` difference, and
 what it cost: `tests/AGENTS.md`.
 
-## Four rules (non-negotiable)
+## Five rules (non-negotiable)
 
 1. **Page Object Model.** A spec expresses intent; selectors and interactions live in a page object under `tests/fixtures/pages/`. Never put raw selectors or multi-step flows in a spec — when the DOM shifts, one file changes.
 2. **Hook by `data-testid`, not structural CSS.** Stamp ids in the fixture (or add them to the component when it removes ambiguity). Fall back to role/text locators before ever reaching into grid internals.
