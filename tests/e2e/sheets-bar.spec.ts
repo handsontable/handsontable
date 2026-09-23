@@ -70,6 +70,44 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'edited');
   });
 
+  test('a read-only cell stays read-only when rows move under it', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.setCellMeta(0, 0, 'readOnly', true);
+      (window as never as { hot: any }).hot.render();
+    });
+
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+
+    await page.evaluate(() => (window as never as { hot: any }).hot.alter('insert_row_above', 0));
+
+    await bar.expectCell(1, 0, 'A1');
+    await expect(bar.cell(0, 0)).not.toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).toHaveClass(/htDimmed/);
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+
+    await expect(bar.cell(0, 0)).not.toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).toHaveClass(/htDimmed/);
+
+    await page.evaluate(() => (window as never as { hot: any }).hot.alter('remove_row', 0));
+
+    await bar.expectCell(0, 0, 'A1');
+    await bar.expectCell(1, 0, 'A3');
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).not.toHaveClass(/htDimmed/);
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).not.toHaveClass(/htDimmed/);
+  });
+
   test('a sheet can be activated with the keyboard alone', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

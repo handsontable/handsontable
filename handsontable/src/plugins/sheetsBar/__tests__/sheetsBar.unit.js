@@ -703,6 +703,252 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(1, 0).readOnly).not.toBe(true);
   });
 
+  describe('tracked cell meta across structural changes', () => {
+    /**
+     * Creates a two-sheet grid whose first sheet is `rows` x `cols`, with `readOnly` tracked on
+     * the given visual cells.
+     *
+     * @param {number} rows The number of rows on the first sheet.
+     * @param {number} cols The number of columns on the first sheet.
+     * @param {number[][]} cells The `[row, col]` cells to mark read-only.
+     * @returns {Handsontable}
+     */
+    function createGridWithReadOnlyCells(rows, cols, cells) {
+      const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (__, c) => `${r}:${c}`));
+      const instance = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      cells.forEach(([row, col]) => instance.setCellMeta(row, col, 'readOnly', true));
+
+      return instance;
+    }
+
+    /**
+     * Returns the data of every cell whose meta reads `readOnly: true`.
+     *
+     * @param {Handsontable} instance The grid to scan.
+     * @returns {string[]}
+     */
+    function getReadOnlyCellValues(instance) {
+      const values = [];
+
+      for (let row = 0; row < instance.countRows(); row += 1) {
+        for (let col = 0; col < instance.countCols(); col += 1) {
+          if (instance.getCellMeta(row, col).readOnly === true) {
+            values.push(instance.getDataAtCell(row, col));
+          }
+        }
+      }
+
+      return values;
+    }
+
+    /**
+     * Switches away from the first sheet and back, so the tracked meta is captured and served
+     * again from the sheet's view state.
+     *
+     * @param {Handsontable} instance The grid to switch.
+     */
+    function roundTrip(instance) {
+      instance.getPlugin('sheetsBar').setActiveSheet('B');
+      instance.getPlugin('sheetsBar').setActiveSheet('A');
+    }
+
+    it('moves a tracked property up with its cell when a row above it is removed', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[5, 0]]);
+
+      hot.alter('remove_row', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:0']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:0']);
+    });
+
+    it('drops the tracked properties of a removed row', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[2, 0], [5, 1]]);
+      const sheetId = hot.getPlugin('sheetsBar').getSheets()[0].id;
+      let captured = null;
+
+      hot.addHook('afterSheetTabStateCapture', (id, viewState) => {
+        if (id === sheetId) {
+          captured = viewState;
+        }
+      });
+
+      hot.alter('remove_row', 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:1']);
+
+      roundTrip(hot);
+
+      expect(captured.cellMeta).toEqual([{ row: 4, col: 1, key: 'readOnly', value: true }]);
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:1']);
+    });
+
+    it('re-keys tracked properties across a non-contiguous row removal', () => {
+      hot = createGridWithReadOnlyCells(10, 1, [[1, 0], [4, 0], [6, 0], [9, 0]]);
+
+      hot.alter('remove_row', [[0, 1], [3, 2], [7, 1]]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '6:0', '9:0']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '6:0', '9:0']);
+    });
+
+    it('moves a tracked property down with its cell when rows are inserted above it', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[1, 0], [5, 1]]);
+
+      hot.alter('insert_row_above', 3, 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '5:1']);
+      expect(hot.getCellMeta(7, 1).readOnly).toBe(true);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '5:1']);
+    });
+
+    it('keeps a tracked property on its cell when a row is inserted below it', () => {
+      hot = createGridWithReadOnlyCells(8, 1, [[3, 0]]);
+
+      hot.alter('insert_row_below', 3);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['3:0']);
+      expect(hot.getCellMeta(3, 0).readOnly).toBe(true);
+    });
+
+    it('moves a tracked property left with its cell when a column before it is removed', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 3]]);
+
+      hot.alter('remove_col', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:3']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:3']);
+    });
+
+    it('drops the tracked properties of a removed column', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[0, 1], [2, 3]]);
+
+      hot.alter('remove_col', 1);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['2:3']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['2:3']);
+    });
+
+    it('moves a tracked property right with its cell when columns are inserted before it', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
+
+      hot.alter('insert_col_start', 0, 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+      expect(hot.getCellMeta(1, 4).readOnly).toBe(true);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+    });
+
+    it('keeps a tracked property on its cell when a column is inserted after it', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
+
+      hot.alter('insert_col_end', 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+      expect(hot.getCellMeta(1, 2).readOnly).toBe(true);
+    });
+
+    it('does not re-key the arriving sheet for rows the switch itself creates', () => {
+      const tallData = Array.from({ length: 30 }, (_, r) => [`a${r}`]);
+      const shortData = Array.from({ length: 5 }, (_, r) => [`b${r}`]);
+      const paddedData = Array.from({ length: 8 }, (_, r) => [`c${r}`]);
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: tallData, settings: { minSpareRows: 1 } },
+            { name: 'B', data: shortData },
+            { name: 'C', data: paddedData, settings: { minRows: 12 } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      hot.setCellMeta(10, 0, 'readOnly', true);
+      sheetsBar.setActiveSheet('B');
+      sheetsBar.setActiveSheet('A');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['a10']);
+
+      sheetsBar.setActiveSheet('C');
+      hot.setCellMeta(6, 0, 'readOnly', true);
+      sheetsBar.setActiveSheet('B');
+      sheetsBar.setActiveSheet('C');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['c6']);
+    });
+
+    it('forgets the tracked properties when the host loads a new dataset', () => {
+      hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
+
+      hot.loadData([['n0', 'n0'], ['n1', 'n1'], ['n2', 'n2']]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+    });
+
+    it('keeps the tracked properties when the host updates the dataset in place', () => {
+      hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
+
+      hot.updateData([['u0', 'u0'], ['u1', 'u1'], ['u2', 'u2']]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['u1']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['u1']);
+    });
+
+    it('re-keys against physical indexes when the rows are sorted', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['c'], ['a'], ['d'], ['b']] },
+            { name: 'B', data: [['x']] },
+          ],
+        },
+        columnSorting: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.setCellMeta(3, 0, 'readOnly', true);
+      hot.alter('remove_row', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['d']);
+
+      roundTrip(hot);
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['d']);
+    });
+  });
+
   it('starts a reconfigured workbook from the grid settings, not from the old baseline', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

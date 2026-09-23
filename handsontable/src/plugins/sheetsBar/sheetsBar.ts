@@ -554,6 +554,11 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('afterCreateRow', this.#onAfterCreateRow);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     this.#refreshUI();
@@ -1894,6 +1899,129 @@ export class SheetsBar extends BasePlugin {
       }
     }
   };
+
+  /**
+   * Shifts the tracked rows at or below the first inserted row down by the inserted amount.
+   * The buckets are keyed by physical row, and an insert renumbers every physical row from the
+   * insertion point on — core's `MetaManager` shifts its own cell meta the same way — so a key
+   * left alone would serve its properties onto the cell that now sits at the old index.
+   */
+  #onAfterCreateRow = (visualRow: number, amount: number) => {
+    this.#shiftTrackedCellMetaOnCreate(
+      'row', this.hot.toPhysicalRow(visualRow), amount, this.hot.countSourceRows(),
+    );
+  };
+
+  /**
+   * Drops the tracked buckets of the removed rows and shifts the rows below them up, so each
+   * bucket keeps following its cell.
+   */
+  #onAfterRemoveRow = (visualRow: number, amount: number, physicalRows: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('row', physicalRows);
+  };
+
+  /**
+   * Shifts the tracked columns at or after the first inserted column by the inserted amount,
+   * for the reason `#onAfterCreateRow` gives.
+   */
+  #onAfterCreateCol = (visualColumn: number, amount: number) => {
+    this.#shiftTrackedCellMetaOnCreate(
+      'col', this.hot.toPhysicalColumn(visualColumn), amount, this.hot.countSourceCols(),
+    );
+  };
+
+  /**
+   * Drops the tracked buckets of the removed columns and shifts the columns after them, for the
+   * reason `#onAfterRemoveRow` gives.
+   */
+  #onAfterRemoveCol = (visualColumn: number, amount: number, physicalColumns: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('col', physicalColumns);
+  };
+
+  /**
+   * Forgets every tracked write when the host loads a new dataset. `loadData` clears core's cell
+   * meta, so a surviving bucket would paint the old dataset's `readOnly` or `className` onto
+   * whichever new row sits at that physical index. The plugin's own loads — the initial build
+   * and every switch — are skipped: they bring the arriving sheet's map in themselves.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
+    if (initialLoad || this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    this.#trackedCellMeta = new Map();
+  };
+
+  /**
+   * Moves every tracked bucket at or past `firstPhysicalIndex` on the given axis by `amount`.
+   *
+   * Skipped while a switch runs: the arriving sheet's map is already in place while the outgoing
+   * sheet's data is still loaded, so a row the switch creates for `minRows` or `minSpareRows`
+   * describes the outgoing sheet and would shift the arriving sheet's keys. An append past the
+   * last source index is skipped too — no tracked key sits there, and `minSpareRows` appends
+   * after every edit on the last row.
+   */
+  #shiftTrackedCellMetaOnCreate(
+    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, sourceCount: number,
+  ) {
+    if (
+      this.#isSwitching || this.#trackedCellMeta.size === 0 || firstPhysicalIndex === null ||
+      amount <= 0 || firstPhysicalIndex >= sourceCount - amount
+    ) {
+      return;
+    }
+
+    this.#rekeyTrackedCellMeta(axis, index => (index >= firstPhysicalIndex ? index + amount : index));
+  }
+
+  /**
+   * Drops the tracked buckets on the removed physical indexes of the given axis, and moves every
+   * other bucket back by the number of removed indexes before it. The removed indexes may be
+   * any set — a multi-range `alter` hands them over non-contiguous and unsorted.
+   */
+  #shiftTrackedCellMetaOnRemove(axis: 'row' | 'col', removedPhysicalIndexes: number[]) {
+    if (this.#isSwitching || this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
+      return;
+    }
+
+    const removed = [...new Set(removedPhysicalIndexes)].sort((a, b) => a - b);
+
+    this.#rekeyTrackedCellMeta(axis, (index) => {
+      let low = 0;
+      let high = removed.length;
+
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+
+        if (removed[middle] < index) {
+          low = middle + 1;
+        } else {
+          high = middle;
+        }
+      }
+
+      return removed[low] === index ? null : index - low;
+    });
+  }
+
+  /**
+   * Rebuilds the tracked map with each bucket's index on the given axis passed through
+   * `mapIndex`. A `null` result drops the bucket.
+   */
+  #rekeyTrackedCellMeta(axis: 'row' | 'col', mapIndex: (index: number) => number | null) {
+    const rekeyed = new Map<string, Map<string, unknown>>();
+
+    this.#trackedCellMeta.forEach((bucket, cellKey) => {
+      const [row, col] = cellKey.split(':').map(Number);
+      const mapped = mapIndex(axis === 'row' ? row : col);
+
+      if (mapped !== null) {
+        rekeyed.set(axis === 'row' ? trackedCellKey(mapped, col) : trackedCellKey(row, mapped), bucket);
+      }
+    });
+
+    this.#trackedCellMeta = rekeyed;
+  }
 
   /**
    * Serves the tracked cell-meta writes lazily, the moment a cell's meta is actually read —
