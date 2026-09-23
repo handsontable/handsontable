@@ -107,6 +107,46 @@ test.describe('root size options', () => {
       expect(await grid.renderedRows()).toBeLessThan(200);
     });
 
+    for (const containerClass of ['heightless-hidden', 'heightless-auto']) {
+      test(`renders at its rows' height inside a \`${containerClass}\` parent with no height (DEV-3062)`, async () => {
+        await grid.rebuild({
+          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+          colWidths: undefined,
+          height: 'auto',
+          width: 'auto',
+        }, containerClass);
+
+        // The parent clips or scrolls, so it owns both axes, but its height is its content: a
+        // holder sized to it would take its 0px and hide the grid.
+        expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+
+        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+
+        const sizes = await grid.verticalSizes();
+
+        expect(sizes.tableHeight).toBeGreaterThan(0);
+        expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+        expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+        expect(await grid.renderedRows()).toBe(3);
+      });
+    }
+
+    test('leaves a heightless `overflow: hidden` parent at the rows\' height after `updateSettings()` (DEV-3062)', async () => {
+      await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, 'heightless-hidden');
+
+      expect((await grid.verticalSizes()).parentHeight).toBe(300);
+
+      await grid.updateSettings({ height: 'auto' });
+
+      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+
+      const sizes = await grid.verticalSizes();
+
+      expect(sizes.holderHeight).toBeGreaterThan(0);
+      expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+      expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+    });
+
     test('flips the clip and the scroll owner both ways through `updateSettings()`', async () => {
       await grid.rebuild({ height: 300 });
 

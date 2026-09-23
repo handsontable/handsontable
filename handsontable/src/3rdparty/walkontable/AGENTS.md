@@ -828,7 +828,20 @@ feeds it back – with two grids in the parent each holder takes the sum of both
 to the CSS height limit (issue #3119, the same loop the element mode's clone probe guards
 against). `alignHolderWithSplitOwners` runs that probe (`measureIntrinsicHeight`) on every full
 draw whenever the vertical owner is an element; the common split layout (vertical owner = window)
-never probes. `ScrollSync#scrollableElement` stays the holder
+never probes. **The element mode answers the same probe differently, on purpose, and only the host
+can override it.** When ONE element owns both axes and has no intrinsic height, the element mode
+writes `auto` only for the `overflow-x: auto|scroll` + non-scrolling `overflow-y` shape; any other
+heightless owner (`overflow: hidden`, `overflow: auto`, no `height`) keeps `0px`, and the engine
+specs in `test/spec/table/table/master.spec.js` pin that for a host that asked for nothing. So a
+Handsontable `height: 'auto'` grid in such a parent rendered at 0px once core stopped clipping the
+root for `'auto'` (DEV-3062, a regression from DEV-2789: before it, the clipped root was the owner
+and its inline `height: auto` hit the `trimmingHeight === 'auto'` branch). The host now says so
+through the `heightFollowsContent` setting (`TableView#isHeightContentDriven`, the root's inline
+`height === 'auto'`), which turns a zero probe into `auto` in the element mode, and it is part of the
+trimming-cache fingerprint because flipping `height` between `'auto'` and unset moves no box. Do not
+widen that `auto` to every heightless owner: an unset `height` in the same parent has been 0px since
+before 18.1, and `auto` there renders every row of the dataset (the parent grows to the hider, and the
+workspace with it). `ScrollSync#scrollableElement` stays the holder
 whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
 bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
 read off each overlay's own `mainTableScrollableElement`.
