@@ -7,6 +7,10 @@ import {
   forPaginationClickLastPageButton,
 } from '../../../../src/page-helpers';
 
+/**
+ * Checks that, in RTL, the first, previous, next, and last page buttons move the page and update the
+ * pagination controls. One capture after each move. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

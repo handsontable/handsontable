@@ -5,6 +5,10 @@ import {
   makeSelectionFromCell,
 } from '../../../src/page-helpers';
 
+/**
+ * Checks that the custom borders of the custom-borders demo stay in place beside a selection dragged 200 px
+ * from a bordered cell. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

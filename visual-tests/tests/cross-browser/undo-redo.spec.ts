@@ -18,7 +18,12 @@ const urls = [
 ];
 
 urls.forEach((url) => {
-  visualTest(`Test rows resizing for: ${url}`, {
+  /**
+   * Checks that an edited cell value is undone and then redone on this demo route: the captures show the
+   * edit, the undone value, and the redone one. One capture per route in `urls`, in each browser. Owned by
+   * DEV-2981.
+   */
+  visualTest(`Test undo and redo for: ${url}`, {
     themes: [CLASSIC],
     browsers: CROSS_BROWSERS,
     wrappers: [],
@@ -37,6 +42,7 @@ urls.forEach((url) => {
     await cellEditor.fill('test');
     await cellEditor.press('Enter');
 
+    // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
     await tablePage.screenshot({ path: helpers.screenshotPath() });
     await undo();
     await tablePage.screenshot({ path: helpers.screenshotPath() });

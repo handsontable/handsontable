@@ -1,6 +1,10 @@
 import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
+/**
+ * Checks where Tab and Shift+Tab move the focus between the two tables of the basic two-tables demo. Each
+ * capture shows the focused table after one run of key presses. Owned by DEV-2981.
+ */
 visualTest('Test focus on Shift+Tab navigation', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

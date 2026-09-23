@@ -9,6 +9,10 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
+/**
+ * Checks that the select editor opens, with its list in place, on the complex demo in RTL. Owned by
+ * DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

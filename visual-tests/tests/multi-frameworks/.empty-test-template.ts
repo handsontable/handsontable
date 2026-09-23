@@ -3,7 +3,9 @@ import { helpers } from '../../src/helpers';
 
 /**
  * Say what this capture proves that a `tests/e2e` assertion cannot — the decision rule in
- * ../../AGENTS.md is what settles whether a screenshot is the right tool at all.
+ * ../../AGENTS.md is what settles whether a screenshot is the right tool at all — and name the ticket
+ * that owns it: DEV-<number>, or a GitHub issue as #<number>. The spec lint rejects a block that names
+ * no ticket, so a copy fails until this placeholder is replaced.
  */
 visualTest(__filename, {
   // The default for a new spec: two themes, one browser, no wrapper. Add `CLASSIC` to `themes` when the

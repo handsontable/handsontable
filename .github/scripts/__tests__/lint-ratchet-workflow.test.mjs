@@ -78,6 +78,23 @@ test('a failed refresh of the base branch is a warning, not a red job', () => {
   );
 });
 
+test('the visual-tests job runs the lint config self-test after the lint, under the same scope', () => {
+  // `visual-tests/test/__tests__/determinism-lint.test.mjs` is the only proof that the capture-adjacency
+  // rule matches anything: a selector esquery cannot use lints green. It imports ESLint, so this job — which
+  // has the workspace installed — is its only runner, and dropping the step switches the proof off silently.
+  const visual = jobsOf(source).find(job => job.name === 'visual-tests');
+
+  assert.ok(visual, 'lint.yml has no `visual-tests` job');
+  assert.match(visual.body, /\n\s+if: inputs\.run-visual\n/, 'the visual-tests job lost its scope gate');
+
+  const lintAt = visual.body.indexOf('run: npm run in visual-tests lint\n');
+  const selfTestAt = visual.body.indexOf('run: npm run in visual-tests test:lint-config\n');
+
+  assert.ok(lintAt > -1, 'the visual-tests job no longer runs the lint');
+  assert.ok(selfTestAt > -1, 'the visual-tests job no longer runs the lint config self-test');
+  assert.ok(lintAt < selfTestAt, 'the self-test must run after the lint it proves');
+});
+
 test('the core checkout has the history the merge-base needs exactly when the ratchet runs', () => {
   // A one-commit clone cannot reach the fork point; a full clone on every lint
   // run pays for a pack close to a gigabyte. The checkout depth carries the

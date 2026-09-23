@@ -7,6 +7,10 @@ import {
   SortDirection,
 } from '../../src/page-helpers';
 
+/**
+ * Checks that a two-column sort (Country descending, then Qty ascending) renders both sort indicators and
+ * their order numbers. Owned by DEV-2981.
+ */
 visualTest('Test column multi-sorting', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

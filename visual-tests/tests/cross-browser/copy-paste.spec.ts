@@ -6,6 +6,11 @@ import {
 } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
+/**
+ * Checks that a value copied from one table pastes into a writable cell of the other table and not into a
+ * read-only one. It asserts the cell text and captures nothing: a functional check kept in this suite for
+ * its three browsers. Owned by DEV-2981.
+ */
 visualTest('Copy between tables', {
   themes: [CLASSIC],
   browsers: ['chromium'],
@@ -40,6 +45,10 @@ visualTest('Copy between tables', {
   expect(await tableTopCellReadOnly.innerText()).not.toBe(copiedText);
 });
 
+/**
+ * Checks that copy, paste, and cut move cell values inside one table. It asserts the cell text and captures
+ * nothing: a functional check kept in this suite for its three browsers. Owned by DEV-2981.
+ */
 visualTest('Copy/Paste/Cut inside table', {
   themes: [CLASSIC],
   browsers: ['chromium'],
@@ -73,6 +82,10 @@ visualTest('Copy/Paste/Cut inside table', {
   expect(await cutCell.innerText()).toBe('');
 });
 
+/**
+ * Checks that a range selected across a scroll (Shift+click on the far bottom-right cell) is copied whole,
+ * and pasted at the top-left of the grid. The capture shows the pasted block. Owned by DEV-2981.
+ */
 visualTest('Copy and paste data in a scrolled table', {
   themes: [CLASSIC],
   browsers: ['chromium'],
@@ -121,11 +134,16 @@ visualTest('Copy and paste data in a scrolled table', {
 
   await tablePage.keyboard.press(`${helpers.modifier}+v`);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await targetCell.innerText()).toBe('B2');
 });
 
+/**
+ * Checks the same range cut and then pasted: the first capture shows the emptied source, the second the
+ * pasted block. Owned by DEV-2981.
+ */
 visualTest('Cut and paste data in a scrolled table', {
   themes: [CLASSIC],
   browsers: ['chromium'],
@@ -179,11 +197,17 @@ visualTest('Cut and paste data in a scrolled table', {
 
   await tablePage.keyboard.press(`${helpers.modifier}+v`);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await targetCell.innerText()).toBe('B2');
 });
 
+/**
+ * Checks that copy, paste, and cut work in a grid initialized as a web component (`<hot-table>`). It
+ * asserts the cell text and captures nothing: a functional check kept in this suite for its three browsers.
+ * Owned by DEV-2981.
+ */
 visualTest('Copy/Paste/Cut table initialized as web component', {
   themes: [CLASSIC],
   browsers: ['chromium'],

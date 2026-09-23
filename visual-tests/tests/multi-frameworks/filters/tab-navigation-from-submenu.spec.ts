@@ -3,7 +3,9 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * Checks whether pressing the Tab moves the focus to the filter's components.
+ * Meant to check that Tab from the "Alignment" submenu closes it and moves the focus to the first filters
+ * component. The submenu never opens: the three ArrowDown presses stop short of "Alignment", so the first
+ * capture is the plain menu. DEV-2981 repairs the keystrokes or converts the coverage. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -22,16 +24,19 @@ visualTest(__filename, {
   await tablePage.keyboard.press('ArrowRight'); // opens the "Alignment" submenu
 
   // take a screenshot of the submenu
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   // should close the submenu and focus the first filters component
   await tablePage.keyboard.press('Tab');
 
   // take a screenshot of the dropdown menu where the first filter's component is focused
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Tab');
 
   // take a screenshot of the focused search input element
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

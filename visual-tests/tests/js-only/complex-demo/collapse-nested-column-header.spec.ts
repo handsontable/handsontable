@@ -8,6 +8,10 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
+/**
+ * Checks that collapsing the nested-header group "I" on the complex demo renders the collapsed header and
+ * hides the columns under it. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

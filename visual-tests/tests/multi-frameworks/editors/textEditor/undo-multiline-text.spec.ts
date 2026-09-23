@@ -3,7 +3,8 @@ import { helpers } from '../../../../src/helpers';
 import { selectCell, selectEditor, openEditor } from '../../../../src/page-helpers';
 
 /**
- * Checks whether Control+Z undoes the last action for multiline text.
+ * Checks whether Control+Z undoes the last action for multiline text: three line breaks are added, then
+ * undone one at a time. One capture before the first undo and one after each. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

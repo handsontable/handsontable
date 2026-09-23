@@ -12,6 +12,11 @@ import {
   FilterConditions,
 } from '../../../src/page-helpers';
 
+/**
+ * Checks that `pageSize: 'auto'` fits each page to a grid of fixed height: after filtering and sorting,
+ * while paging forward, after the grid's height changes to 300 px, while paging back, and on the last page.
+ * Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

@@ -7,7 +7,8 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks if active class is applied on the filtered column header with nested headers.
+ * Checks that a nested-header group with long labels collapses when Shift+Tab reaches its header and Enter
+ * is pressed. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

@@ -2,6 +2,10 @@ import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runn
 import { helpers } from '../../src/helpers';
 import { columnsCount } from '../../src/page-helpers';
 
+/**
+ * Checks that dragging the "Company name" header onto "Rating" moves the column, and shows it in its new
+ * place. Owned by DEV-2981.
+ */
 visualTest('Test column moving', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,
@@ -17,5 +21,6 @@ visualTest('Test column moving', {
   await tablePage.mouse.down();
   await tablePage.getByRole('columnheader', { name: 'Rating' }).hover({ position: { x: 50, y: 0 } });
   await tablePage.mouse.up();
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.up(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
