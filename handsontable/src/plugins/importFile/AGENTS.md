@@ -86,7 +86,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `''=1+1` is not recognized as escaped and renders with both apostrophes. The import keeps the file's
   character in `data` (which is what a re-export writes) rather than losing it; rendering it as one
   apostrophe would need `isEscapedFormulaExpression` to count them, which is a Formulas-plugin change and
-  a behavior change for every grid, not an import one.
+  a behavior change for every grid, not an import one. The same non-nesting marker makes the two file
+  spellings COLLIDE: a file cell reading `'=1+1` and one reading `''=1+1` both land in `data` as `''=1+1`,
+  so after an import the reader cannot tell which the file held. The import guide states the visible half
+  (the doubled apostrophe on screen); state the collision here, because it is what a round-trip test would
+  otherwise read as a mapper bug.
 - **The lossy reads the adapter reports, and why each is only a report.** `hyperlink` (the text is kept, the
   URL is not — and a hyperlink's text may ITSELF be a rich-text run list, nested one level below the cell
   value, so both `hyperlinkText` and the `richText` report have to look there too), `richText` (the text is
@@ -312,7 +316,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
   (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
   is a row in the import guide's dropped-features table. The one name built from the file's own value,
-  `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`.
+  `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`, which BOUNDS what the
+  file can put in the result: 64 characters per value, control characters replaced, and 32 distinct
+  file-driven names per read before the rest count into `numFmt:other`. Do not rebuild that name by hand.
 - **Merges, hidden rows/columns, and frozen panes are cropped to the import window**, not dropped outright.
   A `range`, a promoted header row, or a dropped row-header column each shift the window; a merge that
   crosses it is cropped to what remains inside, and only dropped when nothing or a single cell remains.
