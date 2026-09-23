@@ -568,6 +568,23 @@ jobs:
 
           node ./visual-tests/scripts/visual-gate.mjs
 
+      # The golden set's size, as a number somebody has to change on purpose.
+      # Runs AFTER the verdict because it prepends its section to the comment the
+      # verdict wrote, and BEFORE the mirror so the job summary carries both. It
+      # needs no credentials: the comparison result is already on disk and the
+      # description comes from the event payload.
+      #
+      # `always()` for the same reason the verdict has it: a comparison that
+      # failed still rendered something, and a build that grew the set by 200
+      # records while failing for an unrelated reason is exactly when nobody
+      # looks. The body goes through the environment rather than into the script
+      # line, so a description containing backticks is text and not shell.
+      - name: Visual budget
+        if: always() && github.event_name == 'pull_request'
+        env:
+          VISUAL_PR_BODY: ${{ github.event.pull_request.body }}
+        run: node ./visual-tests/scripts/visual-budget.mjs
+
       # One sticky comment, rewritten in place, carrying the counts, the report
       # link and how to accept the changes. Fork runs have no write token, so
       # they are excluded by the same guard the rest of the repo uses.

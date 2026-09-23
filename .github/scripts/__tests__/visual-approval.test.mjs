@@ -154,6 +154,17 @@ test('nothing lets the verdict go missing while compare stays green', () => {
   assert.ok(writesOutput > -1 && setsExitCode > -1, 'the wrapper no longer has both halves');
   assert.ok(writesOutput < setsExitCode,
     'the verdict output must be written before the exit-code branch, or a blocked run exports no verdict');
+
+  // The budget step can fail the compare job, and it runs AFTER the verdict, so the verdict output is
+  // already written when it does. Reversed, a budget violation would abort the job before the gate ever
+  // exported `verdict`, and `approve` keys on that output — differences would then pass with nothing
+  // reviewed, which is failure mode 1 arriving through a new door. A budget violation reds the compare
+  // job, and a red compare cannot be approved away: `approve` carries `!failure()`.
+  const budgetStep = compare.indexOf('- name: Visual budget');
+
+  assert.ok(budgetStep > compare.indexOf('- name: Visual verdict'),
+    'the Visual budget step must run after the verdict, or a budget violation aborts the job before the '
+      + 'gate exports `verdict` and the approve job is skipped with differences unreviewed');
 });
 
 test('the approve job requests the permission its API call needs', () => {

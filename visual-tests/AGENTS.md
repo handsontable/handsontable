@@ -551,12 +551,23 @@ which of these run locally and which only in CI.
   `cross-browser/merging.spec.ts` — so no golden record moved; the
   23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` until the consolidation audit gives each one
   a reason of its own.
-- **G3 · The golden budget** — not yet landed. `visual-tests/visual-budget.json` holds one count per
-  golden prefix (the eleven keys the prune uses) and a per-spec capture cap keyed by reg-suit stem, each
-  exception carrying a ticket; the `Visual budget` step of the Compare job reads `.reg/out.json`, blocks a
-  render over the file, and requires `[visual budget: N – reason]` in the pull request body on any net
-  growth (N = the full-tier total after the change; a render under budget asks you to lower the file in the
-  same pull request). The PR template's comment block documents the marker.
+- **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
+  prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
+  exception carrying the ticket that will bring it down (nine today, all DEV-2981). The `Visual budget`
+  step of the Compare job reads `.reg/out.json`, blocks a render over the file, and requires
+  `[visual budget: N – reason]` in the pull request body on any net growth — N is the full-tier total
+  after the change, and the file has to sum to it, so the number is stated twice by someone who meant it.
+  The marker is comment-stripped, so the PR template's documented example cannot authorise a growth.
+  Three things are worth knowing before changing it. The ceiling is **per prefix**, never on the total: a
+  `pr`-tier build renders two of the eleven, and its 480 records would clear a 1676 ceiling without
+  meaning anything. It reads the **raw** `out.json`, so a quarantined item (G5) still counts as
+  rendered — quarantining subtracts from the failing count, and must never also subtract from the size.
+  And a render **under** budget is not a violation: that is what a trim looks like, so the comment says
+  so and asks for the file to come down in the same pull request. `lib/visual-budget.mjs` is the
+  judgement, `scripts/visual-budget.mjs` the wrapper (`npm run in visual-tests budget`), and it prepends
+  its section to the comment the verdict wrote — which is why it runs between `Visual verdict` and
+  `Mirror the verdict to the job summary`, pinned in
+  `.github/scripts/__tests__/visual-budget.test.mjs`.
 - **G4 · The capture lint and the spec docblock** — not yet landed. A capture on the statement after an
   unasserted pointer or keyboard primitive (`click`, `dblclick`, `hover`, `press`, `type`, `fill`,
   `dragTo`, `mouse.*`, `keyboard.*`) becomes a `no-restricted-syntax` error in `visual-tests/.eslintrc.js`,

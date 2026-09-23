@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import {
   SKIP_MARKER, MULTIPLE_MARKER, requiresChangelog, stripHtmlComments, evaluateChangelogGate,
 } from '../lib/changelog-gate.mjs';
+import { stripHtmlComments as visualStripHtmlComments } from '../../../visual-tests/lib/strip-html-comments.mjs';
 
 // --- requiresChangelog: shippable-source classification ---
 const REQUIRES_CASES = [
@@ -250,4 +253,60 @@ test('a non-numeric entry filename still counts toward the ceiling', () => {
 
   assert.equal(verdict.reason, 'too-many-entries');
   assert.equal(verdict.entries.length, 3);
+});
+
+// --- the copy visual-tests/ carries ---
+
+/**
+ * The body of `stripHtmlComments`, without its docblock.
+ *
+ * The two files document the function differently on purpose — the copy explains that it IS a copy —
+ * so the pin is on the code rather than on the file.
+ *
+ * @param {string} source A module's source.
+ * @returns {string} Everything from the signature to the closing brace at column 0.
+ */
+function stripHtmlCommentsBody(source) {
+  const start = source.indexOf('export function stripHtmlComments(body) {');
+
+  assert.notEqual(start, -1, 'stripHtmlComments is gone, or its signature changed');
+
+  const end = source.indexOf('\n}', start);
+
+  assert.notEqual(end, -1, 'stripHtmlComments has no closing brace at column 0');
+
+  return source.slice(start, end);
+}
+
+test('the visual budget carries a copy of stripHtmlComments, and it has not drifted', () => {
+  // Copied rather than imported: `visual-tests/` is its own package, and a relative import across the
+  // tree works from a checkout and breaks the moment either side is packaged or moved. A silent break
+  // there means the budget marker stops being read at all, so growth would pass unremarked.
+  //
+  // Pinned two ways, because the failure modes differ. The text pin catches a fix applied to one copy
+  // and not the other; the behavioural one catches a rewrite that looks equivalent and is not — which
+  // is the shape CodeQL flagged here in the first place (a single pass can reassemble a comment from
+  // the text around a removed one).
+  const root = path.join(import.meta.dirname, '../../..');
+  const original = readFileSync(path.join(root, '.github/scripts/lib/changelog-gate.mjs'), 'utf8');
+  const copy = readFileSync(path.join(root, 'visual-tests/lib/strip-html-comments.mjs'), 'utf8');
+
+  assert.equal(stripHtmlCommentsBody(copy), stripHtmlCommentsBody(original),
+    'visual-tests/lib/strip-html-comments.mjs has drifted from .github/scripts/lib/changelog-gate.mjs; '
+    + 'fix both, or the two gates disagree about what a commented marker means');
+
+  const corpus = [
+    '',
+    'plain text',
+    '<!-- [visual budget: 1 — x] -->',
+    'before <!-- a --> middle <!-- b --> after',
+    'nested <!-- outer <!-- inner --> still',
+    'dangling <!-- to the end',
+    '<!--<!-- reassembled --3E-->',
+  ];
+
+  corpus.forEach((body) => {
+    assert.equal(visualStripHtmlComments(body), stripHtmlComments(body),
+      `the two copies disagree on: ${JSON.stringify(body)}`);
+  });
 });
