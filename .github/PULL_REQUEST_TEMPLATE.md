@@ -19,13 +19,13 @@ Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 Visual budget: a change that grows the golden set (a new visual spec, a new
 capture) declares it with [visual budget: N – reason] in this description
 OUTSIDE any HTML comment — here, inside a comment, it is inert. N is the
-full-tier golden total after the change (1676 on 2026-09-18). The `Visual
-budget` step of Visual / Compare reads the live description and refuses
-undeclared net growth; a render under the checked-in budget asks you to lower
-visual-tests/visual-budget.json in the same PR. That step is the golden-budget
-guardrail (G3); until it lands, the marker is read by nothing and costs nothing.
-What earns a capture at all is visual-tests/AGENTS.md → Decision rule; the
-budget, with whether it has landed, is under Guardrails there.
+full-tier golden total after the change, and it has to match what
+visual-tests/visual-budget.json sums to — update both. The `Visual budget` step
+of Visual / Compare reads the live description and refuses a pull request that
+raises that file without saying so; a render OVER the file fails whether or not
+the marker is there. A render under it asks you to lower the file in the same
+PR, which the tooling suite then requires anyway. What earns a capture at all is
+visual-tests/AGENTS.md → Decision rule; the budget is under Guardrails there.
 
 Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
 excluded) requires a new .changelogs/*.json entry — run `npm run changelog

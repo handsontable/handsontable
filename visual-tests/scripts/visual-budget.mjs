@@ -14,10 +14,11 @@
  *
  *   VISUAL_GATE_DIR    where `out.json` is and `comment.md` was written (default: `.reg/`)
  *   VISUAL_BUDGET_FILE the budget file (default: `visual-tests/visual-budget.json`)
- *   VISUAL_PR_BODY     the live pull-request description, for the growth marker
- *   GITHUB_EVENT_NAME  whether a marker can be asked for at all
- *   VISUAL_BOOTSTRAP   set by the workflow when the branch had no baseline, so every rendered record is
- *                      reported as new and no marker is asked for
+ *   VISUAL_PR_BODY_FILE     the LIVE description, written by the workflow's github-script step
+ *   VISUAL_PR_BODY          the event payload's description, used only when the live read failed
+ *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it, which is what makes "did this
+ *                           pull request raise it" answerable
+ *   GITHUB_EVENT_NAME       whether a marker can be asked for at all
  *
  * Exits 1 on a violation. A missing `out.json` — the bootstrap path, where there is no comparison —
  * exits 0: there is nothing to judge, and failing there would block the first build on a new branch.
@@ -44,12 +45,39 @@ try {
 
 const budget = JSON.parse(await readFile(BUDGET_FILE, 'utf-8'));
 
+// The LIVE description, falling back to the event payload. The payload is frozen at the triggering
+// event and `test.yml` has no `edited` trigger, so an author who adds the marker after opening the pull
+// request is invisible to it — and the gate would print a remedy they cannot apply without pushing a
+// commit and paying a full re-render. A stale body can only ask for a marker that is already there:
+// a false red, never a false green.
+let body = process.env.VISUAL_PR_BODY ?? '';
+
+if (process.env.VISUAL_PR_BODY_FILE) {
+  try {
+    body = await readFile(process.env.VISUAL_PR_BODY_FILE, 'utf-8');
+  } catch {
+    console.log('No live pull-request body on disk; falling back to the event payload.');
+  }
+}
+
+// The base branch's budget file. Absent means the growth question cannot be answered, which the verdict
+// reports rather than passing over — see evaluateBudget().
+let baseBudget = null;
+
+if (process.env.VISUAL_BUDGET_BASE_FILE) {
+  try {
+    baseBudget = JSON.parse(await readFile(process.env.VISUAL_BUDGET_BASE_FILE, 'utf-8'));
+  } catch {
+    console.log('No base-branch budget file on disk; the growth check will report that it did not run.');
+  }
+}
+
 const verdict = evaluateBudget({
   report,
   budget,
-  body: process.env.VISUAL_PR_BODY ?? '',
+  body,
+  baseBudget,
   isPullRequest: process.env.GITHUB_EVENT_NAME === 'pull_request',
-  bootstrap: process.env.VISUAL_BOOTSTRAP === 'true',
 });
 
 // Prepended, not merged: the visual gate's own wording is pinned by regex in visual-gate.test.mjs, and

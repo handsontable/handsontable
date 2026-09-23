@@ -295,6 +295,17 @@ test('the visual budget carries a copy of stripHtmlComments, and it has not drif
     'visual-tests/lib/strip-html-comments.mjs has drifted from .github/scripts/lib/changelog-gate.mjs; '
     + 'fix both, or the two gates disagree about what a commented marker means');
 
+  // The input that separates the fixed-point loop from a single `.replace()`: one pass removes the
+  // inner comment and leaves `A <!-- b --> C`, which is a comment the loop then removes too. Asserted
+  // against its EXPECTED VALUE rather than copy-against-original, because two copies that are wrong
+  // the same way agree with each other — which is exactly what happens when someone simplifies both
+  // files together, the edit the byte-for-byte pin above is designed to permit.
+  assert.equal(stripHtmlComments('A <!<!-- x -->-- b --> C'), 'A  C',
+    'stripping must repeat to a fixed point; a single pass leaves a comment the first pass assembled '
+    + '(CodeQL js/incomplete-multi-character-sanitization)');
+  assert.equal(visualStripHtmlComments('A <!<!-- x -->-- b --> C'), 'A  C',
+    'the visual-tests copy must strip to a fixed point too');
+
   const corpus = [
     '',
     'plain text',
@@ -302,7 +313,7 @@ test('the visual budget carries a copy of stripHtmlComments, and it has not drif
     'before <!-- a --> middle <!-- b --> after',
     'nested <!-- outer <!-- inner --> still',
     'dangling <!-- to the end',
-    '<!--<!-- reassembled --3E-->',
+    'A <!<!-- x -->-- b --> C',
   ];
 
   corpus.forEach((body) => {

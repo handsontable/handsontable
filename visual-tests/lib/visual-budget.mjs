@@ -131,30 +131,41 @@ export function budgetTotal(budget) {
  * 1. did this build render a prefix nobody budgeted? A new variant is the largest possible growth and
  *    the easiest to add by accident — a tier gains a theme and 240 records arrive with it;
  * 2. is any prefix over its number? Per prefix, never on the total, because a `pr`-tier build renders
- *    two of the eleven and its 468 records would clear a 1676 ceiling without meaning anything;
+ *    two of the eleven and its 480 records would clear a 1676 ceiling without meaning anything;
  * 3. does any spec take more captures than the cap allows, without a ticketed exception?
- * 4. and if the set grew, did the author say so in the description and update the file to match?
+ * 4. and did this pull request RAISE the file? If so the description has to say so, with the number.
  *
- * Shrinking is never a violation, and the reason is sharper than "a trim is allowed to". A render that
- * FAILED produces no screenshot, so reg-suit reports that item as deleted and the build comes in under
- * its number — a flake would fail the budget as well as the comparison, on a gate that has nothing to
- * do with it. Under-budget is therefore a note: a trimming pull request is expected to look like that
- * (`deleted > 0` and `rendered < budget` together), and so is an unlucky one. The note asks for the
- * file to be lowered in the same change, which is the part a human has to do.
+ * Question 4 keys on the budget FILE's own diff against the base branch, not on reg-suit's
+ * `newItems`/`deletedItems`. Three things go wrong when it keys on the counts instead, and all three
+ * were found by review rather than by reasoning:
  *
- * The cost of that choice, stated rather than hidden: a trim that does not lower the file leaves
- * headroom, and later growth into it is free. The ceiling is a ceiling, not a high-water mark.
+ * - a rename nets to zero — the same count deleted and added — while the set is free to grow around it;
+ * - a bootstrap build has no baseline, so every rendered record is reported as new; the check then has
+ *   to be switched off there, and the first pull request into a new base branch can add any number of
+ *   records while raising the ceiling to match, in the same commit, with nothing red. On `lts/*`, where
+ *   nothing re-seeds, that render becomes the permanent baseline;
+ * - and a build that adds records WITHOUT raising the file is already caught by question 2, so keying
+ *   on the counts was asking the same question twice and missing the one that mattered.
+ *
+ * Shrinking is never a violation: a trim, and a spec that stops declaring a variant, both legitimately
+ * render fewer records than the file allows — the shape `visual-tests/AGENTS.md` → Tiers describes,
+ * where a trim shows `deleted > 0` and a count under the budget together. The note asks for the file to
+ * come down in the same change. It cannot be left undone: `lib/__tests__/visual-declarations.test.mjs`
+ * derives the eleven counts from the checked-in specs and asserts them EQUAL to this file, so a trim
+ * that does not lower it fails the tooling suite. Under-budget is a note here because the render is not
+ * where that is enforced, not because nothing enforces it.
  *
  * @param {object} options Everything the judgement needs.
  * @param {object} options.report The raw reg-suit `out.json` for this build.
  * @param {object} options.budget The parsed `visual-budget.json`.
  * @param {string} [options.body] The pull-request description, for the growth marker.
  * @param {boolean} [options.isPullRequest] Whether a marker can be asked for at all.
- * @param {boolean} [options.bootstrap] Whether this build is seeding a branch that had no baseline.
+ * @param {object|null} [options.baseBudget] The budget file as the BASE branch has it, or null when it
+ * could not be read — in which case the growth question is reported as unanswered rather than passed.
  * @returns {{pass: boolean, violations: string[], notes: string[], comment: string, summary: string}}
  * The verdict, the reasons, and the section to prepend to the gate's comment.
  */
-export function evaluateBudget({ report, budget, body = '', isPullRequest = true, bootstrap = false }) {
+export function evaluateBudget({ report, budget, body = '', isPullRequest = true, baseBudget = null }) {
   const items = renderedItems(report);
   const rendered = countByPrefix(items);
   const violations = [];
@@ -213,33 +224,34 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
     }
   });
 
-  const grew = (report?.newItems?.length ?? 0) > (report?.deletedItems?.length ?? 0);
   const marker = readMarker(body);
   const total = budgetTotal(budget);
 
-  // On a bootstrap there is no baseline, so reg-suit calls EVERY rendered record new and this would
-  // demand a marker for the whole set — 480 records on the first pull request into a branch that has
-  // none. Nothing grew; there was simply nothing to compare against. The ceiling still applies, which is
-  // the check that matters there.
-  if (grew && isPullRequest && !bootstrap) {
-    const net = (report.newItems.length) - (report.deletedItems?.length ?? 0);
+  if (isPullRequest && baseBudget === null) {
+    notes.push('The budget file on the base branch could not be read, so this build cannot tell whether '
+      + 'the pull request raised it. The ceiling above still applies; the growth check did not run.');
+  } else if (isPullRequest) {
+    const baseTotal = budgetTotal(baseBudget);
 
-    if (!marker) {
-      violations.push(`This build adds ${net} record(s) net. Growing the golden set needs `
-        + `\`${MARKER_TEMPLATE}\` in the pull-request description, with N the new full-tier total, and `
-        + 'visual-budget.json updated to match. Every record is rendered, stored and compared on every '
-        + 'build from now on, so the number is worth typing by hand.');
-    } else if (marker.total !== total) {
-      violations.push(`The description declares a total of ${marker.total} and visual-budget.json sums `
-        + `to ${total}. Whichever is right, the other is the one to change — the marker exists so the `
-        + 'number is stated twice by someone who meant it.');
+    if (total > baseTotal) {
+      if (!marker) {
+        violations.push(`This pull request raises the golden budget from ${baseTotal} to ${total}. `
+          + `Say so in the description with \`${MARKER_TEMPLATE}\`, where N is ${total}. Every record is `
+          + 'rendered, stored and compared on every build from now on, so the number is worth typing by '
+          + 'hand.');
+      } else if (marker.total !== total) {
+        violations.push(`The description declares a total of ${marker.total} and visual-budget.json sums `
+          + `to ${total}. Whichever is right, the other is the one to change — the marker exists so the `
+          + 'number is stated twice by someone who meant it.');
+      }
     }
   }
 
-  if (!grew && (report?.deletedItems?.length ?? 0) > 0 && notes.length > 0) {
+  if ((report?.deletedItems?.length ?? 0) > 0 && notes.length > 0) {
     notes.push('This build deletes records and comes in under its own numbers, which is what a '
-      + 'trimming change looks like. Lower the prefixes in visual-budget.json in this pull request, or '
-      + 'the ceiling stays where the set used to be.');
+      + 'trimming change looks like. Lower the prefixes in visual-budget.json in this pull request — '
+      + 'the declaration sweep in lib/__tests__/visual-declarations.test.mjs asserts the file EQUALS '
+      + 'what the specs derive, so leaving it high fails the tooling suite rather than passing quietly.');
   }
 
   const pass = violations.length === 0;

@@ -19,7 +19,7 @@ import {
 // in the pull-request description is for.
 //
 // What these pin is the shape of the judgement rather than today's counts: per prefix and never on the
-// total (a pr-tier build renders two of eleven, and 468 clears a 1676 ceiling without meaning
+// total (a pr-tier build renders two of eleven, and 480 clears a 1676 ceiling without meaning
 // anything), the raw item list so quarantining cannot shrink the set, and growth refused unless the
 // author states the new number and the file agrees with them.
 
@@ -52,26 +52,6 @@ function reportWith(counts, extra = {}) {
  */
 function atBudget() {
   return { ...BUDGET.prefixes };
-}
-
-/**
- * A build that grew, while still rendering exactly its budgeted number.
- *
- * The new items are MOVED out of the passed list rather than added to it, so the only thing under test
- * is the growth marker. Adding them on top would put a prefix over its ceiling too, and the test would
- * pass on the wrong violation.
- *
- * @param {number} newCount How many records are new.
- * @param {number} deletedCount How many the baseline has that this build does not.
- * @returns {object} A reg-suit-shaped `out.json`.
- */
-function grewBy(newCount, deletedCount) {
-  const report = reportWith(atBudget());
-
-  report.newItems = report.passedItems.splice(0, newCount);
-  report.deletedItems = Array.from({ length: deletedCount }, (unused, index) => `js/chromium/gone-${index}.png`);
-
-  return report;
 }
 
 test('the checked-in budget describes the eleven prefixes develop renders', () => {
@@ -163,27 +143,91 @@ test('a build at its numbers passes, and says what it rendered', () => {
   assert.match(verdict.comment, /1676 record\(s\) rendered/);
 });
 
-test('growth needs the marker, and the marker has to agree with the file', () => {
-  const grown = grewBy(2, 1);
+/**
+ * The budget file as a base branch would have it: this one with a prefix lowered by `by`.
+ *
+ * @param {number} by How many records smaller the base is, i.e. how much this pull request adds.
+ * @returns {object} A budget file.
+ */
+function baseSmallerBy(by) {
+  return {
+    ...BUDGET,
+    prefixes: { ...BUDGET.prefixes, 'js/chromium/': BUDGET.prefixes['js/chromium/'] - by },
+  };
+}
 
-  const silent = evaluateBudget({ report: grown, budget: BUDGET, body: 'Adds a demo.' });
+test('raising the budget file needs the marker, and the marker has to agree with the file', () => {
+  // The question is whether THIS pull request raised the file, which is a fact about the diff — not
+  // about reg-suit's new-vs-deleted counts. A rename nets those to zero while the set grows, and a
+  // bootstrap reports every record as new.
+  const atFile = reportWith(atBudget());
+  const base = baseSmallerBy(10);
 
-  assert.equal(silent.pass, false, 'net growth with no marker must fail');
-  assert.match(silent.violations.join('\n'), /adds 1 record\(s\) net/);
+  const silent = evaluateBudget({ report: atFile, budget: BUDGET, baseBudget: base, body: 'Adds a demo.' });
+
+  assert.equal(silent.pass, false, 'raising the file with no marker must fail');
+  assert.match(silent.violations.join('\n'), /raises the golden budget from 1666 to 1676/);
   assert.match(silent.violations.join('\n'), /\[visual budget: N — why the set has to grow\]/);
 
   const wrongNumber = evaluateBudget({
-    report: grown, budget: BUDGET, body: '[visual budget: 9999 — a new demo]',
+    report: atFile, budget: BUDGET, baseBudget: base, body: '[visual budget: 9999 — a new demo]',
   });
 
   assert.equal(wrongNumber.pass, false, 'a marker that disagrees with the file must fail');
   assert.match(wrongNumber.violations.join('\n'), /declares a total of 9999 and visual-budget\.json sums to 1676/);
 
   const agreed = evaluateBudget({
-    report: grown, budget: BUDGET, body: `[visual budget: ${budgetTotal(BUDGET)} — a new demo]`,
+    report: atFile, budget: BUDGET, baseBudget: base, body: `[visual budget: ${budgetTotal(BUDGET)} — a new demo]`,
   });
 
   assert.equal(agreed.pass, true, agreed.violations.join('\n'));
+
+  // An unchanged file is not growth, whatever reg-suit reported.
+  assert.equal(evaluateBudget({ report: atFile, budget: BUDGET, baseBudget: BUDGET }).pass, true);
+});
+
+test('a rename cannot grow the set behind a net-zero count', () => {
+  // The shape that defeated the previous rule: the same number deleted and added, so `newItems >
+  // deletedItems` is false, while the file — and therefore the set — went up.
+  const renamed = reportWith(atBudget());
+
+  renamed.newItems = renamed.passedItems.splice(0, 10);
+  renamed.deletedItems = Array.from({ length: 10 }, (unused, index) => `js/chromium/gone-${index}.png`);
+
+  const verdict = evaluateBudget({ report: renamed, budget: BUDGET, baseBudget: baseSmallerBy(10) });
+
+  assert.equal(verdict.pass, false, 'a net-zero rename that raised the file must still ask for the marker');
+  assert.match(verdict.violations.join('\n'), /raises the golden budget/);
+});
+
+test('a bootstrap cannot raise the ceiling in the same commit that fills it', () => {
+  // The first pull request into a base branch with no baseline: reg-suit reports every rendered record
+  // as new. The previous rule switched the marker off there and leaned on the ceiling — but the ceiling
+  // is this pull request's own file, so the set could be grown to any size with nothing red. Keying on
+  // the file's diff makes the bootstrap case identical to every other.
+  const everythingNew = reportWith({});
+
+  everythingNew.newItems = renderedItems(reportWith(atBudget()));
+
+  const raised = evaluateBudget({
+    report: everythingNew, budget: BUDGET, baseBudget: baseSmallerBy(20),
+  });
+
+  assert.equal(raised.pass, false, 'a bootstrap that raises the file must ask for the marker like any other');
+  assert.match(raised.violations.join('\n'), /raises the golden budget from 1656 to 1676/);
+
+  // And a bootstrap that changed nothing is not asked for one.
+  assert.equal(evaluateBudget({ report: everythingNew, budget: BUDGET, baseBudget: BUDGET }).pass, true);
+});
+
+test('an unreadable base budget is reported, not passed over', () => {
+  // The growth question cannot be answered without the base file. Saying so in the comment is the
+  // difference between a check that did not run and a check that passed.
+  const verdict = evaluateBudget({ report: reportWith(atBudget()), budget: BUDGET, baseBudget: null });
+
+  assert.equal(verdict.pass, true, 'it must not block on an infrastructure failure');
+  assert.match(verdict.notes.join('\n'), /could not be read/);
+  assert.match(verdict.comment, /the growth check did not run/);
 });
 
 test('the marker accepts whichever dash the author typed, and a commented one is inert', () => {
@@ -271,10 +315,13 @@ test('a spec over the cap fails unless a ticketed exception already covers it', 
 test('the marker is not asked for outside a pull request', () => {
   // A seed or a nightly has no description to carry one, and failing them would block develop for a
   // growth the merging pull request already accounted for.
-  const grown = grewBy(1, 0);
+  const atFile = reportWith(atBudget());
+  const base = baseSmallerBy(5);
 
-  assert.equal(evaluateBudget({ report: grown, budget: BUDGET, isPullRequest: false }).pass, true);
-  assert.equal(evaluateBudget({ report: grown, budget: BUDGET, isPullRequest: true }).pass, false);
+  assert.equal(evaluateBudget({ report: atFile, budget: BUDGET, baseBudget: base, isPullRequest: false }).pass,
+    true, 'a push build must not be asked for a description it does not have');
+  assert.equal(evaluateBudget({ report: atFile, budget: BUDGET, baseBudget: base, isPullRequest: true }).pass,
+    false, 'the same change on a pull request must be');
 });
 
 test('the growth marker is read through the shared comment stripper', () => {
@@ -319,7 +366,13 @@ function runBudgetCli({ report, comment = null, env = {} }) {
   const result = spawnSync(process.execPath, [path.join(root, 'visual-tests/scripts/visual-budget.mjs')], {
     encoding: 'utf8',
     env: {
-      ...process.env, VISUAL_GATE_DIR: dir, GITHUB_EVENT_NAME: 'pull_request', VISUAL_PR_BODY: '', ...env,
+      ...process.env,
+      VISUAL_GATE_DIR: dir,
+      GITHUB_EVENT_NAME: 'pull_request',
+      VISUAL_PR_BODY: '',
+      VISUAL_PR_BODY_FILE: '',
+      VISUAL_BUDGET_BASE_FILE: '',
+      ...env,
     },
   });
 
@@ -327,6 +380,7 @@ function runBudgetCli({ report, comment = null, env = {} }) {
     status: result.status,
     stdout: `${result.stdout}${result.stderr}`,
     comment: existsSync(join(dir, 'comment.md')) ? readFileSync(join(dir, 'comment.md'), 'utf8') : null,
+    dir,
   };
 }
 
@@ -370,29 +424,65 @@ test('the wrapper exits 1 on a violation, and names it', () => {
   assert.match(run.comment, /outside the golden budget/, 'the comment must carry it too');
 });
 
-test('a bootstrap is not growth, so no marker is demanded — but the ceiling still is', () => {
-  // With no baseline, reg-suit calls every rendered record new. Asking for a marker there would demand
-  // `[visual budget: 1676 — ...]` on the first pull request into a branch that has no goldens yet, for
-  // a set that did not grow. The ceiling is the check that still means something.
-  const everythingNew = reportWith({});
+test('the wrapper prefers the live body file and falls back to the payload', () => {
+  // The seam the whole live-body fix rests on, and it is environment plumbing — the pure functions
+  // cannot see it. Getting it backwards would read the frozen payload while the step names a file,
+  // which is the bug this round of review found, still present and now invisible.
+  const dir = mkdtempSync(join(tmpdir(), 'visual-budget-body-'));
+  const bodyFile = join(dir, 'pr-body.md');
+  const baseFile = join(dir, 'base.json');
+  const total = budgetTotal(BUDGET);
 
-  everythingNew.newItems = renderedItems(reportWith(atBudget()));
+  writeFileSync(baseFile, JSON.stringify(baseSmallerBy(10)));
 
-  const seeding = evaluateBudget({ report: everythingNew, budget: BUDGET, bootstrap: true });
+  // The payload says nothing; the live file carries the marker. Reading the payload would block.
+  writeFileSync(bodyFile, `[visual budget: ${total} — the live description]`);
 
-  assert.equal(seeding.pass, true, seeding.violations.join('\n'));
+  const live = runBudgetCli({
+    report: reportWith(atBudget()),
+    comment: '## Visual tests\n',
+    env: { VISUAL_PR_BODY: 'no marker here', VISUAL_PR_BODY_FILE: bodyFile, VISUAL_BUDGET_BASE_FILE: baseFile },
+  });
 
-  const sameWithoutBootstrap = evaluateBudget({ report: everythingNew, budget: BUDGET });
+  assert.equal(live.status, 0, `the live body must win over the payload:\n${live.stdout}`);
 
-  assert.equal(sameWithoutBootstrap.pass, false,
-    'outside a bootstrap the same shape IS growth and must ask for the marker');
+  // No live file: the payload is the fallback, so a marker there still works.
+  const fallback = runBudgetCli({
+    report: reportWith(atBudget()),
+    comment: '## Visual tests\n',
+    env: {
+      VISUAL_PR_BODY: `[visual budget: ${total} — the payload]`,
+      VISUAL_PR_BODY_FILE: join(dir, 'absent.md'),
+      VISUAL_BUDGET_BASE_FILE: baseFile,
+    },
+  });
 
-  // And a bootstrap that is genuinely over a prefix still fails: the ceiling does not depend on there
-  // being a baseline to compare against.
-  const tooBig = reportWith({});
+  assert.equal(fallback.status, 0, `the payload must be the fallback:\n${fallback.stdout}`);
+  assert.match(fallback.stdout, /falling back to the event payload/);
+});
 
-  tooBig.newItems = renderedItems(reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 1 }));
+test('the wrapper says so when it could not read the base budget', () => {
+  // An unreadable base file means the growth question did not get asked. Passing silently there would
+  // be the quietest possible way for this gate to stop working.
+  const run = runBudgetCli({
+    report: reportWith(atBudget()),
+    comment: '## Visual tests\n',
+    env: { VISUAL_BUDGET_BASE_FILE: '/nonexistent/base-visual-budget.json' },
+  });
 
-  assert.equal(evaluateBudget({ report: tooBig, budget: BUDGET, bootstrap: true }).pass, false,
-    'a bootstrap over a prefix ceiling must still fail');
+  assert.equal(run.status, 0, 'an infrastructure failure must not block');
+  assert.match(run.stdout, /the growth check will report that it did not run/);
+  assert.match(run.comment, /the growth check did not run/);
+});
+
+test('the comment carries the violations, not just the summary line', () => {
+  // The PR comment is the only place most readers meet this gate; the step log is one click further.
+  const over = reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 3 });
+  const verdict = evaluateBudget({ report: over, budget: BUDGET, baseBudget: BUDGET });
+
+  assert.equal(verdict.pass, false);
+  verdict.violations.forEach((violation) => {
+    assert.ok(verdict.comment.includes(violation),
+      `the comment omits a violation the log prints: ${violation}`);
+  });
 });

@@ -15,6 +15,7 @@ import {
   normalizeDeclaration,
   renderedPrefixes,
 } from '../visual-declarations.mjs';
+import { budgetTotal } from '../visual-budget.mjs';
 
 // What a spec renders used to be derived from the directory it sat in; it is now declared in the spec.
 // Two things can go wrong with that, and both are silent. A declaration can name a variant its leg never
@@ -40,7 +41,7 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 // the second against the same file. Change the file, and both move together or one of them fails.
 const LIVE_GOLDENS = JSON.parse(
   readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8')).prefixes;
-const LIVE_GOLDEN_TOTAL = Object.values(LIVE_GOLDENS).reduce((sum, count) => sum + count, 0);
+const LIVE_GOLDEN_TOTAL = budgetTotal({ prefixes: LIVE_GOLDENS });
 
 // The one spec that declares nothing: it parks a test behind `test.skip('Test merging', fn)`, renders
 // no capture, and carries its own eslint-disable line naming the task that owns it.
@@ -1017,6 +1018,53 @@ test('the multi-framework specs still carry the shared unaudited wrappers reason
     + 'proves that the js render does not.');
 });
 
+test('every capture-cap exception matches what the spec actually takes', () => {
+  // The nine exception counts in visual-budget.json are a second statement of a fact the spec tree
+  // already makes, so derive it rather than trusting the file.
+  //
+  // The quantity is captures per REG-SUIT STEM, which is the number of `screenshotPath()` calls in the
+  // spec — not `captureStems().size`, which is golden records per spec. The two differ whenever a spec
+  // loops over demo URLs: `cross-browser/scroll.spec.ts` has one call inside a loop over six demos, so
+  // it produces six stems of one capture each. Six records, one capture per stem, under the cap of 4.
+  // Comparing against records instead would demand an exception for a spec that takes one capture.
+  const budget = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8'));
+  const capturesPerStem = new Map();
+
+  specPaths().forEach((relativePath) => {
+    if (relativePath === PARKED_SPEC) {
+      return;
+    }
+
+    const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
+
+    capturesPerStem.set(relativePath.replace(/\.spec\.ts$/, ''),
+      (source.match(/screenshotPath\(\)/g) ?? []).length);
+  });
+
+  Object.entries(budget.capExceptions ?? {}).forEach(([stem, exception]) => {
+    const actual = capturesPerStem.get(stem);
+
+    assert.notEqual(actual, undefined,
+      `visual-budget.json lists a cap exception for ${stem}, which is not a spec in the tree. A renamed `
+      + 'or deleted spec leaves its exception behind, permitting captures nothing takes.');
+    assert.equal(exception.captures, actual,
+      `visual-budget.json says ${stem} takes ${exception.captures} captures; the spec makes ${actual} `
+      + 'screenshotPath() calls. An exception is a ceiling on what is there — move it in the pull '
+      + 'request that changed the spec.');
+  });
+
+  // And nothing over the cap may be missing from the list, or a build fails on it twenty minutes in
+  // rather than here.
+  [...capturesPerStem.entries()].forEach(([stem, count]) => {
+    if (count > budget.captureCap) {
+      assert.ok(budget.capExceptions?.[stem],
+        `${stem} makes ${count} screenshotPath() calls, over the cap of ${budget.captureCap}, with no `
+        + 'entry in visual-budget.json capExceptions. Add it with the ticket that will bring it down, '
+        + 'or trim the spec.');
+    }
+  });
+});
+
 test('the declarations derive exactly the live golden set', () => {
   // The static proof that the codemod moved nothing: sum each spec's captures over the prefixes its own
   // declaration produces, and the eleven per-prefix totals must be the live baseline's. A later trim, or
@@ -1054,9 +1102,16 @@ test('the declarations derive exactly the live golden set', () => {
 
   process.stdout.write(`golden records implied by the checked-in declarations: ${total}\n`);
   assert.deepEqual(perPrefix, LIVE_GOLDENS, 'The per-prefix golden counts derived from the checked-in '
-    + `declarations are not the live baseline's. ${remedy}`);
-  assert.equal(total, LIVE_GOLDEN_TOTAL, `The declarations imply ${total} golden records, not `
-    + `${LIVE_GOLDEN_TOTAL}. ${remedy}`);
+    + `declarations are not the budget file's. ${remedy}`);
+
+  // Not a second check of the same thing: the deepEqual above compares the derived counts to the file
+  // prefix by prefix, and LIVE_GOLDEN_TOTAL is that file's sum — so once it passes, the totals agree by
+  // construction. What this catches is the SUMMING, which is the part the budget gate does
+  // independently: `budgetTotal()` is what the growth marker's N is checked against, and a change that
+  // made the two ways of adding up the same file disagree would show here first.
+  assert.equal(total, budgetTotal({ prefixes: LIVE_GOLDENS }),
+    `The declarations imply ${total} golden records and the budget file sums to `
+    + `${budgetTotal({ prefixes: LIVE_GOLDENS })}. ${remedy}`);
 });
 
 test('visualTest emits both skips before it registers the annotated test', () => {

@@ -141,7 +141,11 @@ test('nothing lets the verdict go missing while compare stays green', () => {
   const verdictStep = fromVerdict.slice(0, fromVerdict.indexOf('- name:', 10));
 
   assert.ok(verdictStep.includes('id: gate'), 'the verdict step was not found where expected');
-  assert.doesNotMatch(verdictStep, /continue-on-error/,
+
+  // As a YAML KEY, not as the word. The slice runs to the next step's `- name:`, so it carries the
+  // comment block above that step — and a comment explaining why a DIFFERENT step tolerates errors
+  // would otherwise fail this, which is a false red on prose.
+  assert.doesNotMatch(verdictStep, /^\s*continue-on-error:/m,
     'a continue-on-error on the verdict step decouples "verdict unset" from "compare red", which is '
       + 'what makes a skipped approve safe');
 

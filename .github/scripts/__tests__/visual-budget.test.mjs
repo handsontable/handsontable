@@ -72,12 +72,49 @@ test('the budget step survives a failed comparison, and reads the body as data',
   assert.match(step, /if:\s*always\(\)/,
     'without always(), an implicit success() is ANDed on and a red comparison skips the budget');
 
-  // The description reaches the script through the environment. Interpolated into the `run:` line it
-  // would be shell, and a body containing backticks would execute.
-  assert.match(step, /VISUAL_PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/,
-    'the pull-request body must be passed as an environment variable, never interpolated into `run:`');
+  // The description reaches the script through the environment and a file. Interpolated into the `run:`
+  // line it would be shell, and a body containing backticks would execute.
   assert.doesNotMatch(step, /run:[\s\S]*pull_request\.body/,
     'a description interpolated into the run line is shell, not text');
+});
+
+test('the marker is read from the LIVE description, not the frozen event payload', () => {
+  // `github.event.pull_request.body` is the body as it was when the run was triggered. `test.yml` has
+  // no `edited` trigger, so adding the marker starts no run, and re-running replays the same payload —
+  // a BLOCKING gate whose printed remedy ("say so in the description") could not be applied without
+  // pushing a commit and paying a full re-render. checks.yml reads the live body for the same reason.
+  const workflow = readFileSync(WORKFLOW, 'utf8');
+  const readStep = stepAt(workflow, 'Read the live pull-request body');
+  const budgetStep = stepAt(workflow, 'Visual budget');
+
+  assert.notEqual(readStep, -1, 'the live-body step is gone; the marker can no longer be added by editing');
+  assert.ok(readStep < budgetStep, 'the live body must be read before the budget reads it');
+  assert.match(workflow.slice(readStep, budgetStep), /github\.rest\.pulls\.get/,
+    'the live body comes from the API, not from the payload');
+  assert.match(workflow.slice(readStep, budgetStep), /continue-on-error: true/,
+    'a failed API read must fall back to the payload rather than failing the job');
+
+  const step = workflow.slice(budgetStep, stepAt(workflow, 'Mirror the verdict'));
+
+  assert.match(step, /VISUAL_PR_BODY_FILE:/, 'the budget step must be given the live body file');
+  assert.match(step, /VISUAL_PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/,
+    'the payload stays as the fallback for when the API read failed');
+});
+
+test('the growth check is given the base branch\'s budget file', () => {
+  // The marker keys on whether THIS pull request raised the file, which needs the base branch's copy.
+  // Without it the check cannot run, and on a bootstrap the ceiling is this pull request's own file —
+  // so the first pull request into a new base branch could add any number of records with nothing red.
+  const workflow = readFileSync(WORKFLOW, 'utf8');
+  const baseStep = stepAt(workflow, 'Read the base branch\'s visual budget');
+  const budgetStep = stepAt(workflow, 'Visual budget');
+
+  assert.notEqual(baseStep, -1, 'the base-budget step is gone; the growth check cannot run');
+  assert.ok(baseStep < budgetStep, 'the base budget must be read before the budget judges it');
+  assert.match(workflow.slice(baseStep, budgetStep), /git show FETCH_HEAD:visual-tests\/visual-budget\.json/,
+    'the base copy comes from the base ref, not from the working tree');
+  assert.match(workflow.slice(budgetStep, stepAt(workflow, 'Mirror the verdict')), /VISUAL_BUDGET_BASE_FILE:/,
+    'the budget step must be given the base file');
 });
 
 test('the budget file and the script it is read by are both present', () => {
