@@ -609,9 +609,12 @@ which of these run locally and which only in CI.
   - **The stability run.** `Visual stability` runs every weekday night on develop at 02:30 UTC, thirty
     minutes after the nightly, with three runners, and posts a failed night to Slack. The nightly catches
     drift (one render against the baseline); this catches noise (runners against each other); on the same
-    nights, a capture this run calls unstable is a flake, and one it calls stable but the nightly calls
-    changed is drift. A trim that drops `classic` or the chosen theme from a filters spec makes it report
-    those captures as missing — update `MULTI_SPECS`, it is not a flake.
+    nights, and for the captures this run renders, one it calls unstable is a flake, and one it calls
+    stable but the nightly calls changed is drift. A night fails, and pings, when a runner pair differs
+    past the gate's tolerances, a capture is missing from a render, or no render finished; a byte
+    difference the tolerances absorb is listed in the summary and fails nothing. A trim that drops
+    `classic` or the chosen theme from a filters spec makes it report those captures as missing — update
+    `MULTI_SPECS`, it is not a flake.
 - **G6 · The visual-only-coverage warning** — not yet landed. The presence gate keeps counting a visual
   spec as coverage and prints an advisory `visual-only-coverage` warning when a source change ships with a
   screenshot as its only test, pointing at the decision rule above.

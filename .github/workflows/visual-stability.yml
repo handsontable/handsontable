@@ -12,10 +12,10 @@ name: Visual stability
 # EACH OTHER, from one commit, so it sees a capture that cannot render the same
 # way twice. The two run on the same nights — this one thirty minutes after the
 # nightly, so they do not contend for runner slots at the same instant — so a
-# flake and a drift seen the same morning can be told apart: a capture this run
-# calls unstable is a flake, one it calls stable but the nightly calls changed is
-# drift. On the schedule it renders three times; a dispatch keeps ten, the
-# DEV-2797 acceptance count.
+# flake and a drift seen the same morning can be told apart, for the captures
+# this run renders: one it calls unstable is a flake, one it calls stable but the
+# nightly calls changed is drift. On the schedule it renders three times; a
+# dispatch keeps ten, the DEV-2797 acceptance count.
 #
 # It publishes nothing, comments nowhere, and never touches `base/<branch>`; the
 # verdict lives in the job summary. The one secret it reads is the Slack webhook,
@@ -263,8 +263,10 @@ jobs:
         run: node ./visual-tests/scripts/stability-verdict.mjs runs >> "$GITHUB_STEP_SUMMARY"
 
   # A failed scheduled run posts to Slack, the way the nightly does, because nobody
-  # watches a 02:30 run and a byte-unstable capture found at night is exactly what
-  # the morning should hear about. `failure()` is the status function the job needs:
+  # watches a 02:30 run. The run fails when a runner pair differs past the gate's
+  # tolerances, a capture is missing from a render, or no render finished; a byte
+  # difference the tolerances absorb is listed in the summary and fails nothing.
+  # `failure()` is the status function the job needs:
   # without one, GitHub ANDs the implicit success() onto the condition and the job
   # can never run when a job it needs failed (.ai/CI.md). The schedule only — whoever
   # dispatches a run is watching it. The webhook is the one secret this workflow
@@ -285,5 +287,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":warning: Visual stability on ${{ github.ref_name }} found byte-unstable captures or failed to render.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
+              "text": ":warning: Visual stability on ${{ github.ref_name }} found captures that differ between runners past the gate's tolerances, a missing capture, or no render.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
             }
