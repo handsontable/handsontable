@@ -15,10 +15,18 @@
 // `https://handsontable.com/docs/data/common.json` (no `="` immediately
 // before `/docs/` in that string).
 //
+// The same unversioned base is baked into Vite's preload helper
+// (`_astro/preload-helper.*.js`), which builds each lazily-loaded chunk's
+// dependency URL as `function(l){return"/docs/"+l}`. Nested under
+// /docs/<version>/, that fetches `/docs/_astro/<file>.css` (404) instead of
+// `/docs/<version>/_astro/<file>.css` and throws "Unable to preload CSS"
+// (DEV-3058, Sentry HANDSONTABLE-DOCS-22T). Only that exact minified
+// function shape is rewritten, in `.js` files under `_astro/`.
+//
 // Usage: node rewriteVersionedPaths.mjs <dir> <version>
 
 import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 function escapeRegExp(value) {
@@ -26,9 +34,18 @@ function escapeRegExp(value) {
 }
 
 /**
+ * Matches the minified Vite preload-helper base function,
+ * `function(l){return"/docs/"+l}`. The parameter name is captured and
+ * back-referenced so no other `"/docs/"` string can match.
+ */
+const PRELOAD_HELPER_BASE_PATTERN = /(function\(([\w$]+)\)\{return")\/docs\/("\+\2\})/g;
+
+/**
  * Rewrites `href="/docs/..."` / `src="/docs/..."` references in every
  * `.html` file under `dir` to `href="/docs/<version>/..."`, skipping
- * references already prefixed with that version (idempotent).
+ * references already prefixed with that version (idempotent). Also rewrites
+ * the preload-helper base in every `.js` file under `_astro/` to
+ * `"/docs/<version>/"`.
  *
  * @param {string} dir - Directory containing one version's built docs.
  * @param {string} version - e.g. "17.1".
@@ -40,17 +57,24 @@ export async function rewriteVersionedPaths(dir, version) {
     'g'
   );
   const replacement = `$1/docs/${version}/`;
+  const preloadBaseReplacement = `$1/docs/${version}/$3`;
 
   const entries = await readdir(dir, { recursive: true, withFileTypes: true });
-  const htmlFiles = entries
-    .filter((entry) => entry.isFile() && extname(entry.name) === '.html')
+  const files = entries
+    .filter((entry) => entry.isFile())
     .map((entry) => join(entry.parentPath ?? entry.path, entry.name));
+  const htmlFiles = files.filter((file) => extname(file) === '.html');
+  const astroJsFiles = files.filter(
+    (file) => extname(file) === '.js' && relative(dir, file).split(sep).includes('_astro')
+  );
 
   let changedCount = 0;
 
-  for (const file of htmlFiles) {
+  for (const file of [...htmlFiles, ...astroJsFiles]) {
     const original = await readFile(file, 'utf-8');
-    const rewritten = original.replace(pattern, replacement);
+    const rewritten = extname(file) === '.html'
+      ? original.replace(pattern, replacement)
+      : original.replace(PRELOAD_HELPER_BASE_PATTERN, preloadBaseReplacement);
 
     if (rewritten !== original) {
       await writeFile(file, rewritten, 'utf-8');

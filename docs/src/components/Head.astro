@@ -36,6 +36,32 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 </script>
 
 <script is:inline>
+  // A page cached from before a deploy asks for content-hashed _astro/ chunks that no longer
+  // exist, and Vite's preload helper fires vite:preloadError ("Unable to preload CSS for ...").
+  // Reload once per session to pick up the current build. A second failure, or no
+  // sessionStorage, lets the error through so a real outage never loops. This only mitigates
+  // stale chunks on builds that include this Head; frozen /docs/<major>.<minor>/ images never
+  // get it, and their nested wrong-base preloads (Sentry HANDSONTABLE-DOCS-22T) are fixed at
+  // assemble time by deploy/rewriteVersionedPaths.mjs.
+  window.addEventListener('vite:preloadError', function (event) {
+    var reloadKey = 'hot-docs-preload-error-reload';
+
+    try {
+      if (sessionStorage.getItem(reloadKey)) {
+        return;
+      }
+
+      sessionStorage.setItem(reloadKey, '1');
+    } catch (error) {
+      return;
+    }
+
+    event.preventDefault();
+    window.location.reload();
+  });
+</script>
+
+<script is:inline>
   // Patch Starlight's table-of-contents elements to silently handle browsers without :has()
   // support (Chrome < 105, e.g. Chrome Mobile 75 on Android 6.0; Safari < 15.4). Their init
   // passes :has() to querySelectorAll, which throws a DOMException named "SyntaxError" there
