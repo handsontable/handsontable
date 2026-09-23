@@ -395,8 +395,12 @@ all three places.
 `failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
 fixing the flake is the answer. Quarantine is the narrow, expiring, capped
 exception for a *known* flake that would otherwise redden every unrelated pull
-request until the fix lands — and it exists in this tier only. The frozen
-Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+request until the fix lands. The mechanism below is this tier's only. The visual
+suite parks a flaky capture with the same limits (owner, 30-day expiry, cap of
+six) through `visual-tests/visual-quarantine.json`, whose checks import
+`lib/quarantine-policy.mjs`; its rules are `visual-tests/AGENTS.md`, Guardrails
+(G5). The frozen Jasmine suite has no quarantine: a flaky legacy spec migrates
+here instead.
 
 - **Tag through the helper, never by hand.**
   `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`

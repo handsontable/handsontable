@@ -23,16 +23,57 @@ const root = repoRoot();
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const workflow = read('.github/workflows/visual-stability.yml');
 
-test('the stability matrix is dispatch-only and reads nothing but the repository', () => {
-  assert.match(workflow, /^on:\n  workflow_dispatch:/m, 'the matrix must be dispatch-only');
-  assert.doesNotMatch(workflow, /^\s+(push|pull_request|schedule):/m, 'a scheduled or event-driven '
-    + 'trigger turns the probe into a suite; the nightly full render is a separate workflow');
+test('the stability matrix runs on weekday nights and on demand, and never on an event', () => {
+  // The nightly catches drift (one render against the baseline); this catches noise (runners against each
+  // other). They run on the same nights so a flake and a drift seen the same morning can be told apart —
+  // thirty minutes apart, so they do not contend for runner slots at the same instant.
+  assert.match(workflow, /^on:\n {2}schedule:\n(?:\s+#.*\n)*\s+- cron: '30 2 \* \* 2-6'\n {2}workflow_dispatch:/m,
+    'the matrix runs at 02:30 UTC Tue–Sat, thirty minutes after the nightly, and on demand');
+  assert.match(read('.github/workflows/visual-nightly.yml'), /- cron: '0 2 \* \* 2-6'/,
+    'the nightly moved; move this schedule with it so the two still share their nights');
+  assert.doesNotMatch(workflow, /^\s+(push|pull_request|pull_request_target|workflow_run):/m,
+    'an event-driven trigger turns the probe into a per-change suite');
+});
+
+test('a scheduled run falls back for every input a schedule does not carry', () => {
+  // A schedule has no inputs. Without a fallback the iteration gate compares against an empty string (a
+  // bash error on every iteration, so nothing renders) and the themed pass runs with no theme at all.
+  assert.match(workflow, /ITERATIONS: \$\{\{ inputs\.iterations \|\| '3' \}\}/);
+  assert.match(workflow, /HOT_THEME_UNDER_TEST: \$\{\{ inputs\.theme \|\| 'main-dark' \}\}/);
+  assert.match(workflow, /SCOPE: \$\{\{ inputs\.scope \|\| 'investigation' \}\}/);
+  assert.doesNotMatch(workflow.replace(/\$\{\{ inputs\.\w+ \|\| '[^']*' \}\}/g, ''), /inputs\.\w+/,
+    'every read of an input carries a fallback');
+  // The dispatch keeps the DEV-2797 acceptance count of ten. Sliced to the input and matched flat: a
+  // pattern spanning the lines between would be the ambiguous `(?:\s+.*\n)*?` shape this file already
+  // had to remove once (CodeQL js/redos).
+  const iterationsAt = workflow.indexOf('      iterations:\n');
+  const themeAt = workflow.indexOf('      theme:\n', iterationsAt);
+
+  assert.ok(iterationsAt > -1 && themeAt > iterationsAt, 'the dispatch lost its iterations or theme input');
+  assert.match(workflow.slice(iterationsAt, themeAt), /^ {8}default: '10'$/m);
+});
+
+test('the stability matrix publishes nothing and reads one secret, in the notify job only', () => {
   assert.match(workflow, /^permissions:\n  contents: read\n/m, 'the workflow must ask for read access only');
-  assert.doesNotMatch(workflow, /secrets\./, 'the matrix must not read a secret — it renders and compares, '
-    + 'it never publishes to R2');
   assert.doesNotMatch(workflow, /sticky-pull-request-comment|gh pr edit|gh api .*(comments|labels)|aws s3/,
     'the matrix must not comment, label, or publish; the verdict belongs in the job summary');
   assert.match(workflow, /GITHUB_STEP_SUMMARY/, 'the verdict must reach the job summary');
+
+  const secrets = [...workflow.matchAll(/secrets\.(\w+)/g)].map(([, name]) => name);
+
+  assert.deepEqual(secrets, ['SLACK_VISUAL_WEBHOOK_URL'], 'the one secret is the Slack webhook');
+
+  const notifyAt = workflow.indexOf('\n  notify:\n');
+
+  assert.notEqual(notifyAt, -1, 'the matrix lost its notify job');
+  assert.ok(workflow.indexOf('secrets.SLACK_VISUAL_WEBHOOK_URL') > notifyAt, 'the webhook is read in notify alone');
+
+  const notify = workflow.slice(notifyAt);
+
+  // A status function, or the implicit success() makes the job unreachable exactly when it is needed.
+  assert.match(notify, /\n {4}if: \$\{\{ failure\(\) && github\.event_name == 'schedule' \}\}\n/);
+  assert.match(notify, /needs: \[ render, verdict \]/);
+  assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/, 'the step skips itself when the secret is absent');
 });
 
 test('the matrix renders only the spec groups under investigation', () => {

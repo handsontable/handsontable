@@ -315,3 +315,59 @@ test('reg-suit reports carry no erroredItems, so the core suite is untouched', (
   }).verdict, 'changed');
   assert.equal(evaluate({ report: report({ passed: 10 }) }).verdict, 'clean');
 });
+
+// The quarantine arrives applied: the caller has already removed the quarantined items from
+// `failedItems` and passes them to be listed (scripts/visual-gate.mjs, lib/visual-quarantine.mjs).
+const parked = [{
+  item: 'js/chromium-theme-main-dark/multi-frameworks/filters/escaping-the-menu-12.png',
+  entry: { taskId: 'DEV-1234', expires: '2026-10-10', why: 'focus timer' },
+}];
+
+test('differences that are all quarantined read clean, and are listed rather than claimed to match', () => {
+  const v = evaluate({ report: report({ passed: 10 }), quarantined: parked });
+
+  assert.equal(v.verdict, 'clean');
+  assert.equal(v.blocked, false);
+  assert.match(v.comment, /no changes outside the quarantine/);
+  assert.doesNotMatch(v.comment, /All 10 screenshots match/, 'they did not all match; one is parked');
+  assert.match(v.comment, /### Quarantined — reported, not blocking/);
+  assert.ok(v.comment.includes(`- \`${parked[0].item}\` — DEV-1234 until 2026-10-10 — focus timer`),
+    'each quarantined item is listed with its entry');
+  assert.match(v.summary, /1 quarantined one\(s\) differed/);
+});
+
+test('a real change next to a quarantined one still needs approval, and both are shown', () => {
+  const v = evaluate({ report: report({ changed: 1, passed: 10 }), quarantined: parked });
+
+  assert.equal(v.verdict, 'changed');
+  assert.match(v.comment, /\| 1 \| 0 \| 0 \| 10 \|/, 'the counts exclude the quarantined item');
+  assert.match(v.comment, /### Quarantined — reported, not blocking/);
+});
+
+test('an item under an expired entry is counted, and says why it blocks again', () => {
+  const v = evaluate({ report: report({ changed: 1, passed: 10 }), expired: parked });
+
+  assert.equal(v.verdict, 'changed');
+  assert.match(v.comment, /### Expired quarantine — blocking again/);
+  assert.match(v.comment, /Remove the entry from visual-tests\/visual-quarantine\.json/);
+});
+
+test('quarantined differences with nothing else compared are not "nothing was compared"', () => {
+  // The partition removed every changed item; they were still compared and did differ.
+  const v = evaluate({ report: report({}), quarantined: parked });
+
+  assert.equal(v.blocked, false);
+  assert.equal(v.verdict, 'clean');
+  assert.doesNotMatch(v.comment, /nothing was compared/);
+});
+
+test('with no quarantine the comment is byte-identical to what it was, for both suites', () => {
+  const inputs = { report: report({ changed: 2, passed: 10 }), reportUrl: 'https://x', runUrl: 'https://r' };
+  const plain = evaluate(inputs);
+  const withEmpty = evaluate({ ...inputs, quarantined: [], expired: [] });
+
+  assert.equal(withEmpty.comment, plain.comment);
+  assert.doesNotMatch(plain.comment, /uarantine/);
+  assert.equal(evaluate({ report: report({ passed: 10 }) }).comment,
+    '## Visual tests — no changes\n\nAll 10 screenshots match the golden records.\n');
+});

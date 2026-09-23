@@ -10,7 +10,15 @@
  * the manifest `docs/tests/lib/visual-manifest.mjs` builds from Playwright's report and holds its own
  * on `docs-visual-approval`. Only the three names differ, so they are the `labels` option and nothing
  * else is duplicated — a change to the verdicts or to the comment reaches both suites at once.
+ *
+ * The visual quarantine (`./visual-quarantine.mjs`) arrives already applied: the caller passes a report
+ * whose `failedItems` no longer holds the quarantined items, and the two lists to print. So the verdict
+ * math is the same whether a quarantine exists or not — a run whose only differences are quarantined is
+ * `clean` because nothing else differed — and the defaults leave the comment byte-identical for the docs
+ * suite, which never has one.
  */
+
+import { quarantineLines } from './visual-quarantine.mjs';
 
 /**
  * The names the core suite calls itself by. `labels` overrides them per suite.
@@ -48,12 +56,22 @@ const DEFAULT_LABELS = {
  * @param {object} [options.labels] What this suite calls itself: `title` (the comment's heading),
  * `environment` (the one the approval waits on) and `artifact` (the images when the report is not
  * reachable). Defaults are the core suite's.
+ * @param {Array<{item: string, entry: object}>} [options.quarantined] Changed items a live quarantine entry
+ * covered, already removed from `report.failedItems`: listed, never counted as changed.
+ * @param {Array<{item: string, entry: object}>} [options.expired] Changed items under an expired entry, still
+ * in `report.failedItems`: counted, and listed so the reader sees why they block again.
  * @returns {Verdict} The verdict.
  */
 export function evaluate({
   report, bootstrap = false, seeded = true, reportUrl = '', runUrl = '', labels = {},
+  quarantined = [], expired = [],
 }) {
   const { title, environment, artifact } = { ...DEFAULT_LABELS, ...labels };
+  // The quarantined items were compared and did differ; they only stopped counting as changed. So the
+  // "was anything compared" checks below count them back in — a run whose only differences are
+  // quarantined, with nothing passing, is not "nothing was compared".
+  const quarantinedCount = quarantined.length;
+  const listed = quarantineLines(quarantined, expired);
   // `bootstrap` comes from a probe of `out.json`, which is a different source of
   // truth from the comparison itself. A base build killed mid-publish can leave
   // `actual/**` uploaded with no manifest: the probe then says "no baseline"
@@ -64,7 +82,7 @@ export function evaluate({
   // proves a baseline existed. Without it, a torn manifest plus a build that
   // renames every screenshot slips through and seeds over the real records.
   const compared = Boolean(report
-    && (report.failedItems.length || report.passedItems.length || report.deletedItems.length));
+    && (report.failedItems.length || quarantinedCount || report.passedItems.length || report.deletedItems.length));
 
   // Pages that failed before they compared anything. reg-suit never emits this key, so the core suite
   // is untouched; the docs adapter (`docs/tests/lib/visual-manifest.mjs`) writes it for a test that
@@ -114,7 +132,7 @@ export function evaluate({
   // "baseline created" and seed a blank manifest, after which the probe returns
   // 200 forever and every later pull request compares against nothing.
   // A null report is the credential-free path, which legitimately writes none.
-  if (report && report.failedItems.length + report.newItems.length
+  if (report && report.failedItems.length + quarantinedCount + report.newItems.length
     + report.deletedItems.length + report.passedItems.length === 0) {
     return {
       blocked: true,
@@ -187,17 +205,35 @@ export function evaluate({
   ];
 
   if (changed + added + deleted === 0) {
-    return {
-      blocked: false,
-      verdict: 'clean',
-      summary: `No visual changes. ${passed} screenshots match the golden records.`,
-      comment: [
-        `## ${title} — no changes`,
-        '',
-        `All ${passed} screenshots match the golden records.`,
-        '',
-      ].join('\n'),
-    };
+    // With something quarantined, "All N screenshots match" would be false: they did not all match, the
+    // ones that differed are parked. The heading and the sentence say so, and the list follows.
+    return quarantinedCount === 0
+      ? {
+        blocked: false,
+        verdict: 'clean',
+        summary: `No visual changes. ${passed} screenshots match the golden records.`,
+        comment: [
+          `## ${title} — no changes`,
+          '',
+          `All ${passed} screenshots match the golden records.`,
+          '',
+        ].join('\n'),
+      }
+      : {
+        blocked: false,
+        verdict: 'clean',
+        summary: `No visual changes outside the quarantine. ${passed} screenshots match the golden records; `
+          + `${quarantinedCount} quarantined one(s) differed and are reported, not blocking.`,
+        comment: [
+          `## ${title} — no changes outside the quarantine`,
+          '',
+          `${passed} screenshots match the golden records. ${quarantinedCount} quarantined screenshot`
+            + `${quarantinedCount === 1 ? '' : 's'} differed; ${quarantinedCount === 1 ? 'it is' : 'they are'} `
+            + 'listed below and do not hold this pull request.',
+          '',
+          ...listed,
+        ].join('\n'),
+      };
   }
 
   return {
@@ -218,6 +254,7 @@ export function evaluate({
       `If the report is unreachable, the \`${artifact}\` artifact on the `
         + `${runUrl ? `[workflow run](${runUrl})` : 'workflow run'} holds the same thing.`,
       '',
+      ...listed,
       '### What to do next',
       '',
       '**If these differences are a regression** — push a commit that fixes them. The next run',

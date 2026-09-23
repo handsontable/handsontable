@@ -23,6 +23,7 @@
  */
 
 import { VISUAL_TIERS } from '../src/config.mjs';
+import { quarantineLines } from './visual-quarantine.mjs';
 import { isInTier, tierPrefixes } from './visual-tiers.mjs';
 
 /**
@@ -89,11 +90,16 @@ function itemsOf(report, bucket) {
  * @param {string} [options.runUrl] The workflow run URL, when known.
  * @param {string[]} [options.prPrefixes] The golden-path prefixes the `pr` tier renders; defaults to the
  * table's. Injectable for tests.
+ * @param {Array<{item: string, entry: object}>} [options.quarantined] For the nightly only: changed items a
+ * live quarantine entry covered, already removed from `report.failedItems`. Listed, never blocking. The seed
+ * is never given any — it never blocks on a difference, and its differences are the merge's own.
+ * @param {Array<{item: string, entry: object}>} [options.expired] For the nightly only: changed items under an
+ * expired entry, still in `report.failedItems`.
  * @returns {BuildSummary} The summary.
  */
 export function summarizeBuild({
   report, tier, branch, sha, headCommitMessage = '', reportUrl = '', runUrl = '',
-  prPrefixes = tierPrefixes(VISUAL_TIERS.pr),
+  prPrefixes = tierPrefixes(VISUAL_TIERS.pr), quarantined = [], expired = [],
 }) {
   const nightly = tier === 'full';
   const kind = nightly ? 'nightly' : 'seed';
@@ -116,8 +122,9 @@ export function summarizeBuild({
 
   // The shape `visual-gate.mjs` blocks on too: reg-suit exits 0 having globbed nothing when the
   // config or the screenshots are missing, and that report reads as "everything matched" unless the
-  // counts are checked. A missing report is the comparison step having died.
-  if (failed.length + added.length + deleted.length + passed.length === 0) {
+  // counts are checked. A missing report is the comparison step having died. Quarantined items were
+  // compared and did differ, so they count here.
+  if (failed.length + quarantined.length + added.length + deleted.length + passed.length === 0) {
     return {
       verdict: 'error',
       blocking: true,
@@ -148,7 +155,8 @@ export function summarizeBuild({
   // The tag is not part of the path reg-suit keyed the item by.
   const outsidePrItems = changedItems
     .filter(item => !isInTier(item.replace(/ \((?:new|deleted)\)$/, ''), prPrefixes));
-  const counts = `${failed.length} changed, ${added.length} new, ${deleted.length} deleted, ${passed.length} passing`;
+  const counts = `${failed.length} changed, ${added.length} new, ${deleted.length} deleted, ${passed.length} passing`
+    + `${quarantined.length ? `, ${quarantined.length} quarantined` : ''}`;
   const markdown = [
     heading,
     '',
@@ -163,7 +171,10 @@ export function summarizeBuild({
   }
 
   if (verdict === 'clean') {
-    markdown.push(`All ${passed.length} screenshots match the golden records.`, '');
+    markdown.push(quarantined.length === 0
+      ? `All ${passed.length} screenshots match the golden records.`
+      : `${passed.length} screenshots match the golden records; the ${quarantined.length} quarantined one(s) `
+        + 'below differed and do not fail this run.', '');
   } else {
     markdown.push(
       ...itemList(changedItems),
@@ -184,6 +195,8 @@ export function summarizeBuild({
       );
     }
   }
+
+  markdown.push(...quarantineLines(quarantined, expired));
 
   return {
     verdict,

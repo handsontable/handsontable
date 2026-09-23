@@ -5,19 +5,38 @@ name: Visual stability
 # captures came back byte-different, and which pairs the suite's own comparison
 # (reg-cli with regconfig.json's tolerances) would have called "changed".
 #
-# On demand only. It publishes nothing, reads no secret, comments nowhere, so it
-# needs no fork guard and can never touch `base/<branch>`; the verdict lives in
-# the job summary. Ten machines are the point: a single-machine loop cannot see
-# the cross-runner component of the noise (the same commit renders byte-stable
-# on one box and flips on the next), which is why the ticket asks for ten
-# consecutive runs rather than a local repeat.
+# It runs every weekday night on develop (a schedule always runs on the default
+# branch, which is develop), and on demand. The nightly full render
+# (visual-nightly.yml) catches drift: one render against the baseline, so it sees
+# a change the seed did not carry. This catches noise: several runners against
+# EACH OTHER, from one commit, so it sees a capture that cannot render the same
+# way twice. The two run on the same nights — this one thirty minutes after the
+# nightly, so they do not contend for runner slots at the same instant — so a
+# flake and a drift seen the same morning can be told apart: a capture this run
+# calls unstable is a flake, one it calls stable but the nightly calls changed is
+# drift. On the schedule it renders three times; a dispatch keeps ten, the
+# DEV-2797 acceptance count.
 #
-# Scope is deliberately narrow — the filters family plus the RTL selection spec,
-# the two groups that produced every sighting — so a dispatch costs ~10 short
-# jobs, not ten full suites. Widen `SPECS` for another investigation rather than
-# growing this into a second suite; the nightly full render is a separate
-# workflow.
+# It publishes nothing, comments nowhere, and never touches `base/<branch>`; the
+# verdict lives in the job summary. The one secret it reads is the Slack webhook,
+# in the `notify` job alone, which posts a failed scheduled run and skips itself
+# when the secret is absent — the same shape as visual-nightly.yml. Several
+# machines are the point: a single-machine loop cannot see the cross-runner
+# component of the noise (the same commit renders byte-stable on one box and
+# flips on the next), which is why the acceptance asks for separate runners
+# rather than a local repeat.
+#
+# Scope is narrow by default — the filters family plus the RTL selection spec,
+# the two groups that produced every sighting — so a night costs three short
+# jobs, not three full suites. A dispatch can widen it to the whole suite
+# (`scope: full`) for one investigation; the schedule never does. A trim that
+# drops `classic` or the chosen theme from a filters spec (the consolidation
+# work) makes this matrix report those captures as missing, which is the matrix
+# telling you to update `MULTI_SPECS`, not a flake.
 on:
+  schedule:
+    # 02:30 UTC Tue–Sat: the nightly's `0 2 * * 2-6` nights, thirty minutes later.
+    - cron: '30 2 * * 2-6'
   workflow_dispatch:
     inputs:
       iterations:
@@ -30,6 +49,11 @@ on:
         type: choice
         default: 'main-dark'
         options: ['main', 'main-dark', 'horizon', 'horizon-dark']
+      scope:
+        description: 'What to render: the specs under investigation, or the whole suite (js and cross-browser)'
+        type: choice
+        default: 'investigation'
+        options: ['investigation', 'full']
 
 permissions:
   contents: read
@@ -61,10 +85,13 @@ jobs:
       matrix:
         iteration: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
+      # A schedule carries no inputs, so every read of one needs its fallback: an empty count would
+      # make the comparison below a bash error on every iteration, and an empty theme would render the
+      # themed pass with no theme at all. Three on the schedule; the dispatch default stays ten.
       - name: Skip beyond the requested iteration count
         id: gate
         env:
-          ITERATIONS: ${{ inputs.iterations }}
+          ITERATIONS: ${{ inputs.iterations || '3' }}
           ITERATION: ${{ matrix.iteration }}
         run: |
           if [ "$ITERATION" -gt "$ITERATIONS" ]; then
@@ -177,9 +204,17 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         working-directory: visual-tests
         env:
-          HOT_THEME_UNDER_TEST: ${{ inputs.theme }}
+          HOT_THEME_UNDER_TEST: ${{ inputs.theme || 'main-dark' }}
+          SCOPE: ${{ inputs.scope || 'investigation' }}
         run: |
           status=0
+
+          # `full` widens both groups to everything their config renders: every path contains
+          # `tests`, and `.` matches every cross-browser spec file. The schedule never sets it.
+          if [ "$SCOPE" = "full" ]; then
+            MULTI_SPECS=tests
+            CROSS_SPECS=.
+          fi
 
           npx playwright test --config playwright-cross-browser.config.ts --project=chromium --project=firefox --retries=0 --reporter=dot "$CROSS_SPECS" || status=1
 
@@ -226,3 +261,29 @@ jobs:
       # criterion is written against.
       - name: Byte stability across runners
         run: node ./visual-tests/scripts/stability-verdict.mjs runs >> "$GITHUB_STEP_SUMMARY"
+
+  # A failed scheduled run posts to Slack, the way the nightly does, because nobody
+  # watches a 02:30 run and a byte-unstable capture found at night is exactly what
+  # the morning should hear about. `failure()` is the status function the job needs:
+  # without one, GitHub ANDs the implicit success() onto the condition and the job
+  # can never run when a job it needs failed (.ai/CI.md). The schedule only — whoever
+  # dispatches a run is watching it. The webhook is the one secret this workflow
+  # reads, and the step skips itself when it is absent.
+  notify:
+    name: Notify Slack
+    needs: [ render, verdict ]
+    if: ${{ failure() && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":warning: Visual stability on ${{ github.ref_name }} found byte-unstable captures or failed to render.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
+            }

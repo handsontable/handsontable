@@ -21,12 +21,18 @@
  *   VISUAL_GATE_ARTIFACT      the artifact holding the images (default: "visual-diff-report")
  *   VISUAL_GATE_REPORT_PATH   the report's path under the actual key (default: "index.html")
  *
+ * One more is the core suite's alone: `VISUAL_QUARANTINE_FILE`, the known-flaky captures that are reported
+ * rather than held (`../lib/visual-quarantine.mjs`). Explicit, never a default, so the docs suite — which
+ * runs this same script from `./docs` — never reads the core file.
+ *
  * Usage: node visual-tests/scripts/visual-gate.mjs
  */
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { evaluate } from '../lib/visual-gate.mjs';
+import { partitionReport } from '../lib/visual-quarantine.mjs';
+import { readQuarantineEntries } from './utils/quarantine.mjs';
 
 const WORKING_DIR = process.env.VISUAL_GATE_DIR
   ? resolve(process.env.VISUAL_GATE_DIR)
@@ -57,14 +63,36 @@ const published = process.env.VISUAL_PUBLISHED !== 'false';
 const runUrl = process.env.VISUAL_RUN_URL ?? '';
 const reportUrl = published && domain && actualKey ? `https://${domain}/${actualKey}/${reportPath}` : '';
 
-const verdict = evaluate({
-  report,
-  bootstrap: process.env.VISUAL_BOOTSTRAP === 'true',
-  seeded: process.env.VISUAL_SEEDED !== 'false',
-  reportUrl,
-  runUrl,
-  labels,
-});
+// The quarantine is applied before the verdict and only here: the budget step reads the raw `out.json`,
+// so a quarantined item still counts as rendered there. A named file that cannot be read is a comparison
+// the gate cannot judge — reading it as empty would hold the pull request on a flake it was told to
+// report, and say nothing about why.
+let quarantine = { report, quarantined: [], expired: [] };
+let quarantineError = null;
+
+try {
+  quarantine = partitionReport(report, readQuarantineEntries(process.env.VISUAL_QUARANTINE_FILE), new Date());
+} catch (error) {
+  quarantineError = error.message;
+}
+
+const verdict = quarantineError
+  ? {
+    blocked: true,
+    verdict: 'error',
+    summary: quarantineError,
+    comment: `## ${labels.title ?? 'Visual tests'} — could not apply the quarantine\n\n${quarantineError}\n`,
+  }
+  : evaluate({
+    report: quarantine.report,
+    bootstrap: process.env.VISUAL_BOOTSTRAP === 'true',
+    seeded: process.env.VISUAL_SEEDED !== 'false',
+    reportUrl,
+    runUrl,
+    labels,
+    quarantined: quarantine.quarantined,
+    expired: quarantine.expired,
+  });
 
 await mkdir(WORKING_DIR, { recursive: true });
 await writeFile(join(WORKING_DIR, 'comment.md'), verdict.comment, 'utf-8');

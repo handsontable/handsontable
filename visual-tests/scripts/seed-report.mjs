@@ -17,6 +17,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { summarizeBuild } from '../lib/seed-report.mjs';
+import { partitionReport } from '../lib/visual-quarantine.mjs';
+import { readQuarantineEntries } from './utils/quarantine.mjs';
 
 // The same variable `visual-gate.mjs` honors, so the docs suite (DEV-2860) can point both
 // wrappers at its own artifacts directory; unset, reg-suit's `.reg/` as before.
@@ -37,10 +39,32 @@ try {
 
 const runUrl = process.env.VISUAL_RUN_URL ?? '';
 const reportUrl = domain && actualKey ? `https://${domain}/${actualKey}/index.html` : '';
+const tier = process.env.VISUAL_TIER || 'seed';
+
+// The nightly only. A seed never blocks on a difference, and a quarantined capture must still land in
+// the baseline exactly as it rendered, so the seed tier is left untouched. A named file that cannot be
+// read fails the nightly with the reason, rather than holding it on a flake it was told to report.
+let partition = { report, quarantined: [], expired: [] };
+
+if (tier === 'full') {
+  try {
+    partition = partitionReport(report, readQuarantineEntries(process.env.VISUAL_QUARANTINE_FILE), new Date());
+  } catch (error) {
+    console.error(`::error::${error.message}`);
+    process.exit(1);
+  }
+
+  partition.quarantined.forEach(({ item, entry }) => console.log('::warning title=Quarantined capture '
+    + `(${entry.taskId})::${item} differed; quarantined until ${entry.expires}, reported and not failing the run.`));
+  partition.expired.forEach(({ item, entry }) => console.log('::warning title=Expired quarantine '
+    + `(${entry.taskId})::${item} differed and its quarantine expired on ${entry.expires}; it fails the run again.`));
+}
 
 const result = summarizeBuild({
-  report,
-  tier: process.env.VISUAL_TIER || 'seed',
+  report: partition.report,
+  quarantined: partition.quarantined,
+  expired: partition.expired,
+  tier,
   branch: process.env.GITHUB_REF_NAME ?? '',
   sha: process.env.GITHUB_SHA ?? '',
   // Passed through `env:` by the workflow, never interpolated into a script body: a commit

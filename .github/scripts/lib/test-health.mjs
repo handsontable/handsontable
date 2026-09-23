@@ -9,6 +9,13 @@
  * across runs, so every flake was rediscovered from scratch and recurrence
  * stayed anecdotal.
  *
+ * The visual suite adds a third: the compare record every Compare job uploads
+ * (`visual-compare-*`, `visual-tests/lib/visual-compare-record.mjs`), from pull
+ * requests through `Tests` and from the weekday nightly through `Visual nightly`.
+ * One capture is one test here, whatever variants it differed on: the record
+ * splits each path into its leg (the variant) and its capture, and a capture
+ * that differs on two themes in one run is one recurrence.
+ *
  * These helpers turn those artifacts into ledger entries, merge them into the
  * ledger that lives on `gh-pages` (`test-health/ledger.json`), prune it, and
  * aggregate it per test into the summary the page renders: how often a test
@@ -48,6 +55,7 @@ export const PLAYWRIGHT_JSON_REPORT = 'test-results/report.json';
 
 export const PLAYWRIGHT_ARTIFACT_PREFIX = 'playwright-report-';
 export const JASMINE_ARTIFACT_PREFIX = 'puppeteer-failed-specs-';
+export const VISUAL_ARTIFACT_PREFIX = 'visual-compare-';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -65,12 +73,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * @typedef {object} Entry
- * @property {'playwright'|'jasmine'} tier Which suite the test belongs to.
- * @property {string} leg The Playwright project (`e2e-classic-min`) or the Jasmine leg (`UMD (theme: main)`).
- * @property {string|null} file The spec file, relative to its package.
+ * @property {'playwright'|'jasmine'|'visual'} tier Which suite the test belongs to.
+ * @property {string} leg The Playwright project (`e2e-classic-min`), the Jasmine leg (`UMD (theme: main)`), or the
+ * visual variant (`js/chromium-theme-main-dark`).
+ * @property {string|null} file The spec file, relative to its package (repository-relative for a visual capture).
  * @property {number|null} line The test's line, when the report has it.
- * @property {string} title The test's full title path.
- * @property {'flaky'|'failed'} status `flaky` passed on retry; `failed` did not.
+ * @property {string} title The test's full title path, or a visual capture (`multi-frameworks/filters/x-12`).
+ * @property {'flaky'|'failed'} status `flaky` passed on retry; `failed` did not. A visual capture is always
+ * `failed`: a retry re-renders and overwrites the same screenshot, so the comparison only sees the last one.
  * @property {number} attempts How many times the test ran in that leg.
  * @property {string|null} error The first line of the first failure message.
  * @property {string|null} isolation The Jasmine isolation verdict, when probed.
@@ -107,7 +117,7 @@ export function runContextFromRun(run) {
  * Which kind of evidence an artifact holds, by its name.
  *
  * @param {string} name The artifact name.
- * @returns {'playwright'|'jasmine'|null} The tier, or `null` for an unrelated artifact.
+ * @returns {'playwright'|'jasmine'|'visual'|null} The tier, or `null` for an unrelated artifact.
  */
 export function classifyArtifact(name) {
   if (name.startsWith(PLAYWRIGHT_ARTIFACT_PREFIX)) {
@@ -115,6 +125,9 @@ export function classifyArtifact(name) {
   }
   if (name.startsWith(JASMINE_ARTIFACT_PREFIX)) {
     return 'jasmine';
+  }
+  if (name.startsWith(VISUAL_ARTIFACT_PREFIX)) {
+    return 'visual';
   }
 
   return null;
@@ -252,6 +265,44 @@ export function parseJasmineRecord(record, run) {
 }
 
 /**
+ * Entries for every changed capture in a visual compare record.
+ *
+ * Changed items only. A new or deleted item is structure — a renamed spec, a changed capture count, a
+ * baseline the seed has not written yet — and recurring structure is a missing seed, not a flake. And no
+ * entry at all for a seed's record: a seed's differences are what its merged commit changed, so ingesting
+ * them would file every intended change as a flake. The seed's workflow is not in `test-health.yml`'s list
+ * either; skipping the tier here is what keeps a seed-tier record that arrives through `Tests` (the master
+ * push renders the seed tier inside it) out as well.
+ *
+ * @param {object} record The parsed `visual-compare-<tier>-<sha>.json`.
+ * @param {RunContext} run The run the record came from.
+ * @returns {Entry[]} The entries, in record order.
+ */
+export function parseVisualRecord(record, run) {
+  if (record.tier === 'seed') {
+    return [];
+  }
+
+  return (record.items ?? []).filter(item => item.status === 'changed' && item.capture).map(item => ({
+    tier: 'visual',
+    leg: String(item.leg ?? ''),
+    file: item.spec ?? null,
+    line: null,
+    title: String(item.capture),
+    status: 'failed',
+    attempts: 1,
+    error: item.actualSha256
+      ? `differs from ${record.expectedKey || 'the golden records'} (${record.tier} tier); `
+        + `render sha256 ${String(item.actualSha256).slice(0, 12)}`
+      : null,
+    isolation: null,
+    quarantine: item.quarantine ?? null,
+    source: 'ci',
+    ...run,
+  }));
+}
+
+/**
  * Entries from every relevant file of a run's downloaded artifacts. Files that
  * do not parse are reported as notes and skipped: a broken report must never
  * stop the rest of the run from being recorded.
@@ -270,15 +321,23 @@ export function collectArtifactFiles(files, run) {
     const tier = classifyArtifact(file.artifact);
     const isReport = tier === 'playwright' && file.path.endsWith(PLAYWRIGHT_JSON_REPORT);
     const isRecord = tier === 'jasmine' && /(^|\/)failed-specs-[^/]*\.json$/.test(file.path);
+    const isVisualRecord = tier === 'visual' && /(^|\/)visual-compare-[^/]*\.json$/.test(file.path);
 
-    if (!isReport && !isRecord) {
+    if (!isReport && !isRecord && !isVisualRecord) {
       continue;
     }
 
     try {
       const parsed = JSON.parse(file.text);
+      let parser = parseJasmineRecord;
 
-      entries.push(...(isReport ? parsePlaywrightReport(parsed, run) : parseJasmineRecord(parsed, run)));
+      if (isReport) {
+        parser = parsePlaywrightReport;
+      } else if (isVisualRecord) {
+        parser = parseVisualRecord;
+      }
+
+      entries.push(...parser(parsed, run));
     } catch (error) {
       // Both the parse and the parser run here: a file that is valid JSON but the wrong shape
       // (`null`, `{"suites":[null]}`) must be noted and skipped, not thrown past the whole run.
@@ -454,8 +513,12 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
         source: last.source,
       },
       // A quarantined test already names its owning task, so it does not also count as needing one.
-      needsTicket: !last.quarantine
-        && (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns),
+      // A visual capture uses the raw run count: nothing in that tier is ever `flaky` (no retry reaches
+      // the comparison), and the nightly is one branch by construction, so the shared rule could never
+      // flag the recurrence the ledger most needs to see — the same capture red on two nights.
+      needsTicket: !last.quarantine && (last.tier === 'visual'
+        ? runs30 >= ticketThresholdRuns
+        : (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)),
     };
   });
 
@@ -538,12 +601,15 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
 
   if (needTicket.length > 0) {
     lines.push('', `${needTicket.length} test(s) recurred across ${summary.ticketThresholdRuns}+ distinct `
-      + `branches or flaky reruns in the last ${summary.windows.longDays} days `
-      + 'and need a fix or migration ticket:', '');
+      + `branches or flaky reruns (for a visual capture, ${summary.ticketThresholdRuns}+ runs) in the last `
+      + `${summary.windows.longDays} days and need a fix or migration ticket:`, '');
 
     for (const row of needTicket) {
-      lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${row.branches30} branch(es), `
-        + `${row.flakyRuns30} flaky rerun(s), legs: ${row.legs.join(', ')}`);
+      const recurrence = row.tier === 'visual'
+        ? `${row.runs30} run(s)`
+        : `${row.branches30} branch(es), ${row.flakyRuns30} flaky rerun(s)`;
+
+      lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${recurrence}, legs: ${row.legs.join(', ')}`);
     }
   }
 

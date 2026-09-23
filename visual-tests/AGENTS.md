@@ -500,10 +500,11 @@ does for you):
   synchronously and leave the ordering to the browser, where a one-shot read could refuse a render that
   was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
-  (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
-  one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten
-  separate runners from one commit, and reports byte-unstable captures and the pairs the gate would have
-  called changed. A single machine cannot see the cross-runner half of the
+  (`.github/workflows/visual-stability.yml`) renders the filters family (classic plus one chosen theme) and
+  the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten separate runners from
+  one commit, and reports byte-unstable captures and the pairs the gate would have called changed. It runs
+  on its own every weekday night at 02:30 UTC with three runners (see G5 below), and on dispatch with ten,
+  or with `scope: full` across the whole suite. A single machine cannot see the cross-runner half of the
   noise — locally, 39 of 92 captures were byte-unstable across ten renders and the gate tolerated all of
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow.
@@ -581,13 +582,36 @@ which of these run locally and which only in CI.
   family is repaired first (assert the state, then capture); the remaining sites wear
   `// eslint-disable-next-line no-restricted-syntax -- <ticket>: <why>` naming the consolidation task, so
   the debt is counted and greppable.
-- **G5 · The compare record, the quarantine, and the nightly stability run** — not yet landed. Every
-  Compare writes a record the cross-run flake ledger (`test-health.yml`) ingests; a flaky capture can be
-  quarantined in `visual-tests/visual-quarantine.json` (reported, not blocking, expiring — an expired entry
-  fails the tooling suite until it is renewed or removed); and `Visual stability` runs on weekday nights
-  alongside the full render, thirty minutes after it, so byte-instability is measured, not guessed: the
-  nightly catches drift (one render against the baseline), the stability run catches noise (runners against
-  each other), and a flake and a drift seen the same morning can be told apart.
+- **G5 · The compare record, the quarantine, and the nightly stability run** — landed. Three parts.
+  - **The record.** Every Compare job, green or red and on both comparison paths, writes
+    `.reg/visual-compare-<tier>-<sha>.json` and uploads it as `visual-compare-<tier>`
+    (`lib/visual-compare-record.mjs`, `scripts/compare-record.mjs`). Each differing item carries its leg (the
+    variant prefix), its spec, its capture (the path without the prefix), and the sha256 of its render —
+    which mechanizes the byte-equality diagnostic under Comparison and approval: the same sha on two
+    unrelated pull requests means the golden is the odd one out. The record is written before the verdict
+    and the budget and never carries either. The cross-run flake ledger (`test-health.yml`) ingests it from
+    `Tests` (pull requests) and `Visual nightly`: changed items only (new and deleted are structure), no
+    seed-tier record (a seed's differences are its merge's own), one row per capture whatever variants it
+    differed on, and a ticket at 2+ runs in 30 days — the raw run count, because nothing here is ever
+    `flaky` and the nightly is one branch.
+  - **The quarantine.** `visual-tests/visual-quarantine.json` parks a known-flaky capture:
+    `{ taskId, expires, capture, legs, why }`, at most 30 days out, at most 6 entries and 12 items (one per
+    leg, so an entry names the variants that flake). The limits and the task-id and date checks are the
+    functional tier's own, imported from `tests/lib/quarantine-policy.mjs`. A live entry takes its items out
+    of `failedItems` before the pull request verdict and the nightly's (`lib/visual-quarantine.mjs`), and
+    both list them under `### Quarantined — reported, not blocking`; the record stamps them so the ledger
+    shows the badge instead of asking for a ticket. Only a CHANGED item is covered — a quarantined capture
+    that reg-suit calls new or deleted still counts. The budget reads the raw `out.json`, so a quarantined
+    item still counts as rendered. The file is read only through `VISUAL_QUARANTINE_FILE`, which `visual.yml`
+    sets and the docs action does not. An expired entry blocks again, and fails `Checks / tooling tests`
+    on EVERY pull request until it is removed or renewed (`lib/__tests__/visual-quarantine.test.mjs`, on the
+    real clock) — stricter than the functional tier on purpose, and the message carries the remedy.
+  - **The stability run.** `Visual stability` runs every weekday night on develop at 02:30 UTC, thirty
+    minutes after the nightly, with three runners, and posts a failed night to Slack. The nightly catches
+    drift (one render against the baseline); this catches noise (runners against each other); on the same
+    nights, a capture this run calls unstable is a flake, and one it calls stable but the nightly calls
+    changed is drift. A trim that drops `classic` or the chosen theme from a filters spec makes it report
+    those captures as missing — update `MULTI_SPECS`, it is not a flake.
 - **G6 · The visual-only-coverage warning** — not yet landed. The presence gate keeps counting a visual
   spec as coverage and prints an advisory `visual-only-coverage` warning when a source change ships with a
   screenshot as its only test, pointing at the decision rule above.

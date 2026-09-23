@@ -51,11 +51,18 @@ on:
 # environment as well, so every `npm run in visual-tests …` and every
 # `node ./visual-tests/scripts/…` below resolves the same tier through
 # visual-tests/lib/visual-tiers.mjs.
+#
+# `VISUAL_QUARANTINE_FILE` names the known-flaky captures the verdict, the
+# nightly report and the compare record treat as reported rather than blocking
+# (visual-tests/lib/visual-quarantine.mjs). The scripts read it only when it is
+# set, and the docs suite's action never sets it, so the core file never reaches
+# the docs gate that shares visual-gate.mjs.
 env:
   R2_BUCKET_NAME: handsontable-visual
   VISUAL_REPORT_DOMAIN: visual.handsontable.com
   VISUAL_TIER: ${{ inputs.tier }}
   VISUAL_WRAPPERS: ${{ inputs.wrappers }}
+  VISUAL_QUARANTINE_FILE: visual-tests/visual-quarantine.json
 
 jobs:
   render:
@@ -405,6 +412,31 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: node ./visual-tests/scripts/compare-fork.mjs "$BASE_REF"
+
+      # Every comparison leaves a record for the cross-run flake ledger
+      # (test-health.yml), green or red, from both comparison paths above: what
+      # differed, on which variant, from which spec, and the sha256 of each changed
+      # render — the byte-equality check visual-tests/AGENTS.md describes by hand.
+      # It is written BEFORE the verdict and the budget and never carries either;
+      # red and green stay theirs. `!cancelled()`, so a comparison that failed still
+      # leaves its evidence; the script itself never fails the job. An upload needs
+      # no token, so there is no fork guard (the Puppeteer record in e2e.yml is the
+      # precedent). The artifact is named after the tier alone: one Compare job per
+      # run, and the commit is in the file name.
+      - name: Write the visual compare record
+        if: ${{ !cancelled() && env.VISUAL_SKIP != 'true' }}
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node ./visual-tests/scripts/compare-record.mjs
+      - name: Upload the visual compare record
+        if: ${{ !cancelled() && env.VISUAL_SKIP != 'true' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: visual-compare-${{ inputs.tier }}
+          path: visual-tests/.reg/visual-compare-*.json
+          retention-days: 3
+          if-no-files-found: ignore
+          overwrite: true
 
       # On a push, a schedule or a dispatch nothing else reads the comparison:
       # the gate below is pull-request-only, so until this step a seed's own
