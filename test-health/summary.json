@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-23T11:18:14.371Z",
+  "generatedAt": "2026-09-23T14:28:33.708Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8504,7 +8504,7 @@
       "file": "handsontable/src/plugins/nestedHeaders/__tests__/selection.spec.js",
       "line": null,
       "title": "NestedHeaders selection should add selection borders in the expected positions, when selecting multi-columned headers",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
