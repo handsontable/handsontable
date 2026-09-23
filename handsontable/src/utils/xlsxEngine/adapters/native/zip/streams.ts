@@ -20,8 +20,24 @@ function ownedCopy(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
  * the declared size is the file's own claim and may be either a lie or absent.
  */
 export interface InflatedText {
+  /**
+   * The whole output of the stream, decoded as UTF-8.
+   */
   text: string;
+  /**
+   * How many bytes the stream produced, which is what the archive budget is charged.
+   */
   byteLength: number;
+}
+
+/**
+ * The refusal a caller that names no better one gets when the stream runs past its ceiling. A
+ * caller whose ceiling comes from a budget of its own hands over that budget's wording instead, so
+ * a reader is told which declared limit was really reached rather than the number this stream
+ * happened to stop at.
+ */
+function refuseAboveCeiling(maxBytes: number): () => never {
+  return () => throwLimitExceeded(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
 }
 
 /**
@@ -31,12 +47,17 @@ export interface InflatedText {
  *
  * The caller decides what to do with a chunk: collecting them costs the whole output twice (the
  * chunk list and the joined copy), which a text reader avoids by decoding each chunk as it arrives.
+ *
+ * `refuse` is what the overshoot raises. The ceiling is often the smallest of several limits, and
+ * only the caller knows which one it chose, so the sentence a user reads belongs to the caller
+ * rather than to this loop.
  */
 async function drain(
   bytes: Uint8Array,
   transform: CompressionStream | DecompressionStream,
   maxBytes: number,
-  onChunk: (chunk: Uint8Array) => void
+  onChunk: (chunk: Uint8Array) => void,
+  refuse: () => never
 ): Promise<number> {
   const writer = transform.writable.getWriter();
   const reader = transform.readable.getReader();
@@ -65,7 +86,7 @@ async function drain(
         // The cap was hit, so this cancels the stream once and throws: the loop never comes round again.
         // eslint-disable-next-line no-await-in-loop -- see the comment above.
         await reader.cancel();
-        throwLimitExceeded(`The archive entry inflates above the ${maxBytes}-byte limit this reader accepts.`);
+        refuse();
       }
 
       onChunk(value);
@@ -97,7 +118,7 @@ async function pump(
   maxBytes: number
 ): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
-  const total = await drain(bytes, transform, maxBytes, chunk => chunks.push(chunk));
+  const total = await drain(bytes, transform, maxBytes, chunk => chunks.push(chunk), refuseAboveCeiling(maxBytes));
   const out = new Uint8Array(total);
   let offset = 0;
 
@@ -152,15 +173,22 @@ export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Ar
  * arrives - through ONE decoder in `stream: true` mode, so a multi-byte character split across a
  * chunk boundary still decodes correctly - drops the first two of those. A byte-order mark is still
  * stripped, because the decoder sees the stream's first bytes first.
+ *
+ * `refuse` raises the overshoot. A caller whose ceiling is the smaller of several limits passes the
+ * sentence of the limit it chose, so the refusal never quotes a number that is nobody's cap.
  */
-export async function inflateRawText(bytes: Uint8Array, maxBytes: number): Promise<InflatedText> {
+export async function inflateRawText(
+  bytes: Uint8Array,
+  maxBytes: number,
+  refuse: () => never = refuseAboveCeiling(maxBytes)
+): Promise<InflatedText> {
   assertStreamAvailable('DecompressionStream');
 
   const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
   let text = '';
   const byteLength = await drain(bytes, new DecompressionStream('deflate-raw'), maxBytes, (chunk) => {
     text += decoder.decode(chunk, { stream: true });
-  });
+  }, refuse);
 
   return { text: text + decoder.decode(), byteLength };
 }

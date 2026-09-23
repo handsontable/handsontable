@@ -178,14 +178,24 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   different half. (1) A stored entry whose two sizes disagree is REFUSED — that is malformed by the
   spec, and `zip/writer.ts` never writes one. (2) The charge is the byte count the entry really
   produced (`data.byteLength` stored, the inflate's own output length for DEFLATE), while the
-  DEFLATE ceiling is `min(declared, MAX_INFLATED_ENTRY_BYTES, remaining budget + 1)` — so the budget
-  is enforced BEFORE the bytes exist, and that `+ 1` is deliberate: the stream stops one byte past
-  what the budget allows so the refusal comes from the budget's own message rather than from the
-  entry's ceiling. (3) ALIASES ARE DEDUPLICATED BY REGION AND THE CACHE IS BUDGETED. `text()`
-  memoizes on `method:localOffset:compressedSize`, not on the entry NAME, because N central records
-  may name one local record and a name-keyed memo then held one decoded copy per name; and the
-  decoded string is charged against the same total (UTF-16 code units × 2, the worst case), so the
-  memo can never hold more than the archive was allowed to cost however the bytes were obtained.
+  DEFLATE ceiling is `min(declared, MAX_INFLATED_ENTRY_BYTES, remaining budget)` — so the budget is
+  enforced BEFORE the bytes exist. **THE CEILING AND ITS REFUSAL ARE CHOSEN TOGETHER**:
+  `inflateCeiling()` (`zip/reader.ts`) returns the smallest of the three *and* the sentence that
+  belongs to it, and `drain()` raises that sentence instead of wording one of its own. A ceiling of
+  `remaining budget + 1` with the stream wording the refusal was the earlier shape, and it only
+  reached the budget's message on a one-byte overshoot: a part declaring 400 MB that really inflated
+  far past the remaining total was refused with `MAX_INFLATED_TOTAL_BYTES + 1`, a number that is no
+  cap of this reader's and that named no entry. Every refusal on this path now names the entry.
+  (3) ALIASES ARE DEDUPLICATED BY REGION AND THE CACHE IS BUDGETED. `text()` memoizes on
+  `method:localOffset:compressedSize:uncompressedSize`, not on the entry NAME, because N central
+  records may name one local record and a name-keyed memo then held one decoded copy per name; and
+  the decoded string is charged against the same total (UTF-16 code units × 2, the worst case), so
+  the memo can never hold more than the archive was allowed to cost however the bytes were obtained.
+  **BOTH DECLARED SIZES ARE IN THE KEY**, because the memo is consulted BEFORE `entryText()` runs
+  the per-entry cap and the stored-size agreement check, which both read `uncompressedSize`. Keyed
+  on the region alone, a directory listing one honest record and one liar over the same bytes served
+  the liar from the cache when the honest one was read first, so a refusal was skippable by read
+  order. Records that agree on all four fields still share one decode, which is the whole point.
   That charge is what makes a part cost roughly 3× its inflated size against the budget — deliberate,
   because that is what it costs in memory. `readWorkbook` still calls `release()` in a `finally`, and
   N sheets pointing at one part still cost one read.
@@ -195,8 +205,9 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   Every part this reader inflates is XML, so `inflateRawText()` decodes each chunk through ONE
   `TextDecoder` in `{ stream: true }` mode (which is what keeps a multi-byte character split across
   a chunk boundary correct) and returns the text plus the byte count the budget is charged. The
-  byte-collecting `inflateRaw()` stays for the writer's round trip and for tests. A BOM is still
-  stripped, because the decoder sees the stream's first bytes first.
+  byte-collecting `inflateRaw()` has NO production caller left — the writer uses `deflateRaw` — and
+  stays only for the round-trip tests. A BOM is still stripped, because the decoder sees the
+  stream's first bytes first.
 - **A limit refusal is recognized by a FLAG on the error, not by its wording.** `read.ts` re-throws
   a cap's own message instead of wrapping it in `The workbook could not be parsed by the native
   engine: …`, and it used to decide that with `/limit this reader accepts/` against the message.
@@ -210,20 +221,47 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   the same refusal differently; the ExcelJS adapter's workbook-cells refusal is still a plain
   `throwWithCause`, which is why `isLimitError()` answers `false` for that one (nothing asks it on
   that path — `read.ts` is the native reader's).
-- **A sheet's `r:id` is checked against `[Content_Types].xml` before the part is read as a worksheet,
-  and BOTH `<Override>` and `<Default>` type a part.** A relationship target is the file's own text and
-  may name ANY part of the package: `Target="/[Content_Types].xml"` normalizes back inside the archive,
-  was tokenized as a worksheet and yielded an empty sheet with no diagnostic. `read.ts` asks
-  `isWorksheetPart()`, which takes the package's own declaration through `contentTypeOf()`
-  (`parts/package.ts`) — an `<Override>` for the part, else the `<Default>` for its extension — and
-  requires the worksheet content type. Reading the overrides ALONE was the gap: `.rels` is typed by
-  `<Default Extension="rels">` and by nothing else, so such a part had no declared type, was not one of
-  the four parts the reader resolves for another purpose, and a sheet pointing at `_rels/workbook.xml.rels`
-  or `/_rels/.rels` read back as an empty sheet with no diagnostic. Where the package declares nothing at
-  all, the parts already resolved for another purpose are still refused (`[Content_Types].xml`, the
-  workbook, its styles, its shared strings), so a package carrying no `[Content_Types].xml` still reads,
-  as before. The consequence to know: a package that DOES declare content types must carry the worksheet
-  override for each sheet part, which every writer emits and the OPC spec requires.
+- **A sheet's `r:id` is checked against a FLOOR of part names first, and only then against
+  `[Content_Types].xml`.** A relationship target is the file's own text and may name ANY part of the
+  package: `Target="/[Content_Types].xml"` normalizes back inside the archive, was tokenized as a
+  worksheet and yielded an empty sheet with no diagnostic. `read.ts` asks `isWorksheetPart()`, which
+  runs in this order. (1) **The floor, unconditionally**: the parts this read already resolved
+  (`opened.packageParts`), the fixed `NEVER_WORKSHEET_PARTS` names (`[Content_Types].xml`,
+  `xl/workbook.xml`, `xl/styles.xml`, `xl/sharedStrings.xml`) and anything that is a `.rels` part
+  (`isRelationshipPart()`) are refused whatever the file says about them. (2) **The declared type**,
+  through `contentTypeOf()` (`parts/package.ts`) — an `<Override>` for the part, else the
+  `<Default>` for its extension — compared case-insensitively against `CONTENT_TYPES.worksheet`
+  (OPC compares a media type's type and subtype that way, and `…spreadsheetml.Worksheet+xml` was
+  refused over one capital). A part the package types as nothing at all passes, which is how a
+  package carrying no `[Content_Types].xml` still reads. **The floor is why the order matters**: it
+  used to be a FALLBACK, run only where the package declared nothing, and the declaration is the
+  attacker's text too — a single `<Default Extension="xml" ContentType="…worksheet+xml"/>` types
+  EVERY `.xml` part of the package as a worksheet, so a sheet could point back at the workbook, the
+  styles or the shared strings and read as an empty sheet again. `packageParts` alone was never a
+  floor either: it holds only what this read happened to resolve, so a workbook declaring no
+  shared-strings relationship left `xl/sharedStrings.xml` out of it. Reading `<Default>` at all was
+  itself the fix for `.rels`, typed by `<Default Extension="rels">` and by nothing else. The
+  consequence to know: a package that DOES declare content types must carry the worksheet override
+  (or a worksheet `<Default>`) for each sheet part, which every writer emits and the OPC spec
+  requires.
+- **A part that IS typed as a worksheet but does not hold one reads back as an empty sheet, with no
+  diagnostic.** The worksheet reader matches elements by local name and simply finds none it knows,
+  so a package that types its `<sst>` or its `<Relationships>` document as a worksheet resolves to a
+  sheet with zero rows rather than being refused. Deliberate residue, not an oversight: refusing it
+  needs "no `<sheetData>` was seen" carried out of `parseWorksheet` and into a new public dropped
+  name plus a guide row, and a legitimately empty sheet (which does carry `<sheetData/>`) must keep
+  reading. Nothing is unsafe about it — no `TypeError` escapes, no budget is bypassed, and the
+  attacker already owns every byte of the file.
+- **A file-driven dropped-feature name is BOUNDED, in two directions.** `recordUnsupported(group,
+  value)` (`capabilities.ts`) is the one door a workbook's own text reaches `ImportResult.dropped`
+  and the console warning through — a `<cfRule type>`, a `<dataValidation type>`, a `numFmt`
+  pattern. The value is trimmed to `MAX_UNSUPPORTED_VALUE_LENGTH` (64) characters with an ellipsis
+  and every control character replaced by U+FFFD, and one read may add at most
+  `MAX_UNSUPPORTED_NAMES` (32) DISTINCT file-driven names before the rest count into
+  `<group>:other`. Without both, one rule carrying ten megabytes of type text produced a ten-megabyte
+  map key, result entry and warning argument, and N rules with N types produced N of each — the only
+  file-driven quantity in this engine with no cap. The declared names (`record()`) are counted
+  separately, so they never eat into the file's budget.
 - **`<sheetProtection>` is read through an ALLOW-LIST, not a shape test.** Both readers keep only the
   names `SHEET_PROTECTION_OPTION_NAMES` (`model.ts`) declares. Copying every boolean-shaped attribute
   put `constructor`, `toString` and `hasOwnProperty` on the snapshot as own properties, so a consumer

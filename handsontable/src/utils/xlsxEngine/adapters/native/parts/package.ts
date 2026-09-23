@@ -284,6 +284,10 @@ export function parseContentTypes(xml: string): ContentTypes {
 /**
  * The content type a package declares for a part, or `undefined` when it declares none. An
  * `<Override>` wins over the `<Default>` for the part's extension, which is what the OPC spec says.
+ *
+ * The extension is taken from the last segment of the path, not from the whole path: a dot in a
+ * DIRECTORY name (`xl/a.b/sheet`) otherwise yielded the extension `b/sheet`, which no `<Default>`
+ * can declare, so the answer was right only by accident.
  */
 export function contentTypeOf(types: ContentTypes, partPath: string): string | undefined {
   const declared = types.overrides.get(partPath);
@@ -292,9 +296,10 @@ export function contentTypeOf(types: ContentTypes, partPath: string): string | u
     return declared;
   }
 
-  const dot = partPath.lastIndexOf('.');
+  const fileName = partPath.slice(partPath.lastIndexOf('/') + 1);
+  const dot = fileName.lastIndexOf('.');
 
-  return dot === -1 ? undefined : types.defaults.get(localeLowerCase(partPath.slice(dot + 1)));
+  return dot === -1 ? undefined : types.defaults.get(localeLowerCase(fileName.slice(dot + 1)));
 }
 
 /**

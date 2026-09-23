@@ -237,6 +237,40 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     expect(snapshot.sheets.length).toBe(1);
   });
 
+  it('should refuse a part that inflates past the remaining budget in the budget\'s own words', async() => {
+    // The ceiling used to be `remaining + 1` with the STREAM wording the refusal, so the budget's
+    // own message was reachable only on a one-byte overshoot. Anything further over was refused
+    // with `MAX_INFLATED_TOTAL_BYTES + 1` — a number that is no declared cap of this reader's — and
+    // named no entry. A part declaring 400 MB (inside the per-entry cap) that really inflates far
+    // past what the budget still allows is exactly the hostile case that message was written for.
+    const almostTheBudget = 84 * 1024 * 1024;
+    const overTheRemainder = 8 * 1024 * 1024;
+
+    // A part costs its bytes plus its UTF-16 string, so the first one spends three times its size
+    // and leaves the budget less than the second one produces.
+    expect(almostTheBudget * 3).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
+    expect(MAX_INFLATED_TOTAL_BYTES - (almostTheBudget * 3)).toBeLessThan(overTheRemainder);
+
+    let bytes = await repack('values', (part, text) => {
+      if (part === 'xl/styles.xml') {
+        return `<!--${' '.repeat(almostTheBudget)}-->${text}`;
+      }
+
+      if (part === 'xl/sharedStrings.xml') {
+        return `<!--${' '.repeat(overTheRemainder)}-->${text}`;
+      }
+
+      return text;
+    });
+
+    bytes = declareInflatedSize(bytes, 'xl/sharedStrings.xml', 400 * 1024 * 1024);
+
+    await expect(read(bytes)).rejects.toThrow(
+      new RegExp('The archive entry "xl/sharedStrings.xml" brings the inflated total above the '
+        + `${MAX_INFLATED_TOTAL_BYTES}-byte limit`)
+    );
+  });
+
   it('should still refuse a single entry at the per-entry cap, with the per-entry message', async() => {
     let bytes = await repack('values', (part, text) => text);
 
@@ -527,6 +561,21 @@ describe('native reader hardening: central-directory aliases', () => {
     );
   });
 
+  it('should refuse a lying alias read AFTER the honest record over the same region', async() => {
+    // The memo sits in front of the checks `entryText()` makes on an entry's declared sizes, so a
+    // key built from the region alone made both of them a matter of read ORDER: a crafted directory
+    // listing one honest record and one liar over the same bytes served the liar from the cache
+    // whenever the honest one was read first. Every declared field is in the key now.
+    const region = encoder.encode('<worksheet/>'.padEnd(1500, ' '));
+    const archive = await readZip(craftAliasedArchive(region, [
+      { name: 'honest.xml', size: region.byteLength },
+      { name: 'liar.xml', size: region.byteLength, uncompressedSize: 1 },
+    ]));
+
+    expect(await archive.text('honest.xml')).toBe(new TextDecoder().decode(region));
+    await expect(archive.text('liar.xml')).rejects.toThrow(/a stored entry's two sizes must agree/);
+  });
+
   it('should refuse a stored entry whose two declared sizes disagree', async() => {
     // The lie that bypassed the budget: a stored entry returns its COMPRESSED bytes, so a record
     // declaring one uncompressed byte beside a 1.5 MB compressed size was charged a single byte for
@@ -539,5 +588,81 @@ describe('native reader hardening: central-directory aliases', () => {
     await expect(archive.text('xl/worksheets/sheet1.xml'))
       .rejects.toThrow(/a stored entry's two sizes must agree/);
     await expect(archive.text('xl/worksheets/sheet1.xml')).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+});
+
+/**
+ * The content type a package declares for a worksheet part.
+ */
+const WORKSHEET_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml';
+
+/**
+ * Repacks the fixture with a `[Content_Types].xml` that types EVERY `.xml` part as a worksheet
+ * through one `<Default>` and declares no `<Override>` at all, optionally pointing the workbook's
+ * sheet relationship at another part of the package.
+ *
+ * @param {string|null} target The sheet relationship's target, or `null` to leave it alone.
+ * @returns {Promise<Uint8Array>}
+ */
+function repackWithWorksheetDefault(target) {
+  return repack('values', (part, text) => {
+    if (part === '[Content_Types].xml') {
+      return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        + `<Default Extension="xml" ContentType="${WORKSHEET_CONTENT_TYPE}"/>`
+        + '</Types>';
+    }
+
+    if (part === 'xl/_rels/workbook.xml.rels' && target !== null) {
+      return text.replace(/Target="worksheets\/sheet1.xml"/, `Target="${target}"`);
+    }
+
+    return text;
+  });
+}
+
+describe('native reader hardening: a package that types every .xml part as a worksheet', () => {
+  it('should refuse a sheet pointed at the package\'s own plumbing whatever the file types it as', async() => {
+    // The package-part test used to be a FALLBACK, consulted only where the file declared no type —
+    // and the declaration is the attacker's text too. One `<Default Extension="xml">` carrying the
+    // worksheet type answers for every `.xml` part, so a sheet could point back at the workbook,
+    // the styles or the shared strings and read as an empty sheet with no diagnostic again. The
+    // floor runs first now, and `xl/sharedStrings.xml` is in it whether or not this workbook
+    // happens to declare a shared-strings relationship.
+    const targets = [
+      '/xl/workbook.xml',
+      '/xl/styles.xml',
+      '/xl/sharedStrings.xml',
+      '/_rels/.rels',
+      '/[Content_Types].xml',
+    ];
+
+    for (const target of targets) {
+      const bytes = await repackWithWorksheetDefault(target);
+
+      await expect(read(bytes)).rejects.toThrow(/the sheet "[^"]+" has no worksheet part\./);
+      await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
+  });
+
+  it('should still read the sheet that same package types through the <Default>', async() => {
+    // The control: the floor must refuse the plumbing without refusing a real sheet part, including
+    // one a package types through a `<Default>` rather than an `<Override>`.
+    const snapshot = await read(await repackWithWorksheetDefault(null));
+
+    expect(snapshot.sheets.length).toBe(1);
+  });
+
+  it('should read a sheet whose declared type differs from the constant only in casing', async() => {
+    // OPC compares a media type's type and subtype case-insensitively, and `===` refused a package
+    // over one capital letter.
+    const bytes = await repack('values', (part, text) => (
+      part === '[Content_Types].xml'
+        ? text.replace('spreadsheetml.worksheet+xml', 'spreadsheetml.Worksheet+xml')
+        : text
+    ));
+
+    expect((await read(bytes)).sheets.length).toBe(1);
   });
 });

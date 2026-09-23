@@ -8,7 +8,10 @@ import { inflateRawText } from './streams';
  * REGION is inflated at most once: `text()` memoizes its result for the archive's lifetime, keyed
  * by the local region an entry points at rather than by its name, so N sheets pointing at one part
  * - and N differently named records aliasing one local record - cost one inflate rather than N.
- * `release()` drops that cache.
+ * `release()` drops that cache, and deliberately leaves the archive-wide inflated-byte budget
+ * standing: the budget models what ONE read of this archive was allowed to cost, so a second pass
+ * over a released archive re-charges every part it reads again and may refuse a file it has just
+ * read. Nothing does that today - `readWorkbook` releases once, in a `finally`, as its last act.
  */
 export interface ZipArchive {
   names(): string[];
@@ -149,6 +152,35 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   /**
+   * The ceiling one DEFLATE entry's output may not pass, with the refusal that belongs to it.
+   *
+   * Three limits bound the work before a byte exists - the entry's own declared size, the per-entry
+   * cap, and what the archive budget still allows - and the smallest of them is where the stream
+   * stops. The refusal has to follow the same choice. It used to be raised by the stream alone,
+   * which quoted whatever number it stopped at, so a part declaring 400 MB (inside the per-entry
+   * cap) that really inflated past the remaining budget was refused with a byte count that is no
+   * declared limit of this reader's and that named no entry. Each ceiling now owns its sentence.
+   */
+  function inflateCeiling(name: string, entry: CentralEntry): { maxBytes: number; refuse: () => never } {
+    const declared = Math.min(entry.uncompressedSize, MAX_INFLATED_ENTRY_BYTES);
+    const remaining = MAX_INFLATED_TOTAL_BYTES - inflatedTotal;
+
+    if (remaining < declared) {
+      return {
+        maxBytes: remaining,
+        refuse: () => throwLimitExceeded(`The archive entry "${name}" brings the inflated total above the `
+          + `${MAX_INFLATED_TOTAL_BYTES}-byte limit this reader accepts.`),
+      };
+    }
+
+    return {
+      maxBytes: declared,
+      refuse: () => throwLimitExceeded(`The ZIP entry "${name}" inflates above the `
+        + `${declared}-byte limit this reader accepts.`),
+    };
+  }
+
+  /**
    * Locates one entry's stored bytes, refusing an entry whose header does not describe them.
    */
   function entrySlice(name: string, entry: CentralEntry): Uint8Array {
@@ -180,9 +212,9 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * byte for thirty megabytes of output, and the whole archive budget was bypassed by it.
    *
    * A DEFLATE entry is bounded BEFORE its bytes exist, by the smallest of three ceilings: its own
-   * declared size, the per-entry cap, and one byte past what the total budget still allows. That
-   * last one is what keeps the budget's own message reachable - the stream stops one byte over, and
-   * the charge below refuses with the total rather than with the entry's ceiling.
+   * declared size, the per-entry cap, and what the total budget still allows. `inflateCeiling()`
+   * hands the stream the refusal that goes with the ceiling it picked, so a part stopped by the
+   * budget is refused in the budget's own words.
    */
   async function entryText(name: string): Promise<string> {
     const entry = entries.get(name);
@@ -209,12 +241,8 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       return decoder.decode(data);
     }
 
-    const ceiling = Math.min(
-      entry.uncompressedSize,
-      MAX_INFLATED_ENTRY_BYTES,
-      MAX_INFLATED_TOTAL_BYTES - inflatedTotal + 1
-    );
-    const inflated = await inflateRawText(data, ceiling);
+    const { maxBytes, refuse } = inflateCeiling(name, entry);
+    const inflated = await inflateRawText(data, maxBytes, refuse);
 
     chargeInflated(name, inflated.byteLength);
 
@@ -230,10 +258,19 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * process outright. The cached string is charged against the same budget as the bytes it came
    * from (UTF-16 code units, two bytes each - the worst case; V8 stores a Latin-1 string in one),
    * so the cache can never hold more than the archive was allowed to cost however it was obtained.
+   *
+   * EVERY declared field is in the key, the two sizes included, because the fast path sits in front
+   * of the checks `entryText()` makes on them. Keying on the region alone let a crafted directory
+   * list one well-formed record and one lying record over the same bytes: the honest one read
+   * first, and the liar - a 600 MB claim, or a stored entry whose two sizes disagree - then took the
+   * cached string and skipped the refusal it had earned. A region is still decoded once, since
+   * records that agree on all four fields share a key.
    */
   async function text(name: string): Promise<string> {
     const entry = entries.get(name);
-    const key = entry === undefined ? name : `${entry.method}:${entry.localOffset}:${entry.compressedSize}`;
+    const key = entry === undefined
+      ? name
+      : `${entry.method}:${entry.localOffset}:${entry.compressedSize}:${entry.uncompressedSize}`;
     const cached = texts.get(key);
 
     if (cached !== undefined) {

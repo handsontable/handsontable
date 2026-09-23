@@ -1,4 +1,5 @@
 import { throwWithCause } from '../../../../helpers/errors';
+import { localeLowerCase } from '../../../../helpers/string';
 import type { DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
 import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
@@ -63,6 +64,29 @@ function targetOf(rels: Relationship[], type: string, sourcePart: string): strin
 const CONTENT_TYPES_PART = '[Content_Types].xml';
 
 /**
+ * The part names this reader refuses to read as a worksheet whatever the package says about them.
+ *
+ * `openPackage` collects the parts one read really resolved, which is not a floor: a workbook that
+ * declares no shared-strings relationship never puts `xl/sharedStrings.xml` into that set, so what
+ * the set refuses was decided by the attacker's own relationship list. These four names are the
+ * package's own plumbing under the conventional layout and are never a sheet.
+ */
+const NEVER_WORKSHEET_PARTS = new Set([
+  CONTENT_TYPES_PART,
+  'xl/workbook.xml',
+  'xl/styles.xml',
+  'xl/sharedStrings.xml',
+]);
+
+/**
+ * Whether a part is a relationship part. `.rels` parts live under a `_rels/` directory and carry
+ * that extension, and no package layout makes one a worksheet.
+ */
+function isRelationshipPart(partPath: string): boolean {
+  return partPath.endsWith('.rels') || partPath.startsWith('_rels/') || partPath.includes('/_rels/');
+}
+
+/**
  * Everything the package layer resolves before any sheet is read.
  */
 interface OpenedPackage {
@@ -82,20 +106,28 @@ interface OpenedPackage {
  *
  * A relationship target is the file's own text, so it may name ANY part of the package: `xl/../../
  * [Content_Types].xml` normalizes back inside the archive and was tokenized as a worksheet, which
- * yielded an empty sheet with no diagnostic. The package's own declaration settles it where there
- * is one - through a `<Default>` for the part's extension as well as through an `<Override>`, which
- * is what types every `.rels` part and is why a sheet pointing at one used to pass this check.
- * Where the package declares nothing at all, the parts this reader has already resolved for another
- * purpose are refused, so a sheet can never be the workbook, its styles or its shared strings.
+ * yielded an empty sheet with no diagnostic.
+ *
+ * The package-part test is a FLOOR, not a fallback. It used to run only where the package declared
+ * no type, and the declaration is the attacker's text too: one
+ * `<Default Extension="xml" ContentType="…spreadsheetml.worksheet+xml"/>` types every `.xml` part
+ * of the package as a worksheet, so a sheet could point at `xl/workbook.xml`, the shared strings or
+ * the styles and read back as an empty sheet again. The plumbing is refused first, and a declared
+ * type can only narrow what is left. A package that declares nothing types no part at all, so
+ * there the floor is the whole check - which is how a package carrying no `[Content_Types].xml`
+ * still reads, as before.
+ *
+ * The declared type is compared case-insensitively: OPC compares a media type's type and subtype
+ * that way, and `…spreadsheetml.Worksheet+xml` was refused over one capital letter.
  */
 function isWorksheetPart(opened: OpenedPackage, partPath: string): boolean {
-  const declared = contentTypeOf(opened.contentTypes, partPath);
-
-  if (declared !== undefined) {
-    return declared === CONTENT_TYPES.worksheet;
+  if (opened.packageParts.has(partPath) || NEVER_WORKSHEET_PARTS.has(partPath) || isRelationshipPart(partPath)) {
+    return false;
   }
 
-  return !opened.packageParts.has(partPath);
+  const declared = contentTypeOf(opened.contentTypes, partPath);
+
+  return declared === undefined || localeLowerCase(declared.trim()) === CONTENT_TYPES.worksheet;
 }
 
 /**
