@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed SheetsBar recording the restored sort, filters, and merged cells of a sheet on the undo stack, so undo after a sheet switch no longer reverts them.",
+  "type": "fixed",
+  "issueOrPR": 13629,
+  "breaking": false,
+  "framework": "none"
+}
