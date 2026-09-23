@@ -329,16 +329,26 @@ function restoreSizes(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Restores filter conditions and re-applies the filter.
+ * Restores filter conditions and re-applies the filter. Skipped when there is nothing to apply
+ * and nothing to clear, so a switch between two unfiltered sheets does not run a filter pass.
  */
 function restoreFilterConditions(hot: HotInstance, state: ViewState) {
-  const filters = getEnabledPlugin(hot, 'filters') as
-    { importConditions: (conditions: unknown[]) => void, filter: () => void } | undefined;
+  const filters = getEnabledPlugin(hot, 'filters') as {
+    importConditions: (conditions: unknown[]) => void,
+    exportConditions: () => unknown[],
+    filter: () => void,
+  } | undefined;
 
-  if (filters && state.filterConditions) {
-    filters.importConditions(state.filterConditions);
-    filters.filter();
+  if (!filters || !state.filterConditions) {
+    return;
   }
+
+  if (state.filterConditions.length === 0 && filters.exportConditions().length === 0) {
+    return;
+  }
+
+  filters.importConditions(state.filterConditions);
+  filters.filter();
 }
 
 /**

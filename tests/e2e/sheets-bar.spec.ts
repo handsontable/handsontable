@@ -52,6 +52,26 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'A3');
   });
 
+  test('Ctrl+Z after a sheet round-trip does not undo the restored sort', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    });
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A3');
+
+    await bar.cell(1, 1).click();
+    await page.keyboard.press('ControlOrMeta+z');
+    await page.keyboard.press('ControlOrMeta+z');
+
+    await bar.expectCell(0, 0, 'A3');
+  });
+
   test('a cell edit survives a sheet round-trip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

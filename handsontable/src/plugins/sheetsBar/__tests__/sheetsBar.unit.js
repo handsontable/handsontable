@@ -13,6 +13,11 @@ import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { NestedRows } from '../../nestedRows/nestedRows';
 import { TrimRows } from '../../trimRows/trimRows';
 import { UndoRedo } from '../../undoRedo/undoRedo';
+import { Filters } from '../../filters/filters';
+import { MergeCells } from '../../mergeCells/mergeCells';
+import { DropdownMenu } from '../../dropdownMenu/dropdownMenu';
+import { registerCellType } from '../../../cellTypes/registry';
+import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 import { SheetsBarMenus } from '../ui/menus';
 import { Menu } from '../../contextMenu/menu';
 import { SheetsBarUI } from '../ui/bar';
@@ -102,6 +107,10 @@ describe('SheetsBar plugin', () => {
     registerPlugin(NestedRows);
     registerPlugin(TrimRows);
     registerPlugin(UndoRedo);
+    registerPlugin(DropdownMenu);
+    registerCellType(CheckboxCellType);
+    registerPlugin(Filters);
+    registerPlugin(MergeCells);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -1316,6 +1325,114 @@ describe('SheetsBar plugin', () => {
 
     expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Fees!A1');
     expect(hot.getDataAtCell(0, 1)).toBe(23);
+  });
+
+  it('keeps the restored sort off the undo stack after a sheet round-trip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      columnSorting: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+  });
+
+  it('keeps the restored filter and merge off the undo stack after a sheet round-trip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1, 'x', 'a'], [2, 'y', 'b'], [3, 'x', 'c']] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      filters: true,
+      mergeCells: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(1, 'eq', ['x']);
+    filters.filter();
+    hot.getPlugin('mergeCells').merge(0, 1, 0, 2);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 3]);
+    expect(hot.getCellMeta(0, 1).colspan).toBe(2);
+  });
+
+  it('runs no filter pass on a switch between two sheets that were never filtered', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['a']] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const beforeFilter = jest.fn();
+
+    hot.addHook('beforeFilter', beforeFilter);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeFilter).not.toHaveBeenCalled();
+  });
+
+  it('still clears a filter when switching to a sheet that has none', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['x'], ['y'], ['x']] },
+          { name: 'Beta', data: [['x'], ['y'], ['x']] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'eq', ['x']);
+    filters.filter();
+
+    expect(hot.countRows()).toBe(2);
+
+    sheetsBar.setActiveSheet(beta.id);
+
+    expect(hot.countRows()).toBe(3);
+    expect(filters.exportConditions()).toEqual([]);
   });
 
   it('renames the engine sheet with the tab and rewrites the references to it', () => {
