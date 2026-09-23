@@ -1,12 +1,16 @@
 import { helpers } from '../../src/helpers';
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   selectCell,
   CellBorder,
   setCellBorders,
 } from '../../src/page-helpers';
 
-test('Test borders', async({ tablePage }) => {
+visualTest('Test borders', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   const cell = await selectCell(5, 1);
 
   await setCellBorders(cell, CellBorder.Bottom);

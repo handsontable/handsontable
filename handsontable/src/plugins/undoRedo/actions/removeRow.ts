@@ -5,6 +5,8 @@ import {
   getCellMetas,
   collectAffectedMergedCells,
   restoreMergedCells,
+  collectHiddenRowsForRemoval,
+  restoreHiddenRows,
   settleOnRemoveHook,
   type SettleCallback,
 } from '../utils';
@@ -166,6 +168,11 @@ export class RemoveRowAction extends BaseAction {
    */
   removedMergedCells;
   /**
+   * @param {number[]} removedHiddenRows Absolute visual row indexes the `hiddenRows` plugin had hidden
+   *   within the removed range, captured before the removal ran.
+   */
+  removedHiddenRows;
+  /**
    * Internal snapshot supplied by the NestedRows plugin when a removed row owns a nested subtree.
    *
    * @type {unknown}
@@ -210,6 +217,7 @@ export class RemoveRowAction extends BaseAction {
     rowIndexesSequence,
     removedCellMetas,
     removedMergedCells,
+    removedHiddenRows,
     nestedRowsSnapshot,
     nestedRemovedCellMetas,
     nestedAccessorValues,
@@ -220,6 +228,7 @@ export class RemoveRowAction extends BaseAction {
     fixedRowsBottom: number, fixedRowsTop: number,
     rowIndexesSequence: number[], removedCellMetas: unknown[],
     removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>,
+    removedHiddenRows: number[],
     nestedRowsSnapshot?: unknown,
     nestedRemovedCellMetas?: Array<[number, number, Record<string, unknown>]>,
     nestedAccessorValues?: Array<{ row: number, values: Array<[number, unknown]> }>,
@@ -235,6 +244,7 @@ export class RemoveRowAction extends BaseAction {
     this.rowIndexesSequence = rowIndexesSequence;
     this.removedCellMetas = removedCellMetas;
     this.removedMergedCells = removedMergedCells;
+    this.removedHiddenRows = removedHiddenRows;
 
     if (nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined) {
       this.nestedRowsSnapshot = nestedRowsSnapshot;
@@ -288,6 +298,7 @@ export class RemoveRowAction extends BaseAction {
         const removedMergedCells = nestedRemovedMergedCells
           ? nestedRemovedMergedCells.map(({ physicalRows: _physicalRows, ...mergedCell }) => mergedCell)
           : collectAffectedMergedCells(hot, 'row', index, amount);
+        const removedHiddenRows = hasNestedRowsSnapshot ? [] : collectHiddenRowsForRemoval(hot, index, amount);
 
         for (let i = 0; i < amount; i++) {
           removedData.push(captureRowData(hot, physicalRowIndex + i));
@@ -303,6 +314,7 @@ export class RemoveRowAction extends BaseAction {
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
           removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
           removedMergedCells,
+          removedHiddenRows,
           nestedRowsSnapshot,
           nestedRemovedCellMetas,
           nestedAccessorValues,
@@ -493,6 +505,7 @@ export class RemoveRowAction extends BaseAction {
 
     if (this.nestedRowsSnapshot === undefined) {
       restoreMergedCells(hot, this.removedMergedCells);
+      restoreHiddenRows(hot, this.removedHiddenRows);
     }
 
     if (this.nestedRemovedMergedCells?.length) {

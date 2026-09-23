@@ -775,37 +775,42 @@ class Selection {
     }
 
     const { rowCoordsFrom, rowCoordsTo, columnCoordsFrom, columnCoordsTo } =
-      this.#createHeaderExtentCoords(cellRange);
+      this.#createHeaderExtentCoords(cellRange, true);
 
-    if (this.settings.selectionMode === 'single') {
-      rowHighlight?.add(rowCoordsFrom).commit();
-      columnHighlight?.add(columnCoordsFrom).commit();
-
-    } else {
-      rowHighlight
-        ?.add(rowCoordsFrom)
-        .add(rowCoordsTo)
-        .commit();
-      columnHighlight
-        ?.add(columnCoordsFrom)
-        .add(columnCoordsTo)
-        .commit();
-    }
+    // In `selectionMode: 'single'`, setRangeEnd() already collapses `from`/`to` to the same row/column
+    // on the data axis, so adding both ends here is safe and is what widens the header axis to every
+    // header level instead of just the leaf one.
+    rowHighlight
+      ?.add(rowCoordsFrom)
+      .add(rowCoordsTo)
+      .commit();
+    columnHighlight
+      ?.add(columnCoordsFrom)
+      .add(columnCoordsTo)
+      .commit();
   }
 
   /**
-   * Builds the header-extent coordinates a full row/column highlight spans – the row and column
-   * ends in header space. Shared by the row/column highlight and the header highlight so the
-   * asymmetric `from` clamp stays in one place.
+   * Builds the header-extent coordinates a row/column highlight spans – the row and column ends in
+   * header space. Shared by the row/column highlight and the header highlight so the asymmetric
+   * `from` clamp stays in one place.
    *
    * @param {CellRange} cellRange The cell range to highlight.
+   * @param {boolean} spanAllHeaderLevels When `true`, the header axis spans every rendered header
+   * level (leaf to outermost group), as `currentRowClassName`/`currentColClassName` do. When `false`,
+   * it stays pinned to the leaf level only – the plain header highlight (`currentHeaderClassName`,
+   * on by default) deliberately does not widen to parent/group header cells, unlike the active-header
+   * highlight (`Ctrl`+`Space`), which already spans every level through a separate code path.
    * @returns {{ rowCoordsFrom: CellCoords, rowCoordsTo: CellCoords, columnCoordsFrom: CellCoords, columnCoordsTo: CellCoords }}
    */
-  #createHeaderExtentCoords(cellRange: CellRange) {
+  #createHeaderExtentCoords(cellRange: CellRange, spanAllHeaderLevels: boolean) {
+    const rowHeaderLevel = spanAllHeaderLevels ? Math.min(-this.tableProps.countRowHeaders(), -1) : -1;
+    const columnHeaderLevel = spanAllHeaderLevels ? Math.min(-this.tableProps.countColHeaders(), -1) : -1;
+
     return {
-      rowCoordsFrom: this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1),
+      rowCoordsFrom: this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), rowHeaderLevel),
       rowCoordsTo: this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1),
-      columnCoordsFrom: this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0)),
+      columnCoordsFrom: this.tableProps.createCellCoords(columnHeaderLevel, Math.max(cellRange.from.col ?? 0, 0)),
       columnCoordsTo: this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0),
     };
   }
@@ -836,7 +841,7 @@ class Selection {
   ) {
     if (!cellRange.isSingleHeader()) {
       const { rowCoordsFrom, rowCoordsTo, columnCoordsFrom, columnCoordsTo } =
-        this.#createHeaderExtentCoords(cellRange);
+        this.#createHeaderExtentCoords(cellRange, false);
 
       if (this.settings.selectionMode === 'single') {
         rowHeaderHighlight?.add(rowCoordsFrom).commit();

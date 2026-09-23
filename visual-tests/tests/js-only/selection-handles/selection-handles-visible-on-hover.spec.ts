@@ -1,14 +1,16 @@
-import { test, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
-
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
 
 /**
  * Verifies that four edge-adjustment handles are visible when hovering over a
  * cell inside the pre-selected range with `selectionHandles: true`.
  */
-test(__filename, async({ goto, tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/selection-handles-demo')

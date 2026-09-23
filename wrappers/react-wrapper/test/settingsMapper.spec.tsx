@@ -9,8 +9,8 @@ describe('Settings mapper unit tests', () => {
         height: 300,
         contextMenu: true,
         columns: [
-          { label: { value: 'first label' }},
-          { label: { value: 'second label' }}
+          { label: { value: 'first label' } },
+          { label: { value: 'second label' } }
         ],
         afterChange: () => {
           return 'works!';
@@ -21,7 +21,10 @@ describe('Settings mapper unit tests', () => {
       };
       const result = SettingsMapper.getSettings(initial);
 
-      expect(!!result.width && !!result.height && !!result.contextMenu && !!result.columns && !!result.afterChange && !!result.afterRender).toEqual(true);
+      expect(
+        !!result.width && !!result.height && !!result.contextMenu &&
+        !!result.columns && !!result.afterChange && !!result.afterRender
+      ).toEqual(true);
       expect(Object.keys(initial).length).toEqual(Object.keys(result).length);
       expect(result.width).toEqual(300);
       expect(result.height).toEqual(300);

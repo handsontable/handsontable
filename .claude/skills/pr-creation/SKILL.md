@@ -121,6 +121,7 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 - Type tests (`*.types.ts`) updated if public API changed: <paths, or "none">
 - For a bug fix — the spec that fails without this fix: <name>
 - Demo page / recorded trace (for UI changes): <link, or "none">
+- Visual spec added/modified (`visual-tests/tests/**/*.spec.ts`, only for pixels no DOM probe can express — in addition to, never instead of the E2E above): <paths, or "none">
 
 ### Commands run
 
@@ -152,7 +153,7 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
+- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (the author counts — GitHub records who clicked). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 ````
@@ -198,7 +199,7 @@ For a `private` entry, after writing the file:
 1. Commit it on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`).
 2. Push so the PR picks up the new commit.
 
-Use `[skip changelog]` in the PR body only for test-only, docs-only, or CI/tooling changes. When skipping, you do **not** create a PR-first round-trip — just open the PR and be done.
+The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai/`, `.claude/`, `visual-tests/`, or `tests/` passes it with no entry and needs no `[skip changelog]` — do not write the marker there. Write `[skip changelog]` in the PR body only to deliberately skip the entry on a genuine change under `handsontable/src/**` or `wrappers/**`, and say why in the Context. When no entry is needed there is no PR-first round-trip — open the PR and be done. A PR that grows the visual golden set declares it with `[visual budget: N – reason]` instead (the template's comment block explains N; the `Visual budget` step that reads it is the golden-budget guardrail, G3 under `visual-tests/AGENTS.md` → Guardrails against bloat and flakes, which says whether it has landed); that marker is unrelated to the changelog.
 
 ## 7. After PR Creation
 

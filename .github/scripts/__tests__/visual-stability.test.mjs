@@ -52,6 +52,39 @@ test('the render job composes the screenshot tree the way visual.yml does', () =
   assert.match(workflow, /examples:install next\/visual-tests/);
 });
 
+test('the render job builds the theme stylesheets the themed passes load, before the tree is composed', () => {
+  // The base stylesheet comes for free — `build:es` pulls `build:styles.min` and `build:styles`
+  // through handsontable/scripts/tasks.json — but the theme files are prerequisites of `build:umd`
+  // alone, which is how visual.yml's fallback gets them and which this job never runs. Left out,
+  // `postbuild:partial` copies a styles/ with no theme in it and says nothing, the demo's theme
+  // <link> is answered with index.html and a 200, and every themed pass renders an unstyled grid —
+  // ten runners agreed on it in run 35230835319, and the matrix called that "stable" because it only
+  // compares runners with each other. `indexOf` asserted before the ordering comparison: on a miss
+  // both would be -1 and `-1 < -1` could never fail with a useful message.
+  const [, buildBlock = ''] = workflow.split('Build the Handsontable package the demos import');
+  const [renderBlock = ''] = buildBlock.split('Build the js visual-test demo');
+
+  for (const task of ['build:themes-css', 'build:themes-css.min']) {
+    assert.match(renderBlock, new RegExp(`npm run in handsontable ${task.replace('.', '\\.')}(?![.\\w-])`),
+      `the build step lost \`${task}\`; the themed passes would render unstyled`);
+  }
+
+  // The command lines, not the bare task names: the step's comment names both tasks while explaining
+  // the order, and a lookup on the word alone lands in the comment first.
+  const themesAt = renderBlock.indexOf('npm run in handsontable build:themes-css');
+  const postbuildAt = renderBlock.indexOf('npm run in handsontable postbuild:partial');
+  const checkAt = renderBlock.indexOf('test -f handsontable/tmp/styles/ht-theme-main.css || {');
+
+  assert.notEqual(themesAt, -1, 'the build step lost the build:themes-css command');
+  assert.notEqual(postbuildAt, -1, 'the build step lost the postbuild:partial command');
+  assert.ok(themesAt < postbuildAt, 'the theme stylesheets must exist before postbuild:partial copies styles/ into tmp/');
+  // And the tree is checked before a browser is launched, so a regression here fails in seconds with
+  // the file named, not eight minutes later inside a capture.
+  assert.notEqual(checkAt, -1, 'the build step lost the ht-theme-main.css presence check');
+  assert.ok(checkAt > postbuildAt,
+    'the stylesheet check must run after postbuild:partial, which is what puts the file in tmp/');
+});
+
 test('the verdict step runs the checked-in script, and the script exists', () => {
   assert.match(workflow, /node \.\/visual-tests\/scripts\/stability-verdict\.mjs runs/);
   assert.ok(existsSync(path.join(root, 'visual-tests/scripts/stability-verdict.mjs')));
