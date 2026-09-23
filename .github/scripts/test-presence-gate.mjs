@@ -8,9 +8,12 @@
  *
  * Env:
  *   GATE_MODE   'warn' (default) exits 0 always; 'block' exits 1 on failure.
- *   GATE_BASE   Base ref/SHA to diff against. In CI, pass
- *               github.event.pull_request.base.sha. When unset, the gate is a
- *               branch push and is skipped.
+ *   GATE_BASE   Base ref/SHA to diff against. In CI, pass the base branch's
+ *               LIVE tip (`origin/<base.ref>`, fetched by the step), never the
+ *               payload's frozen `base.sha` — see the blocking-gate rule in
+ *               .ai/CI.md. Locally, pre-push passes the merge-base with
+ *               origin/develop. When unset, the gate is a branch push and is
+ *               skipped.
  *   GATE_PR_BODY_FILE  Path to a file holding the LIVE PR body (the `presence`
  *               job in checks.yml writes it from the API). Feeds the one
  *               body-dependent advisory warning; absent or unreadable, that
@@ -30,7 +33,7 @@
  */
 import { execSync, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { evaluate } from './lib/presence-gate.mjs';
+import { evaluate, COVERAGE_HINTS } from './lib/presence-gate.mjs';
 import { collectWarnings, renderWarnings, isAdvisoryPath } from './lib/presence-warnings.mjs';
 
 const base = process.env.GATE_BASE;
@@ -58,14 +61,24 @@ function readChanges(range) {
 }
 
 /**
- * Read `Refactor-only:` trailers from the commits in the range.
+ * Read the range's commits with the files each one changed, so a
+ * `Refactor-only:` trailer waives only its own commit's files. In CI the
+ * checkout is the PR's merge ref, whose merge commit carries no trailer.
+ * `git log --name-only` lists no files for a merge commit anyway; --no-merges
+ * states that intent instead of relying on the default.
  *
  * @param {string} range The commit range, e.g. `<base>..HEAD`.
- * @returns {string[]} Trailer lines.
+ * @returns {{message: string, files: string[]}[]} One entry per commit.
  */
-function readTrailers(range) {
-  const out = execSync(`git log ${range} --format=%B`, { encoding: 'utf8' });
-  return out.split('\n').filter(l => /^Refactor-only:/i.test(l.trim()));
+function readCommits(range) {
+  const out = execFileSync('git', ['-c', 'core.quotePath=false', 'log', '--no-merges', '--name-only',
+    '--format=%x1e%B%x1d', range], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+
+  return out.split('\x1e').filter(record => record.includes('\x1d')).map((record) => {
+    const [message, files] = record.split('\x1d');
+
+    return { message, files: files.split('\n').map(f => f.trim()).filter(Boolean) };
+  });
 }
 
 /**
@@ -140,13 +153,15 @@ function annotation(warning) {
 }
 
 const changes = readChanges(`${base}...HEAD`);
-const trailers = readTrailers(`${base}..HEAD`);
-const result = evaluate(changes, trailers);
+const commits = readCommits(`${base}..HEAD`);
+const result = evaluate(changes, commits);
 
 const lines = ['## Test-presence gate', ''];
 if (result.pass) {
   if (result.reason === 'refactor-declared') {
-    lines.push('✅ Pass — source changed with no test, but a `Refactor-only:` trailer declares this a refactor. Existing tests for the area must stay green.');
+    lines.push('✅ Pass — these source files changed with no test, but every commit that changed them carries '
+      + 'a `Refactor-only:` trailer or is a `git revert`. Existing tests for the area must stay green.', '');
+    lines.push(...result.waived.map(f => `- \`${f}\``));
   } else {
     lines.push('✅ Pass.');
   }
@@ -155,9 +170,16 @@ if (result.pass) {
   lines.push('New Jasmine files:');
   lines.push(...result.newJasmine.map(f => `- \`${f}\``));
 } else if (result.reason === 'missing-coverage') {
-  lines.push('❌ Source changed with no matching test change. Add a Playwright `*.spec.ts` (`tests/e2e/`), a Jest `*.unit.js`, or a `*.types.ts` — or add a `Refactor-only: <reason>` commit trailer if this is a pure refactor.', '');
-  lines.push('Source files needing a test:');
-  lines.push(...result.sourceFiles.map(f => `- \`${f}\``));
+  lines.push('❌ Source changed with no matching test change in the same package. For each package below, add a '
+    + 'test where that package\'s tests live. For a pure refactor, add a `Refactor-only: <reason>` trailer to the '
+    + 'commit that makes it – a trailer covers only the files its own commit changes.', '');
+
+  for (const { group, files } of result.uncovered) {
+    lines.push(`**${group}** – needs ${COVERAGE_HINTS[group]}:`);
+    lines.push(...files.map(f => `- \`${f}\``), '');
+  }
+  lines.push('A deleted test does not count, and neither does a test in another package, `docs/tests/`, '
+    + '`evals/`, `examples/`, or `performance-tests/`. A visual spec counts for any package.');
 }
 
 console.log(lines.join('\n'));

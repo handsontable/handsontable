@@ -34,7 +34,7 @@ To speed up the process of merging your changes, follow these rules:
     - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` in a `__tests__/` directory next to the source.
     - **Public API / type surface** → a **type test**, `*.types.ts`.
     - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → its own test runner (separate pipeline).
-    - **Pure refactor or non-runtime change** (types, docs, config, i18n text, re-exports) → no test required, but you must declare it with a `Refactor-only: <reason>` trailer in the commit message.
+    - **Pure refactor or non-runtime change** (types, docs, config, i18n text, re-exports) → no test required, but you must declare it with a `Refactor-only: <reason>` trailer in the message of the commit that makes the change – a trailer covers only the files its own commit changes.
 
     Your tests help us understand the issue and make sure it stays fixed forever. Write them to prove the *intended* behavior, ideally before the code — for a bug fix, write the failing test first, confirm it fails for the right reason, then fix it so it stays as a regression guard.
 8. Lint your code. From the root directory, run: `npm run lint`. Your code should follow our coding style, inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).

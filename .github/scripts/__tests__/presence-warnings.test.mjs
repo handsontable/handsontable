@@ -236,7 +236,15 @@ test('the presence job reads the live body on a step that cannot fail the job, a
   const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate \(warn\)/.test(line));
 
   assert.ok(gateStep > at, 'the gate runs after the body is read');
-  assert.ok(lines.slice(gateStep, gateStep + 8).some(line => /GATE_PR_BODY_FILE:/.test(line)), 'the gate gets the body file');
+
+  // The gate step's own lines, up to its sibling step (its `run:` block grew
+  // when it moved to the live base tip, so no fixed window fits).
+  const gateLines = [];
+
+  for (let i = gateStep + 1; i < lines.length && !/^\s*-\s+name:/.test(lines[i]); i += 1) {
+    gateLines.push(lines[i]);
+  }
+  assert.ok(gateLines.some(line => /GATE_PR_BODY_FILE:/.test(line)), 'the gate gets the body file');
 });
 
 // --- rtlCorrelation ---
@@ -448,12 +456,11 @@ test('visual-only coverage fires on a modified or renamed visual spec and ignore
 
   const deletedSpec = { ...VISUAL_SPEC, status: 'D' };
 
-  // The gate quirk, documented next to the detector's choice: a deleted spec
-  // still satisfies the gate (COVERAGE_ANY_STATUS is status-independent), yet
-  // the detector does not count it — the message must never name a file that
-  // is gone. Fixing the gate itself changes verdicts and is not this detector's job.
-  assert.equal(isCoverage(deletedSpec), true, 'the gate accepts a deleted visual spec as coverage');
-  assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'the detector does not');
+  // A deleted spec is coverage to neither side (DEV-3066 made the gate agree
+  // with the detector): the message must never name a file that is gone, and a
+  // removed test proves nothing about the source change beside it.
+  assert.equal(isCoverage(deletedSpec), false, 'the gate does not accept a deleted visual spec as coverage');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'nor does the detector');
   assert.equal(visualOnlyCoverage([{ ...VISUAL_SRC, status: 'D' }, VISUAL_SPEC]), null,
     'a deleted source file needs no coverage');
 });

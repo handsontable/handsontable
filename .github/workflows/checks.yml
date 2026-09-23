@@ -367,15 +367,25 @@ jobs:
             } catch (error) {
               core.warning(`Could not read the live PR body (${error.message}); the red-spec advisory check is skipped.`);
             }
+      # The base is the PR base branch's LIVE tip, refreshed here, never the
+      # payload's frozen `base.sha` (the blocking-gate rule in .ai/CI.md): on a
+      # "Re-run all jobs" after the base moved, or on a branch that merged the
+      # base, `base.sha` is already an ancestor of the merge ref, and every
+      # later base commit would read as this PR's source change or commit. A
+      # failed refresh diffs from the copy the full-history checkout holds.
       # Prints the verdict plus the ADVISORY warnings (frozen-suite growth, empty
       # red-spec field, RTL correlation, Walkontable routing, visual-only coverage)
       # as Markdown into the step summary; in Actions each warning is also a
       # `::warning` annotation. The advisories never change the exit code.
       - name: Evaluate test-presence gate (warn)
-        run: set -o pipefail; node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
+            || echo "::warning::could not refresh origin/${BASE_REF}; diffing from the checkout's copy"
+          GATE_BASE="origin/${BASE_REF}" node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           GATE_MODE: warn
-          GATE_BASE: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
           GATE_PR_BODY_FILE: ${{ runner.temp }}/pr-body.md
       - name: Detect weakened specs (warn)
         run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
