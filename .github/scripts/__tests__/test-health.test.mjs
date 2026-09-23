@@ -10,6 +10,7 @@ import {
   RETENTION_DAYS,
   TICKET_THRESHOLD_RUNS,
   VISUAL_ARTIFACT_PREFIX,
+  VISUAL_NIGHTLY_WORKFLOW,
   aggregate,
   classifyArtifact,
   collectArtifactFiles,
@@ -341,7 +342,7 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   assert.ok(markdown.includes('- **failed** on `UMD (theme: main)`: Core_alter remove_row should remove one row '
     + '(`handsontable/test/e2e/core/alter.spec.js`), in isolation: passes alone\n'));
   assert.ok(markdown.includes('1 test(s) recurred across 2+ distinct branches or flaky reruns (for a visual '
-    + 'capture, 2+ runs) in the last 30 days and need a fix or migration ticket:'));
+    + 'capture, 2+ nightly runs or distinct branches) in the last 30 days and need a fix or migration ticket:'));
   assert.match(markdown, /— 2 branch\(es\), 0 flaky rerun\(s\), legs: /, 'a functional row states its branches');
   assert.match(markdown, /Notes:\n\n- playwright-report-main: no test-results\/report\.json/);
   assert.match(markdown, /Ledger: https:\/\/handsontable\.github\.io\/handsontable\/test-health\/\n$/);
@@ -403,6 +404,10 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   // `Visual nightly` is the only run the weekday full render's compare record arrives on; a pull request's
   // arrives on its `Tests` run. `Visual seed` must stay out – its differences are the merge's own.
   assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly'\]/);
+  // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
+  assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
+  assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),
+    new RegExp(`^name: ${VISUAL_NIGHTLY_WORKFLOW}$`, 'm'));
   assert.doesNotMatch(workflow, /workflows: \[[^\]]*'Visual seed'/, 'a seed\'s differences are not flakes');
   assert.match(workflow, /conclusion != 'cancelled'/, 'collects every completed run, not only failures');
   assert.match(workflow, /types: \[completed\]/);
@@ -589,10 +594,12 @@ test('collectArtifactFiles reads a visual record and nothing else in that artifa
   assert.match(notes[0], /^visual-compare-pr\/visual-compare-pr-abc\.json: could not be read/);
 });
 
-test('a visual capture needs a ticket after two runs, even on one branch, and not after one run on two legs', () => {
+test('a visual capture needs a ticket after two nights or on two branches, never for one pull request', () => {
   // Nothing in the visual tier is ever `flaky` (a retry overwrites the screenshot) and the nightly is one
-  // branch, so the functional rule could never flag the same capture red on two nights.
+  // branch, so the functional rule could never flag the same capture red on two nights. A raw run count
+  // would, but it would also flag a pull request's own intended change on its second push.
   const run = runContextFromRun(RUN);
+  const nightly = { workflow: VISUAL_NIGHTLY_WORKFLOW, branch: 'develop' };
   const [capture, otherLeg] = parseVisualRecord(VISUAL_RECORD, run);
   const plain = { ...otherLeg, quarantine: null };
   const day = 86400000;
@@ -600,8 +607,8 @@ test('a visual capture needs a ticket after two runs, even on one branch, and no
   const ledgerOf = entries => ({ ...emptyLedger(), entries });
 
   const oneRun = aggregate(ledgerOf([
-    { ...capture, runId: 'n1', branch: 'develop', seenAt: at(1) },
-    { ...plain, runId: 'n1', branch: 'develop', seenAt: at(1) },
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...plain, ...nightly, runId: 'n1', seenAt: at(1) },
   ]), { now: NOW });
 
   assert.equal(oneRun.rows.length, 1, 'both legs are one row');
@@ -609,21 +616,46 @@ test('a visual capture needs a ticket after two runs, even on one branch, and no
   assert.equal(oneRun.rows[0].needsTicket, false, 'two legs in one run is one recurrence');
 
   const twoNights = aggregate(ledgerOf([
-    { ...capture, runId: 'n1', branch: 'develop', seenAt: at(1) },
-    { ...capture, runId: 'n2', branch: 'develop', seenAt: at(2) },
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...capture, ...nightly, runId: 'n2', seenAt: at(2) },
   ]), { now: NOW });
 
   assert.equal(twoNights.rows[0].needsTicket, true, 'the same capture red on two nights needs a ticket');
+  assert.equal(twoNights.rows[0].nightlyRuns30, 2);
+
+  // The record is written before approval, so an intended change is recorded on every push of its pull
+  // request. Two pushes are one branch and no nights: not a flake.
+  const onePullRequest = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, runId: 'p2', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(onePullRequest.rows[0].runs30, 2);
+  assert.equal(onePullRequest.rows[0].needsTicket, false, 'a pull request\'s intended change pushed twice');
+
+  const twoPullRequests = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, runId: 'q1', branch: 'feature/other', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(twoPullRequests.rows[0].needsTicket, true, 'the same capture red on unrelated pull requests');
+
+  const pullRequestAndNight = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(pullRequestAndNight.rows[0].needsTicket, true, 'a pull request and a night are two branches');
 
   const markdown = renderStepSummary({ run, added: [], notes: [], summary: twoNights, pageUrl: 'x' });
 
   assert.ok(markdown.includes('- multi-frameworks/filters/escaping-the-menu-12 '
-    + '(`visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts`) — 2 run(s), legs: '
-    + 'js/chromium-theme-main\n'), 'a visual row states its runs, not branches and reruns it never has');
+    + '(`visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts`) — 2 nightly run(s), 1 branch(es), '
+    + 'legs: js/chromium-theme-main\n'), 'a visual row states its nights and branches, not reruns it never has');
 
   const quarantined = aggregate(ledgerOf([
-    { ...otherLeg, runId: 'n1', branch: 'develop', seenAt: at(1) },
-    { ...otherLeg, runId: 'n2', branch: 'develop', seenAt: at(2) },
+    { ...otherLeg, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...otherLeg, ...nightly, runId: 'n2', seenAt: at(2) },
   ]), { now: NOW });
 
   assert.equal(quarantined.rows[0].needsTicket, false, 'a quarantined capture already names its owner');

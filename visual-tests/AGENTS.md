@@ -598,14 +598,13 @@ which of these run locally and which only in CI.
     and never carries either. The cross-run flake ledger (`test-health.yml`) ingests it from `Tests` (pull
     requests) and `Visual nightly`: changed items only (new and deleted are structure), no seed-tier record (a
     seed's differences are its merge's own), one row per capture whatever variants it differed on, and a
-    ticket at 2+ runs in 30 days — the raw run count, because nothing here is ever `flaky` and the nightly is
-    one branch. Read the page with two consequences in mind. A pull request's intended change is recorded too,
-    because the record is written before anyone approves it, so a capture a pull request changed on purpose
-    reaches the ticket line on its second push. Before filing a ticket, check whether its runs came from one
-    pull request's branch (the page's Last seen column, and `branches30` in `summary.json`). And a pull
-    request's record arrives only when its `Tests` run completes (approved, rejected, or clean): a `changed`
-    verdict holds the run on the approval, the next push cancels it, and the ledger skips cancelled runs, so a
-    superseded run leaves no row.
+    ticket at 2+ `Visual nightly` runs or 2+ distinct branches in 30 days (the nightly counts as develop).
+    Nothing here is ever `flaky`, so nights stand in for the functional rule's flaky reruns; a raw run count
+    would also flag a pull request's own intended change, which the record captures before anyone approves it,
+    on the pull request's second push, and distinct branches keep that on one. A pull request's record arrives
+    only when its `Tests` run completes (approved, rejected, or clean): a `changed` verdict holds the run on
+    the approval, the next push cancels it, and the ledger skips cancelled runs, so a superseded run leaves no
+    row.
   - **The quarantine.** `visual-tests/visual-quarantine.json` parks a known-flaky capture:
     `{ taskId, expires, capture, legs, why }`, at most 30 days out, at most 6 entries and 12 live items (an
     entry names the variants that flake in `legs`, and each leg is one item). The limits and the task-id and

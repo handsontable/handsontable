@@ -57,6 +57,13 @@ export const PLAYWRIGHT_ARTIFACT_PREFIX = 'playwright-report-';
 export const JASMINE_ARTIFACT_PREFIX = 'puppeteer-failed-specs-';
 export const VISUAL_ARTIFACT_PREFIX = 'visual-compare-';
 
+/**
+ * The workflow whose runs count as nights for a visual capture's ticket line. It equals the `name:` of
+ * `.github/workflows/visual-nightly.yml` and an entry of `test-health.yml`'s trigger list, and
+ * `__tests__/test-health.test.mjs` asserts both.
+ */
+export const VISUAL_NIGHTLY_WORKFLOW = 'Visual nightly';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
@@ -485,6 +492,8 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
     // and distinct branches, not the raw run count — which a single branch pushed twice would trip.
     const flakyRuns30 = new Set(inLong.filter(entry => entry.status === 'flaky').map(entry => entry.runId)).size;
     const branches30 = new Set(inLong.map(entry => entry.branch).filter(Boolean)).size;
+    const nightlyRuns30 = new Set(inLong.filter(entry => entry.workflow === VISUAL_NIGHTLY_WORKFLOW)
+      .map(entry => entry.runId)).size;
     const last = sorted[0];
 
     return {
@@ -499,6 +508,7 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       runs30,
       flakyRuns30,
       branches30,
+      nightlyRuns30,
       legs: [...new Set(sorted.map(entry => entry.leg))].sort(),
       statuses: [...new Set(sorted.map(entry => entry.status))].sort(),
       isolation: [...new Set(sorted.map(entry => entry.isolation).filter(Boolean))].sort(),
@@ -513,11 +523,13 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
         source: last.source,
       },
       // A quarantined test already names its owning task, so it does not also count as needing one.
-      // A visual capture uses the raw run count: nothing in that tier is ever `flaky` (no retry reaches
-      // the comparison), and the nightly is one branch by construction, so the shared rule could never
-      // flag the recurrence the ledger most needs to see – the same capture red on two nights.
+      // A visual capture is never `flaky` (no retry reaches the comparison), so its line swaps the flaky
+      // reruns for nights: 2+ `Visual nightly` runs is the same capture red on two nights, which one
+      // branch could never show, and 2+ branches is the same capture red on unrelated pull requests (the
+      // nightly counts as develop). A raw run count would also flag a pull request's own intended change,
+      // recorded before approval, on the pull request's second push; that stays one branch.
       needsTicket: !last.quarantine && (last.tier === 'visual'
-        ? runs30 >= ticketThresholdRuns
+        ? (nightlyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)
         : (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)),
     };
   });
@@ -601,12 +613,12 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
 
   if (needTicket.length > 0) {
     lines.push('', `${needTicket.length} test(s) recurred across ${summary.ticketThresholdRuns}+ distinct `
-      + `branches or flaky reruns (for a visual capture, ${summary.ticketThresholdRuns}+ runs) in the last `
-      + `${summary.windows.longDays} days and need a fix or migration ticket:`, '');
+      + `branches or flaky reruns (for a visual capture, ${summary.ticketThresholdRuns}+ nightly runs or `
+      + `distinct branches) in the last ${summary.windows.longDays} days and need a fix or migration ticket:`, '');
 
     for (const row of needTicket) {
       const recurrence = row.tier === 'visual'
-        ? `${row.runs30} run(s)`
+        ? `${row.nightlyRuns30} nightly run(s), ${row.branches30} branch(es)`
         : `${row.branches30} branch(es), ${row.flakyRuns30} flaky rerun(s)`;
 
       lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${recurrence}, legs: ${row.legs.join(', ')}`);
