@@ -618,6 +618,7 @@ export class Formulas extends BasePlugin {
    * @param {string} addedSheetDisplayName The name of the added sheet.
    */
   #onEngineSheetAdded = (addedSheetDisplayName: string) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
   };
 
@@ -629,6 +630,8 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
+    this.#ownSheetExists = null;
+
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
     // Sheet ids are compared rather than names: the engine matches names without looking at the
@@ -649,6 +652,7 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   };
 
@@ -694,6 +698,15 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName: string | null = null;
+
+  /**
+   * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
+   * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
+   * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
+   * removed in the engine, or when this instance's binding or engine changes.
+   */
+  #ownSheetExists: boolean | null = null;
+
   /**
    * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
    *
@@ -742,6 +755,7 @@ export class Formulas extends BasePlugin {
     this.#showFormulasFlag = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
+    this.#ownSheetExists = null;
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -764,11 +778,20 @@ export class Formulas extends BasePlugin {
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
+    // Ahead of every default-order `afterLoadData` listener: the engine has to hold the new data
+    // before another plugin reads cells through `modifyData`. AutoColumnSize sweeps every column
+    // in its own `afterLoadData` listener, and registered behind it (this plugin's priority is
+    // higher) the sweep measured formula columns against the previous dataset's results, after
+    // which the engine's `valuesUpdated` batch queued every changed cell for a second synchronous
+    // full rescan on the resume render. Moving this listener, rather than that one, keeps the sweep
+    // where AutoRowSize and host callbacks expect it. The one listener this overtakes with an effect
+    // is the `manualColumnMove` / `manualRowMove` re-apply of a configured order, and the effect is a
+    // fix: the order used to reach the engine twice on a `loadData()` (see the plugin's AGENTS.md).
+    this.addHook('afterLoadData', this.#onAfterLoadData, -1);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
     this.addHook('beforeUpdateData', this.#onBeforeLoadData);
-    this.addHook('afterUpdateData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterLoadData, -1);
 
     this.addHook('modifyData', this.#onModifyData);
     this.addHook('modifySourceData', this.#onModifySourceData);
@@ -867,6 +890,9 @@ export class Formulas extends BasePlugin {
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
       this.#undoRedoDependentCells = this.engine!.undo() ?? [];
+      // The engine's undo can add, remove, or rename a sheet without emitting the sheet events
+      // that otherwise drop this cache.
+      this.#ownSheetExists = null;
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
@@ -890,6 +916,8 @@ export class Formulas extends BasePlugin {
       // Handsontable move must be validated first), so `engine.redo()` is not called here and
       // there are no engine-reported dependent cells to collect.
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
+      // Same as the undo: a redone sheet operation emits no sheet event.
+      this.#ownSheetExists = null;
     });
 
     this.addHook('afterUndo', (action: unknown) => {
@@ -976,6 +1004,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     // `#unwrapRenderedHyperlinks()` above already removed this plugin's own anchors from the
     // currently-rendered DOM, eagerly - but a cell that HELD one is now plain URL text, which a
@@ -1084,6 +1113,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     super.destroy();
   }
@@ -1101,12 +1131,59 @@ export class Formulas extends BasePlugin {
     // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
+    this.#ownSheetExists = null;
 
     // Every caller has just made the engine authoritative for the grid - `switchSheet()` is about
     // to load the grid FROM the sheet, `addSheet()` callers filled it from the grid - so a resync
     // owed from earlier in the same settings update has nothing left to carry. Drained later, it
     // would write this grid's visible-column projection over the sheet just bound.
     this.#sheetResyncPending = false;
+  }
+
+  /**
+   * Returns `true` when the engine holds the sheet this instance is bound to. The engine is asked
+   * once per invalidation (see `#ownSheetExists`); the hot read paths get the cached answer.
+   *
+   * @returns {boolean}
+   */
+  #hasOwnSheet(): boolean {
+    if (this.#ownSheetExists === null) {
+      this.#ownSheetExists = this.sheetName !== null && this.engine?.doesSheetExist(this.sheetName) === true;
+    }
+
+    return this.#ownSheetExists;
+  }
+
+  /**
+   * Translates visual coordinates once into everything a per-cell read needs: the engine address of
+   * the bound sheet and the physical coordinates the cell meta is keyed by. Returns `null` when the
+   * cell has no physical counterpart (out of bounds) or no sheet is bound.
+   *
+   * @param {number} visualRow Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @returns {{ address: { sheet: number, row: number, col: number }, physicalRow: number, physicalColumn: number } | null}
+   */
+  #toEngineAddress(visualRow: number, visualColumn: number): {
+    address: { sheet: number; row: number; col: number };
+    physicalRow: number;
+    physicalColumn: number;
+  } | null {
+    const physicalRow = this.hot.toPhysicalRow(visualRow);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (this.sheetId === null || physicalRow === null || physicalColumn === null) {
+      return null;
+    }
+
+    return {
+      address: {
+        sheet: this.sheetId,
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      },
+      physicalRow,
+      physicalColumn,
+    };
   }
 
   /**
@@ -2739,12 +2816,7 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   #onModifyData = (visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) => {
-    if (
-      ioMode !== 'get' ||
-      this.#internalOperationPending ||
-      this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
-    ) {
+    if (ioMode !== 'get' || this.#internalOperationPending || !this.#hasOwnSheet()) {
       return;
     }
 
@@ -2760,7 +2832,20 @@ export class Formulas extends BasePlugin {
       this.#resyncSheet();
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // One translation serves the type lookup, the value read, and the meta read; this hook runs once
+    // per cell of every bulk read (AutoColumnSize sampling, the filters column scan), so the per-cell
+    // work is what is paid.
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
+
+    // Out of bounds reads as `EMPTY`, like `getCellType()` reports it.
+    if (engineCell === null) {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+
+      return;
+    }
+
+    const { address, physicalRow, physicalColumn } = engineCell;
+    const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {
       valueHolder.value = unescapeFormulaExpression(valueHolder.value);
@@ -2768,18 +2853,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the
     // filters column scan), so an eager read would materialize one meta per scanned cell.
     const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
-      { visualRow, visualColumn },
+      physicalRow, physicalColumn, { visualRow, visualColumn },
     );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -2956,8 +3035,7 @@ export class Formulas extends BasePlugin {
       this.#sourceDataSyncPending ||
       // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
       this.#sourceDataProjectionSuspended ||
-      this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
+      !this.#hasOwnSheet()
     ) {
       return;
     }
@@ -2976,13 +3054,21 @@ export class Formulas extends BasePlugin {
       this.#resyncSheet();
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // One translation for the type lookup, the dimensions check, and the serialized read.
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
+
+    if (engineCell === null) {
+      return;
+    }
+
+    const { address } = engineCell;
+    const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {
       return;
     }
 
-    const dimensions = this.engine!.getSheetDimensions(this.engine!.getSheetId(this.sheetName));
+    const dimensions = this.engine!.getSheetDimensions(address.sheet);
 
     // Don't actually change the source data if HyperFormula is not
     // initialized yet. This is done to allow the `afterLoadData` hook to
@@ -2991,12 +3077,6 @@ export class Formulas extends BasePlugin {
     if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
-
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
 
     valueHolder.value = this.engine!.getCellSerialized(address);
   };
