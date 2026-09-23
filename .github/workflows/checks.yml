@@ -335,8 +335,9 @@ jobs:
   presence:
     name: test presence
     runs-on: ubuntu-latest
-    # Pillar 1: source changed ⇒ a matching test changed (warn mode — reports,
-    # does not block yet). PR-only; needs git history, no build.
+    # Pillar 1: source changed ⇒ a matching test changed. BLOCKS (DEV-3066):
+    # a red verdict fails this job, which stops the pipeline the way the
+    # changelog gate does. PR-only; needs git history, no build.
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -376,15 +377,16 @@ jobs:
       # Prints the verdict plus the ADVISORY warnings (frozen-suite growth, empty
       # red-spec field, RTL correlation, Walkontable routing, visual-only coverage)
       # as Markdown into the step summary; in Actions each warning is also a
-      # `::warning` annotation. The advisories never change the exit code.
-      - name: Evaluate test-presence gate (warn)
+      # `::warning` annotation. The advisories never change the exit code; the
+      # verdict does (GATE_MODE: block), and a tooling gap is a skip, not a block.
+      - name: Evaluate test-presence gate
         run: |
           set -o pipefail
           git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
             || echo "::warning::could not refresh origin/${BASE_REF}; diffing from the checkout's copy"
           GATE_BASE="origin/${BASE_REF}" node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
-          GATE_MODE: warn
+          GATE_MODE: block
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           GATE_PR_BODY_FILE: ${{ runner.temp }}/pr-body.md
       - name: Detect weakened specs (warn)

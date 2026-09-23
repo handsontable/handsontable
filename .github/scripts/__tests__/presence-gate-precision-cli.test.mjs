@@ -186,3 +186,42 @@ test('against the base branch\'s live tip, commits the base gained after the for
   assert.match(run.stdout, /✅ Pass\./);
   assert.ok(!run.stdout.includes('helpers/c.ts'), 'the base\'s later commit is not judged');
 });
+
+test('a JSDoc-only edit to a source file passes in block mode; a code edit beside it does not', (t) => {
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  write(root, FILE_A, '/**\n * A.\n */\nexport const a = 1;\n');
+  commit(root, 'base doc');
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_A, '/**\n * A, with a clearer description.\n */\nexport const a = 1;\n');
+  commit(root, 'DEV-1: document a');
+
+  const docs = runGate(root, 'develop');
+
+  assert.equal(docs.status, 0, docs.stdout);
+  assert.match(docs.stdout, /changed only in comments and whitespace/);
+  assert.ok(docs.stdout.includes(`- \`${FILE_A}\``));
+
+  write(root, FILE_A, '/**\n * A, with a clearer description.\n */\nexport const a = 2;\n');
+  commit(root, 'DEV-1: and change it');
+
+  const code = runGate(root, 'develop');
+
+  assert.equal(code.status, 1, code.stdout);
+  assert.ok(code.stdout.includes(`- \`${FILE_A}\``));
+});
+
+test('an unreadable base is a skip, not a block, even in block mode', (t) => {
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_B, 'export const b = 2;\n');
+  commit(root, 'DEV-1: change b');
+
+  const run = runGate(root, 'origin/no-such-branch');
+
+  assert.equal(run.status, 0, run.stdout);
+  assert.match(run.stdout, /could not read the diff against "origin\/no-such-branch"[^\n]*skipped/);
+});

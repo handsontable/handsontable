@@ -34,6 +34,14 @@ test('the presence gate diffs from the live tip of the PR base branch, never the
   assert.match(body, /GATE_BASE="origin\/\$\{BASE_REF\}" node \.github\/scripts\/test-presence-gate\.mjs/);
 });
 
+test('the presence gate blocks in CI', () => {
+  // The verdict is the gate; the advisories stay warnings inside the CLI. A
+  // revert to warn would turn "tests are required" back into a report that
+  // nothing enforces once `--no-verify` skips the pre-push copy.
+  assert.match(body, /^\s+GATE_MODE: block\s*$/m, 'the gate step must run with GATE_MODE: block');
+  assert.doesNotMatch(lines[at], /\(warn\)/, 'the step name must not call a blocking gate "(warn)"');
+});
+
 test('a failed refresh of the base branch is a warning, not a red job', () => {
   assert.match(
     body,

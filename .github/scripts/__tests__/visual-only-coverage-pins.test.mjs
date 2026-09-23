@@ -81,13 +81,13 @@ test('the CLI header lists visual-only coverage in its detector sentence', () =>
 });
 
 test('the checks.yml comment above the gate step lists visual-only coverage', () => {
-  // Prevents: the parenthetical above `Evaluate test-presence gate (warn)`
+  // Prevents: the parenthetical above `Evaluate test-presence gate`
   // dropping the fifth name. Only the comment block directly above that step
   // counts — the step name itself is pinned by presence-warnings.test.mjs.
   const lines = read('.github/workflows/checks.yml').split('\n');
-  const at = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate \(warn\)/.test(line));
+  const at = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate\s*$/.test(line));
 
-  assert.notEqual(at, -1, 'checks.yml has no `Evaluate test-presence gate (warn)` step');
+  assert.notEqual(at, -1, 'checks.yml has no `Evaluate test-presence gate` step');
 
   const comment = [];
 

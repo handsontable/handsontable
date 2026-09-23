@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   classify, isCoverage, isNewJasmineSpec, refactorDeclared, evaluate,
   sourceGroup, coverageGroups, waivedFiles, isRefactorCommit, isRevertCommit,
+  stripComments, isCommentOnlyChange,
 } from '../lib/presence-gate.mjs';
 
 // --- classify: the 17 real-repo paths validated during scoping ---
@@ -381,4 +382,73 @@ test('a git revert waives its own files: it restores code that was tested before
   assert.equal(r.reason, 'refactor-declared');
   assert.equal(isRevertCommit('DEV-1: this reverts commit abc1234 in prose'), false, 'only the line git writes counts');
   assert.equal(isRevertCommit('DEV-1: fix'), false);
+});
+
+// --- comment-only changes need no test ---
+test('stripComments drops comments, keeps literals verbatim, and reports the lines that hold code', () => {
+  const r = stripComments([
+    '/**',
+    ' * The doc.',
+    ' */',
+    'export const a = "// not a comment"; // trailing',
+    'const t = `x /* kept */ y`;',
+    '',
+    'const b = \'/* also kept */\';',
+  ].join('\n'));
+
+  assert.equal(r.text, 'export const a = "// not a comment"; const t = `x /* kept */ y`; '
+    + 'const b = \'/* also kept */\';');
+  assert.deepEqual([...r.codeLines], [4, 5, 7]);
+  assert.equal(r.complete, true);
+});
+
+test('stripComments reports an incomplete lex, which callers treat as code', () => {
+  assert.equal(stripComments('const x = 1; /* never closed\n').complete, false);
+  assert.equal(stripComments('const s = "never closed\nconst y = 2;\n').complete, false);
+  // A regex literal holding a comment opener derails the lexer into a comment
+  // that never closes; the incomplete lex is what keeps it safe.
+  assert.equal(stripComments('const re = /\\/*/;\nconst y = 2;\n').complete, false);
+});
+
+test('a JSDoc-only edit is comment-only; a code edit, or a blank line, is judged exactly', () => {
+  const base = '/**\n * Old words.\n */\nexport function f() {\n  return 1;\n}\n';
+
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('Old words.', 'New words.'), removed: [2], added: [2],
+  }), true, 'rewording the JSDoc');
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('return 1', 'return 2'), removed: [5], added: [5],
+  }), false, 'changing the returned value');
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('export function', '\nexport function'), removed: [], added: [4],
+  }), true, 'adding a blank line');
+});
+
+test('conservative by design: a trailing comment on a code line, or a reindent, still counts as code', () => {
+  // The stripped texts are identical in both cases, but a changed line holds
+  // code, so the gate asks for a test or a trailer rather than guess.
+  assert.equal(isCommentOnlyChange({
+    baseText: 'const x = 1;\n', headText: 'const x = 1; // why\n', removed: [1], added: [1],
+  }), false);
+  assert.equal(isCommentOnlyChange({
+    baseText: 'if (a) {\nx();\n}\n', headText: 'if (a) {\n  x();\n}\n', removed: [2], added: [2],
+  }), false);
+  assert.equal(isCommentOnlyChange({
+    baseText: 'const re = /\\/*/;\n', headText: 'const re = /\\/*/; // x\n', removed: [1], added: [1],
+  }), false, 'an incomplete lex is code');
+});
+
+test('evaluate: comment-only files need no test; any other uncovered file still does', () => {
+  const DOC = 'handsontable/src/core.ts';
+  const CODE = 'handsontable/src/helpers/a.ts';
+  const only = evaluate([{ status: 'M', path: DOC }], [], { commentOnly: [DOC] });
+
+  assert.equal(only.pass, true);
+  assert.equal(only.reason, 'comments-only');
+  assert.deepEqual(only.commentOnly, [DOC]);
+
+  const mixed = evaluate([{ status: 'M', path: DOC }, { status: 'M', path: CODE }], [], { commentOnly: [DOC] });
+
+  assert.equal(mixed.pass, false);
+  assert.deepEqual(mixed.uncovered, [{ group: 'core', files: [CODE] }]);
 });

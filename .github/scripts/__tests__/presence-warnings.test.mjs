@@ -233,7 +233,7 @@ test('the presence job reads the live body on a step that cannot fail the job, a
   // `presence` — and through test.yml's needs, the CI Gate.
   assert.ok(step.some(line => /^\s*continue-on-error:\s*true\s*$/.test(line)), 'continue-on-error: true on the body step');
 
-  const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate \(warn\)/.test(line));
+  const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate\s*$/.test(line));
 
   assert.ok(gateStep > at, 'the gate runs after the body is read');
 

@@ -33,6 +33,11 @@
  *   deletes the reverted feature's test, which is no longer coverage. Measured
  *   before the change: the one verdict the new rules flipped in 300 develop
  *   commits was such a revert (#13508).
+ * - **A change to comments only needs no test.** A source file whose diff
+ *   changes nothing but comments and whitespace (a JSDoc edit, typically)
+ *   changes no behavior. isCommentOnlyChange() decides it conservatively, and
+ *   the CLI reads both versions of the file to feed it. Replayed over develop,
+ *   JSDoc-only docs PRs were nearly all of the gate's failures.
  */
 
 /**
@@ -277,6 +282,124 @@ export function waivedFiles(commits) {
 }
 
 /**
+ * Strip the comments out of JavaScript or TypeScript source, and report which
+ * lines hold code. A small lexer: `//` and `/* … *\/` are comments, except
+ * inside a string or template literal, whose contents are kept verbatim.
+ * Whitespace outside literals collapses to one space, so a comment that sat
+ * between two tokens leaves the same text as no comment at all.
+ *
+ * It does not recognize regular-expression literals, or `${…}` inside a
+ * template (the whole template is kept as text, so a comment in there reads as
+ * code — the safe direction). A regex literal that contains a comment opener
+ * can derail it; `complete` is false when the file ends inside a comment or
+ * a literal, and callers must then treat the file as code.
+ *
+ * @param {string} text The file's contents.
+ * @returns {{text: string, codeLines: Set<number>, complete: boolean}} The
+ *   stripped text, the 1-based numbers of lines holding code, and whether the
+ *   lexer ended outside every comment and literal.
+ */
+export function stripComments(text) {
+  const codeLines = new Set();
+  let out = '';
+  let state = 'code';
+  let line = 1;
+  let gap = false;
+  let broken = false;
+  let i = 0;
+
+  while (i < text.length) {
+    const c = text[i];
+    const next = text[i + 1];
+
+    if (c === '\n') {
+      if (state === 'line') {
+        state = 'code';
+      }
+      if (state === 'code') {
+        gap = true;
+      } else if (state === 'tpl') {
+        out += c;
+      } else if (state === 'sq' || state === 'dq') {
+        broken = true;
+      }
+      line += 1;
+      i += 1;
+    } else if (state === 'line') {
+      i += 1;
+    } else if (state === 'block') {
+      if (c === '*' && next === '/') {
+        state = 'code';
+        gap = true;
+        i += 2;
+      } else {
+        i += 1;
+      }
+    } else if (state === 'code') {
+      if (c === '/' && next === '/') {
+        state = 'line';
+        i += 2;
+      } else if (c === '/' && next === '*') {
+        state = 'block';
+        i += 2;
+      } else if (/\s/.test(c)) {
+        gap = true;
+        i += 1;
+      } else {
+        if (gap && out.length > 0) {
+          out += ' ';
+        }
+        gap = false;
+        out += c;
+        codeLines.add(line);
+        state = { "'": 'sq', '"': 'dq', '`': 'tpl' }[c] ?? 'code';
+        i += 1;
+      }
+    } else {
+      // Inside a string or template literal: kept verbatim.
+      out += c;
+      codeLines.add(line);
+      if (c === '\\') {
+        if (next === '\n') {
+          line += 1;
+        }
+        out += next ?? '';
+        i += 2;
+      } else {
+        if ((state === 'sq' && c === "'") || (state === 'dq' && c === '"') || (state === 'tpl' && c === '`')) {
+          state = 'code';
+        }
+        i += 1;
+      }
+    }
+  }
+
+  return { text: out, codeLines, complete: !broken && (state === 'code' || state === 'line') };
+}
+
+/**
+ * Does a diff change comments and whitespace only? True only when all of
+ * these hold, so a lexer slip can make the gate stricter but never looser:
+ * both versions lex completely, their comment-stripped texts are identical,
+ * and no removed or added line holds code in its own version.
+ *
+ * @param {{baseText: string, headText: string, removed: number[], added: number[]}} change
+ *   Both versions of the file, and the 1-based numbers of the lines the diff
+ *   removed (in the base) and added (in the head).
+ * @returns {boolean} True when the change cannot alter behavior.
+ */
+export function isCommentOnlyChange({ baseText, headText, removed, added }) {
+  const base = stripComments(baseText);
+  const head = stripComments(headText);
+
+  if (!base.complete || !head.complete || base.text !== head.text) {
+    return false;
+  }
+
+  return !removed.some(n => base.codeLines.has(n)) && !added.some(n => head.codeLines.has(n));
+}
+
+/**
  * Normalize the second argument of evaluate(). An array of strings is the
  * squashed form — one message for the whole change set (trailer lines, or a
  * squash commit's body) — and waives every changed file it declares a refactor
@@ -301,29 +424,41 @@ function toCommits(changes, commits) {
  * @param {{status: string, path: string}[]} changes Parsed diff entries.
  * @param {Array<{message: string, files: string[]}>|string[]} [commits] The
  *   range's commits, or the squashed form (see toCommits).
+ * @param {{commentOnly?: string[]}} [options] `commentOnly`: source files whose
+ *   diff changes comments and whitespace only (see isCommentOnlyChange). They
+ *   need no test.
  * @returns {{ pass: boolean, sourceFiles: string[], newJasmine: string[],
  *   uncovered: {group: string, files: string[]}[], waived: string[],
- *   reason: string }} Verdict and the data needed to build a PR comment.
+ *   commentOnly: string[], reason: string }} Verdict and the data needed to
+ *   build a PR comment.
  */
-export function evaluate(changes, commits = []) {
+export function evaluate(changes, commits = [], { commentOnly = [] } = {}) {
   const sourceFiles = changes.filter(isSource).map(c => c.path);
   const newJasmine = changes.filter(isNewJasmineSpec).map(c => c.path);
 
   // New Jasmine specs are always a violation (steer to Playwright), independent
   // of whether other coverage exists.
   if (newJasmine.length > 0) {
-    return { pass: false, sourceFiles, newJasmine, uncovered: [], waived: [], reason: 'new-jasmine-spec' };
+    return {
+      pass: false, sourceFiles, newJasmine, uncovered: [], waived: [], commentOnly: [], reason: 'new-jasmine-spec',
+    };
   }
 
   const covered = new Set(changes.filter(isCoverage).flatMap(c => coverageGroups(c.path)));
   const refactorFiles = waivedFiles(toCommits(changes, commits));
+  const commentFiles = new Set(commentOnly);
   const byGroup = new Map();
   const waived = [];
+  const comments = [];
 
   for (const file of sourceFiles) {
     const group = sourceGroup(file);
 
     if (covered.has(group)) {
+      continue;
+    }
+    if (commentFiles.has(file)) {
+      comments.push(file);
       continue;
     }
     if (refactorFiles.has(file)) {
@@ -338,12 +473,17 @@ export function evaluate(changes, commits = []) {
 
   const uncovered = [...byGroup].map(([group, files]) => ({ group, files }));
 
+  const verdict = { sourceFiles, newJasmine, uncovered, waived, commentOnly: comments };
+
   if (uncovered.length > 0) {
-    return { pass: false, sourceFiles, newJasmine, uncovered, waived, reason: 'missing-coverage' };
+    return { pass: false, ...verdict, reason: 'missing-coverage' };
   }
   if (waived.length > 0) {
-    return { pass: true, sourceFiles, newJasmine, uncovered, waived, reason: 'refactor-declared' };
+    return { pass: true, ...verdict, reason: 'refactor-declared' };
+  }
+  if (comments.length > 0) {
+    return { pass: true, ...verdict, reason: 'comments-only' };
   }
 
-  return { pass: true, sourceFiles, newJasmine, uncovered, waived, reason: 'ok' };
+  return { pass: true, ...verdict, reason: 'ok' };
 }
