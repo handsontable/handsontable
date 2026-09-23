@@ -63,7 +63,7 @@ test('is idempotent: does not double-prefix already-versioned paths', async () =
   });
 });
 
-test('only touches .html files', async () => {
+test('leaves non-html files outside _astro untouched', async () => {
   const original = '{"href": "/docs/react-data-grid/installation/"}';
 
   await withFixtureDir({ 'data/common.json': original }, async (dir) => {

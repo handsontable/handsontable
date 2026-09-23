@@ -37,9 +37,12 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 
 <script is:inline>
   // A page cached from before a deploy asks for content-hashed _astro/ chunks that no longer
-  // exist, and Vite's preload helper fires vite:preloadError ("Unable to preload CSS for ...",
-  // Sentry HANDSONTABLE-DOCS-22T). Reload once per session to pick up the current build. A
-  // second failure, or no sessionStorage, lets the error through so a real outage never loops.
+  // exist, and Vite's preload helper fires vite:preloadError ("Unable to preload CSS for ...").
+  // Reload once per session to pick up the current build. A second failure, or no
+  // sessionStorage, lets the error through so a real outage never loops. This only mitigates
+  // stale chunks on builds that include this Head; frozen /docs/<major>.<minor>/ images never
+  // get it, and their nested wrong-base preloads (Sentry HANDSONTABLE-DOCS-22T) are fixed at
+  // assemble time by deploy/rewriteVersionedPaths.mjs.
   window.addEventListener('vite:preloadError', function (event) {
     var reloadKey = 'hot-docs-preload-error-reload';
 
