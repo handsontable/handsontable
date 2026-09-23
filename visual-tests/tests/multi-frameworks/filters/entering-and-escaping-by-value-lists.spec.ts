@@ -3,10 +3,10 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * Checks whether entering the "by value" list component (ArrowDown) and escaping it (Tab or
- * Shift+Tab) moves the focus correctly: each capture shows which component of the filters dropdown
- * holds the focus after one move. Owned by DEV-2981, which folds this spec's seven captures into the
- * filters consolidation.
+ * Checks whether entering the "by value" list component (ArrowDown) and escaping it (Tab or Shift+Tab)
+ * moves the focus correctly. Each capture shows which component holds the focus: the search input, a
+ * value-list cell (after SPACE and ENTER unticked 1/10/20 and 1/22/20), the Clear link, the Select all
+ * link, the search input again, the list again (1/10/20 ticked back), and the OK button. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -35,8 +35,9 @@ visualTest(__filename, {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('Enter');
-  // A value-list cell is named by its checkbox state and its value, so this also pins what SPACE and
-  // ENTER did: both unticked the cell they were pressed on, and the focus stayed on the second one.
+  // A value-list cell is named by its checkbox state and its value, so this also pins what ENTER did: it
+  // unticked "1/22/20" and left the focus there. What SPACE did to "1/10/20" is pinned further down,
+  // where ENTER ticks it back.
   await expect(menu.getByRole('gridcell', { name: 'Unchecked 1/22/20', exact: true })).toBeFocused();
 
   // take a screenshot of the focused "by value" component

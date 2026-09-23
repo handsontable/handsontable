@@ -4,8 +4,10 @@ import { selectCell } from '../../../src/page-helpers';
 
 /**
  * Meant to check that Tab from the "Alignment" submenu closes it and moves the focus to the first filters
- * component. The submenu never opens: the three ArrowDown presses stop short of "Alignment", so the first
- * capture is the plain menu. DEV-2981 repairs the keystrokes or converts the coverage. Owned by DEV-2981.
+ * component. The submenu never opens: the menu opens with its first enabled item ("Clear column")
+ * highlighted, so the three ArrowDown presses pass "Alignment" (Read only, Alignment, then back to Clear
+ * column) and ArrowRight has nothing to open; the first capture is the plain menu. Two presses reach
+ * "Alignment". DEV-2981 repairs the keystrokes or converts the coverage. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

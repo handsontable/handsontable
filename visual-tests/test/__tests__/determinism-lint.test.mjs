@@ -85,11 +85,39 @@ test('a capture straight after each kind of primitive is reported, on the captur
     '  await tablePage.mouse.move(box!.x, box!.y);',
     '  await cell.hover();',
     '  await cell.pressSequentially(\'abc\');',
+    '  await tablePage.touchscreen.tap(1, 1);',
+    '  await cell.focus();',
+    // An action whose result is kept is still an action: the half that matches it takes a declaration.
+    '  const clicked = await cell.click();',
   ];
   const results = await Promise.all(actions.map(action => lint(spec(`${action}\n${CAPTURE}`))));
 
   results.forEach((messages, i) => {
     assert.deepEqual(captureLines(messages), [13], `not reported after: ${actions[i].trim()}`);
+  });
+});
+
+test('a capture that is not awaited is still a capture', async() => {
+  // The capture half has two branches, `await x.screenshot()` and a bare `x.screenshot()`; nothing in the tree
+  // uses the second, so only this keeps it from being deleted with every other test green.
+  const body = '  await cell.click();\n  tablePage.screenshot({ path: helpers.screenshotPath() });';
+
+  assert.deepEqual(captureLines(await lint(spec(body))), [13]);
+});
+
+test('the blind spots visual-tests/AGENTS.md lists are real', async() => {
+  // Adjacency judges the one statement before the capture, and only an expression or a declaration. These
+  // shapes are documented as unseen; if the rule starts seeing one, update the "What the capture rule cannot
+  // see" bullet with it rather than deleting the case.
+  const unseen = [
+    '  if (box) {\n    await cell.click();\n  }',
+    '  try {\n    await cell.click();\n  } finally {\n    await cell.blur();\n  }',
+    '  await cell.click();\n  const other = await cell.boundingBox();',
+  ];
+  const results = await Promise.all(unseen.map(before => lint(spec(`${before}\n${CAPTURE}`))));
+
+  results.forEach((messages, i) => {
+    assert.deepEqual(captureLines(messages), [], `the documented blind spot is now reported: ${unseen[i]}`);
   });
 });
 

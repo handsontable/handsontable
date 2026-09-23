@@ -7,8 +7,8 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that a nested-header group with long labels collapses when Shift+Tab reaches its header and Enter
- * is pressed. Owned by DEV-2981.
+ * Checks that the nested-header group with a long label ("Product with long text test") collapses when
+ * Shift+Tab reaches its header and Enter is pressed. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -47,6 +47,6 @@ visualTest(__filename, {
   // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(100);
 
-  // take a screenshot of the dropdown menu
+  // take a screenshot of the collapsed group
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

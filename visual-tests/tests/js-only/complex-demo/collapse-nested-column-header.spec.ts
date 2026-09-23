@@ -9,8 +9,8 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that collapsing the nested-header group "I" on the complex demo renders the collapsed header and
- * hides the columns under it. Owned by DEV-2981.
+ * Checks that collapsing the nested-header group "I" on the complex demo renders the collapsed header over
+ * its first column (Name) and hides the other one (Password). Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

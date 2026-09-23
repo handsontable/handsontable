@@ -97,12 +97,14 @@ const DETERMINISM_RESTRICTIONS = [
       + 'the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`).',
   },
 ];
-// Visual-only, so it is kept out of the two blocks above, which stay verbatim copies of `tests/.eslintrc.cjs`:
-// a functional spec asserts, so it has no capture to guard. A capture on the statement straight after a
-// pointer or keyboard primitive photographs whichever half of the transition the runner reached — the
-// focus move a Tab starts, the highlight a click paints on the next frame. The filters family is where that
-// was measured, so its 28 sites were repaired when this landed (assert the state, then capture: 28 of 28
-// captures byte-identical before and after, locally); the other 100 wear a tracked disable line.
+// Visual-only, so it is kept out of the two blocks above, which mirror `tests/.eslintrc.cjs` (the first one
+// verbatim): a functional spec asserts, so it has no capture to guard. A capture on the statement straight
+// after a pointer or keyboard primitive photographs whichever half of the transition the runner reached — the
+// focus move a Tab starts, the highlight a click paints on the next frame. The flakes were measured on three
+// filters specs (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter), so their 28
+// sites were repaired when this landed (assert the state, then capture: 28 of 28 captures byte-identical
+// before and after, locally); the other 100, 15 of them in the other six filters specs, wear a tracked
+// disable line.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -112,34 +114,43 @@ const DETERMINISM_RESTRICTIONS = [
 // paths: a descendant `:has()` there also matches a whole `visualTest(…)` statement whose body captures, so
 // a test that acts followed by a test that captures reported the second test call itself (2 false sites in
 // cross-browser/copy-paste.spec.ts). The action half keeps the descendant form on purpose — an action
-// nested inside the previous statement (`await Promise.all([… click() …])`) still acted.
+// nested inside the previous statement (`await Promise.all([… click() …])`) still acted — and it takes a
+// declaration as well as an expression statement, because `const clicked = await cell.click();` acted too.
 //
-// Adjacency sees the previous statement only. A comment between the action and the capture does not break
-// it (comments are not AST siblings); a neutral statement does (`const box = …`, 1 site of 211 when this was
-// measured with the page helpers counted), and so does a tracked `waitForTimeout()`, which shields 18
-// captures today — they start firing when those sleeps are replaced, so the disable line moves, it does not
-// disappear. Page helpers are deliberately not enumerated: a renamed helper would silently leave the list,
-// and the helpers that act without asserting (25 of the 48 exported from `src/page-helpers.ts` on 2026-09-23)
+// Adjacency sees the previous statement only, and only when that statement is an expression or a
+// declaration. A comment between the action and the capture does not break it (comments are not AST
+// siblings). A neutral statement does (`const box = …`, 1 site of 211 when this was measured with the page
+// helpers counted), and so does an action inside an `if`, `try` or loop block just before the capture, or a
+// capture that opens a block — none of those two shapes is in the tree today. A tracked `waitForTimeout()`
+// in between shields 18 captures in 12 specs: replacing such a sleep with the assertion it stands for clears
+// both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
+// to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
+// list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
+// on 2026-09-23, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
 // are their own follow-up, each ending on the state it produced.
 //
-// Primitives only, and all of them: the pointer and keyboard methods of a locator, plus any call on
-// `page.mouse`, `page.keyboard` or `page.touchscreen`. The names past the seven the spec listed (`tap`,
-// `pressSequentially`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`) matched 0 extra sites
-// when this landed; they are here so the modern spellings of the same action are not a way around it.
+// Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any
+// call on `page.mouse`, `page.keyboard` or `page.touchscreen`. The names past the seven the spec listed
+// (`tap`, `pressSequentially`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `focus`,
+// `dispatchEvent`, `dragAndDrop`) matched 0 extra sites when this landed; they are here so another spelling
+// of the same action is not a way around it. A method is matched by name on any object, so a same-named call
+// that is no Playwright action (`Set#clear()`, `Array#fill()`) counts too; none sits before a capture today.
 //
 // One rule id, one severity: `no-restricted-syntax` cannot be `warn` for this selector and `error` for the
 // sleep bans, and a disable line on a capture silences every selector on that line (harmless — a
 // `tablePage.screenshot()` is the one statement none of the others can match). Measured 2026-09-23: 128 of
-// 274 captures in 50 of 112 specs — 61 multi-frameworks, 59 js-only, 8 cross-browser; 0 in `src/`.
+// the 273 captures in 50 of the 112 specs (the dotfile template holds one more, which ESLint never lints) —
+// 61 multi-frameworks, 59 js-only, 8 cross-browser; 0 in `src/`.
 const CAPTURE = ':matches(ExpressionStatement[expression.argument.callee.property.name="screenshot"], '
   + 'ExpressionStatement[expression.callee.property.name="screenshot"])';
+const ACTING_STATEMENT = ':matches(ExpressionStatement, VariableDeclaration)';
 const POINTER_OR_KEYBOARD_METHOD = '/^(click|dblclick|tap|hover|press|pressSequentially|type|fill|clear|check'
-  + '|uncheck|setChecked|selectOption|dragTo)$/';
+  + '|uncheck|setChecked|selectOption|dragTo|dragAndDrop|focus|dispatchEvent)$/';
 const CAPTURE_RESTRICTIONS = [
   {
-    selector: `ExpressionStatement:has(CallExpression[callee.property.name=${POINTER_OR_KEYBOARD_METHOD}]) `
+    selector: `${ACTING_STATEMENT}:has(CallExpression[callee.property.name=${POINTER_OR_KEYBOARD_METHOD}]) `
       + `+ ${CAPTURE}, `
-      + 'ExpressionStatement:has(CallExpression[callee.object.property.name=/^(mouse|keyboard|touchscreen)$/]) '
+      + `${ACTING_STATEMENT}:has(CallExpression[callee.object.property.name=/^(mouse|keyboard|touchscreen)$/]) `
       + `+ ${CAPTURE}`,
     message: 'A capture straight after a pointer or keyboard action photographs whichever half of the '
       + 'transition the runner reached. Assert the state the screenshot is meant to show first — `await '

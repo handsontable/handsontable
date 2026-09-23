@@ -20,7 +20,7 @@ import { openContextMenu } from '../../../src/page-helpers';
 // One capture per distinct visual state, and the state asserted before the capture. What earns a
 // capture at all is the decision rule below; the declaration names the variants this spec renders on,
 // and this one is the default for a new spec — two themes, one browser, no wrapper. The docblock is
-// required and must name the owning ticket; nothing may sit between it and the call.
+// required and must name the owning ticket; no blank line may sit between it and the call.
 /**
  * Checks that the focused cell and the open context menu render as the theme draws them. Owned by
  * DEV-<number>.
@@ -419,26 +419,35 @@ does for you):
 - **Assert the state the capture is meant to show before capturing — a lint error when you do not.**
   After any action that changes focus, opens or closes an element, or scrolls, wait for that state with a
   web-first assertion — `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` /
-  `.toHaveClass()` — or a page helper that does. A capture on the statement straight after a pointer or
-  keyboard primitive (a locator's `click`, `dblclick`, `tap`, `hover`, `press`, `pressSequentially`,
-  `type`, `fill`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption` or `dragTo`, or any
-  `page.mouse` / `page.keyboard` / `page.touchscreen` call) photographs whichever half of the transition
-  the runner reached, and `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. When it
-  landed (2026-09-23) it found 128 such captures in 50 specs. The filters family's 28 were repaired —
-  each now asserts the focused component, the hidden menu, or the ticked value first, and all 28 captures
-  rendered byte-identical to the unrepaired ones — and the other 100 carry
+  `.toHaveClass()` — or a page helper that does. A capture on the statement straight after a pointer,
+  keyboard, or focus primitive (a `click`, `dblclick`, `tap`, `hover`, `press`, `pressSequentially`,
+  `type`, `fill`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `dragTo`, `dragAndDrop`,
+  `focus` or `dispatchEvent` call, or any `page.mouse` / `page.keyboard` / `page.touchscreen` call — kept
+  in a `const` or not) photographs whichever half of the transition the runner reached, and
+  `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. The names are matched on any
+  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
+  (2026-09-23) it found 128 such captures in 50 specs. The 28 in the three filters specs the flakes were
+  measured on (`escaping-the-menu`, `entering-and-escaping-by-value-lists`, `accepting-by-enter`) were
+  repaired — each now asserts the focused component, the hidden menu, or the ticked value first, and all
+  28 captures rendered byte-identical to the unrepaired ones — and the other 100, among them 15 in the
+  directory's other six filters specs, carry
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
-- **What the capture rule cannot see.** It judges the one statement before the capture. A comment in
-  between does not hide an action, but a neutral statement (`const box = …`) or a tracked
-  `waitForTimeout()` does — 18 captures in 12 specs sit behind a sleep today, and they start failing the
-  day those sleeps become assertions, so the disable line moves rather than disappears. A page helper in
-  between silences it whether or not the helper asserts: 25 of the 48 exported helpers in
-  `src/page-helpers.ts` act without asserting, and making each one end on the state it produced is its own
-  follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper names are
-  deliberately not in the selector — a renamed helper would drop out of it silently.
+- **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
+  statement is an expression or a declaration. A comment in between does not hide an action. A neutral
+  statement (`const box = …`) does, and so does an action inside an `if`, `try` or loop block just before
+  the capture, or a capture that opens a block — neither shape is in the tree today, and the self-test pins
+  them as unseen, so a rule that starts seeing one fails loudly until this bullet is updated. A tracked
+  `waitForTimeout()` in between hides the action too: 18 captures in 12 specs sit behind a sleep today.
+  Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
+  its place makes the capture fire, so the disable line moves to the capture. A page helper in between
+  silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
+  `src/page-helpers.ts` act with no `expect()` or wait at all, and three more (`collapseNestedRow`,
+  `resizeColumn`, `resizeRow`) wait only with a fixed sleep. Making each one end on the state it produced
+  is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
+  names are deliberately not in the selector — a renamed helper would drop out of it silently.
 - **The selector has three esquery traps, all measured** (ESLint 8.57.1, esquery 1.7.0), which is why the
   rule is proven by fixtures in the self-test rather than by reading it. The relative `:has(> X)` form
   parses and matches nothing, with no error. `~` matches any earlier sibling, so it cannot express
@@ -548,9 +557,11 @@ does for you):
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow.
 - **Two specs are known to photograph the wrong state**: `tab-navigation-from-submenu` and
-  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe (ArrowDown ×3 from
-  the first enabled item stops short of it), so their frames repeat the plain-menu frames other specs own.
-  Repair the keystrokes or convert the coverage in the consolidation phase; do not delete them silently.
+  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe. The menu opens with
+  its first enabled item ("Clear column") highlighted, so their three ArrowDown presses pass "Alignment"
+  (Read only, Alignment, then back to Clear column) and ArrowRight has nothing to open; two presses reach
+  it. Their frames repeat the plain-menu frames other specs own. Repair the keystrokes or convert the
+  coverage in the consolidation phase; do not delete them silently.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -618,8 +629,8 @@ which of these run locally and which only in CI.
   unasserted pointer or keyboard primitive is a `no-restricted-syntax` error (`CAPTURE_RESTRICTIONS` in
   `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
   and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
-  `tests/**/*.spec.ts` override). The filters family's 28 sites were repaired (assert the state, then
-  capture); the other 100 wear `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above
+  `tests/**/*.spec.ts` override). The 28 sites in the three filters specs the flakes were measured on were
+  repaired (assert the state, then capture); the other 100 wear `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above
   the capture, so the debt is counted and greppable. The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from

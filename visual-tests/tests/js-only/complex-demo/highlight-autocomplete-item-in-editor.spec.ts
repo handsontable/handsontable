@@ -10,8 +10,9 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that typing into the autocomplete editor on the complex demo highlights the matching part of each
- * suggestion in the list it opens. Owned by DEV-2981.
+ * Checks that typing "to" into the editor of a City cell on the complex demo bolds the matching part of the
+ * cities that contain it and highlights the best match. The column is a dropdown, so the list it opens is
+ * not filtered. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

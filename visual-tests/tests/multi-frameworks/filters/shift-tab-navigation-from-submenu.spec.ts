@@ -4,9 +4,11 @@ import { selectCell } from '../../../src/page-helpers';
 
 /**
  * Meant to check that Shift+Tab from the "Alignment" submenu closes it and moves the focus to the last
- * filters component. The submenu never opens: the three ArrowDown presses stop short of "Alignment", so the
- * first capture is the plain menu. DEV-2981 repairs the keystrokes or converts the coverage. Owned by
- * DEV-2981.
+ * filters component. The submenu never opens: the menu opens with its first enabled item ("Clear column")
+ * highlighted, so the three ArrowDown presses pass "Alignment" (Read only, Alignment, then back to Clear
+ * column) and ArrowRight has nothing to open; the first capture is the plain menu. Two presses reach
+ * "Alignment". DEV-2981 repairs the keystrokes or converts the coverage. The two Shift+Tabs after it land
+ * on "Cancel" and then "OK". Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -24,9 +26,9 @@ visualTest(__filename, {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowRight'); // opens the "Alignment" submenu
 
-  // The submenu this spec describes never opens (ArrowDown x3 from the first enabled item stops short of
-  // "Alignment", so the frame is the plain menu); there is no state to wait for until the keystrokes are
-  // repaired in the consolidation phase.
+  // The submenu this spec describes never opens (ArrowDown x3 from the first enabled item, "Clear column",
+  // passes "Alignment" and wraps back, so the frame is the plain menu); there is no state to wait for until
+  // the keystrokes are repaired in the consolidation phase.
   // eslint-disable-next-line no-restricted-syntax -- DEV-2797: nothing to wait for until the spec is repaired
   await tablePage.waitForTimeout(10);
 
@@ -42,7 +44,7 @@ visualTest(__filename, {
 
   await tablePage.keyboard.press('Shift+Tab');
 
-  // take a screenshot of the focused search input element
+  // take a screenshot of the focused "Ok" button
   // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

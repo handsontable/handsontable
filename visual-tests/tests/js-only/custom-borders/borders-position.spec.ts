@@ -6,8 +6,9 @@ import {
 } from '../../../src/page-helpers';
 
 /**
- * Checks that the custom borders of the custom-borders demo stay in place beside a selection dragged 200 px
- * from a bordered cell. Owned by DEV-2981.
+ * Checks that the custom borders of the custom-borders demo stay in place under a selection dragged 200 px
+ * right and 200 px down from (10, 3), the top-left cell of a bordered range, so the selection crosses that
+ * range's edges. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

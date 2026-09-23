@@ -19,9 +19,8 @@ const urls = [
 
 urls.forEach((url) => {
   /**
-   * Checks that an edited cell value is undone and then redone on this demo route: the captures show the
-   * edit, the undone value, and the redone one. One capture per route in `urls`, in each browser. Owned by
-   * DEV-2981.
+   * Checks that an edited cell value is undone and then redone on this demo route. Three captures per route
+   * in `urls`, in each browser: the edit, the undone value, and the redone one. Owned by DEV-2981.
    */
   visualTest(`Test undo and redo for: ${url}`, {
     themes: [CLASSIC],

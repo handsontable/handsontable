@@ -2,9 +2,9 @@ import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '..
 import { helpers } from '../../../src/helpers';
 
 /**
- * Checks whether the hovering the menu items (e.g "Read only" entry) clears the state of the focus order of
- * the filters components: the captures show "Select all" focused, "Clear column" hovered, and the first
- * filters component focused by the next Tab. Owned by DEV-2981.
+ * Checks whether hovering a menu item ("Clear column") clears the state of the focus order of the filters
+ * components: the captures show "Select all" focused, "Clear column" hovered, and the first filters
+ * component focused by the next Tab. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

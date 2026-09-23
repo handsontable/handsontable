@@ -2,8 +2,11 @@ import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
 /**
- * Checks where Tab and Shift+Tab move the focus between the two tables of the basic two-tables demo. Each
- * capture shows the focused table after one run of key presses. Owned by DEV-2981.
+ * Checks where Tab and Shift+Tab move the focus on the basic two-tables demo, where an input sits above
+ * each grid: into a grid, from cell to cell, and out of it at a row's edge (autoWrapRow is off). Three
+ * captures, one after each run of key presses (Tab, Tab, Shift+Tab; then seven Tabs; then Shift+Tab): the
+ * first input focused with no selection, the bottom grid's first cell, and the second input focused. Owned
+ * by DEV-2981.
  */
 visualTest('Test focus on Shift+Tab navigation', {
   themes: [CLASSIC],

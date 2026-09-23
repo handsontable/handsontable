@@ -13,8 +13,8 @@ const urls = [
 urls.forEach((url) => {
   /**
    * Checks that a cell selection, a column-range selection, and a row-range selection (a header click, then
-   * a Shift+click) render their highlights on this demo route. One capture per route in `urls`, in each
-   * browser. Owned by DEV-2981.
+   * a Shift+click) render their highlights on this demo route. Three captures per route in `urls`, in each
+   * browser: the cell, the column range, and the row range. Owned by DEV-2981.
    */
   visualTest(`Test selection for: ${url}`, {
     themes: [CLASSIC],

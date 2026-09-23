@@ -10,8 +10,9 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks that the select editor opens, with its list in place, on the complex demo in RTL. Owned by
- * DEV-2981.
+ * Checks that the select editor opens over an Interest cell on the complex demo in RTL: the native
+ * `<select>` and its arrow, placed and sized to the cell. Opening the editor does not open the option list,
+ * so the capture shows the select closed. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

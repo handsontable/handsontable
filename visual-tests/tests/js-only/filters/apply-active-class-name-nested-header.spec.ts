@@ -39,7 +39,7 @@ visualTest(__filename, {
   await tablePage.keyboard.press('Tab');
   await tablePage.keyboard.press('Enter'); // apply the filter
 
-  // take a screenshot of the dropdown menu
+  // take a screenshot of the filtered header (OK has closed the menu)
   // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

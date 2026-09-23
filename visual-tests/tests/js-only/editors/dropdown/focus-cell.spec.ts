@@ -7,8 +7,10 @@ import {
 } from '../../../../src/page-helpers';
 
 /**
- * Checks that, in a grid scrolled to its bottom and inline end, the dropdown editor filters its list by the
- * typed letter and highlights the option under the pointer. Owned by DEV-2981.
+ * Checks that, in a grid scrolled to its bottom and inline end, the dropdown editor keeps its full list
+ * when a letter is typed (the dropdown type sets `filter: false`): it bolds the typed "a" in each option,
+ * highlights the first match, and shows the hover state of the third option under the pointer. Owned by
+ * DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
