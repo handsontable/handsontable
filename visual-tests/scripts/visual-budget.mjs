@@ -16,6 +16,8 @@
  *   VISUAL_BUDGET_FILE the budget file (default: `visual-tests/visual-budget.json`)
  *   VISUAL_PR_BODY     the live pull-request description, for the growth marker
  *   GITHUB_EVENT_NAME  whether a marker can be asked for at all
+ *   VISUAL_BOOTSTRAP   set by the workflow when the branch had no baseline, so every rendered record is
+ *                      reported as new and no marker is asked for
  *
  * Exits 1 on a violation. A missing `out.json` — the bootstrap path, where there is no comparison —
  * exits 0: there is nothing to judge, and failing there would block the first build on a new branch.
@@ -47,6 +49,7 @@ const verdict = evaluateBudget({
   budget,
   body: process.env.VISUAL_PR_BODY ?? '',
   isPullRequest: process.env.GITHUB_EVENT_NAME === 'pull_request',
+  bootstrap: process.env.VISUAL_BOOTSTRAP === 'true',
 });
 
 // Prepended, not merged: the visual gate's own wording is pinned by regex in visual-gate.test.mjs, and

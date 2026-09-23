@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import path, { join } from 'node:path';
 import {
   budgetTotal,
   countByPrefix,
@@ -88,9 +90,13 @@ test('the checked-in budget describes the eleven prefixes develop renders', () =
     'react-wrapper/chromium/',
     'vue3/chromium/',
   ]);
-  assert.equal(budgetTotal(BUDGET), 1676,
-    'the full-tier total changed; if that is intended, the pull request that changed it carries the '
-    + 'marker and this number moves with it');
+  // Deliberately no hardcoded total here. `visual-declarations.test.mjs` derives the eleven counts from
+  // the checked-in specs and asserts them against this same file, so the VALUE is proved by the spec
+  // tree rather than by a number typed twice. What is worth pinning here is that every count is a
+  // positive integer — a zero or a string would make the ceiling meaningless while still parsing.
+  Object.entries(BUDGET.prefixes).forEach(([prefix, count]) => {
+    assert.ok(Number.isInteger(count) && count > 0, `${prefix} is budgeted as ${count}`);
+  });
 });
 
 test('every cap exception carries a ticket that will bring it down', () => {
@@ -282,4 +288,111 @@ test('the growth marker is read through the shared comment stripper', () => {
   assert.equal(readMarker('<!-- [visual budget: 1 — from the template] -->'), null);
   assert.deepEqual(readMarker('real [visual budget: 1 — a reason] <!-- and a comment -->'),
     { total: 1, reason: 'a reason' });
+});
+
+// --- the wrapper, not just the judgement ---
+
+/**
+ * Run `scripts/visual-budget.mjs` over a throwaway `.reg/` directory.
+ *
+ * The CLI carries real decisions the pure functions cannot: it PREPENDS to the gate's comment (the
+ * whole reason for the step order), it exits 0 when there is nothing to judge, and it survives a
+ * missing comment. Those were smoke-tested by hand and not committed, which is the same as untested.
+ *
+ * @param {object} options What to put on disk and in the environment.
+ * @param {object|null} options.report The `out.json` to write, or null to write none.
+ * @param {string|null} [options.comment] The `comment.md` to write, or null to write none.
+ * @param {object} [options.env] Extra environment for the run.
+ * @returns {{status: number, stdout: string, comment: string|null}} What it did.
+ */
+function runBudgetCli({ report, comment = null, env = {} }) {
+  const dir = mkdtempSync(join(tmpdir(), 'visual-budget-'));
+
+  if (report) {
+    writeFileSync(join(dir, 'out.json'), JSON.stringify(report));
+  }
+
+  if (comment !== null) {
+    writeFileSync(join(dir, 'comment.md'), comment);
+  }
+
+  const result = spawnSync(process.execPath, [path.join(root, 'visual-tests/scripts/visual-budget.mjs')], {
+    encoding: 'utf8',
+    env: {
+      ...process.env, VISUAL_GATE_DIR: dir, GITHUB_EVENT_NAME: 'pull_request', VISUAL_PR_BODY: '', ...env,
+    },
+  });
+
+  return {
+    status: result.status,
+    stdout: `${result.stdout}${result.stderr}`,
+    comment: existsSync(join(dir, 'comment.md')) ? readFileSync(join(dir, 'comment.md'), 'utf8') : null,
+  };
+}
+
+test('the wrapper prepends its section above the gate comment, with a blank line between', () => {
+  // Prepending rather than merging is what keeps every regex in visual-gate.test.mjs intact, and it is
+  // the only reason the step has to run after the verdict. The blank line is not cosmetic: a `##`
+  // heading with text directly above it is not a heading.
+  const run = runBudgetCli({
+    report: reportWith(atBudget()),
+    comment: '## Visual tests\n\nthe gate said this\n',
+  });
+
+  assert.equal(run.status, 0, run.stdout);
+  assert.match(run.comment, /^## Visual budget\n\n/, 'the budget section must come first');
+  assert.match(run.comment, /\n\n## Visual tests\n/, 'the gate heading must keep a blank line above it');
+  assert.ok(run.comment.includes('the gate said this'), 'the gate comment must survive intact');
+});
+
+test('the wrapper exits 0 when there is nothing to judge, and survives a missing comment', () => {
+  // No `out.json` is the bootstrap-before-comparison path. Failing there would block the first build on
+  // a new branch over a file that was never written.
+  const noReport = runBudgetCli({ report: null });
+
+  assert.equal(noReport.status, 0, 'a missing out.json must not fail the job');
+  assert.match(noReport.stdout, /No comparison result to judge/);
+
+  // No `comment.md` means the gate did not run. Writing a budget section with no verdict under it would
+  // be a comment about nothing, so it says so and still reports its own verdict.
+  const noComment = runBudgetCli({ report: reportWith(atBudget()), comment: null });
+
+  assert.equal(noComment.status, 0, noComment.stdout);
+  assert.match(noComment.stdout, /visual-gate\.mjs did not run/);
+});
+
+test('the wrapper exits 1 on a violation, and names it', () => {
+  const over = reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 5 });
+  const run = runBudgetCli({ report: over, comment: '## Visual tests\n' });
+
+  assert.equal(run.status, 1, 'a violation must fail the step, or the budget is a comment');
+  assert.match(run.stdout, /js\/chromium\/. rendered \d+ record\(s\), budget \d+ \(\+5\)/);
+  assert.match(run.comment, /outside the golden budget/, 'the comment must carry it too');
+});
+
+test('a bootstrap is not growth, so no marker is demanded — but the ceiling still is', () => {
+  // With no baseline, reg-suit calls every rendered record new. Asking for a marker there would demand
+  // `[visual budget: 1676 — ...]` on the first pull request into a branch that has no goldens yet, for
+  // a set that did not grow. The ceiling is the check that still means something.
+  const everythingNew = reportWith({});
+
+  everythingNew.newItems = renderedItems(reportWith(atBudget()));
+
+  const seeding = evaluateBudget({ report: everythingNew, budget: BUDGET, bootstrap: true });
+
+  assert.equal(seeding.pass, true, seeding.violations.join('\n'));
+
+  const sameWithoutBootstrap = evaluateBudget({ report: everythingNew, budget: BUDGET });
+
+  assert.equal(sameWithoutBootstrap.pass, false,
+    'outside a bootstrap the same shape IS growth and must ask for the marker');
+
+  // And a bootstrap that is genuinely over a prefix still fails: the ceiling does not depend on there
+  // being a baseline to compare against.
+  const tooBig = reportWith({});
+
+  tooBig.newItems = renderedItems(reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 1 }));
+
+  assert.equal(evaluateBudget({ report: tooBig, budget: BUDGET, bootstrap: true }).pass, false,
+    'a bootstrap over a prefix ceiling must still fail');
 });

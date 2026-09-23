@@ -27,6 +27,10 @@ export const MARKER_TEMPLATE = '[visual budget: N — why the set has to grow]';
  * from the SIZE. A quarantined record is a record — it is fetched, rendered, compared and stored like
  * any other, and a budget that stopped counting it would let the set grow by quarantining.
  *
+ * That is a CONTRACT on G5, not a property this file can enforce: the quarantine must subtract in the
+ * verdict it computes and leave `out.json` alone. Rewriting the file on disk would silently hand this
+ * function a filtered set, since the budget step runs after the gate.
+ *
  * `deletedItems` are in the baseline and not in this render, so they are not rendered by definition.
  *
  * @param {object} report A reg-suit `out.json`.
@@ -131,19 +135,26 @@ export function budgetTotal(budget) {
  * 3. does any spec take more captures than the cap allows, without a ticketed exception?
  * 4. and if the set grew, did the author say so in the description and update the file to match?
  *
- * Shrinking is never a violation. A trimming pull request is expected to come in under its own
- * numbers — that is what it is for — so the gate says so rather than reporting it as drift, and asks
- * for the file to be lowered in the same change.
+ * Shrinking is never a violation, and the reason is sharper than "a trim is allowed to". A render that
+ * FAILED produces no screenshot, so reg-suit reports that item as deleted and the build comes in under
+ * its number — a flake would fail the budget as well as the comparison, on a gate that has nothing to
+ * do with it. Under-budget is therefore a note: a trimming pull request is expected to look like that
+ * (`deleted > 0` and `rendered < budget` together), and so is an unlucky one. The note asks for the
+ * file to be lowered in the same change, which is the part a human has to do.
+ *
+ * The cost of that choice, stated rather than hidden: a trim that does not lower the file leaves
+ * headroom, and later growth into it is free. The ceiling is a ceiling, not a high-water mark.
  *
  * @param {object} options Everything the judgement needs.
  * @param {object} options.report The raw reg-suit `out.json` for this build.
  * @param {object} options.budget The parsed `visual-budget.json`.
  * @param {string} [options.body] The pull-request description, for the growth marker.
  * @param {boolean} [options.isPullRequest] Whether a marker can be asked for at all.
+ * @param {boolean} [options.bootstrap] Whether this build is seeding a branch that had no baseline.
  * @returns {{pass: boolean, violations: string[], notes: string[], comment: string, summary: string}}
  * The verdict, the reasons, and the section to prepend to the gate's comment.
  */
-export function evaluateBudget({ report, budget, body = '', isPullRequest = true }) {
+export function evaluateBudget({ report, budget, body = '', isPullRequest = true, bootstrap = false }) {
   const items = renderedItems(report);
   const rendered = countByPrefix(items);
   const violations = [];
@@ -206,7 +217,11 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
   const marker = readMarker(body);
   const total = budgetTotal(budget);
 
-  if (grew && isPullRequest) {
+  // On a bootstrap there is no baseline, so reg-suit calls EVERY rendered record new and this would
+  // demand a marker for the whole set — 480 records on the first pull request into a branch that has
+  // none. Nothing grew; there was simply nothing to compare against. The ceiling still applies, which is
+  // the check that matters there.
+  if (grew && isPullRequest && !bootstrap) {
     const net = (report.newItems.length) - (report.deletedItems?.length ?? 0);
 
     if (!marker) {

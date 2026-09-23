@@ -28,24 +28,19 @@ import {
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 
-// The eleven golden prefixes and their record counts, read from the live baseline on 2026-09-18:
+// The eleven golden prefixes and their record counts live in ONE place: `visual-tests/visual-budget.json`,
+// which the `Visual budget` step of the Compare job enforces against what a build actually renders. They
+// were read from the live baseline on 2026-09-18:
 // `curl -H 'Cache-Control: no-cache' 'https://visual.handsontable.com/base/develop/out.json?cb=1'`,
-// 1676 records, all passing. Re-read it the same way before changing a number here, and say in the pull
-// request why the set moved — that is the whole point of writing the numbers down.
-const LIVE_GOLDENS = {
-  'js/chromium/': 240,
-  'js/chromium-theme-main/': 240,
-  'js/chromium-theme-main-dark/': 240,
-  'js/chromium-theme-horizon/': 240,
-  'js/chromium-theme-horizon-dark/': 240,
-  'angular-wrapper/chromium/': 92,
-  'react-wrapper/chromium/': 92,
-  'vue3/chromium/': 92,
-  'cross-browser/chromium/': 68,
-  'cross-browser/firefox/': 66,
-  'cross-browser/webkit/': 66,
-};
-const LIVE_GOLDEN_TOTAL = 1676;
+// 1676 records, all passing.
+//
+// Reading them here rather than repeating them is the point. The numbers are true of three different
+// things — what the specs DECLARE, what a build RENDERS, and what the budget ALLOWS — and a copy per
+// claim is three chances to drift. This file proves the first against the file; the budget gate proves
+// the second against the same file. Change the file, and both move together or one of them fails.
+const LIVE_GOLDENS = JSON.parse(
+  readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8')).prefixes;
+const LIVE_GOLDEN_TOTAL = Object.values(LIVE_GOLDENS).reduce((sum, count) => sum + count, 0);
 
 // The one spec that declares nothing: it parks a test behind `test.skip('Test merging', fn)`, renders
 // no capture, and carries its own eslint-disable line naming the task that owns it.
@@ -1052,9 +1047,10 @@ test('the declarations derive exactly the live golden set', () => {
   });
 
   const remedy = 'A number moved because a spec was added, deleted, trimmed or given a capture — which '
-    + 'is exactly what this pin is for. Re-read the live baseline the way the LIVE_GOLDENS comment above '
-    + 'says, update LIVE_GOLDENS and LIVE_GOLDEN_TOTAL to the set this change produces, and say in the '
-    + 'pull request why it moved. A moved number is the review, not a bug; an UNEXPLAINED one is the bug.';
+    + 'is exactly what this pin is for. Update `visual-tests/visual-budget.json` to the set this change '
+    + 'produces, and say in the pull request why it moved — a growth also needs the '
+    + '`[visual budget: N – reason]` marker the Compare job reads. A moved number is the review, not a '
+    + 'bug; an UNEXPLAINED one is the bug.';
 
   process.stdout.write(`golden records implied by the checked-in declarations: ${total}\n`);
   assert.deepEqual(perPrefix, LIVE_GOLDENS, 'The per-prefix golden counts derived from the checked-in '
