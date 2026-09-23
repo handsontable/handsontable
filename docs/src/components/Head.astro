@@ -51,6 +51,13 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
     var originalDefine = customElements.define;
 
     customElements.define = function (name, constructor, options) {
+      // A second evaluation of the module that registers an element would otherwise throw a
+      // NotSupportedError ("the name has already been used with this registry", Sentry
+      // HANDSONTABLE-DOCS-22D). The first definition stays in place, so skip the repeat.
+      if (customElements.get(name)) {
+        return undefined;
+      }
+
       if (guardedTags.indexOf(name) === -1 || typeof constructor !== 'function') {
         return originalDefine.call(customElements, name, constructor, options);
       }
