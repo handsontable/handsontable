@@ -4,7 +4,8 @@ import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits'
 import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
 import { parseComments } from './parts/comments';
 import {
-  CONTENT_TYPES, parseContentTypes, parseRels, parseWorkbook, resolvePartPath, REL_TYPES, type Relationship,
+  CONTENT_TYPES, contentTypeOf, type ContentTypes, parseContentTypes, parseRels, parseWorkbook, resolvePartPath,
+  REL_TYPES, type Relationship,
 } from './parts/package';
 import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStrings';
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
@@ -65,7 +66,7 @@ interface OpenedPackage {
   date1904: boolean;
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
-  contentTypes: Map<string, string>;
+  contentTypes: ContentTypes;
   packageParts: Set<string>;
 }
 
@@ -75,11 +76,13 @@ interface OpenedPackage {
  * A relationship target is the file's own text, so it may name ANY part of the package: `xl/../../
  * [Content_Types].xml` normalizes back inside the archive and was tokenized as a worksheet, which
  * yielded an empty sheet with no diagnostic. The package's own declaration settles it where there
- * is one; where there is none, the parts this reader has already resolved for another purpose are
- * refused, so a sheet can never be the workbook, its styles or its shared strings.
+ * is one - through a `<Default>` for the part's extension as well as through an `<Override>`, which
+ * is what types every `.rels` part and is why a sheet pointing at one used to pass this check.
+ * Where the package declares nothing at all, the parts this reader has already resolved for another
+ * purpose are refused, so a sheet can never be the workbook, its styles or its shared strings.
  */
 function isWorksheetPart(opened: OpenedPackage, partPath: string): boolean {
-  const declared = opened.contentTypes.get(partPath);
+  const declared = contentTypeOf(opened.contentTypes, partPath);
 
   if (declared !== undefined) {
     return declared === CONTENT_TYPES.worksheet;
@@ -122,7 +125,7 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
     packageParts,
     contentTypes: archive.has(CONTENT_TYPES_PART)
       ? parseContentTypes(await archive.text(CONTENT_TYPES_PART))
-      : new Map<string, string>(),
+      : { overrides: new Map<string, string>(), defaults: new Map<string, string>() },
     styles: stylesPath && archive.has(stylesPath) ? parseStyles(await archive.text(stylesPath)) : EMPTY_STYLES,
     sharedStrings: stringsPath && archive.has(stringsPath)
       ? parseSharedStrings(await archive.text(stringsPath))

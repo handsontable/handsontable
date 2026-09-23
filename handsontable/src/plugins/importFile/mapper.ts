@@ -364,18 +364,30 @@ interface FormulaShift {
 }
 
 /**
- * Escapes a plain text value that would otherwise become a live formula.
+ * Escapes a plain text value the grid would otherwise reinterpret.
+ *
+ * TWO shapes need it, and they are exactly the values the Formulas plugin's own
+ * `unescapeFormulaExpression` would change (`plugins/formulas/utils.ts`; the predicates are
+ * mirrored here rather than imported, because a plugin never imports another plugin).
  *
  * A cell holding the TEXT `=HYPERLINK("http://…")` is inert in Excel - it is a string, not a
  * formula - but the grid hands every `=`-leading string to HyperFormula, so importing it verbatim
- * turned the file's text into a formula the file never had. The leading apostrophe is the escape
- * the Formulas plugin already defines (`isEscapedFormulaExpression` in `plugins/formulas/utils.ts`,
- * unescaped again on read), so the cell renders exactly the text the file carried.
+ * turned the file's text into a formula the file never had.
+ *
+ * A cell whose text is `'=1+1` is the other half: the leading apostrophe is the FILE's own
+ * character, and `isEscapedFormulaExpression` (an apostrophe followed by `=`) reads it as the
+ * grid's escape marker and strips it. Escaping it keeps the file's apostrophe in the data. A value
+ * starting with an apostrophe that is NOT followed by `=` is left alone, because the grid leaves it
+ * alone too - the marker is `'=`, not a bare `'`.
  *
  * Only applied when the plugin is enabled: without it an apostrophe would be part of the value.
  */
 function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
-  return formulasEnabled && typeof value === 'string' && value.startsWith('=') ? `'${value}` : value;
+  if (!formulasEnabled || typeof value !== 'string') {
+    return value;
+  }
+
+  return value.startsWith('=') || value.startsWith('\'=') ? `'${value}` : value;
 }
 
 /**

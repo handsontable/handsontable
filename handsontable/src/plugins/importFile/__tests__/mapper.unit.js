@@ -442,6 +442,27 @@ describe('mapWorkbook', () => {
     expect(withoutFormulas.data[0][0]).toBe('=HYPERLINK("http://evil","x")');
   });
 
+  it('should escape a text value the grid would read as its own escape marker', () => {
+    // The other half of the escape. `'=1+1` is the FILE's text — the apostrophe is a character of
+    // the cell, not a marker — and `isEscapedFormulaExpression` (an apostrophe followed by `=`) is
+    // exactly the shape the Formulas plugin strips on read, so importing it verbatim hands the
+    // grid the file's own apostrophe to eat. A value whose apostrophe is NOT followed by `=` is
+    // left alone, because the plugin leaves it alone too: the marker is `'=`, never a bare `'`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('\'=1+1')], [text('\'hello')], [text('it\'s fine')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    expect(withFormulas.data[0][0]).toBe('\'\'=1+1');
+    expect(withFormulas.data[1][0]).toBe('\'hello');
+    expect(withFormulas.data[2][0]).toBe('it\'s fine');
+    // With no plugin to unescape anything, every value keeps exactly what the file carried.
+    expect(withoutFormulas.data[0][0]).toBe('\'=1+1');
+    expect(withoutFormulas.data[1][0]).toBe('\'hello');
+  });
+
   it('should keep cached values when importFormulas is false', () => {
     const sheet = createSheetSnapshot('Data');
 

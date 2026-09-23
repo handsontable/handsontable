@@ -75,6 +75,18 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   on read, so the cell renders what the file carried. It must stay gated on `formulasEnabled`: with no
   plugin to unescape it, the apostrophe would become part of the value. The DECLARED-formula path is
   untouched — it is already gated, because `shift` is `null` unless the plugin is enabled.
+- **A text VALUE that starts with `'=` is escaped the same way, and one that starts with a bare `'` is
+  NOT.** The escape must mirror the INVERSE of `unescapeFormulaExpression` exactly, and the grid's marker
+  is an apostrophe followed by `=` — `isEscapedFormulaExpression` tests both characters. So a file cell
+  reading `'=1+1` carries an apostrophe of its OWN that the grid then ate as its marker (the file's text
+  and an escaped formula were indistinguishable after import), and it is written `''=1+1`; a cell reading
+  `'hello` or `it's fine` is left verbatim, because nothing in the grid touches it either. Escaping every
+  apostrophe-leading value instead would ADD a character to text the grid never reinterprets. One limit
+  stays, and it is in the plugin's escape rather than in the mapper: the marker does not nest, so
+  `''=1+1` is not recognized as escaped and renders with both apostrophes. The import keeps the file's
+  character in `data` (which is what a re-export writes) rather than losing it; rendering it as one
+  apostrophe would need `isEscapedFormulaExpression` to count them, which is a Formulas-plugin change and
+  a behavior change for every grid, not an import one.
 - **The lossy reads the adapter reports, and why each is only a report.** `hyperlink` (the text is kept, the
   URL is not — and a hyperlink's text may ITSELF be a rich-text run list, nested one level below the cell
   value, so both `hyperlinkText` and the `richText` report have to look there too), `richText` (the text is

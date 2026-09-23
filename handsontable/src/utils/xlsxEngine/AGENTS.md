@@ -191,14 +191,20 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   as well as the per-sheet one, because the sheet count and the inflate total are both refused
   before the first sheet. A new cap that reaches for `throwWithCause` directly still refuses the
   file, but its message is wrapped and it stops reading as this reader's own contract.
-- **A sheet's `r:id` is checked against `[Content_Types].xml` before the part is read as a worksheet.**
-  A relationship target is the file's own text and may name ANY part of the package: `Target="/[Content_
-  Types].xml"` normalizes back inside the archive, was tokenized as a worksheet and yielded an empty
-  sheet with no diagnostic. `read.ts` asks `isWorksheetPart()`, which trusts the package's own
-  `<Override>` where there is one (`parseContentTypes` in `parts/package.ts`, `<Default>` entries are
-  deliberately ignored — they map an extension, and every part here is `.xml`) and otherwise refuses the
-  parts the reader has already resolved for another purpose (`[Content_Types].xml`, the workbook, its
-  styles, its shared strings). A package carrying no `[Content_Types].xml` still reads, as before.
+- **A sheet's `r:id` is checked against `[Content_Types].xml` before the part is read as a worksheet,
+  and BOTH `<Override>` and `<Default>` type a part.** A relationship target is the file's own text and
+  may name ANY part of the package: `Target="/[Content_Types].xml"` normalizes back inside the archive,
+  was tokenized as a worksheet and yielded an empty sheet with no diagnostic. `read.ts` asks
+  `isWorksheetPart()`, which takes the package's own declaration through `contentTypeOf()`
+  (`parts/package.ts`) — an `<Override>` for the part, else the `<Default>` for its extension — and
+  requires the worksheet content type. Reading the overrides ALONE was the gap: `.rels` is typed by
+  `<Default Extension="rels">` and by nothing else, so such a part had no declared type, was not one of
+  the four parts the reader resolves for another purpose, and a sheet pointing at `_rels/workbook.xml.rels`
+  or `/_rels/.rels` read back as an empty sheet with no diagnostic. Where the package declares nothing at
+  all, the parts already resolved for another purpose are still refused (`[Content_Types].xml`, the
+  workbook, its styles, its shared strings), so a package carrying no `[Content_Types].xml` still reads,
+  as before. The consequence to know: a package that DOES declare content types must carry the worksheet
+  override for each sheet part, which every writer emits and the OPC spec requires.
 - **`<sheetProtection>` is read through an ALLOW-LIST, not a shape test.** Both readers keep only the
   names `SHEET_PROTECTION_OPTION_NAMES` (`model.ts`) declares. Copying every boolean-shaped attribute
   put `constructor`, `toString` and `hasOwnProperty` on the snapshot as own properties, so a consumer

@@ -389,6 +389,33 @@ describe('native reader hardening: the part a sheet resolves to', () => {
   });
 });
 
+describe('native reader hardening: a sheet typed by a <Default> content type', () => {
+  it('should refuse a sheet whose relationship targets a .rels part', async() => {
+    // `.rels` is typed by `<Default Extension="rels">`, never by an `<Override>`. While the reader
+    // read overrides only, such a part had no declared type at all, was not one of the four parts
+    // the reader resolves for another purpose, and so passed the worksheet check: the sheet read
+    // back EMPTY, with no diagnostic, on a file that pointed a sheet at the package's own plumbing.
+    for (const target of ['/_rels/.rels', '_rels/workbook.xml.rels']) {
+      const bytes = await repack('values', (part, text) => (
+        part === 'xl/_rels/workbook.xml.rels'
+          ? text.replace(/Target="worksheets\/sheet1.xml"/, `Target="${target}"`)
+          : text
+      ));
+
+      await expect(read(bytes)).rejects.toThrow(/the sheet "[^"]+" has no worksheet part\./);
+      await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
+  });
+
+  it('should still read a sheet whose part carries the worksheet override', async() => {
+    // The control for the rule above: honoring `<Default>` must not start refusing the sheets a
+    // real package declares, which every writer types with an `<Override>`.
+    const snapshot = await read(await repack('values', (part, text) => text));
+
+    expect(snapshot.sheets.length).toBe(1);
+  });
+});
+
 /**
  * Builds a ZIP by hand: ONE stored local record, plus one central-directory record per alias, all
  * of them pointing at that single local record. `writeZip` cannot produce this — it writes one

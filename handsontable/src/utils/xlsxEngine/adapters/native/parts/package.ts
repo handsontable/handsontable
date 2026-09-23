@@ -1,3 +1,4 @@
+import { localeLowerCase } from '../../../../../helpers/string';
 import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
 import type { SheetSnapshot } from '../../../model';
 import { createLocalName, tokenizeXml } from '../xml/tokenizer';
@@ -229,32 +230,71 @@ export function appXml(sheetNames: string[]): string {
 }
 
 /**
- * Parses the `<Override>` entries of `[Content_Types].xml` into a part path → content type map, the
- * part paths normalized the way the archive keys its entries (no leading slash).
- *
- * The `<Default>` entries are deliberately not read: they map a file EXTENSION, and every part this
- * reader resolves is an `.xml` one, so they cannot tell a worksheet from any other part. A part
- * with no override is therefore reported as unknown rather than as its default type.
+ * What `[Content_Types].xml` declares: the per-part `<Override>` entries and the per-extension
+ * `<Default>` entries, which together type every part of a package.
  */
-export function parseContentTypes(xml: string): Map<string, string> {
-  const types = new Map<string, string>();
+export interface ContentTypes {
+  /**
+   * Part path (no leading slash) → content type, from `<Override>`.
+   */
+  overrides: Map<string, string>;
+  /**
+   * Lower-cased file extension (no dot) → content type, from `<Default>`.
+   */
+  defaults: Map<string, string>;
+}
+
+/**
+ * Parses `[Content_Types].xml` into its two maps, part paths normalized the way the archive keys its
+ * entries (no leading slash).
+ *
+ * BOTH kinds of entry are read. Reading only the overrides left every part a `<Default>` types -
+ * and `.rels` is always one of them - with no declared type at all, so a sheet whose `r:id` pointed
+ * at `_rels/workbook.xml.rels` passed the worksheet-identity check and read back as an empty sheet.
+ */
+export function parseContentTypes(xml: string): ContentTypes {
+  const overrides = new Map<string, string>();
+  const defaults = new Map<string, string>();
   const localName = createLocalName();
 
   tokenizeXml(xml, {
     open(rawName, attrs) {
-      if (localName(rawName) !== 'Override' || attrs.PartName === undefined) {
-        return;
-      }
+      const name = localName(rawName);
 
-      const partName = attrs.PartName.startsWith('/') ? attrs.PartName.slice(1) : attrs.PartName;
+      if (name === 'Override' && attrs.PartName !== undefined) {
+        const partName = attrs.PartName.startsWith('/') ? attrs.PartName.slice(1) : attrs.PartName;
 
-      if (!types.has(partName)) {
-        types.set(partName, attrs.ContentType ?? '');
+        if (!overrides.has(partName)) {
+          overrides.set(partName, attrs.ContentType ?? '');
+        }
+
+      } else if (name === 'Default' && attrs.Extension !== undefined) {
+        const extension = localeLowerCase(attrs.Extension);
+
+        if (!defaults.has(extension)) {
+          defaults.set(extension, attrs.ContentType ?? '');
+        }
       }
     },
   });
 
-  return types;
+  return { overrides, defaults };
+}
+
+/**
+ * The content type a package declares for a part, or `undefined` when it declares none. An
+ * `<Override>` wins over the `<Default>` for the part's extension, which is what the OPC spec says.
+ */
+export function contentTypeOf(types: ContentTypes, partPath: string): string | undefined {
+  const declared = types.overrides.get(partPath);
+
+  if (declared !== undefined) {
+    return declared;
+  }
+
+  const dot = partPath.lastIndexOf('.');
+
+  return dot === -1 ? undefined : types.defaults.get(localeLowerCase(partPath.slice(dot + 1)));
 }
 
 /**
