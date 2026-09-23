@@ -1101,6 +1101,21 @@ export default defineConfig({
     server: {
       allowedHosts: ['.trycloudflare.com'],
     },
+    experimental: {
+      // Resolve the JS/CSS dependencies Vite preloads for a dynamic import relative to the
+      // importing chunk (`new URL(dep, import.meta.url)`) instead of the absolute `/docs/`
+      // base. Every build becomes a frozen previous version later, served nested under
+      // /docs/<version>/, where the absolute base 404s and throws "Unable to preload CSS"
+      // (DEV-3058, Sentry HANDSONTABLE-DOCS-22T). Limited to .js/.css so an inlined script's
+      // static asset import never resolves against the page URL; server builds ignore it.
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === 'js' && /\.(?:js|css)$/.test(filename)) {
+          return { relative: true };
+        }
+
+        return undefined;
+      },
+    },
     // Use the React automatic JSX runtime for .tsx source files under src/,
     // so components don't need an explicit `import React from 'react'`.
     // (Content-tree .jsx examples are handled separately by the custom
