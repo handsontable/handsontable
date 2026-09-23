@@ -41,7 +41,6 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 // the second against the same file. Change the file, and both move together or one of them fails.
 const LIVE_GOLDENS = JSON.parse(
   readFileSync(join(PACKAGE_ROOT, 'visual-budget.json'), 'utf8')).prefixes;
-const LIVE_GOLDEN_TOTAL = budgetTotal({ prefixes: LIVE_GOLDENS });
 
 // The one spec that declares nothing: it parks a test behind `test.skip('Test merging', fn)`, renders
 // no capture, and carries its own eslint-disable line naming the task that owns it.

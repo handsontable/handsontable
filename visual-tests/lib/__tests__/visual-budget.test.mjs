@@ -226,8 +226,13 @@ test('an unreadable base budget is reported, not passed over', () => {
   const verdict = evaluateBudget({ report: reportWith(atBudget()), budget: BUDGET, baseBudget: null });
 
   assert.equal(verdict.pass, true, 'it must not block on an infrastructure failure');
-  assert.match(verdict.notes.join('\n'), /could not be read/);
+  assert.match(verdict.advisories.join('\n'), /could not be read/);
   assert.match(verdict.comment, /the growth check did not run/);
+
+  // An advisory is not an under-budget note. Putting it in `notes` made a build that is AT every prefix
+  // render an "Under budget" section, and armed the trim message that keys on that list.
+  assert.deepEqual(verdict.notes, [], 'a check that could not run is not a prefix under its number');
+  assert.doesNotMatch(verdict.comment, /Under budget/);
 });
 
 test('the marker accepts whichever dash the author typed, and a commented one is inert', () => {

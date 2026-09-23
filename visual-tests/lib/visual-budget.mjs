@@ -1,4 +1,4 @@
-import { stripHtmlComments } from './strip-html-comments.mjs';
+import { stripHtmlComments } from '../../.github/scripts/lib/strip-html-comments.mjs';
 
 /**
  * The marker that lets a pull request grow the golden set.
@@ -170,6 +170,7 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
   const rendered = countByPrefix(items);
   const violations = [];
   const notes = [];
+  const advisories = [];
 
   const unbudgeted = [...rendered.keys()].filter(prefix => !(prefix in budget.prefixes)).sort();
 
@@ -228,8 +229,12 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
   const total = budgetTotal(budget);
 
   if (isPullRequest && baseBudget === null) {
-    notes.push('The budget file on the base branch could not be read, so this build cannot tell whether '
-      + 'the pull request raised it. The ceiling above still applies; the growth check did not run.');
+    // An advisory, deliberately NOT a note: `notes` means "a prefix rendered under its number", and the
+    // trim message below keys on that. Pushing this there made an unreadable base file look like a trim
+    // — the comment grew an "Under budget" section on a build that was at or over every prefix.
+    advisories.push('The budget file on the base branch could not be read, so this build cannot tell '
+      + 'whether the pull request raised it. The ceiling above still applies; the growth check did not '
+      + 'run.');
   } else if (isPullRequest) {
     const baseTotal = budgetTotal(baseBudget);
 
@@ -260,7 +265,12 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
     : `Visual budget: ${violations.length} violation(s).`;
 
   return {
-    pass, violations, notes, summary, comment: renderComment({ pass, violations, notes, items, total }),
+    pass,
+    violations,
+    notes,
+    advisories,
+    summary,
+    comment: renderComment({ pass, violations, notes, advisories, items, total }),
   };
 }
 
@@ -274,12 +284,13 @@ export function evaluateBudget({ report, budget, body = '', isPullRequest = true
  * @param {boolean} verdict.pass Whether the budget holds.
  * @param {string[]} verdict.violations Why it does not.
  * @param {string[]} verdict.notes Where the build is under its numbers.
+ * @param {string[]} verdict.advisories Checks that could not run, which is not the same as passing.
  * @param {string[]} verdict.items Everything rendered.
  * @param {number} verdict.total The full-tier total the file describes.
  * @returns {string} Markdown, ending in a blank line — the gate's own heading follows it directly, and
  * a heading without a blank line before it is not a heading.
  */
-function renderComment({ pass, violations, notes, items, total }) {
+function renderComment({ pass, violations, notes, advisories, items, total }) {
   const lines = ['## Visual budget', ''];
 
   if (pass) {
@@ -287,7 +298,14 @@ function renderComment({ pass, violations, notes, items, total }) {
   } else {
     lines.push(`This build is outside the golden budget (full-tier budget: ${total}).`, '');
     violations.forEach(violation => lines.push(`- ${violation}`));
-    lines.push('');
+
+    // The gate's own comment sits directly below this one and tells a reviewer to approve the pending
+    // deployment. With the budget red the compare job fails, so `approve` is skipped and there is
+    // nothing to approve — saying so here is cheaper than a reviewer looking for a button that is not
+    // on the page.
+    lines.push('',
+      'The visual differences below cannot be approved until this holds: a budget violation fails the '
+      + 'Compare job, and the approval job does not run on a failed compare.', '');
   }
 
   if (notes.length > 0) {
@@ -295,6 +313,8 @@ function renderComment({ pass, violations, notes, items, total }) {
     notes.forEach(note => lines.push(`- ${note}`));
     lines.push('', '</details>', '');
   }
+
+  advisories.forEach(advisory => lines.push(`> ${advisory}`, ''));
 
   return `${lines.join('\n')}\n`;
 }

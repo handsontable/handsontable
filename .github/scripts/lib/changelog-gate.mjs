@@ -23,6 +23,13 @@
  */
 
 import { classify } from './presence-gate.mjs';
+import { stripHtmlComments } from './strip-html-comments.mjs';
+
+// Re-exported, not redefined. The visual budget reads its own marker out of the same descriptions, and
+// the pull-request template documents both inside `<!-- ... -->`, so the two gates have to agree about
+// what a commented marker means. One definition in its own file means neither drags the other in —
+// importing this module for it would have pulled `presence-gate.mjs` into `visual-tests/` for ten lines.
+export { stripHtmlComments };
 
 /**
  * The opt-out marker recognized in a PR description.
@@ -81,32 +88,6 @@ export function requiresChangelog(path) {
   return CHANGELOG_TREES.some(r => r.test(path))
     && !EXCLUDED.some(r => r.test(path))
     && classify(path) !== 'test';
-}
-
-/**
- * Strip HTML comments, so a commented mention of the skip marker (e.g. the PR
- * template documenting it) can never activate the opt-out.
- *
- * Stripping repeats until a fixed point: a single pass can reassemble a new
- * `<!-- ... -->` from the text around a removed match (CodeQL
- * js/incomplete-multi-character-sanitization). Any unterminated trailing
- * `<!--` is dropped too, mirroring how renderers hide comment-to-EOF. Both
- * choices bias the gate toward NOT recognizing an ambiguous marker — the safe
- * failure mode is demanding an entry, never silently skipping.
- *
- * @param {string} body The PR description.
- * @returns {string} The description without `<!-- ... -->` blocks.
- */
-export function stripHtmlComments(body) {
-  let stripped = body;
-  let previous;
-
-  do {
-    previous = stripped;
-    stripped = previous.replace(/<!--[\s\S]*?-->/g, '');
-  } while (stripped !== previous);
-
-  return stripped.replace(/<!--[\s\S]*$/, '');
 }
 
 /**

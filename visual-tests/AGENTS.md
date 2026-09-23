@@ -554,9 +554,15 @@ which of these run locally and which only in CI.
 - **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
   prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
   exception carrying the ticket that will bring it down (nine today, all DEV-2981). The `Visual budget`
-  step of the Compare job reads `.reg/out.json`, blocks a render over the file, and requires
-  `[visual budget: N – reason]` in the pull request body on any net growth — N is the full-tier total
-  after the change, and the file has to sum to it, so the number is stated twice by someone who meant it.
+  step of the Compare job reads `.reg/out.json` and, **on pull requests only**, blocks a render over the
+  file and requires `[visual budget: N – reason]` in the description when the pull request RAISES that
+  file — N is the full-tier total after the change, and the file has to sum to it, so the number is
+  stated twice by someone who meant it. A seed push and the nightly never reach the step, so develop
+  itself is not guarded by it; what guards develop is the declaration sweep in
+  `lib/__tests__/visual-declarations.test.mjs`, which asserts the file EQUALS what the checked-in specs
+  derive and runs in the tooling suite on every pull request. The marker keys on the file's diff against
+  the base branch rather than on reg-suit's new-versus-deleted counts: a rename nets those to zero while
+  the set grows, and a bootstrap build reports every record as new.
   The marker is comment-stripped, so the PR template's documented example cannot authorise a growth.
   Three things are worth knowing before changing it. The ceiling is **per prefix**, never on the total: a
   `pr`-tier build renders two of the eleven, and its 480 records would clear a 1676 ceiling without
