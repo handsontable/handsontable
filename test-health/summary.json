@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-23T09:20:35.302Z",
+  "generatedAt": "2026-09-23T09:37:47.769Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -10084,7 +10084,7 @@
       "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
       "line": null,
       "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
-      "count7": 1,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
