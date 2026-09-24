@@ -288,7 +288,7 @@ export class DataProvider extends BasePlugin {
    *
    * @type {Map<number|null, object>}
    */
-  #states: Map<number | null, SheetServerState<DataProviderFetchPayload>> = new Map();
+  #states: Map<number | null, SheetServerState<DataProviderFetchResult>> = new Map();
   /**
    * Fetches in flight, one per sheet. A newer fetch supersedes only the fetch of its own sheet.
    *
@@ -310,6 +310,28 @@ export class DataProvider extends BasePlugin {
    */
   #activeSheetId: number | null | undefined = undefined;
   /**
+   * The data array each off-screen sheet holds, recorded when SheetsBar leaves the sheet. An off-screen response
+   * is written into this array, the one the SheetsBar sheet record points at, and not into the array its binding
+   * was captured with: every on-screen load hands the grid a new array, so a binding's array can be orphaned while
+   * its sheet is still shown.
+   *
+   * @type {Map<number, *>}
+   */
+  #sheetData: Map<number, unknown> = new Map();
+  /**
+   * The sheets SheetsBar removed. Work still queued for one of them (a save's refetch, a deferred toast) is dropped.
+   *
+   * @type {Set<number>}
+   */
+  #removedSheets: Set<number> = new Set();
+  /**
+   * Counts the SheetsBar workbooks the grid has shown. A rebuilt workbook numbers its sheets from 1 again, so a
+   * binding captured for an earlier workbook is dropped like a removed sheet.
+   *
+   * @type {number}
+   */
+  #workbook = 0;
+  /**
    * Serializes create/update/remove mutations so they run one after another.
    *
    * @type {{ tail: Promise<void> }}
@@ -330,6 +352,7 @@ export class DataProvider extends BasePlugin {
     this.hot.addHook('afterSheetTabChange', this.#onSheetSwitchEnd);
     this.hot.addHook('afterSheetTabRemove', this.#onAfterSheetTabRemove);
     this.hot.addHook('afterSheetTabDuplicate', this.#onAfterSheetTabDuplicate);
+    this.hot.addHook('afterSheetWorkbookReset', this.#onAfterSheetWorkbookReset);
   }
 
   /**
@@ -386,16 +409,16 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Disables the plugin, aborts every fetch, resets query state.
-   * During a SheetsBar switch the fetches are not aborted: each keeps running and lands in the sheet it was
-   * started for.
+   * Disables the plugin, aborts the fetch of the sheet the grid shows (the only fetch without SheetsBar), resets
+   * query state. Fetches of off-screen SheetsBar sheets keep running and land in their own sheets, and during a
+   * SheetsBar switch nothing is aborted: each fetch lands in the sheet it was started for.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
    * The constructor registers {@link Hooks#hasExternalDataSource} for the period before the first `enablePlugin()`;
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
     if (!this.#isSheetSwitching) {
-      this.#abortAllFetches();
+      this.#abortVisibleFetch();
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
@@ -519,11 +542,16 @@ export class DataProvider extends BasePlugin {
 
     return this.#queueCrud(binding, 'remove', payload, () => onRowsRemove(ids), async() => {
       const target = this.#mutationTarget(binding);
+
+      if (target !== null && this.#isDropped(target)) {
+        return;
+      }
+
       const offScreen = target !== null && !this.#isVisible(target);
       const pageBeforeFetch = offScreen
         ? this.#stateFor(target.sheetId).queryParameters.page
         : this.#queryParameters.page;
-      const rowsLoaded = offScreen ? this.#countRowsOf(target.data) : this.hot.countRows();
+      const rowsLoaded = offScreen ? this.#countRowsOf(this.#offScreenDataOf(target)) : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
       if (removesEveryLoadedRow && pageBeforeFetch > 1) {
@@ -692,13 +720,21 @@ export class DataProvider extends BasePlugin {
       return null;
     }
 
-    return { sheetId: this.#getActiveSheetId(), data: this.hot.getSettings().data, config };
+    return {
+      sheetId: this.#getActiveSheetId(),
+      data: this.hot.getSettings().data,
+      config,
+      workbook: this.#workbook,
+    };
   }
 
   /**
-   * Returns the id of the sheet the grid shows. The switch hooks keep it current; the one case they cannot
-   * answer is the sheet active at startup (SheetsBar fires no hook then), so that is read once from the
-   * public `getSheets()`. Without an enabled SheetsBar nothing is cached, so a SheetsBar enabled later is
+   * Returns the id of the sheet the grid shows. The switch hooks keep it current; the case they cannot answer is
+   * the sheet a workbook opens with (SheetsBar fires no switch hook when it builds a workbook: at startup, on a
+   * rebuild, or when it is enabled later), so that one is read from the public `getSheets()` and cached until the
+   * next switch or {@link Hooks#afterSheetWorkbookReset}. `getSheets()` already answers while SheetsBar is still
+   * building the workbook, before the plugin reports itself enabled, which is when a rebuilt workbook's opening
+   * server sheet starts its first fetch. Without a workbook nothing is cached, so a SheetsBar enabled later is
    * picked up by the next fetch.
    *
    * @returns {number|null} `null` without SheetsBar.
@@ -708,22 +744,22 @@ export class DataProvider extends BasePlugin {
       return this.#activeSheetId;
     }
 
-    const sheetsBar = this.hot.getPlugin('sheetsBar');
+    const activeSheet = this.hot.getPlugin('sheetsBar')?.getSheets().find(sheet => sheet.isActive);
 
-    if (!sheetsBar?.enabled) {
+    if (!activeSheet) {
       return null;
     }
 
-    const activeSheetId = sheetsBar.getSheets().find(sheet => sheet.isActive)?.id ?? null;
+    this.#activeSheetId = activeSheet.id;
 
-    this.#activeSheetId = activeSheetId;
-
-    return activeSheetId;
+    return activeSheet.id;
   }
 
   /**
-   * Tells whether the grid still shows the data a binding was captured for. Without SheetsBar (`null` sheet id)
-   * there is nothing else to show, so a fetch that was not aborted always applies, as it always did.
+   * Tells whether the grid shows the sheet a binding was captured for. Without SheetsBar (`null` sheet id) there
+   * is nothing else to show, so a fetch that was not aborted always applies, as it always did. A SheetsBar sheet
+   * is visible while it is the active sheet: its identity is the sheet, not the data array, which every on-screen
+   * load replaces.
    *
    * @param {object} binding The fetch binding.
    * @returns {boolean}
@@ -733,7 +769,30 @@ export class DataProvider extends BasePlugin {
       return true;
     }
 
-    return this.enabled && binding.data === this.hot.getSettings().data;
+    return this.enabled && binding.sheetId === this.#getActiveSheetId();
+  }
+
+  /**
+   * Tells whether a binding's sheet is gone: removed from the workbook, or part of a workbook SheetsBar has since
+   * replaced. Work queued for such a sheet is dropped.
+   *
+   * @param {object} binding The fetch binding.
+   * @returns {boolean}
+   */
+  #isDropped(binding: FetchBinding<DataProviderConfig>): boolean {
+    return binding.sheetId !== null
+      && (binding.workbook !== this.#workbook || this.#removedSheets.has(binding.sheetId));
+  }
+
+  /**
+   * Returns the data array an off-screen sheet holds: the one recorded when SheetsBar left it, or the binding's
+   * own array for a sheet not left since the binding was captured.
+   *
+   * @param {object} binding The fetch binding.
+   * @returns {*}
+   */
+  #offScreenDataOf(binding: FetchBinding<DataProviderConfig>): unknown {
+    return (binding.sheetId === null ? undefined : this.#sheetData.get(binding.sheetId)) ?? binding.data;
   }
 
   /**
@@ -751,6 +810,10 @@ export class DataProvider extends BasePlugin {
     overrides: DataProviderFetchDataOverrides = {},
     baseQuery?: DataProviderQueryParameters
   ): Promise<{ rows: unknown[]; totalRows: number } | null> {
+    if (this.#isDropped(binding)) {
+      return null;
+    }
+
     const fetchFn = binding.config.fetchRows;
 
     if (!isFunction(fetchFn)) {
@@ -834,11 +897,13 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Stores a successful response in its sheet's state and applies it: through `loadData()` and
-   * {@link Hooks#afterDataProviderFetch} while the binding is visible, or into the binding's own data array
-   * (keeping its identity, so the SheetsBar sheet record sees the rows) while it is not. A sheet binding loads a
-   * copy of the rows, so the array a later off-screen response rewrites in place is never the one `fetchRows`
-   * returned (a memoized `fetchRows` may hand the same array back); a grid without SheetsBar loads the returned
-   * array itself, as it always did.
+   * {@link Hooks#afterDataProviderFetch} while the binding is visible, or into the off-screen sheet's own data
+   * array (keeping its identity, so the SheetsBar sheet record sees the rows) while it is not. A sheet binding
+   * loads a copy of the rows, so the array a later off-screen response rewrites in place is never the one
+   * `fetchRows` returned (a memoized `fetchRows` may hand the same array back); a grid without SheetsBar loads the
+   * returned array itself, as it always did. The payload is built after `loadData()`, as it always was: a grid
+   * without `columns` maps a `prop` to a column through the loaded rows' schema. An off-screen response stores
+   * the raw result only; the payload is built when the sheet is shown, against that sheet's own columns.
    *
    * @param {object} binding What the fetch was for.
    * @param {object} state The binding's sheet state.
@@ -849,7 +914,7 @@ export class DataProvider extends BasePlugin {
    */
   #storeFetchResult(
     binding: FetchBinding<DataProviderConfig>,
-    state: SheetServerState<DataProviderFetchPayload>,
+    state: SheetServerState<DataProviderFetchResult>,
     result: DataProviderFetchResult,
     rows: unknown[],
     totalRows: number,
@@ -861,24 +926,54 @@ export class DataProvider extends BasePlugin {
 
     if (this.#isVisible(binding)) {
       const loadedRows = binding.sheetId === null ? rows : rows.slice();
-      const payload = this.#buildFetchResult(result, loadedRows, totalRows, persistedParams);
 
       this.#queryParameters = persistedParams;
       this.hot.loadData(loadedRows, PLUGIN_KEY);
-      state.lastResult = { ...payload, queryParameters: this.#snapshotQueryParameters(persistedParams) };
+
+      const payload = this.#buildFetchResult(result, loadedRows, totalRows, persistedParams);
+
+      state.lastResult = {
+        ...result,
+        rows: loadedRows,
+        totalRows,
+        queryParameters: this.#snapshotQueryParameters(persistedParams),
+      };
       this.hot.runHooks('afterDataProviderFetch', payload);
       this.hot.render();
 
       return;
     }
 
-    const storedRows = replaceArrayContents(binding.data, rows) ? binding.data : rows;
+    const sheetData = this.#offScreenDataOf(binding);
+    const storedRows = replaceArrayContents(sheetData, rows) ? sheetData : rows;
 
-    state.lastResult = this.#buildFetchResult(
-      result,
-      storedRows,
+    state.lastResult = {
+      ...result,
+      rows: storedRows,
       totalRows,
-      this.#snapshotQueryParameters(persistedParams)
+      queryParameters: this.#snapshotQueryParameters(persistedParams),
+    };
+  }
+
+  /**
+   * Builds the {@link Hooks#afterDataProviderFetch} payload that replays a sheet's stored response now that the
+   * sheet is visible: the rows it shows, and the ColumnSorting and Filters states mapped through its own columns.
+   *
+   * @param {object} state The visible sheet's state.
+   * @param {object} lastResult The stored response.
+   * @param {*} rows The rows the sheet shows.
+   * @returns {object}
+   */
+  #buildReplayResult(
+    state: SheetServerState<DataProviderFetchResult>,
+    lastResult: DataProviderFetchResult,
+    rows: unknown
+  ): DataProviderFetchPayload {
+    return this.#buildFetchResult(
+      lastResult,
+      Array.isArray(rows) ? rows : [],
+      lastResult.totalRows,
+      this.#snapshotQueryParameters(state.queryParameters)
     );
   }
 
@@ -920,11 +1015,11 @@ export class DataProvider extends BasePlugin {
    * @param {number|null} sheetId The sheet id, or `null` without SheetsBar.
    * @returns {object}
    */
-  #stateFor(sheetId: number | null): SheetServerState<DataProviderFetchPayload> {
+  #stateFor(sheetId: number | null): SheetServerState<DataProviderFetchResult> {
     let state = this.#states.get(sheetId);
 
     if (!state) {
-      state = createServerState<DataProviderFetchPayload>(this.#queryParameters);
+      state = createServerState<DataProviderFetchResult>(this.#queryParameters);
       this.#states.set(sheetId, state);
     }
 
@@ -946,7 +1041,21 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Aborts every fetch in flight, without a reason, the way disabling or destroying the plugin always did.
+   * Aborts the fetch in flight for the sheet the grid shows, without a reason, the way disabling the plugin always
+   * aborted its fetch. Without SheetsBar that is the only fetch there can be.
+   */
+  #abortVisibleFetch(): void {
+    const key = this.#getActiveSheetId();
+    const entry = this.#inFlight.get(key);
+
+    if (entry) {
+      this.#inFlight.delete(key);
+      entry.controller.abort();
+    }
+  }
+
+  /**
+   * Aborts every fetch in flight, without a reason, the way destroying the plugin always did.
    */
   #abortAllFetches(): void {
     const entries = [...this.#inFlight.values()];
@@ -1045,11 +1154,7 @@ export class DataProvider extends BasePlugin {
 
     if (state?.lastResult) {
       this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
-      this.hot.runHooks('afterDataProviderFetch', {
-        ...state.lastResult,
-        rows: binding.data,
-        queryParameters: this.#snapshotQueryParameters(state.queryParameters),
-      });
+      this.hot.runHooks('afterDataProviderFetch', this.#buildReplayResult(state, state.lastResult, binding.data));
       this.hot.render();
 
       return;
@@ -1071,7 +1176,7 @@ export class DataProvider extends BasePlugin {
    */
   #showDeferredFailure(
     binding: FetchBinding<DataProviderConfig>,
-    state: SheetServerState<DataProviderFetchPayload>
+    state: SheetServerState<DataProviderFetchResult>
   ): void {
     const { failure } = state;
 
@@ -1080,11 +1185,7 @@ export class DataProvider extends BasePlugin {
     this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
 
     if (state.lastResult) {
-      this.hot.runHooks('afterDataProviderFetch', {
-        ...state.lastResult,
-        rows: binding.data,
-        queryParameters: this.#snapshotQueryParameters(state.queryParameters),
-      });
+      this.hot.runHooks('afterDataProviderFetch', this.#buildReplayResult(state, state.lastResult, binding.data));
     }
 
     this.#showDataProviderRequestErrorNotification('fetch', failure);
@@ -1290,6 +1391,10 @@ export class DataProvider extends BasePlugin {
     if (binding === null || this.#isVisible(binding)) {
       this.#showDataProviderRequestErrorNotification(kind, err);
 
+      return;
+    }
+
+    if (this.#isDropped(binding)) {
       return;
     }
 
@@ -1509,6 +1614,7 @@ export class DataProvider extends BasePlugin {
   readonly #onSheetSwitchStart = (sheetId: number) => {
     this.#isSheetSwitching = true;
     this.#activeSheetId = sheetId;
+    this.#sheetData.set(sheetId, this.hot.getSettings().data);
   };
 
   /**
@@ -1544,6 +1650,25 @@ export class DataProvider extends BasePlugin {
   readonly #onAfterSheetTabRemove = (sheetId: number) => {
     this.#abortFetchesFor(sheetId);
     this.#states.delete(sheetId);
+    this.#sheetData.delete(sheetId);
+    this.#removedSheets.add(sheetId);
+  };
+
+  /**
+   * Forgets every sheet of the workbook SheetsBar discarded: aborts their fetches, drops their server state, and
+   * stops treating their ids as the sheets they were. Work still queued for one of them is dropped, and the next
+   * fetch resolves the sheet the grid shows afresh (a sheet of the new workbook, or `null` once SheetsBar is gone).
+   *
+   * @returns {void}
+   */
+  readonly #onAfterSheetWorkbookReset = () => {
+    this.#abortAllFetches();
+    this.#states.clear();
+    this.#sheetData.clear();
+    this.#removedSheets.clear();
+    this.#workbook += 1;
+    this.#activeSheetId = undefined;
+    this.#isSheetSwitching = false;
   };
 
   /**
@@ -1644,6 +1769,7 @@ export class DataProvider extends BasePlugin {
     this.hot.removeHook('afterSheetTabChange', this.#onSheetSwitchEnd);
     this.hot.removeHook('afterSheetTabRemove', this.#onAfterSheetTabRemove);
     this.hot.removeHook('afterSheetTabDuplicate', this.#onAfterSheetTabDuplicate);
+    this.hot.removeHook('afterSheetWorkbookReset', this.#onAfterSheetWorkbookReset);
 
     super.destroy();
   }

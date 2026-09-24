@@ -3,12 +3,14 @@ import type { DataProviderQueryParameters } from './dataProvider';
 
 /**
  * What a fetch was started for: the SheetsBar sheet (or `null` without SheetsBar), the data array the grid was
- * working on, and the `dataProvider` config whose callbacks serve it.
+ * working on, the `dataProvider` config whose callbacks serve it, and the SheetsBar workbook the sheet id belongs
+ * to (a rebuilt workbook numbers its sheets from 1 again, so an id alone does not identify a sheet).
  */
 export interface FetchBinding<Config extends object = object> {
   sheetId: number | null;
   data: unknown;
   config: Config;
+  workbook: number;
 }
 
 /**
@@ -30,9 +32,10 @@ export function isMutationFailureKind(kind: string): kind is DeferredMutationFai
 }
 
 /**
- * The server view of one sheet: the query its rows were fetched with, the last `afterDataProviderFetch` payload,
- * a fetch failure waiting to be shown when the sheet is visible again, and the mutation failures waiting the same
- * way.
+ * The server view of one sheet: the query its rows were fetched with, the last `fetchRows` response (the
+ * `afterDataProviderFetch` payload is built from it each time the sheet is shown, against the columns the sheet
+ * has then), a fetch failure waiting to be shown when the sheet is visible again, and the mutation failures
+ * waiting the same way.
  */
 export interface SheetServerState<Result extends object = object> {
   queryParameters: DataProviderQueryParameters;
