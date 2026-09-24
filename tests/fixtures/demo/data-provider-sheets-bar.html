@@ -41,6 +41,14 @@
     `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
     prove SheetsBar disables it for every sheet that does not declare its own and warns once.
 
+    `?serverSemantics=custom` gives the server rules no client-side pass reproduces: its "desc" order
+    is a fixed permutation (adjacent pairs of the reversed ids swapped: ORD-24, ORD-25, ORD-22, ...),
+    and its `contains` ignores leading zeros in the number, so `contains ORD-1` also matches ORD-01.
+    `?cachedRows=1` makes `fetchRows` resolve with the same array instance for the same query, the
+    way a memoizing data layer does. `window.htServer.totalRows` sets how many rows the server holds
+    (25 by default), read when a request is released. The server honors `contains` filter conditions,
+    so a filtered total is real. Every pending request records the `params` it was called with.
+
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
     `onRowsUpdate` parks the same way on `window.htServer.releaseUpdates()`. `failNext` makes the
@@ -72,6 +80,8 @@
       consoleProblems: [],
       events: [],
       cancelNextSwitch: false,
+      totalRows: 25,
+      cache: new Map(),
       release(prefix) {
         const released = server.pending.filter(r => !prefix || r.prefix === prefix);
 
@@ -100,21 +110,61 @@
       };
     });
 
+    const fixtureParams = new URLSearchParams(location.search);
+    const customServerSemantics = fixtureParams.get('serverSemantics') === 'custom';
+    const cachedRows = fixtureParams.has('cachedRows');
+
+    const swapPairs = rows => rows.map((row, i) => {
+      const partner = i % 2 === 0 ? i + 1 : i - 1;
+
+      return rows[partner] ?? row;
+    });
+
+    const normalizeForMatch = value => {
+      const lower = String(value).toLowerCase();
+
+      return customServerSemantics ? lower.replace(/-0+(\d)/, '-$1') : lower;
+    };
+
+    const applyFilters = (rows, filters) => (filters ?? []).reduce((kept, column) => {
+      const contains = column.conditions.find(condition => condition.name === 'contains');
+
+      return contains
+        ? kept.filter(row => normalizeForMatch(row[column.prop]).includes(String(contains.args[0]).toLowerCase()))
+        : kept;
+    }, rows);
+
+    const respond = (prefix, n, params) => {
+      const sortedDesc = params.sort && params.sort.order === 'desc';
+      const size = params.pageSize;
+      const start = (params.page - 1) * size;
+      const all = Array.from({ length: server.totalRows }, (_, i) => ({ id: `${prefix}-${String(i + 1).padStart(2, '0')}`, fetch: `#${n}` }));
+      const reversed = all.slice().reverse();
+      const sorted = sortedDesc ? (customServerSemantics ? swapPairs(reversed) : reversed) : all;
+      const filtered = applyFilters(sorted, params.filters);
+      const cacheKey = `${prefix} ${JSON.stringify(params)}`;
+      const rows = cachedRows && server.cache.has(cacheKey)
+        ? server.cache.get(cacheKey)
+        : filtered.slice(start, start + size);
+
+      if (cachedRows) {
+        server.cache.set(cacheKey, rows);
+      }
+
+      return { rows, totalRows: filtered.length };
+    };
+
     const makeFetchRows = prefix => (params, { signal }) => {
       server.fetchCount[prefix] += 1;
 
       const n = server.fetchCount[prefix];
-      const sortedDesc = params.sort && params.sort.order === 'desc';
-      const size = params.pageSize;
-      const start = (params.page - 1) * size;
-      const all = Array.from({ length: 25 }, (_, i) => ({ id: `${prefix}-${String(i + 1).padStart(2, '0')}`, fetch: `#${n}` }));
-      const ordered = sortedDesc ? all.slice().reverse() : all;
 
       server.events.push(`fetch ${prefix} #${n}`);
 
       return new Promise((resolve, reject) => {
         const request = {
           prefix,
+          params,
           signal,
           settle: () => {
             if (server.failNext.has(prefix)) {
@@ -123,7 +173,7 @@
 
               return;
             }
-            resolve({ rows: ordered.slice(start, start + size), totalRows: 25 });
+            resolve(respond(prefix, n, params));
           },
         };
 
@@ -148,7 +198,7 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const gridLevel = new URLSearchParams(location.search).has('gridLevel');
+    const gridLevel = fixtureParams.has('gridLevel');
 
     try {
       window.hot = new Handsontable(container, {

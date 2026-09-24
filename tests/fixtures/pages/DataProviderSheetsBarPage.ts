@@ -8,16 +8,27 @@ import type { FixtureHotInstance, FixtureSortConfig } from './windowTypes';
 type ServerPrefix = 'ORD' | 'CUS' | 'GRID';
 
 /**
+ * The query a `fetchRows` request was called with.
+ */
+export interface FixtureQueryParameters {
+  page: number;
+  pageSize: number;
+  sort: { prop: string, order: 'asc' | 'desc' } | null;
+  filters: unknown[] | null;
+}
+
+/**
  * The in-page server the `data-provider-sheets-bar.html` fixture exposes on `window.htServer`.
  */
 interface FixtureServer {
-  pending: { prefix: ServerPrefix }[];
+  pending: { prefix: ServerPrefix, params: FixtureQueryParameters }[];
   pendingUpdates: unknown[];
   fetchCount: Record<ServerPrefix, number>;
   failNext: Set<ServerPrefix>;
   consoleProblems: string[];
   events: string[];
   cancelNextSwitch: boolean;
+  totalRows: number;
   release(prefix?: ServerPrefix): number;
   releaseUpdates(): number;
 }
@@ -42,7 +53,7 @@ interface FixturePaginationPlugin {
  * The SheetsBar plugin's public surface the page object drives directly.
  */
 interface FixtureSheetsBarPlugin {
-  getSheets(): { id: number }[];
+  getSheets(): { id: number, isActive: boolean }[];
   duplicateSheet(id: number): unknown;
   removeSheet(id: number): unknown;
 }
@@ -82,14 +93,21 @@ export class DataProviderSheetsBarPage {
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
-   * @param {{ gridLevel?: boolean }} options `gridLevel: true` adds a grid-level `dataProvider`
-   * alongside the two sheet-level ones, via `?gridLevel=1`.
+   * @param {{ gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean }} options `gridLevel: true`
+   * adds a grid-level `dataProvider` alongside the two sheet-level ones (`?gridLevel=1`);
+   * `serverSemantics: 'custom'` gives the server a sort order and a `contains` rule no client pass reproduces
+   * (`?serverSemantics=custom`); `cachedRows: true` makes `fetchRows` hand back the same array for the same
+   * query (`?cachedRows=1`).
    */
-  async goto(options: { gridLevel?: boolean } = {}): Promise<void> {
-    const gridLevelParam = options.gridLevel ? '&gridLevel=1' : '';
+  async goto(options: { gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean } = {}): Promise<void> {
+    const extraParams = [
+      options.gridLevel ? '&gridLevel=1' : '',
+      options.serverSemantics === 'custom' ? '&serverSemantics=custom' : '',
+      options.cachedRows ? '&cachedRows=1' : '',
+    ].join('');
 
     await this.page.goto(
-      `/tests/fixtures/demo/data-provider-sheets-bar.html?theme=${this.theme}&bundle=${this.bundle}${gridLevelParam}`
+      `/tests/fixtures/demo/data-provider-sheets-bar.html?theme=${this.theme}&bundle=${this.bundle}${extraParams}`
     );
     await awaitBundle(this.page);
 
@@ -193,6 +211,53 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * The query the latest pending `fetchRows` request for a prefix was called with.
+   *
+   * @param {ServerPrefix} prefix The prefix to read.
+   * @returns {Promise<FixtureQueryParameters | null>} The query, or `null` when nothing is pending.
+   */
+  async pendingParams(prefix: ServerPrefix): Promise<FixtureQueryParameters | null> {
+    return this.page.evaluate(
+      p => (window as unknown as { htServer: FixtureServer }).htServer.pending
+        .filter(request => request.prefix === p).at(-1)?.params ?? null,
+      prefix
+    );
+  }
+
+  /**
+   * Set how many rows the server holds for every prefix, from the next response on.
+   *
+   * @param {number} totalRows The row count.
+   */
+  async setServerTotalRows(totalRows: number): Promise<void> {
+    await this.page.evaluate(
+      n => { (window as unknown as { htServer: FixtureServer }).htServer.totalRows = n; },
+      totalRows
+    );
+  }
+
+  /**
+   * The position of the active sheet's tab.
+   *
+   * @returns {Promise<number>} The 0-based position.
+   */
+  async activeSheetIndex(): Promise<number> {
+    return this.page.evaluate(() => (window.hot as unknown as FixtureHotWithSheetPlugins)
+      .getPlugin('sheetsBar').getSheets().findIndex(sheet => sheet.isActive));
+  }
+
+  /**
+   * The Filters plugin's current conditions.
+   *
+   * @returns {Promise<unknown[]>} The exported conditions.
+   */
+  async filterConditions(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window.hot as unknown as {
+      getPlugin(name: 'filters'): { exportConditions(): unknown[] },
+    }).getPlugin('filters').exportConditions());
+  }
+
+  /**
    * How many `fetchRows` requests a prefix has started since the page loaded.
    *
    * @param {ServerPrefix} prefix The prefix to count.
@@ -264,6 +329,23 @@ export class DataProviderSheetsBarPage {
         window.hot.getPlugin('filters').filter();
       },
       { col, keep }
+    );
+  }
+
+  /**
+   * Filter a column with one condition through the Filters plugin, the way the condition menu does.
+   *
+   * @param {number} col The visual column index to filter.
+   * @param {string} name The condition name, for example `contains`.
+   * @param {unknown[]} args The condition arguments.
+   */
+  async filterColumn(col: number, name: string, args: unknown[]): Promise<void> {
+    await this.page.evaluate(
+      a => {
+        window.hot.getPlugin('filters').addCondition(a.col, a.name, a.args);
+        window.hot.getPlugin('filters').filter();
+      },
+      { col, name, args }
     );
   }
 

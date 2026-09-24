@@ -633,7 +633,8 @@ export class DataProvider extends BasePlugin {
   /**
    * Returns the id of the sheet the grid shows. The switch hooks keep it current; the one case they cannot
    * answer is the sheet active at startup (SheetsBar fires no hook then), so that is read once from the
-   * public `getSheets()`.
+   * public `getSheets()`. Without an enabled SheetsBar nothing is cached, so a SheetsBar enabled later is
+   * picked up by the next fetch.
    *
    * @returns {number|null} `null` without SheetsBar.
    */
@@ -643,9 +644,12 @@ export class DataProvider extends BasePlugin {
     }
 
     const sheetsBar = this.hot.getPlugin('sheetsBar');
-    const activeSheetId = sheetsBar?.enabled
-      ? (sheetsBar.getSheets().find(sheet => sheet.isActive)?.id ?? null)
-      : null;
+
+    if (!sheetsBar?.enabled) {
+      return null;
+    }
+
+    const activeSheetId = sheetsBar.getSheets().find(sheet => sheet.isActive)?.id ?? null;
 
     this.#activeSheetId = activeSheetId;
 
@@ -673,11 +677,14 @@ export class DataProvider extends BasePlugin {
    *
    * @param {object} binding What the fetch is for.
    * @param {object} [overrides] Partial query overrides, as in {@link DataProvider#fetchData}.
+   * @param {object} [baseQuery] The query the overrides apply to. Omitted, the visible query is used for a
+   * visible binding and the sheet's stored query for an off-screen one.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    */
   async #fetchFor(
     binding: FetchBinding<DataProviderConfig>,
-    overrides: DataProviderFetchDataOverrides = {}
+    overrides: DataProviderFetchDataOverrides = {},
+    baseQuery?: DataProviderQueryParameters
   ): Promise<{ rows: unknown[]; totalRows: number } | null> {
     const fetchFn = binding.config.fetchRows;
 
@@ -688,7 +695,7 @@ export class DataProvider extends BasePlugin {
     }
 
     const state = this.#stateFor(binding.sheetId);
-    const base = this.#isVisible(binding) ? this.#queryParameters : state.queryParameters;
+    const base = baseQuery ?? (this.#isVisible(binding) ? this.#queryParameters : state.queryParameters);
     const params = this.#mergeAndNormalizeFetchParams(overrides, base);
     const controller = new AbortController();
 
@@ -726,7 +733,11 @@ export class DataProvider extends BasePlugin {
       );
 
       if (clampedPage !== persistedParams.page) {
-        return this.#fetchFor(binding, { ...overrides, page: clampedPage, skipLoading: overrides.skipLoading });
+        return this.#fetchFor(
+          binding,
+          { page: clampedPage, skipLoading: overrides.skipLoading },
+          persistedParams
+        );
       }
 
       this.#storeFetchResult(binding, state, result, rows, totalRows, persistedParams);
@@ -759,7 +770,10 @@ export class DataProvider extends BasePlugin {
   /**
    * Stores a successful response in its sheet's state and applies it: through `loadData()` and
    * {@link Hooks#afterDataProviderFetch} while the binding is visible, or into the binding's own data array
-   * (keeping its identity, so the SheetsBar sheet record sees the rows) while it is not.
+   * (keeping its identity, so the SheetsBar sheet record sees the rows) while it is not. A sheet binding loads a
+   * copy of the rows, so the array a later off-screen response rewrites in place is never the one `fetchRows`
+   * returned (a memoized `fetchRows` may hand the same array back); a grid without SheetsBar loads the returned
+   * array itself, as it always did.
    *
    * @param {object} binding What the fetch was for.
    * @param {object} state The binding's sheet state.
@@ -781,10 +795,13 @@ export class DataProvider extends BasePlugin {
     state.hasFailure = false;
 
     if (this.#isVisible(binding)) {
+      const loadedRows = binding.sheetId === null ? rows : rows.slice();
+      const payload = this.#buildFetchResult(result, loadedRows, totalRows, persistedParams);
+
       this.#queryParameters = persistedParams;
-      this.hot.loadData(rows, PLUGIN_KEY);
-      state.lastResult = this.#buildFetchResult(result, rows, totalRows, persistedParams);
-      this.hot.runHooks('afterDataProviderFetch', state.lastResult);
+      this.hot.loadData(loadedRows, PLUGIN_KEY);
+      state.lastResult = { ...payload, queryParameters: this.#snapshotQueryParameters(persistedParams) };
+      this.hot.runHooks('afterDataProviderFetch', payload);
       this.hot.render();
 
       return;
@@ -792,7 +809,12 @@ export class DataProvider extends BasePlugin {
 
     const storedRows = replaceArrayContents(binding.data, rows) ? binding.data : rows;
 
-    state.lastResult = this.#buildFetchResult(result, storedRows, totalRows, persistedParams);
+    state.lastResult = this.#buildFetchResult(
+      result,
+      storedRows,
+      totalRows,
+      this.#snapshotQueryParameters(persistedParams)
+    );
   }
 
   /**
@@ -891,6 +913,40 @@ export class DataProvider extends BasePlugin {
     reason.name = 'AbortError';
 
     return reason;
+  }
+
+  /**
+   * Answers a filter that SheetsBar's view-state reset and restore run during a switch. Clearing the conditions
+   * runs locally. Re-applying them is blocked and fetches nothing: the arriving server sheet's rows are already
+   * filtered by the server, a client-side pass could trim them differently from `fetchRows`, and the arrival
+   * replay brings the conditions back from the saved response.
+   *
+   * @param {Array} conditionsStack The filter conditions about to be applied.
+   * @returns {boolean|undefined} `false` for a non-empty stack.
+   */
+  #allowSwitchFilter(conditionsStack: unknown[]): false | undefined {
+    return conditionsStack.length > 0 ? false : undefined;
+  }
+
+  /**
+   * Answers a sort that SheetsBar's view-state reset and restore run during a switch, without fetching. A clear
+   * only resets ColumnSorting's sort state: the rows are in the order the server or the arriving sheet gave them,
+   * and a local clearing pass would read a pre-sort index cache that ColumnSorting never builds for a
+   * server-driven sort (it throws when the sort state came from a fetch that has not landed yet). Re-applying a
+   * sort is blocked, because a client-side pass could order the rows differently from `fetchRows`; the arrival
+   * replay brings the header indicator back from the saved response.
+   *
+   * @param {Array} destinationSortConfigs The sort configs about to be applied.
+   * @returns {boolean} Always `false`.
+   */
+  #answerSwitchSort(destinationSortConfigs: unknown[]): false {
+    const columnSorting = this.hot.getPlugin('columnSorting');
+
+    if (destinationSortConfigs.length === 0 && columnSorting?.enabled) {
+      columnSorting.setSortConfig([]);
+    }
+
+    return false;
   }
 
   /**
@@ -1209,7 +1265,7 @@ export class DataProvider extends BasePlugin {
    */
   readonly #onBeforeFilter = (conditionsStack: unknown[]) => {
     if (this.#isSheetSwitching) {
-      return;
+      return this.#allowSwitchFilter(conditionsStack);
     }
 
     return handleBeforeFilterForServer(
@@ -1236,7 +1292,7 @@ export class DataProvider extends BasePlugin {
     currentSortConfig: unknown[], destinationSortConfigs: unknown[], sortPossible: boolean
   ) => {
     if (this.#isSheetSwitching) {
-      return;
+      return this.#answerSwitchSort(destinationSortConfigs);
     }
 
     return handleBeforeColumnSortForServer(

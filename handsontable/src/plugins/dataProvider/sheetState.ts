@@ -48,7 +48,7 @@ export function cloneServerState<Result extends object>(state: SheetServerState<
 /**
  * Replaces the contents of `target` with `rows`, keeping the array identity, so every holder of the reference
  * (a SheetsBar sheet record) sees the new rows. Pushes one by one: spreading a large array into `push()` overflows
- * the call stack.
+ * the call stack. Handing the target in as `rows` leaves it untouched; emptying it first would lose every row.
  *
  * @param {*} target The array to fill.
  * @param {Array} rows The rows to put in it.
@@ -57,6 +57,10 @@ export function cloneServerState<Result extends object>(state: SheetServerState<
 export function replaceArrayContents(target: unknown, rows: unknown[]): target is unknown[] {
   if (!Array.isArray(target)) {
     return false;
+  }
+
+  if (target === rows) {
+    return true;
   }
 
   target.length = 0;

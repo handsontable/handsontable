@@ -76,10 +76,23 @@ test.describe('dataProvider with sheetsBar', () => {
     test('returning restores rows, sort, filters, page and total without fetching (rule 4)', async() => {
       await grid.sortByHeader(0, 'desc');
       await grid.release('ORD');
+      await grid.filterColumn(0, 'contains', ['ORD-0']);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-09');
       await grid.goToPage(2);
       await grid.release('ORD');
-      const before = { ids: await grid.ids(), sort: await grid.sortConfig(), pagination: await grid.pagination() };
+      await expect(grid.cell(0, 0)).toHaveText('ORD-04');
+      const before = {
+        ids: await grid.ids(),
+        sort: await grid.sortConfig(),
+        filters: await grid.filterConditions(),
+        pagination: await grid.pagination(),
+      };
       const fetchesBefore = await grid.fetchCount('ORD');
+
+      expect(before.ids).toEqual(['ORD-04', 'ORD-03', 'ORD-02', 'ORD-01']);
+      expect(before.filters).toHaveLength(1);
+      expect(before.pagination).toEqual({ currentPage: 2, pageSize: 5, totalPages: 2 });
 
       await grid.clickTab(1);
       await grid.clickTab(0);
@@ -87,21 +100,112 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
       expect(await grid.ids()).toEqual(before.ids);
       expect(await grid.sortConfig()).toEqual(before.sort);
+      expect(await grid.filterConditions()).toEqual(before.filters);
       expect(await grid.pagination()).toEqual(before.pagination);
       expect((await grid.events()).at(-1)).toBe(`afterFetch ${before.ids[0]}`);
+    });
+
+    test('returning to a sorted server sheet keeps the server order instead of sorting locally', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ serverSemantics: 'custom' });
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-24');
+      const serverPage = await grid.ids();
+      const fetchesBefore = await grid.fetchCount('ORD');
+
+      expect(serverPage).toEqual(['ORD-24', 'ORD-25', 'ORD-22', 'ORD-23', 'ORD-20']);
+
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+
+      expect(await grid.ids()).toEqual(serverPage);
+      expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
+    });
+
+    test('returning to a filtered server sheet keeps the server result instead of filtering locally', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ serverSemantics: 'custom' });
+      await grid.filterColumn(0, 'contains', ['ORD-1']);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-01');
+      const serverPage = await grid.ids();
+      const filters = await grid.filterConditions();
+      const fetchesBefore = await grid.fetchCount('ORD');
+
+      expect(serverPage).toEqual(['ORD-01', 'ORD-10', 'ORD-11', 'ORD-12', 'ORD-13']);
+
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+
+      expect(await grid.ids()).toEqual(serverPage);
+      expect(await grid.filterConditions()).toEqual(filters);
+      expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
     });
 
     test('leaving mid-fetch stores the rows in the sheet it was started for (rule 5)', async() => {
       await grid.startFetch();
       await grid.clickTab(1);
       await grid.release('ORD');
-
-      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
-      expect((await grid.events()).filter(e => e.startsWith('afterFetch'))).toHaveLength(1);
-
       await grid.clickTab(0);
+
       await expect(grid.cell(0, 1)).toHaveText('#2');
       expect(await grid.fetchCount('ORD')).toBe(2);
+      expect((await grid.events()).filter(e => e.startsWith('afterFetch'))).toEqual([
+        'afterFetch ORD-01',
+        'afterFetch ORD-01',
+      ]);
+
+      await grid.clickTab(1);
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+    });
+
+    test('a memoized fetchRows that returns the same array does not empty the sheet it lands in', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ cachedRows: true });
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+
+      await expect(grid.cell(0, 0)).toHaveText('ORD-01');
+      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
+      expect(await grid.fetchCount('ORD')).toBe(2);
+    });
+
+    test('an off-screen page clamp refetches with the query of the fetch it corrects', async() => {
+      await grid.goToPage(5);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-21');
+      await grid.sortByHeader(0, 'desc');
+
+      expect(await grid.pendingParams('ORD')).toEqual(expect.objectContaining({
+        page: 5, sort: { prop: 'id', order: 'desc' },
+      }));
+
+      await grid.setServerTotalRows(10);
+      await grid.clickTab(1);
+      await grid.release('ORD');
+
+      await expect.poll(() => grid.pendingParams('ORD')).toEqual(expect.objectContaining({
+        page: 2, sort: { prop: 'id', order: 'desc' },
+      }));
+
+      await grid.release('ORD');
+      await grid.clickTab(0);
+
+      await expect(grid.cell(0, 0)).toHaveText('ORD-05');
+      expect(await grid.ids()).toEqual(['ORD-05', 'ORD-04', 'ORD-03', 'ORD-02', 'ORD-01']);
+      expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect((await grid.pagination()).currentPage).toBe(2);
     });
 
     // eslint-disable-next-line no-restricted-syntax -- DEV-3041: EmptyDataState keeps the loading overlay across a switch, fixed in Task 6
@@ -122,8 +226,14 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.startFetch();
       await grid.cancelNextSwitch();
       await grid.clickTab(1);
+
+      expect(await grid.activeSheetIndex()).toBe(0);
+      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
+      expect(await grid.pendingCount('ORD')).toBe(1);
+
       await grid.release('ORD');
       await expect(grid.cell(0, 1)).toHaveText('#2');
+      expect(await grid.activeSheetIndex()).toBe(0);
     });
 
     test('fetchData() fetches the visible sheet (rule 12)', async() => {
@@ -147,6 +257,12 @@ test.describe('dataProvider with sheetsBar', () => {
       });
 
       expect(await grid.pendingCount('ORD')).toBe(1);
+
+      await grid.release('ORD');
+
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
+      expect(await grid.activeSheetIndex()).toBe(0);
     });
 
     test('sort after returning to a pending sheet supersedes the pending fetch (review focus 2)', async() => {

@@ -14,6 +14,13 @@ describe('dataProvider sheetState', () => {
     expect(target).not.toBe(rows);
   });
 
+  it('replaceArrayContents keeps the rows when the target is the rows array itself', () => {
+    const rows = [{ id: 1 }, { id: 2 }];
+
+    expect(replaceArrayContents(rows, rows)).toBe(true);
+    expect(rows).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
   it('replaceArrayContents refuses a non-array target', () => {
     expect(replaceArrayContents(null, [{ id: 1 }])).toBe(false);
   });
