@@ -228,6 +228,13 @@
     content: "*";
     display: inline-block;
     position: relative;
+    // Before DEV-3003 the real table's `.sortAction::before` rule (the glyph's box) also matched
+    // this pseudo-element and gave it `width: var(--ht-icon-size, 16px)`; this rule only added the
+    // padding below. The measured reserve was therefore `icon-size + (icon-size + 2px)`, not the
+    // glyph's own width plus the padding. That rule is gone with the pseudo-element glyph, so the
+    // width is restated here - dropping it measured every sortable header with a menu button about
+    // 10px narrower than 18.1 (the visual suite caught it on every nested-headers demo).
+    width: var(--ht-icon-size, 16px);
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */

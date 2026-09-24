@@ -383,6 +383,46 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(grid.icon('arrow-narrow-up', header)).toHaveCount(0);
     });
 
+    // AutoColumnSize measures headers in an offscreen `.htGhostTable`, where the sort arrow is
+    // stood in for by a `*` pseudo-element on the label. Before DEV-3003 the glyph's own
+    // `.sortAction::before { width: var(--ht-icon-size) }` rule matched that pseudo-element too, so
+    // the reserve measured `icon-size + (icon-size + 2px)`. The glyph rule is gone; the width has to
+    // be restated on the ghost rule, or every sortable header with a menu button measures ~10px
+    // narrower than 18.1 (caught by the visual suite on every nested-headers demo).
+    test('the ghost-table sort reserve keeps its 18.1 geometry: icon-size box plus icon-size + 2px padding', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const probe = await page.evaluate(() => {
+        const hot = (window as unknown as { hot: any }).hot;
+        const ghost = document.createElement('div');
+
+        ghost.className = `htGhostTable htAutoSize ${hot.rootElement.className}`;
+        ghost.innerHTML = '<table class="htCore"><thead><tr><th><div class="relative">'
+          + '<span class="colHeader columnSorting sortAction">A</span></div></th></tr></thead></table>';
+        hot.rootElement.appendChild(ghost);
+
+        const label = ghost.querySelector('span.colHeader') as HTMLElement;
+        const before = getComputedStyle(label, '::before');
+        const iconSize = getComputedStyle(label).getPropertyValue('--ht-icon-size').trim();
+        const result = { content: before.content, width: before.width, paddingInlineEnd: before.paddingInlineEnd, iconSize };
+
+        ghost.remove();
+
+        return result;
+      });
+
+      const iconPx = parseFloat(probe.iconSize);
+
+      expect(iconPx).toBeGreaterThan(0);
+      expect(probe.content).toBe('"*"');
+      expect(parseFloat(probe.width)).toBe(iconPx);
+      expect(parseFloat(probe.paddingInlineEnd)).toBe(iconPx + 2);
+    });
+
     test('clicking a sorted header a third time (no sort) removes the indicator icon', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 

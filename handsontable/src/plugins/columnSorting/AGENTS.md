@@ -253,6 +253,20 @@ special-case it.
 `__tests__/` has `a11y/`, `rtl/`, `sortFunction/` and a dedicated `keyboardShortcuts.spec.js` — a sorting
 change usually touches more than the main spec.
 
+## The ghost-table `*` reserve must restate the icon-size width (DEV-3003)
+
+AutoColumnSize measures headers in `.htGhostTable`, where the arrow is stood in for by
+`span.colHeader.columnSorting::before { content: "*" }` plus `padding-inline-end: icon-size + 2px`
+(`_column-sorting.scss`). Before DEV-3003 the real table's `.sortAction::before` glyph rule also matched
+that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measured reserve was
+`icon-size + (icon-size + 2px)` — 34px on main. The glyph rule went away with the pseudo-element icon, and
+without the width restated on the ghost rule every sortable header with a menu button measured ~10px
+narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
+collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
+Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
+Repro harness: `handsontable/dev-DEV-3003-complex.html?build=pr|latest` (gitignored) exposes `window.hot`
+and `window.measure()` for the complex demo's column widths.
+
 ## The indicator must stay a click target (DEV-3003)
 
 Before DEV-3003 the arrow was `::before` of the `.colHeader` label, so a press on it targeted
