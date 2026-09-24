@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T11:37:06.539Z",
+  "generatedAt": "2026-09-24T12:14:23.542Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9498,7 +9498,7 @@
       "file": "e2e/nested-rows-runtime-enable.spec.ts",
       "line": 35,
       "title": "NestedRows enabled at runtime › a plugin enabled at runtime collapses and expands like any other",
-      "count7": 4,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
