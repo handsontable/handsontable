@@ -3356,6 +3356,25 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBe(own);
     });
 
+    it('does not warn about the top-level `data` setting when the first sheet declares a complete dataProvider', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const dataSettingWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('`data` setting'));
+
+      expect(dataSettingWarnings).toHaveLength(0);
+      warnSpy.mockRestore();
+    });
+
     it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const own = makeProvider();

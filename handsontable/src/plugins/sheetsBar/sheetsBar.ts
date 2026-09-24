@@ -1988,6 +1988,14 @@ export class SheetsBar extends BasePlugin {
    * rows, destroying them. With a declared workbook, each sheet owns its data, so the initial
    * load is redirected at the active sheet's array and a clashing top-level `data` is
    * reported once.
+   *
+   * When the active sheet's own `dataProvider` makes {@link Hooks#hasExternalDataSource} return
+   * `true`, this same hook also fires for core's OWN placeholder reload — an unconditional fresh
+   * `[]`, never a user-declared top-level `data` (core already ignores that in this mode; see
+   * `core.ts`'s own warning for it). That placeholder can never be reference-equal to any sheet's
+   * `data`, so without this check every workbook whose active sheet declares a `dataProvider`
+   * would warn on every load. The redirect to the active sheet's array still applies — the
+   * placeholder must not overwrite it — only the warning is skipped.
    */
   #onBeforeLoadData = (sourceData: unknown[][], initialLoad: boolean) => {
     const activeId = this.#model?.getActiveSheet()?.id ?? null;
@@ -1997,7 +2005,9 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    if (!this.#warnedAboutTopLevelData) {
+    const isExternalDataSourcePlaceholder = this.hot.runHooks('hasExternalDataSource') === true;
+
+    if (!isExternalDataSourcePlaceholder && !this.#warnedAboutTopLevelData) {
       this.#warnedAboutTopLevelData = true;
       warn('The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — each ' +
         'sheet declares its own data.');

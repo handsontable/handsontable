@@ -41,14 +41,6 @@
     `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
     prove SheetsBar disables it for every sheet that does not declare its own and warns once.
 
-    "Orders" is both sheet index 0 and the sheet active at construction, so building the grid emits
-    ONE `console.warn` from SheetsBar's own top-level-`data` guard: the constructor's startup pass
-    reloads the newly-active sheet's data through a placeholder `[]` once the sheet's own
-    `dataProvider` has been applied, and the guard cannot tell that placeholder apart from a real
-    conflicting top-level `data` setting. `DataProviderSheetsBarPage#goto()` asserts it is exactly
-    that one expected message, then clears it, so a spec sees a clean `consoleProblems()` — the same
-    "known, single warning, then reset" shape the rule-2 spec uses for the grid-level gate warning.
-
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
     `onRowsUpdate` parks the same way on `window.htServer.releaseUpdates()`. `failNext` makes the

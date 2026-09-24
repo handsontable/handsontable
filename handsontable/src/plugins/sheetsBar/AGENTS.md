@@ -116,7 +116,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   another plugin that validates the incoming array in the same hook must register behind it —
   `nestedRows` does so with `orderIndex: 1`, because at its `PLUGIN_PRIORITY` (300) it otherwise
   judged the host's placeholder array and self-disabled before this redirect ran (DEV-2939).
-  Keep this listener at the default order, or that ordering silently inverts.
+  Keep this listener at the default order, or that ordering silently inverts. The warning is
+  skipped (redirect still applies) when `hasExternalDataSource` is `true` for the active sheet —
+  that load is core's own placeholder `[]` from a `dataProvider`-backed sheet, not a real
+  top-level `data` clash, and without the check every workbook whose first sheet declares a
+  `dataProvider` would warn on every load (DEV-3041).
 - **`removeSheet` prunes the declared entry out of the configured `sheets` arrays**
   (`#pruneDeclaredSheet`, entries mapped per sheet id in `#declaredEntries`), mirroring how
   `Core` keeps `settings.data` in sync on `loadData` — the settings object would otherwise

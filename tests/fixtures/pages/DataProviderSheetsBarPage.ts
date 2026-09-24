@@ -82,10 +82,6 @@ export class DataProviderSheetsBarPage {
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
-   * Building the grid with "Orders" active also emits SheetsBar's one-time top-level-`data`
-   * warning (see the fixture's comment) — expected here, asserted, and cleared, so a spec always
-   * starts from a clean `consoleProblems()`.
-   *
    * @param {{ gridLevel?: boolean }} options `gridLevel: true` adds a grid-level `dataProvider`
    * alongside the two sheet-level ones, via `?gridLevel=1`.
    */
@@ -106,22 +102,6 @@ export class DataProviderSheetsBarPage {
     await expect.poll(() => this.pendingCount('ORD')).toBe(1);
     await this.release('ORD');
     await expect(this.cell(0, 0)).toHaveText('ORD-01');
-    await this.#consumeExpectedStartupWarning();
-  }
-
-  /**
-   * Building the grid with "Orders" active emits exactly one `console.warn` from SheetsBar's
-   * top-level-`data` guard (see the fixture's comment). Asserts it is that ONE expected message
-   * and nothing else, then clears it, so `consoleProblems()` starts clean for the spec.
-   */
-  async #consumeExpectedStartupWarning(): Promise<void> {
-    const problems = await this.consoleProblems();
-
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('sheetsBar.sheets');
-    await this.page.evaluate(() => {
-      (window as unknown as { htServer: FixtureServer }).htServer.consoleProblems = [];
-    });
   }
 
   /**
