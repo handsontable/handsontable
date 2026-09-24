@@ -101,6 +101,7 @@ const themesItems = [
   { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable with Tabler Icons', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
 const editingValidationItems = [
