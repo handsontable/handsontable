@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T09:41:33.145Z",
+  "generatedAt": "2026-09-24T11:15:42.626Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -10181,7 +10181,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor allow html mode should allow render the html items without sanitizing the content",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
