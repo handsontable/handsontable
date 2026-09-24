@@ -142,7 +142,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['abc']],
         columns: [{ type: 'numeric' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx();
