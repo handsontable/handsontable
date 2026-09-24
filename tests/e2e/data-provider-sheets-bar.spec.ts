@@ -49,8 +49,7 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.goto();
     });
 
-    // eslint-disable-next-line no-restricted-syntax -- DEV-3041: switch-time sort interception, fixed in Task 5
-    test.fixme('a local sheet sorts and filters client-side and is never overwritten (rule 11)', async() => {
+    test('a local sheet sorts and filters client-side and is never overwritten (rule 11)', async() => {
       await grid.clickTab(1);
       await grid.sortByHeader(0, 'desc');
       await grid.filterColumnByValue(0, ['NOTE-3', 'NOTE-1']);
@@ -58,6 +57,107 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(await grid.ids()).toEqual(['NOTE-3', 'NOTE-1']);
       expect(await grid.fetchCount('ORD')).toBe(1);
       expect(await grid.pendingCount()).toBe(0);
+    });
+  });
+
+  test.describe('moving between sheets', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto();
+    });
+
+    test('first visit to a server sheet fetches it (rule 3)', async() => {
+      await grid.clickTab(2);
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
+      expect(await grid.release('CUS')).toBe(1);
+      await expect(grid.cell(0, 0)).toHaveText('CUS-01');
+    });
+
+    test('returning restores rows, sort, filters, page and total without fetching (rule 4)', async() => {
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await grid.goToPage(2);
+      await grid.release('ORD');
+      const before = { ids: await grid.ids(), sort: await grid.sortConfig(), pagination: await grid.pagination() };
+      const fetchesBefore = await grid.fetchCount('ORD');
+
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+
+      expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
+      expect(await grid.ids()).toEqual(before.ids);
+      expect(await grid.sortConfig()).toEqual(before.sort);
+      expect(await grid.pagination()).toEqual(before.pagination);
+      expect((await grid.events()).at(-1)).toBe(`afterFetch ${before.ids[0]}`);
+    });
+
+    test('leaving mid-fetch stores the rows in the sheet it was started for (rule 5)', async() => {
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.release('ORD');
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      expect((await grid.events()).filter(e => e.startsWith('afterFetch'))).toHaveLength(1);
+
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      expect(await grid.fetchCount('ORD')).toBe(2);
+    });
+
+    // eslint-disable-next-line no-restricted-syntax -- DEV-3041: EmptyDataState keeps the loading overlay across a switch, fixed in Task 6
+    test.fixme('returning while the fetch is still running waits for it (rule 6)', async() => {
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+      await grid.clickTab(0);
+
+      expect(await grid.pendingCount('ORD')).toBe(1);
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
+      await grid.release('ORD');
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      expect(await grid.fetchCount('ORD')).toBe(2);
+    });
+
+    test('a canceled switch leaves the fetch running on the current sheet (rule 9)', async() => {
+      await grid.startFetch();
+      await grid.cancelNextSwitch();
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+    });
+
+    test('fetchData() fetches the visible sheet (rule 12)', async() => {
+      await grid.clickTab(2);
+      await grid.release('CUS');
+      await grid.startFetch();
+
+      expect(await grid.pendingCount('CUS')).toBe(1);
+      expect(await grid.pendingCount('ORD')).toBe(0);
+    });
+
+    test('updateSettings({ dataProvider }) still refetches (rule 13)', async() => {
+      await grid.page.evaluate(() => {
+        const hot = window.hot as unknown as {
+          getSettings(): { dataProvider: object };
+          updateSettings(settings: Record<string, unknown>): void;
+        };
+        const own = hot.getSettings().dataProvider;
+
+        hot.updateSettings({ dataProvider: { ...own } });
+      });
+
+      expect(await grid.pendingCount('ORD')).toBe(1);
+    });
+
+    test('sort after returning to a pending sheet supersedes the pending fetch (review focus 2)', async() => {
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await grid.sortByHeader(0, 'desc');
+
+      expect(await grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-25');
     });
   });
 });

@@ -44,6 +44,7 @@ import type { Notification } from './notification';
 import type { Pagination } from './pagination';
 import type { Search } from './search';
 import type { SelectionHandles } from './selectionHandles';
+import type { SheetsBar } from './sheetsBar';
 import type { StretchColumns } from './stretchColumns';
 import type { TouchScroll } from './touchScroll';
 import type { TrimRows } from './trimRows';
@@ -93,6 +94,7 @@ export interface PluginTypeMap {
   pagination: Pagination;
   search: Search;
   selectionHandles: SelectionHandles;
+  sheetsBar: SheetsBar;
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;

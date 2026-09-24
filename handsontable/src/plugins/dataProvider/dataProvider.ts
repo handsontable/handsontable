@@ -54,6 +54,11 @@ import {
   getDataProviderRequestErrorDescription,
   isCompleteDataProviderConfig,
 } from './utils';
+import {
+  createServerState,
+  replaceArrayContents,
+} from './sheetState';
+import type { FetchBinding, SheetServerState } from './sheetState';
 import { registerConflict } from '../base/conflictRegistry';
 import type { NotificationMessageOptions } from '../notification/notification';
 
@@ -192,6 +197,25 @@ export interface DataProviderConfig {
   refetchAfterCreate?: boolean;
 }
 
+/**
+ * The `afterDataProviderFetch` payload a fetch builds: the `fetchRows` result, the query it answered, and the
+ * matching ColumnSorting and Filters states.
+ */
+interface DataProviderFetchPayload extends Omit<DataProviderFetchResult, 'columnSortConfig'> {
+  columnSortConfig: ReturnType<typeof sortingPayloadToSort>;
+}
+
+/**
+ * A `fetchRows` request that has not settled yet: what it was started for, its abort controller, the query it
+ * sent, and whether it asked to skip the loading overlay.
+ */
+interface InFlightFetch {
+  binding: FetchBinding<DataProviderConfig>;
+  controller: AbortController;
+  params: DataProviderQueryParameters;
+  skipLoading: boolean;
+}
+
 export {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -256,11 +280,31 @@ export class DataProvider extends BasePlugin {
    */
   #queryParameters: DataProviderQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
-   * Aborts in-flight fetch when superseded or on disable/destroy.
+   * Server view per sheet, keyed by SheetsBar sheet id (`null` without SheetsBar).
    *
-   * @type {AbortController|null}
+   * @type {Map<number|null, object>}
    */
-  #abortController: AbortController | null = null;
+  #states: Map<number | null, SheetServerState<DataProviderFetchPayload>> = new Map();
+  /**
+   * Fetches in flight, one per sheet. A newer fetch supersedes only the fetch of its own sheet.
+   *
+   * @type {Map<number|null, object>}
+   */
+  #inFlight: Map<number | null, InFlightFetch> = new Map();
+  /**
+   * `true` between `afterSheetTabStateCapture` and `afterSheetTabChange`, i.e. while SheetsBar applies another
+   * sheet. The capture hook fires only once no listener canceled the switch.
+   *
+   * @type {boolean}
+   */
+  #isSheetSwitching = false;
+  /**
+   * The SheetsBar sheet the grid shows, learned from the switch hooks' arguments. `undefined` until it is first
+   * needed; `null` without SheetsBar.
+   *
+   * @type {number|null|undefined}
+   */
+  #activeSheetId: number | null | undefined = undefined;
   /**
    * Serializes create/update/remove mutations so they run one after another.
    *
@@ -278,6 +322,8 @@ export class DataProvider extends BasePlugin {
     // (for example during `updateSettings`). `disablePlugin()` clears all `addHook` listeners, so `enablePlugin()`
     // registers this hook again.
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
+    this.hot.addHook('afterSheetTabStateCapture', this.#onSheetSwitchStart);
+    this.hot.addHook('afterSheetTabChange', this.#onSheetSwitchEnd);
   }
 
   /**
@@ -315,26 +361,37 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Re-applies settings and refetches when the instance is already initialized.
+   * During a SheetsBar switch no refetch starts: the fetches already running keep going (each lands in the sheet
+   * it was started for), and the arrival handler decides what the arriving sheet shows.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.hot.view) {
-      void this.#fetchDataSilently();
+    if (!this.#isSheetSwitching) {
+      this.#activeSheetId = undefined;
+
+      if (this.hot.view) {
+        void this.#fetchDataSilently();
+      }
     }
 
     super.updatePlugin();
   }
 
   /**
-   * Disables the plugin, aborts fetch, resets query state.
+   * Disables the plugin, aborts every fetch, resets query state.
+   * During a SheetsBar switch the fetches are not aborted: each keeps running and lands in the sheet it was
+   * started for.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
    * The constructor registers {@link Hooks#hasExternalDataSource} for the period before the first `enablePlugin()`;
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
-    this.#resetAbortController();
+    if (!this.#isSheetSwitching) {
+      this.#abortAllFetches();
+    }
+
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
 
     super.disablePlugin();
@@ -371,93 +428,15 @@ export class DataProvider extends BasePlugin {
   async fetchData(
     overrides: DataProviderFetchDataOverrides = {}
   ): Promise<{ rows: unknown[]; totalRows: number } | null> {
-    const fetchFn = this.#getFetchFn();
+    const binding = this.#currentBinding();
 
-    if (!isFunction(fetchFn)) {
+    if (!binding) {
       this.hot.render();
 
       return null;
     }
 
-    const params = this.#mergeAndNormalizeFetchParams(overrides);
-    const controller = this.#createFetchAbortController();
-    const { signal } = controller;
-
-    if (this.hot.runHooks('beforeDataProviderFetch', params) === false) {
-      this.#abortController = null;
-      this.hot.render();
-
-      return null;
-    }
-
-    const fetchRowsParams = this.#snapshotQueryParameters(params);
-
-    try {
-      const result = await fetchFn(fetchRowsParams, { signal });
-
-      if (signal.aborted) {
-        this.#runAfterDataProviderFetchAbort(params, undefined);
-
-        return null;
-      }
-
-      const rows = Array.isArray(result?.rows) ? result.rows : [];
-      const totalRows = typeof result?.totalRows === 'number' && result.totalRows >= 0
-        ? result.totalRows
-        : rows.length;
-
-      const persistedParams = this.#snapshotQueryParameters(params);
-      const clampedPage = clampDataProviderPageToTotalRows(
-        persistedParams.page,
-        persistedParams.pageSize,
-        totalRows
-      );
-
-      if (clampedPage !== persistedParams.page) {
-        return this.fetchData({ ...overrides, page: clampedPage, skipLoading: overrides.skipLoading });
-      }
-
-      this.#queryParameters = persistedParams;
-
-      this.hot.loadData(rows, PLUGIN_KEY);
-
-      const columnSortConfig = sortingPayloadToSort(this.hot, persistedParams.sort ?? null);
-      const filtersConditionsStack = filtersPayloadToConditionsStack(
-        this.hot,
-        persistedParams.filters ?? null
-      );
-
-      this.hot.runHooks(
-        'afterDataProviderFetch',
-        {
-          ...result,
-          rows,
-          totalRows,
-          queryParameters: persistedParams,
-          columnSortConfig,
-          filtersConditionsStack,
-        }
-      );
-
-      this.hot.render();
-
-      return { rows, totalRows };
-    } catch (err) {
-      if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
-        this.#runAfterDataProviderFetchAbort(params, err);
-
-        return null;
-      }
-
-      this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
-      this.#showDataProviderRequestErrorNotification('fetch', err);
-
-      throw err;
-    } finally {
-      if (this.#abortController === controller) {
-        this.#abortController = null;
-      }
-    }
+    return this.#fetchFor(binding, overrides);
   }
 
   /**
@@ -626,14 +605,326 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Whether a `fetchRows` request started by {@link DataProvider#fetchData} has not settled yet. The controller is
-   * created when the request starts and cleared in `fetchData`'s `finally`, so a non-null controller is exactly
+   * Whether a `fetchRows` request started by {@link DataProvider#fetchData} for the visible sheet has not settled
+   * yet. The entry is stored when the request starts and removed in its `finally`, so a stored entry is exactly
    * "a response can still arrive and call `loadData()`".
    *
    * @returns {boolean}
    */
   #hasFetchInFlight(): boolean {
-    return this.#abortController !== null;
+    return this.#inFlight.has(this.#currentBinding()?.sheetId ?? null);
+  }
+
+  /**
+   * Captures what a fetch started now is for.
+   *
+   * @returns {object|null} `null` when no `dataProvider` applies.
+   */
+  #currentBinding(): FetchBinding<DataProviderConfig> | null {
+    const config = this.#getConfig();
+
+    if (!config) {
+      return null;
+    }
+
+    return { sheetId: this.#getActiveSheetId(), data: this.hot.getSettings().data, config };
+  }
+
+  /**
+   * Returns the id of the sheet the grid shows. The switch hooks keep it current; the one case they cannot
+   * answer is the sheet active at startup (SheetsBar fires no hook then), so that is read once from the
+   * public `getSheets()`.
+   *
+   * @returns {number|null} `null` without SheetsBar.
+   */
+  #getActiveSheetId(): number | null {
+    if (this.#activeSheetId !== undefined) {
+      return this.#activeSheetId;
+    }
+
+    const sheetsBar = this.hot.getPlugin('sheetsBar');
+    const activeSheetId = sheetsBar?.enabled
+      ? (sheetsBar.getSheets().find(sheet => sheet.isActive)?.id ?? null)
+      : null;
+
+    this.#activeSheetId = activeSheetId;
+
+    return activeSheetId;
+  }
+
+  /**
+   * Tells whether the grid still shows the data a binding was captured for. Without SheetsBar (`null` sheet id)
+   * there is nothing else to show, so a fetch that was not aborted always applies, as it always did.
+   *
+   * @param {object} binding The fetch binding.
+   * @returns {boolean}
+   */
+  #isVisible(binding: FetchBinding<DataProviderConfig>): boolean {
+    if (binding.sheetId === null) {
+      return true;
+    }
+
+    return this.enabled && binding.data === this.hot.getSettings().data;
+  }
+
+  /**
+   * Runs one `fetchRows` request for a binding and applies its response: on screen when the binding is still
+   * visible, otherwise into the binding's own data array and sheet state, without touching the grid.
+   *
+   * @param {object} binding What the fetch is for.
+   * @param {object} [overrides] Partial query overrides, as in {@link DataProvider#fetchData}.
+   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
+   */
+  async #fetchFor(
+    binding: FetchBinding<DataProviderConfig>,
+    overrides: DataProviderFetchDataOverrides = {}
+  ): Promise<{ rows: unknown[]; totalRows: number } | null> {
+    const fetchFn = binding.config.fetchRows;
+
+    if (!isFunction(fetchFn)) {
+      this.hot.render();
+
+      return null;
+    }
+
+    const state = this.#stateFor(binding.sheetId);
+    const base = this.#isVisible(binding) ? this.#queryParameters : state.queryParameters;
+    const params = this.#mergeAndNormalizeFetchParams(overrides, base);
+    const controller = new AbortController();
+
+    this.#abortFetchesFor(binding.sheetId);
+    this.#inFlight.set(binding.sheetId, { binding, controller, params, skipLoading: overrides.skipLoading === true });
+
+    if (this.hot.runHooks('beforeDataProviderFetch', params) === false) {
+      this.#releaseInFlight(binding.sheetId, controller);
+      this.hot.render();
+
+      return null;
+    }
+
+    const { signal } = controller;
+
+    try {
+      const result = await fetchFn(this.#snapshotQueryParameters(params), { signal });
+
+      if (signal.aborted) {
+        this.#runAfterDataProviderFetchAbort(params, undefined);
+
+        return null;
+      }
+
+      const rows = Array.isArray(result?.rows) ? result.rows : [];
+      const totalRows = typeof result?.totalRows === 'number' && result.totalRows >= 0
+        ? result.totalRows
+        : rows.length;
+
+      const persistedParams = this.#snapshotQueryParameters(params);
+      const clampedPage = clampDataProviderPageToTotalRows(
+        persistedParams.page,
+        persistedParams.pageSize,
+        totalRows
+      );
+
+      if (clampedPage !== persistedParams.page) {
+        return this.#fetchFor(binding, { ...overrides, page: clampedPage, skipLoading: overrides.skipLoading });
+      }
+
+      this.#storeFetchResult(binding, state, result, rows, totalRows, persistedParams);
+
+      return { rows, totalRows };
+    } catch (err) {
+      if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
+        this.#runAfterDataProviderFetchAbort(params, err);
+
+        return null;
+      }
+
+      this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
+
+      if (!this.#isVisible(binding)) {
+        state.failure = err;
+        state.hasFailure = true;
+
+        return null;
+      }
+
+      this.#showDataProviderRequestErrorNotification('fetch', err);
+
+      throw err;
+    } finally {
+      this.#releaseInFlight(binding.sheetId, controller);
+    }
+  }
+
+  /**
+   * Stores a successful response in its sheet's state and applies it: through `loadData()` and
+   * {@link Hooks#afterDataProviderFetch} while the binding is visible, or into the binding's own data array
+   * (keeping its identity, so the SheetsBar sheet record sees the rows) while it is not.
+   *
+   * @param {object} binding What the fetch was for.
+   * @param {object} state The binding's sheet state.
+   * @param {object} result The `fetchRows` result.
+   * @param {Array} rows The normalized rows.
+   * @param {number} totalRows The normalized row total.
+   * @param {object} persistedParams The query the rows answer.
+   */
+  #storeFetchResult(
+    binding: FetchBinding<DataProviderConfig>,
+    state: SheetServerState<DataProviderFetchPayload>,
+    result: DataProviderFetchResult,
+    rows: unknown[],
+    totalRows: number,
+    persistedParams: DataProviderQueryParameters
+  ): void {
+    state.queryParameters = this.#snapshotQueryParameters(persistedParams);
+    state.failure = undefined;
+    state.hasFailure = false;
+
+    if (this.#isVisible(binding)) {
+      this.#queryParameters = persistedParams;
+      this.hot.loadData(rows, PLUGIN_KEY);
+      state.lastResult = this.#buildFetchResult(result, rows, totalRows, persistedParams);
+      this.hot.runHooks('afterDataProviderFetch', state.lastResult);
+      this.hot.render();
+
+      return;
+    }
+
+    const storedRows = replaceArrayContents(binding.data, rows) ? binding.data : rows;
+
+    state.lastResult = this.#buildFetchResult(result, storedRows, totalRows, persistedParams);
+  }
+
+  /**
+   * Builds the {@link Hooks#afterDataProviderFetch} payload: the `fetchRows` result with the normalized rows and
+   * total, the query they answer, and the ColumnSorting and Filters states matching that query.
+   *
+   * @param {object} result The `fetchRows` result.
+   * @param {Array} rows The rows the payload carries.
+   * @param {number} totalRows The row total.
+   * @param {object} persistedParams The query the rows answer.
+   * @returns {object}
+   */
+  #buildFetchResult(
+    result: DataProviderFetchResult,
+    rows: unknown[],
+    totalRows: number,
+    persistedParams: DataProviderQueryParameters
+  ): DataProviderFetchPayload {
+    const columnSortConfig = sortingPayloadToSort(this.hot, persistedParams.sort ?? null);
+    const filtersConditionsStack = filtersPayloadToConditionsStack(
+      this.hot,
+      persistedParams.filters ?? null
+    );
+
+    return {
+      ...result,
+      rows,
+      totalRows,
+      queryParameters: persistedParams,
+      columnSortConfig,
+      filtersConditionsStack,
+    };
+  }
+
+  /**
+   * Returns a sheet's server state, creating an empty one on first use.
+   *
+   * @param {number|null} sheetId The sheet id, or `null` without SheetsBar.
+   * @returns {object}
+   */
+  #stateFor(sheetId: number | null): SheetServerState<DataProviderFetchPayload> {
+    let state = this.#states.get(sheetId);
+
+    if (!state) {
+      state = createServerState<DataProviderFetchPayload>(this.#queryParameters);
+      this.#states.set(sheetId, state);
+    }
+
+    return state;
+  }
+
+  /**
+   * Aborts the fetch in flight for one sheet, as a newer fetch of that sheet supersedes it.
+   *
+   * @param {number|null} key The sheet id, or `null` without SheetsBar.
+   */
+  #abortFetchesFor(key: number | null): void {
+    const entry = this.#inFlight.get(key);
+
+    if (entry) {
+      this.#inFlight.delete(key);
+      entry.controller.abort(this.#createAbortReason());
+    }
+  }
+
+  /**
+   * Aborts every fetch in flight, without a reason, the way disabling or destroying the plugin always did.
+   */
+  #abortAllFetches(): void {
+    const entries = [...this.#inFlight.values()];
+
+    this.#inFlight.clear();
+    entries.forEach(({ controller }) => controller.abort());
+  }
+
+  /**
+   * Forgets a finished fetch, unless a newer one for the same sheet already replaced it.
+   *
+   * @param {number|null} key The sheet id.
+   * @param {AbortController} controller The finished fetch's controller.
+   */
+  #releaseInFlight(key: number | null, controller: AbortController): void {
+    if (this.#inFlight.get(key)?.controller === controller) {
+      this.#inFlight.delete(key);
+    }
+  }
+
+  /**
+   * Creates the reason a superseded fetch is aborted with.
+   *
+   * @returns {Error}
+   */
+  #createAbortReason(): Error {
+    const reason = new Error(ABORT_REASON_MESSAGE);
+
+    reason.name = 'AbortError';
+
+    return reason;
+  }
+
+  /**
+   * Decides what a server sheet shows once SheetsBar has switched to it: wait for its own fetch still in flight,
+   * replay the response it already has, or fetch it for the first time.
+   */
+  #onArrival(): void {
+    const binding = this.#currentBinding();
+
+    if (!binding) {
+      return;
+    }
+
+    const pending = this.#inFlight.get(binding.sheetId);
+
+    if (pending) {
+      this.#queryParameters = this.#snapshotQueryParameters(pending.params);
+
+      return;
+    }
+
+    const state = this.#states.get(binding.sheetId);
+
+    if (state?.lastResult) {
+      this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
+      this.hot.runHooks('afterDataProviderFetch', { ...state.lastResult, rows: binding.data });
+      this.hot.render();
+
+      return;
+    }
+
+    this.#applyQueryParametersFromPlugins();
+    this.#queryParameters = { ...this.#queryParameters, page: 1 };
+    void this.#fetchDataSilently();
   }
 
   /**
@@ -686,29 +977,17 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Aborts an in-flight `fetchRows` call so a new request can start.
-   *
-   * @returns {void}
-   */
-  #abortInFlightFetch(): void {
-    if (!this.#abortController) {
-      return;
-    }
-
-    const reason = new Error(ABORT_REASON_MESSAGE);
-
-    reason.name = 'AbortError';
-    this.#abortController.abort(reason);
-  }
-
-  /**
-   * Merges overrides into `#queryParameters` and normalizes sort / page for `fetchRows`.
+   * Merges overrides into a base query (`#queryParameters` by default) and normalizes sort / page for `fetchRows`.
    *
    * @param {object} overrides Partial query overrides (subset of `DataProviderQueryParameters` keys).
+   * @param {DataProviderQueryParameters} [base] The query the overrides apply to.
    * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
-  #mergeAndNormalizeFetchParams(overrides: DataProviderFetchDataOverrides): DataProviderBeforeFetchParameters {
-    const params = { ...this.#queryParameters, ...overrides };
+  #mergeAndNormalizeFetchParams(
+    overrides: DataProviderFetchDataOverrides,
+    base: DataProviderQueryParameters = this.#queryParameters
+  ): DataProviderBeforeFetchParameters {
+    const params = { ...base, ...overrides };
 
     normalizeSortInFetchParams(params, this.hot);
 
@@ -720,21 +999,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Replaces `#abortController` with a new controller for the next fetch.
-   *
-   * @returns {AbortController}
-   */
-  #createFetchAbortController(): AbortController {
-    this.#abortInFlightFetch();
-
-    const controller = new AbortController();
-
-    this.#abortController = controller;
-
-    return controller;
-  }
-
-  /**
    * @param {object} params Query parameters for the aborted `fetchRows` call.
    * @param {Error|undefined} reason `AbortError` (or subclass) when `fetchRows` rejected; omit the argument when the promise settled after superseding.
    * @returns {void}
@@ -743,16 +1007,6 @@ export class DataProvider extends BasePlugin {
     const queryParameters = this.#snapshotQueryParameters(params);
 
     this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);
-  }
-
-  /**
-   * Aborts any pending `fetchRows` and clears the controller.
-   *
-   * @returns {void}
-   */
-  #resetAbortController(): void {
-    this.#abortController?.abort();
-    this.#abortController = null;
   }
 
   /**
@@ -953,18 +1207,24 @@ export class DataProvider extends BasePlugin {
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
    */
-  readonly #onBeforeFilter = (conditionsStack: unknown[]) => handleBeforeFilterForServer(
-    {
-      hot: this.hot,
-      hasFetchFn: () => isFunction(this.#getFetchFn()),
-      applyFiltersAndRefetch: (filtersForProvider) => {
-        this.#queryParameters.filters = filtersForProvider ?? null;
-        this.#queryParameters.page = 1;
-        void this.#fetchDataSilently();
+  readonly #onBeforeFilter = (conditionsStack: unknown[]) => {
+    if (this.#isSheetSwitching) {
+      return;
+    }
+
+    return handleBeforeFilterForServer(
+      {
+        hot: this.hot,
+        hasFetchFn: () => isFunction(this.#getFetchFn()),
+        applyFiltersAndRefetch: (filtersForProvider) => {
+          this.#queryParameters.filters = filtersForProvider ?? null;
+          this.#queryParameters.page = 1;
+          void this.#fetchDataSilently();
+        },
       },
-    },
-    conditionsStack
-  );
+      conditionsStack
+    );
+  };
 
   /**
    * @param {Array} currentSortConfig Current sort config.
@@ -974,17 +1234,50 @@ export class DataProvider extends BasePlugin {
    */
   readonly #onBeforeColumnSort = (
     currentSortConfig: unknown[], destinationSortConfigs: unknown[], sortPossible: boolean
-  ) => handleBeforeColumnSortForServer(
-    {
-      hot: this.hot,
-      hasFetchFn: () => isFunction(this.#getFetchFn()),
-      applyQueryParametersFromPlugins: () => this.#applyQueryParametersFromPlugins(),
-      fetchData: overrides => this.#fetchDataSilently(overrides),
-    },
-    currentSortConfig,
-    destinationSortConfigs,
-    sortPossible
-  );
+  ) => {
+    if (this.#isSheetSwitching) {
+      return;
+    }
+
+    return handleBeforeColumnSortForServer(
+      {
+        hot: this.hot,
+        hasFetchFn: () => isFunction(this.#getFetchFn()),
+        applyQueryParametersFromPlugins: () => this.#applyQueryParametersFromPlugins(),
+        fetchData: overrides => this.#fetchDataSilently(overrides),
+      },
+      currentSortConfig,
+      destinationSortConfigs,
+      sortPossible
+    );
+  };
+
+  /**
+   * Marks the start of a SheetsBar switch that no listener canceled.
+   *
+   * @param {number} sheetId The sheet being left.
+   * @returns {void}
+   */
+  readonly #onSheetSwitchStart = (sheetId: number) => {
+    this.#isSheetSwitching = true;
+    this.#activeSheetId = sheetId;
+  };
+
+  /**
+   * Ends the switch and, when the arriving sheet is a server sheet, decides what it shows.
+   *
+   * @param {number} oldSheetId The sheet that was left.
+   * @param {number} newSheetId The sheet that arrived.
+   * @returns {void}
+   */
+  readonly #onSheetSwitchEnd = (oldSheetId: number, newSheetId: number) => {
+    this.#isSheetSwitching = false;
+    this.#activeSheetId = newSheetId;
+
+    if (this.enabled) {
+      this.#onArrival();
+    }
+  };
 
   /**
    * @param {number} visualRowIndex Visual row index.
@@ -1061,7 +1354,9 @@ export class DataProvider extends BasePlugin {
    * Destroys the plugin.
    */
   destroy() {
-    this.#resetAbortController();
+    this.#abortAllFetches();
+    this.hot.removeHook('afterSheetTabStateCapture', this.#onSheetSwitchStart);
+    this.hot.removeHook('afterSheetTabChange', this.#onSheetSwitchEnd);
 
     super.destroy();
   }
