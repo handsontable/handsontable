@@ -855,6 +855,11 @@ export class SelectionFeaturesPage {
     await expect.poll(() => this.verticalScrollOffset()).toBe(0);
   }
 
+  /** The selection layer the handles are shown for, or `null` when the pointer is over none. */
+  async handlesHoveredLayer(): Promise<number | null> {
+    return this.page.evaluate(() => window.hot.selection.getHandlesHoveredLayer());
+  }
+
   /** The public selection hooks the fixture recorded, in firing order. */
   async selectionHookLog(): Promise<string[]> {
     return this.page.evaluate(() => [...window.selectionHookLog]);

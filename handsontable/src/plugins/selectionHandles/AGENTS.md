@@ -50,7 +50,7 @@ because `'refresh'` is not one of its ignored scroll sources. A wheel scroll mov
 pointer, so each crossing of the range edge snapped the viewport back and the scroll stalled (DEV-3085).
 
 Two rules follow. Never route a hover-only state change through `refresh()`. And use `view.render()`, not
-`hot.render()`: the latter forces a full draw, which disables row recycling for a hover that lands mid-scroll.
+`hot.render()`: the latter forces a full draw, which re-runs every rendered cell's renderer on a hover.
 `tests/e2e/selection-handles.spec.ts` ("selectionHandles hover") pins the scroll offset, the hook log, and
 an exact wheel distance.
 

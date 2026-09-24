@@ -501,6 +501,11 @@ test.describe('selectionHandles hover', () => {
 
   test('does not fire the selection hooks when the pointer enters and leaves a selection', async () => {
     await grid.selectCells(2, 1, 4, 3);
+
+    // Positive control: the log does record a real selection, so an empty log below means
+    // the hover fired nothing, not that the recorder is broken.
+    expect(await grid.selectionHookLog()).toContain('afterSelection');
+
     await grid.clearSelectionHookLog();
 
     await grid.hoverCell(3, 2);
@@ -520,6 +525,7 @@ test.describe('selectionHandles hover', () => {
     await grid.hoverCell(4, 2);
 
     await expect(grid.visibleHandles()).toHaveCount(4);
+    expect(await grid.handlesHoveredLayer()).toBe(0);
 
     for (let i = 1; i <= steps; i++) {
       await grid.wheel(step);
@@ -527,8 +533,9 @@ test.describe('selectionHandles hover', () => {
     }
 
     // The scroll carried the selection out from under the pointer, so the hovered layer changed
-    // on the way. Without that, this test would not exercise the hover wiring at all.
-    await expect(grid.visibleHandles()).toHaveCount(0);
+    // on the way. Without that, this test would not exercise the hover wiring at all. Asked of the
+    // layer itself, because hidden handles alone could also mean the rows left the rendered band.
+    await expect.poll(() => grid.handlesHoveredLayer()).toBeNull();
     expect(await grid.verticalScrollOffset()).toBe(steps * step);
   });
 });
