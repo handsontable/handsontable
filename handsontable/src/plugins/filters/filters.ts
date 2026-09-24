@@ -1958,7 +1958,7 @@ export class Filters extends BasePlugin {
       condition => (condition as Record<string, unknown>).name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn\u2019t be displayed visually.\x20
         The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
         but more were provided. For more details see the documentation.`);
 

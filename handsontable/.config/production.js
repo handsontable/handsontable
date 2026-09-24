@@ -7,6 +7,7 @@ const rspack = require('@rspack/core');
 const configFactory = require('./development');
 const { getClosest } = require('./helper/path');
 const { getLicenseBody } = require('./helper/license');
+const { createSwcJsMinimizer } = require('./helper/swc-minimizer');
 const postBuildBanner = require('./plugin/rspack/post-build-banner');
 
 const licenseBody = getLicenseBody();
@@ -24,14 +25,7 @@ module.exports.create = function create(envArgs) {
     c.optimization = {
       minimize: true,
       minimizer: [
-        new rspack.SwcJsMinimizerRspackPlugin({
-          extractComments: false,
-          minimizerOptions: {
-            format: {
-              comments: false,
-            },
-          },
-        }),
+        createSwcJsMinimizer(),
       ],
     };
 
