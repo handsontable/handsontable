@@ -163,6 +163,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   so the bar sits after the last row. A layout where the bar covers a row, is clipped, or overshoots
   the declared height is a core/layout bug, not a plugin one (`tests/e2e/bottom-slot-sizing.spec.ts`,
   DEV-2848).
+- **A `dblclick` on the chevron is two menu clicks, never a rename (DEV-3086).** The tab's
+  `dblclick` handler skips the chevron on every tab, not only the active one: on another tab
+  the first click switches sheets and repaints, so the pair's `dblclick` lands on a chevron that
+  is active by then. Without the guard the rename input opened on top of the menu the second
+  click had just opened. The reverse order needs no guard — opening the menu moves the focus,
+  the input blurs, and the blur commits the rename first.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
