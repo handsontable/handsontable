@@ -759,7 +759,8 @@ export class DataProvider extends BasePlugin {
    * Tells whether the grid shows the sheet a binding was captured for. Without SheetsBar (`null` sheet id) there
    * is nothing else to show, so a fetch that was not aborted always applies, as it always did. A SheetsBar sheet
    * is visible while it is the active sheet: its identity is the sheet, not the data array, which every on-screen
-   * load replaces.
+   * load replaces. A binding of a replaced workbook or of a removed sheet is never visible, even when a sheet of
+   * the new workbook reuses its id (a rebuilt workbook numbers its sheets from 1 again).
    *
    * @param {object} binding The fetch binding.
    * @returns {boolean}
@@ -769,7 +770,7 @@ export class DataProvider extends BasePlugin {
       return true;
     }
 
-    return this.enabled && binding.sheetId === this.#getActiveSheetId();
+    return this.enabled && !this.#isDropped(binding) && binding.sheetId === this.#getActiveSheetId();
   }
 
   /**
@@ -1394,13 +1395,13 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    if (binding === null || this.#isVisible(binding)) {
-      this.#showDataProviderRequestErrorNotification(kind, err);
-
+    if (binding !== null && this.#isDropped(binding)) {
       return;
     }
 
-    if (this.#isDropped(binding)) {
+    if (binding === null || this.#isVisible(binding)) {
+      this.#showDataProviderRequestErrorNotification(kind, err);
+
       return;
     }
 

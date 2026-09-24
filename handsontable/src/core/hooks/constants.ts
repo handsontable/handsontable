@@ -3399,7 +3399,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin when it replaces its workbook as a whole: before it builds a workbook (when
    * the plugin is enabled, and when a changed `sheets` setting rebuilds the workbook), and when the plugin is
    * disabled. After this hook, no sheet id reported by an earlier hook identifies a sheet any more: a rebuilt
-   * workbook numbers its sheets from 1 again.
+   * workbook numbers its sheets from 1 again. A changed `sheets` setting fires it twice: once when the old
+   * workbook is discarded, and once when the new one is built.
    *
    * The build at the grid's initialization fires before the callbacks declared in the settings object are
    * attached, so only a global hook (`Handsontable.hooks.add()`) observes that first call.

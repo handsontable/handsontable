@@ -726,6 +726,34 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect(grid.cell(0, 0)).toHaveText('GRID-01');
     });
 
+    test('a save queued before a rebuild that fails afterwards leaves the new workbook alone', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto();
+      await grid.editCell(0, 1, 'edited');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+
+      await grid.setSheets();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      const rebuildFetch = await grid.fetchCount('ORD');
+
+      await grid.release('ORD');
+      await expect(grid.cell(0, 1)).toHaveText(`#${rebuildFetch}`);
+
+      await grid.failNextUpdate();
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.events()).toContain('afterMutationError update');
+
+      expect(await grid.page.evaluate(() => window.hot.getDataAtCol(1).map(String))).toEqual(
+        Array.from({ length: 5 }, () => `#${rebuildFetch}`)
+      );
+      expect(await grid.fetchCount('ORD')).toBe(rebuildFetch);
+      await expect(grid.toast()).toHaveCount(0);
+      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row update failed:')]);
+      await grid.clearConsoleProblems();
+    });
+
     test('a rebuild drops the fetch of the workbook it replaces', async({ page, theme, bundle }) => {
       grid = new DataProviderSheetsBarPage(page, theme, bundle);
       await grid.goto();

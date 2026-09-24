@@ -198,12 +198,14 @@ You can run your code before or after different sheet operations, using the foll
 - [`afterSheetTabAdd()`](@/api/hooks.md#aftersheettabadd)
 - [`beforeSheetTabRemove()`](@/api/hooks.md#beforesheettabremove)
 - [`afterSheetTabRemove()`](@/api/hooks.md#aftersheettabremove)
+- [`afterSheetTabDuplicate()`](@/api/hooks.md#aftersheettabduplicate)
 - [`beforeSheetTabRename()`](@/api/hooks.md#beforesheettabrename)
 - [`afterSheetTabRename()`](@/api/hooks.md#aftersheettabrename)
 - [`beforeSheetTabMove()`](@/api/hooks.md#beforesheettabmove)
 - [`afterSheetTabMove()`](@/api/hooks.md#aftersheettabmove)
 - [`afterSheetTabStateCapture()`](@/api/hooks.md#aftersheettabstatecapture)
 - [`afterSheetTabStateRestore()`](@/api/hooks.md#aftersheettabstaterestore)
+- [`afterSheetWorkbookReset()`](@/api/hooks.md#aftersheetworkbookreset)
 
 ::: only-for javascript
 ```js
@@ -393,11 +395,13 @@ Use the menu's **Move left** and **Move right** actions to reorder sheets from t
 
 - [afterSheetTabAdd](@/api/hooks.md#aftersheettabadd)
 - [afterSheetTabChange](@/api/hooks.md#aftersheettabchange)
+- [afterSheetTabDuplicate](@/api/hooks.md#aftersheettabduplicate)
 - [afterSheetTabMove](@/api/hooks.md#aftersheettabmove)
 - [afterSheetTabRemove](@/api/hooks.md#aftersheettabremove)
 - [afterSheetTabRename](@/api/hooks.md#aftersheettabrename)
 - [afterSheetTabStateCapture](@/api/hooks.md#aftersheettabstatecapture)
 - [afterSheetTabStateRestore](@/api/hooks.md#aftersheettabstaterestore)
+- [afterSheetWorkbookReset](@/api/hooks.md#aftersheetworkbookreset)
 - [beforeSheetTabAdd](@/api/hooks.md#beforesheettabadd)
 - [beforeSheetTabChange](@/api/hooks.md#beforesheettabchange)
 - [beforeSheetTabMove](@/api/hooks.md#beforesheettabmove)

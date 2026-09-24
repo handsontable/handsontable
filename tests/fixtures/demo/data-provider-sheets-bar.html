@@ -69,6 +69,11 @@
     records `fetch <prefix> #<n>`, the `afterDataProviderFetch*` hook firings, every `afterColumnSort` (fired
     only by a sort ColumnSorting runs itself), and the `afterRowsMutation*` firings in order.
 
+    The grid is 720px wide so the pager stays on one line on every theme: at 500px it wrapped from 46px to 96px
+    on horizon only, and EmptyDataState showed a loading overlay sized before the wrap, which reached over the
+    sheet tabs. At 720px the pager is one line on all three themes (one ResizeObserver entry each, 31/42/46px on
+    classic/main/horizon), so the overlay ends at the grid's own bottom edge, above the bar.
+
     Cells carry `data-testid="cell-<row>-<col>"`; the tabs carry `data-testid="sheet-tab-<index>"`.
   -->
   <div data-testid="grid"></div>

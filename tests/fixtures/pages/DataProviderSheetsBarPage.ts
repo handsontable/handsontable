@@ -185,12 +185,39 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
-   * Switch sheets by clicking a tab's label, the way a user does it.
+   * Switch sheets by clicking a tab's label, the way a user does it. Fails at once, with the geometry, when the
+   * EmptyDataState overlay reaches over the tab, instead of letting the click wait out the test timeout.
    *
    * @param {number} index The tab's position, 0-based.
    */
   async clickTab(index: number): Promise<void> {
-    await this.tab(index).locator('.ht-sheets-bar__tab-label').click();
+    const label = this.tab(index).locator('.ht-sheets-bar__tab-label');
+
+    expect(await this.overlayOverlap(label), 'the loading overlay covers the sheet tab').toBeNull();
+    await label.click();
+  }
+
+  /**
+   * Measures, in one evaluation, whether a visible EmptyDataState overlay reaches over an element.
+   *
+   * @param {Locator} target The element that must stay clickable.
+   * @returns {Promise<string | null>} The two vertical spans when they overlap, `null` otherwise.
+   */
+  async overlayOverlap(target: Locator): Promise<string | null> {
+    return target.evaluate((element) => {
+      const overlay = document.querySelector('.ht-empty-data-state');
+
+      if (!overlay || getComputedStyle(overlay).display === 'none') {
+        return null;
+      }
+
+      const covered = element.getBoundingClientRect();
+      const cover = overlay.getBoundingClientRect();
+
+      return cover.bottom > covered.top && cover.top < covered.bottom
+        ? `overlay ${cover.top}-${cover.bottom}, target ${covered.top}-${covered.bottom}`
+        : null;
+    });
   }
 
   /**
