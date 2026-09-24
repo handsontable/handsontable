@@ -4,6 +4,7 @@
 const path = require('path');
 const configFactory = require('./languages-development');
 const { createSwcJsMinimizer } = require('./helper/swc-minimizer');
+const assertAsciiOutput = require('./plugin/rspack/assert-ascii-output');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
 module.exports.create = function create() {
@@ -21,6 +22,7 @@ module.exports.create = function create() {
         createSwcJsMinimizer(),
       ],
     };
+    config.plugins.push(assertAsciiOutput());
   });
 
   return [].concat(configs);

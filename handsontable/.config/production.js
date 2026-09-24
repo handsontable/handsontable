@@ -8,6 +8,7 @@ const configFactory = require('./development');
 const { getClosest } = require('./helper/path');
 const { getLicenseBody } = require('./helper/license');
 const { createSwcJsMinimizer } = require('./helper/swc-minimizer');
+const assertAsciiOutput = require('./plugin/rspack/assert-ascii-output');
 const postBuildBanner = require('./plugin/rspack/post-build-banner');
 
 const licenseBody = getLicenseBody();
@@ -33,6 +34,7 @@ module.exports.create = function create(envArgs) {
     // and add a post-build banner that writes to the file after all processing.
     c.plugins = c.plugins.filter(p => !(p instanceof rspack.BannerPlugin));
     c.plugins.push(postBuildBanner(licenseBody, /handsontable\.(full\.)?min\.js$/));
+    c.plugins.push(assertAsciiOutput());
 
     if (isFullBuild) {
       c.plugins.push(

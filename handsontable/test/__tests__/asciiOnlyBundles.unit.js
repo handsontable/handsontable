@@ -1,11 +1,15 @@
 /**
  * @jest-environment node
  */
-import { readdirSync, readFileSync } from 'fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import rspack from '@rspack/core';
 
 import { createSwcJsMinimizer } from '../../.config/helper/swc-minimizer';
+import assertAsciiOutput, {
+  PLUGIN_NAME as ASSERT_ASCII_PLUGIN_NAME,
+} from '../../.config/plugin/rspack/assert-ascii-output';
 
 const CONFIG_DIR = resolve(__dirname, '../../.config');
 const HELPER_PATH = join(CONFIG_DIR, 'helper/swc-minimizer.js');
@@ -113,6 +117,61 @@ describe('production build configs', () => {
 
       expect(swcMinimizers.length).toBe(1);
       expect(getMinimizerOptions(swcMinimizers[0]).format.asciiOnly).toBe(true);
+      expect(config.plugins.filter(plugin => plugin?.name === ASSERT_ASCII_PLUGIN_NAME).length).toBe(1);
     });
+  });
+});
+
+/**
+ * Builds `source` the way the production configs do (production mode, the shared minimizer, and
+ * the output check) and resolves with the compilation errors.
+ *
+ * @param {string} source The entry module source.
+ * @returns {Promise<string[]>} The error messages.
+ */
+function buildWithAsciiCheck(source) {
+  const dir = mkdtempSync(join(tmpdir(), 'ht-ascii-'));
+  const entry = join(dir, 'entry.js');
+
+  writeFileSync(entry, source, 'utf8');
+
+  return new Promise((done, fail) => {
+    rspack({
+      mode: 'production',
+      context: dir,
+      entry,
+      output: { path: join(dir, 'dist'), filename: 'bundle.min.js' },
+      optimization: { minimize: true, minimizer: [createSwcJsMinimizer()] },
+      plugins: [assertAsciiOutput()],
+    }, (error, stats) => {
+      rmSync(dir, { recursive: true, force: true });
+
+      if (error) {
+        fail(error);
+
+        return;
+      }
+
+      done(stats.toJson({ all: false, errors: true }).errors.map(({ message }) => message));
+    });
+  });
+}
+
+describe('assert-ascii-output plugin', () => {
+  it('should fail the build on a raw character the minifier cannot escape', async() => {
+    // `asciiOnly` leaves a tagged template's text as is, because escaping it would change the
+    // tag's `strings.raw`.
+    const source = 'const tag = strings => strings.raw[0];\n'
+      + `window.message = tag\`It${String.fromCharCode(0x2019)}s\`;\n`;
+    const errors = await buildWithAsciiCheck(source);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain('bundle.min.js contains a non-ASCII byte');
+  });
+
+  it('should pass a build whose output is ASCII', async() => {
+    const source = `window.message = 'It${String.fromCharCode(0x2019)}s';\n`;
+
+    expect(await buildWithAsciiCheck(source)).toEqual([]);
   });
 });
