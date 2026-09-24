@@ -542,6 +542,86 @@ describe('NestedRows', () => {
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
+    it('should not undo a detach when its destination holds another subtree', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{ col1: 'Child' }],
+          },
+          { col1: 'After' },
+        ],
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      // `updateData` keeps the undo history, and the detached child's path now resolves to a row with a
+      // subtree of its own.
+      const replacedData = [
+        { col1: 'Parent', __children: [] },
+        { col1: 'After' },
+        {
+          col1: 'Other',
+          __children: [{ col1: 'Other child' }],
+        },
+      ];
+
+      await updateData(JSON.parse(JSON.stringify(replacedData)));
+
+      expect(undoRedo.doneActions.length).toBe(1);
+
+      undoRedo.undo();
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.undoneActions.length).toBe(0);
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(replacedData);
+    });
+
+    it('should not redo a detach when its original slot holds another subtree', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{ col1: 'Child' }],
+          },
+          { col1: 'After' },
+        ],
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      const replacedData = [
+        {
+          col1: 'Parent',
+          __children: [{
+            col1: 'Other',
+            __children: [{ col1: 'Other child' }],
+          }],
+        },
+        { col1: 'After' },
+      ];
+
+      await updateData(JSON.parse(JSON.stringify(replacedData)));
+
+      expect(undoRedo.undoneActions.length).toBe(1);
+
+      undoRedo.redo();
+
+      expect(undoRedo.doneActions.length).toBe(0);
+      expect(undoRedo.undoneActions.length).toBe(1);
+      expect(nestedRows.dataManager.getRawSourceData()).toEqual(replacedData);
+    });
+
     it('should not throw an error when removing a parent row', async() => {
       const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
 

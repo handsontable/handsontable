@@ -10,6 +10,7 @@ interface NestedRow {
 }
 
 interface NestedRowsDataManager {
+  countChildren: (row: NestedRow) => number;
   getData: () => NestedRow[] | null;
   getDataObject: (row: number) => NestedRow | null | undefined;
   getRowIndex: (row: NestedRow) => number | null;
@@ -66,6 +67,37 @@ function getDetachedRowPath(dataManager: NestedRowsDataManager, row: NestedRow):
   }
 
   return [...grandparentPath, grandparent.__children?.length ?? 0];
+}
+
+/**
+ * Resolves the subtree root stored at a tree path, if it still matches the captured subtree.
+ *
+ * Undo and redo run in stack order, so the tree normally has the shape the action captured. The size check guards
+ * against a tree changed outside UndoRedo: without it, the path could resolve to another row, and undo would remove
+ * or restore the wrong subtree.
+ *
+ * @param {object} dataManager The NestedRows data manager.
+ * @param {Array<number>} path The tree path of the subtree root.
+ * @param {number} amount The number of rows the subtree had when the action was captured.
+ * @returns {object|null} The physical row and data object of the root, or `null` when the path no longer matches.
+ */
+function resolveSubtree(
+  dataManager: NestedRowsDataManager, path: number[], amount: number
+): { physicalRow: number, row: NestedRow } | null {
+  const physicalRow = dataManager.getRowIndexByTreePath(path);
+
+  if (typeof physicalRow !== 'number' || !Number.isInteger(physicalRow)) {
+    return null;
+  }
+
+  const row = dataManager.getDataObject(physicalRow);
+
+  // `amount` comes from the same count when NestedRows emits the detach's `beforeRemoveRow`.
+  if (!row || dataManager.countChildren(row) + 1 !== amount) {
+    return null;
+  }
+
+  return { physicalRow, row };
 }
 
 /**
@@ -227,20 +259,50 @@ export class NestedRowsDetachAction extends BaseAction {
   }
 
   /**
-   * Registers the `beforeRemoveRow` listener that turns NestedRows' remove/create pair into one action.
+   * Registers the listeners that turn NestedRows' remove/create pair into one action.
+   *
+   * The action is captured on `beforeRemoveRow`, before the tree changes, with a predicted destination path.
+   * `afterDetachChild` then replaces that prediction with the path the row actually landed on, so a listener that
+   * reshapes the tree during the detach cannot leave the action pointing at another row. The prediction stays
+   * as the fallback when the detach throws before `afterDetachChild` fires.
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     type UndoRedoPlugin = {
       done: (wrappedAction: () => NestedRowsDetachAction | null, source: string) => void;
     };
     const plugin = undoRedoPlugin as UndoRedoPlugin;
+    let pendingAction: NestedRowsDetachAction | null = null;
 
     hot.addHook('beforeRemoveRow', (index: number, amount: number, logicRows: unknown, source: string) => {
       if (source !== NESTED_ROWS_DETACH_SOURCE) {
         return;
       }
 
-      plugin.done(() => NestedRowsDetachAction.create(hot, index, amount, logicRows), source);
+      pendingAction = null;
+      plugin.done(() => {
+        pendingAction = NestedRowsDetachAction.create(hot, index, amount, logicRows);
+
+        return pendingAction;
+      }, source);
+    });
+
+    hot.addHook('afterDetachChild', (_parent: unknown, _element: unknown, finalElementRowIndex: unknown,
+                                     source?: string) => {
+      const action = pendingAction;
+
+      // A detach that moves nothing fires `afterDetachChild` without `beforeRemoveRow`, so the pending action
+      // is cleared on every call. Otherwise a later no-op detach could rewrite a stale action.
+      pendingAction = null;
+
+      if (action === null || source !== NESTED_ROWS_DETACH_SOURCE || typeof finalElementRowIndex !== 'number') {
+        return;
+      }
+
+      const detachedRowPath = getNestedRowsDataManager(hot)?.getRowTreePath(finalElementRowIndex) ?? null;
+
+      if (detachedRowPath !== null) {
+        action.detachedRowPath = detachedRowPath;
+      }
     });
   }
 
@@ -257,11 +319,10 @@ export class NestedRowsDetachAction extends BaseAction {
       return false;
     }
 
-    const detachedPhysicalRow = dataManager.getRowIndexByTreePath(this.detachedRowPath);
+    const subtree = resolveSubtree(dataManager, this.detachedRowPath, this.amount);
 
-    return typeof detachedPhysicalRow === 'number' &&
-      Number.isInteger(detachedPhysicalRow) &&
-      hot.rowIndexMapper.getIndexesSequence().includes(detachedPhysicalRow) &&
+    return subtree !== null &&
+      hot.rowIndexMapper.getIndexesSequence().includes(subtree.physicalRow) &&
       this.removeAction.canUndo(hot);
   }
 
@@ -273,10 +334,9 @@ export class NestedRowsDetachAction extends BaseAction {
    */
   undo(hot: HotInstance, undoneCallback: SettleCallback) {
     const dataManager = getNestedRowsDataManager(hot);
-    const detachedPhysicalRow = dataManager?.getRowIndexByTreePath(this.detachedRowPath) ?? null;
+    const subtree = dataManager === null ? null : resolveSubtree(dataManager, this.detachedRowPath, this.amount);
 
-    if (typeof detachedPhysicalRow !== 'number' || !Number.isInteger(detachedPhysicalRow) ||
-        !removeDetachedRows(hot, detachedPhysicalRow)) {
+    if (subtree === null || !removeDetachedRows(hot, subtree.physicalRow)) {
       undoneCallback({ wasUndone: false });
 
       return;
@@ -298,10 +358,9 @@ export class NestedRowsDetachAction extends BaseAction {
       return false;
     }
 
-    const physicalRow = dataManager.getRowIndexByTreePath(this.rowPath);
-    const row = physicalRow === null ? null : dataManager.getDataObject(physicalRow);
+    const subtree = resolveSubtree(dataManager, this.rowPath, this.amount);
 
-    return row !== null && row !== undefined && dataManager.getRowParent(row) !== null;
+    return subtree !== null && dataManager.getRowParent(subtree.row) !== null;
   }
 
   /**
@@ -312,10 +371,9 @@ export class NestedRowsDetachAction extends BaseAction {
    */
   redo(hot: HotInstance, redoneCallback: SettleCallback) {
     const dataManager = getNestedRowsDataManager(hot);
-    const physicalRow = dataManager?.getRowIndexByTreePath(this.rowPath) ?? null;
-    const row = physicalRow === null ? null : dataManager?.getDataObject(physicalRow);
+    const subtree = dataManager === null ? null : resolveSubtree(dataManager, this.rowPath, this.amount);
 
-    if (!row || dataManager === null || dataManager.getRowParent(row) === null) {
+    if (dataManager === null || subtree === null || dataManager.getRowParent(subtree.row) === null) {
       redoneCallback({ wasRedone: false });
 
       return;
@@ -330,7 +388,7 @@ export class NestedRowsDetachAction extends BaseAction {
     hot.addHookOnce('afterViewRender', onAfterViewRender);
 
     try {
-      dataManager.detachFromParent(row, true, 'UndoRedo.redo');
+      dataManager.detachFromParent(subtree.row, true, 'UndoRedo.redo');
     } catch (error) {
       if (!hasRendered) {
         hot.removeHook('afterViewRender', onAfterViewRender);

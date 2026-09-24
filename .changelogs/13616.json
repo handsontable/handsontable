@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed undo and redo after detaching a nested row.",
+  "title": "Fixed undo and redo after detaching a nested row, and an error when detaching a nested row with a trimmed child while formulas are enabled.",
   "type": "fixed",
   "issueOrPR": 13616,
   "breaking": false,

@@ -966,6 +966,7 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeUndo', (action: unknown) => {
       const isNestedRowsDetach = isNestedRowsDetachAction(action);
 
+      this.#releaseIndexSyncGuards();
       this.indexSyncer!.setPerformUndo(true);
       this.#nestedRowsDetachUndoPending = isNestedRowsDetach;
 
@@ -992,6 +993,7 @@ export class Formulas extends BasePlugin {
         return false;
       }
 
+      this.#releaseIndexSyncGuards();
       this.#isRedoingMoveCells = action.actionType === 'move_cells';
 
       this.#undoRedoChangedCells = [];
@@ -4146,8 +4148,23 @@ export class Formulas extends BasePlugin {
    */
   #closeLeakedGuards() {
     this.#nestedRowsDetachPending = false;
-    this.#nestedRowsDetachUndoPending = false;
     this.#internalOperationPending = false;
+    this.#releaseIndexSyncGuards();
+  }
+
+  /**
+   * Lowers the index-sync undo and redo flags that an interrupted undo or redo left raised.
+   *
+   * A redo of a NestedRows detach raises the redo flag in `beforeDetachChild`, and `afterRedo` lowers it. When
+   * the detach throws between the two, `UndoRedo` rethrows without firing `afterRedo`, and nothing else would
+   * lower the flag. A raised flag makes the axis syncers skip every later row and column move, so HyperFormula
+   * silently drifts away from the grid. Every undo and redo starts from lowered flags, and so does every
+   * structural reload in `#closeLeakedGuards`, which bounds such a leak to the next of those operations.
+   */
+  #releaseIndexSyncGuards() {
+    this.indexSyncer?.setPerformUndo(false);
+    this.indexSyncer?.setPerformRedo(false);
+    this.#nestedRowsDetachUndoPending = false;
   }
 
   /**

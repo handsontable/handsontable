@@ -457,7 +457,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
-  afterDetachChild: (parent, element) => {},
+  afterDetachChild: (parent, element, finalElementPosition, source) => {
+    const _source: string | undefined = source;
+  },
   afterDialogFocus: (focusSource) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
@@ -670,7 +672,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeDetachChild: (parent, element) => {},
+  beforeDetachChild: (parent, element, source) => {
+    const _source: string | undefined = source;
+  },
   beforeDialogHide: () => {},
   beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},

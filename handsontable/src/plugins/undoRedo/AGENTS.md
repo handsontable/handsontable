@@ -116,6 +116,28 @@ that filed each key (`startCellOptionMetaRecording`, a plain `setCellMeta`, or
 returns. The merge snapshot type is `import type { PhysicalRowMergeSnapshot }` from MergeCells —
 type-only, so registering UndoRedo still does not pull that plugin into the bundle.
 
+The action finds its subtree by **tree path**, which is a position, not an identity. Stack order keeps the
+tree in the captured shape, so the path is right unless the tree changed outside the stack (`updateData`
+keeps the history). `resolveSubtree()` therefore also requires the resolved row to own exactly `amount`
+rows, and `canUndo()` / `canRedo()` refuse on a mismatch. A refused action stays on its stack, which is the
+same stuck state as any other refusal; that beats removing or re-detaching another subtree. Do not replace
+the size check with an object-identity check: a later remove-and-undo of the detached row restores a
+**clone** from its snapshot, so a stored reference stops matching and the detach could never be undone.
+
+`detachedRowPath` is predicted on `beforeRemoveRow`, then overwritten on `afterDetachChild` with the path
+the row actually landed on, so a listener that reshapes the tree mid-detach cannot leave a wrong path. The
+prediction is kept as the fallback for a detach that throws before `afterDetachChild`. The pending action
+is cleared on every `afterDetachChild`: a no-op detach fires that hook without `beforeRemoveRow`.
+
+## `redo()` pops the undone stack only after `beforeRedo` accepts
+
+`UndoRedo#redo()` reads the top action, runs `beforeRedo`, and only then fires the redo stack-change hooks
+and pops it (DEV-138). A vetoed redo keeps the action on the undone stack and fires no stack-change hook.
+Before, the action was popped first and a veto dropped it for good. This applies to every action type.
+`undo()` still pops before `beforeUndo`, deliberately: Formulas steps HyperFormula inside `beforeUndo` for
+non-detach actions, so keeping a vetoed undo on the stack would let a retry undo the engine twice. Making
+`undo()` symmetric needs the same deferral on the Formulas side first.
+
 ## A removal that removes nothing must still settle
 
 `CreateRowAction` / `CreateColumnAction` (undo) and `RemoveRowAction` / `RemoveColumnAction` (redo) settle
