@@ -20,6 +20,9 @@ import {
  * and the release leaves the scroll where the drag put it. The first step is deliberately not a
  * multiple of the 50px default column width: the frozen inset is off by the activation distance
  * modulo that width, so a first step of 50 or 100 would leave broken code on the right place.
+ *
+ * The same task also reports a populated grid breaking during a drag. That does not reproduce in
+ * Chromium and is a different mechanism; it is tracked as DEV-3091.
  */
 
 /**
