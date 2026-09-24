@@ -32,6 +32,18 @@ const RESTRICTED_SYNTAX = [
     selector: "CallExpression[callee.property.name='with']",
     message: 'Array#with needs Firefox 140+ and TypedArray#with needs Safari/iOS 26+, both above the ../browser-targets.js baseline (Firefox >= 132, Safari >= 18.2, iOS >= 18.2). Use arr.slice() plus an index assignment instead.',
   },
+  // The dist/ bundles must not depend on being decoded as UTF-8 (DEV-111, handsontable/AGENTS.md,
+  // Build). The SWC minifier's `asciiOnly` escapes every string and untagged template, but it
+  // cannot escape a tagged template without changing the tag's `strings.raw`, and the non-minified
+  // bundles are not minified at all, so a raw non-ASCII identifier there stops the file from parsing.
+  {
+    selector: 'TaggedTemplateExpression > TemplateLiteral > TemplateElement[value.raw=/[^\\x00-\\x7F]/]',
+    message: 'A tagged template must not contain a raw non-ASCII character: the minifier cannot escape it, so pages that are not UTF-8 decode it wrongly. For a tag that reads the cooked strings (toSingleLine), write it as a \\u escape; String.raw keeps an escape as literal text, so keep its text ASCII.',
+  },
+  {
+    selector: 'Identifier[name=/[^\\x00-\\x7F]/]',
+    message: 'A non-ASCII identifier (or unquoted object key) makes the non-minified bundles fail to parse on pages that are not UTF-8. Use an ASCII name, or a quoted key written with a \\u escape.',
+  },
 ];
 
 module.exports = {

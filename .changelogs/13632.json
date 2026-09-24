@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the UMD bundles breaking on pages not served as UTF-8: the non-minified bundles failed to load, and the minified ones misparsed formula names and garbled text.",
+  "type": "fixed",
+  "issueOrPR": 13632,
+  "breaking": false,
+  "framework": "none"
+}
