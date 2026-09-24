@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-23T16:07:44.277Z",
+  "generatedAt": "2026-09-24T07:58:00.164Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1613
+    "entries": 1614
   },
   "rows": [
     {
@@ -89,6 +89,40 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "count7": 5,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 7,
+      "flakyRuns30": 7,
+      "branches30": 7,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-24T07:57:06Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35970135239",
+        "branch": "feature/DEV-3085_Selection-handles-hover-scroll",
+        "leg": "e2e-main",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
       "tier": "jasmine",
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
@@ -119,40 +153,6 @@
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 4,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 6,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-22T14:01:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304/attempts/2",
-        "branch": "feature/DEV-134_Restore-hidden-rows-after-undoing-remove",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
