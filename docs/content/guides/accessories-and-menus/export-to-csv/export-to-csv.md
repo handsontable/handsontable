@@ -219,7 +219,7 @@ hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
 // 1,2,3,4
 ```
 
-Hidden columns follow the `exportHiddenColumns` option: a group shrinks to the columns the export includes. A `range` that starts inside a group leaves that group's cells empty on the parent line, so every header line keeps the same column count as the data.
+Hidden columns follow the `exportHiddenColumns` option: a group shrinks to the columns the export includes. A `range` that starts inside a group leaves that group's cells empty on the parent line, so every header line keeps the same column count as the data. When the first columns of a group are hidden, the group starts at its first visible column, as it does in the grid. A `range` that starts on that column writes the group label.
 
 ### Export headers as plain text
 
