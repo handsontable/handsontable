@@ -72,6 +72,18 @@ export class SelectionFeaturesPage {
     await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
   }
 
+  /**
+   * Rebuild the grid with enough rows to scroll vertically through several selections.
+   */
+  async initScrollableGrid(): Promise<void> {
+    await this.page.evaluate(() => window.initSelectionGrid({
+      data: Array.from({ length: 100 }, (_, row) =>
+        Array.from({ length: 10 }, (_, col) => `R${row + 1}C${col + 1}`)),
+      height: 300,
+    }));
+    await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
+  }
+
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
@@ -817,6 +829,62 @@ export class SelectionFeaturesPage {
 
     return Math.abs(ghostBox.y - rowBox.y) <= 1 &&
       Math.abs(ghostBox.height - rowBox.height) <= 1;
+  }
+
+  /**
+   * Move the real pointer off the grid, to the page's top-left corner (the fixture's body margin
+   * keeps that point outside the grid).
+   */
+  async movePointerOffGrid(): Promise<void> {
+    await this.page.mouse.move(1, 1);
+  }
+
+  /** Dispatch one real wheel event at the pointer's current position. */
+  async wheel(deltaY: number): Promise<void> {
+    await this.page.mouse.wheel(0, deltaY);
+  }
+
+  /** The master holder's vertical scroll offset. */
+  async verticalScrollOffset(): Promise<number> {
+    return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollTop);
+  }
+
+  /** Scroll the master holder to its top edge, and wait until the first row is rendered. */
+  async scrollToTop(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0 }));
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /** Select several ranges at once, one selection layer per range, through the instance API. */
+  async selectLayers(ranges: Array<[number, number, number, number]>): Promise<void> {
+    await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
+  }
+
+  /** The visible bottom-edge resize handle in the master overlay. */
+  visibleBottomHandle(): Locator {
+    return this.page.locator('.ht_master .wtSelectionHandle--bottom:visible');
+  }
+
+  /** How many times the renderer has painted a cell of the grid since the grid was built. */
+  async cellPaintCount(): Promise<number> {
+    return this.page.evaluate(() => window.cellPaintCount);
+  }
+
+  /** The selection layer the handles are shown for, or `null` when the pointer is over none. */
+  async handlesHoveredLayer(): Promise<number | null> {
+    return this.page.evaluate(() => window.hot.selection.getHandlesHoveredLayer());
+  }
+
+  /** The public selection hooks the fixture recorded, in firing order. */
+  async selectionHookLog(): Promise<string[]> {
+    return this.page.evaluate(() => [...window.selectionHookLog]);
+  }
+
+  /** Forget the selection hooks recorded so far. */
+  async clearSelectionHookLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.selectionHookLog.length = 0;
+    });
   }
 
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */
