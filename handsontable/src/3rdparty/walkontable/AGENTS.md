@@ -30,6 +30,63 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Each adjust handle has exactly one owning overlay (DEV-3084)
+
+A selection that crosses a freeze line is drawn once per overlay. `appear()` runs in the master and in
+every clone, and each run clamps the corners to what that overlay renders. So a slice drawn by
+`inline_start`, for example, ends on the freeze line. When each slice placed its own full set of
+`adjustHandles`, handles showed up on the freeze line in the middle of the selection, and the top and
+bottom edges got one pair per slice. `Border#getAdjustHandlesOwnership` now gives each handle to one
+overlay. Every overlay evaluates the rule on identical inputs, resolved once per update by
+`getAdjustHandlesAxisLayout`: the fixed-pane settings, the raw corners, and the master's **visible**
+range, read through `cloneSource`.
+
+- **Visible, not rendered.** The master renders more tracks than the user can see:
+  - the rendering offset (`viewport*RenderingOffset: 'auto'`) adds one track on each side;
+  - the directional overscan adds more;
+  - `renderAllRows` and `renderAllColumns` render everything.
+
+  Those extra tracks sit behind a frozen pane or outside the holder. A rule keyed on the rendered
+  range moved handles onto them, where nobody could see them, and took them away from the frozen
+  overlay that could show them. The visible calculators leave the frozen panes out, so
+  `getFirstPartiallyVisible*` / `getLastPartiallyVisible*` answer "can the user see this track". They
+  are refreshed on fast draws too, and the master draws before the clones, so every overlay reads the
+  same answer.
+- **On the handle's own axis,** the overlay's segment must contain the edge. Each overlay has a
+  segment on each axis: frozen `start`, scrollable `main`, or frozen `end`. The overlay must also
+  render the edge unclamped, and in `main` the edge must be visible too. An edge clamped to the
+  rendered band lies inside the selection, and a hidden edge's handle would sit behind a pane.
+- **On the cross axis,** where the handle is centered, only the segment
+  `getAdjustHandlesCenterSegment` picks may draw it. That is `main` while any of the selection's
+  scrollable part is visible, and the frozen pane otherwise. Without the fallback, the top and bottom
+  handles vanish once the scrollable part is scrolled away.
+- **The midpoint comes from the owner's visible segment** (`getAdjustHandlesBox`), not from the
+  clamped box. At a scroll offset of 0 the master and the scroll-synced clones render the frozen rows
+  or columns at the start of their band, underneath the frozen overlays. At any offset they render
+  overscan tracks. So a handle centered on the whole box can land on the freeze line, behind a pane,
+  or outside the holder.
+  - The narrowing reads geometry for the reference cell and the new edge cell, only for an edge it
+    actually narrows.
+  - It skips merged cells: `getCell` resolves a merged child to its root, whose edge is the whole
+    block's.
+  - As a result, a crossing selection's top and bottom handles are **not** centered on the whole
+    range. That is deliberate.
+
+The older "edge lies exactly on a freeze line" hides (`isFrozenBoundaryEdge` and friends) still apply
+on top of this. So does the grid-boundary hide in `positionAdjustHandles`, which works in renderable
+space. With visual row 0 hidden, a selection starting at visual row 1 is at the boundary and gets no
+top handle.
+
+Testing needs care. A crossing selection's master slice already shows the right number of handles, so
+the master-scoped `handle()`/`visibleHandles()` locators pass on the bug. Count with
+`visibleHandlesInAnyOverlay()` instead (`tests/e2e/selection-handles.spec.ts`, "a selection crossing
+a frozen pane"). The rendered-versus-visible trap only shows when a scrollable track of the selection
+stays rendered behind the pane, so scroll just one track past it (`scrollToColumn(2)` with one frozen
+column), not to the far end.
+
+The `moveCells` bands (`positionMoveZone`) are still drawn per overlay, and a slice's band still sits
+on the freeze line.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.

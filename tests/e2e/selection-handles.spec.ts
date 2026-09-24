@@ -469,4 +469,258 @@ test.describe('selectionHandles adjust handles', () => {
 
     expect(await grid.selectedBounds()).toEqual({ top: 2, start: 2, bottom: 5, end: 5 });
   });
+
+  test.describe('a selection crossing a frozen pane', () => {
+    /**
+     * The center of a located element's box.
+     */
+    async function centerOf(locator: ReturnType<SelectionFeaturesPage['handle']>) {
+      const box = await locator.boundingBox();
+
+      expect(box).not.toBeNull();
+
+      return { x: box!.x + (box!.width / 2), y: box!.y + (box!.height / 2) };
+    }
+
+    test('draws each handle once, on the outer edge, across frozen columns', async () => {
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedColumnsStart: 1 });
+      await grid.selectCells(4, 0, 8, 3);
+      await grid.hoverCell(6, 2);
+
+      // Column 0 is the grid boundary, so there is no start handle. Before the fix the frozen-columns
+      // overlay drew its own top, bottom and end handles on its slice (column 0): six in total, with an
+      // end handle on the freeze line in the middle of the selection.
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+      await expect(grid.handleInAnyOverlay('start')).toHaveCount(0);
+
+      const seamBox = await grid.frozenColumnCell(6, 0).boundingBox();
+      const range = await grid.rangeBox(4, 0, 8, 3);
+      const seamX = seamBox!.x + seamBox!.width;
+
+      const end = await centerOf(grid.handleInAnyOverlay('end'));
+
+      expect(Math.abs(end.x - range.right)).toBeLessThanOrEqual(2);
+
+      for (const edge of ['top', 'bottom'] as const) {
+        const box = await grid.handleInAnyOverlay(edge).boundingBox();
+
+        // Centered on the scrollable part of the selection: fully past the freeze line, inside the span.
+        expect(box!.x).toBeGreaterThan(seamX + 2);
+        expect(box!.x + box!.width).toBeLessThan(range.right);
+      }
+    });
+
+    test('draws each handle once, on the outer edge, across frozen rows', async () => {
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsTop: 2 });
+      await grid.selectCells(1, 1, 5, 3);
+      await grid.hoverCell(3, 2);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(4);
+
+      for (const edge of ['top', 'bottom', 'start', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+
+      const seamBox = await grid.frozenRowCell(1, 1).boundingBox();
+      const range = await grid.rangeBox(1, 1, 5, 3);
+      const seamY = seamBox!.y + seamBox!.height;
+      const top = await centerOf(grid.handleInAnyOverlay('top'));
+
+      expect(Math.abs(top.y - range.top)).toBeLessThanOrEqual(2);
+
+      for (const edge of ['start', 'end'] as const) {
+        const box = await grid.handleInAnyOverlay(edge).boundingBox();
+
+        expect(box!.y).toBeGreaterThan(seamY + 2);
+        expect(box!.y + box!.height).toBeLessThan(range.bottom);
+      }
+    });
+
+    test('draws each handle once across frozen rows and columns at the same time', async () => {
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsTop: 2, fixedColumnsStart: 1 });
+      await grid.selectCells(1, 0, 5, 3);
+      await grid.hoverCell(3, 2);
+
+      // Four overlays draw a slice of this selection; before the fix each carried three handles.
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+
+      for (const edge of ['top', 'bottom', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+    });
+
+    test('draws each handle once across the bottom frozen rows', async () => {
+      // 10 rows, fixedRowsBottom: 2 → rows 8 and 9 are frozen. The selection ends on row 8, so its
+      // bottom edge is neither on the seam nor on the grid boundary.
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsBottom: 2 });
+      await grid.selectCells(5, 1, 8, 3);
+      await grid.hoverCell(6, 2);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(4);
+
+      for (const edge of ['top', 'bottom', 'start', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+
+      // The bottom edge belongs to the bottom frozen pane.
+      await expect(grid.frozenBottomHandle('bottom')).toHaveCount(1);
+    });
+
+    test('keeps the top and bottom handles on the frozen part once the scrollable part scrolls away', async () => {
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
+        fixedColumnsStart: 1,
+      });
+      await grid.selectCells(4, 0, 8, 1);
+      await grid.scrollToColumn(39);
+      await grid.frozenColumnCell(6, 0).hover();
+
+      // Column 1 is no longer rendered, so the frozen-columns overlay takes the top and bottom handles
+      // over. The end handle's edge is scrolled out of view, so nothing draws it.
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
+      await expect(grid.handleInAnyOverlay('top')).toHaveCount(1);
+      await expect(grid.handleInAnyOverlay('bottom')).toHaveCount(1);
+
+      await grid.scrollToColumn(1);
+      await grid.hoverCell(6, 1);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+
+      for (const edge of ['top', 'bottom', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+    });
+
+    for (const renderAllColumns of [false, true]) {
+      test(`moves the top and bottom handles to the frozen part when the scrollable part is rendered but hidden (renderAllColumns: ${renderAllColumns})`, async () => {
+        await grid.initGrid({
+          ...ROOMY_VIEWPORT,
+          data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
+          fixedColumnsStart: 1,
+          renderAllColumns,
+        });
+        await grid.selectCells(4, 0, 8, 1);
+        // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
+        // offset, or every column with renderAllColumns) while the frozen pane covers it.
+        await grid.scrollToColumn(2);
+        await grid.frozenColumnCell(6, 0).hover();
+
+        await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
+
+        const { cell, handles } = await grid.handleBoxesAgainstCell('ht_clone_inline_start', 6, 0);
+
+        expect(handles.end).toHaveLength(0);
+
+        for (const edge of ['top', 'bottom'] as const) {
+          expect(handles[edge]).toHaveLength(1);
+
+          const handleCenterX = handles[edge][0].x + (handles[edge][0].width / 2);
+
+          // Over the frozen column, where the user can see the selection's edge.
+          expect(handleCenterX).toBeGreaterThan(cell.x);
+          expect(handleCenterX).toBeLessThan(cell.x + cell.width);
+        }
+      });
+    }
+
+    test('moves the start and end handles to the frozen rows when the scrollable rows are rendered but hidden', async () => {
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        data: Array.from({ length: 40 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`)),
+        fixedRowsTop: 2,
+      });
+      await grid.selectCells(1, 1, 5, 3);
+      // Row 6 lands right below the frozen rows, so the rendering offset keeps row 5 rendered while
+      // the frozen pane covers it.
+      await grid.scrollToRow(6);
+      await grid.frozenRowCell(1, 2).hover();
+
+      const { cell, handles } = await grid.handleBoxesAgainstCell('ht_clone_top', 1, 2);
+
+      // The bottom edge (row 5) is out of view, so only the top, start and end handles are drawn.
+      expect(handles.bottom).toHaveLength(0);
+      expect(handles.top).toHaveLength(1);
+
+      for (const edge of ['start', 'end'] as const) {
+        expect(handles[edge]).toHaveLength(1);
+
+        const handleCenterY = handles[edge][0].y + (handles[edge][0].height / 2);
+
+        // Over the frozen row, where the user can see the selection's edges.
+        expect(handleCenterY).toBeGreaterThan(cell.y);
+        expect(handleCenterY).toBeLessThan(cell.y + cell.height);
+      }
+    });
+
+    test('draws each handle once across the bottom frozen rows and the frozen columns', async () => {
+      // 10 rows, fixedRowsBottom: 2 (rows 8 and 9), fixedColumnsStart: 1. The selection crosses both
+      // freeze lines, so the master, the bottom, the inline-start and the bottom corner overlays each
+      // draw a slice.
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsBottom: 2, fixedColumnsStart: 1 });
+      await grid.selectCells(5, 0, 8, 3);
+      await grid.hoverCell(6, 2);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+
+      for (const edge of ['top', 'bottom', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+    });
+
+    test('draws each handle once across frozen rows when a row above them is hidden', async () => {
+      // Visual row 0 is hidden, so visual rows 1 and 2 are the frozen ones (renderable rows 0 and 1).
+      // The selection starts on visual row 2, so it crosses the freeze line, and its top edge is not
+      // the grid boundary (visual row 1 is still above it). Walkontable works in renderable indexes,
+      // so the ownership rule must read the frozen count in that space too.
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsTop: 3, hiddenRows: { rows: [0] } });
+      await grid.selectCells(2, 1, 5, 3);
+      await grid.hoverCell(3, 2);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(4);
+
+      for (const edge of ['top', 'bottom', 'start', 'end'] as const) {
+        await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
+      }
+
+      await expect(grid.frozenRowHandle('top')).toHaveCount(1);
+    });
+
+    test('resizes the selection from a handle drawn by a frozen overlay', async () => {
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsTop: 2 });
+      await grid.selectCells(1, 1, 5, 3);
+      await grid.hoverCell(3, 2);
+
+      // The top edge lies on frozen row 1, so the frozen-rows overlay draws its handle.
+      await expect(grid.frozenRowHandle('top')).toHaveCount(1);
+
+      await grid.dragHandleInAnyOverlayToCell('top', 0, 2);
+
+      expect(await grid.selectedBounds()).toEqual({ top: 0, start: 1, bottom: 5, end: 3 });
+    });
+
+    test('draws each handle once across frozen columns in an RTL layout', async () => {
+      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedColumnsStart: 1, layoutDirection: 'rtl' });
+      await grid.selectCells(4, 0, 8, 3);
+      await grid.hoverCell(6, 2);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+      await expect(grid.handleInAnyOverlay('start')).toHaveCount(0);
+
+      const seamBox = await grid.frozenColumnCell(6, 0).boundingBox();
+      const range = await grid.rangeBox(4, 0, 8, 3);
+      const end = await centerOf(grid.handleInAnyOverlay('end'));
+
+      // The inline axis is mirrored: the end edge is the selection's left edge, the seam is on the
+      // frozen column's left edge.
+      expect(Math.abs(end.x - range.left)).toBeLessThanOrEqual(2);
+
+      for (const edge of ['top', 'bottom'] as const) {
+        const box = await grid.handleInAnyOverlay(edge).boundingBox();
+
+        expect(box!.x + box!.width).toBeLessThan(seamBox!.x - 2);
+        expect(box!.x).toBeGreaterThan(range.left);
+      }
+    });
+  });
 });

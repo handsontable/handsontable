@@ -21,11 +21,139 @@ import {
 } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
+import {
+  CLONE_BOTTOM,
+  CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_START,
+  CLONE_TOP,
+  CLONE_TOP_INLINE_START_CORNER,
+} from '../../overlay/constants';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const MOVE_ZONE_THICKNESS = 6;
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
+const ADJUST_HANDLE_EDGES = ['top', 'bottom', 'start', 'end'] as const;
+
+/**
+ * The frozen-pane segment an index falls in on one axis: `start` for the `fixedRowsTop` /
+ * `fixedColumnsStart` pane, `end` for the `fixedRowsBottom` pane, `main` for the scrollable part.
+ */
+type AxisSegment = 'start' | 'main' | 'end';
+
+/**
+ * A selection box in container-relative pixels, as `appear()` computes it for the border edges.
+ */
+interface SelectionBox {
+  top: number;
+  inlineStart: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * What the handle-ownership rule knows about one axis, resolved once per update.
+ */
+interface AdjustHandlesAxisLayout {
+  total: number;
+  main: [number, number];
+  overlaySegment: AxisSegment;
+  visible: [number, number];
+}
+
+/**
+ * Tells which segment an overlay renders on one axis. The `inline_start` overlay and the corners
+ * render the frozen columns; the `top`/`bottom` overlays and their corners render the frozen rows;
+ * everything else belongs to the scrollable part.
+ *
+ * @param {string} overlayName The overlay (table) name.
+ * @param {'row'|'column'} axis The axis to test.
+ * @returns {AxisSegment}
+ */
+function getOverlaySegment(overlayName: string, axis: 'row' | 'column'): AxisSegment {
+  if (axis === 'column') {
+    return [CLONE_INLINE_START, CLONE_TOP_INLINE_START_CORNER, CLONE_BOTTOM_INLINE_START_CORNER]
+      .includes(overlayName) ? 'start' : 'main';
+  }
+  if (overlayName === CLONE_TOP || overlayName === CLONE_TOP_INLINE_START_CORNER) {
+    return 'start';
+  }
+
+  return overlayName === CLONE_BOTTOM || overlayName === CLONE_BOTTOM_INLINE_START_CORNER ? 'end' : 'main';
+}
+
+/**
+ * Tells which segment a renderable index falls in on one axis.
+ *
+ * @param {AdjustHandlesAxisLayout} axis The axis layout.
+ * @param {number} index The renderable index.
+ * @returns {AxisSegment}
+ */
+function getAxisSegment(axis: AdjustHandlesAxisLayout, index: number): AxisSegment {
+  if (index < axis.main[0]) {
+    return 'start';
+  }
+
+  return index > axis.main[1] ? 'end' : 'main';
+}
+
+/**
+ * Returns the part of a clamped selection span the handles are centered on: the span inside the
+ * overlay's own segment and, in the scrollable segment, inside the master's visible range.
+ *
+ * @param {AdjustHandlesAxisLayout} axis The axis layout.
+ * @param {number} from The clamped first index.
+ * @param {number} to The clamped last index.
+ * @returns {number[]} The `[from, to]` span, empty (`from > to`) when nothing is left.
+ */
+function getHandlesSpan(axis: AdjustHandlesAxisLayout, from: number, to: number): [number, number] {
+  const { main, total, overlaySegment, visible } = axis;
+  let [segmentFrom, segmentTo] = main;
+
+  if (overlaySegment === 'start') {
+    [segmentFrom, segmentTo] = [0, main[0] - 1];
+
+  } else if (overlaySegment === 'end') {
+    [segmentFrom, segmentTo] = [main[1] + 1, total - 1];
+
+  } else if (visible[0] >= 0) {
+    segmentFrom = Math.max(segmentFrom, visible[0]);
+    segmentTo = Math.min(segmentTo, visible[1]);
+  }
+
+  return [Math.max(from, segmentFrom), Math.min(to, segmentTo)];
+}
+
+/**
+ * Tells whether an index lies inside an inclusive range. A range starting below 0 is empty.
+ *
+ * @param {number[]} range The `[from, to]` range.
+ * @param {number} index The index to test.
+ * @returns {boolean}
+ */
+function isInRange([from, to]: [number, number], index: number): boolean {
+  return from >= 0 && index >= from && index <= to;
+}
+
+/**
+ * Tells whether a cell element spans more than one row or column.
+ *
+ * @param {HTMLElement} cell The cell element.
+ * @returns {boolean}
+ */
+function isMergedCell(cell: HTMLElement): boolean {
+  return (cell as HTMLTableCellElement).rowSpan > 1 || (cell as HTMLTableCellElement).colSpan > 1;
+}
+
+/**
+ * A cell's document position and outer size.
+ */
+interface DOMRectLike {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
 
 /**
  *
@@ -1763,39 +1891,13 @@ class Border {
       );
     }
 
-    let adjustVisible = this.settings.border?.adjustHandlesVisible;
-
-    adjustVisible = typeof adjustVisible === 'function'
-      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
-
-    if (!isMobileOrIpadOS() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
-      const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
-
-      this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
-
-      // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
-      // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
-      // matching core-side check was removed as dead code — this is the single
-      // authoritative enforcement point.
-      if (this.isFrozenBoundaryEdge('row', corners[0]) || this.isFrozenBottomBoundaryOppositeEdge(corners[0])) {
-        adjustHandles.styles.top.display = 'none';
-      }
-      if (this.isFrozenBoundaryEdge('column', corners[1])) {
-        adjustHandles.styles.start.display = 'none';
-      }
-      if (this.isFrozenStartBoundaryOppositeEdge('row', corners[2]) ||
-          this.isFrozenBottomBoundaryEdge(corners[2])) {
-        adjustHandles.styles.bottom.display = 'none';
-      }
-      if (this.isFrozenStartBoundaryOppositeEdge('column', corners[3])) {
-        adjustHandles.styles.end.display = 'none';
-      }
-    } else if (this.adjustHandles) {
-      this.adjustHandles.styles.top.display = 'none';
-      this.adjustHandles.styles.bottom.display = 'none';
-      this.adjustHandles.styles.start.display = 'none';
-      this.adjustHandles.styles.end.display = 'none';
-    }
+    this.updateAdjustHandles(
+      { top, inlineStart: inlineStartPos, width, height },
+      corners,
+      [fromRow, fromColumn, toRow, toColumn],
+      fromTDEl,
+      toTDEl,
+    );
 
     let moveEnabled = this.settings.border?.moveEnabled;
 
@@ -1941,6 +2043,281 @@ class Border {
     }
 
     return false;
+  }
+
+  /**
+   * Shows, positions, or hides the four edge-adjustment handles (`selectionHandles`) for this
+   * overlay's slice of the selection.
+   *
+   * A selection that crosses a frozen-pane line is drawn once per overlay, each slice clamped to what
+   * that overlay renders. So every handle has exactly one owning overlay
+   * ({@link Border#getAdjustHandlesOwnership}), and the handle is centered on the owner's own
+   * visible segment ({@link Border#getAdjustHandlesBox}). Otherwise each slice would carry a full
+   * handle set, with handles on the freeze line in the middle of the selection.
+   *
+   * @private
+   * @param {SelectionBox} box The selection box as drawn by this overlay.
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @param {HTMLElement} fromTD The cell at the clamped top-start corner.
+   * @param {HTMLElement} toTD The cell at the clamped bottom-end corner.
+   */
+  updateAdjustHandles(
+    box: SelectionBox,
+    corners: number[],
+    clampedCorners: number[],
+    fromTD: HTMLElement,
+    toTD: HTMLElement,
+  ) {
+    let adjustVisible = this.settings.border?.adjustHandlesVisible;
+
+    adjustVisible = typeof adjustVisible === 'function'
+      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
+
+    if (isMobileOrIpadOS() || !adjustVisible || !this.wot.getSetting('isDataViewInstance')) {
+      this.hideAdjustHandles();
+
+      return;
+    }
+
+    const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
+    const layout = {
+      row: this.getAdjustHandlesAxisLayout('row'),
+      column: this.getAdjustHandlesAxisLayout('column'),
+    };
+    const owned = this.getAdjustHandlesOwnership(layout, corners, clampedCorners);
+
+    if (!ADJUST_HANDLE_EDGES.some(edge => owned[edge])) {
+      this.hideAdjustHandles();
+
+      return;
+    }
+
+    const handlesBox = this.getAdjustHandlesBox(layout, box, clampedCorners, fromTD, toTD);
+
+    this.positionAdjustHandles(handlesBox.top, handlesBox.inlineStart, handlesBox.width, handlesBox.height, corners);
+
+    // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
+    // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
+    // matching core-side check was removed as dead code — this is the single
+    // authoritative enforcement point.
+    const [fromRow, fromColumn, toRow, toColumn] = corners;
+    const onSeam = {
+      top: this.isFrozenBoundaryEdge('row', fromRow) || this.isFrozenBottomBoundaryOppositeEdge(fromRow),
+      start: this.isFrozenBoundaryEdge('column', fromColumn),
+      bottom: this.isFrozenStartBoundaryOppositeEdge('row', toRow) || this.isFrozenBottomBoundaryEdge(toRow),
+      end: this.isFrozenStartBoundaryOppositeEdge('column', toColumn),
+    };
+
+    ADJUST_HANDLE_EDGES.forEach((edge) => {
+      if (!owned[edge] || onSeam[edge]) {
+        adjustHandles.styles[edge].display = 'none';
+      }
+    });
+  }
+
+  /**
+   * Hides the four edge-adjustment handles, if they have been created.
+   *
+   * @private
+   */
+  hideAdjustHandles() {
+    if (!this.adjustHandles) {
+      return;
+    }
+
+    ADJUST_HANDLE_EDGES.forEach((edge) => {
+      this.adjustHandles!.styles[edge].display = 'none';
+    });
+  }
+
+  /**
+   * Resolves everything the handle-ownership rule needs to know about one axis, once per update:
+   * the frozen-pane segments, which segment this overlay renders, and the range of the master's
+   * scrollable part the user can actually see.
+   *
+   * The visible range, not the rendered one, is what decides. The master renders more tracks than it
+   * shows (the rendering offset, the directional overscan, `renderAllRows`/`renderAllColumns`), and
+   * those extra tracks sit behind a frozen pane or outside the holder. Its visible calculators leave
+   * the frozen panes out, so a track counts only when no pane covers it.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis to resolve.
+   * @returns {AdjustHandlesAxisLayout}
+   */
+  getAdjustHandlesAxisLayout(axis: 'row' | 'column'): AdjustHandlesAxisLayout {
+    const isRow = axis === 'row';
+    const total = this.wot.getSetting(isRow ? 'totalRows' : 'totalColumns') as number;
+    const fixedStart = this.wot.getSetting(isRow ? 'fixedRowsTop' : 'fixedColumnsStart') as number;
+    const fixedEnd = isRow ? this.wot.getSetting('fixedRowsBottom') as number : 0;
+    const masterTable = (this.wot.cloneSource ?? this.wot).wtTable;
+
+    return {
+      total,
+      main: [fixedStart, total - fixedEnd - 1],
+      overlaySegment: getOverlaySegment(this.wot.wtTable.name, axis),
+      visible: isRow
+        ? [masterTable.getFirstPartiallyVisibleRow(), masterTable.getLastPartiallyVisibleRow()]
+        : [masterTable.getFirstPartiallyVisibleColumn(), masterTable.getLastPartiallyVisibleColumn()],
+    };
+  }
+
+  /**
+   * Tells which of the four edge-adjustment handles this overlay draws. Every overlay evaluates it
+   * on identical inputs (the fixed-pane settings, the raw corners, and the master's visible range),
+   * so each handle is claimed by exactly one overlay:
+   *
+   * - The overlay's segment on the handle's own axis must contain the edge, and the overlay must
+   * render that edge unclamped. An edge clamped to the rendered range lies inside the selection, not
+   * on it. In the scrollable segment the edge must also be visible, or its handle would sit behind a
+   * frozen pane or outside the holder.
+   * - The overlay's segment on the cross axis, where the handle is centered, must be the one
+   * {@link Border#getAdjustHandlesCenterSegment} picks.
+   *
+   * @private
+   * @param {object} layout The per-axis layout (`row`, `column`).
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @returns {Record<'top'|'bottom'|'start'|'end', boolean>}
+   */
+  getAdjustHandlesOwnership(
+    layout: Record<'row' | 'column', AdjustHandlesAxisLayout>,
+    corners: number[],
+    clampedCorners: number[],
+  ): Record<typeof ADJUST_HANDLE_EDGES[number], boolean> {
+    const [fromRow, fromColumn, toRow, toColumn] = corners;
+    const [clampedFromRow, clampedFromColumn, clampedToRow, clampedToColumn] = clampedCorners;
+    const { row, column } = layout;
+    const ownsRowCenter = row.overlaySegment === this.getAdjustHandlesCenterSegment(row, fromRow, toRow);
+    const ownsColumnCenter = column.overlaySegment ===
+      this.getAdjustHandlesCenterSegment(column, fromColumn, toColumn);
+    const ownsEdge = (axis: AdjustHandlesAxisLayout, index: number, clampedIndex: number) =>
+      clampedIndex === index && getAxisSegment(axis, index) === axis.overlaySegment &&
+      (axis.overlaySegment !== 'main' || isInRange(axis.visible, index));
+
+    return {
+      top: ownsColumnCenter && ownsEdge(row, fromRow, clampedFromRow),
+      bottom: ownsColumnCenter && ownsEdge(row, toRow, clampedToRow),
+      start: ownsRowCenter && ownsEdge(column, fromColumn, clampedFromColumn),
+      end: ownsRowCenter && ownsEdge(column, toColumn, clampedToColumn),
+    };
+  }
+
+  /**
+   * Picks the segment a handle is centered in on one axis: the scrollable (`main`) part when the user
+   * can see any of the selection's scrollable part, otherwise the frozen pane the selection reaches
+   * into. The fallback keeps the handles on screen when the scrollable part is scrolled out of view
+   * and only the frozen part of the selection stays visible.
+   *
+   * @private
+   * @param {AdjustHandlesAxisLayout} axis The axis layout.
+   * @param {number} from The selection's first index on that axis.
+   * @param {number} to The selection's last index on that axis.
+   * @returns {AxisSegment}
+   */
+  getAdjustHandlesCenterSegment(axis: AdjustHandlesAxisLayout, from: number, to: number): AxisSegment {
+    const [mainFrom, mainTo] = axis.main;
+    const [firstVisible, lastVisible] = axis.visible;
+
+    if (firstVisible >= 0 && Math.max(from, mainFrom, firstVisible) <= Math.min(to, mainTo, lastVisible)) {
+      return 'main';
+    }
+
+    const fromSegment = getAxisSegment(axis, from);
+
+    return fromSegment === 'main' ? getAxisSegment(axis, to) : fromSegment;
+  }
+
+  /**
+   * Narrows this overlay's selection box to the part the handles are centered on: the selection
+   * inside this overlay's own segment and, in the scrollable segment, inside the master's visible
+   * range. The master and the scroll-synced clones also render tracks nobody can see (the frozen
+   * rows or columns at the start of their band while scrolled to it, and the rendering overscan), so
+   * a handle centered on the whole box can land on the freeze line, behind a frozen pane, or outside
+   * the holder. Reads cell geometry only for an edge it actually narrows.
+   *
+   * @private
+   * @param {object} layout The per-axis layout (`row`, `column`).
+   * @param {SelectionBox} box The selection box as drawn by this overlay.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @param {HTMLElement} fromTD The cell at the clamped top-start corner.
+   * @param {HTMLElement} toTD The cell at the clamped bottom-end corner.
+   * @returns {SelectionBox}
+   */
+  getAdjustHandlesBox(
+    layout: Record<'row' | 'column', AdjustHandlesAxisLayout>,
+    box: SelectionBox,
+    clampedCorners: number[],
+    fromTD: HTMLElement,
+    toTD: HTMLElement,
+  ): SelectionBox {
+    const [fromRow, fromColumn, toRow, toColumn] = clampedCorners;
+    const [handlesFromRow, handlesToRow] = getHandlesSpan(layout.row, fromRow, toRow);
+    const [handlesFromColumn, handlesToColumn] = getHandlesSpan(layout.column, fromColumn, toColumn);
+
+    if (handlesFromRow > handlesToRow || handlesFromColumn > handlesToColumn) {
+      return box;
+    }
+
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const result = { ...box };
+    const startEdge = (rect: DOMRectLike) => (isRtl ? rect.left + rect.width : rect.left);
+    const endEdge = (rect: DOMRectLike) => (isRtl ? rect.left : rect.left + rect.width);
+
+    if (handlesFromColumn !== fromColumn) {
+      const delta = this.measureCellEdgeDelta(fromTD, fromRow, handlesFromColumn, startEdge);
+
+      result.inlineStart += delta;
+      result.width -= delta;
+    }
+    if (handlesToColumn !== toColumn) {
+      result.width -= this.measureCellEdgeDelta(toTD, fromRow, handlesToColumn, endEdge);
+    }
+    if (handlesFromRow !== fromRow) {
+      const delta = this.measureCellEdgeDelta(fromTD, handlesFromRow, fromColumn, rect => rect.top);
+
+      result.top += delta;
+      result.height -= delta;
+    }
+    if (handlesToRow !== toRow) {
+      result.height -= this.measureCellEdgeDelta(toTD, handlesToRow, fromColumn, rect => rect.top + rect.height);
+    }
+
+    return result;
+  }
+
+  /**
+   * Measures how far one edge of a cell lies from the same edge of a reference cell, in pixels. Used
+   * to narrow a selection box by whole cells without re-deriving its border compensations.
+   *
+   * @private
+   * @param {HTMLElement} referenceTD The cell the box edge was computed from.
+   * @param {number} row The renderable row of the cell to measure.
+   * @param {number} column The renderable column of the cell to measure.
+   * @param {Function} edge Picks the edge coordinate from a cell's document rect.
+   * @returns {number} The absolute distance, or `0` when the cell is not rendered or either cell is
+   * merged (a merged cell stands for its whole block, so its edge is not the requested track's edge).
+   */
+  measureCellEdgeDelta(
+    referenceTD: HTMLElement,
+    row: number,
+    column: number,
+    edge: (rect: DOMRectLike) => number,
+  ): number {
+    const cell = this.wot.wtTable.getCell(this.wot.createCellCoords(row, column));
+
+    if (!isHTMLElement(cell) || isMergedCell(cell) || isMergedCell(referenceTD)) {
+      return 0;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const toRect = (element: HTMLElement): DOMRectLike => ({
+      ...geometryReader.offset(element),
+      width: geometryReader.outerWidth(element),
+      height: geometryReader.outerHeight(element),
+    });
+
+    return Math.abs(edge(toRect(cell)) - edge(toRect(referenceTD)));
   }
 
   /**
@@ -2103,12 +2480,7 @@ class Border {
       this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
 
-    if (this.adjustHandles) {
-      this.adjustHandles.styles.top.display = 'none';
-      this.adjustHandles.styles.bottom.display = 'none';
-      this.adjustHandles.styles.start.display = 'none';
-      this.adjustHandles.styles.end.display = 'none';
-    }
+    this.hideAdjustHandles();
 
     if (this.moveZone) {
       this.moveZone.styles.top.display = 'none';
