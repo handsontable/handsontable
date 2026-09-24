@@ -195,7 +195,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Formulas and a switch onto an empty engine sheet padded the departing sheet. Pinned in
   `sheetsBar.unit.js`: "loads the grid once per switch", the four "does not pad a … sheet's data …"
   tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch",
-  and "leaves the Formulas sheet switch loading again after a switch threw mid-update". The
+  and "leaves the Formulas switch load and min padding working after a switch threw mid-update". The
   `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before

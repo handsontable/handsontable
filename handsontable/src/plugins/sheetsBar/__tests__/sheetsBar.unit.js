@@ -1410,7 +1410,7 @@ describe('SheetsBar plugin', () => {
     expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[1], [2], [3]]);
   });
 
-  it('leaves the Formulas sheet switch loading again after a switch threw mid-update', () => {
+  it('leaves the Formulas switch load and min padding working after a switch threw mid-update', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const loadSources = [];
     let throwOnUpdate = false;
@@ -1454,6 +1454,10 @@ describe('SheetsBar plugin', () => {
 
     expect(loadSources).toEqual(['Formulas.switchSheet']);
     expect(formulas.sheetName).toBe('Budget');
+
+    hot.updateSettings({ minRows: 4 });
+
+    expect(hot.countRows()).toBe(4);
   });
 
   it('does not pad a sheet\'s data with a grid-level min cols setting its columns hid', () => {

@@ -312,9 +312,9 @@ With the load skipped, the grid still holds the caller's previous data for the r
 anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
 that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
 "loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
-while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas sheet
-switch loading again after a switch threw mid-update" pins the `finally` reset through a SheetsBar
-switch. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
+while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas switch
+load and min padding working after a switch threw mid-update" pins the `finally` reset through a
+SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
 SheetsBar, so it only pins the flag's default.
 
 ## The engine's sheet size is not the grid's axis length, in either direction
