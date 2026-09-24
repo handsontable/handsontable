@@ -87,6 +87,8 @@ test('a capture straight after each kind of primitive is reported, on the captur
     '  await cell.pressSequentially(\'abc\');',
     '  await tablePage.touchscreen.tap(1, 1);',
     '  await cell.focus();',
+    '  await cell.blur();',
+    '  await cell.selectText();',
     // An action whose result is kept is still an action: the half that matches it takes a declaration.
     '  const clicked = await cell.click();',
   ];
@@ -97,12 +99,24 @@ test('a capture straight after each kind of primitive is reported, on the captur
   });
 });
 
-test('a capture that is not awaited is still a capture', async() => {
-  // The capture half has two branches, `await x.screenshot()` and a bare `x.screenshot()`; nothing in the tree
-  // uses the second, so only this keeps it from being deleted with every other test green.
-  const body = '  await cell.click();\n  tablePage.screenshot({ path: helpers.screenshotPath() });';
+test('a capture is a capture however it is spelled', async() => {
+  // The capture half has a branch per shape; nothing in the tree uses any but the first, so only this keeps
+  // the others from being deleted with every other test green.
+  const shot = 'tablePage.screenshot({ path: helpers.screenshotPath() })';
+  const captures = [
+    `  ${shot};`,
+    `  const image = await ${shot};`,
+    `  const pending = ${shot};`,
+    `  return ${shot};`,
+    `  return await ${shot};`,
+    `  expect(await ${shot}).toMatchSnapshot();`,
+    `  await expect(await ${shot}).toMatchSnapshot();`,
+  ];
+  const results = await Promise.all(captures.map(capture => lint(spec(`  await cell.click();\n${capture}`))));
 
-  assert.deepEqual(captureLines(await lint(spec(body))), [13]);
+  results.forEach((messages, i) => {
+    assert.deepEqual(captureLines(messages), [13], `not reported as a capture: ${captures[i].trim()}`);
+  });
 });
 
 test('the blind spots visual-tests/AGENTS.md lists are real', async() => {
@@ -110,11 +124,14 @@ test('the blind spots visual-tests/AGENTS.md lists are real', async() => {
   // shapes are documented as unseen; if the rule starts seeing one, update the "What the capture rule cannot
   // see" bullet with it rather than deleting the case.
   const unseen = [
-    '  if (box) {\n    await cell.click();\n  }',
-    '  try {\n    await cell.click();\n  } finally {\n    await cell.blur();\n  }',
-    '  await cell.click();\n  const other = await cell.boundingBox();',
+    `  if (box) {\n    await cell.click();\n  }\n${CAPTURE}`,
+    `  try {\n    await cell.click();\n  } finally {\n    await cell.blur();\n  }\n${CAPTURE}`,
+    `  for (let i = 0; i < 1; i += 1) {\n    await cell.click();\n  }\n${CAPTURE}`,
+    `  await cell.click();\n  const other = await cell.boundingBox();\n${CAPTURE}`,
+    // A capture that opens a block: its own previous sibling inside the block is nothing.
+    `  await cell.click();\n  if (box) {\n  ${CAPTURE}\n  }`,
   ];
-  const results = await Promise.all(unseen.map(before => lint(spec(`${before}\n${CAPTURE}`))));
+  const results = await Promise.all(unseen.map(body => lint(spec(body))));
 
   results.forEach((messages, i) => {
     assert.deepEqual(captureLines(messages), [], `the documented blind spot is now reported: ${unseen[i]}`);
@@ -219,6 +236,8 @@ test('the rule is an error for specs and for src/, and the docblock rules are sp
     'the docblock context does not name visualTest(), so it matches nothing after the variant declaration');
   assert.equal(specConfig.rules['jsdoc/match-description'][0], 'error');
   assert.equal(srcConfig.rules['jsdoc/match-description'][0], 'off');
+  assert.equal(specConfig.rules['jsdoc/require-description'][0], 'error');
+  assert.equal(srcConfig.rules['jsdoc/require-description'][0], 'off');
 });
 
 test('giving the docblock rule a context does not stop it asking for function docblocks', async() => {
@@ -238,6 +257,32 @@ test('a test call needs a docblock, and the docblock needs a ticket', async() =>
   assert.deepEqual(await rulesOf(`/**\n * Checks something.\n */\n${call}\n`), ['jsdoc/match-description']);
   assert.deepEqual(await rulesOf(`/**\n * Checks something. Owned by DEV-1234.\n */\n${call}\n`), []);
   assert.deepEqual(await rulesOf(`/**\n * Checks something, reported in #12345.\n */\n${call}\n`), []);
+
+  // `match-description` skips a block with no main description, so `require-description` is what stops these.
+  assert.deepEqual(await rulesOf(`/**\n */\n${call}\n`), ['jsdoc/require-description']);
+  assert.deepEqual(await rulesOf(`/**\n * @see DEV-1234\n */\n${call}\n`), ['jsdoc/require-description']);
+});
+
+test('the ticket a docblock names is a real id, not anything shaped like one', async() => {
+  const call = 'visualTest(__filename, { themes: [\'main\'], browsers: [\'chromium\'], wrappers: [] }, async() => {});';
+  const passes = async ticket => docblockFindings(await lint(`/**\n * Checks something. ${ticket}\n */\n${call}\n`))
+    .length === 0;
+  const accepted = ['Owned by DEV-1234.', 'Added in #13409 (PRO-370).', 'See SU-833.', '(#1234)',
+    'Owned by\n * DEV-2981.'];
+  const rejected = ['Owned by DEV-0.', 'See #1234ab.', 'Owned by XDEV-12.', 'Owned by QA-1234.', 'See #123.',
+    'See a##1234.', 'Owned by dev-1234.'];
+
+  assert.deepEqual(await Promise.all(accepted.map(passes)), accepted.map(() => true), 'a real ticket was rejected');
+  assert.deepEqual(await Promise.all(rejected.map(passes)), rejected.map(() => false), 'a non-ticket was accepted');
+});
+
+test('--fix never writes an empty docblock stub above an undocumented test call', async() => {
+  const source = 'visualTest(__filename, { themes: [\'main\'], browsers: [\'chromium\'], wrappers: [] }, '
+    + 'async() => {});\n';
+  const [result] = await new ESLint({ cwd: packageRoot, fix: true }).lintText(source, { filePath: SPEC_PATH });
+
+  assert.equal(result.output ?? source, source, 'the fixer edited the source');
+  assert.ok(result.messages.some(m => m.ruleId === 'jsdoc/require-jsdoc'), 'the missing block is still reported');
 });
 
 test('a looped test gets a docblock per inner call', async() => {
@@ -297,14 +342,16 @@ const TRACKED_CAPTURE = new RegExp('eslint-disable-next-line no-restricted-synta
 test('every tracked capture exception sits on a capture and still suppresses something', async() => {
   // A directive above anything but a capture is the wrong line (the pre-fix selector put two above test
   // calls), and a directive left behind after the state is asserted is debt counted that no longer exists.
-  // Both are silent in `npm run lint`, which does not report unused directives.
+  // Both are silent in `npm run lint`, which does not report unused directives. The capture must be a PAGE
+  // capture: above `menu.screenshot()` the line would stay "used" because the element-screenshot ban fires
+  // there too, and would silently switch that ban off.
   const misplaced = [];
 
   specFiles(path.join(packageRoot, 'tests')).forEach((file) => {
     const lines = readFileSync(file, 'utf8').split('\n');
 
     lines.forEach((line, i) => {
-      if (TRACKED_CAPTURE.test(line) && !/\.screenshot\(/.test(lines[i + 1] ?? '')) {
+      if (TRACKED_CAPTURE.test(line) && !/\b(tablePage|page)\.screenshot\(/.test(lines[i + 1] ?? '')) {
         misplaced.push(`${path.relative(packageRoot, file)}:${i + 1}`);
       }
     });

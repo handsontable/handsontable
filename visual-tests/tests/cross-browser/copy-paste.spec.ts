@@ -85,7 +85,8 @@ visualTest('Copy/Paste/Cut inside table', {
 
 /**
  * Checks that a range selected across a scroll (Shift+click on the far bottom-right cell) is copied whole,
- * and pasted at the top-left of the grid. The capture shows the pasted block. Owned by DEV-2981.
+ * and pasted at the top-left of the grid. The capture shows the pasted block. It declares Chromium only,
+ * so this capture never renders on Firefox or WebKit. Owned by DEV-2981.
  */
 visualTest('Copy and paste data in a scrolled table', {
   themes: [CLASSIC],
@@ -143,7 +144,8 @@ visualTest('Copy and paste data in a scrolled table', {
 
 /**
  * Checks the same range cut and then pasted: the first capture shows the emptied source, the second the
- * pasted block. Owned by DEV-2981.
+ * pasted block. It declares Chromium only, so these captures never render on Firefox or WebKit. Owned by
+ * DEV-2981.
  */
 visualTest('Cut and paste data in a scrolled table', {
   themes: [CLASSIC],

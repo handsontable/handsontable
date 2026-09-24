@@ -100,11 +100,13 @@ const DETERMINISM_RESTRICTIONS = [
 // Visual-only, so it is kept out of the two blocks above, which mirror `tests/.eslintrc.cjs` (the first one
 // verbatim): a functional spec asserts, so it has no capture to guard. A capture on the statement straight
 // after a pointer or keyboard primitive photographs whichever half of the transition the runner reached — the
-// focus move a Tab starts, the highlight a click paints on the next frame. The flakes were measured on three
-// filters specs (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter), so their 28
-// sites were repaired when this landed (assert the state, then capture: 28 of 28 captures byte-identical
-// before and after, locally); the other 100, 15 of them in the other six filters specs, wear a tracked
-// disable line.
+// focus move a Tab starts, the highlight a click paints on the next frame. Three filters specs
+// (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter) were repaired when this landed:
+// their 28 sites assert the state, then capture (28 of 28 captures byte-identical before and after, locally).
+// Their actions settle inside the keydown handler (Tab, Shift+Tab and Escape focus or close synchronously, and
+// no repaired capture follows the condition input's 10 ms focus timer), so there the assertions make a wrong
+// state fail loudly rather than close a race; they are the shape every later repair takes. The other 100, 15
+// of them in the other six filters specs, wear a tracked disable line.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -121,7 +123,10 @@ const DETERMINISM_RESTRICTIONS = [
 // declaration. A comment between the action and the capture does not break it (comments are not AST
 // siblings). A neutral statement does (`const box = …`, 1 site of 211 when this was measured with the page
 // helpers counted), and so does an action inside an `if`, `try` or loop block just before the capture, or a
-// capture that opens a block — none of those two shapes is in the tree today. A tracked `waitForTimeout()`
+// capture that opens a block — neither of those two shapes is in the tree today, and the self-test pins all
+// four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
+// returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
+// too). A tracked `waitForTimeout()`
 // in between shields 18 captures in 12 specs: replacing such a sleep with the assertion it stands for clears
 // both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
 // to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
@@ -131,9 +136,9 @@ const DETERMINISM_RESTRICTIONS = [
 //
 // Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any
 // call on `page.mouse`, `page.keyboard` or `page.touchscreen`. The names past the seven the spec listed
-// (`tap`, `pressSequentially`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `focus`,
-// `dispatchEvent`, `dragAndDrop`) matched 0 extra sites when this landed; they are here so another spelling
-// of the same action is not a way around it. A method is matched by name on any object, so a same-named call
+// (`tap`, `pressSequentially`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `focus`, `blur`,
+// `selectText`, `dispatchEvent`, `dragAndDrop`) matched 0 extra sites when this landed; they are here so
+// another spelling of the same action is not a way around it. A method is matched by name on any object, so a same-named call
 // that is no Playwright action (`Set#clear()`, `Array#fill()`) counts too; none sits before a capture today.
 //
 // One rule id, one severity: `no-restricted-syntax` cannot be `warn` for this selector and `error` for the
@@ -141,11 +146,21 @@ const DETERMINISM_RESTRICTIONS = [
 // `tablePage.screenshot()` is the one statement none of the others can match). Measured 2026-09-23: 128 of
 // the 273 captures in 50 of the 112 specs (the dotfile template holds one more, which ESLint never lints) —
 // 61 multi-frameworks, 59 js-only, 8 cross-browser; 0 in `src/`.
-const CAPTURE = ':matches(ExpressionStatement[expression.argument.callee.property.name="screenshot"], '
-  + 'ExpressionStatement[expression.callee.property.name="screenshot"])';
+const SCREENSHOT = 'callee.property.name="screenshot"';
+const CAPTURE = `:matches(${[
+  `ExpressionStatement[expression.argument.${SCREENSHOT}]`,
+  `ExpressionStatement[expression.${SCREENSHOT}]`,
+  `VariableDeclaration[declarations.0.init.argument.${SCREENSHOT}]`,
+  `VariableDeclaration[declarations.0.init.${SCREENSHOT}]`,
+  `ReturnStatement[argument.argument.${SCREENSHOT}]`,
+  `ReturnStatement[argument.${SCREENSHOT}]`,
+  // `expect(await tablePage.screenshot()).toMatchSnapshot()`, awaited or not.
+  `ExpressionStatement[expression.argument.callee.object.arguments.0.argument.${SCREENSHOT}]`,
+  `ExpressionStatement[expression.callee.object.arguments.0.argument.${SCREENSHOT}]`,
+].join(', ')})`;
 const ACTING_STATEMENT = ':matches(ExpressionStatement, VariableDeclaration)';
 const POINTER_OR_KEYBOARD_METHOD = '/^(click|dblclick|tap|hover|press|pressSequentially|type|fill|clear|check'
-  + '|uncheck|setChecked|selectOption|dragTo|dragAndDrop|focus|dispatchEvent)$/';
+  + '|uncheck|setChecked|selectOption|dragTo|dragAndDrop|focus|blur|selectText|dispatchEvent)$/';
 const CAPTURE_RESTRICTIONS = [
   {
     selector: `${ACTING_STATEMENT}:has(CallExpression[callee.property.name=${POINTER_OR_KEYBOARD_METHOD}]) `
@@ -185,10 +200,12 @@ const SPEC_DECLARATION_RESTRICTIONS = [
       + '`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`.',
   },
 ];
-// The statement a spec's docblock belongs to, and the ticket it has to name: a ClickUp id or a GitHub issue.
-// The regex is matched against the block's main description, so a ticket in a trailing tag does not count.
+// The statement a spec's docblock belongs to, and the ticket it has to name: a ClickUp id in one of the
+// three spaces development work lives in (`DEV-`, `PRO-`, `SU-`, never numbered 0) or a GitHub issue of four
+// or more digits. The plugin tests the pattern unanchored against the block's main description, so a ticket
+// in a trailing tag does not count, and the pattern bounds itself: `#1234ab`, `DEV-0` and `XDEV-12` fail.
 const SPEC_TEST_CALL = 'ExpressionStatement > CallExpression[callee.name=/^(test|visualTest)$/]';
-const SPEC_DOCBLOCK_TICKET = '[\\s\\S]*(\\b(DEV|PRO|SU)-\\d+\\b|#\\d{4,})[\\s\\S]*';
+const SPEC_DOCBLOCK_TICKET = '(?:^|[^\\w#])(?:(?:DEV|PRO|SU)-[1-9]\\d*\\b|#[1-9]\\d{3,}\\b)';
 // A rule setting replaces the inherited one rather than merging with it, so the airbnb list every
 // `.ts` file gets today (`for..in`, `for..of`, labels, `with`) is spread in first.
 const AIRBNB_RESTRICTED_SYNTAX = require('eslint-config-airbnb-base/rules/style')
@@ -251,7 +268,16 @@ module.exports = {
         // a `callee.name="test"` selector matched nothing and the rule was silently off (measured). A
         // looped spec (`urls.forEach(url => { visualTest(…) })`) gets one block per inner call, which is
         // where the jsdoc plugin attaches it.
+        //
+        // No fixer: it would write an empty `/**\n *\n */` stub above an undocumented call on every
+        // `eslint --fix` (the pre-commit hook, the agent hook), which `match-description` rejects anyway.
         'jsdoc/require-jsdoc': ['error', {
+          contexts: [SPEC_TEST_CALL],
+          enableFixer: false,
+        }],
+        // `match-description` skips a block with no main description, so an empty block, or one holding
+        // only a tag (`@see …`), would otherwise pass both rules.
+        'jsdoc/require-description': ['error', {
           contexts: [SPEC_TEST_CALL],
         }],
         'jsdoc/match-description': ['error', {

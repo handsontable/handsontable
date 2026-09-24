@@ -2,11 +2,11 @@ import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
- * Checks where Tab and Shift+Tab move the focus around a dialog whose content holds two inputs, and that
- * the demo's `afterDialogFocus` hook sends the focus to "Input 1" each time the dialog is tabbed into. The
- * first capture is taken on load, before any key press; each later one follows one run of key presses (Tab;
- * Tab; Shift+Tab three times; Shift+Tab twice). The route's `pagination` param reaches only the dialog's
- * settings, which have no such option, so the grid is not paginated. Owned by DEV-2981.
+ * Checks where Tab and Shift+Tab move the focus around a dialog whose content holds two inputs, and that the
+ * demo's `afterDialogFocus` hook sends the focus to "Input 1" each time the dialog is tabbed into. The first
+ * capture is taken on load, before any key press; each later one follows one run of key presses (Tab; Tab;
+ * Shift+Tab three times; Shift+Tab twice). The route's `pagination` param reaches only the dialog's settings,
+ * which have no such option, so the grid is not paginated. Added in #11754; owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

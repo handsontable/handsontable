@@ -3,7 +3,7 @@ import { helpers } from '../../../src/helpers';
 
 /**
  * Checks that the dialog renders over the grid with a semi-transparent backdrop and a content background.
- * Owned by DEV-2981.
+ * Added in #11754; owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

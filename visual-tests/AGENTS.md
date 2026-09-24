@@ -422,14 +422,19 @@ does for you):
   `.toHaveClass()` — or a page helper that does. A capture on the statement straight after a pointer,
   keyboard, or focus primitive (a `click`, `dblclick`, `tap`, `hover`, `press`, `pressSequentially`,
   `type`, `fill`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `dragTo`, `dragAndDrop`,
-  `focus` or `dispatchEvent` call, or any `page.mouse` / `page.keyboard` / `page.touchscreen` call — kept
-  in a `const` or not) photographs whichever half of the transition the runner reached, and
-  `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. The names are matched on any
+  `focus`, `blur`, `selectText` or `dispatchEvent` call, or any `page.mouse` / `page.keyboard` /
+  `page.touchscreen` call — kept in a `const` or not) photographs whichever half of the transition the
+  runner reached, and `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. A capture is
+  the statement's own `screenshot()` call, awaited or not, kept in a `const`, returned, or handed straight
+  to `expect()`. The names are matched on any
   object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
-  (2026-09-23) it found 128 such captures in 50 specs. The 28 in the three filters specs the flakes were
-  measured on (`escaping-the-menu`, `entering-and-escaping-by-value-lists`, `accepting-by-enter`) were
-  repaired — each now asserts the focused component, the hidden menu, or the ticked value first, and all
-  28 captures rendered byte-identical to the unrepaired ones — and the other 100, among them 15 in the
+  (2026-09-23) it found 128 such captures in 50 specs. The 28 in three filters specs (`escaping-the-menu`,
+  `entering-and-escaping-by-value-lists`, `accepting-by-enter`) were repaired — each now asserts the
+  focused component, the hidden menu, or the ticked value first, and all 28 captures rendered
+  byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
+  handler (Tab, Shift+Tab and Escape focus or close synchronously, and no repaired capture follows the
+  condition input's 10 ms focus timer), so there the assertions make a wrong state fail loudly rather than
+  close a race; they are the shape every later repair takes. The other 100, among them 15 in the
   directory's other six filters specs, carry
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. `test/__tests__/determinism-lint.test.mjs` fails
@@ -438,8 +443,9 @@ does for you):
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
   statement is an expression or a declaration. A comment in between does not hide an action. A neutral
   statement (`const box = …`) does, and so does an action inside an `if`, `try` or loop block just before
-  the capture, or a capture that opens a block — neither shape is in the tree today, and the self-test pins
-  them as unseen, so a rule that starts seeing one fails loudly until this bullet is updated. A tracked
+  the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
+  self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
+  updated. A tracked
   `waitForTimeout()` in between hides the action too: 18 captures in 12 specs sit behind a sleep today.
   Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
   its place makes the capture fire, so the disable line moves to the capture. A page helper in between
@@ -457,10 +463,16 @@ does for you):
   `no-restricted-syntax` is one rule id, so this selector cannot be `warn` while the sleep bans are
   `error`, and a disable line on a capture silences every selector on that line.
 - **Every test call carries a docblock that says what its capture proves and names its owner.**
-  `jsdoc/require-jsdoc` and `jsdoc/match-description` in the `tests/**/*.spec.ts` override require a block
-  directly above each `visualTest()` call — one per inner call in a looped spec — whose main description
-  names a ClickUp ticket (`DEV-`, `PRO-`, `SU-`) or a GitHub issue (`#12345`). The legacy specs name
-  DEV-2981, the consolidation that pays their debt. When it landed, 91 of the 115 calls had no block, the
+  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the
+  `tests/**/*.spec.ts` override require a block directly above each `visualTest()` call — one per inner
+  call in a looped spec — whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never
+  numbered 0) or a GitHub issue of four or more digits (`#12345`). An empty block, or one holding only a
+  tag, fails `require-description`, because `match-description` skips a block with no main description.
+  `require-jsdoc` has its fixer off, so `eslint --fix` (the pre-commit and agent hooks) never writes an
+  empty stub. The legacy specs name DEV-2981, the consolidation that pays their debt, as a **placeholder
+  owner**: closing DEV-2981 means first giving every block and every tracked disable line a real owner,
+  or no golden has one. Where a spec came with a feature, its block also names the pull request that
+  added it (`Added in #12299`), which is where that owner starts. When it landed, 91 of the 115 calls had no block, the
   24 that had one named no ticket, and six were copies of one filters spec's sentence pasted onto specs
   about something else. The context names `visualTest`, not only `test`: after the variant declaration
   renamed every call, a `callee.name="test"` context matched nothing and the rule was silently off. The
@@ -629,9 +641,10 @@ which of these run locally and which only in CI.
   unasserted pointer or keyboard primitive is a `no-restricted-syntax` error (`CAPTURE_RESTRICTIONS` in
   `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
   and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
-  `tests/**/*.spec.ts` override). The 28 sites in the three filters specs the flakes were measured on were
-  repaired (assert the state, then capture); the other 100 wear `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above
-  the capture, so the debt is counted and greppable. The rules, what they cannot see, and their three
+  `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
+  were repaired (assert the state, then capture); the other 100 wear
+  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
+  counted and greppable. The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root

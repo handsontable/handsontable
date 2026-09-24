@@ -2,7 +2,8 @@ import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
- * Checks where two Tab presses move the focus while the loading overlay is shown. Owned by DEV-2981.
+ * Checks where two Tab presses move the focus while the loading overlay is shown. Added in #11811; owned by
+ * DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

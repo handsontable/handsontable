@@ -24,7 +24,7 @@ visualTest(__filename, {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowRight'); // opens the "Alignment" submenu
+  await tablePage.keyboard.press('ArrowRight'); // meant to open "Alignment"; the presses above passed it
 
   // The submenu this spec describes never opens (ArrowDown x3 from the first enabled item, "Clear column",
   // passes "Alignment" and wraps back, so the frame is the plain menu); there is no state to wait for until
@@ -32,10 +32,10 @@ visualTest(__filename, {
   // eslint-disable-next-line no-restricted-syntax -- DEV-2797: nothing to wait for until the spec is repaired
   await tablePage.waitForTimeout(10);
 
-  // take a screenshot of the submenu
+  // take a screenshot of the menu (the submenu never opened)
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // should close the submenu and focus the last filters component
+  // focus the last filters component (the spec meant to close the submenu first; none is open)
   await tablePage.keyboard.press('Shift+Tab');
 
   // take a screenshot of the dropdown menu where the last filter's component is focused

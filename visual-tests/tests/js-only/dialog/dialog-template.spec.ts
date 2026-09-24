@@ -2,9 +2,9 @@ import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
 /**
- * Checks the dialog's confirm template: the first capture shows it as it opens. The second follows four
- * Tabs and a Shift+Tab that leave the focus on "OK", then Enter, which runs OK's callback and hides the
- * dialog, so it shows the grid with the dialog closed. Owned by DEV-2981.
+ * Checks the dialog's confirm template: the first capture shows it as it opens. The second follows four Tabs
+ * and a Shift+Tab that leave the focus on "OK", then Enter, which runs OK's callback and hides the dialog, so
+ * it shows the grid with the dialog closed. Added in #11902; owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

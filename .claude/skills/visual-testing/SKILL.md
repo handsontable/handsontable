@@ -62,7 +62,7 @@ visualTest(__filename, {
 });
 ```
 
-Every test call carries a docblock that says what its capture proves and names the ticket that owns it — a ClickUp ID or a GitHub issue as `#12345`. Both halves are lint errors when missing (`jsdoc/require-jsdoc`, `jsdoc/match-description`), and `DEV-<number>` above is deliberately a placeholder the lint rejects, so a copy of the example fails until it names a real owner. The assertion before the capture is a lint error too when it is missing: a capture on the statement straight after a click, a key press, or any other pointer or keyboard action is reported at the capture.
+Every test call carries a docblock that says what its capture proves and names the ticket that owns it — a ClickUp ID in the `DEV-`, `PRO-` or `SU-` space, or a GitHub issue of four or more digits as `#12345`. Both halves are lint errors when missing (`jsdoc/require-jsdoc`, `jsdoc/require-description`, `jsdoc/match-description`), and `DEV-<number>` above is deliberately a placeholder the lint rejects, so a copy of the example fails until it names a real owner. The assertion before the capture is a lint error too when it is missing: a capture on the statement straight after a click, a key press, or any other pointer or keyboard action is reported at the capture.
 
 Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 

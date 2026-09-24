@@ -4,8 +4,8 @@ import { helpers } from '../../../src/helpers';
 /**
  * Checks that a semi-transparent dialog with a content background renders over the grid, and where two Tab
  * presses move the focus. The route's `pagination` param reaches only the dialog's settings, which have no
- * such option, so the grid has no pagination bar and the spec does not yet test what its name says;
- * DEV-2981 decides whether the demo passes it to the grid. Owned by DEV-2981.
+ * such option, so the grid has no pagination bar and the spec does not yet test what its name says; DEV-2981
+ * decides whether the demo passes it to the grid. Added in #11754; owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

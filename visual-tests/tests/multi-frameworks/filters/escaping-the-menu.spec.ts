@@ -14,9 +14,8 @@ visualTest(__filename, {
   wrappers: WRAPPERS,
   wrappersReason: WRAPPERS_REASON_UNAUDITED,
 }, async({ tablePage }) => {
-  // Every capture waits for the focus state it photographs. A capture straight after a key press
-  // photographs whichever half of the focus move the runner reached, and this family is where that
-  // was measured (see CAPTURE_RESTRICTIONS in visual-tests/.eslintrc.js). The in-menu locators hang off
+  // Every capture waits for the focus state it photographs, so a wrong state fails the test instead of
+  // becoming the golden (see CAPTURE_RESTRICTIONS in visual-tests/.eslintrc.js). The in-menu locators hang off
   // one root, so a wrong root fails their focus checks instead of letting `toBeHidden()` pass on an
   // element that never existed.
   const menu = tablePage.locator(helpers.selectors.dropdownMenu);

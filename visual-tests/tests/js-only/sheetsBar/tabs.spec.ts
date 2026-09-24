@@ -3,8 +3,8 @@ import { helpers } from '../../../src/helpers';
 
 /**
  * Checks the sheets bar through six states: at rest, with an inactive tab hovered, with the active tab
- * switched, with a tab's menu open, overflowing with its paging arrows shown, and paged back. Owned by
- * DEV-2981.
+ * switched, with a tab's menu open, overflowing with its paging arrows shown, and paged back. Added in #13409
+ * (PRO-370); owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

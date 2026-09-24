@@ -6,9 +6,10 @@ import { helpers } from '../../../src/helpers';
  * `moveCells` drag (mouse button held down mid-drag).
  *
  * The demo pre-selects rows 2–4, cols 2–4 with `moveCells: true`, making the four `.wtMoveZone` edge bands
- * immediately visible on the selection border. The test initiates a drag by pressing down on the top-edge
- * zone band, moves the mouse over an interior target cell while the button is held, asserts the ghost is
- * visible, takes a screenshot, then releases the button. Owned by DEV-2981.
+ * immediately visible on the selection border. The test starts a drag by pressing down on the first visible
+ * band in DOM order (whichever edge that is), moves the mouse over a cell outside the source range (row 7,
+ * col 6) while the button is held, asserts the ghost is visible, takes a screenshot, then releases the
+ * button. Added in #13076; owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

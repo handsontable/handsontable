@@ -23,13 +23,13 @@ visualTest(__filename, {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowRight'); // opens the "Alignment" submenu
+  await tablePage.keyboard.press('ArrowRight'); // meant to open "Alignment"; the presses above passed it
 
-  // take a screenshot of the submenu
+  // take a screenshot of the menu (the submenu never opened)
   // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // should close the submenu and focus the first filters component
+  // focus the first filters component (the spec meant to close the submenu first; none is open)
   await tablePage.keyboard.press('Tab');
 
   // take a screenshot of the dropdown menu where the first filter's component is focused
