@@ -134,8 +134,8 @@ Five rules follow, and the first is the one that bites.
   offset from the record, not from `style.top`, which is empty now.
 - **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
   rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
-  `null` render-calculator `startPosition`, and it keeps the offset `#activate` captured for the rest
-  of the drag, the same as the transform path skipping that axis. Skipping the whole update when
+  `null` render-calculator `startPosition`, and it takes offset 0 for the rest of the drag, the same
+  value the overlays' `applyToDOM()` writes for that axis outside a drag. Skipping the whole update when
   either axis is `null` froze the OTHER axis at its activation inset: on a grid with no rows the
   column headers drifted off their columns mid-drag, and `deactivate()`, which derives the release
   scroll from the inset, snapped the grid back towards its start (DEV-3083, regressed in 17.1.0 by

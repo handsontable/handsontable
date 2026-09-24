@@ -104,6 +104,25 @@ export class ScrollbarDragEmptyGridPage {
   }
 
   /**
+   * The CSS `position` of the master spreader: `sticky` while the scrollbar-drag strategy owns it,
+   * `relative` otherwise. The positive control that the simulated press really started a drag -
+   * without it the ordinary scroll path keeps the headers aligned and every assertion passes.
+   *
+   * @returns {Promise<string>}
+   */
+  async spreaderPosition(): Promise<string> {
+    return this.grid.evaluate((root) => {
+      const spreader = root.querySelector<HTMLElement>('.ht_master > .wtHolder .wtSpreader');
+
+      if (!spreader) {
+        throw new Error('No master spreader');
+      }
+
+      return spreader.style.position;
+    });
+  }
+
+  /**
    * How far the master holder is scrolled from its inline-start edge, in pixels.
    *
    * @returns {Promise<number>}

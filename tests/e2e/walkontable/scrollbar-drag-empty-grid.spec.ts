@@ -31,6 +31,9 @@ test.describe('Scrollbar drag on a grid with no rows', () => {
       for (const distance of [60, 250, 600]) {
         await grid.dragScrollbarTo(distance);
 
+        // The drag strategy must own the spreader, or the ordinary scroll path is what is tested.
+        expect(await grid.spreaderPosition(), `spreader position at ${distance}px`).toBe('sticky');
+
         const placements = await grid.headerPlacements();
 
         expect(placements.length, 'rendered column headers').toBeGreaterThan(0);
@@ -43,6 +46,7 @@ test.describe('Scrollbar drag on a grid with no rows', () => {
       await grid.releaseScrollbar();
 
       await expect.poll(() => grid.scrollDistance()).toBe(600);
+      expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
 
       for (const { column, actual, expected } of await grid.headerPlacements()) {
         expect(Math.abs(actual - expected), `column ${column} header after release`).toBeLessThanOrEqual(1);

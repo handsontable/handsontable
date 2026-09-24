@@ -74,16 +74,6 @@ export class StickyScrollStrategy {
   #mouseDown = false;
 
   /**
-   * The spreader offset (hider coordinates, positive in RTL too) captured when sticky mode
-   * activated. An axis with nothing rendered has no start position to follow, so it keeps this
-   * offset for the rest of the drag - the same thing the transform path does when it skips writing
-   * that axis.
-   *
-   * @type {{ top: number, left: number }}
-   */
-  #activationOffset = { top: 0, left: 0 };
-
-  /**
    * @param {StickyScrollStrategyDeps} deps The StickyScrollStrategy dependencies.
    */
   constructor(deps: StickyScrollStrategyDeps) {
@@ -169,11 +159,12 @@ export class StickyScrollStrategy {
     const renderedStartLeft = wtViewport.columnsRenderCalculator?.startPosition;
 
     // startPosition is null when nothing is rendered on that axis (no rows, or every row hidden,
-    // trimmed, or filtered out - and likewise for columns). Resolve each axis on its own: skipping
-    // the whole update would freeze the OTHER axis at its activation inset, so a drag on a grid
-    // with no rows would leave the column headers behind and snap the scroll back on release.
-    const startTop = typeof renderedStartTop === 'number' ? renderedStartTop : this.#activationOffset.top;
-    const startLeft = typeof renderedStartLeft === 'number' ? renderedStartLeft : this.#activationOffset.left;
+    // trimmed, or filtered out - and likewise for columns). Such an axis takes offset 0, which is
+    // what the overlays' `applyToDOM()` writes for it outside a drag. Resolve each axis on its own:
+    // skipping the whole update would freeze the OTHER axis at its activation inset, so a drag on a
+    // grid with no rows would leave the column headers behind and snap the scroll back on release.
+    const startTop = typeof renderedStartTop === 'number' ? renderedStartTop : 0;
+    const startLeft = typeof renderedStartLeft === 'number' ? renderedStartLeft : 0;
 
     const stickyTop = startTop - this.#getScrollTop();
     const stickyLeft = startLeft - this.#getScrollLeft();
@@ -201,11 +192,6 @@ export class StickyScrollStrategy {
     // The spreader is placed with a transform (`../spreaderOffset.ts`); its recorded offset is the
     // first rendered row/column, which is what the inset formula needs. `x` is negative in RTL.
     const { x: startLeft, y: startTop } = getSpreaderOffset(this.#deps.wtTable.spreader);
-
-    // Read before `#applySpreaderStyles` lifts the transform - `getSpreaderOffset()` reports zero
-    // from then on.
-    this.#activationOffset = { top: startTop, left: Math.abs(startLeft) };
-
     const stickyTop = startTop - this.#getScrollTop();
     const stickyLeft = Math.abs(startLeft) - this.#getScrollLeft();
 
