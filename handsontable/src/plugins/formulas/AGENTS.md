@@ -68,10 +68,30 @@ that path:
 - **Only `setDataAtCell` writes are validated by the Core.** `setSourceDataAtCell` runs `sourceDataValidator`
   (`dataMap/sourceDataValidator.ts`), a separate mechanism that never touches the `valid` flag — so only the
   former may be excluded from a validation pass, or the restored cells end up validated by nobody.
-- **`STRUCTURAL_ACTION_TYPES`** (`insert_row`, `insert_col`, `remove_row`, `remove_col`) are the only
-  actions that make HyperFormula rewrite formula references, so they are the only ones whose source data has
-  to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves the source data's own reference
-  frame untouched and must **not** trigger the write-back.
+- **`STRUCTURAL_ACTION_TYPES`** (`insert_row`, `insert_col`, `remove_row`, `remove_col`, and
+  `nested_rows_detach`) are the only actions that make HyperFormula rewrite formula references, so they are
+  the only ones whose source data has to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves
+  the source data's own reference frame untouched and must **not** trigger the write-back.
+- **Structural redos replay only in `afterRedo`.** `UndoRedo#redo()` gives every `beforeRedo` listener a
+  chance to veto the action before it runs, so replaying from `beforeRedo` would advance HyperFormula while
+  the grid remains undone. The action types are exactly `STRUCTURAL_ACTION_TYPES`; non-structural redos
+  retain their existing replay path. `UndoRedo` fires `afterRedo` even when the action settles
+  `{ wasRedone: false }` (a late `beforeRemoveRow` veto), so the replay also requires the redo to have
+  applied. `#structuralRedoApplied` reads that from `afterUndoStackChange`, where the done stack grows only
+  on success. This relies on structural redos settling synchronously inside the grid operation, which they
+  all do.
+- **`nested_rows_detach` owns several engine history entries.** NestedRows emits an internal removal,
+  insertion, and cell writes as one grid action. Its undo also replays only in `afterUndo`: a
+  `beforeRemoveRow` veto skips that hook, so replaying from `beforeUndo` would advance HyperFormula while
+  the tree remains detached. `afterRedoStackChange` releases the undo index-sync guard on that veto path
+  (DEV-138).
+- **An interrupted undo or redo must not leave the index-sync flags raised.** A detach redo raises the
+  redo flag in `beforeDetachChild` and `afterRedo` lowers it. When the detach throws between the two,
+  `UndoRedo` rethrows without firing `afterRedo`, and a raised flag makes the axis syncers skip every later
+  row and column move. `#releaseIndexSyncGuards()` lowers both flags at the head of `beforeUndo` and
+  `beforeRedo` and inside `#closeLeakedGuards()`, so such a leak lasts until the next undo, redo, or
+  structural reload at most. The same leak class existed for every action before DEV-138, when
+  `beforeRedo` raised the flag unconditionally.
 
 **`MoveCellsAction` is asymmetric, on purpose.** Its `undo` restores both regions with `restoreRegion`
 instead of replaying the move, so `afterMoveCells` — where the forward direction syncs — never fires; undo
@@ -102,6 +122,17 @@ Two performance rules and one mid-batch guard:
 
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
+
+**Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
+rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed
+by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
+of the detach (DEV-138).
+
+**Known gap: removing a nested parent leaves its children in the engine.** This plugin's `beforeRemoveRow`
+listener (priority 260) runs before NestedRows' (300) expands the removal list to the parent's descendants,
+so the engine removes the parent row only while the grid removes the whole subtree. The existing specs
+assert only the state after undo, which lines up again. A detach is not affected: it hands the hook an
+already expanded list.
 
 ## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
 

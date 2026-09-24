@@ -40,6 +40,97 @@ describe('Formulas integration with undo/redo', () => {
     expect(getDataAtCell(0, 5)).toBe(8042);
   });
 
+  it('should not redo HyperFormula when a structural redo is vetoed', async() => {
+    handsontable({
+      data: [
+        ['=A2'],
+        [1],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+
+    const undoRedo = getPlugin('undoRedo');
+    const formulasPlugin = getPlugin('formulas');
+
+    await alter('insert_row_above', 1);
+    undoRedo.undo();
+
+    const sourceDataAfterUndo = getSourceData();
+    const sheetAfterUndo = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+    let vetoRedo = true;
+
+    hot().addHook('beforeRedo', () => {
+      return vetoRedo ? false : undefined;
+    });
+    undoRedo.redo();
+
+    expect(undoRedo.doneActions.length).toBe(0);
+    expect(undoRedo.undoneActions.length).toBe(1);
+    expect(getSourceData()).toEqual(sourceDataAfterUndo);
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterUndo);
+
+    vetoRedo = false;
+    undoRedo.redo();
+
+    expect(getSourceData()).toEqual([
+      ['=A3'],
+      [null],
+      [1],
+    ]);
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      ['=A3'],
+      [],
+      [1],
+    ]);
+  });
+
+  it('should not redo HyperFormula when a structural redo is vetoed while it runs', async() => {
+    let vetoRemoval = false;
+
+    handsontable({
+      data: [
+        ['=A3'],
+        [1],
+        [2],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      },
+      beforeRemoveRow: (index, amount, physicalRows, source) => {
+        return vetoRemoval && source === 'UndoRedo.redo' ? false : undefined;
+      },
+    });
+
+    const undoRedo = getPlugin('undoRedo');
+    const formulasPlugin = getPlugin('formulas');
+
+    await alter('remove_row', 1);
+
+    const sheetAfterRemoval = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+    undoRedo.undo();
+
+    const sourceDataAfterUndo = getSourceData();
+    const sheetAfterUndo = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+    // `beforeRedo` accepts the action, and the removal itself is vetoed, so the redo settles as not applied.
+    vetoRemoval = true;
+    undoRedo.redo();
+
+    expect(undoRedo.doneActions.length).toBe(0);
+    expect(undoRedo.undoneActions.length).toBe(1);
+    expect(getSourceData()).toEqual(sourceDataAfterUndo);
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterUndo);
+
+    vetoRemoval = false;
+    undoRedo.redo();
+
+    expect(undoRedo.doneActions.length).toBe(1);
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterRemoval);
+  });
+
   it('should restore previous state and recalculate formula again after trying changing readOnly cell (#dev-2136)', async() => {
     handsontable({
       data: [

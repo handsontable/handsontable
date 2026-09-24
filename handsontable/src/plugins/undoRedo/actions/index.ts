@@ -7,6 +7,7 @@ import { CreateRowAction } from './createRow';
 import { DataChangeAction } from './dataChange';
 import { FiltersAction } from './filters';
 import { MergeCellsAction } from './mergeCells';
+import { NestedRowsDetachAction } from './nestedRowsDetach';
 import { MoveCellsAction } from './moveCells';
 import { ReadOnlyToggleAction } from './readOnlyToggle';
 import { RemoveColumnAction } from './removeColumn';
@@ -33,6 +34,7 @@ export function registerActions(hot: HotInstance, undoRedoPlugin: unknown) {
     MoveCellsAction,
     ReadOnlyToggleAction,
     RemoveColumnAction,
+    NestedRowsDetachAction,
     RemoveRowAction,
     RowMoveAction,
     UnmergeCellsAction,

@@ -286,6 +286,10 @@ They are written in different places and can drift. Keep this in mind:
   (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
   still dropping `__children`. A two-level "no error" assertion is not enough — use
   `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
+- **Detach is one undo action, not a remove/create pair.** `detachFromParent()` must carry its source
+  through all structural hooks. UndoRedo recognizes the initial `NestedRows` source and records
+  `NestedRowsDetachAction`; redo uses `UndoRedo.redo` so it does not record another action. Do not bypass
+  either source, or one Ctrl/Cmd+Z replays only half of the tree move (DEV-138).
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
