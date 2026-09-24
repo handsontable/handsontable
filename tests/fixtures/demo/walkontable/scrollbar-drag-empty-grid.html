@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrollbar drag on a grid with no rows</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The layout direction is a fixed allowlist too. In `rtl` the holder scrolls into NEGATIVE
+    // `scrollLeft` and the sticky inset is written to `right`, not `left`.
+    window.htDirection = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDirection) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-3083. A grid with column headers and no rows (`data: []`), narrower than its columns, so
+    the holder scrolls horizontally. A native scrollbar drag switches the spreaders to
+    `position: sticky`; with nothing rendered on the vertical axis the sticky offsets used to stop
+    updating for BOTH axes, so the column headers stayed behind the scroll and the release snapped
+    the scroll position back.
+  -->
+  <h2>Scrollbar drag on a grid with no rows (<span id="dir"></span>)</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    document.getElementById('dir').textContent = window.htDirection;
+
+    window.hot = new Handsontable(container, {
+      data: [],
+      // With no rows the column count comes from the column definitions alone.
+      columns: Array.from({ length: 30 }, () => ({})),
+      colHeaders: true,
+      width: 500,
+      height: 300,
+      layoutDirection: window.htDirection,
+      afterGetColHeader(column, TH) {
+        if (column >= 0) {
+          TH.dataset.testid = `col-header-${column}`;
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

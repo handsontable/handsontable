@@ -98,7 +98,7 @@ frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, wher
 transform moves pixels without moving layout and is exempt. Measured on the same build with and
 without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
 
-Four rules follow, and the first is the one that bites.
+Five rules follow, and the first is the one that bites.
 
 - **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
   this distance.** Any code that compares a cell's document position against an element OUTSIDE the
@@ -132,6 +132,14 @@ Four rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
+  rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
+  `null` render-calculator `startPosition`, and it keeps the offset `#activate` captured for the rest
+  of the drag, the same as the transform path skipping that axis. Skipping the whole update when
+  either axis is `null` froze the OTHER axis at its activation inset: on a grid with no rows the
+  column headers drifted off their columns mid-drag, and `deactivate()`, which derives the release
+  scroll from the inset, snapped the grid back towards its start (DEV-3083, regressed in 17.1.0 by
+  #12235). Pinned by `tests/e2e/walkontable/scrollbar-drag-empty-grid.spec.ts`.
 
 Pinned by `test/unit/overlay/spreaderOffset.unit.ts` and `tests/e2e/walkontable/spreader-layout-shift.spec.ts`,
 which reads the browser's own `layout-shift` entries under a real wheel scroll — a scripted
