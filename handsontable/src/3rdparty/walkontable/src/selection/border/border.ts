@@ -2178,7 +2178,8 @@ class Border {
    * @param {object} layout The per-axis layout (`row`, `column`).
    * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
    * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
-   * @returns {Record<'top'|'bottom'|'start'|'end', boolean>}
+   * @returns {object} One flag per edge (`top`, `bottom`, `start`, `end`), `true` when this overlay
+   * draws that edge's handle.
    */
   getAdjustHandlesOwnership(
     layout: Record<'row' | 'column', AdjustHandlesAxisLayout>,
