@@ -549,5 +549,52 @@ describe('exportFile XLSX type — headers', () => {
       // Hidden leaf header 'Col 2' is absent.
       expect(ws.getRow(2).getCell(2).value).toBe('Col 3');
     });
+
+    it('should merge a group across all its visible columns when a hidden column sits inside it', async() => {
+      // DEV-3033: with a column hidden strictly inside a span, the data provider used to measure the
+      // span by its already-shrunk colspan. The merge came out one column short and the next column
+      // got a stray empty header cell.
+      handsontable({
+        data: createSpreadsheetData(1, 5),
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 4 }, 'Other'],
+          ['Col 1', 'Col 2', 'Col 3', 'Col 4', 'Col 5'],
+        ],
+        hiddenColumns: { columns: [1] },
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('Group');
+      expect(ws.model.merges).toContain('A1:C1');
+      expect(ws.getRow(1).getCell(4).value).toBe('Other');
+      expect(ws.getRow(2).getCell(4).value).toBe('Col 5');
+      expect(ws.getRow(3).getCell(4).value).toBe('E1');
+    });
+
+    it('should write the bottom-most headers when the plugin is disabled at runtime', async() => {
+      // The `nestedHeaders` setting stays in place after `disablePlugin()`, so the export has to read
+      // the plugin's live state. Reading the settings took the nested path with zero layers and wrote
+      // no header row at all.
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 2 }],
+          ['Col 1', 'Col 2'],
+        ],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      getPlugin('nestedHeaders').disablePlugin();
+      await render();
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('A');
+      expect(ws.getRow(1).getCell(2).value).toBe('B');
+      expect(ws.getRow(2).getCell(1).value).toBe('A1');
+    });
   });
 });
