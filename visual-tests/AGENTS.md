@@ -275,7 +275,7 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-Seven things about this pipeline are worth knowing before changing it.
+These things about this pipeline are worth knowing before changing it.
 
 - **`reg-suit` exits 0 no matter what it finds — `run` and the `compare` / `publish` subcommands
   `compare.mjs` calls alike.** A comparison result never fails it; fetch, publish
@@ -345,6 +345,22 @@ Seven things about this pipeline are worth knowing before changing it.
   while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
   carries on with a selection it never made. `copy-paste.spec.ts` is the spec that shape bit — one cell
   copied instead of the range, its assertions still passing, visible only as a changed screenshot.
+- **The `visual-diff-report` artifact holds the differences, not `.reg/`.** The Compare job's
+  `Stage the visual diff report` step (`scripts/stage-diff-report.mjs`; `lib/visual-diff-report.mjs`
+  picks the files) copies `index.html`, `out.json`, and the expected, actual, and diff image of
+  each changed item, the actual of each new one, and the expected of each deleted one into
+  `$RUNNER_TEMP/visual-diff-report`, and the upload reads that. The report opens from the subset because
+  reg-cli addresses its images relative to `index.html`; the passing items are listed without images.
+  Two traps sit behind it. Until DEV-3089 the upload read `visual-tests/.reg` directly and uploaded nothing
+  on any run: `.reg` is a dot-directory, upload-artifact skips hidden paths unless
+  `include-hidden-files: true` is set, and the step still reported success, while the comment sent
+  reviewers there. And setting that flag on the whole tree ships the tier's golden set twice (110 MB for a
+  pr-tier run with 28 changed items, against 24.5 MB staged). The artifact is the only place a fork pull
+  request's images are, so prove any change to these steps against a real run's artifact list
+  (`gh api repos/handsontable/handsontable/actions/runs/<id>/artifacts`), not the YAML.
+  `.github/scripts/__tests__/visual-diff-report.test.mjs` pins the two steps to one condition and one
+  directory, and `visual-flake-governance.test.mjs` fails any upload that reads a dot-directory without the
+  flag.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes

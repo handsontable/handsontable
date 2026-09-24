@@ -45,7 +45,9 @@ When you push changes to a GitHub pull request:
 If reg-suit spots differences, the **Visual / approve** job of your pull request's Tests run waits for a
 reviewer, and `CI Gate` waits with it, so you can't merge yet. In that case:
 1. Open the report. The **Visual** workflow comments the report URL on your pull request. If that URL is
-   unreachable, download the `visual-diff-report` artifact from the workflow run instead.
+   unreachable, download the `visual-diff-report` artifact from the workflow run instead and open its
+   `index.html`. The artifact holds the images of every changed, new, and deleted screenshot; the passing
+   ones are listed without images.
 2. Decide what the differences mean:
       - They are a regression. Push a commit that removes them; the next run compares again and the
         approval request goes away on its own.
