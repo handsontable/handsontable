@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T08:12:27.081Z",
+  "generatedAt": "2026-09-24T08:40:04.203Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -94,7 +94,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 6,
+      "count7": 5,
       "count30": 9,
       "countAll": 9,
       "runs30": 7,
@@ -128,7 +128,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 4,
+      "count7": 3,
       "count30": 8,
       "countAll": 8,
       "runs30": 7,
