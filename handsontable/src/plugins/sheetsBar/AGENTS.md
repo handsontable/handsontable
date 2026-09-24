@@ -152,6 +152,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
+- **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
+  `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
+  restore runs after it and goes through the public `sort()`, `filter()` and `merge()`, whose
+  UndoRedo actions register on `beforeColumnSort`/`beforeFilter`/`beforeMergeCells`. Without the
+  guard they land on the fresh stack, and the first Ctrl+Z after a switch took back the arriving
+  sheet's own sort. `restoreFilterConditions` also skips `filter()` when neither the stored state
+  nor the grid has a condition — the neutral state's `filterConditions: []` is truthy, so every
+  switch used to run a filter pass.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

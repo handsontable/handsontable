@@ -1010,11 +1010,13 @@ export class SheetsBar extends BasePlugin {
       }
     };
 
-    if (this.hot.view) {
-      this.#batchRender(switchSheet);
-    } else {
-      switchSheet();
-    }
+    this.#withoutUndoEntry(() => {
+      if (this.hot.view) {
+        this.#batchRender(switchSheet);
+      } else {
+        switchSheet();
+      }
+    });
 
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
@@ -1064,7 +1066,7 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#neutralFixedColumnsStart));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
@@ -1793,10 +1795,14 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Runs a data write without recording it on the undo stack. The rename rewrites travel
-   * through `setDataAtCell` so `afterChange` fires and the grid repaints, but the engine
-   * rename they follow is not an undoable action — an undo restoring the old reference
-   * strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * Runs an operation without recording it on the undo stack. Two callers need it. The rename
+   * rewrites travel through `setDataAtCell` so `afterChange` fires and the grid repaints, but
+   * the engine rename they follow is not an undoable action — an undo restoring the old
+   * reference strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * And a sheet switch re-applies the arriving sheet's sort, filters, and merges through the
+   * public APIs, which the user did not just perform.
+   *
+   * @param {Function} write The operation to run.
    */
   #withoutUndoEntry(write: () => void) {
     const undoRedo = this.hot.getPlugin('undoRedo') as
