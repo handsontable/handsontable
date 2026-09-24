@@ -308,12 +308,20 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.release('ORD');
 
       expect(await grid.events()).toContain('afterError ORD failed');
-      await expect(grid.toast()).toHaveCount(0);
+      expect(await grid.toast().count()).toBe(0);
 
       await grid.clickTab(0);
       await expect(grid.toast()).toBeVisible();
       expect(await grid.pendingCount('ORD')).toBe(0);
       expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
+      expect((await grid.events()).filter(event => event === 'afterError ORD failed')).toHaveLength(1);
+
+      await grid.closeToast();
+      await expect(grid.toast()).toHaveCount(0);
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 0)).toHaveText('ORD-01');
+      expect(await grid.toast().count()).toBe(0);
     });
 
     test('the deferred toast brings back the sheet\'s sort and page (rule 7)', async() => {
@@ -346,6 +354,12 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect(grid.cell(0, 1)).toHaveText('#3');
       await expect(grid.toast()).toHaveCount(0);
       await expect(grid.loadingOverlayVisible()).toBeHidden();
+
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#3');
+      expect(await grid.toast().count()).toBe(0);
+      expect(await grid.fetchCount('ORD')).toBe(3);
     });
 
     test('a save in flight refetches the sheet it was made on (rule 8)', async() => {
@@ -370,6 +384,7 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
 
       await expect(grid.cell(0, 1)).toHaveText('-');
+      expect(await grid.toast().count()).toBe(0);
       expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row update failed:')]);
       await grid.clearConsoleProblems();
 
@@ -377,6 +392,38 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
       await grid.clickTab(0);
       await expect(grid.cell(0, 1)).toHaveText('#2');
+      await expect(grid.toast()).toHaveCount(1);
+      await expect(grid.toast()).toContainText('Could not update rows');
+
+      await grid.closeToast();
+      await expect(grid.toast()).toHaveCount(0);
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      expect(await grid.toast().count()).toBe(0);
+    });
+
+    test('an edit queued behind a slow save sends the rows of the sheet it was made on', async() => {
+      await grid.editCell(0, 1, 'first');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.editCell(1, 1, 'second');
+      await grid.clickTab(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+
+      expect(await grid.updatePayloads()).toEqual([
+        [{ id: 'ORD-01', changes: { fetch: 'first' } }],
+        [{ id: 'ORD-02', changes: { fetch: 'second' } }],
+      ]);
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+      await expect(grid.cell(1, 1)).toHaveText('#3');
     });
 
     test('a create in flight refetches the sheet it was made on', async() => {
@@ -409,6 +456,25 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.clickTab(0);
       expect(await grid.ids()).toEqual(['ORD-21', 'ORD-22']);
       expect((await grid.pagination()).currentPage).toBe(5);
+    });
+  });
+
+  test.describe('a grid without sheets', () => {
+    test('a save refetches with the dataProvider set while it was pending', async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ plain: true });
+
+      await grid.editCell(0, 1, 'edited');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.replaceDataProvider('CUS');
+      await expect.poll(() => grid.pendingCount('CUS')).toBe(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.fetchCount('CUS')).toBe(2);
+
+      expect(await grid.fetchCount('ORD')).toBe(1);
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      await grid.release('CUS');
+      await expect(grid.cell(0, 0)).toHaveText('CUS-01');
     });
   });
 });

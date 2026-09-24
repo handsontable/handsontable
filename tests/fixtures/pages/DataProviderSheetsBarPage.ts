@@ -26,6 +26,7 @@ interface FixtureServer {
   fetchCount: Record<ServerPrefix, number>;
   failNext: Set<ServerPrefix>;
   failNextUpdate: boolean;
+  updatePayloads: { id: unknown, changes: Record<string, unknown> }[][];
   consoleProblems: string[];
   events: string[];
   cancelNextSwitch: boolean;
@@ -96,15 +97,19 @@ export class DataProviderSheetsBarPage {
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
-   * @param {{ gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean }} options `gridLevel: true`
+   * @param {{ gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean, plain?: boolean }} options
+   * `plain: true` builds the grid without SheetsBar, backed by a grid-level `ORD` provider (`?plain=1`); `gridLevel: true`
    * adds a grid-level `dataProvider` alongside the two sheet-level ones (`?gridLevel=1`);
    * `serverSemantics: 'custom'` gives the server a sort order and a `contains` rule no client pass reproduces
    * (`?serverSemantics=custom`); `cachedRows: true` makes `fetchRows` hand back the same array for the same
    * query (`?cachedRows=1`).
    */
-  async goto(options: { gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean } = {}): Promise<void> {
+  async goto(
+    options: { gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean, plain?: boolean } = {}
+  ): Promise<void> {
     const extraParams = [
       options.gridLevel ? '&gridLevel=1' : '',
+      options.plain ? '&plain=1' : '',
       options.serverSemantics === 'custom' ? '&serverSemantics=custom' : '',
       options.cachedRows ? '&cachedRows=1' : '',
     ].join('');
@@ -194,6 +199,35 @@ export class DataProviderSheetsBarPage {
    */
   async pendingUpdateCount(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as { htServer: FixtureServer }).htServer.pendingUpdates.length);
+  }
+
+  /**
+   * The `{ id, changes }` rows of every `onRowsUpdate` call so far, one array per call.
+   *
+   * @returns {Promise<{ id: unknown, changes: Record<string, unknown> }[][]>} The recorded payloads.
+   */
+  async updatePayloads(): Promise<{ id: unknown, changes: Record<string, unknown> }[][]> {
+    return this.page.evaluate(() => (window as unknown as { htServer: FixtureServer }).htServer.updatePayloads);
+  }
+
+  /**
+   * Replace the grid-level `dataProvider` through `updateSettings()` with a provider for another prefix.
+   *
+   * @param {ServerPrefix} prefix The prefix the new provider fetches from.
+   */
+  async replaceDataProvider(prefix: ServerPrefix): Promise<void> {
+    await this.page.evaluate((p) => {
+      const { htProvider } = window as unknown as { htProvider(prefix: string): object };
+
+      window.hot.updateSettings({ dataProvider: htProvider(p) });
+    }, prefix);
+  }
+
+  /**
+   * Close the toast with its close button.
+   */
+  async closeToast(): Promise<void> {
+    await this.toast().locator('.ht-notification__close').click();
   }
 
   /**

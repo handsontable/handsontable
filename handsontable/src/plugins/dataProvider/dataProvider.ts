@@ -23,7 +23,9 @@ import {
   getRowIdByVisualRow,
   handleBeforeAlterForCrud,
   isMissingRowId,
+  prepareUpdateFromChanges,
   queueCrud,
+  revertChangeTuples,
   runAfterRowsMutation,
   runAfterRowsMutationError,
   runBeforeRowsMutation,
@@ -56,6 +58,7 @@ import {
 } from './utils';
 import {
   createServerState,
+  isMutationFailureKind,
   replaceArrayContents,
 } from './sheetState';
 import type { FetchBinding, SheetServerState } from './sheetState';
@@ -466,6 +469,7 @@ export class DataProvider extends BasePlugin {
     const payload = { rowsCreate: rowsCreatePayload };
 
     return this.#queueCrud(
+      binding,
       'create',
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
@@ -510,7 +514,7 @@ export class DataProvider extends BasePlugin {
     });
     const payload = { rowsRemove: ids };
 
-    return this.#queueCrud('remove', payload, () => onRowsRemove(ids), async() => {
+    return this.#queueCrud(binding, 'remove', payload, () => onRowsRemove(ids), async() => {
       const target = this.#mutationTarget(binding);
       const offScreen = target !== null && !this.#isVisible(target);
       const pageBeforeFetch = offScreen
@@ -1018,6 +1022,8 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
+    this.#showDeferredMutationFailures(binding.sheetId);
+
     const pending = this.#inFlight.get(binding.sheetId);
 
     if (pending) {
@@ -1245,20 +1251,60 @@ export class DataProvider extends BasePlugin {
     rowPayloads: object[],
     options: { revertOptimistic?: () => void } = {}
   ): Promise<void> {
-    const target = this.#mutationTarget(binding);
     const { revertOptimistic } = options;
 
     return commitRowsUpdateCrud(this.hot, {
-      getOnRowsUpdate: () => this.#getOnRowsUpdate(target?.config),
-      fetchData: () => this.#refetchFor(target, { skipLoading: true }),
+      getOnRowsUpdate: () => this.#getOnRowsUpdate(this.#mutationTarget(binding)?.config),
+      fetchData: () => this.#refetchFor(this.#mutationTarget(binding), { skipLoading: true }),
       logError,
-      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(
-        kind as 'fetch' | 'create' | 'update' | 'remove', err),
+      onRequestFailed: (kind, err) => this.#reportRequestFailure(this.#mutationTarget(binding), kind, err),
     }, rowPayloads, {
       revertOptimistic: isFunction(revertOptimistic)
-        ? () => this.#revertUpdateFor(target, revertOptimistic)
+        ? () => this.#revertUpdateFor(this.#mutationTarget(binding), revertOptimistic)
         : undefined,
     });
+  }
+
+  /**
+   * Shows a failed mutation's error toast, or, when the mutation's sheet is off-screen, stores the failure in that
+   * sheet's state so the toast appears when the sheet is visible again.
+   *
+   * @param {object|null} binding The mutation's binding.
+   * @param {string} kind Which request failed.
+   * @param {*} err Rejection reason from the user callback.
+   */
+  #reportRequestFailure(binding: FetchBinding<DataProviderConfig> | null, kind: string, err: unknown): void {
+    if (!isMutationFailureKind(kind)) {
+      this.#showDataProviderRequestErrorNotification(kind as 'fetch' | 'create' | 'update' | 'remove', err);
+
+      return;
+    }
+
+    if (binding === null || this.#isVisible(binding)) {
+      this.#showDataProviderRequestErrorNotification(kind, err);
+
+      return;
+    }
+
+    this.#stateFor(binding.sheetId).mutationFailures.push({ kind, error: err });
+  }
+
+  /**
+   * Shows, once each, the mutation failures a sheet stored while it was off-screen.
+   *
+   * @param {number|null} sheetId The arriving sheet's id.
+   */
+  #showDeferredMutationFailures(sheetId: number | null): void {
+    const state = this.#states.get(sheetId);
+
+    if (!state || state.mutationFailures.length === 0) {
+      return;
+    }
+
+    const failures = state.mutationFailures;
+
+    state.mutationFailures = [];
+    failures.forEach(({ kind, error }) => this.#showDataProviderRequestErrorNotification(kind, error));
   }
 
   /**
@@ -1284,6 +1330,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Queues create/remove (or similar) server calls with before/after mutation hooks.
    *
+   * @param {object} binding The binding captured when the mutation was queued.
    * @param {string} operation `'create'` or `'remove'`.
    * @param {object} payload Hook payload (`{ rowsCreate }` or `{ rowsRemove }`).
    * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
@@ -1291,7 +1338,11 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    */
   #queueCrud(
-    operation: string, payload: object, userPromiseFn: () => Promise<unknown>, onSuccess: () => Promise<void> | void
+    binding: FetchBinding<DataProviderConfig>,
+    operation: string,
+    payload: object,
+    userPromiseFn: () => Promise<unknown>,
+    onSuccess: () => Promise<void> | void
   ): Promise<void> {
     return queueCrud(
       {
@@ -1300,8 +1351,7 @@ export class DataProvider extends BasePlugin {
         runAfterRowsMutation: (op, p) => runAfterRowsMutation(this.hot, op, p),
         runAfterRowsMutationError: (op, err, p) => runAfterRowsMutationError(this.hot, op, err, p),
         logError,
-        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(
-          kind as 'fetch' | 'create' | 'update' | 'remove', err),
+        onRequestFailed: (kind, err) => this.#reportRequestFailure(this.#mutationTarget(binding), kind, err),
       },
       operation,
       payload,
@@ -1515,11 +1565,18 @@ export class DataProvider extends BasePlugin {
     }
 
     const binding = this.#currentBinding();
+    const prepared = binding !== null && binding.sheetId !== null
+      ? prepareUpdateFromChanges(this.hot, binding.config.rowId, valid, { validateNow: true })
+      : undefined;
 
     void this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
       getRowIdOption: () => this.#getRowIdOption(),
       commitRowsUpdate: (payloads, opts) => this.#commitRowsUpdate(binding, payloads, opts),
-    }, valid));
+      revertChanges: tuples => this.#revertUpdateFor(
+        this.#mutationTarget(binding),
+        () => revertChangeTuples(this.hot, tuples)
+      ),
+    }, valid, prepared));
   };
 
   /**

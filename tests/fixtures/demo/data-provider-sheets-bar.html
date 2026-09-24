@@ -40,6 +40,8 @@
 
     `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
     prove SheetsBar disables it for every sheet that does not declare its own and warns once.
+    `?plain=1` builds the same grid without SheetsBar, backed by a grid-level `ORD` provider, so a spec can pin
+    how a grid without sheets behaves. `window.htProvider(prefix)` builds a provider for `updateSettings()`.
 
     `?serverSemantics=custom` gives the server rules no client-side pass reproduces: its "desc" order
     is a fixed permutation (adjacent pairs of the reversed ids swapped: ORD-24, ORD-25, ORD-22, ...),
@@ -52,7 +54,8 @@
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
     `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` park the same way on
-    `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject. `failNext`
+    `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject, and every
+    `onRowsUpdate` call records its `{ id, changes }` rows in `window.htServer.updatePayloads`. `failNext`
     makes the next `fetchRows` call for a prefix reject instead of resolving.
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
@@ -80,6 +83,7 @@
       fetchCount: { ORD: 0, CUS: 0, GRID: 0 },
       failNext: new Set(),
       failNextUpdate: false,
+      updatePayloads: [],
       consoleProblems: [],
       events: [],
       cancelNextSwitch: false,
@@ -202,7 +206,11 @@
       rowId: 'id',
       fetchRows: makeFetchRows(prefix),
       onRowsCreate: parkMutation,
-      onRowsUpdate: parkMutation,
+      onRowsUpdate: (rows) => {
+        server.updatePayloads.push(rows.map(row => ({ id: row.id, changes: row.changes })));
+
+        return parkMutation();
+      },
       onRowsRemove: parkMutation,
     });
 
@@ -212,6 +220,9 @@
     };
 
     const gridLevel = fixtureParams.has('gridLevel');
+    const plain = fixtureParams.has('plain');
+
+    window.htProvider = provider;
 
     try {
       window.hot = new Handsontable(container, {
@@ -228,13 +239,15 @@
         notification: true,
         emptyDataState: true,
         ...(gridLevel ? { dataProvider: provider('GRID') } : {}),
-        sheetsBar: {
-          sheets: [
-            { name: 'Orders', data: [], settings: { dataProvider: provider('ORD') } },
-            { name: 'Notes', data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }] },
-            { name: 'Customers', data: [], settings: { dataProvider: provider('CUS') } },
-          ],
-        },
+        ...(plain ? { dataProvider: provider('ORD') } : {
+          sheetsBar: {
+            sheets: [
+              { name: 'Orders', data: [], settings: { dataProvider: provider('ORD') } },
+              { name: 'Notes', data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }] },
+              { name: 'Customers', data: [], settings: { dataProvider: provider('CUS') } },
+            ],
+          },
+        }),
         beforeSheetTabChange() {
           if (server.cancelNextSwitch) {
             server.cancelNextSwitch = false;

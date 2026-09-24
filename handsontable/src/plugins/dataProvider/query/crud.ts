@@ -517,26 +517,47 @@ export async function runManualUpdateRowsMutation(
 }
 
 /**
- * Groups cell changes by row, validates, then commits a single batched `onRowsUpdate`.
+ * The `onRowsUpdate` payloads built from change tuples, the visual rows they were read from, and, when the
+ * validation was started together with them, its pending result.
+ */
+export interface PreparedRowsUpdate {
+  sortedRows: number[];
+  rowPayloads: Array<{
+    id: unknown;
+    changes: Record<string | number, unknown>;
+    rowData: Record<string, unknown> | unknown[];
+  }>;
+  validation?: Promise<boolean[]>;
+}
+
+/**
+ * Validates every row of an update against its cells' validators.
  *
  * @param {Core} hot Handsontable instance.
- * @param {object} ctx Row resolution and commit.
- * @param {function(): string|Function|undefined|null} ctx.getRowIdOption Current `rowId` config.
- * @param {function(object[], object): Promise<void>} ctx.commitRowsUpdate Commits payloads (e.g. server + refetch).
- * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
- * @returns {Promise<void>}
+ * @param {number[]} sortedRows The visual rows, in the order of `rowPayloads`.
+ * @param {object[]} rowPayloads The per-row payloads.
+ * @returns {Promise<boolean[]>} One result per row.
  */
-type UpdateFromChangesCtx = {
-  getRowIdOption: () => RowIdOption;
-  commitRowsUpdate: (payloads: InternalRowUpdatePayload[], opts?: { revertOptimistic?: () => void }) => Promise<void>;
-};
+function validatePreparedRows(
+  hot: HotInstance, sortedRows: number[], rowPayloads: PreparedRowsUpdate['rowPayloads']
+): Promise<boolean[]> {
+  return Promise.all(sortedRows.map((vr, i) => validateRowChanges(hot, vr, rowPayloads[i].changes)));
+}
+
 /**
+ * Groups cell changes by row and builds one `{ id, changes, rowData }` payload per row from the rows the grid
+ * shows now. With `validateNow`, the cells are validated now too, against the same rows.
  *
+ * @param {Core} hot Handsontable instance.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
+ * @param {object} [options] Optional flags.
+ * @param {boolean} [options.validateNow] Starts the validation now instead of when the update runs.
+ * @returns {object}
  */
-export async function runUpdateFromChanges(
-  hot: HotInstance, ctx: UpdateFromChangesCtx, changes: ChangeTuple[]
-): Promise<void> {
-  const { getRowIdOption, commitRowsUpdate: commitFn } = ctx;
+export function prepareUpdateFromChanges(
+  hot: HotInstance, rowIdOption: RowIdOption, changes: ChangeTuple[], options: { validateNow?: boolean } = {}
+): PreparedRowsUpdate {
   const byRow = new Map<number, ChangeTuple[]>();
 
   changes.forEach((ch) => {
@@ -549,7 +570,6 @@ export async function runUpdateFromChanges(
   });
 
   const sortedRows = [...byRow.keys()].sort((a, b) => a - b);
-  const rowIdOption = getRowIdOption();
   const rowPayloads = sortedRows.map((vr) => {
     const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr)!);
 
@@ -560,8 +580,43 @@ export async function runUpdateFromChanges(
     };
   });
 
+  return {
+    sortedRows,
+    rowPayloads,
+    validation: options.validateNow ? validatePreparedRows(hot, sortedRows, rowPayloads) : undefined,
+  };
+}
+
+/**
+ * Groups cell changes by row, validates, then commits a single batched `onRowsUpdate`.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {object} ctx Row resolution and commit.
+ * @param {function(): string|Function|undefined|null} ctx.getRowIdOption Current `rowId` config.
+ * @param {function(object[], object): Promise<void>} ctx.commitRowsUpdate Commits payloads (e.g. server + refetch).
+ * @param {function(Array): void} [ctx.revertChanges] Restores the previous values of the change tuples; the
+ * default writes them back into the grid.
+ * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
+ * @param {object} [prepared] Payloads built earlier by `prepareUpdateFromChanges()`; built now when omitted.
+ * @returns {Promise<void>}
+ */
+type UpdateFromChangesCtx = {
+  getRowIdOption: () => RowIdOption;
+  commitRowsUpdate: (payloads: InternalRowUpdatePayload[], opts?: { revertOptimistic?: () => void }) => Promise<void>;
+  revertChanges?: (changes: ChangeTuple[]) => void;
+};
+/**
+ *
+ */
+export async function runUpdateFromChanges(
+  hot: HotInstance, ctx: UpdateFromChangesCtx, changes: ChangeTuple[], prepared?: PreparedRowsUpdate
+): Promise<void> {
+  const { getRowIdOption, commitRowsUpdate: commitFn, revertChanges } = ctx;
+  const { sortedRows, rowPayloads, validation } = prepared ?? prepareUpdateFromChanges(hot, getRowIdOption(), changes);
   const payload = { rows: rowPayloads };
-  const revert = () => revertChangeTuples(hot, changes);
+  const revert = isFunction(revertChanges)
+    ? () => revertChanges(changes)
+    : () => revertChangeTuples(hot, changes);
 
   if (rowPayloads.some(p => isMissingRowId(p.id))) {
     revert();
@@ -583,9 +638,7 @@ export async function runUpdateFromChanges(
     return;
   }
 
-  const ok = await Promise.all(
-    sortedRows.map((vr, i) => validateRowChanges(hot, vr, rowPayloads[i].changes))
-  );
+  const ok = await (validation ?? validatePreparedRows(hot, sortedRows, rowPayloads));
 
   if (ok.some(v => !v)) {
     revert();

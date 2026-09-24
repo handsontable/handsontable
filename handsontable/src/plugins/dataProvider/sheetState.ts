@@ -12,14 +12,34 @@ export interface FetchBinding<Config extends object = object> {
 }
 
 /**
+ * A failed `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` whose error toast waits for its sheet.
+ */
+export interface DeferredMutationFailure {
+  kind: 'create' | 'update' | 'remove';
+  error: unknown;
+}
+
+/**
+ * Tells whether a request kind is one of the mutations whose failure can wait for its sheet.
+ *
+ * @param {string} kind The request kind.
+ * @returns {boolean}
+ */
+export function isMutationFailureKind(kind: string): kind is DeferredMutationFailure['kind'] {
+  return kind === 'create' || kind === 'update' || kind === 'remove';
+}
+
+/**
  * The server view of one sheet: the query its rows were fetched with, the last `afterDataProviderFetch` payload,
- * and a failure waiting to be shown when the sheet is visible again.
+ * a fetch failure waiting to be shown when the sheet is visible again, and the mutation failures waiting the same
+ * way.
  */
 export interface SheetServerState<Result extends object = object> {
   queryParameters: DataProviderQueryParameters;
   lastResult: Result | null;
   failure: unknown;
   hasFailure: boolean;
+  mutationFailures: DeferredMutationFailure[];
 }
 
 /**
@@ -31,12 +51,18 @@ export interface SheetServerState<Result extends object = object> {
 export function createServerState<Result extends object>(
   queryParameters: DataProviderQueryParameters
 ): SheetServerState<Result> {
-  return { queryParameters: deepClone(queryParameters), lastResult: null, failure: undefined, hasFailure: false };
+  return {
+    queryParameters: deepClone(queryParameters),
+    lastResult: null,
+    failure: undefined,
+    hasFailure: false,
+    mutationFailures: [],
+  };
 }
 
 /**
  * Copies a sheet's state for a duplicated sheet. The query is cloned so the copy's later queries stay its own;
- * a pending failure belongs to the original and is not copied.
+ * pending failures belong to the original and are not copied.
  *
  * @param {object} state The original sheet's state.
  * @returns {object}

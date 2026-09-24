@@ -38,6 +38,7 @@ describe('dataProvider sheetState', () => {
     const state = createServerState({ page: 2, pageSize: 5, sort: { prop: 'id', order: 'desc' }, filters: null });
 
     state.lastResult = { rows: [], totalRows: 25 };
+    state.mutationFailures.push({ kind: 'update', error: new Error('failed') });
     const copy = cloneServerState(state);
 
     copy.queryParameters.sort.order = 'asc';
@@ -45,5 +46,6 @@ describe('dataProvider sheetState', () => {
     expect(state.queryParameters.sort.order).toBe('desc');
     expect(copy.lastResult.totalRows).toBe(25);
     expect(copy.hasFailure).toBe(false);
+    expect(copy.mutationFailures).toEqual([]);
   });
 });
