@@ -379,22 +379,10 @@ export class NestedRowsDetachAction extends BaseAction {
       return;
     }
 
-    let hasRendered = false;
-    const onAfterViewRender = () => {
-      hasRendered = true;
-      redoneCallback();
-    };
-
-    hot.addHookOnce('afterViewRender', onAfterViewRender);
-
-    try {
-      dataManager.detachFromParent(subtree.row, true, 'UndoRedo.redo');
-    } catch (error) {
-      if (!hasRendered) {
-        hot.removeHook('afterViewRender', onAfterViewRender);
-      }
-
-      throw error;
-    }
+    // The detach is synchronous, so it settles as soon as it returns. Waiting for `afterViewRender` would never
+    // settle inside `batch()` or `suspendRender()`, which leaves `ignoreNewActions` on for the rest of the session.
+    // A throw skips the settle; `UndoRedo#redo()` resets the flag and discards the action.
+    dataManager.detachFromParent(subtree.row, true, 'UndoRedo.redo');
+    redoneCallback();
   }
 }

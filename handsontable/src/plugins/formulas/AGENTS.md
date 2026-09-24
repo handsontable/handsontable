@@ -75,7 +75,11 @@ that path:
 - **Structural redos replay only in `afterRedo`.** `UndoRedo#redo()` gives every `beforeRedo` listener a
   chance to veto the action before it runs, so replaying from `beforeRedo` would advance HyperFormula while
   the grid remains undone. The action types are exactly `STRUCTURAL_ACTION_TYPES`; non-structural redos
-  retain their existing replay path.
+  retain their existing replay path. `UndoRedo` fires `afterRedo` even when the action settles
+  `{ wasRedone: false }` (a late `beforeRemoveRow` veto), so the replay also requires the redo to have
+  applied. `#structuralRedoApplied` reads that from `afterUndoStackChange`, where the done stack grows only
+  on success. This relies on structural redos settling synchronously inside the grid operation, which they
+  all do.
 - **`nested_rows_detach` owns several engine history entries.** NestedRows emits an internal removal,
   insertion, and cell writes as one grid action. Its undo also replays only in `afterUndo`: a
   `beforeRemoveRow` veto skips that hook, so replaying from `beforeUndo` would advance HyperFormula while

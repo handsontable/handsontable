@@ -129,6 +129,10 @@ the row actually landed on, so a listener that reshapes the tree mid-detach cann
 prediction is kept as the fallback for a detach that throws before `afterDetachChild`. The pending action
 is cleared on every `afterDetachChild`: a no-op detach fires that hook without `beforeRemoveRow`.
 
+The detach redo settles right after `detachFromParent()` returns, never on `afterViewRender`. Inside
+`suspendRender()` no render runs, so a render-bound settle leaves `ignoreNewActions` on and every later
+action is dropped from the stack.
+
 ## `redo()` pops the undone stack only after `beforeRedo` accepts
 
 `UndoRedo#redo()` reads the top action, runs `beforeRedo`, and only then fires the redo stack-change hooks

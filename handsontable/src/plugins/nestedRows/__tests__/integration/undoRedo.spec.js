@@ -542,6 +542,39 @@ describe('NestedRows', () => {
       expect(nestedRows.dataManager.getRawSourceData()).toEqual(originalData);
     });
 
+    it('should settle a detach redo while rendering is suspended', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'Parent',
+            __children: [{ col1: 'Child' }],
+          },
+          { col1: 'After' },
+        ],
+        nestedRows: true,
+      });
+
+      const nestedRows = getPlugin('nestedRows');
+      const undoRedo = getPlugin('undoRedo');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      // While rendering is suspended no render runs, so a redo that settled on one would stay pending.
+      hot().suspendRender();
+      undoRedo.redo();
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.undoneActions.length).toBe(0);
+      expect(undoRedo.ignoreNewActions).toBe(false);
+
+      hot().resumeRender();
+      await setDataAtCell(0, 0, 'Edited');
+
+      expect(undoRedo.doneActions.length).toBe(2);
+    });
+
     it('should not undo a detach when its destination holds another subtree', async() => {
       handsontable({
         data: [

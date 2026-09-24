@@ -532,6 +532,19 @@ export class Formulas extends BasePlugin {
   #nestedRowsDetachUndoPending = false;
 
   /**
+   * Tracks a structural redo between `beforeRedo` and `afterRedo`: `null` outside one, then whether the
+   * action actually landed on the done stack.
+   *
+   * `UndoRedo` fires `afterRedo` even when the action settles with `{ wasRedone: false }` (a late
+   * `beforeRemoveRow` veto, for instance). Its `afterUndoStackChange` fires first, and the done stack grows
+   * only when the redo applied. Replaying HyperFormula's history for a redo that did not apply would advance
+   * the engine while the grid stays undone.
+   *
+   * @type {boolean|null}
+   */
+  #structuralRedoApplied: boolean | null = null;
+
+  /**
    * The changes that the engine reported while undoing or redoing an action. They are captured when
    * HyperFormula history is replayed and consumed in `afterUndo`/`afterRedo`, where the dependent cells
    * get validated.
@@ -830,6 +843,7 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
     this.#nestedRowsDetachUndoPending = false;
+    this.#structuralRedoApplied = null;
     this.#sheetResyncPending = false;
     this.#showFormulasFlag = false;
 
@@ -1003,6 +1017,7 @@ export class Formulas extends BasePlugin {
       // `afterRedo`, so HyperFormula's history only advances after the grid action is accepted.
       if (isStructuralAction(action)) {
         this.#undoRedoDependentCells = [];
+        this.#structuralRedoApplied = false;
 
         return;
       }
@@ -1042,8 +1057,13 @@ export class Formulas extends BasePlugin {
       }
     });
 
+    this.addHook('afterUndoStackChange', this.#onAfterUndoStackChange);
     this.addHook('afterRedo', (action: unknown) => {
-      if (isStructuralAction(action)) {
+      const isAppliedStructuralRedo = isStructuralAction(action) && this.#structuralRedoApplied === true;
+
+      this.#structuralRedoApplied = null;
+
+      if (isAppliedStructuralRedo) {
         this.#undoRedoDependentCells = replayFormulasUndoRedo(
           this.engine!, 'redo', getFormulasUndoRedoSteps(action)
         );
@@ -1052,7 +1072,7 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
 
-      if (isStructuralAction(action)) {
+      if (isAppliedStructuralRedo) {
         this.#syncFormulasToSourceData(canBreakReferences(action));
       }
     });
@@ -4165,7 +4185,17 @@ export class Formulas extends BasePlugin {
     this.indexSyncer?.setPerformUndo(false);
     this.indexSyncer?.setPerformRedo(false);
     this.#nestedRowsDetachUndoPending = false;
+    this.#structuralRedoApplied = null;
   }
+
+  /**
+   * Records whether a structural redo landed on the done stack. See `#structuralRedoApplied`.
+   */
+  #onAfterUndoStackChange = (doneActionsBefore: unknown[], doneActionsAfter: unknown[]) => {
+    if (this.#structuralRedoApplied !== null) {
+      this.#structuralRedoApplied = doneActionsAfter.length > doneActionsBefore.length;
+    }
+  };
 
   /**
    * Releases the index-sync undo guard after a NestedRows detach undo settles.
