@@ -81,6 +81,18 @@ describe('replaceData', () => {
       hot.destroy();
     });
 
+    it.each([
+      ['`columns: null`', { columns: null }],
+      ['`dataSchema: null`', { dataSchema: null }],
+    ])('should warn when %s leaves the column count to the empty first row', (_, settings) => {
+      const hot = createGrid({ data: [null], ...settings });
+
+      expect(hot.countCols()).toBe(0);
+      expect(getColumnWarnings()).toHaveLength(1);
+
+      hot.destroy();
+    });
+
     it('should warn when `minSpareRows` adds a row to an empty object-rowed dataset', () => {
       const hot = createGrid({ data: [], minSpareRows: 1 });
 

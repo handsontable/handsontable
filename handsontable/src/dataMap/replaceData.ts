@@ -83,12 +83,17 @@ function buildNullData(
  */
 function warnAboutUndetectableColumns(hotInstance: HotInstance, data: unknown[]) {
   const { columns, dataSchema, maxCols } = hotInstance.getSettings();
+  // Mirrors what `Core#getInitialColumnCount()` counts as configured: only an array or a function
+  // `columns`, and a `dataSchema` other than `null`. Any other value still leaves the column count
+  // to the first data row, so it must not silence the warning.
+  const declaresColumns = Array.isArray(columns) || isFunction(columns);
+  const declaresSchema = isDefined(dataSchema) && dataSchema !== null;
 
   if (
     hotInstance.countSourceRows() === 0 ||
     hotInstance.columnIndexMapper.getNumberOfIndexes() > 0 ||
-    isDefined(columns) ||
-    isDefined(dataSchema) ||
+    declaresColumns ||
+    declaresSchema ||
     maxCols === 0
   ) {
     return;
