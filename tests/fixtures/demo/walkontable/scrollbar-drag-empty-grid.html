@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Scrollbar drag on a grid with no rows</title>
+  <title>Scrollbar drag on a grid with an empty axis</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the
@@ -21,11 +21,27 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
-    // The layout direction is a fixed allowlist too. In `rtl` the holder scrolls into NEGATIVE
-    // `scrollLeft` and the sticky inset is written to `right`, not `left`.
+    // The layout direction, the row headers, the empty axis and the scroll owner are fixed
+    // allowlists too. In `rtl` the holder scrolls into NEGATIVE `scrollLeft` and the sticky inset
+    // is written to `right`, not `left`.
     window.htDirection = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
     if (!window.htDirection) {
       throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    window.htRowHeaders = ({ on: true, off: false })[htParams.get('rowHeaders') ?? 'off'];
+    if (window.htRowHeaders === undefined) {
+      throw new Error('Unknown ?rowHeaders= value: ' + JSON.stringify(htParams.get('rowHeaders')));
+    }
+    // `no-rows`: column headers and `data: []`, dragged horizontally. `no-columns`: row headers
+    // and rows with no columns, dragged vertically - the same defect on the other axis.
+    window.htShape = ({ 'no-rows': 'no-rows', 'no-columns': 'no-columns' })[htParams.get('shape') ?? 'no-rows'];
+    if (!window.htShape) {
+      throw new Error('Unknown ?shape= value: ' + JSON.stringify(htParams.get('shape')));
+    }
+    // `element` sizes the grid so its holder scrolls; `window` leaves it unsized so the page does.
+    window.htMode = ({ element: 'element', window: 'window' })[htParams.get('mode') ?? 'element'];
+    if (!window.htMode) {
+      throw new Error('Unknown ?mode= value: ' + JSON.stringify(htParams.get('mode')));
     }
   </script>
   <style>
@@ -34,13 +50,12 @@
 </head>
 <body>
   <!--
-    DEV-3083. A grid with column headers and no rows (`data: []`), narrower than its columns, so
-    the holder scrolls horizontally. A native scrollbar drag switches the spreaders to
-    `position: sticky`; with nothing rendered on the vertical axis the sticky offsets used to stop
-    updating for BOTH axes, so the column headers stayed behind the scroll and the release snapped
-    the scroll position back.
+    DEV-3083. A grid with nothing rendered on one axis - no rows, or no columns - that scrolls on
+    the other one. A native scrollbar drag switches the spreaders to `position: sticky`; with one
+    axis empty the sticky offsets used to stop updating for BOTH axes, so the headers stayed behind
+    the scroll and the release snapped the scroll position back.
   -->
-  <h2>Scrollbar drag on a grid with no rows (<span id="dir"></span>)</h2>
+  <h2>Scrollbar drag on a grid with an empty axis</h2>
   <div id="grid" data-testid="grid"></div>
 
   <script>
@@ -52,23 +67,50 @@
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
-    document.getElementById('dir').textContent = window.htDirection;
 
-    window.hot = new Handsontable(container, {
+    // Every scroll hook fires inside the engine's scroll sync, in the same synchronous block that
+    // redraws and re-syncs the sticky offsets, so a new count means that sync has finished.
+    window.htScrollSyncs = 0;
+
+    const shape = window.htShape === 'no-rows' ? {
       data: [],
       // With no rows the column count comes from the column definitions alone.
       columns: Array.from({ length: 30 }, () => ({})),
       colHeaders: true,
-      width: 500,
-      height: 300,
-      layoutDirection: window.htDirection,
-      afterGetColHeader(column, TH) {
-        if (column >= 0) {
-          TH.dataset.testid = `col-header-${column}`;
-        }
-      },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+      rowHeaders: window.htRowHeaders,
+    } : {
+      data: Array.from({ length: 100 }, () => []),
+      rowHeaders: true,
+      // Above every theme's default row height, so the rows render at exactly this height.
+      rowHeights: 50,
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        ...shape,
+        ...(window.htMode === 'element' ? { width: 500, height: 300 } : {}),
+        layoutDirection: window.htDirection,
+        afterGetColHeader(column, TH) {
+          if (column >= 0) {
+            TH.dataset.testid = `col-header-${column}`;
+          }
+        },
+        afterGetRowHeader(row, TH) {
+          if (row >= 0) {
+            TH.dataset.testid = `row-header-${row}`;
+          }
+        },
+        afterScrollHorizontally() {
+          window.htScrollSyncs += 1;
+        },
+        afterScrollVertically() {
+          window.htScrollSyncs += 1;
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
   </script>
 </body>
 </html>
