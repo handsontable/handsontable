@@ -459,6 +459,69 @@ test.describe('dataProvider with sheetsBar', () => {
     });
   });
 
+  test.describe('remove and duplicate', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto();
+    });
+
+    test('removing a server sheet mid-fetch aborts silently (rule 14)', async() => {
+      await grid.startFetch();
+      await grid.removeSheet(0);
+
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect((await grid.events()).at(-1)).toBe('afterAbort');
+      await expect(grid.toast()).toHaveCount(0);
+    });
+
+    test('remove a background sheet with a detached fetch (review focus 4)', async() => {
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.removeSheet(0);
+
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+    });
+
+    test('a duplicate starts with a full snapshot and fetches nothing on its first visit (rule 15)', async() => {
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await grid.goToPage(2);
+      await grid.release('ORD');
+      const snapshot = { ids: await grid.ids(), sort: await grid.sortConfig(), pagination: await grid.pagination() };
+      const fetches = await grid.fetchCount('ORD');
+
+      await grid.duplicateSheet(0);
+      await grid.clickTab(1);
+
+      expect(await grid.fetchCount('ORD')).toBe(fetches);
+      expect(await grid.ids()).toEqual(snapshot.ids);
+      expect(await grid.sortConfig()).toEqual(snapshot.sort);
+      expect(await grid.pagination()).toEqual(snapshot.pagination);
+
+      await grid.goToPage(3);
+      expect(await grid.pendingCount('ORD')).toBe(1);
+    });
+
+    test('duplicate while the original is fetching (review focus 3)', async() => {
+      await grid.startFetch();
+      await grid.duplicateSheet(0);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+
+      await grid.clickTab(1);
+      await expect(grid.cell(0, 1)).toHaveText('#1');
+    });
+
+    test('destroy aborts every fetch (rule 16)', async() => {
+      await grid.startFetch();
+      await grid.clickTab(2);
+      await grid.page.evaluate(() => window.hot.destroy());
+
+      expect(await grid.pendingCount()).toBe(0);
+    });
+  });
+
   test.describe('a grid without sheets', () => {
     test('a save refetches with the dataProvider set while it was pending', async({ page, theme, bundle }) => {
       grid = new DataProviderSheetsBarPage(page, theme, bundle);

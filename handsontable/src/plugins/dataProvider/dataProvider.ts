@@ -57,6 +57,7 @@ import {
   isCompleteDataProviderConfig,
 } from './utils';
 import {
+  cloneServerState,
   createServerState,
   isMutationFailureKind,
   replaceArrayContents,
@@ -327,6 +328,8 @@ export class DataProvider extends BasePlugin {
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.hot.addHook('afterSheetTabStateCapture', this.#onSheetSwitchStart);
     this.hot.addHook('afterSheetTabChange', this.#onSheetSwitchEnd);
+    this.hot.addHook('afterSheetTabRemove', this.#onAfterSheetTabRemove);
+    this.hot.addHook('afterSheetTabDuplicate', this.#onAfterSheetTabDuplicate);
   }
 
   /**
@@ -1166,6 +1169,10 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   #runAfterDataProviderFetchAbort(params: DataProviderBeforeFetchParameters, reason: unknown): void {
+    if (!this.hot) {
+      return;
+    }
+
     const queryParameters = this.#snapshotQueryParameters(params);
 
     this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);
@@ -1528,6 +1535,34 @@ export class DataProvider extends BasePlugin {
     getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
 
   /**
+   * Aborts the removed sheet's fetch and forgets its server state. The abort is silent: `fetchRows` rejects with
+   * `AbortError`, which only fires `afterDataProviderFetchAbort`.
+   *
+   * @param {number} sheetId The removed sheet's id.
+   * @returns {void}
+   */
+  readonly #onAfterSheetTabRemove = (sheetId: number) => {
+    this.#abortFetchesFor(sheetId);
+    this.#states.delete(sheetId);
+  };
+
+  /**
+   * Gives a duplicated sheet a snapshot of the original's server state, so its first visit replays instead of
+   * fetching. The original's fetch in flight stays with the original.
+   *
+   * @param {number} sourceSheetId The original sheet's id.
+   * @param {number} sheetId The duplicate's id.
+   * @returns {void}
+   */
+  readonly #onAfterSheetTabDuplicate = (sourceSheetId: number, sheetId: number) => {
+    const state = this.#states.get(sourceSheetId);
+
+    if (state?.lastResult) {
+      this.#states.set(sheetId, cloneServerState(state));
+    }
+  };
+
+  /**
    * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).
    *
    * @param {Array} doneActionsCopy Snapshot of the undo stack before the new action.
@@ -1607,6 +1642,8 @@ export class DataProvider extends BasePlugin {
     this.#abortAllFetches();
     this.hot.removeHook('afterSheetTabStateCapture', this.#onSheetSwitchStart);
     this.hot.removeHook('afterSheetTabChange', this.#onSheetSwitchEnd);
+    this.hot.removeHook('afterSheetTabRemove', this.#onAfterSheetTabRemove);
+    this.hot.removeHook('afterSheetTabDuplicate', this.#onAfterSheetTabDuplicate);
 
     super.destroy();
   }
