@@ -3,9 +3,24 @@ import { awaitBundle } from '../bundle';
 import type { FixtureHotInstance, FixtureSortConfig } from './windowTypes';
 
 /**
- * The `fetchRows` prefixes the fixture's three server-backed sheets use.
+ * The `fetchRows` prefixes the fixture's server-backed sheets and its grid-level provider use.
  */
-type ServerPrefix = 'ORD' | 'CUS' | 'GRID';
+type ServerPrefix = 'ORD' | 'CUS' | 'GRID' | 'INV';
+
+/**
+ * The fixture variants `goto()` can open.
+ */
+interface GotoOptions {
+  gridLevel?: boolean;
+  serverSemantics?: 'custom';
+  cachedRows?: boolean;
+  plain?: boolean;
+  noColumns?: boolean;
+  invoices?: boolean;
+  notesNullProvider?: boolean;
+  activeSheet?: number;
+  releaseInitialFetch?: boolean;
+}
 
 /**
  * The query a `fetchRows` request was called with.
@@ -40,7 +55,7 @@ interface FixtureServer {
  * `windowTypes.ts` already declares for the other plugins under test.
  */
 interface FixtureDataProviderPlugin {
-  fetchData(): Promise<unknown>;
+  fetchData(overrides?: Record<string, unknown>): Promise<unknown>;
   createRows(options: { position?: 'above' | 'below', referenceRowId?: unknown, rowsAmount?: number }): Promise<void>;
   removeRows(rowIds: unknown[]): Promise<void>;
 }
@@ -99,21 +114,26 @@ export class DataProviderSheetsBarPage {
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
-   * @param {{ gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean, plain?: boolean }} options
+   * @param {GotoOptions} options
    * `plain: true` builds the grid without SheetsBar, backed by a grid-level `ORD` provider (`?plain=1`); `gridLevel: true`
    * adds a grid-level `dataProvider` alongside the two sheet-level ones (`?gridLevel=1`);
    * `serverSemantics: 'custom'` gives the server a sort order and a `contains` rule no client pass reproduces
    * (`?serverSemantics=custom`); `cachedRows: true` makes `fetchRows` hand back the same array for the same
-   * query (`?cachedRows=1`).
+   * query (`?cachedRows=1`); `noColumns: true` drops the `columns` setting (`?noColumns=1`); `invoices: true`
+   * appends the "Invoices" sheet with swapped columns (`?invoices=1`); `notesNullProvider: true` makes Notes declare
+   * `dataProvider: null` (`?notesNullProvider=1`); `activeSheet: 1` opens the workbook on Notes, which fetches
+   * nothing (`?activeSheet=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
    */
-  async goto(
-    options: { gridLevel?: boolean, serverSemantics?: 'custom', cachedRows?: boolean, plain?: boolean } = {}
-  ): Promise<void> {
+  async goto(options: GotoOptions = {}): Promise<void> {
     const extraParams = [
       options.gridLevel ? '&gridLevel=1' : '',
       options.plain ? '&plain=1' : '',
       options.serverSemantics === 'custom' ? '&serverSemantics=custom' : '',
       options.cachedRows ? '&cachedRows=1' : '',
+      options.noColumns ? '&noColumns=1' : '',
+      options.invoices ? '&invoices=1' : '',
+      options.notesNullProvider ? '&notesNullProvider=1' : '',
+      options.activeSheet === undefined ? '' : `&activeSheet=${options.activeSheet}`,
     ].join('');
 
     await this.page.goto(
@@ -127,7 +147,18 @@ export class DataProviderSheetsBarPage {
       throw new Error(`Fixture failed to build the grid: ${initError}`);
     }
 
+    if (options.activeSheet === 1) {
+      await expect(this.cell(0, 0)).toHaveText('NOTE-1');
+
+      return;
+    }
+
     await expect.poll(() => this.pendingCount('ORD')).toBe(1);
+
+    if (options.releaseInitialFetch === false) {
+      return;
+    }
+
     await this.release('ORD');
     await expect(this.cell(0, 0)).toHaveText('ORD-01');
   }
@@ -164,11 +195,43 @@ export class DataProviderSheetsBarPage {
 
   /**
    * Start a refetch of the current query without waiting for it to settle.
+   *
+   * @param {Record<string, unknown>} [overrides] Query overrides passed to `fetchData()`.
    */
-  async startFetch(): Promise<void> {
-    await this.page.evaluate(() => {
-      (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('dataProvider').fetchData().catch(() => {});
-    });
+  async startFetch(overrides?: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((o) => {
+      (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('dataProvider').fetchData(o).catch(() => {});
+    }, overrides);
+  }
+
+  /**
+   * Pass a freshly built `sheets` list to `updateSettings()`: it rebuilds the workbook, or enables SheetsBar on a
+   * grid built with `plain: true`.
+   *
+   * @param {number} [activeSheet] The `activeSheet` setting to pass along.
+   */
+  async setSheets(activeSheet?: number): Promise<void> {
+    await this.page.evaluate((index) => {
+      (window as unknown as { htSetSheets(activeSheet?: number): void }).htSetSheets(index);
+    }, activeSheet);
+  }
+
+  /**
+   * Turn SheetsBar off through `updateSettings({ sheetsBar: false })`.
+   */
+  async disableSheetsBar(): Promise<void> {
+    await this.page.evaluate(() => window.hot.updateSettings({ sheetsBar: false }));
+  }
+
+  /**
+   * Whether the grid's `dataProvider` setting is set to anything truthy.
+   *
+   * @returns {Promise<boolean>} `true` when a `dataProvider` is applied to the grid.
+   */
+  async hasDataProvider(): Promise<boolean> {
+    return this.page.evaluate(() => !!(window.hot as unknown as {
+      getSettings(): { dataProvider?: unknown },
+    }).getSettings().dataProvider);
   }
 
   /**
@@ -277,9 +340,9 @@ export class DataProviderSheetsBarPage {
   /**
    * Make the next `fetchRows` call for a prefix reject instead of resolving.
    *
-   * @param {'ORD' | 'CUS'} prefix The sheet-level prefix whose next fetch should fail.
+   * @param {ServerPrefix} prefix The prefix whose next fetch should fail.
    */
-  async failNext(prefix: 'ORD' | 'CUS'): Promise<void> {
+  async failNext(prefix: ServerPrefix): Promise<void> {
     await this.page.evaluate(
       p => (window as unknown as { htServer: FixtureServer }).htServer.failNext.add(p),
       prefix
@@ -361,8 +424,8 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
-   * The `fetch <prefix> #<n>`, `afterDataProviderFetch*`, and `afterColumnSort` events recorded so far, in
-   * order.
+   * The `fetch <prefix> #<n>`, `afterDataProviderFetch*`, `afterColumnSort`, and `afterRowsMutation*` events
+   * recorded so far, in order.
    *
    * @returns {Promise<string[]>} The recorded events.
    */
@@ -395,6 +458,17 @@ export class DataProviderSheetsBarPage {
    */
   async ids(): Promise<string[]> {
     return this.page.evaluate(() => window.hot.getDataAtCol(0).map(value => String(value)));
+  }
+
+  /**
+   * The ids in the grid's source data, in physical order, whatever filters or sorting show.
+   *
+   * @returns {Promise<string[]>} The ids, as strings.
+   */
+  async sourceIds(): Promise<string[]> {
+    return this.page.evaluate(() => (window.hot as unknown as {
+      getSourceDataAtCol(column: number): unknown[],
+    }).getSourceDataAtCol(0).map(value => String(value)));
   }
 
   /**

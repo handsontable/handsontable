@@ -41,7 +41,13 @@
     `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
     prove SheetsBar disables it for every sheet that does not declare its own and warns once.
     `?plain=1` builds the same grid without SheetsBar, backed by a grid-level `ORD` provider, so a spec can pin
-    how a grid without sheets behaves. `window.htProvider(prefix)` builds a provider for `updateSettings()`.
+    how a grid without sheets behaves; `?noColumns=1` drops the `columns` setting, so the columns come from the
+    loaded rows' schema. `window.htProvider(prefix)` builds a provider for `updateSettings()`.
+    `?invoices=1` appends a fourth server sheet, "Invoices" (prefix `INV`), whose own `columns` swap the two
+    columns, so `id` is column 1 there and column 0 everywhere else. `?notesNullProvider=1` makes Notes declare
+    `dataProvider: null` in its settings. `?activeSheet=<n>` opens the workbook on another sheet.
+    `window.htSetSheets(activeSheet?)` passes a freshly built `sheets` list (new data arrays) to
+    `updateSettings()`: it rebuilds the workbook, or enables SheetsBar on a plain grid.
 
     `?serverSemantics=custom` gives the server rules no client-side pass reproduces: its "desc" order
     is a fixed permutation (adjacent pairs of the reversed ids swapped: ORD-24, ORD-25, ORD-22, ...),
@@ -60,8 +66,8 @@
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
     assert on it directly instead of reading the browser's own console. `window.htServer.events`
-    records `fetch <prefix> #<n>`, the `afterDataProviderFetch*` hook firings, and every
-    `afterColumnSort` (fired only by a sort ColumnSorting runs itself) in order.
+    records `fetch <prefix> #<n>`, the `afterDataProviderFetch*` hook firings, every `afterColumnSort` (fired
+    only by a sort ColumnSorting runs itself), and the `afterRowsMutation*` firings in order.
 
     Cells carry `data-testid="cell-<row>-<col>"`; the tabs carry `data-testid="sheet-tab-<index>"`.
   -->
@@ -80,7 +86,7 @@
     const server = {
       pending: [],
       pendingUpdates: [],
-      fetchCount: { ORD: 0, CUS: 0, GRID: 0 },
+      fetchCount: { ORD: 0, CUS: 0, GRID: 0, INV: 0 },
       failNext: new Set(),
       failNextUpdate: false,
       updatePayloads: [],
@@ -221,16 +227,44 @@
 
     const gridLevel = fixtureParams.has('gridLevel');
     const plain = fixtureParams.has('plain');
+    const noColumns = fixtureParams.has('noColumns');
+    const invoices = fixtureParams.has('invoices');
+    const notesNullProvider = fixtureParams.has('notesNullProvider');
+    const activeSheet = Number(fixtureParams.get('activeSheet') ?? 0);
+
+    const buildSheets = () => [
+      { name: 'Orders', data: [], settings: { dataProvider: provider('ORD') } },
+      {
+        name: 'Notes',
+        data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }],
+        ...(notesNullProvider ? { settings: { dataProvider: null } } : {}),
+      },
+      { name: 'Customers', data: [], settings: { dataProvider: provider('CUS') } },
+      ...(invoices ? [{
+        name: 'Invoices',
+        data: [],
+        settings: {
+          columns: [{ data: 'fetch' }, { data: 'id' }],
+          colHeaders: ['Fetch', 'ID'],
+          dataProvider: provider('INV'),
+        },
+      }] : []),
+    ];
 
     window.htProvider = provider;
+    window.htSetSheets = activeSheet => window.hot.updateSettings({
+      sheetsBar: { sheets: buildSheets(), ...(activeSheet === undefined ? {} : { activeSheet }) },
+    });
 
     try {
       window.hot = new Handsontable(container, {
-        columns: [{ data: 'id' }, { data: 'fetch' }],
-        colHeaders: ['ID', 'Fetch'],
+        ...(noColumns ? { colHeaders: true } : {
+          columns: [{ data: 'id' }, { data: 'fetch' }],
+          colHeaders: ['ID', 'Fetch'],
+        }),
         rowHeaders: true,
         renderer: testIdRenderer,
-        width: 500,
+        width: 720,
         height: 420,
         columnSorting: true,
         filters: true,
@@ -240,13 +274,7 @@
         emptyDataState: true,
         ...(gridLevel ? { dataProvider: provider('GRID') } : {}),
         ...(plain ? { dataProvider: provider('ORD') } : {
-          sheetsBar: {
-            sheets: [
-              { name: 'Orders', data: [], settings: { dataProvider: provider('ORD') } },
-              { name: 'Notes', data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }] },
-              { name: 'Customers', data: [], settings: { dataProvider: provider('CUS') } },
-            ],
-          },
+          sheetsBar: { sheets: buildSheets(), activeSheet },
         }),
         beforeSheetTabChange() {
           if (server.cancelNextSwitch) {
@@ -266,6 +294,12 @@
         },
         afterColumnSort() {
           server.events.push('afterColumnSort');
+        },
+        afterRowsMutation(operation) {
+          server.events.push(`afterMutation ${operation}`);
+        },
+        afterRowsMutationError(operation) {
+          server.events.push(`afterMutationError ${operation}`);
         },
         licenseKey: 'non-commercial-and-evaluation',
       });
