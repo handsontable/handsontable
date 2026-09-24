@@ -1031,9 +1031,10 @@ on such a cell.
 
 ## 22. XLSX export no longer needs ExcelJS
 
-**This is a breaking change.** It changes the behavior of a released
-[`ExportFile`](@/api/exportFile.md) API, which the breaking changes policy's "Changing API
-signatures or behavior" rule covers. It applies only if you export to XLSX.
+This is not a breaking change. Every configuration that exported an XLSX file in 18.1 exports the
+same file in 19.0, and `exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine.
+Three behaviors of the [`ExportFile`](@/api/exportFile.md) plugin changed additively: paths that
+refused the format now serve it. It applies only if you export to XLSX.
 
 Handsontable 18.1 required ExcelJS for an XLSX export. You passed it as
 `exportFile: { engines: { xlsx: ExcelJS } }`, and without that entry the plugin refused the format.
