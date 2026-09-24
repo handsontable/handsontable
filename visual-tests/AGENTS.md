@@ -126,8 +126,9 @@ visualTest(__filename, {
   `129 tests in 20 files`; the HTML report's per-test location link points at the runner, and the JSON
   reporter's `spec.file` reads `../src/test-runner.ts` for all 92. Nothing downstream reads it: the visual
   configs use the `html` reporter, `visual.yml` uploads screenshot tarballs rather than a
-  `playwright-report-*` artifact, and the flake ledger (`.github/scripts/lib/test-health.mjs`) collects
-  only the `Tests`, `Develop` and `Publish` runs' Playwright JSON. The spec path itself is never lost —
+  `playwright-report-*` artifact, and the flake ledger (`.github/scripts/lib/test-health.mjs`) reads the
+  other suites' Playwright JSON and, for this one, the `visual-compare-*` record (G5 below), which is built
+  from `out.json` and never from Playwright's report. The spec path itself is never lost —
   the enclosing file suite still carries it, `testInfo.outputDir` is still derived from it, and every
   golden path goes through `specFilePath()` in `src/test-runner.ts` rather than through `testInfo.file`.
   What the collapse costs is one click in the report, and the trade was taken with that in view:
@@ -376,7 +377,8 @@ Seven things about this pipeline are worth knowing before changing it.
   it: that workflow's `notify` job posts a failed seed to Slack when `SLACK_VISUAL_WEBHOOK_URL` is set
   (absent, the step skips itself and nothing changes); GitHub notifies whoever pushed; and the nightly
   (`visual-nightly.yml`) renders develop again each weekday night against that seed and reds on any
-  difference, so a poisoned or flaky golden shows up as a red nightly naming the item path, not only as
+  difference outside the visual quarantine (G5 below), so a poisoned or flaky golden shows up as a red
+  nightly naming the item path, not only as
   red pull requests. Only a *failed* seed pings — a seed that succeeds with differences is the normal
   case, and `seed-report.mjs` already reports those.
   **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
@@ -561,10 +563,13 @@ does for you):
   synchronously and leave the ordering to the browser, where a one-shot read could refuse a render that
   was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
-  (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
-  one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten
-  separate runners from one commit, and reports byte-unstable captures and the pairs the gate would have
-  called changed. A single machine cannot see the cross-runner half of the
+  (`.github/workflows/visual-stability.yml`) renders the filters family (classic plus one chosen theme) and
+  the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten separate runners from
+  one commit, and reports byte-unstable captures and the pairs the gate would have called changed. It runs
+  on its own every weekday night at 02:30 UTC on three runners (see G5 below), and on dispatch on ten.
+  `scope: full` widens the spec lists to every spec in the same variants: js on chromium in classic plus
+  the chosen theme, and cross-browser on chromium and firefox, with no wrapper and no WebKit. A single
+  machine cannot see the cross-runner half of the
   noise — locally, 39 of 92 captures were byte-unstable across ten renders and the gate tolerated all of
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow.
@@ -649,13 +654,53 @@ which of these run locally and which only in CI.
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root
   `test:tooling` glob, whose job installs nothing.
-- **G5 · The compare record, the quarantine, and the nightly stability run** — not yet landed. Every
-  Compare writes a record the cross-run flake ledger (`test-health.yml`) ingests; a flaky capture can be
-  quarantined in `visual-tests/visual-quarantine.json` (reported, not blocking, expiring — an expired entry
-  fails the tooling suite until it is renewed or removed); and `Visual stability` runs on weekday nights
-  alongside the full render, thirty minutes after it, so byte-instability is measured, not guessed: the
-  nightly catches drift (one render against the baseline), the stability run catches noise (runners against
-  each other), and a flake and a drift seen the same morning can be told apart.
+- **G5 · The compare record, the quarantine, and the nightly stability run** — landed. Three parts.
+  - **The record.** Every Compare job, green or red and on both comparison paths, writes
+    `.reg/visual-compare-<tier>-<sha>.json` and uploads it as `visual-compare-<tier>`
+    (`lib/visual-compare-record.mjs`, `scripts/compare-record.mjs`). `.reg` is a dot-directory, so the upload
+    sets `include-hidden-files: true`: without it upload-artifact matches nothing and still reports success.
+    Each differing item carries its leg (the variant prefix), its spec, and its capture (the path without the
+    prefix); each changed or new item also carries the sha256 of its render (a deleted one has none). That is
+    the input to the byte-equality diagnostic under Comparison and approval: the same sha on two unrelated
+    pull requests means the golden is the odd one out. The record is written before the verdict and the budget
+    and never carries either. The cross-run flake ledger (`test-health.yml`) ingests it from `Tests` (pull
+    requests) and `Visual nightly`: changed items only (new and deleted are structure), no seed-tier record (a
+    seed's differences are its merge's own), one row per capture whatever variants it differed on, and a
+    ticket at 2+ `Visual nightly` runs or 2+ distinct branches in 30 days (the nightly counts as develop).
+    Nothing here is ever `flaky`, so nights stand in for the functional rule's flaky reruns; a raw run count
+    would also flag a pull request's own intended change, which the record captures before anyone approves it,
+    on the pull request's second push, and distinct branches keep that on one. A pull request's record arrives
+    only when its `Tests` run completes (approved, rejected, or clean): a `changed` verdict holds the run on
+    the approval, the next push cancels it, and the ledger skips cancelled runs, so a superseded run leaves no
+    row.
+  - **The quarantine.** `visual-tests/visual-quarantine.json` parks a known-flaky capture:
+    `{ taskId, expires, capture, legs, why }`, at most 30 days out, at most 6 entries and 12 live items (an
+    entry names the variants that flake in `legs`, and each leg is one item). The limits and the task-id and
+    date checks are the functional tier's own, imported from `tests/lib/quarantine-policy.mjs`. A live entry
+    takes its items out of `failedItems` before the pull request verdict and the nightly's
+    (`lib/visual-quarantine.mjs`), and both list them under `### Quarantined — reported, not blocking`; the
+    record stamps the same changed items. The ledger shows a capture's most recent stamp as its badge and
+    counts only unstamped sightings toward the ticket, so a leg the entry does not name still reaches the
+    line. Only a CHANGED item is covered — a quarantined capture that reg-suit calls new or deleted still
+    counts. The budget reads the raw `out.json`, so a quarantined item still counts as rendered. The file is
+    read only through `VISUAL_QUARANTINE_FILE`, which `visual.yml` sets and the docs action does not. An entry
+    that never held (a bad task id or date, a date beyond the horizon, a malformed entry) is listed under its
+    own heading with the reason, and its items block. An expired entry blocks again, and fails
+    `Checks / tooling tests` on EVERY pull request until it is removed or renewed
+    (`lib/__tests__/visual-quarantine.test.mjs`, on the real clock) — stricter than the functional tier on
+    purpose, and the message carries the remedy.
+  - **The stability run.** `Visual stability` runs every weekday night on develop at 02:30 UTC, thirty minutes
+    after the nightly, on three runners, and posts a failed night to Slack. The nightly catches drift (one
+    render against the baseline); this catches noise (runners against each other). On the same nights, and for
+    the captures this run renders, one it calls unstable is a flake. One it calls stable but the nightly calls
+    changed is drift or a poisoned golden: compare the nightly's render hash on the ledger with the golden
+    before looking for the commit, and three agreeing runners do not rule out a rare flake. A night fails, and
+    pings, when a render job fails (a spec failed outright, or the build did), fewer than two renders were
+    uploaded, a runner pair could not be compared or differs past the gate's tolerances, or a capture is
+    missing from a render; a byte difference the tolerances absorb is listed in the summary and fails nothing.
+    A trim that drops `classic` or the chosen theme from a filters spec does not turn it red: the spec skips
+    that pass in every render, so the run stays green while it measures less. After such a trim, render a
+    theme the filters specs still declare.
 - **G6 · The visual-only-coverage warning** — landed. The presence gate keeps counting a visual spec as
   coverage and prints an advisory `visual-only-coverage` warning (`.github/scripts/lib/presence-warnings.mjs`)
   when a source change ships with a screenshot as its only test, pointing at the decision rule above.
