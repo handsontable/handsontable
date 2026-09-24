@@ -322,6 +322,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
+    this.addHook('afterSheetTabStateCapture', this.#onAfterSheetTabStateCapture);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
@@ -369,6 +370,17 @@ export class Pagination extends BasePlugin {
     if (oldPageSize !== this.#pageSize) {
       this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     }
+  };
+
+  /**
+   * Forgets the server row total when SheetsBar leaves a sheet: the total described that sheet. A server sheet
+   * that is shown again replays its own total through {@link Hooks#afterDataProviderFetch}; one fetching for the
+   * first time, or showing a failed first fetch, counts its own rows until its response lands.
+   *
+   * @returns {void}
+   */
+  #onAfterSheetTabStateCapture = () => {
+    this.#serverSideTotalCount = null;
   };
 
   /**

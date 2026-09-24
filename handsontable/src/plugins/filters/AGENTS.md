@@ -175,6 +175,10 @@ captured when the plugin is enabled.
 
 `#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `filters` in the payload, so it never reaches this plugin's own `updatePlugin()` — a SheetsBar switch between a server sheet and a local one is the everyday case.
 
+## A failed server fetch rolls back only the visible sheet (SheetsBar)
+
+`#onAfterDataProviderFetchError` skips the rollback when the hook's third argument, `isVisible`, is `false`: that failure belongs to a SheetsBar sheet the grid does not show, and importing `#dataProviderFilterRollbackStack` would replace the visible sheet's conditions while its rows stay filtered. `#onAfterSheetTabChange` resets that stack to the arriving sheet's conditions, because it is otherwise left by the last server filter action on ANY sheet — `#filterInternal` fills it from `#previousConditionStack` at every pass, the switch's own reset pass included, so a page-change failure on the arriving sheet imported the previous sheet's conditions.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.

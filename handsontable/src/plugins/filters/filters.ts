@@ -636,6 +636,7 @@ export class Filters extends BasePlugin {
     this.addHook('afterRowSequenceChange', this.#onAfterRowSequenceChange);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
+    this.addHook('afterSheetTabChange', this.#onAfterSheetTabChange);
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -1608,10 +1609,28 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * After dataProvider fetch error listener.
+   * After dataProvider fetch error listener. Rolls the conditions back to the state before the failed server
+   * filter. A failed fetch of a SheetsBar sheet the grid does not show (`isVisible` is `false`) changes nothing:
+   * the conditions on screen belong to the visible sheet.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a sheet the grid does not show.
    */
-  #onAfterDataProviderFetchError = () => {
+  #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible === false) {
+      return;
+    }
+
     this.importConditions(this.#dataProviderFilterRollbackStack);
+  };
+
+  /**
+   * After a SheetsBar switch, the rollback target of a failed server fetch is the arriving sheet's own conditions,
+   * never the stack an earlier filter action left behind on another sheet.
+   */
+  #onAfterSheetTabChange = () => {
+    this.#dataProviderFilterRollbackStack = this.exportConditions();
   };
 
   /**

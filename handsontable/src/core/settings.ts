@@ -571,7 +571,9 @@ export interface GridSettings {
     source: ChangeSource) => void | boolean;
   afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
-  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchError?: (
+    error: Error, queryParameters: DataProviderQueryParameters, isVisible: boolean
+  ) => void;
   afterViewportColumnCalculatorOverride?: (calc: {
     startColumn: number; endColumn: number; [key: string]: unknown;
   }) => void;

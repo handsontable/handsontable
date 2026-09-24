@@ -340,7 +340,7 @@ export class EmptyDataState extends BasePlugin {
       }
     });
     this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
-    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
     this.addHook('afterSheetTabChange', this.#onAfterSheetTabChange);
 
     super.enablePlugin();
@@ -716,6 +716,22 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for fails. A failed fetch of a SheetsBar sheet the grid does
+   * not show (`isVisible` is `false`) leaves the overlay alone: it belongs to the visible sheet, which may still
+   * be waiting for its own fetch.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a sheet the grid does not show.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible !== false) {
+      this.#clearLoadingActive();
     }
   };
 

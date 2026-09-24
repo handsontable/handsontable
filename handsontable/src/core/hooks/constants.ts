@@ -548,10 +548,15 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the dataProvider fetch throws an error (e.g. network error).
    *
+   * With the {@link SheetsBar} plugin, it also fires for a sheet you have switched away from, right when its
+   * fetch fails; `isVisible` is then `false`, and the error notification waits until you switch back to that sheet.
+   *
    * @event Hooks#afterDataProviderFetchError
    * @since 17.1.0
    * @param {Error} error The thrown error.
    * @param {object} queryParameters The query parameters that were used for the request.
+   * @param {boolean} isVisible `false` when the request was made for a {@link SheetsBar} sheet other than the one
+   * the grid shows; `true` otherwise.
    */
   'afterDataProviderFetchError',
 
@@ -3393,6 +3398,9 @@ export const REGISTERED_HOOKS = [
    * the plugin is enabled, and when a changed `sheets` setting rebuilds the workbook), and when the plugin is
    * disabled. After this hook, no sheet id reported by an earlier hook identifies a sheet any more: a rebuilt
    * workbook numbers its sheets from 1 again.
+   *
+   * The build at the grid's initialization fires before the callbacks declared in the settings object are
+   * attached, so only a global hook (`Handsontable.hooks.add()`) observes that first call.
    *
    * @since 19.0.0
    * @event Hooks#afterSheetWorkbookReset

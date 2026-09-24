@@ -83,6 +83,14 @@ hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataP
   }
 });
 
+const onFetchError = (error: Error, queryParameters: DataProviderQueryParameters, isVisible: boolean) => {
+  const visible: boolean = isVisible;
+
+  void visible;
+};
+
+hot.addHook('afterDataProviderFetchError', onFetchError);
+
 hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryParameters, reason?: Error) => {
   void queryParameters.page;
   void reason?.name;
