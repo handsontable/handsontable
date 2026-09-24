@@ -1207,6 +1207,108 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });
 
+  it('loads the grid once per switch between sheets sharing a formula engine', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const loadSources = [];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const formulas = hot.getPlugin('formulas');
+
+    loadSources.length = 0;
+
+    expect(sheetsBar.setActiveSheet('Rates')).toBe(true);
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
+    expect(formulas.sheetName).toBe('Rates');
+    expect(hot.getDataAtCell(0, 0)).toBe(0.23);
+
+    loadSources.length = 0;
+
+    expect(sheetsBar.setActiveSheet('Budget')).toBe(true);
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
+    expect(formulas.sheetName).toBe('Budget');
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Rates!A1');
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+    expect(formulas.skipSheetSwitchLoad).toBe(false);
+  });
+
+  it('keeps the formula engine in step with a sheet edited before the switch away', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Rates');
+    hot.setDataAtCell(0, 0, 0.5);
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.getDataAtCell(0, 1)).toBe(50);
+    expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[0.5]]);
+
+    sheetsBar.setActiveSheet('Rates');
+
+    expect(hot.getDataAtCell(0, 0)).toBe(0.5);
+  });
+
+  it('still loads the engine sheet when the host switches the Formulas sheet itself', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('Rates');
+    engine.setSheetContent(engine.getSheetId('Rates'), [[0.23]]);
+
+    const loadSources = [];
+
+    hot = new Handsontable(container, {
+      data: [[100]],
+      formulas: { engine, sheetName: 'Budget' },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    loadSources.length = 0;
+    hot.updateSettings({ formulas: { engine, sheetName: 'Rates' } });
+
+    expect(loadSources).toEqual(['Formulas.switchSheet']);
+    expect(hot.getDataAtCell(0, 0)).toBe(0.23);
+  });
+
   it('binds a runtime-added sheet to the workbook\'s shared engine under its own name', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 

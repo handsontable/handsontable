@@ -1086,7 +1086,7 @@ export class SheetsBar extends BasePlugin {
       const settings = this.#withBaselineFor(sheet.settings);
 
       if (settings) {
-        this.hot.updateSettings(settings);
+        this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
     };
@@ -1820,6 +1820,31 @@ export class SheetsBar extends BasePlugin {
       write();
     } finally {
       undoRedo.ignoreNewActions = false;
+    }
+  }
+
+  /**
+   * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
+   * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
+   * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutFormulasSwitchLoad(update: () => void) {
+    const formulas = this.hot.getPlugin('formulas') as { skipSheetSwitchLoad: boolean } | undefined;
+
+    if (!formulas || formulas.skipSheetSwitchLoad) {
+      update();
+
+      return;
+    }
+
+    formulas.skipSheetSwitchLoad = true;
+
+    try {
+      update();
+    } finally {
+      formulas.skipSheetSwitchLoad = false;
     }
   }
 

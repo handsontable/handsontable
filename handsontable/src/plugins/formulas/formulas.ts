@@ -698,6 +698,17 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName: string | null = null;
+  /**
+   * The flag that makes a `sheetName` change applied through `updateSettings` bind the sheet
+   * without loading its content into the grid. Set by a caller that loads the sheet's data
+   * itself right after the update (the SheetsBar plugin), so the grid is loaded once, not twice.
+   * That load's `afterLoadData` writes the data into the sheet bound here. A name the engine does
+   * not know still goes through `switchSheet`, which reports it.
+   *
+   * @private
+   * @type {boolean}
+   */
+  skipSheetSwitchLoad = false;
 
   /**
    * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
@@ -1071,7 +1082,12 @@ export class Formulas extends BasePlugin {
       // still differs from the current one and lets `switchSheet` report it.
       this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
-      this.switchSheet(pluginSettings.sheetName);
+      if (this.skipSheetSwitchLoad && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
+        this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
+
+      } else {
+        this.switchSheet(pluginSettings.sheetName);
+      }
     }
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
