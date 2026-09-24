@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   selectCell,
@@ -11,7 +11,12 @@ import {
 /**
  * Checks whether the selection highlights the merged cells correctly.
  */
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const cellFrom = await selectCell(3, 0);
   const cellTo = await selectCell(5, 2);
 

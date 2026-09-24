@@ -1,8 +1,12 @@
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { columnsCount } from '../../src/page-helpers';
 
-test('Test column moving', async({ tablePage }) => {
+visualTest('Test column moving', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await tablePage.getByRole('columnheader', { name: 'Company name' }).click();

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of loading data and switching sheets on grids with the AutoColumnSize and Formulas plugins enabled, by running the full column measurement once per data load instead of twice.",
+  "type": "changed",
+  "issueOrPR": 13604,
+  "breaking": false,
+  "framework": "none"
+}

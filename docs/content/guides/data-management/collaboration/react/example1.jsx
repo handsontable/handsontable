@@ -8,6 +8,14 @@ registerAllModules();
 // marks a change as coming from another collaborator, so it isn't broadcast again
 const REMOTE_SOURCE = 'remotePeer';
 
+const data = [
+  ['Update onboarding flow', 'Ana García', 'In progress'],
+  ['Fix invoice rounding bug', 'James Okafor', 'Blocked'],
+  ['Write Q3 release notes', 'Li Wei', 'In progress'],
+  ['Migrate auth service', 'Sofia Rossi', 'Done'],
+  ['Design empty states', 'Diego Fernández', 'In progress'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [statusText, setStatusText] = useState('A remote update to the first row arrives in 3 seconds.');
@@ -44,13 +52,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['Update onboarding flow', 'Ana García', 'In progress'],
-          ['Fix invoice rounding bug', 'James Okafor', 'Blocked'],
-          ['Write Q3 release notes', 'Li Wei', 'In progress'],
-          ['Migrate auth service', 'Sofia Rossi', 'Done'],
-          ['Design empty states', 'Diego Fernández', 'In progress'],
-        ]}
+        data={data}
         colHeaders={['Task', 'Assignee', 'Status']}
         rowHeaders={true}
         height="auto"

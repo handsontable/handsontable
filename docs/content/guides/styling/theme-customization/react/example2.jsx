@@ -21,21 +21,24 @@ myTheme.params({
     accentColor: ['colors.primary.500', 'colors.primary.600'],
   },
 });
+
 // Set color scheme and density type
 myTheme.setColorScheme('light');
 myTheme.setDensityType('default');
+
+const data = [
+  ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
+  ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
+  ['Sam Wilson', 'samwilson@example.com', 'Chicago', 41, 'Manager'],
+  ['Emily Johnson', 'emilyj@example.com', 'San Francisco', 35, 'Developer'],
+  ['Michael Brown', 'mbrown@example.com', 'Boston', 38, 'Analyst'],
+];
 
 const ExampleComponent = () => {
   return (
     <HotTable
       theme={myTheme}
-      data={[
-        ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
-        ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
-        ['Sam Wilson', 'samwilson@example.com', 'Chicago', 41, 'Manager'],
-        ['Emily Johnson', 'emilyj@example.com', 'San Francisco', 35, 'Developer'],
-        ['Michael Brown', 'mbrown@example.com', 'Boston', 38, 'Analyst'],
-      ]}
+      data={data}
       colHeaders={['Name', 'Email', 'City', 'Age', 'Position']}
       columns={[
         { data: 0, type: 'text' },

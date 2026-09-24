@@ -5,8 +5,22 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    id: 1,
+    name: 'Ted',
+    isActive: true,
+    color: 'orange',
+    date: '2015-01-01',
+  },
+  { id: 2, name: 'John', isActive: false, color: 'black', date: null },
+  { id: 3, name: 'Al', isActive: true, color: 'red', date: null },
+  { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
+];
+
 const ExampleComponent = () => {
   const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
+
   const yellowRenderer = (instance, td, ...rest) => {
     textRenderer(instance, td, ...rest);
     td.style.backgroundColor = 'yellow';
@@ -14,23 +28,13 @@ const ExampleComponent = () => {
 
   const greenRenderer = (instance, td, ...rest) => {
     textRenderer(instance, td, ...rest);
+
     td.style.backgroundColor = 'green';
   };
 
   return (
     <HotTable
-      data={[
-        {
-          id: 1,
-          name: 'Ted',
-          isActive: true,
-          color: 'orange',
-          date: '2015-01-01',
-        },
-        { id: 2, name: 'John', isActive: false, color: 'black', date: null },
-        { id: 3, name: 'Al', isActive: true, color: 'red', date: null },
-        { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
-      ]}
+      data={data}
       colHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}

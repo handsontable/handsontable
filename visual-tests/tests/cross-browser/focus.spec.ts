@@ -1,7 +1,11 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
-test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
+visualTest('Test focus on Shift+Tab navigation', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/basic-two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');

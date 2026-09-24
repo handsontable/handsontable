@@ -1,4 +1,4 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell, selectColumnHeaderByIndex, selectRowHeaderByIndex } from '../../src/page-helpers';
 
@@ -11,7 +11,11 @@ const urls = [
 ];
 
 urls.forEach((url) => {
-  test(`Test rows resizing for: ${url}`, async({ goto, tablePage }) => {
+  visualTest(`Test rows resizing for: ${url}`, {
+    themes: [CLASSIC],
+    browsers: CROSS_BROWSERS,
+    wrappers: [],
+  }, async({ goto, tablePage }) => {
     await goto(url);
 
     const table = tablePage.locator(helpers.selectors.mainTable);

@@ -26,18 +26,20 @@ function collectClassNames(hot, coords) {
   return classNames;
 }
 
+const data = [
+  ['Wireless mouse', 142, 'In stock'],
+  ['USB-C cable', 67, 'In stock'],
+  ['Mechanical keyboard', 0, 'Backordered'],
+  ['Laptop stand', 38, 'In stock'],
+  ['HDMI adapter', 210, 'In stock'],
+];
+
 const ExampleComponent = () => {
   const copiedClassNames = useRef([]);
 
   return (
     <HotTable
-      data={[
-        ['Wireless mouse', 142, 'In stock'],
-        ['USB-C cable', 67, 'In stock'],
-        ['Mechanical keyboard', 0, 'Backordered'],
-        ['Laptop stand', 38, 'In stock'],
-        ['HDMI adapter', 210, 'In stock'],
-      ]}
+      data={data}
       colHeaders={['Product', 'Stock', 'Status']}
       rowHeaders={true}
       cell={[

@@ -5,6 +5,13 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
   let lastChange: string | any[] | null = null;
@@ -62,12 +69,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
-      data={[
-        ['Tesla', 2017, 'black', 'black'],
-        ['Nissan', 2018, 'blue', 'blue'],
-        ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'yellow', 'gray'],
-      ]}
+      data={data}
       colHeaders={true}
       rowHeaders={true}
       height="auto"

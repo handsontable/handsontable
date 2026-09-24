@@ -152,6 +152,17 @@ outside, do not assume each call rebuilds the matrix.
   `reachesCells` means, change `../hiddenColumns/hiddenColumns.ts` to match, or the two disagree about
   which level shows the caret (`../hiddenColumns/AGENTS.md`, "With NestedHeaders…").
 
+## Header-highlight redirect must list every selection type that can reach a group level
+
+`#onBeforeHighlightingColumnHeader` redirects a non-root (`hiddenHeader`) column onto the group's
+visible origin `<th>` so a highlight painted at a group level lands on the cell that actually carries
+the `colspan`, not an invisible placeholder. It only redirects the selection types it explicitly checks
+(`HEADER_TYPE`, `COLUMN_TYPE`; `ACTIVE_HEADER_TYPE` takes a separate branch) — any other selection type
+whose header extent later grows to span more than the leaf level (see `Selection#createHeaderExtentCoords`
+in `handsontable/src/selection/selection.ts`) will silently paint its class onto a hidden `<th>` instead
+of the group cell until this hook is taught about it too (DEV-3012 added `COLUMN_TYPE` for
+`currentColClassName`).
+
 ## TypeScript notes
 
 - `utils/dataStructures/tree.ts` `TreeNode<T>` is generic with a permissive default; nestedHeaders

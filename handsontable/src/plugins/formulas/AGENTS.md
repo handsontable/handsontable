@@ -103,6 +103,56 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
+
+Every other plugin reads cells through `modifyData`, and this listener is what puts the new data into the
+engine (`setSheetContent`). At the default order it ran after AutoColumnSize's full sweep — that plugin has
+the lowest `PLUGIN_PRIORITY` — so the sweep measured formula columns against the previous dataset's results,
+and the `valuesUpdated` batch this listener triggers queued every changed cell for a second synchronous full
+rescan. This listener moved rather than that one because moving the sweep later changed what every other
+`afterLoadData` listener sees: AutoRowSize measures row heights against the sweep's widths, and host
+callbacks read `getColWidth()`. `afterUpdateData` carries the same order for symmetry. The `updateSettings`
+data path is unaffected either way — with `source === 'updateSettings'` this listener returns early and the
+engine is fed from `afterCellMetaReset`.
+
+**The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
+carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+`enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
+branch (measured with the engine methods spied; the reference rewrite that
+`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
+init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
+`setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
+instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity
+sequence and sends nothing, and the move that follows reaches the engine once through `syncMoves()`. The
+spec's `loadData()` case pins the formula staying `=A1+10`. Do not "restore" the `setColumnOrder` path by
+postponing `setupSyncEndpoint()` behind the moves without re-measuring that case.
+
+## The per-cell read path caches "the engine holds my sheet" (DEV-2905)
+
+`modifyData` and `modifySourceData` fire once per cell of every bulk read (AutoColumnSize sampling, the
+filters column scan), so `#onModifyData` is the plugin's hottest path. Two rules keep it cheap:
+
+- **`#hasOwnSheet()` replaces `engine.doesSheetExist(this.sheetName)` on those two hooks.** The answer is
+  cached in `#ownSheetExists` and dropped to `null` from every place the answer can change: the engine's own
+  `sheetAdded` / `sheetRenamed` / `sheetRemoved` listeners (engine-wide, so a second instance on the same
+  engine removing this instance's sheet still invalidates it), `#updateSheetNameAndSheetId()`, the `engine`
+  assignments in `enablePlugin` / `disablePlugin` / `destroy`, and the plugin's own `engine.undo()` /
+  `engine.redo()` calls — HyperFormula's undo and redo add, remove, and rename sheets through its
+  `UndoRedo` operations, which emit no sheet event. A host calling `engine.undo()` directly on a sheet
+  operation is the one path left uncovered; it also desyncs the two undo stacks, so it is unsupported
+  regardless. A new invalidation point is needed whenever a new path writes `sheetName`, `sheetId`, or
+  `engine` without going through those. `#onEngineSheetRemoved` still does not null `sheetName` — the
+  cached `false` is what protects reads after an external `removeSheet` of the own sheet
+  (`__tests__/ownSheetCache.unit.js`, `tests/e2e/sheet-switch-autosize.spec.ts`).
+- **One address translation per read, on both hooks.** `#toEngineAddress()` does the `toPhysical*` bounds
+  check and the two axis-syncer translations once; the type lookup, the dimensions check, and the value
+  read share the result. Keep the `VALUE` / `EMPTY` early return — it hands back the raw source string
+  (after `unescapeFormulaExpression`), while `getCellValue` would return the engine's parsed value (numeric
+  strings as numbers, date text as serials), and array-spill cells have an empty source value yet a real
+  engine value, so the type branch cannot be replaced by a check on the source value either.
+
 ## Engine settings: `maxRows` / `maxColumns` do NOT reach the engine
 
 HyperFormula's own default sheet size is 40000. Handsontable used to pass its `maxRows`, which defaults to
@@ -336,6 +386,61 @@ summary formulas stay out of the sort (#12627). User-facing copy:
   anchor (`hideSchemePrefix()` in `../../utils/cellLinks/linkElement.ts`), and the wrap that follows would then carry
   that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
   it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
+
+## `showFormulas()`/`hideFormulas()`: display-only, on purpose (DEV-207)
+
+`#showFormulasFlag` makes a `FORMULA`/`ARRAYFORMULA` cell show its formula text instead of its
+calculated value. It is deliberately **not** read by `#onModifyData`: that hook feeds every
+`getDataAtCell()` consumer — the renderer, `CopyPaste`, but also column sorting's comparator, the
+Filters value-list dropdown, and cell validation — and gating there would make sorting order by
+formula text and the value-list dropdown show formula strings, which neither Excel nor Google
+Sheets does. Cell validation happens to be immune regardless: `#onBeforeValidate` (below) already
+recomputes the calculated value from the engine directly, ignoring whatever `modifyData` reports.
+
+Two separate mechanisms carry the mode instead, both scoped to exactly where a user expects it:
+
+- **Paint**: `#onPaintFormulaText`, a *second* `afterRenderer` hook registered with `orderIndex: 1`
+  (`this.addHook('afterRenderer', this.#onPaintFormulaText, 1)`), so it always runs after every
+  default-order (`orderIndex` 0) `afterRenderer` listener — this plugin's own `#onAfterRenderer`
+  above (the `HYPERLINK` wrap) and `AutoLink`'s. **The `orderIndex` is load-bearing, not tidiness.**
+  `AutoLink`'s hook reads the TD's *live rendered text*, not the hook's `value` argument, so without
+  it a `=HYPERLINK("https://…", label)` formula's own painted text would get re-linkified by
+  `AutoLink` the instant this plugin wrote it — measured and confirmed with a negative control
+  (`tests/e2e/formulas-show-formulas.spec.ts`, "does not let AutoLink re-linkify…"). Running last
+  makes this plugin's paint the final write for the cell regardless of which plugin enabled first.
+- **Copy/cut**: `#onBeforeCopyOrCut`, registered on both `beforeCopy` and `beforeCut`, rewrites only
+  the copied array in place — never touches `getDataAtCell()` or the data map. It has to map each
+  `data[i][j]` back to a `(row, column)` from the `coords` argument alone, the same way
+  `CopyPaste#getRangedData()`/`normalizeRanges()` (`../copyPaste/copyableRanges.ts`) built that array
+  in the first place: dedupe each range's rows and columns, first-seen order. `copiedRowsAndColumns()`
+  reimplements that small, pure derivation locally rather than importing it, to avoid a cross-plugin
+  dependency on `copyPaste`'s internal module — keep the two in sync if that algorithm ever changes.
+  A negative row in `coords` is a copied column header (`CopyPaste#getRangedData`'s `row < 0`
+  convention), never a formula cell, and is skipped.
+
+`showFormulas()`/`hideFormulas()` both guard on `this.enabled` and no-op while the plugin is
+disabled — `#onModifyData`/`#onPaintFormulaText` cost nothing while disabled either way, but a bare
+flag flip with no hook to act on it would make `isShowingFormulas()` report a mode that shows
+nothing.
+
+The `Ctrl`+`` ` `` grid shortcut is registered/removed with the plugin's own `#registerToggleFormulasShortcut`/
+`#unregisterToggleFormulasShortcut` (own `SHORTCUTS_GROUP = PLUGIN_KEY`), called from
+`enablePlugin()`/`disablePlugin()` — **not** through the deprecated `registerShortcuts()`/
+`unregisterShortcuts()` no-op shims, which exist only for the pre-19.0.0 `Alt`+`Enter` link shortcut
+and must keep doing nothing. The binding is `['Control', 'backquote']`, not `Control/Meta` and not
+the literal `` ` `` character: `Cmd`+`` ` `` is macOS's own "move focus to the next window" shortcut
+(the same reason `MergeCells` binds `['Control', 'm']`), and a real backquote keypress's
+`keyCode`/`which` (192) normalizes to the string `'backquote'`, never to the character itself
+(`shortcuts/utils.ts`'s `specialCharactersSet`) — the Jasmine `keyDownUp()` simulator cannot
+reproduce that real `keyCode`, which is why the shortcut's real-keypress coverage lives in
+`tests/e2e/formulas-show-formulas.spec.ts` instead of the Jasmine suite.
+
+**Known limitation: `AutoColumnSize`/`AutoRowSize` measure the calculated value, not the painted
+text.** Both size through `GhostTable`, which calls a cell's renderer directly and never fires
+`afterRenderer` — so a column stays sized for `3` while the DOM shows `=A1+B1`, and a long formula
+can clip for as long as the mode is on. No render or settings change recalculates it. Accepted
+trade-off for keeping the toggle purely display-only rather than feeding the sampler a second, mode-
+dependent measurement path.
 
 ## Testing
 

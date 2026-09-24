@@ -741,6 +741,24 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 :::
 
+::: only-for react
+
+The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost.
+
+```jsx
+// Replaces the data on every render
+<HotTable data={[['Rent', 1200]]} />
+
+// Keeps the user's edits
+const data = [['Rent', 1200]];
+
+<HotTable data={data} />
+```
+
+To replace the data on purpose, pass a new array, for example through a `useState` setter.
+
+:::
+
 ### The data-modifying API methods
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:

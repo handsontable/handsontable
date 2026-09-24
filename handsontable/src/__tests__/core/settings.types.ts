@@ -631,6 +631,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return true;
   },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
+  beforeReadOnlyToggle: (stateBefore, ranges, readOnly) => {},
   beforeChange: (changes, source) => {
     if (changes?.[0] !== null) { changes[0][3] = 10; }
 

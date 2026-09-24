@@ -12,6 +12,14 @@ const statuses: string[] = [
   'Cancelled',
 ];
 
+const data = [
+  ['Backlog', 'Backlog'],
+  ['In progress', 'In progress'],
+  ['Blocked', 'Blocked'],
+  ['Done', 'Done'],
+  ['Cancelled', 'Cancelled'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -19,13 +27,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['Backlog', 'Backlog'],
-        ['In progress', 'In progress'],
-        ['Blocked', 'Blocked'],
-        ['Done', 'Done'],
-        ['Cancelled', 'Cancelled'],
-      ]}
+      data={data}
       colHeaders={['Source order (default)', 'Alphabetical order']}
       columns={[
         {
