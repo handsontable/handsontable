@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T11:15:42.626Z",
+  "generatedAt": "2026-09-24T11:37:06.539Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8396,7 +8396,7 @@
       "file": "e2e/list-cell-arrow-layout.spec.ts",
       "line": 74,
       "title": "autocomplete list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -8432,7 +8432,7 @@
       "file": "e2e/list-cell-arrow-layout.spec.ts",
       "line": 74,
       "title": "dropdown list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
@@ -8468,7 +8468,7 @@
       "file": "e2e/list-cell-arrow-layout.spec.ts",
       "line": 74,
       "title": "handsontable list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
