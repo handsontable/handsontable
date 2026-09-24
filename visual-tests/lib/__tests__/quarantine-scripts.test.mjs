@@ -153,12 +153,17 @@ test('the record stamps a live entry, and goes out unstamped when the quarantine
 
   mkdirSync(join(stamped.dir, 'actual', 'js/chromium-theme-main-dark/multi-frameworks/filters'), { recursive: true });
   writeFileSync(join(stamped.dir, 'actual', ITEM), 'png bytes');
+  // A deleted item differs too, so the log line counts it among what was compared.
+  writeFileSync(join(stamped.dir, 'out.json'), JSON.stringify({
+    failedItems: [ITEM], newItems: [], deletedItems: ['js/chromium/gone-1.png'], passedItems: ['js/chromium/a-1.png'],
+  }));
 
   const env = { VISUAL_TIER: 'pr', HEAD_SHA: 'feedfacecafebeef' };
   const first = run('compare-record.mjs', stamped.dir, { ...env, VISUAL_QUARANTINE_FILE: stamped.quarantineFile });
   const record = JSON.parse(readFileSync(join(stamped.dir, 'visual-compare-pr-feedfacecafe.json'), 'utf8'));
 
   assert.equal(first.status, 0, first.stderr);
+  assert.match(first.stdout, /Visual compare record: 2 differing item\(s\) of 3 compared/);
   assert.equal(record.items[0].quarantine, `DEV-1234 until ${EXPIRES} — focus timer`);
   assert.match(record.items[0].actualSha256, /^[0-9a-f]{64}$/);
   rmSync(stamped.dir, { recursive: true });

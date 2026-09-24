@@ -592,6 +592,16 @@ test('collectArtifactFiles reads a visual record and nothing else in that artifa
   assert.equal(entries.length, 2);
   assert.equal(notes.length, 1);
   assert.match(notes[0], /^visual-compare-pr\/visual-compare-pr-abc\.json: could not be read/);
+
+  // A changed item the record could not map to a spec is noted, not dropped silently.
+  const unmapped = { ...VISUAL_RECORD, items: [...VISUAL_RECORD.items, { path: 'odd/x-1.png', status: 'changed' }] };
+  const noted = collectArtifactFiles([
+    file('visual-compare-full', 'visual-compare-full-0123456789ab.json', JSON.stringify(unmapped)),
+  ], runContextFromRun(RUN));
+
+  assert.equal(noted.entries.length, 2);
+  assert.deepEqual(noted.notes, ['visual-compare-full/visual-compare-full-0123456789ab.json: 1 changed item(s) had '
+    + 'no capture (a path the record could not map to a spec), not recorded']);
 });
 
 test('a visual capture needs a ticket after two nights or on two branches, never for one pull request', () => {
@@ -659,6 +669,41 @@ test('a visual capture needs a ticket after two nights or on two branches, never
   ]), { now: NOW });
 
   assert.equal(quarantined.rows[0].needsTicket, false, 'a quarantined capture already names its owner');
+});
+
+test('a capture parked on one leg still needs a ticket for the leg that is not, whichever sorts last', () => {
+  // The visual quarantine is per leg. `otherLeg` (main-dark) carries a stamp and `capture` (main) does not;
+  // both differ on the same two nights, at the same instant, so only the entry order decides which one is
+  // "last". Neither the badge nor the ticket line may depend on that.
+  const run = runContextFromRun(RUN);
+  const nightly = { workflow: VISUAL_NIGHTLY_WORKFLOW, branch: 'develop' };
+  const [capture, otherLeg] = parseVisualRecord(VISUAL_RECORD, run);
+  const seenAt = night => new Date(NOW.getTime() - (night * 86400000)).toISOString();
+  const sightings = [1, 2].flatMap(night => [
+    { ...capture, ...nightly, runId: `n${night}`, seenAt: seenAt(night) },
+    { ...otherLeg, ...nightly, runId: `n${night}`, seenAt: seenAt(night) },
+  ]);
+  const rowOf = entries => aggregate({ ...emptyLedger(), entries }, { now: NOW }).rows[0];
+
+  [sightings, [...sightings].reverse()].forEach((order, i) => {
+    const row = rowOf(order);
+
+    assert.equal(row.needsTicket, true, `order ${i}: the unparked leg is red on two nights`);
+    assert.equal(row.quarantine, otherLeg.quarantine, `order ${i}: the row shows the parked leg's entry`);
+    assert.equal(row.nightlyRuns30, 2);
+  });
+
+  // Only the parked leg differs: nothing to file, and the badge says why.
+  const parkedOnly = rowOf(sightings.filter(entry => entry.quarantine));
+
+  assert.equal(parkedOnly.needsTicket, false);
+  assert.equal(parkedOnly.quarantine, otherLeg.quarantine);
+
+  // The parked leg on two nights and the unparked one on a single pull request is one open branch: no ticket.
+  const mixed = rowOf([...sightings.filter(entry => entry.quarantine), { ...capture, runId: 'p1', seenAt: seenAt(3) }]);
+
+  assert.equal(mixed.needsTicket, false);
+  assert.equal(mixed.openBranches30, 1);
 });
 
 test('the Compare job uploads its record under the prefix the collector classifies by', () => {

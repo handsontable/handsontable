@@ -345,6 +345,15 @@ export function collectArtifactFiles(files, run) {
       }
 
       entries.push(...parser(parsed, run));
+
+      if (isVisualRecord && parsed.tier !== 'seed') {
+        const unmapped = (parsed.items ?? []).filter(item => item?.status === 'changed' && !item.capture).length;
+
+        if (unmapped > 0) {
+          notes.push(`${file.artifact}/${file.path}: ${unmapped} changed item(s) had no capture (a path the `
+            + 'record could not map to a spec), not recorded');
+        }
+      }
     } catch (error) {
       // Both the parse and the parser run here: a file that is valid JSON but the wrong shape
       // (`null`, `{"suites":[null]}`) must be noted and skipped, not thrown past the whole run.
@@ -492,9 +501,16 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
     // and distinct branches, not the raw run count — which a single branch pushed twice would trip.
     const flakyRuns30 = new Set(inLong.filter(entry => entry.status === 'flaky').map(entry => entry.runId)).size;
     const branches30 = new Set(inLong.map(entry => entry.branch).filter(Boolean)).size;
-    const nightlyRuns30 = new Set(inLong.filter(entry => entry.workflow === VISUAL_NIGHTLY_WORKFLOW)
-      .map(entry => entry.runId)).size;
     const last = sorted[0];
+    // A visual quarantine is per leg, so one capture can carry stamped and unstamped sightings side by
+    // side (main-dark parked, main not). Its ticket line counts only the unstamped ones, and its badge is
+    // the most recent stamp in the window, so neither depends on which leg happened to sort last. A
+    // functional quarantine covers the whole test, so that tier keeps reading the last sighting.
+    const visual = last.tier === 'visual';
+    const open = visual ? inLong.filter(entry => !entry.quarantine) : inLong;
+    const nightlyRuns30 = new Set(open.filter(entry => entry.workflow === VISUAL_NIGHTLY_WORKFLOW)
+      .map(entry => entry.runId)).size;
+    const openBranches30 = new Set(open.map(entry => entry.branch).filter(Boolean)).size;
 
     return {
       key,
@@ -509,10 +525,11 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       flakyRuns30,
       branches30,
       nightlyRuns30,
+      openBranches30,
       legs: [...new Set(sorted.map(entry => entry.leg))].sort(),
       statuses: [...new Set(sorted.map(entry => entry.status))].sort(),
       isolation: [...new Set(sorted.map(entry => entry.isolation).filter(Boolean))].sort(),
-      quarantine: last.quarantine ?? null,
+      quarantine: (visual ? inLong.find(entry => entry.quarantine)?.quarantine : null) ?? last.quarantine ?? null,
       lastSeen: {
         seenAt: last.seenAt,
         runUrl: last.runUrl,
@@ -528,9 +545,9 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       // branch could never show, and 2+ branches is the same capture red on unrelated pull requests (the
       // nightly counts as develop). A raw run count would also flag a pull request's own intended change,
       // recorded before approval, on the pull request's second push; that stays one branch.
-      needsTicket: !last.quarantine && (last.tier === 'visual'
-        ? (nightlyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)
-        : (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns)),
+      needsTicket: visual
+        ? (nightlyRuns30 >= ticketThresholdRuns || openBranches30 >= ticketThresholdRuns)
+        : !last.quarantine && (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns),
     };
   });
 
@@ -618,7 +635,7 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
 
     for (const row of needTicket) {
       const recurrence = row.tier === 'visual'
-        ? `${row.nightlyRuns30} nightly run(s), ${row.branches30} branch(es)`
+        ? `${row.nightlyRuns30} nightly run(s), ${row.openBranches30} branch(es)`
         : `${row.branches30} branch(es), ${row.flakyRuns30} flaky rerun(s)`;
 
       lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${recurrence}, legs: ${row.legs.join(', ')}`);

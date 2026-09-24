@@ -193,6 +193,14 @@ test('the browser install matches the cache key it saves under', () => {
   assert.match(workflow, /playwright install chromium firefox webkit/);
 });
 
+test('scope: full widens both spec lists, and only when it is asked for', () => {
+  // The defaults are the investigation's two groups (pinned above); `full` replaces both, in the render step,
+  // and the render reads the variables rather than the literals, so the widening reaches every pass.
+  assert.match(workflow, /if \[ "\$SCOPE" = "full" \]; then\n\s+MULTI_SPECS=tests\n\s+CROSS_SPECS=\.\n/);
+  assert.match(workflow, /--project=firefox --retries=0 --reporter=dot "\$CROSS_SPECS"/);
+  assert.equal((workflow.match(/--reporter=dot "\$MULTI_SPECS"/g) ?? []).length, 2, 'the classic and themed passes');
+});
+
 test('a red iteration still uploads what it rendered', () => {
   assert.match(workflow, /name: Upload the screenshots\n\s+if: steps\.gate\.outputs\.run == 'true' && !cancelled\(\)/);
 });

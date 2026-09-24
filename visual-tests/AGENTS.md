@@ -679,12 +679,13 @@ which of these run locally and which only in CI.
     date checks are the functional tier's own, imported from `tests/lib/quarantine-policy.mjs`. A live entry
     takes its items out of `failedItems` before the pull request verdict and the nightly's
     (`lib/visual-quarantine.mjs`), and both list them under `### Quarantined — reported, not blocking`; the
-    record stamps the same changed items so the ledger shows the badge instead of asking for a ticket. Only a
-    CHANGED item is covered — a quarantined capture that reg-suit calls new or deleted still counts. The
-    budget reads the raw `out.json`, so a quarantined item still counts as rendered. The file is read only
-    through `VISUAL_QUARANTINE_FILE`, which `visual.yml` sets and the docs action does not. An entry that
-    never held (a bad task id or date, a date beyond the horizon, a malformed entry) is listed under its own
-    heading with the reason, and its items block. An expired entry blocks again, and fails
+    record stamps the same changed items. The ledger shows a capture's most recent stamp as its badge and
+    counts only unstamped sightings toward the ticket, so a leg the entry does not name still reaches the
+    line. Only a CHANGED item is covered — a quarantined capture that reg-suit calls new or deleted still
+    counts. The budget reads the raw `out.json`, so a quarantined item still counts as rendered. The file is
+    read only through `VISUAL_QUARANTINE_FILE`, which `visual.yml` sets and the docs action does not. An entry
+    that never held (a bad task id or date, a date beyond the horizon, a malformed entry) is listed under its
+    own heading with the reason, and its items block. An expired entry blocks again, and fails
     `Checks / tooling tests` on EVERY pull request until it is removed or renewed
     (`lib/__tests__/visual-quarantine.test.mjs`, on the real clock) — stricter than the functional tier on
     purpose, and the message carries the remedy.

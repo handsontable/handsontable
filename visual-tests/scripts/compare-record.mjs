@@ -77,8 +77,10 @@ try {
 
   mkdirSync(REG_DIR, { recursive: true });
   writeFileSync(file, `${JSON.stringify(record, null, 2)}\n`);
+  const { passed, changed, new: added, deleted } = record.counts;
+
   console.log(`Visual compare record: ${record.items.length} differing item(s) of `
-    + `${record.counts.passed + record.counts.changed + record.counts.new} compared, written to ${file}.`);
+    + `${passed + changed + added + deleted} compared, written to ${file}.`);
 } catch (error) {
   console.log(`::warning title=Visual compare record::No record was written for the flake ledger: ${error.message}`);
 }
