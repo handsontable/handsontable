@@ -85,12 +85,14 @@ export class DataProviderSheetsBarPage {
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
+  readonly pageErrors: string[] = [];
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
+    page.on('pageerror', error => this.pageErrors.push(error.message));
   }
 
   /**

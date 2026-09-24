@@ -539,5 +539,23 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.release('CUS');
       await expect(grid.cell(0, 0)).toHaveText('CUS-01');
     });
+
+    test('destroying a plain grid mid-fetch aborts silently (rule 16, no SheetsBar)', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ plain: true });
+
+      // Goes through the internal `#fetchDataSilently()` path (the sort ctx), same as the
+      // initial load, `updatePlugin()`, the filter ctx, and the Refetch toast action — the class
+      // of fetch that logs a caught rejection instead of swallowing it silently.
+      await grid.sortByHeader(0, 'desc');
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.page.evaluate(() => window.hot.destroy());
+
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.consoleProblems()).toEqual([]);
+      expect(grid.pageErrors).toEqual([]);
+    });
   });
 });
