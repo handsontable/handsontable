@@ -102,7 +102,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
   `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the
-  host removed.
+  host removed. Physical keys are not stable across `alter()`: an insert or remove renumbers
+  every physical index after it, and core's `MetaManager` shifts its own cell meta to match.
+  The `afterCreateRow`/`afterRemoveRow`/`afterCreateCol`/`afterRemoveCol` handlers re-key the
+  map the same way (drop the removed indexes, shift the rest; an `auto` insert shifts nothing,
+  because `DataMap` does not shift core meta for it either), and a host `loadData` clears
+  it, because `loadData` clears core's cell meta. Any new code path that renumbers physical
+  indexes must re-key it too, or the serve hook paints a cell's meta onto its neighbor. The
+  `auto` skip also covers the rows a switch creates for `minRows` or `minSpareRows` while the
+  arriving sheet's map sits over the outgoing sheet's data, so the re-key needs no
+  `#isSwitching` guard, and must not take one: a host `alter()` from
+  `afterSheetTabStateRestore` runs inside the switch and has to re-key. The four listeners
+  register at `orderIndex` -1, so the map is shifted before a host listener on the same hook
+  reads meta, the way core shifts `MetaManager` before it fires. The map follows whatever indexes the hooks
+  report, so the NestedRows tree operations, which fire `afterCreateRow`/`afterRemoveRow` with
+  computed indexes (and fire nothing on a tree row move), can still drift from core meta.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
   after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
   filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
