@@ -715,12 +715,12 @@ jobs:
       # The two steps share one condition, pinned in
       # .github/scripts/__tests__/visual-diff-report.test.mjs.
       - name: Stage the visual diff report
-        if: ${{ !cancelled() && (true || failure()
+        if: ${{ !cancelled() && (failure()
           || (github.event_name == 'pull_request' && steps.gate.outputs.verdict == 'changed')
           || steps.report.outputs.verdict == 'changed') }}
         run: node ./visual-tests/scripts/stage-diff-report.mjs "$RUNNER_TEMP/visual-diff-report"
       - name: Upload the visual diff report
-        if: ${{ !cancelled() && (true || failure()
+        if: ${{ !cancelled() && (failure()
           || (github.event_name == 'pull_request' && steps.gate.outputs.verdict == 'changed')
           || steps.report.outputs.verdict == 'changed') }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
