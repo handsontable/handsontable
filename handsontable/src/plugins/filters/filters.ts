@@ -259,12 +259,6 @@ export class Filters extends BasePlugin {
   #dataProviderFilterRollbackStack: ColumnConditions[] = [];
 
   /**
-   * Indicates if the DataProvider plugin is active.
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
    * Memoized result of `#getPinnedRows()`, or `undefined` while nothing is memoized.
    *
    * Resolving the pinned rows walks every physical row against the other plugins' trimming maps,
@@ -319,6 +313,17 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider` (for example on every
+   * SheetsBar switch between a server sheet and a local one), and this plugin is not updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
    * Whether this grid exempts its frozen rows from filtering at all.
    *
    * Deliberately separate from "how many rows are pinned right now": those counts are zero both
@@ -331,7 +336,7 @@ export class Filters extends BasePlugin {
   #isFixedRowExemptionActive(): boolean {
     // A data provider filters server-side, and the request carries no notion of a pinned row, so
     // exempting rows locally would only make the grid disagree with the server's own result.
-    return !this.#isDataProviderActive && this.getSetting('filterFixedRows') === false;
+    return !this.#isDataProviderActive() && this.getSetting('filterFixedRows') === false;
   }
 
   /**
@@ -521,8 +526,6 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
-
     this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
@@ -590,7 +593,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
-        hiddenWhen: () => this.#isDataProviderActive || hiddenForColumn(),
+        hiddenWhen: () => this.#isDataProviderActive() || hiddenForColumn(),
       })));
     }
 
@@ -1170,7 +1173,7 @@ export class Filters extends BasePlugin {
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
-    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive()) {
       return;
     }
 
@@ -1295,7 +1298,7 @@ export class Filters extends BasePlugin {
     navigableHeaders: boolean | undefined, needToFilter: boolean, conditions: ColumnConditions[]
   ): void {
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
 
@@ -1357,7 +1360,7 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap?.clear();
 
-    } else if (this.#isDataProviderActive) {
+    } else if (this.#isDataProviderActive()) {
       this.#previousConditionStack = this.exportConditions();
 
     } else {
@@ -1548,7 +1551,7 @@ export class Filters extends BasePlugin {
    * @param {boolean} firstRun `true` for the initial data load.
    */
   #onAfterUpdateData = (_data: unknown, firstRun: boolean) => {
-    if (firstRun || this.#isDataProviderActive || !this.conditionCollection) {
+    if (firstRun || this.#isDataProviderActive() || !this.conditionCollection) {
       return;
     }
 
@@ -1758,7 +1761,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive) {
+      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive()) {
         this.conditionCollection?.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -1870,7 +1873,7 @@ export class Filters extends BasePlugin {
 
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
-    if (stackPosition === -1 || this.#isDataProviderActive) {
+    if (stackPosition === -1 || this.#isDataProviderActive()) {
       const visibleValues = this.hot.getDataAtCol(column);
       // The SAME physical set the has-conditions branch below uses, translated per row rather than
       // dropped by position. Two different ways of deciding "pinned" made the two branches disagree
