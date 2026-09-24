@@ -180,16 +180,31 @@ function formulasSettingOf(sheet: Sheet): SheetFormulas | null {
 }
 
 /**
- * The settings that make `updateSettings()` pad the grid's current data array: core runs
- * `adjustRowsAndCols()` at the end of the update, while the grid still holds the departing sheet.
+ * The settings that make core pad the data array the grid holds: both `updateSettings()` and
+ * `loadData()` end in `adjustRowsAndCols()`. Each one's neutral value is 0, its default.
  */
 const MIN_SIZE_SETTINGS = ['minRows', 'minSpareRows', 'minCols', 'minSpareCols'];
 
 /**
- * Whether applying the settings can add rows or columns to the grid's current data array.
+ * Splits the `min*` keys out of a sheet's settings. `rest` carries them at 0, so an update applied
+ * while the grid still holds the departing sheet pads nothing; `minSizes` carries their real
+ * values, to be applied once the arriving sheet's data is loaded. `minSizes` is `null` when the
+ * settings name none of them.
  */
-function padsCurrentData(settings: Record<string, unknown>): boolean {
-  return MIN_SIZE_SETTINGS.some(key => key in settings);
+function splitMinSizeSettings(settings: Record<string, unknown>): {
+  rest: Record<string, unknown>;
+  minSizes: Record<string, unknown> | null;
+} {
+  const keys = MIN_SIZE_SETTINGS.filter(key => key in settings);
+
+  if (keys.length === 0) {
+    return { rest: settings, minSizes: null };
+  }
+
+  return {
+    rest: { ...settings, ...Object.fromEntries(keys.map(key => [key, 0])) },
+    minSizes: Object.fromEntries(keys.map(key => [key, settings[key]])),
+  };
 }
 
 /**
@@ -1092,19 +1107,22 @@ export class SheetsBar extends BasePlugin {
    * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
    * grid-level values. Batches the operation into a single render when the grid's view
    * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it.
+   * the grid's own startup render covers it. The `min*` keys are applied after the data, so the
+   * rows and columns they add land in the arriving sheet's array, never the departing one's.
    */
   #applySheet(sheet: Sheet, source: string) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
+      const { rest, minSizes } = settings ? splitMinSizeSettings(settings) : { rest: null, minSizes: null };
 
-      if (settings && padsCurrentData(settings)) {
-        this.hot.updateSettings(settings);
-
-      } else if (settings) {
-        this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+      if (rest) {
+        this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(rest));
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (minSizes) {
+        this.hot.updateSettings(minSizes);
+      }
     };
 
     if (this.hot.view) {
@@ -1843,9 +1861,8 @@ export class SheetsBar extends BasePlugin {
    * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
    * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
    * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
-   * Not used for settings carrying a `min*` key (`padsCurrentData`): core pads the data array the
-   * grid holds at the end of the update, and only the Formulas load keeps that array a throwaway
-   * copy instead of the departing sheet's own data.
+   * The grid still holds the departing sheet's data during that update, which is why `#applySheet`
+   * zeroes the `min*` keys for it (`splitMinSizeSettings`).
    *
    * @param {Function} update The operation to run.
    */

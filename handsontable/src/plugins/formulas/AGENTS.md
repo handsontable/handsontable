@@ -308,8 +308,9 @@ reported. The flag is set and reset by the caller around the one `updateSettings
 `finally`, and must never stay on: a host's own `updateSettings({ formulas: { sheetName } })` relies on
 `switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
 `hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
-The caller also keeps the flag off for settings that make core pad the grid's current data
-(`min*` keys) — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
+With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
+anything core writes there lands in it: SheetsBar zeroes the `min*` keys for that update and applies
+them after its load — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
 "loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
 while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas sheet
 switch loading again after a switch threw mid-update" pins the `finally` reset through a SheetsBar

@@ -1312,6 +1312,7 @@ describe('SheetsBar plugin', () => {
   it('does not pad a formula sheet\'s data with the min rows of the sheet it switches to', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const budgetData = [[1], [2], [3], [4], [5]];
+    const loadSources = [];
 
     hot = new Handsontable(container, {
       sheetsBar: {
@@ -1328,12 +1329,17 @@ describe('SheetsBar plugin', () => {
           },
         ],
       },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
       licenseKey: 'non-commercial-and-evaluation',
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
+    loadSources.length = 0;
     sheetsBar.setActiveSheet('Rates');
 
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
     expect(hot.countRows()).toBe(20);
     expect(budgetData).toHaveLength(5);
 
@@ -1342,6 +1348,66 @@ describe('SheetsBar plugin', () => {
     expect(budgetData).toHaveLength(5);
     expect(hot.countRows()).toBe(5);
     expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[1], [2], [3], [4], [5]]);
+  });
+
+  it('does not pad a sheet\'s data with the min rows of the sheet it switches to without formulas', () => {
+    const firstData = [['a'], ['b'], ['c']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'First', data: firstData },
+          { name: 'Second', data: [['x']], settings: { minRows: 10, minSpareCols: 2 } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Second');
+
+    expect(hot.countRows()).toBe(10);
+    expect(hot.countCols()).toBe(3);
+    expect(firstData).toEqual([['a'], ['b'], ['c']]);
+
+    sheetsBar.setActiveSheet('First');
+
+    expect(hot.countRows()).toBe(3);
+    expect(firstData).toEqual([['a'], ['b'], ['c']]);
+  });
+
+  it('does not pad a sheet\'s data with the min rows of an empty formula sheet it switches to', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const budgetData = [[1], [2], [3]];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: budgetData,
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Notes',
+            data: [],
+            settings: { formulas: { engine, sheetName: 'Notes' }, minRows: 8 },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Notes');
+
+    expect(hot.countRows()).toBe(8);
+    expect(budgetData).toEqual([[1], [2], [3]]);
+
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.countRows()).toBe(3);
+    expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[1], [2], [3]]);
   });
 
   it('leaves the Formulas sheet switch loading again after a switch threw mid-update', () => {
