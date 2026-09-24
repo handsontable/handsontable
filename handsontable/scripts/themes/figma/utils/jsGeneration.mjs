@@ -260,11 +260,11 @@ function writeJsThemeFiles(themeVariables) {
 
   ensureOutputDirectory(helpersPath);
 
-  // The typed iconsMap module is copied verbatim from the template (already TS, already typed).
-  const iconsMapTemplate = readFileSync(resolve(__dirname, '..', 'templates', 'iconsMap.ts'), 'utf8');
+  // The typed iconStyles module is copied verbatim from the template (already TS, already typed).
+  const iconStylesTemplate = readFileSync(resolve(__dirname, '..', 'templates', 'iconStyles.ts'), 'utf8');
 
-  writeFileSync(`${helpersPath}/iconsMap.ts`, iconsMapTemplate);
-  console.log(`Generated: ${helpersPath}/iconsMap.ts`);
+  writeFileSync(`${helpersPath}/iconStyles.ts`, iconStylesTemplate);
+  console.log(`Generated: ${helpersPath}/iconStyles.ts`);
 }
 
 export { writeJsThemeFiles };

@@ -133,6 +133,14 @@ CSS. The select's `:disabled` background was dropped: it is safe only because `s
 in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
 select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
 
+## Icons are built once, not per render (DEV-3003)
+
+`ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
+ht-icon-<name>">` elements built by `createIcon()` when the UI is constructed, not rebuilt on every
+draw. A theme change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme`
+explicitly calls `this.#ui?.refreshIcons()` to rebuild them against the new theme's icon config — forgetting
+that hook leaves the pager showing the previous theme's icons after a `useTheme()` switch.
+
 ## Where to look next
 
 - The plugins it hard-conflicts with: `../nestedRows/AGENTS.md`, `../mergeCells/AGENTS.md`.

@@ -208,11 +208,15 @@ test.describe('sheets bar', () => {
 
     const target = (await bar.chevron(0).boundingBox())!;
     const glyph = await bar.chevron(0).evaluate((element) => {
-      const styles = getComputedStyle(element, '::after');
+      // DEV-3003: the glyph is the `.ht-icon` child, not the trigger's `::after`.
+      const rect = element.querySelector('.ht-icon')!.getBoundingClientRect();
 
-      return { width: parseFloat(styles.width) || 0, height: parseFloat(styles.height) || 0 };
+      return { width: rect.width, height: rect.height };
     });
 
+    // A glyph that did not render would make the comparison below pass for nothing.
+    expect(glyph.width).toBeGreaterThan(0);
+    expect(glyph.height).toBeGreaterThan(0);
     // The hit area is grown around the glyph rather than being the glyph itself.
     expect(target.width).toBeGreaterThan(glyph.width);
     expect(target.height).toBeGreaterThan(glyph.height);
@@ -733,10 +737,11 @@ test.describe('sheets bar', () => {
     // One mark, and it sits against the active sheet.
     expect(await marked()).toEqual(['Alpha']);
 
-    // The mark is painted from a masked SVG rather than from the character, and the rule that
-    // draws it lists the menus by class — so the sheets bar menu has to be on that list.
-    const painted = await page.locator('.htSheetsBarMenu .htItemWrapper .selected').evaluate(
-      element => getComputedStyle(element, '::after').webkitMaskImage,
+    // The mark is painted from a masked SVG rather than from the character. DEV-3003: the glyph is
+    // the `<i class="ht-icon ht-icon-check">` child the menu renderer appends inside the mark span,
+    // so a sheets bar menu the renderer skipped would leave no icon and read `none` here.
+    const painted = await page.locator('.htSheetsBarMenu .htItemWrapper .selected .ht-icon').evaluate(
+      element => getComputedStyle(element).webkitMaskImage,
     );
 
     expect(painted).toContain('svg');

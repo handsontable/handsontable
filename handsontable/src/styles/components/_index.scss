@@ -5,6 +5,7 @@
 @use "./core/license-notification";
 @use "./core/license-branding";
 @use "./core/links";
+@use "./core/icon";
 
 // Plugins
 @use "./plugins/collapsible-columns";
@@ -57,6 +58,7 @@
   @include license-notification.output();
   @include license-branding.output();
   @include links.output();
+  @include icon.output();
   // Renderers
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();

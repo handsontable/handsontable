@@ -2,22 +2,36 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 /**
- * The hidden-column and hidden-row indicator rules as 18.1.0 shipped them, and the reference every
- * arrow is compared against. `mask-position` and `mask-repeat` are reset to their initial values
- * because 18.1.0 set neither. `!important` because the rules under test carry the same
- * specificity, and a reference that lost the cascade would compare the build against itself.
+ * The hidden-column and hidden-row indicator geometry as 18.1.0 shipped it, and the reference every
+ * arrow is compared against. 18.1.0 drew the arrows as `th::before`/`th::after` pseudo-elements;
+ * since DEV-3003 they are real `<i class="ht-icon ht-hidden-indicator-start|end">` children of the
+ * same `th`, so the 18.1.0 offsets are re-expressed against those elements - a rule written for the
+ * pseudo-elements would generate nothing (no stylesheet gives them `content` any more) and both
+ * screenshot passes would silently compare the build against itself. `mask-position` and
+ * `mask-repeat` are reset to their initial values because 18.1.0 set neither (the generated
+ * `.ht-icon-<name>` rule now sets both, prefixed and unprefixed). `!important` because the rules
+ * under test carry the same specificity, and a reference that lost the cascade would compare the
+ * build against itself.
  */
 const RELEASED_18_1_0_RULES = `
-  .handsontable th.beforeHiddenColumn::after {
-    right: -2px !important; mask-position: 0 0 !important; mask-repeat: repeat !important;
+  .handsontable th.beforeHiddenColumn > .ht-hidden-indicator-end {
+    right: -2px !important;
+    -webkit-mask-position: 0 0 !important; mask-position: 0 0 !important;
+    -webkit-mask-repeat: repeat !important; mask-repeat: repeat !important;
   }
-  .handsontable th.afterHiddenColumn::before { left: -2px !important; }
-  [dir="rtl"].handsontable th.beforeHiddenColumn::after { right: auto !important; left: -2px !important; }
-  [dir="rtl"].handsontable th.afterHiddenColumn::before { right: -2px !important; left: auto !important; }
-  .handsontable th.beforeHiddenRow::after {
-    bottom: -2px !important; mask-position: 0 0 !important; mask-repeat: repeat !important;
+  .handsontable th.afterHiddenColumn > .ht-hidden-indicator-start { left: -2px !important; }
+  [dir="rtl"].handsontable th.beforeHiddenColumn > .ht-hidden-indicator-end {
+    right: auto !important; left: -2px !important;
   }
-  .handsontable th.afterHiddenRow::before { top: -2px !important; }
+  [dir="rtl"].handsontable th.afterHiddenColumn > .ht-hidden-indicator-start {
+    right: -2px !important; left: auto !important;
+  }
+  .handsontable th.beforeHiddenRow > .ht-hidden-indicator-end {
+    bottom: -2px !important;
+    -webkit-mask-position: 0 0 !important; mask-position: 0 0 !important;
+    -webkit-mask-repeat: repeat !important; mask-repeat: repeat !important;
+  }
+  .handsontable th.afterHiddenRow > .ht-hidden-indicator-start { top: -2px !important; }
 `;
 
 type MarkerKind = 'beforeHiddenColumn' | 'afterHiddenColumn' | 'beforeHiddenRow' | 'afterHiddenRow';
@@ -108,8 +122,18 @@ export class HiddenIndicatorPositionPage {
         throw new Error('A before-marker header is missing from its overlay.');
       }
 
-      const columnStyle = getComputedStyle(column, '::after');
-      const rowStyle = getComputedStyle(row, '::after');
+      // Read off the caret elements themselves: a pseudo-element read would still resolve the
+      // forced `!important` declarations on a box that no longer generates, and the control would
+      // pass with nothing painted.
+      const columnCaret = column.querySelector('.ht-hidden-indicator-end');
+      const rowCaret = row.querySelector('.ht-hidden-indicator-end');
+
+      if (columnCaret === null || rowCaret === null) {
+        throw new Error('A before-marker header carries no caret element.');
+      }
+
+      const columnStyle = getComputedStyle(columnCaret);
+      const rowStyle = getComputedStyle(rowCaret);
       const columnEdge = document.documentElement.dir === 'rtl' ? columnStyle.left : columnStyle.right;
 
       return {

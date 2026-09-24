@@ -1,4 +1,10 @@
 import { PaginationUI } from '../ui';
+import { createIcon } from '../../../themes/engine/icons';
+
+// No `themeManager` on the stub `hot` - `createIcon()` falls back to plain glyph classes,
+// exactly like a grid built without a `theme` config object (the common case).
+const stubCreateIcon = (name, options) =>
+  createIcon({ rootDocument: document, themeManager: undefined }, name, options);
 
 describe('PaginationUI', () => {
   let rootElement;
@@ -18,6 +24,7 @@ describe('PaginationUI', () => {
       themeName: 'ht-theme-main',
       phraseTranslator: key => String(key),
       a11yAnnouncer: () => {},
+      createIcon: stubCreateIcon,
     });
   });
 
@@ -69,6 +76,41 @@ describe('PaginationUI', () => {
       'ht-page-navigation-section__button ht-page-next',
       'ht-page-navigation-section__button ht-page-last',
     ]);
+
+    // Each button carries exactly one directional icon, and it mirrors under RTL.
+    expect(buttons.map((button) => {
+      const icon = button.querySelector('.ht-icon');
+
+      return icon ? Array.from(icon.classList).sort().join(' ') : null;
+    })).toEqual([
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left-with-bar',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right-with-bar',
+    ]);
+  });
+
+  it('should install the page-size select caret as a single, non-mirrored icon', () => {
+    const wrapper = uiContainer.querySelector('.ht-page-size-section__select-wrapper');
+    const icons = wrapper.querySelectorAll('.ht-icon');
+
+    expect(icons.length).toBe(1);
+    expect(icons[0].classList.contains('ht-icon-arrow-down')).toBe(true);
+    expect(icons[0].classList.contains('ht-icon--flip-rtl')).toBe(false);
+  });
+
+  it('should keep exactly one icon per button after refreshIcons() runs repeatedly', () => {
+    for (let i = 0; i < 3; i++) {
+      ui.refreshIcons();
+    }
+
+    const buttons = Array.from(uiContainer.querySelectorAll('.ht-page-navigation-section button'));
+
+    expect(buttons.map(button => button.querySelectorAll('.ht-icon').length)).toEqual([1, 1, 1, 1]);
+
+    const wrapper = uiContainer.querySelector('.ht-page-size-section__select-wrapper');
+
+    expect(wrapper.querySelectorAll('.ht-icon').length).toBe(1);
   });
 
   // Hiding the section and disabling its select must stay coupled: the stylesheet drops the

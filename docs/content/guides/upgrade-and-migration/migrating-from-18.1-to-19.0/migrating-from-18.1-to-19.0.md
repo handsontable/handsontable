@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -988,4 +988,101 @@ const row = hot.getSourceDataAtRow(1);
 const shifted = row.slice(2);
 shifted.push(null);
 hot.populateFromArray(1, 1, [shifted]);
+```
+
+## 21. Icons are rendered as `<i>` elements
+
+Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, generated from an `iconsMap` stylesheet. It's now a real DOM element: `<i class="ht-icon ht-icon-<name>" aria-hidden="true"></i>`, inserted into the cell, header, or menu item it belongs to. The glyph still comes from a `--ht-icon-<name>` CSS variable, applied by an unscoped `.ht-icon-<name>` rule.
+
+### Who is affected
+
+- You style a built-in icon with a `::before` or `::after` selector, such as `.changeType::before` or `.ht-page-next::before`.
+- Your tests assert on the DOM structure of a cell, header, or menu item that contains an icon -- for example, counting child elements, or using `:first-child`.
+- Your own CSS has a bare `i` rule, or a selector such as `td.querySelector('i')`, that could now match a Handsontable icon it wasn't written for.
+- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. That class no longer exists.
+- You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, just a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
+- You select the Filters condition dropdown's caption by its own text content, such as `.htUISelectCaption` read as a text node, or a selector assuming it has no child elements. Unrelated to the icon change but shipped in the same release, the caption's text now lives in a `<span class="htUISelectCaptionLabel">` child instead of being the caption element's own text.
+
+### The new element can collide with your own selectors
+
+Icons are inserted into cells and headers, and in some renderers they are inserted **before** the existing content. A selector written before this change, when a cell or header held no extra child element, can now resolve to a Handsontable icon instead of what you meant:
+
+- `td.querySelector('i')` can return the icon instead of your own `<i>` element.
+- A bare `i { ... }` rule in your stylesheet now also styles every icon.
+- `:first-child`, or an index-based child selector, can point at the icon instead of your content.
+
+Exclude icons from such a selector, or scope it to the element you actually mean:
+
+```css
+/* Before: also matches Handsontable's own icons. */
+td i {
+  color: red;
+}
+
+/* After: excludes them. */
+td i:not(.ht-icon) {
+  color: red;
+}
+```
+
+### How to migrate
+
+Replace a pseudo-element selector with the matching `.ht-icon-<name>` class, or override the icon's `--ht-icon-<name>` CSS variable to change only its glyph. Both are documented in [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide.
+
+The table below lists every selector the old `iconsMap` stylesheet generated and its replacement. A `[dir="rtl"]`-prefixed selector used to point at a different, mirrored icon; that pairing no longer exists; the single new class mirrors itself under `[dir="rtl"]` automatically.
+
+| Old selector | New selector |
+| --- | --- |
+| `.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after` | `.ht-icon-arrow-right` |
+| `.ht-page-size-section__select-wrapper::after` | `.ht-icon-arrow-down` |
+| `.changeType::before` | `.ht-icon-menu` |
+| `.htUISelectCaption::after`, `.htAutocompleteArrow::after`, `.ht-multi-select-arrow::after` | `.ht-icon-select-arrow` |
+| `.columnSorting.sortAction.ascending::before` | `.ht-icon-arrow-narrow-up` |
+| `.columnSorting.sortAction.descending::before` | `.ht-icon-arrow-narrow-down` |
+| `.ht-page-navigation-section .ht-page-first::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left-with-bar` |
+| `.ht-page-navigation-section .ht-page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
+| `.ht-page-navigation-section .ht-page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
+| `.ht-page-navigation-section .ht-page-last::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right-with-bar` |
+| `.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after`, `.htContextMenu table tbody tr td .htItemWrapper span.selected::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after`, `.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after` | `.ht-icon-check` |
+| `.htDropdownMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htContextMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htSheetsBarMenu table tbody tr td .htItemWrapper span.htMixed::after` | `.ht-icon-collapse-off` |
+| `.htCheckboxRendererInput::after` | `.ht-icon-checkbox` |
+| `th.beforeHiddenColumn::after` | `.ht-icon-caret-hidden-left` |
+| `th.afterHiddenColumn::before` | `.ht-icon-caret-hidden-right` |
+| `th.beforeHiddenRow::after` | `.ht-icon-caret-hidden-up` |
+| `th.afterHiddenRow::before` | `.ht-icon-caret-hidden-down` |
+| `.collapsibleIndicator::before`, `.ht_nestingButton::before` | `.ht-icon-collapse-off` |
+| `.collapsibleIndicator.collapsed::before`, `.ht_nestingButton.ht_nestingExpand::before` | `.ht-icon-collapse-on` |
+| `.htUIRadio > input[type="radio"]::after` | `.ht-icon-radio` |
+| `.ht-multi-select-chip-remove::before` | `.ht-icon-chip-close` |
+| `.ht-notification__close::before` | `.ht-icon-chip-close` |
+| `.ht-multi-select-editor-item-selected input::after` | `.ht-icon-checkbox` |
+| `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element) | `.ht-icon-search` |
+| `.ht-sheets-bar__add::before` | `.ht-icon-plus` |
+| `.ht-sheets-bar__all::before` | `.ht-icon-menu-list` |
+| `.ht-sheets-bar__tab-chevron::after` | `.ht-icon-select-arrow` |
+| `.ht-sheets-bar__page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
+| `.ht-sheets-bar__page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
+
+For example, a rule that used to read:
+
+```css
+.changeType::before {
+  background-color: blue;
+}
+```
+
+now targets the icon element directly:
+
+```css
+.changeType .ht-icon-menu {
+  background-color: blue;
+}
+```
+
+To change only the glyph and keep the built-in color and mask behavior, override the CSS variable instead, scoped to the theme class:
+
+```css
+.ht-theme-main .changeType .ht-icon-menu {
+  --ht-icon-menu: url("/icons/menu.svg");
+}
 ```

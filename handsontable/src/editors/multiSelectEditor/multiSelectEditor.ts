@@ -123,7 +123,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.#editorContainer.appendChild(this.dropdownContainerElement);
     this.hot.rootElement.appendChild(this.#editorContainer);
 
-    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid);
+    this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid, this.hot);
   }
 
   /**

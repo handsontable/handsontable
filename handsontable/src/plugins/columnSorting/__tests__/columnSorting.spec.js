@@ -49,6 +49,14 @@ describe('ColumnSorting', () => {
     ['Robert', 'Evans', '07/24/2020', 30500, undefined]
   ];
 
+  /**
+   * Returns the sort-direction indicator icon for a header label, or `null` when the header shows
+   * none. DEV-3003: the indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
+   * label inside `.relative`, not a `::before` pseudo-element on the label.
+   *
+   * @param {HTMLElement} headerLabel The `span.colHeader`/`span.columnSorting` label element.
+   * @returns {HTMLElement|null}
+   */
   it('should sort table by first visible column', async() => {
     handsontable({
       data: [
@@ -222,56 +230,45 @@ describe('ColumnSorting', () => {
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
-      const computedStyle = window.getComputedStyle(sortedColumn, ':before');
+      const icon = getSortIndicatorIcon(sortedColumn);
 
-      expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+      expect(icon).not.toBe(null);
 
-      // _column-sorting.scss sets `top: 50%; right: 2px;` (LTR) or `left: 2px;` (RTL) on
-      // `.columnSorting::before`. The label is sized to its text, so the indicator is positioned
-      // against the header's `.relative` container - that is what keeps it pinned to the header
-      // edge instead of travelling with the label. Assert the hardcoded horizontal offset against
-      // that container, and that the indicator ends up centred in the header cell.
+      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
+      // `_column-sorting.scss` against the header's `.relative` container with
+      // `inset-inline-end: calc(--ht-sort-indicator-offset-end + 2px)` - that is what keeps it
+      // pinned to the header edge instead of travelling with the label. Assert against the real
+      // element's own box, derived from the same custom property the rule reads, rather than a
+      // hardcoded pixel offset - and that it ends up centred in the header cell.
       const container = sortedColumn.closest('.relative');
       const containerRect = container.getBoundingClientRect();
       const headerRect = sortedColumn.closest('th').getBoundingClientRect();
-      const topPx = parseFloat(computedStyle.getPropertyValue('top'));
-      const iconSize = parseFloat(
-        window.getComputedStyle(sortedColumn).getPropertyValue('--ht-icon-size')
-      ) || 16;
+      const iconRect = icon.getBoundingClientRect();
 
-      // `top: 50%` resolves relative to the ::before's containing block; allow a 1px tolerance
-      // for sub-pixel rounding.
-      expect(Math.abs(topPx - (containerRect.height / 2))).toBeLessThanOrEqual(1);
+      // The indicator sits on the header's vertical midline; allow a 1px tolerance for sub-pixel
+      // rounding.
+      const iconCentreY = (iconRect.top + iconRect.bottom) / 2;
 
-      // What the user actually sees: the indicator sits on the header's vertical midline.
-      // `translateY(-50%)` puts its centre at the containing block's top plus `top`.
-      const indicatorCentreY = containerRect.top + topPx;
+      expect(Math.abs(iconCentreY - ((headerRect.top + headerRect.bottom) / 2))).toBeLessThanOrEqual(1);
 
-      expect(Math.abs(indicatorCentreY - ((headerRect.top + headerRect.bottom) / 2)))
-        .toBeLessThanOrEqual(1);
+      const offsetEnd = parseFloat(
+        window.getComputedStyle(container).getPropertyValue('--ht-sort-indicator-offset-end')
+      ) || 0;
+      // The SCSS rule adds a literal 2px edge margin on top of the custom property (kept from the
+      // old pseudo-element's `right: 2px`/`left: 2px`, on top of its own `margin-inline-end`).
+      const expectedInset = offsetEnd + 2;
 
-      // The indicator carries inline margins that hold it clear of the cell padding, so they are
-      // part of what the free edge resolves to.
-      const inlineMargins = (parseFloat(computedStyle.getPropertyValue('margin-left')) || 0) +
-        (parseFloat(computedStyle.getPropertyValue('margin-right')) || 0);
-      const freeEdge = containerRect.width - iconSize - inlineMargins - 2 - 1;
-
-      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        // In RTL mode the indicator is anchored to the left of the container at exactly 2px.
-        expect(parseFloat(computedStyle.getPropertyValue('left'))).toBe(2);
-        // The opposite edge is declared `auto`; browsers resolve it to a positive value that
-        // equals (container width - left anchor - icon width - margins) within a rounding
-        // tolerance.
-        const rightPx = parseFloat(computedStyle.getPropertyValue('right'));
-
-        expect(rightPx).toBeGreaterThanOrEqual(freeEdge);
+      // `inset-inline-end` resolves against the CONTAINER's own computed `direction`, not against
+      // `htmlDir`/`layoutDirection` directly - `layoutDirection: 'ltr'` forces the grid to render
+      // LTR even under an RTL `<html dir>` (this `using()` matrix's second case), so branching on
+      // the test parameters instead of the resolved direction asserted the wrong edge there.
+      if (window.getComputedStyle(container).direction === 'rtl') {
+        // In RTL, `inset-inline-end` resolves to the LEFT edge.
+        expect(Math.abs((iconRect.left - containerRect.left) - expectedInset)).toBeLessThanOrEqual(1);
 
       } else {
-        // In LTR mode the indicator is anchored to the right of the container at exactly 2px.
-        expect(parseFloat(computedStyle.getPropertyValue('right'))).toBe(2);
-        const leftPx = parseFloat(computedStyle.getPropertyValue('left'));
-
-        expect(leftPx).toBeGreaterThanOrEqual(freeEdge);
+        // In LTR, `inset-inline-end` resolves to the RIGHT edge.
+        expect(Math.abs((containerRect.right - iconRect.right) - expectedInset)).toBeLessThanOrEqual(1);
       }
     });
   });
@@ -293,7 +290,7 @@ describe('ColumnSorting', () => {
 
     const sortedColumn = spec().$container.find('th span')[0];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
   });
 
   it('should render a correct number of TD elements after sorting', async() => {
@@ -2336,31 +2333,31 @@ describe('ColumnSorting', () => {
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
 
     await spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', async() => {
@@ -2383,37 +2380,37 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
   });
 
   it('should change sorting indicator state when initial column sorting was provided', async() => {
@@ -2438,31 +2435,31 @@ describe('ColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
+    expect(getSortIndicatorIcon(sortedColumn)).toBe(null);
   });
 
   it('should properly sort the table, when it\'s scrolled to the far right', async() => {
@@ -3051,23 +3048,18 @@ describe('ColumnSorting', () => {
 
       const label = spec().$container.find('th span.colHeader')[0];
       const container = label.closest('.relative');
-      const containerRect = container.getBoundingClientRect();
-      const indicatorStyle = window.getComputedStyle(label, ':before');
-      const iconSize = parseFloat(
-        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
-      ) || 16;
+      const icon = getSortIndicatorIcon(label);
 
-      // The indicator is an absolutely positioned pseudo, so its box has to be derived. `.relative`
-      // carries no border, so its client rect edges are the padding box the pseudo resolves against.
-      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
-      const indicatorRight = containerRect.right -
-        parseFloat(indicatorStyle.getPropertyValue('right')) - marginRight;
-      const indicatorLeft = indicatorRight - iconSize;
+      expect(icon).not.toBe(null);
+
+      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, so its box is read
+      // straight off the element instead of derived from `::before` computed style.
+      const iconRect = icon.getBoundingClientRect();
 
       // The button paints above the indicator (`z-index: 1`), so any overlap hides it completely.
       const button = container.querySelector('.changeType');
       const buttonRect = button.getBoundingClientRect();
-      const overlap = Math.min(buttonRect.right, indicatorRight) - Math.max(buttonRect.left, indicatorLeft);
+      const overlap = Math.min(buttonRect.right, iconRect.right) - Math.max(buttonRect.left, iconRect.left);
 
       expect(button).not.toBe(null);
       expect(overlap).toBeLessThanOrEqual(0);

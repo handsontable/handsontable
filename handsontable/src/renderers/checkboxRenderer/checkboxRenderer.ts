@@ -17,6 +17,7 @@ import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { canAccessCellContent } from '../../shortcuts/guards';
+import { createIcon } from '../../themes/engine/icons';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
@@ -185,6 +186,25 @@ export function checkboxRenderer(
 
   if (!labelOptions || (labelOptions && !labelOptions.separated)) {
     contentRoot.appendChild(inputOrWrapper);
+  }
+
+  // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
+  // children, so it is inserted as the input's next sibling instead. `insertAdjacentElement`
+  // needs the input to already have a parent, which every branch of `applyLabelOptions()` plus
+  // the `contentRoot.appendChild()` above guarantees by this point, whatever the label
+  // arrangement (no label, wrapped before/after, or separated before/after). `.ht-icon` carries
+  // `pointer-events: none` (`_icon.scss`), so a click still reaches the input underneath it. The
+  // renderer clones a fresh input per render (`createInput()`), so no duplicate-removal is
+  // needed here.
+  //
+  // Skipped for a `#bad-value#` cell: with `labelOptions.separated` the input is never appended
+  // anywhere above (see the final branch of the condition just above), so it has no parent to
+  // insert after; and even when it is appended, it is hidden via `display: none` (`applyCheckedState`)
+  // - the retired `::after` pseudo-element inherited that `display: none` from its host and
+  // painted nothing, but a sibling `<i>` element has no such inheritance and would float next to
+  // the bad-value text with nothing to represent.
+  if (!badValue) {
+    input.insertAdjacentElement('afterend', createIcon(hotInstance, 'checkbox'));
   }
 
   if (badValue) {

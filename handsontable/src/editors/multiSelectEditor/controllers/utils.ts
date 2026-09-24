@@ -1,10 +1,11 @@
+import type { HotInstance } from '../../../core/types';
 import { addClass, removeClass, setAttribute } from '../../../helpers/dom/element';
-import { A11Y_HIDDEN, A11Y_LABEL } from '../../../helpers/a11y';
+import { A11Y_LABEL } from '../../../helpers/a11y';
+import { createIcon } from '../../../themes/engine/icons';
 import { getCheckboxElement } from '../utils/utils';
 
 const classPrefix = 'ht-multi-select-editor';
 const SEARCH_INPUT_WRAPPER_CLASS = `${classPrefix}-search-input-wrapper`;
-const SEARCH_ICON_CLASS = `${classPrefix}-search-icon`;
 const SEARCH_INPUT_CLASS = `${classPrefix}-search-input`;
 const SEPARATOR_CLASS = `${classPrefix}-separator`;
 const SEARCH_INPUT_PLACEHOLDER = 'Search...';
@@ -56,14 +57,17 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
 
 /**
  * Creates the search icon element.
+ *
+ * DEV-3003 breaking change: this used to be a `<div class="ht-multi-select-editor-search-icon">`
+ * painted by an `iconsMap` rule targeting that class directly (not a pseudo-element - there was no
+ * `mixins.pseudo`/`content` trick to disarm). The class is dropped rather than kept alongside a new
+ * one; the element is now a real `<i class="ht-icon ht-icon-search">` (`createIcon()`), styled by
+ * the generic `.ht-icon-search` rule the theme engine already generates for every icon slot.
  */
-export function createSearchIcon({ root }: { root: Document }): HTMLDivElement {
-  const iconElement = root.createElement('div');
-
-  addClass(iconElement, SEARCH_ICON_CLASS);
-  setAttribute(iconElement, [A11Y_HIDDEN()]);
-
-  return iconElement;
+export function createSearchIcon(
+  { hotInstance }: { hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'> }
+): HTMLElement {
+  return createIcon(hotInstance, 'search');
 }
 
 /**
@@ -184,6 +188,7 @@ export interface CreateListItemElementOptions {
   indexWithinList: number;
   checked?: boolean;
   disabled?: boolean;
+  hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
 }
 
 /**
@@ -197,6 +202,7 @@ export function createListItemElement({
   indexWithinList,
   checked = false,
   disabled = false,
+  hotInstance,
 }: CreateListItemElementOptions): HTMLLIElement {
   const itemElement = rootDocument.createElement('li');
   const innerContainer = rootDocument.createElement('div');
@@ -217,6 +223,12 @@ export function createListItemElement({
   labelElement.textContent = itemValue;
 
   innerContainer.appendChild(checkboxElement);
+  // Structurally the same as `checkboxRenderer`'s tick (task 16): an `<input>` can hold no
+  // children, so the checked-state icon is a sibling instead, inserted right after it and before
+  // the label. `_multi-select-editor.scss` drives its visibility with `input:checked + .ht-icon`
+  // rather than the `.ht-multi-select-editor-item-selected` class `selectItem()`/`deselectItem()`
+  // also toggle - that class is still applied, but only for the row's background highlight now.
+  innerContainer.appendChild(createIcon(hotInstance, 'checkbox'));
   innerContainer.appendChild(labelElement);
   itemElement.appendChild(innerContainer);
 

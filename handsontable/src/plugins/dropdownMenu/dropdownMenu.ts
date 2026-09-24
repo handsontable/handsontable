@@ -22,6 +22,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
+import { createIcon } from '../../themes/engine/icons';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -690,23 +691,12 @@ export class DropdownMenu extends BasePlugin {
    * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
    */
   #getButtonRect(button: HTMLElement) {
-    const rect = button.getBoundingClientRect();
-    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
-    const iconSize = Number.parseFloat(beforeStyle.width);
-
-    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
-      const left = rect.left + ((rect.width - iconSize) / 2);
-      const top = rect.top + ((rect.height - iconSize) / 2);
-
-      return {
-        top,
-        left,
-        right: left + iconSize,
-        bottom: top + iconSize,
-        width: iconSize,
-        height: iconSize,
-      };
-    }
+    // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
+    // (`button.appendChild(createIcon(this.hot, 'menu'))` above), not a `::before` pseudo-element -
+    // measure its own box directly. Falls back to the button's own rect when the icon is missing
+    // (a theme config that maps the `menu` slot to nothing renders no `<i>` at all).
+    const icon = button.querySelector('.ht-icon');
+    const rect = (icon ?? button).getBoundingClientRect();
 
     return {
       top: rect.top,
@@ -762,6 +752,7 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+    button.appendChild(createIcon(this.hot, 'menu'));
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [

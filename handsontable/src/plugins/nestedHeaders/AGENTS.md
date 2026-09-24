@@ -144,6 +144,13 @@ outside, do not assume each call rebuilds the matrix.
   is consumed** in the cacheUpdated handler, not unconditionally — a CollapsibleColumns auto-expand fires
   a synchronous hidden-only `cacheUpdated` *before* `moveIndexes`, and clearing eagerly dropped the
   pending move.
+- The header renderer strips `beforeHiddenColumn` / `afterHiddenColumn` from every header that does not
+  reach the cells (`reachesCells`). It runs *after* HiddenColumns' `afterGetColHeader` hook, which — since
+  DEV-3003 — also appends a real `<i class="ht-icon …">` caret into `.relative`. Stripping the class does
+  not remove that element, so HiddenColumns now withholds it with the same `isBottomMostColumnHeader(TH)`
+  test, and its SCSS hides any stray caret under `th:not(.beforeHiddenColumn)`. If you change what
+  `reachesCells` means, change `../hiddenColumns/hiddenColumns.ts` to match, or the two disagree about
+  which level shows the caret (`../hiddenColumns/AGENTS.md`, "With NestedHeaders…").
 
 ## TypeScript notes
 

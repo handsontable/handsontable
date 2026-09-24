@@ -4,6 +4,7 @@ import { A11Y_HIDDEN } from '../../../helpers/a11y';
 import { addClass, eventTargetEl, hasClass, isHTMLElement } from '../../../helpers/dom/element';
 import { isLeftClick, stopImmediatePropagation } from '../../../helpers/dom/event';
 import EventManager from '../../../eventManager';
+import { createIcon } from '../../../themes/engine/icons';
 
 export const CLASS_PREFIX = 'ht-multi-select';
 export const CHIP_CLASS = `${CLASS_PREFIX}-chip`;
@@ -60,7 +61,8 @@ export function createChipElement(
   isAriaEnabled: boolean,
   row: number,
   col: number,
-  prop: string | number
+  prop: string | number,
+  hotInstance: HotInstance
 ): HTMLElement {
   const chip = rootDocument.createElement('span');
   const textContent = getItemProperty(item, 'value');
@@ -84,6 +86,12 @@ export function createChipElement(
   if (isAriaEnabled) {
     removeBtn.setAttribute(...A11Y_HIDDEN());
   }
+
+  // Interactive: `registerChipRemovingEvents` below reads `event.target` for the `CHIP_REMOVE_CLASS`
+  // itself, and the base `.ht-icon` rule's `pointer-events: none` (`_icon.scss`) is what lets a click
+  // on the glyph still land on this span rather than being intercepted by the icon - same reasoning
+  // as the dropdown indicator's arrow below.
+  removeBtn.appendChild(createIcon(hotInstance, 'chipClose'));
 
   chip.dataset.key = getItemProperty(item, 'key');
   chip.appendChild(removeBtn);
@@ -113,13 +121,15 @@ export function createOverflowIndicator(rootDocument: Document, count: number): 
  * @param {boolean} isAriaEnabled `true` when the `ariaTags` option is enabled.
  * @param {number} row The visual row index.
  * @param {number} col The visual column index.
+ * @param {HotInstance} hotInstance The Handsontable instance, used to render the arrow icon.
  * @returns {HTMLElement} The indicator element.
  */
 export function createDropdownIndicator(
   rootDocument: Document,
   isAriaEnabled: boolean,
   row: number,
-  col: number
+  col: number,
+  hotInstance: HotInstance
 ): HTMLElement {
   const indicator = rootDocument.createElement('span');
 
@@ -131,6 +141,13 @@ export function createDropdownIndicator(
   if (isAriaEnabled) {
     indicator.setAttribute(...A11Y_HIDDEN());
   }
+
+  // Mirrors `.htAutocompleteArrow` (`autocompleteRenderer.ts`): the glyph is a real element, not
+  // this indicator's own `::after`. Unlike the autocomplete arrow, this one has no text-node
+  // fallback glyph, so with no theme applied the `.ht-icon` element renders as an empty box
+  // rather than a visible arrow. `.ht-icon`'s base `pointer-events: none` lets the `mousedown`
+  // listener registered below still see this span, not the icon, as `event.target`.
+  indicator.appendChild(createIcon(hotInstance, 'selectArrow'));
 
   return indicator;
 }

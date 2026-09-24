@@ -158,7 +158,14 @@ The arrow is **10px**, and that is from the design system too: the sticker sheet
 except four at 10×10, which are exactly the four hidden indicators. The `10px !important` in the SCSS
 is therefore correct, even though it hardcodes what `--ht-icon-size` would otherwise give (16px on
 main/horizon, 12px on classic). Leave it alone unless design adds a `hidden-indicator-size` token —
-today the design system defines only `hidden-indicator-color`.
+today the design system defines only `hidden-indicator-color`. **This is a claim about the CSS BOX,
+and it holds for all four carets, including after DEV-3003** — `../hiddenRows/AGENTS.md` has the one
+thing this paragraph does *not* say: the `caretHiddenUp`/`caretHiddenDown` glyphs (row carets) are
+themselves authored on an 8×8 viewBox, unlike `caretHiddenLeft`/`caretHiddenRight` (10×10), so the
+mask (`mask-size: contain`) scales that smaller artwork UP to fill this same 10px box. Box size and
+glyph artwork size are two different numbers; do not conflate them, and do not "fix" the row box to
+8px to match the glyph — that would be a visible shrink of the indicator, not a mechanism change (see
+the DEV-3003 section below for why the real `<i>` element keeps 10px on all four).
 
 `#onModifyColWidth` adds **15px** to a visible column next to a hidden one — but only when
 `indicators` is on, the width is already a number, and `hasColHeaders()` is true. Read the code for the
@@ -178,6 +185,48 @@ the box flush with its rows **by construction**, which is a stronger preconditio
 needs. Measured on `develop`: `scrollHeight - clientHeight` = 1, a 15px vertical scrollbar on a grid
 that must never scroll itself, and a column-header clone 15px wider than the master's usable width.
 Both were fixed together in #13500, the same way: the row box at `bottom: -1px`, its mask at `0 1px`.
+
+## The caret is a real element now (DEV-3003), and it hangs off the `th`, not `.relative`
+
+`#onAfterGetColHeader` no longer relies on a `::before`/`::after` pseudo-element painted by the
+generated `iconsMap` stylesheet. It calls `syncIcon(this.hot, TH, slotClass, iconName)`
+(`themes/engine/icons.ts`) against two named slots that are children of the `th` itself —
+`ht-hidden-indicator-start` (`afterHiddenColumn`, `caretHiddenRight`) and `ht-hidden-indicator-end`
+(`beforeHiddenColumn`, `caretHiddenLeft`) — so a header needing both (a hidden neighbor on each side)
+gets both slots filled at once.
+
+**The container is the `th`, deliberately not the `.relative` wrapper the sort indicator uses
+(`../columnSorting/AGENTS.md`).** The old pseudo-elements positioned against the `th`, and `.relative`
+is only as tall as its own content: it fills the `th` for a default one-line header, but on a
+`columnHeaderHeight` taller than that (or a header stretched by a taller sibling) it stays 28px tall
+inside a 60px `th`, and a caret anchored to it sits 15px above the header's centre — measured, not
+guessed. Hanging the carets off the `th` keeps every offset (`right: -1px`, `left: -2px`,
+`mask-position: 1px 0`, the RTL rotate block) byte-identical to the pre-DEV-3003 rules at every header
+height. `syncIcon()` appends after `.relative`, so `appendColHeader()`'s `TH.firstChild` check still
+finds `.relative` first and keeps updating in place. The SCSS restates `position: relative` on the marker
+`th`s (base only has it behind a zero-specificity `:where()`), as the old rule did. Pinned by "the carets
+stay vertically centred on a header taller than one line" in `tests/e2e/icon-elements.spec.ts`.
+
+**Every path that can leave a header needing no caret must clear both slots, including plugin
+disable.** `super.disablePlugin()` removes the tracked `#onAfterGetColHeader` hook, so nothing is left
+to fire `syncIcon(..., null)` on headers still carrying a caret — they would survive every later
+render. `disablePlugin()` therefore registers an untracked one-shot `afterGetColHeader` hook
+(`this.hot.addHook`, not `this.addHook`) that clears both slots and removes itself on the next
+`afterViewRender` — the same pattern `../columnSorting/`'s `disablePlugin()` uses. This relies on the
+settings pipeline always rendering once after a disable.
+
+**With NestedHeaders, the caret is created only on the header level that reaches the cells.**
+`../nestedHeaders/nestedHeaders.ts` strips `beforeHiddenColumn` / `afterHiddenColumn` from every header
+whose `headerLevel + rowspan` does not reach the last header row (`reachesCells`), in its header
+*renderer*, after this plugin's hook has run. While the caret was a pseudo-element gated on those
+classes the strip alone removed it; a real element would be left orphaned on the group header, at the
+base 16px `.ht-icon` size (seen on the DEV-3003 demo as an oversized caret on a `htLastVisibleHeader`).
+Two guards, both needed: `#onAfterGetColHeader` passes `null` to `syncIcon()` unless
+`isBottomMostColumnHeader(TH)` (`helpers/dom/element.ts`), and the SCSS sizes the carets on the SLOT
+class and hides them under `th:not(.beforeHiddenColumn)` / `th:not(.afterHiddenColumn)`, so a caret
+whose marker anything strips still disappears exactly as the old pseudo-element did. Pinned by "with
+nested headers, only the header row that touches the cells carries carets" in
+`tests/e2e/icon-elements.spec.ts`.
 
 ## `disablePlugin()` resets cell meta
 

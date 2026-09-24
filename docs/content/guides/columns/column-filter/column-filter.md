@@ -742,9 +742,7 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 ## Customize the filter button
 
-The default button that opens the column menu can be styled with CSS by modifying
-`button.changeType` variables and its `::before` pseudoclass that contains svg mask-image displaying an arrow
-down icon.
+The default button that opens the column menu, `button.changeType`, can be styled with its own CSS variables, such as `--ht-icon-button-background-color`. Its glyph is a `<i class="ht-icon ht-icon-menu">` element, colored and masked from the `--ht-icon-menu` CSS variable. Override that variable to swap in a custom icon.
 
 ::: only-for javascript
 

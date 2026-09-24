@@ -8,6 +8,8 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import type { IconKey } from '../../themes/types';
+import type { IconOptions } from '../../themes/engine/icons';
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -125,6 +127,13 @@ export class PaginationUI {
    * @type {function(string): void}
    */
   readonly #a11yAnnouncer: (message: unknown) => void;
+  /**
+   * Creates an icon element for a given icon name. Injected so the UI stays decoupled from
+   * the theme engine.
+   *
+   * @type {function(IconKey, IconOptions=): HTMLElement}
+   */
+  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
 
   /**
    * Initializes the pagination UI by creating DOM elements, applying layout settings, and registering event listeners.
@@ -136,6 +145,7 @@ export class PaginationUI {
     themeName,
     phraseTranslator,
     a11yAnnouncer,
+    createIcon,
   }: Record<string, unknown>) {
     this.#rootElement = rootElement as HTMLElement;
     this.#uiContainer = uiContainer as HTMLElement | null;
@@ -143,6 +153,7 @@ export class PaginationUI {
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
+    this.#createIcon = createIcon as (name: IconKey, options?: IconOptions) => HTMLElement;
 
     this.install();
   }
@@ -190,6 +201,8 @@ export class PaginationUI {
       this.runLocalHooks('pageSizeChange', value);
     });
 
+    this.#installIcons();
+
     this.setCounterSectionVisibility(false);
     this.setNavigationSectionVisibility(false);
     this.setPageSizeSectionVisibility(false);
@@ -211,6 +224,40 @@ export class PaginationUI {
    */
   getContainer(): HTMLDivElement {
     return this.#refs!.container;
+  }
+
+  /**
+   * Rebuilds the icons after a theme change (a class-list or renderer mapping may differ).
+   */
+  refreshIcons() {
+    if (this.#refs) {
+      this.#installIcons();
+    }
+  }
+
+  /**
+   * Installs the icon elements into the navigation buttons and the page-size select's caret.
+   * Removes any existing `.ht-icon` first, so the method is safe to call repeatedly (e.g. after
+   * a theme change).
+   */
+  #installIcons() {
+    const refs = this.#refs!;
+    const map: Array<[HTMLElement, IconKey]> = [
+      [refs.first, 'arrowLeftWithBar'],
+      [refs.prev, 'arrowLeft'],
+      [refs.next, 'arrowRight'],
+      [refs.last, 'arrowRightWithBar'],
+    ];
+
+    map.forEach(([button, name]) => {
+      button.querySelector('.ht-icon')?.remove();
+      button.appendChild(this.#createIcon(name, { flipInRtl: true }));
+    });
+
+    const selectWrapper = refs.pageSizeSelect.parentElement!;
+
+    selectWrapper.querySelector('.ht-icon')?.remove();
+    selectWrapper.appendChild(this.#createIcon('arrowDown'));
   }
 
   /**

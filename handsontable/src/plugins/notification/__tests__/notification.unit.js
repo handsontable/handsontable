@@ -1,6 +1,12 @@
 import { Notification } from '../notification';
 import { NotificationUI } from '../ui';
 import { NOTIFICATION_CLASS_NAME } from '../constants';
+import { createIcon } from '../../../themes/engine/icons';
+
+// No `themeManager` on the stub `hot` - `createIcon()` falls back to plain glyph classes, exactly
+// like a grid built without a `theme` config object (the common case).
+const stubCreateIcon = (name, options) =>
+  createIcon({ rootDocument: document, themeManager: undefined }, name, options);
 
 describe('NotificationUI.setSequentialFocusWithinHost', () => {
   it('should toggle tabIndex on toast buttons', () => {
@@ -58,6 +64,76 @@ describe('NotificationUI.getFocusables', () => {
     toast.appendChild(disabled);
 
     expect(NotificationUI.getFocusables(toast)).toEqual([enabled]);
+  });
+});
+
+describe('NotificationUI icon rendering', () => {
+  let ui;
+
+  const createUI = () => new NotificationUI({
+    overlayElement: document.createElement('div'),
+    sanitizer: false,
+    warnScope: document.createElement('div'),
+    isRtl: false,
+    createIcon: stubCreateIcon,
+  });
+
+  afterEach(() => {
+    ui?.destroy();
+  });
+
+  it('should append exactly one chip-close icon to a closable toast\'s close button', () => {
+    ui = createUI();
+
+    const { element } = ui.createToastElement({
+      id: 'htn-1',
+      variant: 'info',
+      message: 'Saved.',
+      duration: 0,
+      position: 'bottom-end',
+      closable: true,
+      actions: [],
+    }, 'Close', false);
+
+    const closeBtn = element.querySelector(`.${NOTIFICATION_CLASS_NAME}__close`);
+    const icons = closeBtn.querySelectorAll('.ht-icon');
+
+    expect(icons.length).toBe(1);
+    expect(icons[0].classList.contains('ht-icon-chip-close')).toBe(true);
+    expect(icons[0].getAttribute('aria-hidden')).toBe('true');
+    expect(closeBtn.getAttribute('aria-label')).toBe('Close');
+  });
+
+  it('should keep exactly one icon per open toast after refreshIcons() runs repeatedly', () => {
+    ui = createUI();
+    ui.install();
+
+    const { element } = ui.createToastElement({
+      id: 'htn-1',
+      variant: 'info',
+      message: 'Saved.',
+      duration: 0,
+      position: 'bottom-end',
+      closable: true,
+      actions: [],
+    }, 'Close', false);
+
+    ui.getStack('bottom-end').appendChild(element);
+
+    for (let i = 0; i < 3; i++) {
+      ui.refreshIcons();
+    }
+
+    const closeBtn = element.querySelector(`.${NOTIFICATION_CLASS_NAME}__close`);
+
+    expect(closeBtn.querySelectorAll('.ht-icon').length).toBe(1);
+    expect(closeBtn.querySelector('.ht-icon').classList.contains('ht-icon-chip-close')).toBe(true);
+  });
+
+  it('should do nothing when refreshIcons() runs before install()', () => {
+    ui = createUI();
+
+    expect(() => ui.refreshIcons()).not.toThrow();
   });
 });
 

@@ -14,6 +14,7 @@ import {
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { throwWithCause } from '../../helpers/errors';
+import { createIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   A11Y_EXPANDED,
@@ -865,7 +866,14 @@ export class CollapsibleColumns extends BasePlugin {
       if (isCollapsed) {
         addClass(el, 'collapsed');
 
+        // `fastInnerText` replaces every child of `el`, so the icon is appended AFTER it - appending
+        // before would have it wiped out on the very next line. Since this runs unconditionally on
+        // every draw, the icon is always freshly created onto an element `fastInnerText` just
+        // emptied, so exactly one icon is ever present - no `syncIcon` slot bookkeeping is needed
+        // here (DEV-3003). The '+'/'-' text stays as a no-CSS fallback: `text-indent: -100px` and
+        // `font-size: 0` above already hide it visually, same as before this change.
         fastInnerText(el, '+');
+        el.appendChild(createIcon(this.hot, 'collapseOn'));
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -876,6 +884,7 @@ export class CollapsibleColumns extends BasePlugin {
         addClass(el, 'expanded');
 
         fastInnerText(el, '-');
+        el.appendChild(createIcon(this.hot, 'collapseOff'));
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {

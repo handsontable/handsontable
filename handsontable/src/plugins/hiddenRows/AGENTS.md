@@ -60,6 +60,31 @@ twin, which is the same defect on the horizontal axis. Covered by
 `tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
 byte for byte against the 18.1.0 rules.
 
+## The caret is a real element now (DEV-3003) — box stays 10×10, glyph artwork is 8×8
+
+`#onAfterGetRowHeader` calls `syncIcon(this.hot, TH, slotClass, iconName)`
+(`themes/engine/icons.ts`) against `ht-hidden-indicator-start` (`afterHiddenRow`, `caretHiddenDown`)
+and `ht-hidden-indicator-end` (`beforeHiddenRow`, `caretHiddenUp`) as children of the row header
+`th` itself — not of its `.relative` wrapper — mirroring `../hiddenColumns/`'s column carets. See that
+file's "The caret is a real element now" section for the full mechanism, including why the `th` (the
+box the old pseudo-elements positioned against) and not `.relative` must be the container: `.relative`
+only fills the `th` for a one-line header.
+
+**The CSS box stays `10px !important`, matching the column carets — do not shrink it to match the
+glyph's own artwork size.** `caretHiddenUp`/`caretHiddenDown` are authored on an 8×8 viewBox
+(`caretHiddenLeft`/`caretHiddenRight`, the column carets, are 10×10 —
+`handsontable/src/themes/static/variables/icons/*.ts`), and `mask-size: contain` scales that 8×8
+artwork UP to fill the 10px box — same before DEV-3003 (the pre-existing pseudo-element rule was
+`width: 10px !important; height: 10px !important`, identical to the column plugin's) and unchanged by
+it. Sizing the box to 8px would render the indicator ~2px smaller than it has always shipped — a
+visible size change unrelated to the pseudo-element → real-element mechanism swap this task is about,
+and not something to slip into a Phase-2 migration without its own design ticket.
+
+**Disabling the plugin must clear both slots too**, for the same reason as `../hiddenColumns/`:
+`super.disablePlugin()` removes the tracked `#onAfterGetRowHeader` hook, so without an untracked,
+one-shot `afterGetRowHeader` cleanup hook (registered in `disablePlugin()`, self-removing on the next
+`afterViewRender`) a caret rendered before the disable is orphaned in the DOM forever.
+
 ## Hide row suppresses itself when no row is rendered
 
 `contextMenuItem/hideRow.ts` `hidden()` mirrors `../hiddenColumns/` `hideColumn.ts` (DEV-164): after the

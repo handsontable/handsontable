@@ -202,7 +202,7 @@ Create a separate CSS file. All styles are scoped to `.htRadioCell` so they do n
 
 **Why only layout CSS?**
 
-The Handsontable theme already handles radio indicator appearance (circle border, checked dot, colors) via `.htUIRadio > input[type="radio"]` using its own `--ht-radio-*` CSS variables. The CSS file only provides the container layout (vertical flex, padding, row alignment) without overriding those built-in indicator styles.
+The Handsontable theme already handles the radio indicator's ring, colors, and states through `.htUIRadio > input[type="radio"]`, using its own `--ht-radio-*` CSS variables. The checked dot itself is a separate `<i class="ht-icon ht-icon-radio">` element, styled by the theme through `input[type="radio"] + .ht-icon`. The renderer in [Step 4](#step-4-renderer-build-the-radio-ui) creates that element as the input's next sibling, so the recipe gets the dot for free without any extra CSS. The CSS file here only provides the container layout (vertical flex, padding, row alignment) without overriding those built-in indicator styles.
 
 ## Step 3: Editor Stub
 
@@ -271,6 +271,7 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 - `rendererFactory` passes the full renderer context: `instance`, `td`, `row`, `column`, `value`, `cellProperties`.
 - `cellProperties.options` carries the per-column option list.
 - `role="radiogroup"` + `aria-label` make the group announce correctly to screen readers.
+- Each option inserts an `<i class="ht-icon ht-icon-radio">` element as the input's next sibling -- that's what paints the checked dot; see [Step 2](#step-2-add-css-styling).
 - `td.style.verticalAlign = 'top'` aligns the stacked options to the top of the cell.
 
 :::

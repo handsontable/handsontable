@@ -891,7 +891,7 @@ When registering a theme with `registerTheme()` or updating it using the `params
 | `name`        | Theme name string (can only be set during `registerTheme()`, cannot be updated via `params()`) |
 | `sizing`      | Size scale values (`size_0` through `size_10`)                                                 |
 | `density`     | Density type (`'default'`, `'compact'`, `'comfortable'`) or density configuration object       |
-| `icons`       | SVG icon definitions                                                                           |
+| `icons`       | Icon definitions per slot: a glyph, a class list, or a renderer callback. See [Icons](#icons)  |
 | `colors`      | Color palette with nested color values                                                         |
 | `tokens`      | Design tokens for visual properties                                                            |
 | `colorScheme` | Color scheme (`'light'`, `'dark'`, or `'auto'`)                                                |
@@ -994,13 +994,108 @@ All themes are available in two variants:
 
 #### Icon files
 
-If you're using a theme without icons (`*-no-icons.css`), you can optionally load separate icon files:
+A `-no-icons` bundle (`ht-theme-{name}-no-icons.css`) ships no `--ht-icon-<name>` variables and no glyph rules, so its icons render as empty boxes. The checkbox is a partial exception: its `appearance: none` now lives in the base stylesheet rather than the icon-specific rules, so a `-no-icons` bundle still renders the checkbox's styled box, just with no tick, instead of falling back to a native checkbox the way earlier versions did -- the radio has worked this way for a long time, so this brings the checkbox in line rather than changing its own behavior. Load a separate icon file to restore the built-in glyphs:
 
 - **`ht-icons-{name}.css`** / **`ht-icons-{name}.min.css`** - Icon styles for the theme (where `{name}` is `main` or `horizon`).
+
+See [Icons](#icons) for the icon element contract, the CSS variables behind each glyph, and how to map icons to your own icon set through the Theme API.
 
 #### Recommended usage
 
 For production, use the minified versions (`.min.css`) to reduce file size and improve load times. For development, you may prefer the unminified versions (`.css`) for easier debugging.
+
+## Icons
+
+Every built-in icon (menu arrows, the sort indicator, the checkbox glyph, the search icon, and so on) renders as a real DOM element:
+
+```html
+<i class="ht-icon ht-icon-search" aria-hidden="true"></i>
+```
+
+Each icon slot has a camelCase name, such as `search` or `arrowRight`, and its CSS class is the kebab-case form prefixed with `ht-icon-`: `search` becomes `ht-icon-search`, `arrowRight` becomes `ht-icon-arrow-right`. The `aria-hidden="true"` attribute keeps the element out of the accessibility tree -- Handsontable exposes the underlying action (a button, a menu item) through its own accessible name, not through the icon.
+
+### Icon CSS variables
+
+A built-in glyph comes from a `--ht-icon-<name>` CSS custom property, declared on the theme root and applied through the matching `.ht-icon-<name>` rule. The rule masks the variable's value and paints it with `currentColor`, so an icon always matches the surrounding text color.
+
+Override a variable the same way you override any other theme variable, scoped to the theme class:
+
+```css
+#my-grid .ht-theme-main {
+  --ht-icon-search: url("/icons/search.svg");
+}
+```
+
+### Map icons through the Theme API
+
+To replace icons with your own icon set, pass an `icons` object to `params()` on a registered theme. Each key is an icon slot name, and the value can be one of four kinds:
+
+```js
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const myTheme = registerTheme(mainTheme);
+
+myTheme.params({
+  icons: {
+    // SVG markup
+    search: '<svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.3 14.3l4.2 4.2 1.4-1.4-4.2-4.2A8 8 0 0010 2z"/></svg>',
+
+    // A `data:` URI, or a path wrapped in `url(...)`
+    plus: 'url(/icons/plus.svg)',
+
+    // A class list -- for an icon font such as Tabler Icons
+    selectArrow: 'ti ti-chevron-down',
+
+    // A renderer callback -- for an icon font that needs text content, such as Material Symbols ligatures
+    check: (element) => {
+      element.classList.add('material-symbols-outlined');
+      element.textContent = 'check';
+    },
+  },
+});
+
+const hot = new Handsontable(container, {
+  theme: myTheme,
+  // other options
+});
+```
+
+A class list or a callback adds the `ht-icon--external` class to the element, which turns off the built-in mask so your class or callback controls how the icon paints.
+
+::: warning Requires a theme object
+
+The Theme API mapping only works when the grid receives its theme as a configuration object through the `theme` option, as in the example above. If you apply a theme by putting a class such as `ht-theme-main` directly on the container element, Handsontable never creates a theme manager for that instance, so a class-list or callback icon mapping does nothing, silently. Built-in glyphs and CSS variable overrides still work in that setup, because they come from the stylesheet, not from JavaScript.
+
+Even with a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- does not restyle an icon element that a plugin already built and kept around. Pagination, the sheets bar, and notifications refresh their icons on a theme change, because each of those owns a dedicated refresh hook. The dropdown menu button's icon, the Filters plugin's condition-select arrow and radio dot, and the select editor's arrow do not: they're created once and reused for the life of the element, so they keep whichever glyph, class list, or renderer was active when they were first built. To pick up a later `icons` mapping change at those sites, destroy and re-create the Handsontable instance.
+
+:::
+
+Loading a built-in theme over a `<script>` tag and then deriving a custom theme from it works the same way as any other Theme API customization, but the theme's own script must load first. See [UMD build (script tags)](#step-2-configure-the-theme) in [Use a theme](#use-a-theme).
+
+#### How a string value is read
+
+A string value is treated as a glyph (an SVG, a `data:` URI, or a `url(...)` reference) when it starts with `<svg`, `data:`, or `url(`, or ends with `.svg`. Any other string is treated as a class list.
+
+This means a glyph path that carries a query string or a fragment, such as `icons/check.svg?v=2`, does not match the `.svg` suffix test and is read as a class list instead:
+
+```js
+// Read as a class list -- the query string breaks the `.svg` suffix check.
+icons: {
+  check: 'icons/check.svg?v=2',
+}
+```
+
+Wrap such a path in `url(...)`, or use a `data:` URI, so it is recognized as a glyph:
+
+```js
+icons: {
+  check: 'url(icons/check.svg?v=2)',
+}
+```
+
+### Selectors that changed
+
+Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#21-icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
 
 ## The legacy theme
 

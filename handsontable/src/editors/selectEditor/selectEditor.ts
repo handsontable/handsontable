@@ -10,6 +10,7 @@ import {
 import { objectEach } from '../../helpers/object';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { getSanitizer } from '../../utils/sanitizer';
+import { createIcon } from '../../themes/engine/icons';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
@@ -55,7 +56,12 @@ export class SelectEditor extends BaseEditor {
       ARROW.setAttribute(...A11Y_HIDDEN());
     }
 
+    // The text glyph is hidden by `font-size: 0` on `.htAutocompleteArrow` (`_autocomplete-
+    // renderer.scss`) wherever the theme paints the real one from an icon mask, so it stays as
+    // the fallback a bare, unthemed grid renders instead - same choice `autocompleteRenderer.ts`
+    // makes for the cell arrow this editor's own arrow mirrors.
     ARROW.appendChild(this.hot.rootDocument.createTextNode(String.fromCharCode(9660)));
+    ARROW.appendChild(createIcon(this.hot, 'selectArrow'));
 
     addClass(this.selectWrapper, 'htSelectEditor');
     this.selectWrapper.appendChild(this.select);

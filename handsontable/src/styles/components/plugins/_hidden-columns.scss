@@ -1,67 +1,92 @@
-@use "../../utils/mixins";
-
 // Handsontable HiddenColumns
 
 @mixin output {
   .handsontable {
-    th {
-      &.beforeHiddenColumn,
-      &.afterHiddenColumn {
-        position: relative;
+    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now (DEV-3003),
+    // created by `syncIcon()` in `hiddenColumns.ts` as a child of the `th` itself - not a
+    // `::before`/`::after` pseudo-element on it any more, and NOT a child of the `.relative`
+    // wrapper: `.relative` is only as tall as its own content, so on a `columnHeaderHeight`
+    // taller than one line a caret anchored to it sat above the header's centre. The `th` is
+    // `position: relative` (`_base.scss`, restated below) and is the exact box the old
+    // pseudo-elements positioned against, which is what lets every offset below stay
+    // byte-identical to the pre-DEV-3003 rules.
 
-        &::before,
-        &::after {
-          position: absolute;
-          top: 50%;
-          width: 10px !important;
-          height: 10px !important;
-          transform: translateY(-50%);
-          color: var(--ht-hidden-indicator-color);
-        }
-      }
+    // Sizing lives on the SLOT class, not on the `beforeHiddenColumn` / `afterHiddenColumn`
+    // marker: a caret whose marker a later header renderer strips (NestedHeaders does, on every
+    // level that does not reach the cells) must never fall back to the 16px base `.ht-icon` box.
+
+    // Scoped to `thead th` on purpose. `_hidden-rows.scss` reuses the SAME two slot class names for
+    // the row carets, which live in `tbody th` and center on the other axis (`left` /
+    // `translateX`). Unscoped, the two files' rules would fight over `transform`, and each file's
+    // visibility gate below would hide the other file's carets.
+    // Restated from `_base.scss` (where it sits behind a zero-specificity `:where()`), as the
+    // pre-DEV-3003 rule did: the carets' containing block must be this `th`.
+    thead th.beforeHiddenColumn,
+    thead th.afterHiddenColumn {
+      position: relative;
+    }
+
+    thead th > .ht-hidden-indicator-start,
+    thead th > .ht-hidden-indicator-end {
+      position: absolute;
+      top: 50%;
+      // The 10px carets don't scale with `--ht-icon-size` (16px on main/horizon, 12px on
+      // classic) - the design system's sticker sheet fixes these four glyphs at 10x10,
+      // unlike every other icon slot.
+      width: 10px !important;
+      height: 10px !important;
+      transform: translateY(-50%);
+      color: var(--ht-hidden-indicator-color);
+    }
+
+    // The pre-DEV-3003 pseudo-element was gated on the marker class: no `beforeHiddenColumn`,
+    // no caret. Keep that contract for the element, so stripping the marker still hides the
+    // caret exactly as it used to, whoever strips it.
+    thead th:not(.beforeHiddenColumn) > .ht-hidden-indicator-end,
+    thead th:not(.afterHiddenColumn) > .ht-hidden-indicator-start {
+      display: none;
+    }
+
+    th {
 
       // The glyph paints where it has since #11144 (box at -2px, offsets taken from the padding
       // box of a cell with a 1px border). Only the end-side box is changed: it stops at the cell's
       // outer edge and its mask moves back out by the same 1px. A box past that edge is scrollable
       // content on a stretched grid, where the table is flush with its scroll box (#13500). The
       // start-side box can overhang, because content before the scroll origin never scrolls.
-      &.beforeHiddenColumn::after {
-        @include mixins.pseudo;
-
+      &.beforeHiddenColumn > .ht-hidden-indicator-end {
         right: -1px;
         mask-position: 1px 0;
         mask-repeat: no-repeat;
       }
 
-      &.afterHiddenColumn::before {
-        @include mixins.pseudo;
-
+      &.afterHiddenColumn > .ht-hidden-indicator-start {
         left: -2px;
       }
 
       &.ht__active_highlight {
-        &.beforeHiddenColumn,
-        &.afterHiddenColumn {
-          &::before,
-          &::after {
-            color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
-          }
+        &.beforeHiddenColumn > .ht-hidden-indicator-end,
+        &.afterHiddenColumn > .ht-hidden-indicator-start {
+          color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
         }
       }
     }
   }
 
+  // These carets are PHYSICAL (they point at a screen edge, not a logical start/end), so they are
+  // NOT mirrored through `flipInRtl` on the icon element - the rules below reposition and rotate
+  // them by hand, same as before DEV-3003.
   [dir="rtl"].handsontable {
     th {
       // Keeps the LTR `mask-position`: the mask is laid out before the rotation, which mirrors
       // the 1px shift outward, to the left.
-      &.beforeHiddenColumn::after {
+      &.beforeHiddenColumn > .ht-hidden-indicator-end {
         right: initial;
         left: -1px;
         transform: translateY(-50%) rotate(180deg);
       }
 
-      &.afterHiddenColumn::before {
+      &.afterHiddenColumn > .ht-hidden-indicator-start {
         right: -2px;
         left: initial;
         transform: translateY(-50%) rotate(180deg);

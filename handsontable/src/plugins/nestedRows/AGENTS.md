@@ -91,6 +91,13 @@ They are written in different places and can drift. Keep this in mind:
   disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
   `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
   public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **The collapse/expand icon needs no `syncIcon` clearing, unlike the hiding plugins' carets.**
+  `HeadersUI#appendLevelIndicators()` (`ui/headers.ts`) creates a brand-new `buttonsContainer` `div`
+  every draw and calls `removeLevelIndicators()` first to tear down the previous one, so
+  `buttonsContainer.appendChild(createIcon(this.hot, collapsed ? 'collapseOn' : 'collapseOff'))` can
+  never stack a second icon (DEV-3003) — each render starts from an empty container, unlike
+  `columnSorting`/`hiddenColumns`/`hiddenRows`, which reuse one persistent slot via `syncIcon` and
+  must explicitly clear it on a no-icon path.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
   header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —

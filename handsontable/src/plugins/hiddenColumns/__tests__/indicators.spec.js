@@ -31,18 +31,27 @@ describe('HiddenColumns', () => {
           colHeaders: true,
         });
 
+        // DEV-3003: the caret is a real `<i class="ht-icon ht-icon-caret-hidden-*">` element now
+        // (`syncIcon()` against a named slot that is a child of the `th` itself), not a
+        // `::before`/`::after` pseudo-element - `beforeHiddenColumn` fills the END slot with a
+        // left-pointing caret, `afterHiddenColumn` fills the START slot with a right-pointing one
+        // (see `hiddenColumns/AGENTS.md`, "The caret is a real element now").
         expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 0), ':before').content).toBe('none');
-        expect(getComputedStyle(getCell(-1, 0), ':after').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+        expect(getCell(-1, 0).querySelector('.ht-hidden-indicator-start')).toBe(null);
+        expect(getCell(-1, 0).querySelector('.ht-hidden-indicator-end'))
+          .toHaveClass('ht-icon-caret-hidden-left');
         expect(getCell(-1, 1)).toBe(null);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 2), ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-        expect(getComputedStyle(getCell(-1, 2), ':after').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+        expect(getCell(-1, 2).querySelector('.ht-hidden-indicator-start'))
+          .toHaveClass('ht-icon-caret-hidden-right');
+        expect(getCell(-1, 2).querySelector('.ht-hidden-indicator-end'))
+          .toHaveClass('ht-icon-caret-hidden-left');
         expect(getCell(-1, 3)).toBe(null);
         expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 4), ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-        expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
+        expect(getCell(-1, 4).querySelector('.ht-hidden-indicator-start'))
+          .toHaveClass('ht-icon-caret-hidden-right');
+        expect(getCell(-1, 4).querySelector('.ht-hidden-indicator-end')).toBe(null);
       });
 
       it('should render indicators after enabling them in updateSettings', async() => {

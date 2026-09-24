@@ -2,6 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import { clone, extend } from '../../../helpers/object';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * @private
@@ -58,6 +59,11 @@ export class RadioInputUI extends BaseUI {
     this.#label = label;
     this.#input = this._element.firstChild as HTMLInputElement;
     this.#input.checked = this.options.checked as boolean;
+
+    // The dot is a real element, not the input's own `::after` - an `<input>` can hold no
+    // children, so it is inserted as the input's next sibling instead. `.ht-icon` carries
+    // `pointer-events: none`, so a click still reaches the input underneath it.
+    this.#input.insertAdjacentElement('afterend', createIcon(this.hot, 'radio'));
 
     this._element.appendChild(label);
 

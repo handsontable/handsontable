@@ -1,11 +1,13 @@
-import { iconsMap } from '../static/variables/helpers/iconsMap';
+import { iconStyles } from '../static/variables/helpers/iconStyles';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { flattenCssVariables } from './utils/cssVariables';
 import { validateColorScheme, validateDensityType } from './utils/validation';
-import type { ThemeConfig, ThemeColorScheme, DensityType } from '../types';
+import { splitIcons, ICON_CLASS, ICON_EXTERNAL_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName } from './utils/icons';
+import type { ThemeConfig, ThemeColorScheme, DensityType, IconKey, IconValue } from '../types';
 import type { ThemeBuilder } from './builder';
+import type { IconOptions } from './icons';
 
 interface HotInstance {
   guid: string;
@@ -114,6 +116,24 @@ export class ThemeManager {
    * @type {object}
    */
   themeConfig: ThemeConfig | null = null;
+
+  /**
+   * Icon slots whose value is a class list or a renderer callback, resolved from the active
+   * theme config. Glyph values are not here – they become CSS variables.
+   *
+   * @type {Map<string, string|Function>}
+   */
+  #externalIcons: Map<string, IconValue> = new Map();
+
+  /**
+   * Bumped every time `#resolveIcons()` (re)resolves the active theme's icon mapping. `syncIcon()`
+   * (`themes/engine/icons.ts`) stamps this value on an icon element it keeps in place, so a kept
+   * slot re-applies the mapping only after a real theme change instead of on every draw – see
+   * `getIconsRevision()`.
+   *
+   * @type {number}
+   */
+  #iconsRevision = 0;
 
   /**
    * Class that scopes the per-instance override rules to this grid only. Stamped on the wrapper and
@@ -318,6 +338,83 @@ export class ThemeManager {
   }
 
   /**
+   * Splits the active theme's icons into glyph values and external values.
+   *
+   * @returns {Record<string, string>} The glyph URLs keyed by icon name.
+   */
+  #resolveIcons(): Record<string, string> {
+    const { glyphs, external } = splitIcons(this.themeConfig?.icons ?? {});
+
+    this.#externalIcons = external;
+    this.#iconsRevision += 1;
+
+    return glyphs;
+  }
+
+  /**
+   * Returns the revision counter bumped every time the active theme's icon mapping was last
+   * (re)resolved (a theme switch, an `icons` config change, or a subscribed theme update). Used by
+   * `syncIcon()` to tell whether an icon element it is keeping in place needs its mapping re-applied.
+   *
+   * @returns {number} The current icons revision.
+   */
+  getIconsRevision(): number {
+    return this.#iconsRevision;
+  }
+
+  /**
+   * Creates an `<i class="ht-icon ht-icon-<name>">` element for an icon slot, applying the
+   * active theme's class-list or renderer mapping when the slot has one.
+   *
+   * @param {string} name The icon slot name (camelCase `IconKey`).
+   * @param {object} [options] `flipInRtl` mirrors the glyph under `[dir="rtl"]`; `className`
+   * adds site-specific classes.
+   * @returns {HTMLElement}
+   */
+  createIcon(name: IconKey, options: IconOptions = {}): HTMLElement {
+    const element = this.hot.rootDocument.createElement('i');
+
+    element.setAttribute('aria-hidden', 'true');
+    this.applyIcon(element, name, options);
+
+    return element;
+  }
+
+  /**
+   * Applies the icon classes and, for an external slot, the mapped class list or renderer.
+   *
+   * @param {HTMLElement} element The `<i>` element.
+   * @param {string} name The icon slot name.
+   * @param {object} [options] See `createIcon`.
+   */
+  applyIcon(element: HTMLElement, name: IconKey, options: IconOptions = {}): void {
+    const classes = [ICON_CLASS, getIconClassName(name)];
+
+    if (options.flipInRtl) {
+      classes.push(ICON_FLIP_RTL_CLASS);
+    }
+
+    if (options.className) {
+      classes.push(options.className);
+    }
+
+    const external = this.#externalIcons.get(name);
+
+    if (external !== undefined) {
+      classes.push(ICON_EXTERNAL_CLASS);
+    }
+
+    element.className = classes.join(' ');
+    element.textContent = '';
+
+    if (typeof external === 'string') {
+      element.className += ` ${external.trim()}`;
+    } else if (typeof external === 'function') {
+      external(element, name);
+    }
+  }
+
+  /**
    * Injects theme styles into the DOM.
    */
   #injectThemeStyles() {
@@ -325,6 +422,8 @@ export class ThemeManager {
       return;
     }
 
+    const glyphs = this.#resolveIcons();
+    const hasGlyphs = Object.keys(glyphs).length > 0;
     const colorScheme = toCssColorScheme(this.themeConfig.colorScheme);
 
     if (!this.themeStyles) {
@@ -358,16 +457,16 @@ export class ThemeManager {
       this.themeStyles.textContent += flattenCssVariables(this.themeConfig.tokens);
     }
 
-    if (this.themeConfig.icons) {
-      this.themeStyles.textContent += iconsMap(this.themeConfig.icons);
-    }
-
     this.themeStyles.textContent += '}\n';
     // Separate rule with class-level specificity (0,1,0) so this <style> (injected into <body>)
     // wins over same-specificity color-scheme declarations in static ht-theme-*.css files via
     // source order, while keeping all other tokens at :where() specificity for easy overrides.
     this.themeStyles.textContent += `.${this.themeClassName} {\ncolor-scheme: ${colorScheme};\n}\n`;
     this.themeStyles.textContent += this.#buildOverrideStyles();
+
+    if (hasGlyphs) {
+      this.themeStyles.textContent += iconStyles(glyphs, `.${this.themeClassName}`);
+    }
 
     // Ensure that the manager always controls its own style node.
     // Some wrappers may contain other <style> tags and updating/removing a generic
@@ -448,6 +547,7 @@ export class ThemeManager {
 
     this.themeConfig = themeObject.getThemeConfig();
     this.themeClassName = `${THEME_PREFIX}${this.themeConfig.name}`;
+    this.#resolveIcons();
 
     if (typeof themeObject.subscribe === 'function') {
       this.#unsubscribeTheme?.();
@@ -457,6 +557,7 @@ export class ThemeManager {
         }
 
         this.themeConfig = config;
+        this.#resolveIcons();
         this.#injectThemeStyles();
         this.hot.stylesHandler.clearCache();
         this.hot.render();

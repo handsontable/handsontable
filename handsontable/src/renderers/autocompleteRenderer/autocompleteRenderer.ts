@@ -6,6 +6,7 @@ import EventManager from '../../eventManager';
 import { addClass, eventTargetEl, hasClass, getCellContentRoot } from '../../helpers/dom/element';
 import { isLeftClick } from '../../helpers/dom/event';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
+import { createIcon } from '../../themes/engine/icons';
 
 export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
 
@@ -36,7 +37,12 @@ export function autocompleteRenderer(
     ARROW.setAttribute(...A11Y_HIDDEN());
   }
 
+  // The text glyph is hidden by `font-size: 0` on `.htAutocompleteArrow` (`_autocomplete-
+  // renderer.scss`) wherever the theme paints the real one from an icon mask, so it stays as the
+  // fallback a bare, unthemed grid renders instead - same reasoning as the context menu's check
+  // mark (`menuItemRenderer.ts`).
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
+  ARROW.appendChild(createIcon(hotInstance, 'selectArrow'));
 
   (rendererFunc as (this: unknown, ...args: unknown[]) => void)
     .apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);

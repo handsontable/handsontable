@@ -802,5 +802,170 @@ describe('ThemeManager', () => {
           .toContain(`.ht-theme-other-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n`);
       });
     });
+
+    describe('icons', () => {
+      const hot = () => createMockHot();
+
+      it('emits a CSS variable per glyph icon and a glyph rule', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'data:image/svg+xml,%3Csvg%3E' },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        expect(css).toContain('--ht-icon-arrow-right: url("data:image/svg+xml,%3Csvg%3E");');
+        expect(css).toContain('.ht-icon-arrow-right {');
+      });
+
+      it('encodes raw SVG markup as a data URI', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({ icons: { check: '<svg viewBox="0 0 1 1"/>' } })),
+        });
+        const expectedUri = encodeURIComponent('<svg viewBox="0 0 1 1"/>');
+
+        expect(manager.themeStyles.textContent)
+          .toContain(`--ht-icon-check: url("data:image/svg+xml;charset=utf-8,${expectedUri}");`);
+      });
+
+      it('does not emit variables for class-list or renderer icons', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'ti ti-chevron-right', check: () => {} },
+          })),
+        });
+
+        expect(manager.themeStyles.textContent).not.toContain('--ht-icon-arrow-right');
+        expect(manager.themeStyles.textContent).not.toContain('--ht-icon-check');
+      });
+
+      it('does not corrupt the injected stylesheet when an icon is mapped to a renderer ' +
+        'callback (DEV-3003 task 21)', () => {
+        // `#resolveIcons()` splits the theme's icon config into a glyph-only map before ANY of
+        // it reaches CSS text (`iconStyles(glyphs, ...)`, the only remaining serializer since
+        // DEV-3003 task 22 deleted the legacy `iconsMap()` pseudo-element generator, which used
+        // to receive the RAW, unsplit config and broke the whole `:where()` rule's parsing when
+        // a callback's own source text was stringified into it). This proves the split, not a
+        // since-deleted call site: a renderer-callback icon contributes no glyph variable or
+        // rule of its own, while the rest of the stylesheet - sizing and every OTHER icon's
+        // glyph variable - stays intact.
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: {
+              ...mainIcons,
+              check: (element) => {
+                element.textContent = 'check_circle';
+              },
+            },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        // A glyph left unmapped by the callback still gets its own variable and rule - proof the
+        // rest of the stylesheet is intact, not merely that this one call did not throw.
+        expect(css).toContain('--ht-icon-arrow-right:');
+        expect(css).toContain('.ht-icon-arrow-right {');
+        expect(css).toContain('--ht-sizing-size-1:');
+        expect(css).not.toContain('--ht-icon-check:');
+        expect(css).not.toContain('.ht-icon-check {');
+        expect(css).not.toContain('element.textContent');
+      });
+
+      it('creates a plain glyph element', () => {
+        const manager = createThemeManager({ hot: hot(), themeObject: createTheme(createValidThemeConfig()) });
+        const el = manager.createIcon('arrowRight', { flipInRtl: true, className: 'slot' });
+
+        expect(el.tagName).toBe('I');
+        expect(el.getAttribute('aria-hidden')).toBe('true');
+        expect(el.className).toBe('ht-icon ht-icon-arrow-right ht-icon--flip-rtl slot');
+        expect(el.textContent).toBe('');
+      });
+
+      it('applies a class list for an external icon', () => {
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ icons: { arrowRight: 'ti ti-chevron-right' } })),
+        });
+        const el = manager.createIcon('arrowRight');
+
+        expect(el.className).toBe('ht-icon ht-icon-arrow-right ht-icon--external ti ti-chevron-right');
+      });
+
+      it('calls a renderer for a callback icon', () => {
+        const renderer = jest.fn((el, name) => { el.textContent = name; });
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ icons: { check: renderer } })),
+        });
+        const el = manager.createIcon('check');
+
+        expect(renderer).toHaveBeenCalledWith(el, 'check');
+        expect(el.className).toBe('ht-icon ht-icon-check ht-icon--external');
+        expect(el.textContent).toBe('check');
+      });
+
+      it('re-resolves icons when the theme config changes', () => {
+        const theme = createTheme(createValidThemeConfig());
+        const manager = createThemeManager({ hot: hot(), themeObject: theme });
+
+        expect(manager.createIcon('arrowRight').className).toBe('ht-icon ht-icon-arrow-right');
+
+        theme.params({ icons: { arrowRight: 'ti ti-x' } });
+
+        expect(manager.createIcon('arrowRight').className)
+          .toBe('ht-icon ht-icon-arrow-right ht-icon--external ti ti-x');
+      });
+
+      describe('getIconsRevision (DEV-3003)', () => {
+        it('bumps the revision on every path that re-resolves icons, so `syncIcon()`\'s ' +
+          'keep-path guard can never be bypassed by a re-resolve it does not know about', () => {
+          // This is deliberately NOT a comment enumerating call sites - it drives every KNOWN
+          // path that reaches `#resolveIcons()` and asserts the one thing `syncIcon()` actually
+          // reads (`getIconsRevision()`) moves every time, through the public API only.
+          const mockHot = hot();
+          const theme = createTheme(createValidThemeConfig({ name: 'revision-theme' }));
+          const manager = createThemeManager({ hot: mockHot, themeObject: theme });
+
+          const afterConstruction = manager.getIconsRevision();
+
+          expect(afterConstruction).toEqual(expect.any(Number));
+
+          // Path 1: `update()` with a brand new theme object (e.g. `useTheme()` at runtime).
+          manager.update(createTheme(createValidThemeConfig({ name: 'revision-theme-2' })));
+          const afterUpdate = manager.getIconsRevision();
+
+          expect(afterUpdate).toBeGreaterThan(afterConstruction);
+
+          // Path 2: the SUBSCRIBED theme notifying a config change (`theme.params()`), the path
+          // this whole guard exists for.
+          const subscribedTheme = createTheme(createValidThemeConfig({ name: 'revision-theme-3' }));
+
+          manager.update(subscribedTheme);
+          const afterSubscribedUpdate = manager.getIconsRevision();
+
+          subscribedTheme.params({ icons: { arrowRight: 'ti ti-x' } });
+          const afterThemeParamsChange = manager.getIconsRevision();
+
+          expect(afterThemeParamsChange).toBeGreaterThan(afterSubscribedUpdate);
+
+          // Path 3: `setOverrides()` (color scheme / density) re-injects the theme styles too,
+          // and `#injectThemeStyles()` re-resolves icons unconditionally on every call.
+          manager.setOverrides({ colorScheme: 'dark' });
+          const afterSetOverrides = manager.getIconsRevision();
+
+          expect(afterSetOverrides).toBeGreaterThan(afterThemeParamsChange);
+        });
+      });
+    });
   });
 });

@@ -2,12 +2,13 @@ import type { HotInstance } from '../../../core/types';
 import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { setAttribute } from '../../../helpers/dom/element';
+import { addClass, setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
 import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import { BaseUI } from './_base';
 import type { BaseUIOptions } from './_base';
 import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
+import { createIcon } from '../../../themes/engine/icons';
 
 interface SelectMenuItem {
   key?: string;
@@ -50,6 +51,12 @@ export class SelectUI extends BaseUI {
    * Reference to the DOM element that displays the currently selected operator caption.
    */
   #captionElement: HTMLElement | null = null;
+  /**
+   * Reference to the DOM element that displays the label text of the currently selected
+   * operator, kept separate from `#captionElement` so updating the text never wipes the
+   * caret icon appended as its sibling.
+   */
+  #captionLabel: HTMLElement | null = null;
   /**
    * UI component that wraps the dropdown toggle and menu.
    */
@@ -130,7 +137,14 @@ export class SelectUI extends BaseUI {
     this.#menu.setMenuItems(this.#items);
 
     const caption = new BaseUI(hot, {
-      className: 'htUISelectCaption'
+      className: 'htUISelectCaption',
+      // No inner wrap element is needed here: the caption never listens to its own DOM events
+      // (clicks are handled by the parent `SelectUI` element), and keeping the DOM flat lets the
+      // label span and the caret icon (appended below) be direct, addressable children. `wrapIt:
+      // false` also moves where `BaseUI#build()` registers the caption's own DOM event listeners
+      // - onto `caption.element` itself instead of an inner wrapped child - which is harmless
+      // here because nothing ever calls `caption.addLocalHook(...)` to consume them.
+      wrapIt: false,
     });
 
     const dropdown = new BaseUI(hot, {
@@ -140,6 +154,17 @@ export class SelectUI extends BaseUI {
     this.#caption = caption;
     this.#captionElement = caption.element;
     this.#dropdown = dropdown;
+
+    if (this.#captionElement) {
+      // The label text lives in its own child so `update()` can rewrite it with `textContent`
+      // without wiping the caret icon appended as its sibling - assigning `textContent` on
+      // `#captionElement` itself would remove every child, icon included, on the very next
+      // condition change (see `update()`).
+      this.#captionLabel = hot.rootDocument.createElement('span');
+      addClass(this.#captionLabel, 'htUISelectCaptionLabel');
+      this.#captionElement.appendChild(this.#captionLabel);
+      this.#captionElement.appendChild(createIcon(hot, 'selectArrow'));
+    }
 
     if (hot.getSettings().ariaTags) {
       const dropdownEl = dropdown.element;
@@ -185,8 +210,8 @@ export class SelectUI extends BaseUI {
       conditionName = this.#menu?.hot?.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
     }
 
-    if (this.#captionElement) {
-      this.#captionElement.textContent = conditionName ?? null;
+    if (this.#captionLabel) {
+      this.#captionLabel.textContent = conditionName ?? null;
     }
     super.update();
   }

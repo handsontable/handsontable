@@ -4,6 +4,7 @@ import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
+import { createIcon } from '../../themes/engine/icons';
 import { NotificationUI } from './ui';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -228,6 +229,8 @@ export class Notification extends BasePlugin {
         sanitizer: getSanitizer(this.hot),
         warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
+        createIcon: (name: Parameters<typeof createIcon>[1], options: Parameters<typeof createIcon>[2]) =>
+          createIcon(this.hot, name, options),
       });
     }
 
@@ -243,6 +246,7 @@ export class Notification extends BasePlugin {
     );
 
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -475,6 +479,15 @@ export class Notification extends BasePlugin {
     }
 
     this.#ui.setSanitizer(getSanitizer(this.hot));
+  };
+
+  /**
+   * Rebuilds the close icon of every currently-open toast after a theme change. A toast built
+   * before the change keeps showing its close control - only the icon inside it needs to catch
+   * up, the same way pagination and the sheets bar refresh their persistent icons.
+   */
+  readonly #onAfterSetTheme = () => {
+    this.#ui?.refreshIcons();
   };
 
   /**

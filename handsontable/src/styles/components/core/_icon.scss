@@ -1,0 +1,40 @@
+// Icon element. The glyph itself (mask-image + background-color) comes from the generated
+// `.ht-icon-<name>` rules in the theme / ht-icons stylesheet; without them the element is an
+// empty box. Never put paint here: with a `-no-icons` bundle an undefined `--ht-icon-*` would
+// resolve `mask-image` to `none`, and `background-color: currentColor` would paint a solid
+// square where the mask should have left nothing visible.
+// Unscoped by design: the context menu, dropdown menu, filters menu, select-editor overlay and
+// notification host all mount outside the grid root element (`.handsontable`), so a rule scoped
+// to a host class would leave icons there with no box and no external-mode reset, while the
+// generated `.ht-icon-<name>` rules (themselves unscoped) still paint a mask onto them.
+@mixin output {
+  .ht-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    width: var(--ht-icon-size);
+    height: var(--ht-icon-size);
+    vertical-align: middle;
+    // Sits over inputs and inside buttons: the click must land on the control, not the glyph.
+    pointer-events: none;
+  }
+
+  // Two classes so this beats `.ht-icon-<name>` whatever the stylesheet order.
+  .ht-icon.ht-icon--external {
+    -webkit-mask-image: none;
+    mask-image: none;
+    background-color: transparent;
+    font-size: var(--ht-icon-size);
+    line-height: 1;
+    text-align: center;
+  }
+
+  // `:dir(rtl)`, not `[dir="rtl"] .ht-icon--flip-rtl`: the descendant form matched a
+  // `<html dir="rtl">` ancestor even inside a grid deliberately rendering `layoutDirection: 'ltr'`
+  // (`core.ts` writes `dir="ltr"` on the root), mirroring arrows the wrong way. `:dir()` resolves
+  // against the element's own inherited direction, so the nearest `dir` wins - the grid root, a
+  // menu's own root, or a pagination/sheets-bar `uiContainer` that sets `dir` itself. Inside the
+  // pinned browser floor (Chrome 120, Firefox 49, Safari 16.4).
+  .ht-icon--flip-rtl:dir(rtl) {
+    transform: scaleX(-1);
+  }
+}

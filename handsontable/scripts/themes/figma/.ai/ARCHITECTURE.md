@@ -61,7 +61,7 @@ Entry point: `writeJsThemeFiles(themeVariables)`. Writes:
 - `src/themes/static/variables/sizing.ts` and `density.ts` — flat modules shared by all themes.
 - `src/themes/static/variables/colors/<name>.ts` and `tokens/<name>.ts` — one file per theme.
 - `src/themes/static/variables/icons/<name>.ts` — one per entry in `ICONS_SET`.
-- `src/themes/static/variables/helpers/iconsMap.ts` — copied verbatim from `templates/iconsMap.ts` (the typed source; `utils/helpers/iconsMap.mjs` is the runtime mirror used during generation).
+- `src/themes/static/variables/helpers/iconStyles.ts` — copied verbatim from `templates/iconStyles.ts` (the typed source; `utils/helpers/iconStyles.mjs` is the runtime mirror used during generation).
 
 ### Key transformations
 
@@ -115,9 +115,9 @@ Each theme's tokens include a `density` key (e.g., `"default"`, `"compact"`). Th
 
 ### Icons
 
-`iconsMap(icons, themePrefix)` generates all Handsontable icon selectors for a given icon set. The theme-prefix argument scopes the selectors to a specific theme class (e.g., `[class*=ht-theme-main]`); the standalone `output/css/icons/*.css` files are emitted without a prefix so they apply globally.
+`iconStyles(icons, scopeSelector)` emits one `--ht-icon-<name>` custom property per icon (scoped to `scopeSelector`, e.g. `[class*=ht-theme-main]`) plus one `.ht-icon-<name>` glyph rule (`mask-image: var(--ht-icon-<name>)`) applying the paint to any element carrying that class. The standalone `output/css/icons/*.css` files scope the variables to `:root` so they apply globally. Handsontable's own components render `<i class="ht-icon ht-icon-<name>">` elements (`ThemeManager#createIcon`, or the module-level `createIcon`/`syncIcon` in `src/themes/engine/icons.ts`) rather than relying on a generated pseudo-element rule — DEV-3003 removed the older `iconsMap()` generator, which painted `::before`/`::after` pseudo-elements on ~35 hardcoded host selectors, once every such selector had a real icon element instead. `ThemeManager` still injects a runtime `iconStyles()` block per instance (`src/themes/engine/manager.ts`) for icons the theme config overrides, alongside the static, generated stylesheet.
 
-The CSS generator hardcodes `themeName === "horizon"` to pick the horizon icon set; all other themes use `main`. If you add a third icon family you must update this branch.
+`generateThemeCss` (`utils/cssGeneration.mjs`) picks the icon set with `ICONS_SET[themeName] ?? ICONS_SET.main` — a fallback, not a hardcoded `if`/`else` branch. A theme with no matching entry in `ICONS_SET` silently gets the `main` icon set; a theme that needs its OWN icon family still requires adding an entry to `ICONS_SET` (`utils/constants.mjs`) and to `iconsNames` derivation (`Object.keys(ICONS_SET)`, used when writing the standalone `ht-icons-<name>.css` files) — see `.ai/CONVENTIONS.md`, "Adding a new theme".
 
 ## Why this shape
 

@@ -212,12 +212,18 @@ export class ContextMenuCheckedItemsPage {
     await expect(mark).toBeAttached();
 
     return mark.evaluate((element) => {
-      const after = getComputedStyle(element, '::after');
+      // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-<name>">` child of the mark span,
+      // not the span's `::after` any more - a mark with no icon child reads as `none` / 0, which is
+      // exactly the "invisible mark" this reader exists to catch.
+      const icon = element.querySelector('.ht-icon');
+      const styles = icon === null ? null : getComputedStyle(icon);
 
       return {
         className: element.getAttribute('class'),
-        maskImage: after.getPropertyValue('mask-image') || after.getPropertyValue('-webkit-mask-image'),
-        width: parseFloat(after.width) || 0,
+        maskImage: styles === null
+          ? 'none'
+          : (styles.getPropertyValue('mask-image') || styles.getPropertyValue('-webkit-mask-image')),
+        width: styles === null ? 0 : (parseFloat(styles.width) || 0),
       };
     });
   }

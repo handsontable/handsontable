@@ -61,6 +61,12 @@ describe('NestedHeaders', () => {
         // that. A structural difference from the markup this replaced would measure against
         // different CSS and silently size every column wrong, which no width assertion phrased as
         // "greater than zero" would catch. Compared against the old markup, parsed.
+        //
+        // DEV-3003: the collapsible indicator's glyph is a real `.ht-icon` element now (created by
+        // `GhostTable#buildHeaderLabel`, mirroring `CollapsibleColumns#onAfterGetColHeader`), not a
+        // `::before` pseudo-element - but it does not widen the measured column, because
+        // `.collapsibleIndicator` reserves its own fixed box (`--ht-icon-button-hit-area-size`)
+        // regardless of its content, unlike the sort indicator's absolutely positioned arrow.
         const container = captureGhostContainer(() => {
           handsontable({
             data: createSpreadsheetData(4, 4),
@@ -81,7 +87,9 @@ describe('NestedHeaders', () => {
           '<tr>' +
             '<th data-column="0" colspan="2"><div class="relative"><span class="colHeader">group</span>' +
               '<button class="changeType"></button>' +
-              '<div class="collapsibleIndicator expanded">-</div></div></th>' +
+              '<div class="collapsibleIndicator expanded">-' +
+                '<i class="ht-icon ht-icon-collapse-off" aria-hidden="true"></i>' +
+              '</div></div></th>' +
             '<th data-column="2" colspan="1"><div class="relative"><span class="colHeader">c</span>' +
               '<button class="changeType"></button></div></th>' +
             '<th data-column="3" colspan="1"><div class="relative"><span class="colHeader">d</span>' +

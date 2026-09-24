@@ -1,52 +1,77 @@
-@use "../../utils/mixins";
-
 // Handsontable HiddenRows
 
 @mixin output {
   .handsontable {
-    th {
-      &.beforeHiddenRow,
-      &.afterHiddenRow {
-        position: relative;
+    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now (DEV-3003),
+    // created by `syncIcon()` in `hiddenRows.ts` as a child of the `th` itself - not a
+    // `::before`/`::after` pseudo-element on it any more, and not a child of the `.relative`
+    // wrapper (see `_hidden-columns.scss` for why). The `th` is `position: relative`
+    // (`_base.scss`, restated below) and is the exact box the old pseudo-elements positioned
+    // against, which is what lets every offset below stay byte-identical to the pre-DEV-3003 rules.
 
-        &::before,
-        &::after {
-          position: absolute;
-          left: 50%;
-          width: 10px !important;
-          height: 10px !important;
-          transform: translateX(-50%);
-          color: var(--ht-hidden-indicator-color);
-        }
-      }
+    // Sizing lives on the SLOT class, not on the `beforeHiddenRow` / `afterHiddenRow` marker,
+    // mirroring `_hidden-columns.scss`: a caret whose marker some later header renderer strips
+    // must never fall back to the 16px base `.ht-icon` box.
+
+    // Scoped to `tbody th` on purpose: row headers live in `tbody`, column headers in `thead`, and
+    // both files use the SAME two slot class names. `_hidden-columns.scss` centers on `top` /
+    // `translateY`; this file on `left` / `translateX`. Unscoped, the two would fight over
+    // `transform`, and each file's visibility gate would hide the other file's carets.
+    tbody th.beforeHiddenRow,
+    tbody th.afterHiddenRow {
+      position: relative;
+    }
+
+    tbody th > .ht-hidden-indicator-start,
+    tbody th > .ht-hidden-indicator-end {
+      position: absolute;
+      left: 50%;
+      // 10x10, matching `_hidden-columns.scss` - unchanged by DEV-3003. The
+      // `caretHiddenUp`/`caretHiddenDown` glyphs are themselves drawn on an 8x8 viewBox
+      // (`caretHiddenLeft`/`caretHiddenRight`, the column carets, use 10x10 -
+      // `themes/static/variables/icons/*.ts`), so the mask (`mask-size: contain`) scales the
+      // 8x8 glyph UP to fill this 10x10 box - the box size is a CSS contract independent of the
+      // glyph's own artwork size, and shrinking it to 8px would be a visible size change, not a
+      // mechanism change. Neither box scales with `--ht-icon-size` (16px on main/horizon, 12px
+      // on classic).
+      width: 10px !important;
+      height: 10px !important;
+      transform: translateX(-50%);
+      color: var(--ht-hidden-indicator-color);
+    }
+
+    // The pre-DEV-3003 pseudo-element was gated on the marker class: no `beforeHiddenRow`, no
+    // caret. Keep that contract for the element, so stripping the marker still hides the caret.
+    tbody th:not(.beforeHiddenRow) > .ht-hidden-indicator-end,
+    tbody th:not(.afterHiddenRow) > .ht-hidden-indicator-start {
+      display: none;
+    }
+
+    th {
 
       // Mirrors `_hidden-columns.scss`: the glyph paints where it has since #11144, and only the
       // end-side box stops at the header's outer edge, with its mask moved back down by 1px. A
       // `height: 'auto'` grid is flush with its rows, so a box past that edge is scrollable
       // content, and the grid grew a vertical scrollbar (#13500).
-      &.beforeHiddenRow::after {
-        @include mixins.pseudo;
-
+      &.beforeHiddenRow > .ht-hidden-indicator-end {
         bottom: -1px;
         mask-position: 0 1px;
         mask-repeat: no-repeat;
       }
 
-      &.afterHiddenRow::before {
-        @include mixins.pseudo;
-
+      &.afterHiddenRow > .ht-hidden-indicator-start {
         top: -2px;
       }
 
       &.ht__active_highlight {
-        &.beforeHiddenRow,
-        &.afterHiddenRow {
-          &::before,
-          &::after {
-            color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
-          }
+        &.beforeHiddenRow > .ht-hidden-indicator-end,
+        &.afterHiddenRow > .ht-hidden-indicator-start {
+          color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
         }
       }
     }
   }
+
+  // Row carets are physical on the vertical axis only (up/down), which text direction never
+  // mirrors, so - unlike `_hidden-columns.scss` - there is no `[dir="rtl"]` block here.
 }

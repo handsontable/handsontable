@@ -2000,3 +2000,14 @@ class DataTransferObject {
     this.data[type] = value;
   }
 }
+
+/**
+ * Returns the sort-direction indicator element (`<i class="ht-icon ht-sort-indicator">`, DEV-3003)
+ * that belongs to a column header label, or `null` when the column carries no indicator.
+ *
+ * @param {HTMLElement} headerLabel The `.colHeader` label element of the header.
+ * @returns {HTMLElement|null}
+ */
+export function getSortIndicatorIcon(headerLabel) {
+  return headerLabel.closest('.relative')?.querySelector('.ht-sort-indicator') ?? null;
+}
