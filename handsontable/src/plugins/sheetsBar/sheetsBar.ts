@@ -2009,13 +2009,14 @@ export class SheetsBar extends BasePlugin {
   /**
    * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
    * `#withBaselineFor` blocks it on a switch. A switch applies a sheet's `dataProvider` through
-   * that same method, so it must not re-enter this guard — nor must the initial workbook build,
-   * which runs before the plugin is marked enabled. The active sheet's own declared
-   * `dataProvider` is left alone: the user re-configuring the visible server sheet is not the
-   * grid-level value this plugin disables.
+   * that same method, so it must not re-enter this guard. The initial workbook build needs no
+   * guard here either — it runs, and completes, before this hook is registered, so it can never
+   * trigger this listener. The active sheet's own declared `dataProvider` is left alone: the
+   * user re-configuring the visible server sheet is not the grid-level value this plugin
+   * disables.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
-    if (!newSettings.dataProvider || this.#isSwitching || this.#isInitializing) {
+    if (!newSettings.dataProvider || this.#isSwitching) {
       return;
     }
 
