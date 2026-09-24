@@ -607,6 +607,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetTabRename: (sheetId, oldName, newName, source) => {},
   afterSheetTabStateCapture: (sheetId, viewState) => {},
   afterSheetTabStateRestore: (sheetId, viewState) => {},
+  afterSheetWorkbookReset: () => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},

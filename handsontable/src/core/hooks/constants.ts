@@ -3389,6 +3389,17 @@ export const REGISTERED_HOOKS = [
   'afterSheetTabStateRestore',
 
   /**
+   * Fired by {@link SheetsBar} plugin when it replaces its workbook as a whole: before it builds a workbook (when
+   * the plugin is enabled, and when a changed `sheets` setting rebuilds the workbook), and when the plugin is
+   * disabled. After this hook, no sheet id reported by an earlier hook identifies a sheet any more: a rebuilt
+   * workbook numbers its sheets from 1 again.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetWorkbookReset
+   */
+  'afterSheetWorkbookReset',
+
+  /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.
    *
    * Returns an array of objects that contains:

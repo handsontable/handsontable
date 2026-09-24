@@ -15,7 +15,7 @@ import {
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
-import { hasOwnProperty, isPlainObject } from '../../helpers/object';
+import { isPlainObject } from '../../helpers/object';
 import { warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 
@@ -313,6 +313,21 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
+   * `true` while `#restoreBaselineToGrid` writes the grid-level settings back, so the grid-level
+   * `dataProvider` it restores on a teardown is not blocked as if the user had set it.
+   *
+   * @type {boolean}
+   */
+  #isRestoringBaseline = false;
+  /**
+   * The grid-level `dataProvider` carried across a workbook rebuild, or `null` outside one. A
+   * rebuild does not write it back to the grid (that would enable it, and fetch, for the moment
+   * between the two workbooks); the rebuilt workbook blocks it again from this value.
+   *
+   * @type {{ value: unknown }|null}
+   */
+  #rebuildGridDataProvider: { value: unknown } | null = null;
+  /**
    * The UI instance rendering the bar and its controls.
    *
    * @type {SheetsBarUI | null}
@@ -452,7 +467,9 @@ export class SheetsBar extends BasePlugin {
     } else {
       try {
         this.#isInitializing = true;
+        this.hot.runHooks('afterSheetWorkbookReset');
         this.#model = new SheetModel(() => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string);
+        this.#captureGridDataProvider();
         this.#buildInitialWorkbook();
       } finally {
         this.#isInitializing = false;
@@ -566,7 +583,8 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
 
     this.#refreshUI();
 
@@ -602,6 +620,9 @@ export class SheetsBar extends BasePlugin {
     // Assigned before the disable, which restores the settings baseline to the grid on a
     // genuine teardown and must stand aside on a preserved one.
     this.#preservedState = preservedState;
+    this.#rebuildGridDataProvider = preservedState === null && this.#settingsBaseline.has('dataProvider')
+      ? { value: this.#settingsBaseline.get('dataProvider') }
+      : null;
 
     try {
       this.disablePlugin();
@@ -609,6 +630,7 @@ export class SheetsBar extends BasePlugin {
     } finally {
       this.#preservedState = null;
       this.#retainActiveName = null;
+      this.#rebuildGridDataProvider = null;
     }
 
     if (preservedState) {
@@ -644,14 +666,22 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * A genuine teardown discards the workbook: it reports that through
+   * {@link Hooks#afterSheetWorkbookReset} and drops the model first, so whatever the settings
+   * restore below starts (a restored grid-level `dataProvider` fetches) already sees a grid
+   * without sheets. Then it puts the grid-level settings back before the baseline is dropped:
+   * the active sheet's own settings are applied to the grid at this point, and leaving them there
+   * would make the next enable read a polluted grid as its neutral state — a sheet's
+   * `fixedColumnsStart` or `columns` would follow the user into the rebuilt workbook. A preserved
+   * re-enable keeps the workbook and the active sheet applied, so it does neither. The restore
+   * re-enters this method on a `sheetsBar: false` teardown; the model is gone by then, which is
+   * what keeps the second pass from reporting and restoring again.
    */
   disablePlugin() {
-    // A genuine teardown puts the grid-level settings back before the baseline is dropped:
-    // the active sheet's own settings are applied to the grid at this point, and leaving them
-    // there would make the next enable read a polluted grid as its neutral state — a sheet's
-    // `fixedColumnsStart` or `columns` would follow the user into the rebuilt workbook. A
-    // preserved re-enable keeps the active sheet applied, so it must not restore.
-    if (this.#preservedState === null) {
+    if (this.#preservedState === null && this.#model !== null) {
+      this.#model = null;
+      this.hot.runHooks('afterSheetWorkbookReset');
       this.#restoreBaselineToGrid();
     }
 
@@ -668,6 +698,11 @@ export class SheetsBar extends BasePlugin {
    * written to the grid by the view-state machinery directly and never enters the baseline
    * map, so on a workbook where no sheet declares `settings` the map alone would restore
    * nothing and the next enable would adopt the runtime freeze as neutral.
+   *
+   * A rebuild leaves the grid-level `dataProvider` out: written back, it would enable and fetch
+   * for the moment between the two workbooks. The rebuilt workbook blocks it again from
+   * `#rebuildGridDataProvider`. While this method writes, the `dataProvider` gate stands aside,
+   * so a `sheetsBar: false` teardown gives the grid its own `dataProvider` back.
    */
   #restoreBaselineToGrid() {
     if (this.hot.isDestroyed) {
@@ -677,7 +712,9 @@ export class SheetsBar extends BasePlugin {
     const restored: Record<string, unknown> = {};
 
     this.#settingsBaseline.forEach((value, key) => {
-      restored[key] = value === undefined ? null : value;
+      if (key !== 'dataProvider' || this.#rebuildGridDataProvider === null) {
+        restored[key] = value === undefined ? null : value;
+      }
     });
 
     if (!('fixedColumnsStart' in restored)
@@ -695,7 +732,30 @@ export class SheetsBar extends BasePlugin {
     // restoring in a loop.
     this.#settingsBaseline = new Map();
 
-    this.hot.updateSettings(restored);
+    try {
+      this.#isRestoringBaseline = true;
+      this.hot.updateSettings(restored);
+    } finally {
+      this.#isRestoringBaseline = false;
+    }
+  }
+
+  /**
+   * Captures the grid-level `dataProvider` as the workbook starts, and warns once when there is
+   * one: the bar disables it on every sheet, including a workbook whose sheets all declare their
+   * own. A rebuild takes the value carried over from the workbook it replaces, since the grid
+   * holds the departing sheet's own `dataProvider` at that point, not the grid-level one.
+   */
+  #captureGridDataProvider() {
+    const value = this.#rebuildGridDataProvider === null
+      ? this.hot.getSettings().dataProvider
+      : this.#rebuildGridDataProvider.value;
+
+    this.#settingsBaseline.set('dataProvider', value);
+
+    if (value) {
+      warnOnce(this, GRID_LEVEL_DATA_PROVIDER_WARN_KEY, GRID_LEVEL_DATA_PROVIDER_WARNING);
+    }
   }
 
   /**
@@ -1083,6 +1143,12 @@ export class SheetsBar extends BasePlugin {
 
       this.#applySheet(targetSheet, SOURCE_API);
     } else {
+      const settings = this.#withBaselineFor(undefined);
+
+      if (settings) {
+        this.hot.updateSettings(settings);
+      }
+
       model.addSheet(null, this.#getLiveSourceData());
     }
   }
@@ -1139,6 +1205,14 @@ export class SheetsBar extends BasePlugin {
    * captured the first time a sheet overrides it, which is the last moment it is still the
    * grid's own.
    *
+   * The bar introduces the incompatibility between a grid-level `dataProvider` and a multi-sheet
+   * workbook (most sheets have no server of their own), so it owns blocking it, rather than the
+   * plugin conflict registry, which would also block a sheet's own provider. A sheet without a
+   * `dataProvider` of its own (a missing key, or a falsy value) gets `null`; the grid-level value
+   * stays in the baseline, captured when the workbook started, so a genuine teardown gives it
+   * back. A plain workbook where nobody declared a `dataProvider` skips the one-key
+   * `updateSettings()` call that would only write `null` over `null` on every switch.
+   *
    * @param {object|undefined} settings The sheet's own settings.
    * @returns {object|null} The settings to apply, or `null` when there is nothing to apply.
    */
@@ -1167,20 +1241,7 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    // The bar introduces the incompatibility between a grid-level `dataProvider` and a
-    // multi-sheet workbook — most sheets have no server of their own — so it owns blocking it,
-    // rather than the plugin conflict registry (which would also block a sheet's own provider).
-    // A sheet without its own `dataProvider` gets `null` forced, and the grid-level value the
-    // user configured is kept in the baseline so a genuine teardown can give it back.
-    if (!hasOwnProperty(settings ?? {}, 'dataProvider')) {
-      if (!this.#settingsBaseline.has('dataProvider')) {
-        this.#settingsBaseline.set('dataProvider', this.hot.getSettings().dataProvider);
-      }
-
-      if (this.#settingsBaseline.get('dataProvider')) {
-        warnOnce(this, GRID_LEVEL_DATA_PROVIDER_WARN_KEY, GRID_LEVEL_DATA_PROVIDER_WARNING);
-      }
-
+    if (!settings?.dataProvider) {
       restored.dataProvider = null;
     }
 
@@ -1191,9 +1252,7 @@ export class SheetsBar extends BasePlugin {
       return null;
     }
 
-    // A plain workbook where no sheet ever declared a `dataProvider` would otherwise pay one
-    // `updateSettings()` call per switch for a value that is already `null` on the grid.
-    if (mergedKeys.length === 1 && mergedKeys[0] === 'dataProvider' && merged.dataProvider === null
+    if (mergedKeys.length === 1 && mergedKeys[0] === 'dataProvider' && !merged.dataProvider
       && !this.hot.getSettings().dataProvider) {
       return null;
     }
@@ -2017,23 +2076,57 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
-   * `#withBaselineFor` blocks it on a switch. A switch applies a sheet's `dataProvider` through
-   * that same method, so it must not re-enter this guard. The initial workbook build needs no
-   * guard here either — it runs, and completes, before this hook is registered, so it can never
-   * trigger this listener. The active sheet's own declared `dataProvider` is left alone: the
-   * user re-configuring the visible server sheet is not the grid-level value this plugin
-   * disables.
+   * Tells whether a `dataProvider` written to the grid now is the grid-level value the bar
+   * disables: not a switch applying a sheet's own `dataProvider`, not the teardown restoring the
+   * grid-level one, and not the user re-configuring the visible server sheet (the active sheet
+   * declares a `dataProvider` of its own).
+   *
+   * @returns {boolean}
    */
-  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
-    if (!newSettings.dataProvider || this.#isSwitching) {
+  #blocksGridDataProvider(): boolean {
+    if (this.#isSwitching || this.#isRestoringBaseline || this.#model === null) {
+      return false;
+    }
+
+    const activeId = this.#model.getActiveSheet()?.id ?? null;
+    const activeSheet = activeId === null ? null : this.#model.getSheetById(activeId);
+
+    return !activeSheet?.settings?.dataProvider;
+  }
+
+  /**
+   * Keeps the visible sheet's rows when a later `updateSettings()` call sets a grid-level
+   * `dataProvider`. Core applies the new setting before this plugin can block it, sees a complete
+   * `dataProvider`, and replaces the grid's data with an empty placeholder through
+   * `updateData([])`. The sheet record still points at the rows the grid shows, so the next switch
+   * away would store the placeholder as the sheet's data. The placeholder is redirected at the
+   * rows the grid already shows, and `#onAfterUpdateSettings` then blocks the value itself.
+   *
+   * @param {Array} sourceData The rows about to be loaded.
+   * @param {boolean} initialLoad `true` for the initial data load.
+   * @param {string} source The source of the update.
+   * @returns {Array|undefined} The grid's current rows while a blocked `dataProvider` is applied.
+   */
+  #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
+    if (source !== 'updateSettings' || !this.hot.getSettings().dataProvider || !this.#blocksGridDataProvider()) {
       return;
     }
 
-    const activeId = this.#model?.getActiveSheet()?.id ?? null;
-    const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+    return this.#getLiveSourceData();
+  };
 
-    if (activeSheet && hasOwnProperty(activeSheet.settings ?? {}, 'dataProvider')) {
+  /**
+   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
+   * `#withBaselineFor` blocks it on a switch. It runs ahead of every other `afterUpdateSettings`
+   * listener (a negative `orderIndex`), so the DataProvider plugin never enables with the blocked
+   * value: no `fetchRows` call, no loading overlay. The initial workbook build needs no guard here
+   * — it completes before this hook is registered. See `#blocksGridDataProvider` for the cases
+   * that are left alone.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (!newSettings.dataProvider || !this.#blocksGridDataProvider()) {
       return;
     }
 

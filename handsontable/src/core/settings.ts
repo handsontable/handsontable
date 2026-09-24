@@ -551,6 +551,7 @@ export interface GridSettings {
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
   afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSheetWorkbookReset?: () => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
