@@ -180,6 +180,19 @@ function formulasSettingOf(sheet: Sheet): SheetFormulas | null {
 }
 
 /**
+ * The settings that make `updateSettings()` pad the grid's current data array: core runs
+ * `adjustRowsAndCols()` at the end of the update, while the grid still holds the departing sheet.
+ */
+const MIN_SIZE_SETTINGS = ['minRows', 'minSpareRows', 'minCols', 'minSpareCols'];
+
+/**
+ * Whether applying the settings can add rows or columns to the grid's current data array.
+ */
+function padsCurrentData(settings: Record<string, unknown>): boolean {
+  return MIN_SIZE_SETTINGS.some(key => key in settings);
+}
+
+/**
  * Whether the engine is a built HyperFormula instance the sheets bar can register sheets in —
  * as opposed to the `HyperFormula` class, which only builds one.
  */
@@ -1085,7 +1098,10 @@ export class SheetsBar extends BasePlugin {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
-      if (settings) {
+      if (settings && padsCurrentData(settings)) {
+        this.hot.updateSettings(settings);
+
+      } else if (settings) {
         this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
@@ -1827,6 +1843,9 @@ export class SheetsBar extends BasePlugin {
    * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
    * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
    * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
+   * Not used for settings carrying a `min*` key (`padsCurrentData`): core pads the data array the
+   * grid holds at the end of the update, and only the Formulas load keeps that array a throwaway
+   * copy instead of the departing sheet's own data.
    *
    * @param {Function} update The operation to run.
    */

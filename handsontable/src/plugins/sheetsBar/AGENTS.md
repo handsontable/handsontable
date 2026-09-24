@@ -163,8 +163,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
-- **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
-  (DEV-2905, DEV-3040).** `#applySheet` first applies the sheet's settings (declared, or inherited
+- **A switch runs `loadData()` once — twice when the applied settings carry a `min*` key — and
+  AutoColumnSize sweeps every column on each (DEV-2905, DEV-3040).** `#applySheet` first applies the sheet's settings (declared, or inherited
   formula settings for a runtime-added sheet) through `updateSettings()`; when that changes the
   Formulas plugin's `sheetName`, `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of
   the engine's serialized content (`source: 'Formulas.switchSheet'`), right before the bar's own
@@ -173,11 +173,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `#withoutUndoEntry` does for UndoRedo), so Formulas only binds the sheet and the bar's load — whose
   Formulas `afterLoadData` writes the array into that sheet — is the one load. Between the two calls
   the grid still holds the departing sheet's data while bound to the arriving sheet. The switch is
-  render-suspended and the binding clears the owed resync, so nothing is written back; a read in that
-  window (another plugin's `updatePlugin`, a host `afterUpdateSettings` listener) answers from the
-  arriving engine sheet at the departing grid's coordinates, until the load replaces the data. A
-  per-switch `afterLoadData` count is pinned in `sheetsBar.unit.js` ("loads the grid once per
-  switch"). The `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
+  render-suspended and the binding clears the owed resync, so Formulas writes nothing into the engine;
+  a read in that window (another plugin's `updatePlugin`, a host `afterUpdateSettings` listener)
+  answers from the arriving engine sheet at the departing grid's coordinates, until the load replaces
+  the data. **Core does write in that window**: `updateSettings()` ends in `adjustRowsAndCols()`,
+  which pads the array the grid holds — the departing sheet's own `data`, by reference — up to the
+  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols`. So settings carrying any of
+  those keys (`padsCurrentData`, including a key the baseline restores) skip the flag: `switchSheet()`'s load
+  swaps in a throwaway engine copy first, and the padding lands there. Those switches keep the double
+  load. A workbook without Formulas has no such copy, and its departing sheet still takes the
+  padding — a pre-existing defect this does not fix. Pinned in `sheetsBar.unit.js`: "loads the grid
+  once per switch", "does not pad a formula sheet's data with the min rows of the sheet it switches
+  to", and "leaves the Formulas sheet switch loading again after a switch threw mid-update". The
+  `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before
   the Formulas `afterLoadData` fed the new data to the engine, and the engine's `valuesUpdated` batch
