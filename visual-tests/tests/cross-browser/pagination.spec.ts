@@ -10,6 +10,10 @@ import {
   forPaginationClickPrevPageButton,
 } from '../../src/page-helpers';
 
+/**
+ * Checks that the pagination controls and page counts stay right after filtering and sorting, after moving
+ * to the next page, after clearing a column, and after moving back. Owned by DEV-2981.
+ */
 visualTest('Test pagination', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

@@ -6,6 +6,10 @@ import {
   scrollTableToTheBottom,
 } from '../../../../src/page-helpers';
 
+/**
+ * Checks that the dropdown editor opened on an empty cell of a grid scrolled to its bottom and inline end
+ * renders its list in place. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],
@@ -26,5 +30,6 @@ visualTest(__filename, {
 
   await clickRelativeToViewport(80, 80); // top-left
   await tablePage.keyboard.press('Enter');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

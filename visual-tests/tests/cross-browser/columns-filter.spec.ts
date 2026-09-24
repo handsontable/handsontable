@@ -8,6 +8,11 @@ import {
   filterByCondition,
 } from '../../src/page-helpers';
 
+/**
+ * Checks that filtering by value (Country: India) and then by condition (Sell date between two dates)
+ * renders the filtered rows and the header indicators. The row counts are asserted; the two captures show
+ * what the filters look like. Owned by DEV-2981.
+ */
 visualTest('Test filtering', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

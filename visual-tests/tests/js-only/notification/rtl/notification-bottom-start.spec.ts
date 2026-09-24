@@ -1,6 +1,10 @@
 import { visualTest, JS_VARIANTS } from '../../../../src/test-runner';
 import { helpers } from '../../../../src/helpers';
 
+/**
+ * Checks that a notification toast renders in the bottom-start corner of the grid, in RTL. Added in #12299;
+ * owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],
