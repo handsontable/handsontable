@@ -470,3 +470,65 @@ test.describe('selectionHandles adjust handles', () => {
     expect(await grid.selectedBounds()).toEqual({ top: 2, start: 2, bottom: 5, end: 5 });
   });
 });
+
+/**
+ * Hovering a selection only decides which layer shows the handles. It must not replay the
+ * selection: a replay fires the public selection hooks, and core scrolls the viewport to the
+ * replayed range's end, so a wheel scroll over a selection stalled and snapped back (DEV-3085).
+ */
+test.describe('selectionHandles hover', () => {
+  let grid: SelectionFeaturesPage;
+
+  test.beforeEach(async ({ page, theme }) => {
+    grid = new SelectionFeaturesPage(page, theme);
+    await grid.goto();
+    await grid.initScrollableGrid();
+    await grid.movePointerOffGrid();
+  });
+
+  test('does not scroll the viewport when the pointer enters a selection whose end is off-screen', async () => {
+    await grid.selectCells(2, 1, 40, 3);
+    await grid.scrollToTop();
+
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    await grid.hoverCell(4, 2);
+
+    // The hover took effect: the hovered layer shows its handles.
+    await expect(grid.visibleHandles()).not.toHaveCount(0);
+    expect(await grid.verticalScrollOffset()).toBe(0);
+  });
+
+  test('does not fire the selection hooks when the pointer enters and leaves a selection', async () => {
+    await grid.selectCells(2, 1, 4, 3);
+    await grid.clearSelectionHookLog();
+
+    await grid.hoverCell(3, 2);
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    await grid.hoverCell(8, 6);
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    expect(await grid.selectionHookLog()).toEqual([]);
+  });
+
+  test('scrolls by the full wheel distance while the pointer rests over a selection', async () => {
+    const step = 8;
+    const steps = 40;
+
+    await grid.selectCells(2, 1, 6, 3);
+    await grid.hoverCell(4, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    for (let i = 1; i <= steps; i++) {
+      await grid.wheel(step);
+      await expect.poll(() => grid.verticalScrollOffset()).toBe(i * step);
+    }
+
+    // The scroll carried the selection out from under the pointer, so the hovered layer changed
+    // on the way. Without that, this test would not exercise the hover wiring at all.
+    await expect(grid.visibleHandles()).toHaveCount(0);
+    expect(await grid.verticalScrollOffset()).toBe(steps * step);
+  });
+});

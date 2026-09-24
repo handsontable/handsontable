@@ -50,6 +50,9 @@
     window.vetoBeforeMoveCells = false;
     window.vetoBeforeRowMove = false;
     window.vetoBeforeColumnMove = false;
+    // Records the public selection hooks, so a test can assert that a gesture which must not
+    // change the selection (hovering it, for one) fires none of them. Reset on every init.
+    window.selectionHookLog = [];
 
     window.initSelectionGrid = (overrides = {}) => {
       if (window.hot) {
@@ -62,6 +65,7 @@
       window.vetoBeforeMoveCells = false;
       window.vetoBeforeRowMove = false;
       window.vetoBeforeColumnMove = false;
+      window.selectionHookLog = [];
 
       window.hot = new Handsontable(container, Object.assign({
         beforeMoveCells: (source, target, isCopy) => {
@@ -106,6 +110,11 @@
         renderer: testIdRenderer,
         licenseKey: 'non-commercial-and-evaluation',
       }, overrides));
+
+      // Added after construction rather than through the settings, so an `overrides` object can
+      // never replace these listeners.
+      window.hot.addHook('afterSelection', () => window.selectionHookLog.push('afterSelection'));
+      window.hot.addHook('afterSelectionEnd', () => window.selectionHookLog.push('afterSelectionEnd'));
 
       return true;
     };

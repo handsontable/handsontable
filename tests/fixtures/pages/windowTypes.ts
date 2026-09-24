@@ -380,6 +380,8 @@ declare global {
     wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
+    /** Names of the public selection hooks fired on the selection-features fixture grid. */
+    selectionHookLog: string[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
     /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
