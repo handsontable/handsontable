@@ -419,7 +419,7 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Fetches rows from `fetchRows` with current or overridden query parameters.
+   * Fetches rows from `fetchRows` with current or overridden query parameters. Fetches the visible sheet.
    *
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
    * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); {@link Hooks#beforeDataProviderFetch} receives it, and it is not passed to `fetchRows`.

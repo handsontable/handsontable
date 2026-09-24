@@ -133,6 +133,10 @@ CSS. The select's `:disabled` background was dropped: it is safe only because `s
 in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
 select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
 
+## Server-backed paging is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `pagination` in the payload, so it never reaches this plugin's own `updatePlugin()` — a SheetsBar switch between a server sheet and a local one is the everyday case.
+
 ## Where to look next
 
 - The plugins it hard-conflicts with: `../nestedRows/AGENTS.md`, `../mergeCells/AGENTS.md`.

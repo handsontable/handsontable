@@ -536,6 +536,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after the dataProvider has fetched and loaded data.
    *
+   * With the {@link SheetsBar} plugin, it also fires when you switch back to a sheet whose rows were fetched
+   * earlier, with that sheet's saved response.
+   *
    * @event Hooks#afterDataProviderFetch
    * @since 17.1.0
    * @param {object} result Result object: `{ rows, totalRows, queryParameters, columnSortConfig, filtersConditionsStack }`.
