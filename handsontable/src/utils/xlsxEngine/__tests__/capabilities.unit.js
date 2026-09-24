@@ -88,6 +88,34 @@ describe('DroppedFeatures', () => {
     expect(validation.length).toBe('dataValidation:'.length + 64);
   });
 
+  it('should cut a file-driven value on a code point boundary, never inside a surrogate pair', () => {
+    // An astral character straddling the cut used to leave a lone surrogate in `dropped` and in the
+    // console warning — the same unpaired code unit the tokenizer refuses to produce.
+    const dropped = new DroppedFeatures();
+
+    dropped.recordUnsupported('numFmt', `${'x'.repeat(62)}\u{1F600}${'y'.repeat(20)}`);
+
+    const [numFmt] = dropped.list();
+    const tail = numFmt.slice('numFmt:'.length);
+
+    expect(tail).toBe(`${'x'.repeat(62)}\u{1F600}…`);
+    expect(Array.from(tail).length).toBe(64);
+
+    for (let index = 0; index < tail.length; index++) {
+      const code = tail.charCodeAt(index);
+      const isHighSurrogate = code >= 0xD800 && code <= 0xDBFF;
+      const isLowSurrogate = code >= 0xDC00 && code <= 0xDFFF;
+
+      if (isHighSurrogate) {
+        expect(tail.charCodeAt(index + 1) >= 0xDC00 && tail.charCodeAt(index + 1) <= 0xDFFF).toBe(true);
+      }
+
+      if (isLowSurrogate) {
+        expect(tail.charCodeAt(index - 1) >= 0xD800 && tail.charCodeAt(index - 1) <= 0xDBFF).toBe(true);
+      }
+    }
+  });
+
   it('should stop adding distinct file-driven names at the cap and bucket the rest', () => {
     // The other unbounded direction: N rules with N distinct types produced N map entries and N
     // segments of one warning string, where every other file-driven quantity here has a cap.

@@ -14,7 +14,7 @@ export const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
 
 /**
  * Serial-number offset between the Unix epoch and the 1900 date system's day zero: 1970-01-01 is
- * day 25569. It is the same epoch {@link EXCEL_EPOCH_UTC} states in milliseconds, expressed in
+ * day 25569. It is the same epoch `EXCEL_EPOCH_UTC` states in milliseconds, expressed in
  * days, so a conversion that already works in serials adds it rather than converting twice.
  *
  * Both xlsx adapters read a `Date` back into a serial with it, and they used to declare it twice

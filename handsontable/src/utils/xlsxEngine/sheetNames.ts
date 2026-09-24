@@ -20,7 +20,7 @@ export const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/;
 /**
  * The name the XLSX format reserves for a workbook's change history.
  */
-export const RESERVED_SHEET_NAME = 'History';
+const RESERVED_SHEET_NAME = 'History';
 
 /**
  * The same character class with the `g` flag, for the replace path only. Built from the pattern

@@ -63,7 +63,7 @@ function isTemporalFormat(numFmt: string | null): boolean {
  * adapter; `cellColCount` is the width the cell matrix needs, `layoutColCount` includes columns
  * that only carry a width or a hidden flag.
  */
-export function assertSheetRectangle(
+function assertSheetRectangle(
   name: string,
   rowCount: number,
   cellColCount: number,

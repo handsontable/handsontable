@@ -124,10 +124,17 @@ const OTHER_UNSUPPORTED_VALUE = 'other';
  * Trims a file-controlled value to what a dropped-feature name may carry: at most
  * `MAX_UNSUPPORTED_VALUE_LENGTH` characters, with every control character replaced, so neither the
  * public result nor the console warning can be steered by the workbook's own text.
+ *
+ * The cut is made on a CODE POINT boundary, not on a code unit. Slicing code units puts a lone
+ * surrogate into `ImportResult.dropped` and into the console warning whenever an astral character
+ * straddles the cut \u2014 the same unpaired code unit the tokenizer refuses to produce from a numeric
+ * character reference, arriving through the one door the file's own text still comes in by. The
+ * control-character sweep below cannot catch it either, because a surrogate is neither C0 nor C1.
  */
 function boundUnsupportedValue(value: string): string {
-  const clipped = value.length > MAX_UNSUPPORTED_VALUE_LENGTH
-    ? `${value.slice(0, MAX_UNSUPPORTED_VALUE_LENGTH - 1)}\u2026`
+  const codePoints = Array.from(value);
+  const clipped = codePoints.length > MAX_UNSUPPORTED_VALUE_LENGTH
+    ? `${codePoints.slice(0, MAX_UNSUPPORTED_VALUE_LENGTH - 1).join('')}\u2026`
     : value;
   let safe = '';
 

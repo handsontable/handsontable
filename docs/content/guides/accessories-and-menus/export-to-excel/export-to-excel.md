@@ -110,9 +110,12 @@ These are the keys the export can report:
 | `compressionLevel` | You set a numeric `compression` level and the built-in engine cannot honor it. The Compression Streams API the engine packs with has no level parameter, so the archive uses the platform default. Pass `compression: false` to store the entries instead. |
 | `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
 | `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar` or `iconSet`. The rest of the block is written. |
+| `conditionalFormatting:other` | The bucket the rule kinds above count into once one export has already reported 32 distinct ones. See the note under this table. |
 | `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. |
 | `conditionalFormatting:expression` | An `expression` rule with no `formulae` entry. The rule means nothing without one. |
 | `conditionalFormatting:timePeriod` | A `timePeriod` rule with no `formulae` entry, or no `timePeriod` string. |
+
+The one key that ends in a value you wrote -- `conditionalFormatting:<type>` -- is bounded, the same way the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction bounds its own value-tailed keys. The rule kind is cut to 64 characters and its control characters are replaced, and after 32 distinct kinds in one export the rest are reported as `conditionalFormatting:other`. The counts stay complete either way.
 
 Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
 

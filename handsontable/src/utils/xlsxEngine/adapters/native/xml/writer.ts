@@ -11,7 +11,7 @@ export type XmlAttributeValue = string | number | boolean | undefined;
  */
 export type XmlAttributeMap = Record<string, XmlAttributeValue>;
 
-export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
 
 /**
  * Builds an XML document as a string. Every text and attribute value goes through the escapers.

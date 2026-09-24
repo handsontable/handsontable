@@ -795,20 +795,22 @@ describe('parseWorksheet', () => {
     expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
   });
 
-  it('should refuse merges that repeat a whole-sheet range, and refuse it quickly', () => {
+  it('should refuse merges that repeat a whole-sheet range', () => {
     // The third span kind alongside column and validation spans: a `<mergeCell>` is 32 bytes of XML
-    // and unbudgeted would cost a full sweep of a million-row sheet per occurrence.
+    // and unbudgeted would cost a full sweep of a million-row sheet per occurrence — the unbudgeted
+    // reader spent ~6 s on this input, the budgeted one refuses it in a few milliseconds.
+    //
+    // The refusal itself is the assertion, deliberately: a wall-clock bound loose enough not to
+    // redden a loaded CI box (5 s against that ~6 s) is only a 1.2x margin, so a machine 20% faster
+    // than the one measured would let an unbudgeted reader through green. The span charge is what
+    // produces this refusal, and nothing else in the reader does, so the refusal proves the charge
+    // ran before the walk. Do not add a timing assertion back without measuring the unbudgeted cost
+    // again and setting the bound two orders of magnitude below it.
     const mergeCells = new Array(4300).fill('<mergeCell ref="A1:XFD1048576"/>').join('');
     const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData/>`
       + `<mergeCells count="4300">${mergeCells}</mergeCells></worksheet>`;
 
-    const start = Date.now();
-
     expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
-    // A wall-clock bound has to be loose enough that a loaded CI box cannot redden it on timing
-    // alone: the unbudgeted reader spent ~6 s on this input, so 5 s still separates the two states
-    // while leaving the budgeted path (a few milliseconds) an order of magnitude of headroom.
-    expect(Date.now() - start).toBeLessThan(5000);
   });
 
   it('should refuse a sheet the dimension declares above the caps before reading a row', () => {

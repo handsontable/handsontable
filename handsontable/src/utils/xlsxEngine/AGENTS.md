@@ -50,7 +50,9 @@ follow it. An entry that is PRESENT and does not duck-type still throws, in both
   open event, their children's text and their close event, and the half-built state is the class's
   `#` fields. `#chargeSpan`, `#ensureRow`, `#cellAt`, `#finishCfRule` and
   `#finishConditionalFormatting` are private methods of it, not free functions — grep them with the
-  `#`. `assertSheetRectangle`, `assertSheetFits` and `parseWorksheet` are the module's own exports.
+  `#`. `assertSheetFits` and `parseWorksheet` are the module's own exports; `assertSheetRectangle`
+  is a module-local function of the same file, called by `assertSheetFits` and by the parser's own
+  `<dimension>` handler.
 - **Merge members are MATERIALIZED on read, to match ExcelJS.** The writer emits no `<c>` element
   for a covered cell that carries no style, so the reader's `<c>`-derived width alone left the row
   a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then

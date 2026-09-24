@@ -64,7 +64,7 @@ export interface MergeSnapshot {
  * The set is closed on purpose: a reader takes these names out of a file and nothing else, so an
  * unknown or hostile `<sheetProtection>` attribute cannot ride along in the snapshot.
  */
-export const SHEET_PROTECTION_OPTION_NAMES = [
+const SHEET_PROTECTION_OPTION_NAMES = [
   'sheet', 'objects', 'scenarios', 'selectLockedCells', 'selectUnlockedCells', 'formatCells',
   'formatColumns', 'formatRows', 'insertColumns', 'insertRows', 'insertHyperlinks', 'deleteColumns',
   'deleteRows', 'sort', 'autoFilter', 'pivotTables',
