@@ -25,6 +25,7 @@ export interface ViewState {
   hiddenRows: number[];
   hiddenColumns: number[];
   trimmedRows: number[];
+  collapsedParents: number[][];
   colWidths: Array<[number, number]>;
   rowHeights: Array<[number, number]>;
   sortConfig: unknown;
@@ -123,6 +124,61 @@ function captureUnsortedRowSequence(hot: HotInstance): number[] {
 }
 
 /**
+ * The part of the NestedRows plugin the view state talks to.
+ */
+interface NestedRowsPlugin {
+  dataManager: {
+    getRowTreePath: (row: number) => number[] | null,
+    getRowIndexByTreePath: (path: number[] | null) => number | null,
+    hasChildren: (row: number) => boolean,
+  } | null;
+  collapsingUI: {
+    getCollapsedParents: () => number[],
+    toggleCollapsedRows: (
+      parents: number[], action: 'collapse', shouldRunHooks?: boolean, forceRender?: boolean
+    ) => boolean,
+  } | null;
+}
+
+/**
+ * Captures the collapsed NestedRows parents as tree paths. `loadData` drops the collapsed state,
+ * so a sheet switch would otherwise expand every branch. A physical index would not survive the
+ * sheet's data gaining or losing a row while another sheet is in front — the path does.
+ */
+function captureCollapsedParents(hot: HotInstance): number[][] {
+  const nestedRows = getEnabledPlugin(hot, 'nestedRows') as NestedRowsPlugin | undefined;
+  const dataManager = nestedRows?.dataManager;
+
+  if (!dataManager) {
+    return [];
+  }
+
+  return (nestedRows.collapsingUI?.getCollapsedParents() ?? [])
+    .map(row => dataManager.getRowTreePath(row))
+    .filter((path): path is number[] => path !== null);
+}
+
+/**
+ * Collapses the parents stored as tree paths again, skipping the ones the data no longer has or
+ * that lost their children. The hooks stay silent — replaying a state the user already chose is
+ * not a new collapse — and the render is left to the caller's batch.
+ */
+function restoreCollapsedParents(hot: HotInstance, state: ViewState) {
+  const nestedRows = getEnabledPlugin(hot, 'nestedRows') as NestedRowsPlugin | undefined;
+  const dataManager = nestedRows?.dataManager;
+
+  if (!dataManager || !nestedRows.collapsingUI || state.collapsedParents.length === 0) {
+    return;
+  }
+
+  const parents = state.collapsedParents
+    .map(path => dataManager.getRowIndexByTreePath(path))
+    .filter((row): row is number => row !== null && dataManager.hasChildren(row));
+
+  nestedRows.collapsingUI.toggleCollapsedRows(parents, 'collapse', false, false);
+}
+
+/**
  * Returns the resize plugin for one axis, or `undefined` when it is absent or disabled.
  */
 function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
@@ -197,6 +253,7 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
 
   return {
     ...captureAxisState(hot),
+    collapsedParents: captureCollapsedParents(hot),
     colWidths,
     rowHeights,
     sortConfig: captureSortConfig(hot),
@@ -405,7 +462,9 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
 /**
  * Restores a previously captured view state. Order matters: row/column order and sort first,
  * since later steps address cells by that reordered position; then filters and trimming,
- * which decide the visual space; then the hidden sets, which are addressed in it; then
+ * which decide the visual space; then the hidden sets, which are addressed in it; then the
+ * collapsed NestedRows parents, after the hidden sets because collapsing trims the children out
+ * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, merges, freeze, and borders, none of which depend on each other.
  *
  * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
@@ -422,6 +481,7 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
+    restoreCollapsedParents(hot, state);
     restoreSizes(hot, state);
     restoreMergedCells(hot, state);
 
@@ -463,6 +523,7 @@ function createNeutralViewState(): ViewState {
     hiddenRows: [],
     hiddenColumns: [],
     trimmedRows: [],
+    collapsedParents: [],
     colWidths: [],
     rowHeights: [],
     sortConfig: [],

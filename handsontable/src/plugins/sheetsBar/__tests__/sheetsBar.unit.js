@@ -485,6 +485,81 @@ describe('SheetsBar plugin', () => {
     expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Nested Rows plugin requires'));
   });
 
+  it('keeps each sheet\'s collapsed `nestedRows` parents across a switch away and back', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'A',
+            data: [
+              { a: 'A1', __children: [{ a: 'A1.1', __children: [{ a: 'A1.1.1' }] }, { a: 'A1.2' }] },
+              { a: 'A2', __children: [{ a: 'A2.1' }] },
+            ],
+          },
+          {
+            name: 'B',
+            data: [
+              { a: 'B1', __children: [{ a: 'B1.1' }] },
+              { a: 'B2', __children: [{ a: 'B2.1' }] },
+            ],
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+    const collapseSpy = jest.fn();
+
+    nestedRows.collapsingUI.toggleCollapsedRows([1, 4], 'collapse');
+    sheetsBar.setActiveSheet('B');
+    nestedRows.collapsingUI.toggleCollapsedRows([2], 'collapse');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['B1', 'B1.1', 'B2']);
+
+    hot.addHook('beforeRowCollapse', collapseSpy);
+    hot.addHook('afterRowCollapse', collapseSpy);
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['A1', 'A1.1', 'A1.2', 'A2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([1, 4]);
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['B1', 'B1.1', 'B2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([2]);
+    expect(collapseSpy).not.toHaveBeenCalled();
+  });
+
+  it('collapses the same parent again when rows were added before it while its sheet was away', () => {
+    const treeData = [
+      { a: 'P1', __children: [{ a: 'P1.1' }] },
+      { a: 'P2', __children: [{ a: 'P2.1' }] },
+    ];
+
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Tree', data: treeData },
+          { name: 'Other', data: [{ a: 'x' }] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+
+    nestedRows.collapsingUI.toggleCollapsedRows([2], 'collapse');
+    sheetsBar.setActiveSheet('Other');
+    treeData[0].__children.push({ a: 'P1.2' });
+    sheetsBar.setActiveSheet('Tree');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['P1', 'P1.1', 'P1.2', 'P2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([3]);
+  });
+
   it('leaves the row order alone when the sheet data changed size while it was away', () => {
     const data = [['a'], ['b']];
 

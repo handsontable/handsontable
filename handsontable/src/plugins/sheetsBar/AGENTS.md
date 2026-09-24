@@ -22,7 +22,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   longer matches the data is skipped. Manual sizes are stored as sparse
   `[physicalIndex, size]` pairs read and written through the resize plugins'
   `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its height) and
-  cleared through their bulk `clearManualSizes()`.
+  cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
+  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
+  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
+  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
+  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
+  visual space its stored index is mapped through.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
