@@ -25,6 +25,7 @@ interface FixtureServer {
   pendingUpdates: unknown[];
   fetchCount: Record<ServerPrefix, number>;
   failNext: Set<ServerPrefix>;
+  failNextUpdate: boolean;
   consoleProblems: string[];
   events: string[];
   cancelNextSwitch: boolean;
@@ -39,6 +40,8 @@ interface FixtureServer {
  */
 interface FixtureDataProviderPlugin {
   fetchData(): Promise<unknown>;
+  createRows(options: { position?: 'above' | 'below', referenceRowId?: unknown, rowsAmount?: number }): Promise<void>;
+  removeRows(rowIds: unknown[]): Promise<void>;
 }
 
 /**
@@ -176,12 +179,63 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
-   * Resolve every pending `onRowsUpdate` call.
+   * Settle every pending `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` call.
    *
-   * @returns {Promise<number>} How many updates were released.
+   * @returns {Promise<number>} How many mutations were released.
    */
   async releaseUpdates(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as { htServer: FixtureServer }).htServer.releaseUpdates());
+  }
+
+  /**
+   * How many `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` calls are waiting to be settled.
+   *
+   * @returns {Promise<number>} The count of pending mutations.
+   */
+  async pendingUpdateCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htServer: FixtureServer }).htServer.pendingUpdates.length);
+  }
+
+  /**
+   * Make the next released mutation reject instead of resolving.
+   */
+  async failNextUpdate(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { htServer: FixtureServer }).htServer.failNextUpdate = true;
+    });
+  }
+
+  /**
+   * Start a server create through `createRows()` without waiting for it to settle.
+   *
+   * @param {unknown} referenceRowId The row id the new row goes below.
+   */
+  async startCreateRow(referenceRowId: unknown): Promise<void> {
+    await this.page.evaluate((id) => {
+      (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('dataProvider')
+        .createRows({ position: 'below', referenceRowId: id }).catch(() => {});
+    }, referenceRowId);
+  }
+
+  /**
+   * Start a server remove through `removeRows()` without waiting for it to settle.
+   *
+   * @param {unknown[]} rowIds The row ids to remove.
+   */
+  async startRemoveRows(rowIds: unknown[]): Promise<void> {
+    await this.page.evaluate((ids) => {
+      (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('dataProvider')
+        .removeRows(ids).catch(() => {});
+    }, rowIds);
+  }
+
+  /**
+   * Clear the recorded console problems after a spec asserted the ones it expects.
+   */
+  async clearConsoleProblems(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { htServer: FixtureServer }).htServer.consoleProblems = [];
+    });
   }
 
   /**

@@ -294,4 +294,121 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect(grid.cell(0, 0)).toHaveText('ORD-25');
     });
   });
+
+  test.describe('off-screen failures and in-flight saves', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto();
+    });
+
+    test('an off-screen failure fires the hook now and shows the toast on return (rule 7)', async() => {
+      await grid.startFetch();
+      await grid.failNext('ORD');
+      await grid.clickTab(1);
+      await grid.release('ORD');
+
+      expect(await grid.events()).toContain('afterError ORD failed');
+      await expect(grid.toast()).toHaveCount(0);
+
+      await grid.clickTab(0);
+      await expect(grid.toast()).toBeVisible();
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
+    });
+
+    test('the deferred toast brings back the sheet\'s sort and page (rule 7)', async() => {
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await grid.goToPage(2);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-20');
+      await grid.startFetch();
+      await grid.failNext('ORD');
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+
+      await expect(grid.toast()).toBeVisible();
+      expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect((await grid.pagination()).currentPage).toBe(2);
+      expect(await grid.ids()).toEqual(['ORD-20', 'ORD-19', 'ORD-18', 'ORD-17', 'ORD-16']);
+    });
+
+    test('Refetch from the deferred toast loads the sheet (review focus 5)', async() => {
+      await grid.startFetch();
+      await grid.failNext('ORD');
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+      await grid.toast().getByRole('button', { name: 'Refetch' }).click();
+      await grid.release('ORD');
+
+      await expect(grid.cell(0, 1)).toHaveText('#3');
+      await expect(grid.toast()).toHaveCount(0);
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+    });
+
+    test('a save in flight refetches the sheet it was made on (rule 8)', async() => {
+      await grid.editCell(0, 1, 'edited');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+    });
+
+    test('a save that fails off-screen leaves the visible sheet alone and reloads its own sheet', async() => {
+      await grid.editCell(0, 1, 'edited');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.failNextUpdate();
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+
+      await expect(grid.cell(0, 1)).toHaveText('-');
+      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row update failed:')]);
+      await grid.clearConsoleProblems();
+
+      await grid.release('ORD');
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+    });
+
+    test('a create in flight refetches the sheet it was made on', async() => {
+      await grid.startCreateRow('ORD-05');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+    });
+
+    test('a remove in flight refetches the page of the sheet it was made on', async() => {
+      await grid.goToPage(5);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-21');
+      await grid.startRemoveRows(['ORD-21', 'ORD-22', 'ORD-23']);
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.setServerTotalRows(22);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+
+      expect((await grid.pendingParams('ORD'))?.page).toBe(5);
+      await grid.release('ORD');
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      expect(await grid.ids()).toEqual(['ORD-21', 'ORD-22']);
+      expect((await grid.pagination()).currentPage).toBe(5);
+    });
+  });
 });

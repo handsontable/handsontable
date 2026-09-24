@@ -51,8 +51,9 @@
 
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
-    `onRowsUpdate` parks the same way on `window.htServer.releaseUpdates()`. `failNext` makes the
-    next `fetchRows` call for a prefix reject instead of resolving.
+    `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` park the same way on
+    `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject. `failNext`
+    makes the next `fetchRows` call for a prefix reject instead of resolving.
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
     assert on it directly instead of reading the browser's own console. `window.htServer.events`
@@ -78,6 +79,7 @@
       pendingUpdates: [],
       fetchCount: { ORD: 0, CUS: 0, GRID: 0 },
       failNext: new Set(),
+      failNextUpdate: false,
       consoleProblems: [],
       events: [],
       cancelNextSwitch: false,
@@ -94,7 +96,15 @@
       releaseUpdates() {
         const released = server.pendingUpdates.splice(0);
 
-        released.forEach(resolve => resolve());
+        released.forEach(({ resolve, reject }) => {
+          if (server.failNextUpdate) {
+            server.failNextUpdate = false;
+            reject(new Error('mutation failed'));
+
+            return;
+          }
+          resolve();
+        });
 
         return released.length;
       },
@@ -186,12 +196,14 @@
       });
     };
 
+    const parkMutation = () => new Promise((resolve, reject) => server.pendingUpdates.push({ resolve, reject }));
+
     const provider = prefix => ({
       rowId: 'id',
       fetchRows: makeFetchRows(prefix),
-      onRowsCreate: async() => {},
-      onRowsUpdate: () => new Promise(resolve => server.pendingUpdates.push(resolve)),
-      onRowsRemove: async() => {},
+      onRowsCreate: parkMutation,
+      onRowsUpdate: parkMutation,
+      onRowsRemove: parkMutation,
     });
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {

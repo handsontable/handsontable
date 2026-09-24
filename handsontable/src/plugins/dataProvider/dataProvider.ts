@@ -451,9 +451,10 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    */
   async createRows(options: { position?: string; referenceRowId?: unknown; rowsAmount?: number } = {}): Promise<void> {
-    const onRowsCreate = this.#getOnRowsCreate();
+    const binding = this.#currentBinding();
+    const onRowsCreate = binding?.config.onRowsCreate;
 
-    if (!isFunction(onRowsCreate)) {
+    if (!binding || !isFunction(onRowsCreate)) {
       return;
     }
 
@@ -469,11 +470,13 @@ export class DataProvider extends BasePlugin {
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
-        if (!this.#shouldRefetchAfterCreate() && !this.#hasFetchInFlight()) {
+        const target = this.#mutationTarget(binding);
+
+        if (!this.#shouldRefetchAfterCreate(target) && !this.#inFlight.has(target?.sheetId ?? null)) {
           return;
         }
 
-        await this.fetchData({ skipLoading: true });
+        await this.#refetchFor(target, { skipLoading: true });
       }
     );
   }
@@ -491,9 +494,10 @@ export class DataProvider extends BasePlugin {
    * @throws {Error} When any id is `null` or `undefined`.
    */
   async removeRows(rowIds: unknown[] | unknown): Promise<void> {
-    const onRowsRemove = this.#getOnRowsRemove();
+    const binding = this.#currentBinding();
+    const onRowsRemove = binding?.config.onRowsRemove;
 
-    if (!isFunction(onRowsRemove)) {
+    if (!binding || !isFunction(onRowsRemove)) {
       return;
     }
 
@@ -507,20 +511,24 @@ export class DataProvider extends BasePlugin {
     const payload = { rowsRemove: ids };
 
     return this.#queueCrud('remove', payload, () => onRowsRemove(ids), async() => {
-      const pageBeforeFetch = this.#queryParameters.page;
-      const rowsLoaded = this.hot.countRows();
+      const target = this.#mutationTarget(binding);
+      const offScreen = target !== null && !this.#isVisible(target);
+      const pageBeforeFetch = offScreen
+        ? this.#stateFor(target.sheetId).queryParameters.page
+        : this.#queryParameters.page;
+      const rowsLoaded = offScreen ? this.#countRowsOf(target.data) : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
       if (removesEveryLoadedRow && pageBeforeFetch > 1) {
-        await this.fetchData({ page: pageBeforeFetch - 1, skipLoading: true });
+        await this.#refetchFor(target, { page: pageBeforeFetch - 1, skipLoading: true });
 
         return;
       }
 
-      const result = await this.fetchData({ skipLoading: true });
+      const result = await this.#refetchFor(target, { skipLoading: true });
 
       if (result?.rows.length === 0 && pageBeforeFetch > 1) {
-        await this.fetchData({ page: pageBeforeFetch - 1, skipLoading: true });
+        await this.#refetchFor(target, { page: pageBeforeFetch - 1, skipLoading: true });
       }
     });
   }
@@ -546,10 +554,11 @@ export class DataProvider extends BasePlugin {
     });
 
     const rowPayloads = buildManualUpdateRowPayloads(this.hot, this.#getRowIdOption(), rows);
+    const binding = this.#currentBinding();
 
     return this.#enqueueMutation(() => runManualUpdateRowsMutation(this.hot, {
       getRowIdOption: () => this.#getRowIdOption(),
-      commitRowsUpdate: payloads => this.#commitRowsUpdate(payloads),
+      commitRowsUpdate: payloads => this.#commitRowsUpdate(binding, payloads),
     }, rowPayloads));
   }
 
@@ -607,25 +616,61 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Whether `createRows()` refetches after a successful `onRowsCreate`. Reads the raw config so it follows the
-   * current `dataProvider` object after `updateSettings()` (a key omitted later means "default" again). Any value
-   * other than `false` means refetch; a non-boolean value is warned about by `BasePlugin#updatePluginSettings`.
+   * Whether `createRows()` refetches after a successful `onRowsCreate`. Reads the raw config of the create's
+   * binding (for a grid without SheetsBar, the current `dataProvider` object, so it follows `updateSettings()`: a
+   * key omitted later means "default" again). Any value other than `false` means refetch; a non-boolean value is
+   * warned about by `BasePlugin#updatePluginSettings`.
    *
+   * @param {object|null} binding The binding the create refetches for.
    * @returns {boolean}
    */
-  #shouldRefetchAfterCreate(): boolean {
-    return this.#getConfig()?.refetchAfterCreate !== false;
+  #shouldRefetchAfterCreate(binding: FetchBinding<DataProviderConfig> | null): boolean {
+    return binding?.config.refetchAfterCreate !== false;
   }
 
   /**
-   * Whether a `fetchRows` request started by {@link DataProvider#fetchData} for the visible sheet has not settled
-   * yet. The entry is stored when the request starts and removed in its `finally`, so a stored entry is exactly
-   * "a response can still arrive and call `loadData()`".
+   * Resolves the binding a queued mutation's follow-up work runs for. A SheetsBar sheet's mutation keeps the
+   * binding captured when it was queued, so its callbacks and its refetch serve the sheet it was made on even when
+   * another sheet is visible by the time it runs. Without SheetsBar there is only one grid, and the binding is read
+   * when the work runs, so a `dataProvider` changed in between applies, as it always did.
    *
-   * @returns {boolean}
+   * @param {object|null} queued The binding captured when the mutation was queued.
+   * @returns {object|null} `null` when no `dataProvider` applies.
    */
-  #hasFetchInFlight(): boolean {
-    return this.#inFlight.has(this.#currentBinding()?.sheetId ?? null);
+  #mutationTarget(queued: FetchBinding<DataProviderConfig> | null): FetchBinding<DataProviderConfig> | null {
+    return queued === null || queued.sheetId === null ? this.#currentBinding() : queued;
+  }
+
+  /**
+   * Refetches for a mutation's binding. Like {@link DataProvider#fetchData}, it only renders when no
+   * `dataProvider` applies. A visible binding's failure still rejects (callers revert on it); an off-screen
+   * binding's failure resolves `null` and waits in its sheet state for the sheet to be visible again.
+   *
+   * @param {object|null} binding The binding to refetch for.
+   * @param {object} overrides Partial query overrides, as in {@link DataProvider#fetchData}.
+   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
+   */
+  #refetchFor(
+    binding: FetchBinding<DataProviderConfig> | null,
+    overrides: DataProviderFetchDataOverrides
+  ): Promise<{ rows: unknown[]; totalRows: number } | null> {
+    if (!binding) {
+      this.hot.render();
+
+      return Promise.resolve(null);
+    }
+
+    return this.#fetchFor(binding, overrides);
+  }
+
+  /**
+   * Counts the rows a sheet holds.
+   *
+   * @param {*} data The sheet's data array.
+   * @returns {number}
+   */
+  #countRowsOf(data: unknown): number {
+    return Array.isArray(data) ? data.length : 0;
   }
 
   /**
@@ -983,6 +1028,12 @@ export class DataProvider extends BasePlugin {
 
     const state = this.#states.get(binding.sheetId);
 
+    if (state?.hasFailure) {
+      this.#showDeferredFailure(binding, state);
+
+      return;
+    }
+
     if (state?.lastResult) {
       this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
       this.hot.runHooks('afterDataProviderFetch', {
@@ -1001,13 +1052,45 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Shows the fetch failure a sheet stored while it was off-screen, now that it is visible again: the sheet's last
+   * response is replayed (so its sort, filters, and pager come back) and the error toast appears, its Refetch
+   * action fetching the visible sheet. The failure's {@link Hooks#afterDataProviderFetchError} already fired when
+   * it happened.
+   *
+   * @param {object} binding The arriving sheet's binding.
+   * @param {object} state The arriving sheet's state.
+   */
+  #showDeferredFailure(
+    binding: FetchBinding<DataProviderConfig>,
+    state: SheetServerState<DataProviderFetchPayload>
+  ): void {
+    const { failure } = state;
+
+    state.failure = undefined;
+    state.hasFailure = false;
+    this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
+
+    if (state.lastResult) {
+      this.hot.runHooks('afterDataProviderFetch', {
+        ...state.lastResult,
+        rows: binding.data,
+        queryParameters: this.#snapshotQueryParameters(state.queryParameters),
+      });
+    }
+
+    this.#showDataProviderRequestErrorNotification('fetch', failure);
+    this.hot.render();
+  }
+
+  /**
+   * @param {object} [config] The `dataProvider` config to read; the current one by default.
    * @returns {Function|undefined}
    */
-  #getOnRowsUpdate(): ((payload: object[]) => Promise<void>) | undefined {
-    const c = this.#getConfig();
-
-    return c && isFunction(c.onRowsUpdate)
-      ? c.onRowsUpdate as unknown as (payload: object[]) => Promise<void>
+  #getOnRowsUpdate(
+    config: DataProviderConfig | undefined = this.#getConfig()
+  ): ((payload: object[]) => Promise<void>) | undefined {
+    return config && isFunction(config.onRowsUpdate)
+      ? config.onRowsUpdate as unknown as (payload: object[]) => Promise<void>
       : undefined;
   }
 
@@ -1146,21 +1229,56 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
+   * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders, all for the binding the update was
+   * queued for. A visible binding's refetch keeps rejecting, so `query/crud.ts` reverts the optimistic values.
+   * The revert only ever touches the grid while the update's sheet is visible: for an off-screen sheet it reloads
+   * that sheet from the server instead, so the visible sheet's cells are never overwritten.
    *
+   * @param {object|null} binding The binding captured when the update was queued.
    * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads.
    * @param {object} [options] Optional flags.
    * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
    * @returns {Promise<void>}
    */
-  #commitRowsUpdate(rowPayloads: object[], options: { revertOptimistic?: () => void } = {}): Promise<void> {
+  #commitRowsUpdate(
+    binding: FetchBinding<DataProviderConfig> | null,
+    rowPayloads: object[],
+    options: { revertOptimistic?: () => void } = {}
+  ): Promise<void> {
+    const target = this.#mutationTarget(binding);
+    const { revertOptimistic } = options;
+
     return commitRowsUpdateCrud(this.hot, {
-      getOnRowsUpdate: () => this.#getOnRowsUpdate(),
-      fetchData: () => this.fetchData({ skipLoading: true }),
+      getOnRowsUpdate: () => this.#getOnRowsUpdate(target?.config),
+      fetchData: () => this.#refetchFor(target, { skipLoading: true }),
       logError,
       onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(
         kind as 'fetch' | 'create' | 'update' | 'remove', err),
-    }, rowPayloads, options);
+    }, rowPayloads, {
+      revertOptimistic: isFunction(revertOptimistic)
+        ? () => this.#revertUpdateFor(target, revertOptimistic)
+        : undefined,
+    });
+  }
+
+  /**
+   * Undoes a failed update's optimistic values. While the update's sheet is visible (always, without SheetsBar)
+   * the cells are reverted in place. An off-screen sheet's cells are not the grid's any more, so that sheet is
+   * reloaded from the server instead.
+   *
+   * @param {object|null} binding The update's binding.
+   * @param {function(): void} revert Restores the previous cell values in the grid.
+   */
+  #revertUpdateFor(binding: FetchBinding<DataProviderConfig> | null, revert: () => void): void {
+    if (binding === null || this.#isVisible(binding)) {
+      revert();
+
+      return;
+    }
+
+    this.#fetchFor(binding, { skipLoading: true }).catch((err) => {
+      logError('Data fetch failed:', err);
+    });
   }
 
   /**
@@ -1396,9 +1514,11 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
+    const binding = this.#currentBinding();
+
     void this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
       getRowIdOption: () => this.#getRowIdOption(),
-      commitRowsUpdate: (payloads, opts) => this.#commitRowsUpdate(payloads, opts),
+      commitRowsUpdate: (payloads, opts) => this.#commitRowsUpdate(binding, payloads, opts),
     }, valid));
   };
 
