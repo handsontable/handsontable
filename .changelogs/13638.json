@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the CSV export writing only the bottom header row when the `nestedHeaders` option is set: every header layer is now exported, one line per layer. Also fixed both the CSV and Excel exports mishandling nested headers when a column inside a header group is hidden, or when the `NestedHeaders` plugin is disabled at runtime.",
+  "type": "fixed",
+  "issueOrPR": 13638,
+  "breaking": false,
+  "framework": "none"
+}
