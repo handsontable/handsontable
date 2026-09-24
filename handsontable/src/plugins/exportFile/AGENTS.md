@@ -43,6 +43,35 @@ current scope is headers only (column, row, and nested-header tree labels).
 complete one full paint cycle — so the progress dialog actually becomes visible — before the export blocks
 the main thread. A single rAF shows nothing.
 
+## CSV specifics
+
+- **Column header lines come from `DataProvider#getColumnHeaderRows()`, never `getColumnHeaders()`
+  alone.** With the NestedHeaders plugin on, that method expands `getNestedColumnHeaders()` through
+  `expandNestedHeaderLayers()` (`utils.ts`), one line per layer, a group label repeated across its
+  colspan. The bottom-layer-only CSV was a bug (DEV-3033): XLSX and `copyPaste`'s
+  `copyColumnGroupHeaders` already wrote every layer. Keep the three in step — a header change that
+  lands in only one of them is the regression to look for.
+- **The parent-layer placeholder is deliberate.** A `range` that starts inside a group emits an empty
+  label for those columns on the parent layer, the same as the XLSX export. Repeating the group label
+  there would be friendlier to read but would split the two formats; change both or neither.
+- **`getNestedColumnHeaders()` does not check `colHeaders`.** XLSX checks `hasColumnHeaders`
+  separately; `getColumnHeaderRows()` guards on `options.colHeaders` first. A new text format must do
+  one or the other or it writes header lines the caller never asked for.
+
+## Nested headers in the data provider (both formats)
+
+- **Walk a span to its original end, not to `root + colspan`.** With HiddenColumns, the root's
+  `getHeaderSettings().colspan` is already reduced by the hidden columns, which still occupy index
+  positions inside the span. `_appendNestedHeaderWithoutHidden` takes the end from the header tree node
+  (`columnIndex + origColspan`). Stopping at `root + colspan` broke only a column hidden *strictly
+  inside* a span — hiding the first or last column happens to work — so a test with two-column groups
+  never sees it; the regression cases use a four-column group.
+- **Gate on `plugin.enabled`, not `plugin.isEnabled()`.** `isEnabled()` answers "do the settings ask for
+  the plugin"; after a runtime `disablePlugin()` the settings still carry `nestedHeaders` while the
+  plugin reports zero layers, and the export wrote no column headers at all. The same `isEnabled()`
+  pattern still guards the formulas and mergeCells lookups in `dataProvider.ts`; check it before
+  relying on a runtime-disabled plugin there.
+
 ## XLSX specifics
 
 Unit conversions, all constants at the top of `types/xlsx.ts`:
