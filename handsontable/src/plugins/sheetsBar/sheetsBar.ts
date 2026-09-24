@@ -1906,10 +1906,8 @@ export class SheetsBar extends BasePlugin {
    * insertion point on — core's `MetaManager` shifts its own cell meta the same way — so a key
    * left alone would serve its properties onto the cell that now sits at the old index.
    */
-  #onAfterCreateRow = (visualRow: number, amount: number) => {
-    this.#shiftTrackedCellMetaOnCreate(
-      'row', this.hot.toPhysicalRow(visualRow), amount, this.hot.countSourceRows(),
-    );
+  #onAfterCreateRow = (visualRow: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('row', this.hot.toPhysicalRow(visualRow), amount, source);
   };
 
   /**
@@ -1924,10 +1922,8 @@ export class SheetsBar extends BasePlugin {
    * Shifts the tracked columns at or after the first inserted column by the inserted amount,
    * for the reason `#onAfterCreateRow` gives.
    */
-  #onAfterCreateCol = (visualColumn: number, amount: number) => {
-    this.#shiftTrackedCellMetaOnCreate(
-      'col', this.hot.toPhysicalColumn(visualColumn), amount, this.hot.countSourceCols(),
-    );
+  #onAfterCreateCol = (visualColumn: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('col', this.hot.toPhysicalColumn(visualColumn), amount, source);
   };
 
   /**
@@ -1957,16 +1953,18 @@ export class SheetsBar extends BasePlugin {
    *
    * Skipped while a switch runs: the arriving sheet's map is already in place while the outgoing
    * sheet's data is still loaded, so a row the switch creates for `minRows` or `minSpareRows`
-   * describes the outgoing sheet and would shift the arriving sheet's keys. An append past the
-   * last source index is skipped too — no tracked key sits there, and `minSpareRows` appends
-   * after every edit on the last row.
+   * describes the outgoing sheet and would shift the arriving sheet's keys. An `auto` insert is
+   * skipped too, because `DataMap` does not shift core's cell meta for it (`minRows`,
+   * `minSpareRows`, and the rows a paste adds). A key can outlive its row after an `updateData`
+   * shrink, so an append is not skipped on its own; it must move such a key the way core moves
+   * its meta.
    */
   #shiftTrackedCellMetaOnCreate(
-    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, sourceCount: number,
+    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, source?: string,
   ) {
     if (
-      this.#isSwitching || this.#trackedCellMeta.size === 0 || firstPhysicalIndex === null ||
-      amount <= 0 || firstPhysicalIndex >= sourceCount - amount
+      this.#isSwitching || source === 'auto' || this.#trackedCellMeta.size === 0 ||
+      firstPhysicalIndex === null || amount <= 0
     ) {
       return;
     }

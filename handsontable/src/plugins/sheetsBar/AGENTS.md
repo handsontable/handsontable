@@ -105,7 +105,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   host removed. Physical keys are not stable across `alter()`: an insert or remove renumbers
   every physical index after it, and core's `MetaManager` shifts its own cell meta to match.
   The `afterCreateRow`/`afterRemoveRow`/`afterCreateCol`/`afterRemoveCol` handlers re-key the
-  map the same way (drop the removed indexes, shift the rest), and a host `loadData` clears
+  map the same way (drop the removed indexes, shift the rest; an `auto` insert shifts nothing,
+  because `DataMap` does not shift core meta for it either), and a host `loadData` clears
   it, because `loadData` clears core's cell meta. Any new code path that renumbers physical
   indexes must re-key it too, or the serve hook paints a cell's meta onto its neighbor. The
   re-key is skipped while `#isSwitching`: the arriving sheet's map is in place before

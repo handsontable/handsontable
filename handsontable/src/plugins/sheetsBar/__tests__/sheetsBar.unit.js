@@ -924,6 +924,17 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['u1']);
     });
 
+    it('shifts a key left past the end by an in-place shrink the way core shifts its meta', () => {
+      hot = createGridWithReadOnlyCells(4, 1, [[3, 0]]);
+
+      hot.updateData([['u0'], ['u1']]);
+      hot.alter('insert_row_below', 1);
+      hot.alter('insert_row_below', 2);
+
+      expect(hot.countRows()).toBe(4);
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+    });
+
     it('re-keys against physical indexes when the rows are sorted', () => {
       hot = new Handsontable(container, {
         sheetsBar: {
