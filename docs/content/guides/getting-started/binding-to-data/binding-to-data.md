@@ -530,9 +530,11 @@ To change the number of rows or columns rendered by default, use the [`startRows
 
 Without the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option, Handsontable reads the number of columns from the first row of your data. If that row has no fields -- for example `[{}]`, `[null]`, or `[[], [1, 2]]` -- the grid displays rows with no cells, and values in later rows are not displayed. Handsontable logs a console warning for such data.
 
-An array of empty arrays (`[[]]`) is the exception: writing to it creates the columns, so no warning is logged.
+Two cases log no warning:
+- An empty `data: []`.
+- An array of empty arrays (`[[]]`) while [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is on, because writing to it creates the columns.
 
-To define the columns, set the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option.
+To define the columns, set the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option. The check runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later update, for example from a column component rendered after the grid, can come too late to stop the warning.
 
 ## Data-manipulating API methods
 

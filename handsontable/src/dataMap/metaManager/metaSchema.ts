@@ -2084,8 +2084,10 @@ export default (): Record<string, unknown> => {
      * Unless you set the [`columns`](#columns) or [`dataSchema`](#dataSchema) option, Handsontable reads the number
      * of columns from the first row of `data`. If that row has no fields (for example, `[{}]`, `[null]`, or
      * `[[], [1, 2]]`), the grid displays rows with no cells, and values in later rows are not displayed. For such data,
-     * Handsontable logs a console warning. An array of empty arrays (`[[]]`) is the exception: it gains columns when you
-     * write to it, so no warning is logged.
+     * Handsontable logs a console warning. Two cases log no warning: an empty `data: []`, and an array of empty arrays
+     * (`[[]]`) while [`allowInsertColumn`](#allowInsertColumn) is on, because writing to it creates the columns. The check
+     * runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later
+     * update (for example, from a column component rendered after the grid) can come too late to stop the warning.
      *
      * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
      * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.

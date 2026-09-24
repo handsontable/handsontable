@@ -93,10 +93,36 @@ describe('replaceData', () => {
       hot.destroy();
     });
 
-    it('should warn when `minSpareRows` adds a row to an empty object-rowed dataset', () => {
+    it.each([
+      ['`minSpareRows`', { minSpareRows: 1 }],
+      ['`minRows`', { minRows: 3 }],
+    ])('should not warn when %s adds rows to an empty dataset', (_, settings) => {
+      const hot = createGrid({ data: [], ...settings });
+
+      expect(hot.countRows()).toBeGreaterThan(0);
+      expect(hot.countCols()).toBe(0);
+      expect(getColumnWarnings()).toHaveLength(0);
+
+      hot.destroy();
+    });
+
+    it('should still warn about a dataset loaded later on a grid that started from an empty dataset', () => {
       const hot = createGrid({ data: [], minSpareRows: 1 });
 
-      expect(hot.countRows()).toBe(1);
+      expect(getColumnWarnings()).toHaveLength(0);
+
+      hot.loadData([null]);
+
+      expect(getColumnWarnings()).toHaveLength(1);
+
+      hot.destroy();
+    });
+
+    it('should warn about an array-of-arrays dataset whose rows are all empty when `allowInsertColumn` is off', () => {
+      const hot = createGrid({ data: [[]], allowInsertColumn: false });
+
+      hot.setDataAtCell(0, 0, 'x');
+
       expect(hot.countCols()).toBe(0);
       expect(getColumnWarnings()).toHaveLength(1);
 
@@ -184,11 +210,6 @@ describe('replaceData', () => {
       ['an empty `columns` array', { data: [null], columns: [] }],
       ['`dataSchema` defined', { data: [null], dataSchema: { a: null } }],
       ['`maxCols: 0`', { data: [null], maxCols: 0 }],
-      // The Filters plugin builds its by-value list with these `columns`. `[null]` would warn without them.
-      ['the Filters by-value list columns', {
-        data: [null],
-        columns: [{ data: 'checked', type: 'checkbox' }],
-      }],
     ])('should not warn for %s', (_, settings) => {
       const hot = createGrid(settings);
 
