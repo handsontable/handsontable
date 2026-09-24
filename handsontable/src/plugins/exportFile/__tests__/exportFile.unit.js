@@ -15,6 +15,10 @@ function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
 }
 
+// `detectXlsxEngine` duck-types on a `Workbook` constructor, so this stands in for the real
+// ExcelJS module. This file runs under jsdom, which ExcelJS itself cannot be loaded in.
+const ExcelJS = { Workbook: class {} };
+
 describe('ExportFile#supportsExportFormat', () => {
   it('should return true for csv regardless of settings', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'csv')).toBe(true);
@@ -34,7 +38,14 @@ describe('ExportFile#supportsExportFormat', () => {
   });
 
   it('should return true for xlsx when an xlsx engine is configured', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'xlsx')).toBe(true);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: ExcelJS } }), 'xlsx')).toBe(true);
+  });
+
+  it('should return false for xlsx when the configured engine does not duck-type', () => {
+    // The export would reject such a configuration with `Invalid xlsx engine module.`, so the
+    // predicate has to answer `false` for it — which is what `supportsImportFormat` already does.
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'xlsx')).toBe(false);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: 42 } }), 'xlsx')).toBe(false);
   });
 
   it('should return false for an unknown format even with engines configured', () => {
@@ -44,10 +55,6 @@ describe('ExportFile#supportsExportFormat', () => {
 });
 
 describe('ExportFile#_createTypeFormatter engine resolution', () => {
-  // `detectXlsxEngine` duck-types on a `Workbook` constructor, so this stands in for the real
-  // ExcelJS module. This file runs under jsdom, which ExcelJS itself cannot be loaded in.
-  const ExcelJS = { Workbook: class {} };
-
   // The exporter resolves what it was handed exactly as `Xlsx#export` does, so the kind this
   // reports is the engine the export would have run on.
   const resolvedKind = (exportFileSettings, options) => detectXlsxEngine(

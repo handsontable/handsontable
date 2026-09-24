@@ -1,7 +1,9 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
-import { detectXlsxEngine, resolveEngineOverride, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
+import {
+  detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
+} from '../../utils/xlsxEngine/detect';
 import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
@@ -274,13 +276,7 @@ function configuredEngine(hot: HotInstance, format: string): object | undefined 
  * `null` instead of throwing when nothing usable was injected.
  */
 function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
-  const injected = resolveEngineOverride(override, configuredEngine(hot, format));
-
-  try {
-    return detectXlsxEngine(injected, PLUGIN_KEY);
-  } catch {
-    return null;
-  }
+  return tryDetectXlsxEngine(resolveEngineOverride(override, configuredEngine(hot, format)), PLUGIN_KEY);
 }
 
 /**

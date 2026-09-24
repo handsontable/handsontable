@@ -97,3 +97,20 @@ export function detectXlsxEngine(injected: unknown, optionName: string): Detecte
 
   throwWithCause(engineErrorMessage(optionName));
 }
+
+/**
+ * Detects the engine the same way `detectXlsxEngine` does, but answers `null` instead of
+ * throwing when the injected value does not duck-type to a known engine.
+ *
+ * This is what a `supports*Format` predicate runs on: both plugins have to answer `false` for a
+ * configuration the matching call would reject, so the predicate and the call must resolve the
+ * engine through the same code. Keeping the `try` here rather than in each plugin is what stops
+ * `supportsExportFormat` and `supportsImportFormat` from drifting apart again.
+ */
+export function tryDetectXlsxEngine(injected: unknown, optionName: string): DetectedXlsxEngine | null {
+  try {
+    return detectXlsxEngine(injected, optionName);
+  } catch {
+    return null;
+  }
+}

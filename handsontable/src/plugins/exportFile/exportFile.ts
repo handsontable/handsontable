@@ -3,7 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
-import { resolveEngineOverride } from '../../utils/xlsxEngine/detect';
+import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
@@ -690,14 +690,27 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when the plugin can produce an export in the given format: `'csv'` and `'xlsx'`
-   * always can, the latter through the built-in xlsx engine or the one configured in `engines`.
+   * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,
+   * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
+   * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
+   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
    */
   supportsExportFormat(format: string) {
-    return Boolean(EXPORT_TYPES[format]);
+    if (!EXPORT_TYPES[format]) {
+      return false;
+    }
+
+    if (format !== 'xlsx') {
+      return true;
+    }
+
+    const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
+
+    return tryDetectXlsxEngine(resolveEngineOverride(undefined, engines?.[format]), PLUGIN_KEY) !== null;
   }
 
   /**
