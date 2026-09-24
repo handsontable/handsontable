@@ -309,8 +309,8 @@ reported. The flag is set and reset by the caller around the one `updateSettings
 `switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
 `hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
 With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
-anything core writes there lands in it: SheetsBar zeroes the `min*` keys for that update and applies
-them after its load — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
+anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
+that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
 "loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
 while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas sheet
 switch loading again after a switch threw mid-update" pins the `finally` reset through a SheetsBar

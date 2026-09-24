@@ -178,16 +178,24 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   answers from the arriving engine sheet at the departing grid's coordinates, until the load replaces
   the data. **Core does write in that window**: `updateSettings()` ends in `adjustRowsAndCols()`,
   which pads the array the grid holds — the departing sheet's own `data`, by reference — up to the
-  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols`. So `#applySheet` splits those
-  keys out (`splitMinSizeSettings`, including a key the baseline restores): the first
-  `updateSettings()` carries them at 0 (their default), the `loadData()` follows, and a second
-  `updateSettings()` applies their real values, padding the arriving sheet's array instead. This
-  holds with or without Formulas, and for an empty engine sheet. Before, only a formula switch onto a
-  non-empty engine sheet was safe, because `switchSheet()` had loaded a throwaway copy first; a
-  workbook without Formulas and a switch onto an empty engine sheet padded the departing sheet. The cost is one extra
-  `updateSettings()` on a switch that carries such a key. Pinned in `sheetsBar.unit.js`: "loads the
-  grid once per switch", the three "does not pad a … sheet's data with the min rows …" tests, and
-  "leaves the Formulas sheet switch loading again after a switch threw mid-update". The
+  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols` — and a grid-level one does the
+  same whenever the update changes what the padding reads (a baseline restoring `columns: null`
+  opens the `minCols` branch; an arriving `trimRows` lowers `countRows()`). So `#applySheet` runs
+  that update under `#withoutAutoPadding`, and `#onBeforeAutoCreate` (registered on
+  `beforeCreateRow`/`beforeCreateCol` at the top of `enablePlugin`, so the init build is covered
+  too) vetoes every create with source `auto` while it is set. The `loadData()` that follows pads
+  the arriving sheet's data inside its own `adjustRowsAndCols()`, before `afterLoadData`, exactly as
+  a plain load does, so host listeners, the AutoColumnSize sweep and the Formulas engine write all
+  see the padded size. Do not replace the veto with a zero-then-reapply of the `min*` keys: that
+  missed grid-level keys, ran a second `updateSettings()` (a second Formulas `setSheetContent` and
+  engine undo entry per switch, and a second host `afterUpdateSettings`), and moved the padding
+  after `afterLoadData`. The listener returns `undefined` rather than `true` when it does not veto,
+  so it never overrides another listener's `false`. Before this, only a formula switch onto a
+  non-empty engine sheet was safe (`switchSheet()` loaded a throwaway copy first); a workbook without
+  Formulas and a switch onto an empty engine sheet padded the departing sheet. Pinned in
+  `sheetsBar.unit.js`: "loads the grid once per switch", the four "does not pad a … sheet's data …"
+  tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch",
+  and "leaves the Formulas sheet switch loading again after a switch threw mid-update". The
   `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before

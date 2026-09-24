@@ -1447,14 +1447,84 @@ describe('SheetsBar plugin', () => {
 
     expect(() => hot.getPlugin('sheetsBar').setActiveSheet('Rates')).toThrow('update failed');
     expect(formulas.skipSheetSwitchLoad).toBe(false);
-
-    const otherSheet = formulas.sheetName === 'Budget' ? 'Rates' : 'Budget';
+    expect(formulas.sheetName).toBe('Rates');
 
     loadSources.length = 0;
-    hot.updateSettings({ formulas: { engine, sheetName: otherSheet } });
+    hot.updateSettings({ formulas: { engine, sheetName: 'Budget' } });
 
     expect(loadSources).toEqual(['Formulas.switchSheet']);
-    expect(formulas.sheetName).toBe(otherSheet);
+    expect(formulas.sheetName).toBe('Budget');
+  });
+
+  it('does not pad a sheet\'s data with a grid-level min cols setting its columns hid', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const budgetData = [[1, 2, 3], [4, 5, 6]];
+
+    hot = new Handsontable(container, {
+      minCols: 5,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: budgetData,
+            settings: { formulas: { engine, sheetName: 'Budget' }, columns: [{}, {}, {}] },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Rates');
+
+    expect(hot.countCols()).toBe(5);
+    expect(budgetData).toEqual([[1, 2, 3], [4, 5, 6]]);
+
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.countCols()).toBe(3);
+    expect(budgetData).toEqual([[1, 2, 3], [4, 5, 6]]);
+  });
+
+  it('pads the arriving sheet before its afterLoadData, with one settings update per switch', () => {
+    const counts = { afterUpdateSettings: 0 };
+    let rowsAtLoad = null;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'First', data: [['a']] },
+          { name: 'Second', data: [['x']], settings: { minRows: 4 } },
+        ],
+      },
+      afterUpdateSettings() {
+        counts.afterUpdateSettings += 1;
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        if (source.endsWith('.switch')) {
+          rowsAtLoad = sourceData.length;
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    counts.afterUpdateSettings = 0;
+    sheetsBar.setActiveSheet('Second');
+
+    expect(counts.afterUpdateSettings).toBe(1);
+    expect(rowsAtLoad).toBe(4);
+
+    counts.afterUpdateSettings = 0;
+    sheetsBar.setActiveSheet('First');
+
+    expect(counts.afterUpdateSettings).toBe(1);
+    expect(rowsAtLoad).toBe(1);
   });
 
   it('reports an unknown Formulas sheet name even while the switch load is skipped', () => {

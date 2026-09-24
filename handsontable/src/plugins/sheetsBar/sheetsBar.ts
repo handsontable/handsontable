@@ -180,34 +180,6 @@ function formulasSettingOf(sheet: Sheet): SheetFormulas | null {
 }
 
 /**
- * The settings that make core pad the data array the grid holds: both `updateSettings()` and
- * `loadData()` end in `adjustRowsAndCols()`. Each one's neutral value is 0, its default.
- */
-const MIN_SIZE_SETTINGS = ['minRows', 'minSpareRows', 'minCols', 'minSpareCols'];
-
-/**
- * Splits the `min*` keys out of a sheet's settings. `rest` carries them at 0, so an update applied
- * while the grid still holds the departing sheet pads nothing; `minSizes` carries their real
- * values, to be applied once the arriving sheet's data is loaded. `minSizes` is `null` when the
- * settings name none of them.
- */
-function splitMinSizeSettings(settings: Record<string, unknown>): {
-  rest: Record<string, unknown>;
-  minSizes: Record<string, unknown> | null;
-} {
-  const keys = MIN_SIZE_SETTINGS.filter(key => key in settings);
-
-  if (keys.length === 0) {
-    return { rest: settings, minSizes: null };
-  }
-
-  return {
-    rest: { ...settings, ...Object.fromEntries(keys.map(key => [key, 0])) },
-    minSizes: Object.fromEntries(keys.map(key => [key, settings[key]])),
-  };
-}
-
-/**
  * Whether the engine is a built HyperFormula instance the sheets bar can register sheets in —
  * as opposed to the `HyperFormula` class, which only builds one.
  */
@@ -379,6 +351,14 @@ export class SheetsBar extends BasePlugin {
    */
   #retainActiveName: string | null = null;
   /**
+   * Set while `#applySheet` applies a sheet's settings. The grid still holds the departing sheet's
+   * data then, so the rows and columns core adds to meet the `min*` settings are vetoed
+   * (`#onBeforeAutoCreate`); the `loadData()` that follows pads the arriving sheet's data instead.
+   *
+   * @type {boolean}
+   */
+  #blockAutoPadding = false;
+  /**
    * Owns the per-tab and all-sheets dropdown menus.
    *
    * @type {SheetsBarMenus | null}
@@ -453,6 +433,9 @@ export class SheetsBar extends BasePlugin {
     if (this.enabled || this.#isInitializing) {
       return;
     }
+
+    this.addHook('beforeCreateRow', this.#onBeforeAutoCreate);
+    this.addHook('beforeCreateCol', this.#onBeforeAutoCreate);
 
     // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
     // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
@@ -1107,22 +1090,20 @@ export class SheetsBar extends BasePlugin {
    * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
    * grid-level values. Batches the operation into a single render when the grid's view
    * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it. The `min*` keys are applied after the data, so the
-   * rows and columns they add land in the arriving sheet's array, never the departing one's.
+   * the grid's own startup render covers it. The settings update runs with core's `min*` padding
+   * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
+   * the arriving sheet's data before its `afterLoadData`.
    */
   #applySheet(sheet: Sheet, source: string) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
-      const { rest, minSizes } = settings ? splitMinSizeSettings(settings) : { rest: null, minSizes: null };
 
-      if (rest) {
-        this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(rest));
+      if (settings) {
+        this.#withoutAutoPadding(() => {
+          this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+        });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
-
-      if (minSizes) {
-        this.hot.updateSettings(minSizes);
-      }
     };
 
     if (this.hot.view) {
@@ -1862,7 +1843,7 @@ export class SheetsBar extends BasePlugin {
    * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
    * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
    * The grid still holds the departing sheet's data during that update, which is why `#applySheet`
-   * zeroes the `min*` keys for it (`splitMinSizeSettings`).
+   * also runs it under `#withoutAutoPadding`.
    *
    * @param {Function} update The operation to run.
    */
@@ -1883,6 +1864,33 @@ export class SheetsBar extends BasePlugin {
       formulas.skipSheetSwitchLoad = false;
     }
   }
+
+  /**
+   * Runs an operation with core's `min*` padding vetoed (`#blockAutoPadding`), restoring the
+   * previous state in a `finally` so a throwing listener cannot leave padding blocked.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutAutoPadding(update: () => void) {
+    const previous = this.#blockAutoPadding;
+
+    this.#blockAutoPadding = true;
+
+    try {
+      update();
+    } finally {
+      this.#blockAutoPadding = previous;
+    }
+  }
+
+  /**
+   * Vetoes a row or column core creates with source `auto` (the `min*` padding in
+   * `adjustRowsAndCols()`) while `#blockAutoPadding` is set. Any other creation, and any creation
+   * outside that window, is left to the other listeners: `undefined` keeps their verdict.
+   */
+  #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
+    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
 
   /**
    * Updates the bar's theme when the grid's theme changes.
