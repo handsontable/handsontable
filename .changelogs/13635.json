@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the selection handles (`selectionHandles`) were drawn on the frozen column or row line in the middle of a selection that spans a frozen pane, and duplicated on its edges.",
+  "type": "fixed",
+  "issueOrPR": 13635,
+  "breaking": false,
+  "framework": "none"
+}
