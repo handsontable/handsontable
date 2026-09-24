@@ -549,14 +549,16 @@ export const REGISTERED_HOOKS = [
    * Fired when the dataProvider fetch throws an error (e.g. network error).
    *
    * With the {@link SheetsBar} plugin, it also fires for a sheet you have switched away from, right when its
-   * fetch fails; `isVisible` is then `false`, and the error notification waits until you switch back to that sheet.
+   * fetch fails; `isVisible` is then passed as `false`, and the error notification waits until you switch back to
+   * that sheet.
    *
    * @event Hooks#afterDataProviderFetchError
    * @since 17.1.0
    * @param {Error} error The thrown error.
    * @param {object} queryParameters The query parameters that were used for the request.
-   * @param {boolean} isVisible `false` when the request was made for a {@link SheetsBar} sheet other than the one
-   * the grid shows; `true` otherwise.
+   * @param {boolean} [isVisible] Passed as `false` when the request was made for a {@link SheetsBar} sheet other
+   * than the one the grid shows; omitted otherwise, so a grid without SheetsBar gets the same two arguments as
+   * before.
    */
   'afterDataProviderFetchError',
 

@@ -83,8 +83,8 @@ hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataP
   }
 });
 
-const onFetchError = (error: Error, queryParameters: DataProviderQueryParameters, isVisible: boolean) => {
-  const visible: boolean = isVisible;
+const onFetchError = (error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean) => {
+  const visible: boolean = isVisible !== false;
 
   void visible;
 };

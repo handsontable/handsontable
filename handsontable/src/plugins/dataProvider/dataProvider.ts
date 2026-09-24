@@ -880,7 +880,11 @@ export class DataProvider extends BasePlugin {
 
       const isVisible = this.#isVisible(binding);
 
-      this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params), isVisible);
+      if (isVisible) {
+        this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
+      } else {
+        this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params), false);
+      }
 
       if (!isVisible) {
         state.failure = err;
