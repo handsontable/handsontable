@@ -119,11 +119,14 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(serverPage).toEqual(['ORD-24', 'ORD-25', 'ORD-22', 'ORD-23', 'ORD-20']);
 
       await grid.clickTab(1);
+      const eventsBeforeReturn = (await grid.events()).length;
+
       await grid.clickTab(0);
 
       expect(await grid.ids()).toEqual(serverPage);
       expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
       expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
+      expect((await grid.events()).slice(eventsBeforeReturn)).toEqual([`afterFetch ${serverPage[0]}`]);
     });
 
     test('returning to a filtered server sheet keeps the server result instead of filtering locally', async({

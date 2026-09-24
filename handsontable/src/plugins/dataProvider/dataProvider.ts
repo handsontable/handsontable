@@ -972,7 +972,11 @@ export class DataProvider extends BasePlugin {
 
     if (state?.lastResult) {
       this.#queryParameters = this.#snapshotQueryParameters(state.queryParameters);
-      this.hot.runHooks('afterDataProviderFetch', { ...state.lastResult, rows: binding.data });
+      this.hot.runHooks('afterDataProviderFetch', {
+        ...state.lastResult,
+        rows: binding.data,
+        queryParameters: this.#snapshotQueryParameters(state.queryParameters),
+      });
       this.hot.render();
 
       return;

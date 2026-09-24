@@ -271,7 +271,8 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
-   * The `fetch <prefix> #<n>` and `afterDataProviderFetch*` events recorded so far, in order.
+   * The `fetch <prefix> #<n>`, `afterDataProviderFetch*`, and `afterColumnSort` events recorded so far, in
+   * order.
    *
    * @returns {Promise<string[]>} The recorded events.
    */

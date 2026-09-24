@@ -56,7 +56,8 @@
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
     assert on it directly instead of reading the browser's own console. `window.htServer.events`
-    records `fetch <prefix> #<n>` and the `afterDataProviderFetch*` hook firings in order.
+    records `fetch <prefix> #<n>`, the `afterDataProviderFetch*` hook firings, and every
+    `afterColumnSort` (fired only by a sort ColumnSorting runs itself) in order.
 
     Cells carry `data-testid="cell-<row>-<col>"`; the tabs carry `data-testid="sheet-tab-<index>"`.
   -->
@@ -237,6 +238,9 @@
         },
         afterDataProviderFetchAbort() {
           server.events.push('afterAbort');
+        },
+        afterColumnSort() {
+          server.events.push('afterColumnSort');
         },
         licenseKey: 'non-commercial-and-evaluation',
       });
