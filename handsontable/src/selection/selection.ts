@@ -1562,8 +1562,8 @@ class Selection {
    *
    * The hovered layer is read only when the borders are drawn (`isAdjustHandlesVisibleFor`), so a
    * redraw is all it needs. It must not replay the selection through `refresh()`: a replay fires the
-   * public selection hooks on every hover, and the Core scrolls the viewport to the replayed range's
-   * end, which stalled and snapped back a wheel scroll made with the pointer over a selection.
+   * public selection hooks on every hover, and the Core scrolls the replayed range back into view,
+   * which stalled and snapped back a wheel scroll made with the pointer over a selection.
    *
    * @private
    * @param {number | null} layer The hovered layer level, or `null` to hide all handles.

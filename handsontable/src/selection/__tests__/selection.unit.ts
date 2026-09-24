@@ -167,6 +167,8 @@ describe('Selection', () => {
       ]);
     });
 
+    // Pins the equality guard, which predates the fix: this passes with `refresh()` restored too.
+    // The test above is the one that fails on a selection replay.
     it('fires nothing when the hovered layer does not change', () => {
       const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
 

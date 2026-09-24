@@ -37,9 +37,17 @@
     const buildData = () => Array.from({ length: 10 }, (_, r) =>
       Array.from({ length: 10 }, (_, c) => `R${r + 1}C${c + 1}`));
 
+    // Counts renderer calls that paint a cell of the grid itself. The auto-size samplers run the
+    // renderer into detached ghost tables too, and those are measurements, not paints.
+    window.cellPaintCount = 0;
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
+
+      if (container.contains(td)) {
+        window.cellPaintCount += 1;
+      }
     };
 
     // (Re)creates the grid with the default selection-feature settings merged
@@ -113,8 +121,15 @@
 
       // Added after construction rather than through the settings, so an `overrides` object can
       // never replace these listeners.
-      window.hot.addHook('afterSelection', () => window.selectionHookLog.push('afterSelection'));
-      window.hot.addHook('afterSelectionEnd', () => window.selectionHookLog.push('afterSelectionEnd'));
+      [
+        'beforeSetRangeEnd',
+        'afterSelection',
+        'afterSelectionByProp',
+        'afterSelectionEnd',
+        'afterSelectionEndByProp',
+      ].forEach((hookName) => {
+        window.hot.addHook(hookName, () => window.selectionHookLog.push(hookName));
+      });
 
       return true;
     };

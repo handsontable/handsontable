@@ -849,10 +849,25 @@ export class SelectionFeaturesPage {
     return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollTop);
   }
 
-  /** Scroll the master holder to its top edge. */
+  /** Scroll the master holder to its top edge, and wait until the first row is rendered. */
   async scrollToTop(): Promise<void> {
     await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0 }));
-    await expect.poll(() => this.verticalScrollOffset()).toBe(0);
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /** Select several ranges at once, one selection layer per range, through the instance API. */
+  async selectLayers(ranges: Array<[number, number, number, number]>): Promise<void> {
+    await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
+  }
+
+  /** The visible bottom-edge resize handle in the master overlay. */
+  visibleBottomHandle(): Locator {
+    return this.page.locator('.ht_master .wtSelectionHandle--bottom:visible');
+  }
+
+  /** How many times the renderer has painted a cell of the grid since the grid was built. */
+  async cellPaintCount(): Promise<number> {
+    return this.page.evaluate(() => window.cellPaintCount);
   }
 
   /** The selection layer the handles are shown for, or `null` when the pointer is over none. */

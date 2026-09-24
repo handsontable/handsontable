@@ -382,6 +382,8 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Names of the public selection hooks fired on the selection-features fixture grid. */
     selectionHookLog: string[];
+    /** Renderer calls that painted a cell of the selection-features fixture grid. */
+    cellPaintCount: number;
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
     /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */

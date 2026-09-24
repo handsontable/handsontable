@@ -511,10 +511,48 @@ test.describe('selectionHandles hover', () => {
     await grid.hoverCell(3, 2);
     await expect(grid.visibleHandles()).toHaveCount(4);
 
-    await grid.hoverCell(8, 6);
+    await grid.hoverCell(0, 0);
     await expect(grid.visibleHandles()).toHaveCount(0);
 
     expect(await grid.selectionHookLog()).toEqual([]);
+  });
+
+  test('repaints no cell when the pointer enters and leaves a selection', async () => {
+    await grid.selectCells(2, 1, 4, 3);
+    await grid.hoverCell(0, 0);
+
+    const paintsBefore = await grid.cellPaintCount();
+
+    await grid.hoverCell(3, 2);
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    await grid.hoverCell(0, 0);
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    // Showing and hiding the handles is a border redraw. A full render would repaint every
+    // rendered cell on each hover, which is what a hover during a scroll must not pay.
+    expect(await grid.cellPaintCount()).toBe(paintsBefore);
+  });
+
+  test('moves the handles straight from one selection layer to another', async () => {
+    await grid.selectLayers([[2, 1, 6, 2], [2, 3, 7, 4]]);
+
+    await grid.hoverCell(4, 1);
+    await expect(grid.visibleHandles()).toHaveCount(4);
+    expect(await grid.handlesHoveredLayer()).toBe(0);
+
+    const firstLayerBottomHandle = await grid.visibleBottomHandle().boundingBox();
+
+    // No hover over an unselected cell in between: the layer changes from 0 to 1 directly.
+    await grid.hoverCell(4, 3);
+    await expect.poll(() => grid.handlesHoveredLayer()).toBe(1);
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    const secondLayerBottomHandle = await grid.visibleBottomHandle().boundingBox();
+
+    // The second layer ends one row lower and sits two columns to the inline end.
+    expect(secondLayerBottomHandle!.y).toBeGreaterThan(firstLayerBottomHandle!.y);
+    expect(secondLayerBottomHandle!.x).toBeGreaterThan(firstLayerBottomHandle!.x);
   });
 
   test('scrolls by the full wheel distance while the pointer rests over a selection', async () => {

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed wheel and trackpad scrolling that stalled and jumped while the cursor was over a selection with `selectionHandles` enabled, and stopped hovering a selection from firing the `afterSelection` and `afterSelectionEnd` hooks.",
+  "title": "Fixed wheel and trackpad scrolling that stalled and jumped while the cursor was over a selection with `selectionHandles` enabled, and stopped hovering a selection from firing the selection hooks.",
   "type": "fixed",
   "issueOrPR": 13633,
   "breaking": false,
