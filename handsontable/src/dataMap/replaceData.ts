@@ -9,6 +9,10 @@ import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
 import { runSourceDataValidators } from './sourceDataValidator';
 import { throwWithCause } from '../helpers/errors';
+import { isDefined } from '../helpers/mixed';
+import { warnOnce } from '../helpers/console';
+import { countFirstRowKeys } from '../helpers/data';
+
 /**
  * Configuration for the replaceData function.
  */
@@ -59,6 +63,56 @@ function buildNullData(
   }
 
   return data;
+}
+
+/**
+ * Warns, once per instance, when the loaded dataset resolves to rows with no columns and nothing in the
+ * configuration declares any.
+ *
+ * Without `columns` or `dataSchema`, the column count is read from the first data row alone. A first
+ * row that is empty or not a row at all (`[null]`, `[{}]`, `[[], [1, 2]]`) therefore leaves a grid
+ * that displays rows with no cells, and says nothing about it.
+ *
+ * The degenerate shape stays supported, so this only warns. An array-of-arrays grid whose rows are
+ * all empty (`[[]]`) is not warned about: writing to it creates the columns, the same way an empty
+ * `data: []` is bootstrapped. An object-rowed grid cannot gain a column, and a later row with values
+ * means data the grid does not display, so both are warned about.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {unknown[]} data The loaded dataset.
+ */
+function warnAboutUndetectableColumns(hotInstance: HotInstance, data: unknown[]) {
+  const { columns, dataSchema, maxCols } = hotInstance.getSettings();
+
+  if (
+    hotInstance.countSourceRows() === 0 ||
+    hotInstance.columnIndexMapper.getNumberOfIndexes() > 0 ||
+    isDefined(columns) ||
+    isDefined(dataSchema) ||
+    maxCols === 0
+  ) {
+    return;
+  }
+
+  // An index loop, not `data.some()`: `data` may be a duck-typed collection (`push` and `splice`
+  // are all `replaceData()` checks for), with no Array methods of its own.
+  let hidesValues = false;
+
+  for (let index = 1; index < data.length && !hidesValues; index++) {
+    hidesValues = countFirstRowKeys([data[index]]) > 0;
+  }
+
+  if (hotInstance.dataType === 'array' && !hidesValues) {
+    return;
+  }
+
+  const hiddenFieldsNote = hidesValues ? ', while later rows have fields that no column displays' : '';
+
+  warnOnce(hotInstance, 'replaceData.undetectableColumns',
+    'Handsontable found no columns in the data source, so the grid displays rows with no cells. ' +
+    'Without the `columns` or `dataSchema` option, the number of columns is read from the first ' +
+    `row of \`data\`, and it has no fields${hiddenFieldsNote}. Define the columns with the ` +
+    '`columns` or `dataSchema` option, or start `data` with a row that contains every field.');
 }
 
 /**
@@ -150,6 +204,9 @@ function replaceData(
 
   // Run the logic for reassuring that the table structure fits the new dataset.
   callbackFunction(newDataMap);
+
+  // After the callback, because `adjustRowsAndCols()` in it applies `minCols` and `minSpareCols`.
+  warnAboutUndetectableColumns(hotInstance, data as unknown[]);
 
   if (!firstRun) {
     runSourceDataValidators(hotInstance, internalSource);

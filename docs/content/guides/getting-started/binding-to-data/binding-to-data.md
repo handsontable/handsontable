@@ -526,6 +526,14 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
 
+### Data with an empty first row
+
+Without the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option, Handsontable reads the number of columns from the first row of your data. If that row has no fields -- for example `[{}]`, `[null]`, or `[[], [1, 2]]` -- the grid displays rows with no cells, and values in later rows are not displayed. Handsontable logs a console warning for such data.
+
+An array of empty arrays (`[[]]`) is the exception: writing to it creates the columns, so no warning is logged.
+
+To define the columns, set the [`columns`](@/api/options.md#columns) or [`dataSchema`](@/api/options.md#dataschema) option.
+
 ## Data-manipulating API methods
 
 ### Understand binding as a reference
