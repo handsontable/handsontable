@@ -67,7 +67,6 @@ test.describe('sheets bar', () => {
 
     await bar.cell(1, 1).click();
     await page.keyboard.press('ControlOrMeta+z');
-    await page.keyboard.press('ControlOrMeta+z');
 
     await bar.expectCell(0, 0, 'A3');
   });

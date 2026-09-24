@@ -1354,6 +1354,36 @@ describe('SheetsBar plugin', () => {
     expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
   });
 
+  it('records a cell edit made after a sheet round-trip on the undo stack', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      columnSorting: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    hot.setDataAtCell(0, 0, 9);
+
+    expect(undoRedo.ignoreNewActions).toBe(false);
+    expect(undoRedo.isUndoAvailable()).toBe(true);
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+  });
+
   it('keeps the restored filter and merge off the undo stack after a sheet round-trip', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
