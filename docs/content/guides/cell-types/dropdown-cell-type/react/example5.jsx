@@ -21,16 +21,18 @@ const jobTitles = [
   'Office Manager',
 ];
 
+const data = [
+  ['Ana García', 'Senior Software Engineer', 'Senior Software Engineer'],
+  ['James Okafor', 'Product Manager', 'Product Manager'],
+  ['Li Wei', 'Data Scientist', 'Data Scientist'],
+  ['Sofia Rossi', 'Account Executive', 'Account Executive'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       height="auto"
-      data={[
-        ['Ana García', 'Senior Software Engineer', 'Senior Software Engineer'],
-        ['James Okafor', 'Product Manager', 'Product Manager'],
-        ['Li Wei', 'Data Scientist', 'Data Scientist'],
-        ['Sofia Rossi', 'Account Executive', 'Account Executive'],
-      ]}
+      data={data}
       colHeaders={['Employee', 'Job title (default)', 'Job title (compact)']}
       columns={[
         {},

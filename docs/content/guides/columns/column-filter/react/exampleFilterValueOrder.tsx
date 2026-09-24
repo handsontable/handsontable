@@ -16,17 +16,19 @@ const orderBy = (order: string[]) => (a: unknown, b: unknown): number => {
   return rank(a) - rank(b);
 };
 
+const data = [
+  { task: 'Fix login timeout', priority: 'High', size: 'M' },
+  { task: 'Update privacy page', priority: 'Low', size: 'XS' },
+  { task: 'Database failover', priority: 'Critical', size: 'XL' },
+  { task: 'Refresh icons', priority: 'Medium', size: 'S' },
+  { task: 'Rotate API keys', priority: 'High', size: 'L' },
+  { task: 'Archive old reports', priority: '', size: 'S' },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        { task: 'Fix login timeout', priority: 'High', size: 'M' },
-        { task: 'Update privacy page', priority: 'Low', size: 'XS' },
-        { task: 'Database failover', priority: 'Critical', size: 'XL' },
-        { task: 'Refresh icons', priority: 'Medium', size: 'S' },
-        { task: 'Rotate API keys', priority: 'High', size: 'L' },
-        { task: 'Archive old reports', priority: '', size: 'S' },
-      ]}
+      data={data}
       columns={[
         { title: 'Task', data: 'task', type: 'text' },
         {

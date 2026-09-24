@@ -5,6 +5,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['North America', 420000, 465000, 501000],
+  ['Europe', 388000, 402000, 411000],
+  ['APAC', 275000, 298000, 312000],
+  ['Latin America', 142000, 151000, 158000],
+  ['Middle East', 96000, 101000, 108000],
+];
+
 const ExampleComponent = () => {
   const [output, setOutput] = useState('');
 
@@ -19,13 +27,7 @@ const ExampleComponent = () => {
           'Select cells, then press Ctrl+M (or use the context menu) to merge or unmerge them. Hook activity appears here.'}
       </output>
       <HotTable
-        data={[
-          ['North America', 420000, 465000, 501000],
-          ['Europe', 388000, 402000, 411000],
-          ['APAC', 275000, 298000, 312000],
-          ['Latin America', 142000, 151000, 158000],
-          ['Middle East', 96000, 101000, 108000],
-        ]}
+        data={data}
         colHeaders={['Region', 'Jan 2025', 'Feb 2025', 'Mar 2025']}
         rowHeaders={true}
         height="auto"

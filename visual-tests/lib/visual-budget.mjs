@@ -1,0 +1,320 @@
+import { stripHtmlComments } from '../../.github/scripts/lib/strip-html-comments.mjs';
+
+/**
+ * The marker that lets a pull request grow the golden set.
+ *
+ * Deliberately forgiving about the separator and strict about the number. An author writing this by
+ * hand types whichever dash their editor produces — `-`, `–` or `—` — or reaches for a colon, and a
+ * gate that refuses the wrong dash teaches people that the gate is broken rather than that the number
+ * matters. The number is the part that has to be exact, because it is checked against the file.
+ *
+ * `\[visual budget: 1700 — the pagination demo grows a leg\]` and
+ * `[visual budget: 1700 - ...]` are the same marker.
+ */
+const MARKER = /\[visual budget:\s*(\d+)\s*[-–—:]\s*([^\]]+)\]/i;
+
+/**
+ * How the gate prints the marker back when it is missing. One spelling in the message, whatever the
+ * author later types.
+ */
+export const MARKER_TEMPLATE = '[visual budget: N — why the set has to grow]';
+
+/**
+ * Every item this build actually rendered.
+ *
+ * The RAW comparison result, so a quarantined item still counts: the flake ledger (G5) subtracts
+ * quarantined items from the FAILING count so they stop blocking, which must never also subtract them
+ * from the SIZE. A quarantined record is a record — it is fetched, rendered, compared and stored like
+ * any other, and a budget that stopped counting it would let the set grow by quarantining.
+ *
+ * That is a CONTRACT on G5, not a property this file can enforce: the quarantine must subtract in the
+ * verdict it computes and leave `out.json` alone. Rewriting the file on disk would silently hand this
+ * function a filtered set, since the budget step runs after the gate.
+ *
+ * `deletedItems` are in the baseline and not in this render, so they are not rendered by definition.
+ *
+ * @param {object} report A reg-suit `out.json`.
+ * @returns {string[]} Every rendered item path.
+ */
+export function renderedItems(report) {
+  return [
+    ...(report?.passedItems ?? []),
+    ...(report?.newItems ?? []),
+    ...(report?.failedItems ?? []),
+  ];
+}
+
+/**
+ * Count rendered items per variant prefix (`js/chromium-theme-main/`, `cross-browser/webkit/`, …).
+ *
+ * @param {string[]} items Rendered item paths.
+ * @returns {Map<string, number>} Prefix to count, for the prefixes this build rendered.
+ */
+export function countByPrefix(items) {
+  const counts = new Map();
+
+  items.forEach((item) => {
+    const prefix = `${item.split('/').slice(0, 2).join('/')}/`;
+
+    counts.set(prefix, (counts.get(prefix) ?? 0) + 1);
+  });
+
+  return counts;
+}
+
+/**
+ * Count captures per spec, ignoring which variant rendered them.
+ *
+ * A spec's captures are the same wherever it renders, so the cap is about the spec and the highest
+ * per-variant count is what it costs. Summing across variants instead would make the cap a function
+ * of the tier, and a `pr`-tier build would appear to comply while a nightly did not.
+ *
+ * @param {string[]} items Rendered item paths.
+ * @returns {Map<string, number>} Reg-suit stem (the path without its variant prefix and `-N.png`) to
+ * the largest number of captures any single variant took of it.
+ */
+export function countByStem(items) {
+  const perVariant = new Map();
+
+  items.forEach((item) => {
+    const segments = item.split('/');
+    const prefix = segments.slice(0, 2).join('/');
+    const stem = segments.slice(2).join('/').replace(/-\d+\.png$/, '');
+
+    const key = `${prefix}::${stem}`;
+
+    perVariant.set(key, (perVariant.get(key) ?? 0) + 1);
+  });
+
+  const stems = new Map();
+
+  perVariant.forEach((count, key) => {
+    const stem = key.slice(key.indexOf('::') + 2);
+
+    stems.set(stem, Math.max(stems.get(stem) ?? 0, count));
+  });
+
+  return stems;
+}
+
+/**
+ * Read the growth marker out of a pull-request description.
+ *
+ * @param {string} body The description, as the API returns it.
+ * @returns {{total: number, reason: string} | null} The declared total and reason, or null.
+ */
+export function readMarker(body) {
+  const match = MARKER.exec(stripHtmlComments(body ?? ''));
+
+  if (!match) {
+    return null;
+  }
+
+  return { total: Number(match[1]), reason: match[2].trim() };
+}
+
+/**
+ * The full-tier total the budget file describes.
+ *
+ * @param {object} budget The parsed `visual-budget.json`.
+ * @returns {number} The sum of every prefix.
+ */
+export function budgetTotal(budget) {
+  return Object.values(budget.prefixes).reduce((sum, count) => sum + count, 0);
+}
+
+/**
+ * Judges one build against the budget file.
+ *
+ * Four questions, in the order a reader would ask them:
+ *
+ * 1. did this build render a prefix nobody budgeted? A new variant is the largest possible growth and
+ *    the easiest to add by accident — a tier gains a theme and 240 records arrive with it;
+ * 2. is any prefix over its number? Per prefix, never on the total, because a `pr`-tier build renders
+ *    two of the eleven and its 480 records would clear a 1676 ceiling without meaning anything;
+ * 3. does any spec take more captures than the cap allows, without a ticketed exception?
+ * 4. and did this pull request RAISE the file? If so the description has to say so, with the number.
+ *
+ * Question 4 keys on the budget FILE's own diff against the base branch, not on reg-suit's
+ * `newItems`/`deletedItems`. Three things go wrong when it keys on the counts instead, and all three
+ * were found by review rather than by reasoning:
+ *
+ * - a rename nets to zero — the same count deleted and added — while the set is free to grow around it;
+ * - a bootstrap build has no baseline, so every rendered record is reported as new; the check then has
+ *   to be switched off there, and the first pull request into a new base branch can add any number of
+ *   records while raising the ceiling to match, in the same commit, with nothing red. On `lts/*`, where
+ *   nothing re-seeds, that render becomes the permanent baseline;
+ * - and a build that adds records WITHOUT raising the file is already caught by question 2, so keying
+ *   on the counts was asking the same question twice and missing the one that mattered.
+ *
+ * Shrinking is never a violation: a trim, and a spec that stops declaring a variant, both legitimately
+ * render fewer records than the file allows — the shape `visual-tests/AGENTS.md` → Tiers describes,
+ * where a trim shows `deleted > 0` and a count under the budget together. The note asks for the file to
+ * come down in the same change. It cannot be left undone: `lib/__tests__/visual-declarations.test.mjs`
+ * derives the eleven counts from the checked-in specs and asserts them EQUAL to this file, so a trim
+ * that does not lower it fails the tooling suite. Under-budget is a note here because the render is not
+ * where that is enforced, not because nothing enforces it.
+ *
+ * @param {object} options Everything the judgement needs.
+ * @param {object} options.report The raw reg-suit `out.json` for this build.
+ * @param {object} options.budget The parsed `visual-budget.json`.
+ * @param {string} [options.body] The pull-request description, for the growth marker.
+ * @param {boolean} [options.isPullRequest] Whether a marker can be asked for at all.
+ * @param {object|null} [options.baseBudget] The budget file as the BASE branch has it, or null when it
+ * could not be read — in which case the growth question is reported as unanswered rather than passed.
+ * @returns {{pass: boolean, violations: string[], notes: string[], comment: string, summary: string}}
+ * The verdict, the reasons, and the section to prepend to the gate's comment.
+ */
+export function evaluateBudget({ report, budget, body = '', isPullRequest = true, baseBudget = null }) {
+  const items = renderedItems(report);
+  const rendered = countByPrefix(items);
+  const violations = [];
+  const notes = [];
+  const advisories = [];
+
+  const unbudgeted = [...rendered.keys()].filter(prefix => !(prefix in budget.prefixes)).sort();
+
+  unbudgeted.forEach((prefix) => {
+    violations.push(`\`${prefix}\` rendered ${rendered.get(prefix)} record(s) and is not in `
+      + 'visual-budget.json. A variant nobody budgeted is the largest kind of growth: add the prefix '
+      + 'with its count, and declare the new total in the description.');
+  });
+
+  [...rendered.entries()].sort().forEach(([prefix, count]) => {
+    const allowed = budget.prefixes[prefix];
+
+    if (allowed === undefined) {
+      return;
+    }
+
+    if (count > allowed) {
+      violations.push(`\`${prefix}\` rendered ${count} record(s), budget ${allowed} (+${count - allowed}).`);
+    } else if (count < allowed) {
+      notes.push(`\`${prefix}\` rendered ${count}, budget ${allowed} (−${allowed - count}).`);
+    }
+  });
+
+  const cap = budget.captureCap;
+
+  [...countByStem(items).entries()].sort().forEach(([stem, captures]) => {
+    if (captures <= cap) {
+      return;
+    }
+
+    const exception = budget.capExceptions?.[stem];
+
+    if (!exception) {
+      violations.push(`\`${stem}\` takes ${captures} captures, cap ${cap}. One capture per distinct `
+        + 'visual state — a second angle on the same state is not a second state. If it genuinely '
+        + 'needs more, add it to `capExceptions` with the ticket that will bring it down.');
+
+      return;
+    }
+
+    if (!exception.ticket) {
+      violations.push(`\`${stem}\` is in \`capExceptions\` with no \`ticket\`. An exception without one `
+        + 'is the policy, not an exception to it.');
+
+      return;
+    }
+
+    if (captures > exception.captures) {
+      violations.push(`\`${stem}\` takes ${captures} captures; its exception allows `
+        + `${exception.captures} (${exception.ticket}). An exception is a ceiling on what is already `
+        + 'there, not a licence to keep adding.');
+    }
+  });
+
+  const marker = readMarker(body);
+  const total = budgetTotal(budget);
+
+  if (isPullRequest && baseBudget === null) {
+    // An advisory, deliberately NOT a note: `notes` means "a prefix rendered under its number", and the
+    // trim message below keys on that. Pushing this there made an unreadable base file look like a trim
+    // — the comment grew an "Under budget" section on a build that was at or over every prefix.
+    advisories.push('The budget file on the base branch could not be read, so this build cannot tell '
+      + 'whether the pull request raised it. The ceiling above still applies; the growth check did not '
+      + 'run.');
+  } else if (isPullRequest) {
+    const baseTotal = budgetTotal(baseBudget);
+
+    if (total > baseTotal) {
+      if (!marker) {
+        violations.push(`This pull request raises the golden budget from ${baseTotal} to ${total}. `
+          + `Say so in the description with \`${MARKER_TEMPLATE}\`, where N is ${total}. Every record is `
+          + 'rendered, stored and compared on every build from now on, so the number is worth typing by '
+          + 'hand.');
+      } else if (marker.total !== total) {
+        violations.push(`The description declares a total of ${marker.total} and visual-budget.json sums `
+          + `to ${total}. Whichever is right, the other is the one to change — the marker exists so the `
+          + 'number is stated twice by someone who meant it.');
+      }
+    }
+  }
+
+  if ((report?.deletedItems?.length ?? 0) > 0 && notes.length > 0) {
+    notes.push('This build deletes records and comes in under its own numbers, which is what a '
+      + 'trimming change looks like. Lower the prefixes in visual-budget.json in this pull request — '
+      + 'the declaration sweep in lib/__tests__/visual-declarations.test.mjs asserts the file EQUALS '
+      + 'what the specs derive, so leaving it high fails the tooling suite rather than passing quietly.');
+  }
+
+  const pass = violations.length === 0;
+  const summary = pass
+    ? `Visual budget: ${items.length} record(s) rendered, within budget.`
+    : `Visual budget: ${violations.length} violation(s).`;
+
+  return {
+    pass,
+    violations,
+    notes,
+    advisories,
+    summary,
+    comment: renderComment({ pass, violations, notes, advisories, items, total }),
+  };
+}
+
+/**
+ * Renders the section the gate's comment carries.
+ *
+ * Prepended to `.reg/comment.md` rather than folded into it, so the visual gate's own wording — and
+ * the regexes `visual-gate.test.mjs` pins on it — stay exactly as they were.
+ *
+ * @param {object} verdict The evaluated verdict.
+ * @param {boolean} verdict.pass Whether the budget holds.
+ * @param {string[]} verdict.violations Why it does not.
+ * @param {string[]} verdict.notes Where the build is under its numbers.
+ * @param {string[]} verdict.advisories Checks that could not run, which is not the same as passing.
+ * @param {string[]} verdict.items Everything rendered.
+ * @param {number} verdict.total The full-tier total the file describes.
+ * @returns {string} Markdown, ending in a blank line — the gate's own heading follows it directly, and
+ * a heading without a blank line before it is not a heading.
+ */
+function renderComment({ pass, violations, notes, advisories, items, total }) {
+  const lines = ['## Visual budget', ''];
+
+  if (pass) {
+    lines.push(`${items.length} record(s) rendered. The full-tier budget is ${total}.`, '');
+  } else {
+    lines.push(`This build is outside the golden budget (full-tier budget: ${total}).`, '');
+    violations.forEach(violation => lines.push(`- ${violation}`));
+
+    // The gate's own comment sits directly below this one and tells a reviewer to approve the pending
+    // deployment. With the budget red the compare job fails, so `approve` is skipped and there is
+    // nothing to approve — saying so here is cheaper than a reviewer looking for a button that is not
+    // on the page.
+    lines.push('',
+      'The visual differences below cannot be approved until this holds: a budget violation fails the '
+      + 'Compare job, and the approval job does not run on a failed compare.', '');
+  }
+
+  if (notes.length > 0) {
+    lines.push('<details><summary>Under budget</summary>', '');
+    notes.forEach(note => lines.push(`- ${note}`));
+    lines.push('', '</details>', '');
+  }
+
+  advisories.forEach(advisory => lines.push(`> ${advisory}`, ''));
+
+  return `${lines.join('\n')}\n`;
+}

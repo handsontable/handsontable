@@ -4,6 +4,13 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['BMW', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -11,12 +18,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['BMW', 2017, 'black', 'black'],
-        ['Nissan', 2018, 'blue', 'blue'],
-        ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'white', 'gray'],
-      ]}
+      data={data}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       columns={[
         {
@@ -28,8 +30,8 @@ const ExampleComponent = () => {
           },
           strict: true,
         },
-        {},
-        {},
+        {}, // Year is a default text column
+        {}, // Chassis color is a default text column
         {}, // Bumper color is a default text column
       ]}
     />
