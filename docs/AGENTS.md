@@ -561,6 +561,8 @@ The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js`
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
+One exception is fixable in our code: a frozen Astro image (>= 17.1) whose URLs miss the version segment - for example Vite's preload helper asking for `/docs/_astro/*.css` instead of `/docs/17.1/_astro/*.css` ("Unable to preload CSS", HANDSONTABLE-DOCS-22T). Fix it at assemble time in `deploy/rewriteVersionedPaths.mjs`, which post-processes each frozen build before deploy (see `README-DEPLOYMENT.md`), not in `Head.astro` or `beforeSend` - neither ever reaches a frozen image.
+
 The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
@@ -581,6 +583,8 @@ To patch such an element, intercept `customElements.define` in an `is:inline` he
 Wrapping after `super()` works because the base constructor only *schedules* the method through `requestIdleCallback`, and that callback reads `this.init` when it fires.
 
 The install does not need a re-entry flag today. The site does not use `<ClientRouter />`, and Astro's swap logic keys executed scripts by `textContent` (`detectScriptExecuted()` in `astro/dist/transitions/swap-functions.js`), so an unchanged inline head script never runs twice. Add one if either of those stops holding.
+
+The patched `define` returns early when the name is already registered, so a second evaluation of a module that registers an element is a no-op instead of a `NotSupportedError` (Sentry HANDSONTABLE-DOCS-22D). This applies to every name, not only the guarded tags.
 
 The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
 
