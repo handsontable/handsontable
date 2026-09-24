@@ -493,7 +493,7 @@ test.describe('selectionHandles adjust handles', () => {
       await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
       await expect(grid.handleInAnyOverlay('start')).toHaveCount(0);
 
-      const seamBox = await grid.frozenColumnCell(6, 0).boundingBox();
+      const seamBox = await grid.overlayCell('inline_start', 6, 0).boundingBox();
       const range = await grid.rangeBox(4, 0, 8, 3);
       const seamX = seamBox!.x + seamBox!.width;
 
@@ -521,7 +521,7 @@ test.describe('selectionHandles adjust handles', () => {
         await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
       }
 
-      const seamBox = await grid.frozenRowCell(1, 1).boundingBox();
+      const seamBox = await grid.overlayCell('top', 1, 1).boundingBox();
       const range = await grid.rangeBox(1, 1, 5, 3);
       const seamY = seamBox!.y + seamBox!.height;
       const top = await centerOf(grid.handleInAnyOverlay('top'));
@@ -574,7 +574,7 @@ test.describe('selectionHandles adjust handles', () => {
       });
       await grid.selectCells(4, 0, 8, 1);
       await grid.scrollToColumn(39);
-      await grid.frozenColumnCell(6, 0).hover();
+      await grid.overlayCell('inline_start', 6, 0).hover();
 
       // Column 1 is no longer rendered, so the frozen-columns overlay takes the top and bottom handles
       // over. The end handle's edge is scrolled out of view, so nothing draws it.
@@ -604,11 +604,11 @@ test.describe('selectionHandles adjust handles', () => {
         // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
         // offset, or every column with renderAllColumns) while the frozen pane covers it.
         await grid.scrollToColumn(2);
-        await grid.frozenColumnCell(6, 0).hover();
+        await grid.overlayCell('inline_start', 6, 0).hover();
 
         await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
 
-        const { cell, handles } = await grid.handleBoxesAgainstCell('ht_clone_inline_start', 6, 0);
+        const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 0);
 
         expect(handles.end).toHaveLength(0);
 
@@ -634,9 +634,9 @@ test.describe('selectionHandles adjust handles', () => {
       // Row 6 lands right below the frozen rows, so the rendering offset keeps row 5 rendered while
       // the frozen pane covers it.
       await grid.scrollToRow(6);
-      await grid.frozenRowCell(1, 2).hover();
+      await grid.overlayCell('top', 1, 2).hover();
 
-      const { cell, handles } = await grid.handleBoxesAgainstCell('ht_clone_top', 1, 2);
+      const { cell, handles } = await grid.handleBoxesAgainstCell('top', 1, 2);
 
       // The bottom edge (row 5) is out of view, so only the top, start and end handles are drawn.
       expect(handles.bottom).toHaveLength(0);
@@ -683,7 +683,65 @@ test.describe('selectionHandles adjust handles', () => {
         await expect(grid.handleInAnyOverlay(edge)).toHaveCount(1);
       }
 
-      await expect(grid.frozenRowHandle('top')).toHaveCount(1);
+      await expect(grid.overlayHandle('top', 'top')).toHaveCount(1);
+    });
+
+    test('keeps the handles off the freeze line when a merged cell crosses it', async () => {
+      // Two frozen columns, and a merge on the selection's first row that reaches from frozen column 1
+      // into scrollable column 2. The master measures where its scrollable part starts from a cell in
+      // column 2, and on that row the cell resolves to the merge, which starts in column 1.
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        fixedColumnsStart: 2,
+        mergeCells: [{ row: 4, col: 1, rowspan: 1, colspan: 2 }],
+      });
+      await grid.selectCells(4, 0, 8, 3);
+      await grid.hoverCell(6, 3);
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
+
+      const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 1);
+      const seamX = cell.x + cell.width;
+
+      for (const edge of ['top', 'bottom'] as const) {
+        expect(handles[edge]).toHaveLength(1);
+
+        // Centered on the scrollable columns 2-3, so the whole pill is past the freeze line. Centered
+        // on the whole box (columns 0-3) it would straddle the line between columns 1 and 2.
+        expect(handles[edge][0].x).toBeGreaterThan(seamX + 2);
+      }
+    });
+
+    test('centers the handles on the visible part of a selection taller than the viewport, without frozen panes', async () => {
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        data: Array.from({ length: 60 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`)),
+      });
+      await grid.selectCells(2, 1, 50, 3);
+      // Hover before scrolling: the first hover over a layer refreshes the selection, and that
+      // refresh scrolls the focus cell (row 2) back into view. The pointer stays over the same layer
+      // after the scroll, so no second refresh follows.
+      await grid.hoverCell(48, 2);
+      await grid.scrollToRow(20);
+
+      // Rows 2 and 50 are out of view, so there is no top or bottom handle. The rows the grid renders
+      // past the viewport (the rendering offset) used to carry them, inside the selection.
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
+
+      const firstRow = await grid.firstFullyVisibleRow();
+      const lastRow = await grid.lastFullyVisibleRow();
+      const first = await grid.handleBoxesAgainstCell('master', firstRow, 2);
+      const last = await grid.handleBoxesAgainstCell('master', lastRow, 2);
+
+      for (const edge of ['start', 'end'] as const) {
+        expect(first.handles[edge]).toHaveLength(1);
+
+        const handleCenterY = first.handles[edge][0].y + (first.handles[edge][0].height / 2);
+
+        // Centered on the rows the user can see, not on the whole rendered band.
+        expect(handleCenterY).toBeGreaterThan(first.cell.y);
+        expect(handleCenterY).toBeLessThan(last.cell.y + last.cell.height);
+      }
     });
 
     test('resizes the selection from a handle drawn by a frozen overlay', async () => {
@@ -692,9 +750,9 @@ test.describe('selectionHandles adjust handles', () => {
       await grid.hoverCell(3, 2);
 
       // The top edge lies on frozen row 1, so the frozen-rows overlay draws its handle.
-      await expect(grid.frozenRowHandle('top')).toHaveCount(1);
+      await expect(grid.overlayHandle('top', 'top')).toHaveCount(1);
 
-      await grid.dragHandleInAnyOverlayToCell('top', 0, 2);
+      await grid.dragHandleToCell('top', 0, 2, grid.handleInAnyOverlay('top'));
 
       expect(await grid.selectedBounds()).toEqual({ top: 0, start: 1, bottom: 5, end: 3 });
     });
@@ -707,7 +765,7 @@ test.describe('selectionHandles adjust handles', () => {
       await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(3);
       await expect(grid.handleInAnyOverlay('start')).toHaveCount(0);
 
-      const seamBox = await grid.frozenColumnCell(6, 0).boundingBox();
+      const seamBox = await grid.overlayCell('inline_start', 6, 0).boundingBox();
       const range = await grid.rangeBox(4, 0, 8, 3);
       const end = await centerOf(grid.handleInAnyOverlay('end'));
 

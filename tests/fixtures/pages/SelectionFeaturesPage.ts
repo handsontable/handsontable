@@ -2,18 +2,36 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
 
+type Box = { x: number, y: number, width: number, height: number };
+
+/**
+ * An overlay (table) of the grid: the master, or one of the frozen-pane clones.
+ */
+type OverlayName = 'master' | 'top' | 'bottom' | 'inline_start' | 'top_inline_start_corner' |
+  'bottom_inline_start_corner';
+
+/**
+ * The CSS class of an overlay's root element.
+ *
+ * @param {OverlayName} overlay The overlay.
+ * @returns {string}
+ */
+function overlayClass(overlay: OverlayName): string {
+  return overlay === 'master' ? 'ht_master' : `ht_clone_${overlay}`;
+}
+
 /**
  * Page Object for the selection features fixture
  * (tests/fixtures/demo/selection-features.html).
  *
  * The fixture runs a grid with `selectionHandles` and `moveCells` enabled.
  * Tests express intent (`selectCells`, `hoverCell`, `visibleHandles`); the
- * selectors and the `window.hot` driving mechanics live here. Locators are
+ * selectors and the `window.hot` driving mechanics live here. Most locators are
  * scoped to the master overlay — the frozen-pane clones duplicate the border
- * elements, so an unscoped match would be ambiguous.
+ * elements, so an unscoped match would be ambiguous. The `…InAnyOverlay`
+ * locators are the deliberate exception (they count handles across overlays),
+ * and `overlayCell()`/`overlayHandle()` scope to one named overlay.
  */
-type Box = { x: number, y: number, width: number, height: number };
-
 export class SelectionFeaturesPage {
   readonly page: Page;
   readonly theme: string;
@@ -346,10 +364,13 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * Drag a selection handle to the center of a rendered cell.
+   * Drag a selection handle to the center of a rendered cell. The handle defaults to the master
+   * overlay's; pass another locator (e.g. `handleInAnyOverlay(edge)`) for one a frozen pane draws.
    */
-  async dragHandleToCell(edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number): Promise<void> {
-    const handleBox = await this.handle(edge).boundingBox();
+  async dragHandleToCell(
+    edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number, handle: Locator = this.handle(edge),
+  ): Promise<void> {
+    const handleBox = await handle.boundingBox();
     const targetBox = await this.cell(row, col).boundingBox();
 
     if (!handleBox || !targetBox) {
@@ -833,7 +854,7 @@ export class SelectionFeaturesPage {
 
   /** Hover a cell rendered by the bottom frozen overlay. */
   async hoverFrozenBottomCell(row: number, col: number): Promise<void> {
-    await this.page.locator('.ht_clone_bottom').getByTestId(`cell-${row}-${col}`).hover();
+    await this.overlayCell('bottom', row, col).hover();
   }
 
   /**
@@ -851,7 +872,7 @@ export class SelectionFeaturesPage {
    * not on the master.
    */
   frozenBottomHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
-    return this.page.locator(`.ht_clone_bottom .wtSelectionHandle--${edge}:visible`);
+    return this.overlayHandle('bottom', edge);
   }
 
   /** The currently visible selection-adjust handles in the master overlay. */
@@ -876,24 +897,18 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * The visible selection-adjust handle for an edge, scoped to the frozen-rows (top) overlay.
+   * The visible selection-adjust handle for an edge, scoped to one overlay.
    */
-  frozenRowHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
-    return this.page.locator(`.ht_clone_top .wtSelectionHandle--${edge}:visible`);
+  overlayHandle(overlay: OverlayName, edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
+    return this.page.locator(`.${overlayClass(overlay)} .wtSelectionHandle--${edge}:visible`);
   }
 
   /**
-   * A data cell rendered by the frozen-columns (inline-start) overlay.
+   * A data cell as rendered by one overlay (a frozen cell is rendered by its clone, and possibly by
+   * the master underneath it).
    */
-  frozenColumnCell(row: number, col: number): Locator {
-    return this.page.locator('.ht_clone_inline_start').getByTestId(`cell-${row}-${col}`);
-  }
-
-  /**
-   * A data cell rendered by the frozen-rows (top) overlay.
-   */
-  frozenRowCell(row: number, col: number): Locator {
-    return this.page.locator('.ht_clone_top').getByTestId(`cell-${row}-${col}`);
+  overlayCell(overlay: OverlayName, row: number, col: number): Locator {
+    return this.page.locator(`.${overlayClass(overlay)}`).getByTestId(`cell-${row}-${col}`);
   }
 
   /**
@@ -914,11 +929,11 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * The bounding box of a data cell rendered by the given overlay (by class), read in
-   * the same evaluation as the visible handles' boxes, so no draw can land between the reads.
+   * The bounding box of a data cell rendered by the given overlay, read in the same evaluation as
+   * the visible handles' boxes, so no draw can land between the reads.
    */
   async handleBoxesAgainstCell(
-    overlayClass: string, row: number, col: number,
+    overlay: OverlayName, row: number, col: number,
   ): Promise<{ cell: Box, handles: Record<string, Box[]> }> {
     return this.page.evaluate(([cloneClass, r, c]) => {
       const toBox = (el: Element) => {
@@ -940,27 +955,7 @@ export class SelectionFeaturesPage {
       });
 
       return { cell: toBox(cell), handles };
-    }, [overlayClass, row, col] as const);
-  }
-
-  /**
-   * Drag the one visible selection handle for an edge, in whichever overlay draws it, to the center
-   * of a rendered cell.
-   */
-  async dragHandleInAnyOverlayToCell(
-    edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number,
-  ): Promise<void> {
-    const handleBox = await this.handleInAnyOverlay(edge).boundingBox();
-    const targetBox = await this.cell(row, col).boundingBox();
-
-    if (!handleBox || !targetBox) {
-      throw new Error('The selection handle or target cell is not rendered.');
-    }
-
-    await this.page.mouse.move(handleBox.x + (handleBox.width / 2), handleBox.y + (handleBox.height / 2));
-    await this.page.mouse.down();
-    await this.page.mouse.move(targetBox.x + (targetBox.width / 2), targetBox.y + (targetBox.height / 2));
-    await this.page.mouse.up();
+    }, [overlayClass(overlay), row, col] as const);
   }
 
   /** The currently visible move-zone bands in the master overlay. */

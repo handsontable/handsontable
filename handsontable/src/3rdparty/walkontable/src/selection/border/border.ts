@@ -66,6 +66,10 @@ interface AdjustHandlesAxisLayout {
  * render the frozen columns; the `top`/`bottom` overlays and their corners render the frozen rows;
  * everything else belongs to the scrollable part.
  *
+ * Every clone type in `CLONE_TYPES` (`overlay/constants.ts`) must be listed here: a name this
+ * function does not know falls through to `main` on both axes, and that overlay would then claim the
+ * handles of the scrollable part.
+ *
  * @param {string} overlayName The overlay (table) name.
  * @param {'row'|'column'} axis The axis to test.
  * @returns {AxisSegment}
@@ -133,16 +137,6 @@ function getHandlesSpan(axis: AdjustHandlesAxisLayout, from: number, to: number)
  */
 function isInRange([from, to]: [number, number], index: number): boolean {
   return from >= 0 && index >= from && index <= to;
-}
-
-/**
- * Tells whether a cell element spans more than one row or column.
- *
- * @param {HTMLElement} cell The cell element.
- * @returns {boolean}
- */
-function isMergedCell(cell: HTMLElement): boolean {
-  return (cell as HTMLTableCellElement).rowSpan > 1 || (cell as HTMLTableCellElement).colSpan > 1;
 }
 
 /**
@@ -2265,60 +2259,98 @@ class Border {
     const startEdge = (rect: DOMRectLike) => (isRtl ? rect.left + rect.width : rect.left);
     const endEdge = (rect: DOMRectLike) => (isRtl ? rect.left : rect.left + rect.width);
 
+    const rows: [number, number] = [fromRow, toRow];
+    const columns: [number, number] = [fromColumn, toColumn];
+
     if (handlesFromColumn !== fromColumn) {
-      const delta = this.measureCellEdgeDelta(fromTD, fromRow, handlesFromColumn, startEdge);
+      const delta = this.measureTrackEdgeDelta(fromTD, 'column', handlesFromColumn, 'start', rows, startEdge);
 
       result.inlineStart += delta;
       result.width -= delta;
     }
     if (handlesToColumn !== toColumn) {
-      result.width -= this.measureCellEdgeDelta(toTD, fromRow, handlesToColumn, endEdge);
+      result.width -= this.measureTrackEdgeDelta(toTD, 'column', handlesToColumn, 'end', rows, endEdge);
     }
     if (handlesFromRow !== fromRow) {
-      const delta = this.measureCellEdgeDelta(fromTD, handlesFromRow, fromColumn, rect => rect.top);
+      const delta = this.measureTrackEdgeDelta(fromTD, 'row', handlesFromRow, 'start', columns, rect => rect.top);
 
       result.top += delta;
       result.height -= delta;
     }
     if (handlesToRow !== toRow) {
-      result.height -= this.measureCellEdgeDelta(toTD, handlesToRow, fromColumn, rect => rect.top + rect.height);
+      result.height -= this.measureTrackEdgeDelta(
+        toTD, 'row', handlesToRow, 'end', columns, rect => rect.top + rect.height,
+      );
     }
 
     return result;
   }
 
   /**
-   * Measures how far one edge of a cell lies from the same edge of a reference cell, in pixels. Used
-   * to narrow a selection box by whole cells without re-deriving its border compensations.
+   * Measures how far a track's edge (the start or end edge of a row or column) lies from the same
+   * edge of a reference cell, in pixels. Used to narrow a selection box by whole tracks without
+   * re-deriving its border compensations.
+   *
+   * The edge is read from a rendered cell in that track whose own block starts (or ends) on it. A
+   * merged cell stands for its whole block, and `getCell` resolves a covered coordinate to the
+   * block's root, so the first cell tried may belong to a merge that reaches across the track's
+   * edge; the next rows (or columns) of the selection are tried until one does not. The reference
+   * cell needs no such care: the selection box was measured from it, so its edge is the box's edge
+   * even when it is merged.
    *
    * @private
    * @param {HTMLElement} referenceTD The cell the box edge was computed from.
-   * @param {number} row The renderable row of the cell to measure.
-   * @param {number} column The renderable column of the cell to measure.
+   * @param {'row'|'column'} axis The axis of the track.
+   * @param {number} index The renderable index of the track.
+   * @param {'start'|'end'} side Which edge of the track to measure.
+   * @param {number[]} crossRange The `[from, to]` range to search on the other axis.
    * @param {Function} edge Picks the edge coordinate from a cell's document rect.
-   * @returns {number} The absolute distance, or `0` when the cell is not rendered or either cell is
-   * merged (a merged cell stands for its whole block, so its edge is not the requested track's edge).
+   * @returns {number} The absolute distance, or `0` when no rendered cell has its edge on the track.
    */
-  measureCellEdgeDelta(
+  measureTrackEdgeDelta(
     referenceTD: HTMLElement,
-    row: number,
-    column: number,
+    axis: 'row' | 'column',
+    index: number,
+    side: 'start' | 'end',
+    [crossFrom, crossTo]: [number, number],
     edge: (rect: DOMRectLike) => number,
   ): number {
-    const cell = this.wot.wtTable.getCell(this.wot.createCellCoords(row, column));
+    const { wtTable } = this.wot;
+    const isColumn = axis === 'column';
 
-    if (!isHTMLElement(cell) || isMergedCell(cell) || isMergedCell(referenceTD)) {
-      return 0;
+    for (let cross = crossFrom; cross <= crossTo; cross++) {
+      const cell = wtTable.getCell(this.wot.createCellCoords(isColumn ? cross : index, isColumn ? index : cross));
+      const ownCoords = isHTMLElement(cell) ? wtTable.getCoords(cell) : null;
+
+      if (ownCoords) {
+        const ownIndex = (isColumn ? ownCoords.col : ownCoords.row) ?? -1;
+        const span = isColumn ? (cell as HTMLTableCellElement).colSpan : (cell as HTMLTableCellElement).rowSpan;
+        const edgeIndex = side === 'start' ? ownIndex : ownIndex + Math.max(span, 1) - 1;
+
+        if (edgeIndex === index) {
+          return Math.abs(edge(this.readCellRect(cell as HTMLElement)) - edge(this.readCellRect(referenceTD)));
+        }
+      }
     }
 
-    const { geometryReader } = this.wot.domBindings;
-    const toRect = (element: HTMLElement): DOMRectLike => ({
-      ...geometryReader.offset(element),
-      width: geometryReader.outerWidth(element),
-      height: geometryReader.outerHeight(element),
-    });
+    return 0;
+  }
 
-    return Math.abs(edge(toRect(cell)) - edge(toRect(referenceTD)));
+  /**
+   * Reads a cell's document position and outer size through the geometry reader.
+   *
+   * @private
+   * @param {HTMLElement} cell The cell element.
+   * @returns {DOMRectLike}
+   */
+  readCellRect(cell: HTMLElement): DOMRectLike {
+    const { geometryReader } = this.wot.domBindings;
+
+    return {
+      ...geometryReader.offset(cell),
+      width: geometryReader.outerWidth(cell),
+      height: geometryReader.outerHeight(cell),
+    };
   }
 
   /**

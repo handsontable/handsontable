@@ -67,10 +67,18 @@ range, read through `cloneSource`.
   or outside the holder.
   - The narrowing reads geometry for the reference cell and the new edge cell, only for an edge it
     actually narrows.
-  - It skips merged cells: `getCell` resolves a merged child to its root, whose edge is the whole
-    block's.
+  - Merged cells need care. `getCell` resolves a covered coordinate to the merge's root, so the
+    edge found can be the whole block's, not the track's. `measureTrackEdgeDelta` therefore walks
+    the selection's other axis until it finds a cell whose own block (`getCoords` plus
+    `colSpan`/`rowSpan`) starts or ends on the track. Skipping the narrowing instead is not safe: a
+    merge crossing the freeze line then centers the pair on the whole box, which can straddle the
+    line.
   - As a result, a crossing selection's top and bottom handles are **not** centered on the whole
     range. That is deliberate.
+- **The rule also applies with no frozen panes.** In a plain grid the master is the only overlay,
+  and the visible-range checks still apply to it. When a selection is taller or wider than the
+  viewport, its handles are centered on the visible part. An edge that lies in the overscan rows
+  gets no handle; before, it got one drawn at the rendered band's edge, inside the selection.
 
 The older "edge lies exactly on a freeze line" hides (`isFrozenBoundaryEdge` and friends) still apply
 on top of this. So does the grid-boundary hide in `positionAdjustHandles`, which works in renderable
