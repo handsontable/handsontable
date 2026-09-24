@@ -241,6 +241,80 @@ describe('MasterTable.alignOverlaysWithTrimmingContainer', () => {
 
       expect(holder.style.height).toBe('0px');
     });
+
+    it('should set holder height to "auto" when heightFollowsContent is true and overflow:hidden is applied to both axes', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        heightFollowsContent: true,
+      }, spec().$table[0]);
+
+      wt.draw();
+
+      expect(wt.wtTable.holder.style.height).toBe('auto');
+      expect(wt.wtTable.holder.offsetHeight).toBeGreaterThan(0);
+    });
+
+    it('should set holder height to "auto" when heightFollowsContent is true and overflow:auto is applied to both axes', async() => {
+      spec().$outerWrapper.css({ overflow: 'auto' });
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        heightFollowsContent: true,
+      }, spec().$table[0]);
+
+      wt.draw();
+
+      expect(wt.wtTable.holder.style.height).toBe('auto');
+      expect(wt.wtTable.holder.offsetHeight).toBeGreaterThan(0);
+    });
+
+    it('should update holder height from "auto" back to "0px" when heightFollowsContent changes from true to false', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        heightFollowsContent: true,
+      }, spec().$table[0]);
+
+      const { holder } = wt.wtTable;
+
+      wt.draw();
+      wt.draw();
+
+      expect(holder.style.height).toBe('auto');
+
+      // The owner's box is settled, so only the setting can invalidate the cached holder height.
+      wt.wtSettings.update('heightFollowsContent', false);
+      wt.draw();
+
+      expect(holder.style.height).toBe('0px');
+    });
+
+    it('should update holder height from "0px" to "auto" when heightFollowsContent changes from false to true', async() => {
+      spec().$outerWrapper.css({ overflow: 'auto' });
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      }, spec().$table[0]);
+
+      const { holder } = wt.wtTable;
+
+      wt.draw();
+      wt.draw();
+
+      expect(holder.style.height).toBe('0px');
+
+      wt.wtSettings.update('heightFollowsContent', true);
+      wt.draw();
+
+      expect(holder.style.height).toBe('auto');
+    });
   });
 
   // The horizontal axis owned by the root (`overflow-x: clip`) and the vertical one by a parent that
