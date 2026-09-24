@@ -41,7 +41,8 @@ export function normalizeExportOptions<T extends Record<string, unknown>>(option
 /**
  * One entry of a nested-header layer as `DataProvider#getNestedColumnHeaders()` returns it.
  * `colspan` is the number of exported columns the label covers after hidden-column and range
- * clamping, so it can be `0` when every column of the span is excluded from the export.
+ * clamping. It is at least `1`: a span whose every column is excluded from the export produces no
+ * entry at all.
  */
 export interface NestedHeaderLayerEntry {
   label: string;
@@ -52,13 +53,15 @@ export interface NestedHeaderLayerEntry {
  * Expands nested-header layers into plain header rows for a text format such as CSV.
  *
  * Each layer becomes one row. A group label is repeated once per column it spans, so a row has
- * exactly as many cells as the exported data has columns, and a spreadsheet that opens the file
- * shows the group above every column it belongs to. This is the same shape the `copyPaste` plugin
- * produces with `copyColumnGroupHeaders`, and the flattened form of what the XLSX export writes as
- * a merged cell.
+ * exactly as many cells as the exported data has columns. A CSV file has no merged cells, so the
+ * repeat is what keeps the grouping when a spreadsheet opens the file: every column carries its
+ * group label, whichever columns the reader keeps.
  *
- * An entry with `colspan: 0` contributes no cell. An empty label keeps its cell, so the column
- * count stays aligned with the data rows.
+ * The three nested-header outputs differ on purpose. The XLSX export writes a group as one merged
+ * cell. The `copyPaste` plugin, with `copyColumnGroupHeaders`, writes the label once and leaves the
+ * other spanned cells empty. The CSV export repeats the label.
+ *
+ * An empty label keeps its cell, so the column count stays aligned with the data rows.
  *
  * @param {Array} layers Layers from `DataProvider#getNestedColumnHeaders()`, top layer first.
  * @returns {string[][]} One row of labels per layer.

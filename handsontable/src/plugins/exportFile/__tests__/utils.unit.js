@@ -86,18 +86,6 @@ describe('expandNestedHeaderLayers', () => {
     ]);
   });
 
-  it('should drop an entry whose colspan is zero, because every column it spans is hidden', () => {
-    const layers = [
-      [{ label: 'Hidden group', colspan: 0 }, { label: 'Shown', colspan: 1 }],
-      [{ label: 'C', colspan: 1 }],
-    ];
-
-    expect(expandNestedHeaderLayers(layers)).toEqual([
-      ['Shown'],
-      ['C'],
-    ]);
-  });
-
   it('should return an empty array for no layers', () => {
     expect(expandNestedHeaderLayers([])).toEqual([]);
   });

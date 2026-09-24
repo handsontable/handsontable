@@ -545,15 +545,17 @@ class DataProvider {
   getNestedColumnHeaders() {
     const nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
 
-    // `enabled` (the live state), not `isEnabled()` (whether the settings ask for the plugin): after
-    // a runtime `disablePlugin()` the settings still carry `nestedHeaders`, but the plugin reports
-    // zero layers, and taking the nested path then exported no column headers at all.
+    // `enabled` is the live state; `isEnabled()` only answers whether the settings ask for the plugin.
+    // Today the two never disagree while the plugin has layers, so this check is defensive.
     if (!nestedHeadersPlugin || !nestedHeadersPlugin.enabled) {
       return null;
     }
 
     const layersCount = nestedHeadersPlugin.getLayersCount();
 
+    // This guard is what fixes a runtime `disablePlugin()`: it clears the plugin's state, so the
+    // plugin reports zero layers while the settings still carry `nestedHeaders`. Taking the nested
+    // path then exported no column headers at all.
     if (layersCount === 0) {
       return null;
     }
@@ -583,6 +585,24 @@ class DataProvider {
     }
 
     return layers;
+  }
+
+  /**
+   * Gets the label of the nested header whose span starts at the given column, as the grid displays it.
+   *
+   * The label is read through `getColHeader()`, so the `modifyColumnHeaderValue` hook applies to it the
+   * same way it applies to the rendered header and to the flat header row. Call it for the root column of
+   * a span only: for a column inside a span, `getColHeader()` resolves the covering header and returns
+   * its label again.
+   *
+   * @param {number} col The visual index of the column the header span starts at.
+   * @param {number} layer The header layer index, `0` for the top layer.
+   * @returns {string}
+   */
+  _getNestedHeaderLabel(col: number, layer: number) {
+    const label = this.hot.getColHeader(col, layer);
+
+    return extractText(this.hot, Array.isArray(label) ? '' : label ?? '', 'ExportFile.columnHeader');
   }
 
   /**
@@ -616,7 +636,7 @@ class DataProvider {
       const className = (treeNodeData?.headerClassNames ?? []).join(' ');
 
       layerHeaders.push({
-        label: extractText(this.hot, treeNodeData?.label ?? '', 'ExportFile.columnHeader'),
+        label: treeNodeData ? this._getNestedHeaderLabel(col, layer) : '',
         colspan: effectiveColspan,
         className,
       });
@@ -655,9 +675,12 @@ class DataProvider {
       // narrow and its last columns are read as continuation cells with an empty label. The tree node
       // keeps the original span (`columnIndex` + `origColspan`) whatever is hidden.
       const treeNodeData = settings ? nestedHeadersPlugin.getStateManager().getHeaderTreeNodeData(layer, col) : null;
+      // The state matrix and the header tree are built from the same settings, so a span root always
+      // has a tree node. A column without one is exported as a single column, never through the
+      // reduced `colspan` above.
       const spanEnd = treeNodeData
         ? treeNodeData.columnIndex + treeNodeData.origColspan
-        : col + (settings?.colspan ?? 1);
+        : col + 1;
       let visibleColspan = 0;
 
       for (let spanCol = col; spanCol < spanEnd && spanCol <= endCol; spanCol++) {
@@ -671,7 +694,7 @@ class DataProvider {
       const className = (settings?.headerClassNames ?? []).join(' ');
 
       layerHeaders.push({
-        label: extractText(this.hot, settings?.label ?? '', 'ExportFile.columnHeader'),
+        label: settings ? this._getNestedHeaderLabel(col, layer) : '',
         colspan: visibleColspan,
         className,
       });

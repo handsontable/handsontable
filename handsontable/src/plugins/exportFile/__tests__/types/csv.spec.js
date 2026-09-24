@@ -647,6 +647,23 @@ describe('exportFile CSV type', () => {
         data: [[1, 2]],
         colHeaders: true,
         nestedHeaders: [
+          ['<b>Group</b>'],
+          ['<i>A</i>', 'B'],
+        ],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      // The top layer is shorter than the leaf layer, so its line ends on an empty cell.
+      expect(csv).toBe('\ufeff"Group",\r\n"A","B"\r\n1,2');
+    });
+
+    it('should export a spanning nested header as displayed text in every column it covers', async() => {
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: true,
+        nestedHeaders: [
           [{ label: '<b>Group</b>', colspan: 2 }],
           ['<i>A</i>', 'B'],
         ],
@@ -886,6 +903,100 @@ describe('exportFile CSV type', () => {
       expect(csv).toBe('\ufeff,"2025"\r\n"Q2","Q1"\r\n2,3');
     });
 
+    it('should write the group label for a range that starts on the group\'s first visible column', async() => {
+      // With the group's first column hidden, the grid draws the group from its first visible
+      // column on, so a range starting there covers the group's visible start, not its middle.
+      handsontable({
+        data: [[1, 2, 3, 4, 5, 6]],
+        colHeaders: true,
+        nestedHeaders: wideNestedHeaders,
+        hiddenColumns: {
+          columns: [0],
+        },
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, range: [0, 1, 0, 3] })
+        .export();
+
+      expect(csv).toBe('﻿"2024","2024","2024"\r\n"Q2","Q3","Q4"\r\n2,3,4');
+    });
+
+    it('should leave the parent cell empty for a range that starts past the group\'s first visible column', async() => {
+      handsontable({
+        data: [[1, 2, 3, 4, 5, 6]],
+        colHeaders: true,
+        nestedHeaders: wideNestedHeaders,
+        hiddenColumns: {
+          columns: [0],
+        },
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, range: [0, 2, 0, 3] })
+        .export();
+
+      expect(csv).toBe('﻿,\r\n"Q3","Q4"\r\n3,4');
+    });
+
+    it('should leave the parent cell empty past a hidden group root when hidden columns are exported', async() => {
+      // Exporting hidden columns keeps the group root on its original column, so a range starting
+      // after it starts inside the group.
+      handsontable({
+        data: [[1, 2, 3, 4, 5, 6]],
+        colHeaders: true,
+        nestedHeaders: wideNestedHeaders,
+        hiddenColumns: {
+          columns: [0],
+        },
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, exportHiddenColumns: true, range: [0, 1, 0, 3] })
+        .export();
+
+      expect(csv).toBe('﻿,,\r\n"Q2","Q3","Q4"\r\n2,3,4');
+    });
+
+    it('should end a group at the range end when a hidden column sits inside it', async() => {
+      handsontable({
+        data: [[1, 2, 3, 4, 5, 6]],
+        colHeaders: true,
+        nestedHeaders: wideNestedHeaders,
+        hiddenColumns: {
+          columns: [1],
+        },
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, range: [0, 0, 0, 2] })
+        .export();
+
+      expect(csv).toBe('\ufeff"2024","2024"\r\n"Q1","Q3"\r\n1,3');
+    });
+
+    it('should sanitize a group label on every header line it is written to', async() => {
+      // Each header layer is a line a spreadsheet reads, so a group label is as much an injection
+      // surface as a cell value.
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: '=HYPERLINK("http://example.com")', colspan: 2 }],
+          ['A', '+B'],
+        ],
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, sanitizeValues: true })
+        .export();
+
+      expect(csv).toBe(
+        '\ufeff"\'=HYPERLINK(""http://example.com"")","\'=HYPERLINK(""http://example.com"")"\r\n' +
+        '"A","\'+B"\r\n"1","2"'
+      );
+    });
+
     it('should honor a custom column delimiter on every header line', async() => {
       handsontable({
         data: [[1, 2, 3, 4]],
@@ -900,7 +1011,62 @@ describe('exportFile CSV type', () => {
       expect(csv).toBe('\ufeff"2024";"2024";"2025";"2025"\r\n"Q1";"Q2";"Q1";"Q2"\r\n1;2;3;4');
     });
 
-    it('should fall back to the single bottom-layer line when the plugin is disabled at runtime', async() => {
+    it('should pass every header layer through the `modifyColumnHeaderValue` hook', async() => {
+      // The flat CSV header line read labels through `getColHeader()`, which runs the hook, and the
+      // grid renders nested headers the same way. The nested lines must not fall back to the raw
+      // labels, or a header translated through the hook is exported untranslated.
+      handsontable({
+        data: [[1, 2, 3, 4]],
+        colHeaders: true,
+        nestedHeaders,
+        modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe(
+        '﻿"FY 2024","FY 2024","FY 2025","FY 2025"\r\n' +
+        '"Q1 (USD)","Q2 (USD)","Q1 (USD)","Q2 (USD)"\r\n1,2,3,4'
+      );
+    });
+
+    it('should keep the parent cell empty for a range that starts inside a group when the hook is set', async() => {
+      handsontable({
+        data: [[1, 2, 3, 4]],
+        colHeaders: true,
+        nestedHeaders,
+        modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, range: [0, 1, 0, 2] })
+        .export();
+
+      expect(csv).toBe('﻿,"FY 2025"\r\n"Q2 (USD)","Q1 (USD)"\r\n2,3');
+    });
+
+    it('should pass the header layers through the hook when hidden columns are exported', async() => {
+      handsontable({
+        data: [[1, 2, 3, 4, 5, 6]],
+        colHeaders: true,
+        nestedHeaders: wideNestedHeaders,
+        hiddenColumns: {
+          columns: [0],
+        },
+        modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
+      });
+
+      const csv = getPlugin('exportFile')
+        ._createTypeFormatter('csv', { colHeaders: true, exportHiddenColumns: true })
+        .export();
+
+      expect(csv).toBe(
+        '﻿"FY 2024","FY 2024","FY 2024","FY 2024","FY 2025","FY 2025"\r\n' +
+        '"Q1 (USD)","Q2 (USD)","Q3 (USD)","Q4 (USD)","H1 (USD)","H2 (USD)"\r\n1,2,3,4,5,6'
+      );
+    });
+
+    it('should fall back to the single bottom-layer line when a runtime-disabled plugin reports no layers', async() => {
       handsontable({
         data: [[1, 2, 3, 4]],
         colHeaders: true,

@@ -117,6 +117,27 @@ describe('exportFile XLSX type — headers', () => {
 
       expect(ws.getRow(1).getCell(1).value).toBe('<b>Group</b>');
     });
+
+    it('should write nested header labels through the `modifyColumnHeaderValue` hook', async() => {
+      // The grid renders nested headers through `getColHeader()`, which runs the hook, so the
+      // exported labels follow it too.
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: '2024', colspan: 2 }],
+          ['Q1', 'Q2'],
+        ],
+        modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('FY 2024');
+      expect(ws.getRow(2).getCell(1).value).toBe('Q1 (USD)');
+      expect(ws.getRow(2).getCell(2).value).toBe('Q2 (USD)');
+    });
   });
 
   describe('row headers', () => {
@@ -573,7 +594,7 @@ describe('exportFile XLSX type — headers', () => {
       expect(ws.getRow(3).getCell(4).value).toBe('E1');
     });
 
-    it('should write the bottom-most headers when the plugin is disabled at runtime', async() => {
+    it('should write the bottom-most headers when a runtime-disabled plugin reports no layers', async() => {
       // The `nestedHeaders` setting stays in place after `disablePlugin()`, so the export has to read
       // the plugin's live state. Reading the settings took the nested path with zero layers and wrote
       // no header row at all.

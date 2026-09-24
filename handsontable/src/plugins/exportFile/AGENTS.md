@@ -49,11 +49,22 @@ the main thread. A single rAF shows nothing.
   alone.** With the NestedHeaders plugin on, that method expands `getNestedColumnHeaders()` through
   `expandNestedHeaderLayers()` (`utils.ts`), one line per layer, a group label repeated across its
   colspan. The bottom-layer-only CSV was a bug (DEV-3033): XLSX and `copyPaste`'s
-  `copyColumnGroupHeaders` already wrote every layer. Keep the three in step — a header change that
-  lands in only one of them is the regression to look for.
+  `copyColumnGroupHeaders` already wrote every layer.
+- **The three nested-header outputs share the layers, not the shape.** XLSX writes a group as one
+  merged cell; `copyPaste` writes the label once and leaves the other spanned cells empty
+  (`a1\t\t\tb1` in `nestedHeaders/__tests__/integrations.spec.js`); CSV repeats the label in every
+  spanned column, because a file with no merged cells otherwise loses the grouping in a spreadsheet.
+  Do not align these shapes. What must stay in step is which layers and which labels reach each
+  output: a missing layer, or a label that skips `modifyColumnHeaderValue` or `textExtractor` in one of
+  them, is the regression to look for.
 - **The parent-layer placeholder is deliberate.** A `range` that starts inside a group emits an empty
   label for those columns on the parent layer, the same as the XLSX export. Repeating the group label
   there would be friendlier to read but would split the two formats; change both or neither.
+  "Inside" means past the group's first *visible* column when hidden columns are excluded: the
+  HiddenColumns plugin moves the span root (`isRoot`) to that column, the grid draws the label from
+  there, and a range starting on it writes the label. With `exportHiddenColumns: true` the root stays on
+  the tree node's `columnIndex`, so the same range writes the empty placeholder. Both are pinned in
+  `csv.spec.js`; a reviewer on #13638 read the first as a bug, and it is not.
 - **`getNestedColumnHeaders()` does not check `colHeaders`.** XLSX checks `hasColumnHeaders`
   separately; `getColumnHeaderRows()` guards on `options.colHeaders` first. A new text format must do
   one or the other or it writes header lines the caller never asked for.
@@ -66,11 +77,23 @@ the main thread. A single rAF shows nothing.
   (`columnIndex + origColspan`). Stopping at `root + colspan` broke only a column hidden *strictly
   inside* a span — hiding the first or last column happens to work — so a test with two-column groups
   never sees it; the regression cases use a four-column group.
-- **Gate on `plugin.enabled`, not `plugin.isEnabled()`.** `isEnabled()` answers "do the settings ask for
-  the plugin"; after a runtime `disablePlugin()` the settings still carry `nestedHeaders` while the
-  plugin reports zero layers, and the export wrote no column headers at all. The same `isEnabled()`
-  pattern still guards the formulas and mergeCells lookups in `dataProvider.ts`; check it before
-  relying on a runtime-disabled plugin there.
+- **Read a span root's label through `getColHeader(col, layer)`, never from the header state.**
+  `_getNestedHeaderLabel` does it, so the `modifyColumnHeaderValue` hook applies to every exported
+  layer, as it does to the rendered `<th>` and to the flat header row. The raw `label` on the tree
+  node or on `getHeaderSettings()` skips the hook, and a header translated through it was exported
+  untranslated on every line (review of #13638). Call it for a root column only, and keep the literal
+  `''` for placeholder and continuation cells: for a column inside a span, `getColHeader()` resolves
+  the covering node and returns the group label again, which would fill the parent cell a `range`
+  starting inside a group leaves empty. Since this change the XLSX header text follows the hook too.
+- **A runtime-disabled plugin is caught by the zero-layer guard, not by the `enabled` check.**
+  `NestedHeaders#disablePlugin()` clears its state manager, so `getLayersCount()` returns `0` while the
+  settings still carry `nestedHeaders` and `isEnabled()` still answers `true`. Without the
+  `layersCount === 0` early return the export took the nested path and wrote no column headers at all.
+  The `plugin.enabled` gate in front of it is defensive: every disable path clears the state, so
+  `enabled` and `isEnabled()` never disagree while there are layers, and swapping it back to
+  `isEnabled()` keeps both runtime-disable specs green. Keep the zero-layer guard whatever else changes.
+  The same `isEnabled()` pattern still guards the formulas and mergeCells lookups in `dataProvider.ts`;
+  check it before relying on a runtime-disabled plugin there.
 
 ## XLSX specifics
 
