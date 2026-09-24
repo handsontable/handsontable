@@ -131,21 +131,42 @@ test.describe('root size options', () => {
       });
     }
 
-    test('leaves a heightless `overflow: hidden` parent at the rows\' height after `updateSettings()` (DEV-3062)', async () => {
-      await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, 'heightless-hidden');
+    for (const containerClass of ['heightless-hidden', 'heightless-auto']) {
+      test(`leaves a heightless \`${containerClass}\` parent at the rows' height after \`updateSettings()\` (DEV-3062)`, async () => {
+        await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, containerClass);
 
-      expect((await grid.verticalSizes()).parentHeight).toBe(300);
+        expect((await grid.verticalSizes()).parentHeight).toBe(300);
 
-      await grid.updateSettings({ height: 'auto' });
+        await grid.updateSettings({ height: 'auto' });
 
-      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-      const sizes = await grid.verticalSizes();
+        const sizes = await grid.verticalSizes();
 
-      expect(sizes.holderHeight).toBeGreaterThan(0);
-      expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
-      expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
-    });
+        expect(sizes.holderHeight).toBeGreaterThan(0);
+        expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+        expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+      });
+
+      test(`returns the holder to 0px in a heightless \`${containerClass}\` parent after \`updateSettings({ height: null })\` (DEV-3062)`, async () => {
+        await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 'auto' }, containerClass);
+
+        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+
+        expect((await grid.verticalSizes()).holderHeight).toBeGreaterThan(0);
+
+        await grid.updateSettings({ height: null });
+
+        expect((await grid.rootState()).height).toBe('');
+
+        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('0px');
+
+        const sizes = await grid.verticalSizes();
+
+        expect(sizes.holderHeight).toBe(0);
+        expect(sizes.parentHeight).toBe(0);
+      });
+    }
 
     test('flips the clip and the scroll owner both ways through `updateSettings()`', async () => {
       await grid.rebuild({ height: 300 });

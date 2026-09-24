@@ -370,10 +370,11 @@ class MasterTable extends Table {
               useAutoHeight = true;
             }
 
-            // Unless the host sized the grid by its content (Handsontable's `height: 'auto'`, which
-            // leaves the root unclipped so the grid can scroll a sized ancestor). A heightless owner
-            // then has no box to scroll the rows in, and 0px would hide the whole grid inside it
-            // (DEV-3062). `auto` sizes the holder to its rows, as the root owning the axis did.
+            // The second case that switches to auto-height: the host sized the grid by its content
+            // (Handsontable's `height: 'auto'`, which leaves the root unclipped so the grid can
+            // scroll a sized ancestor). A heightless owner then has no box to scroll the rows in,
+            // and 0px would hide the whole grid inside it (DEV-3062). `auto` sizes the holder to its
+            // rows, as the root owning the axis did.
             if (heightFollowsContent) {
               useAutoHeight = true;
             }
