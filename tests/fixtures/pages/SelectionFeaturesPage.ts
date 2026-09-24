@@ -2,15 +2,35 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
 
+type Box = { x: number, y: number, width: number, height: number };
+
+/**
+ * An overlay (table) of the grid: the master, or one of the frozen-pane clones.
+ */
+type OverlayName = 'master' | 'top' | 'bottom' | 'inline_start' | 'top_inline_start_corner' |
+  'bottom_inline_start_corner';
+
+/**
+ * The CSS class of an overlay's root element.
+ *
+ * @param {OverlayName} overlay The overlay.
+ * @returns {string}
+ */
+function overlayClass(overlay: OverlayName): string {
+  return overlay === 'master' ? 'ht_master' : `ht_clone_${overlay}`;
+}
+
 /**
  * Page Object for the selection features fixture
  * (tests/fixtures/demo/selection-features.html).
  *
  * The fixture runs a grid with `selectionHandles` and `moveCells` enabled.
  * Tests express intent (`selectCells`, `hoverCell`, `visibleHandles`); the
- * selectors and the `window.hot` driving mechanics live here. Locators are
+ * selectors and the `window.hot` driving mechanics live here. Most locators are
  * scoped to the master overlay — the frozen-pane clones duplicate the border
- * elements, so an unscoped match would be ambiguous.
+ * elements, so an unscoped match would be ambiguous. The `…InAnyOverlay`
+ * locators are the deliberate exception (they count handles across overlays),
+ * and `overlayCell()`/`overlayHandle()` scope to one named overlay.
  */
 export class SelectionFeaturesPage {
   readonly page: Page;
@@ -356,10 +376,13 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * Drag a selection handle to the center of a rendered cell.
+   * Drag a selection handle to the center of a rendered cell. The handle defaults to the master
+   * overlay's; pass another locator (e.g. `handleInAnyOverlay(edge)`) for one a frozen pane draws.
    */
-  async dragHandleToCell(edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number): Promise<void> {
-    const handleBox = await this.handle(edge).boundingBox();
+  async dragHandleToCell(
+    edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number, handle: Locator = this.handle(edge),
+  ): Promise<void> {
+    const handleBox = await handle.boundingBox();
     const targetBox = await this.cell(row, col).boundingBox();
 
     if (!handleBox || !targetBox) {
@@ -899,7 +922,7 @@ export class SelectionFeaturesPage {
 
   /** Hover a cell rendered by the bottom frozen overlay. */
   async hoverFrozenBottomCell(row: number, col: number): Promise<void> {
-    await this.page.locator('.ht_clone_bottom').getByTestId(`cell-${row}-${col}`).hover();
+    await this.overlayCell('bottom', row, col).hover();
   }
 
   /**
@@ -917,12 +940,137 @@ export class SelectionFeaturesPage {
    * not on the master.
    */
   frozenBottomHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
-    return this.page.locator(`.ht_clone_bottom .wtSelectionHandle--${edge}:visible`);
+    return this.overlayHandle('bottom', edge);
   }
 
   /** The currently visible selection-adjust handles in the master overlay. */
   visibleHandles(): Locator {
     return this.page.locator('.ht_master .wtSelectionHandle:visible');
+  }
+
+  /**
+   * The visible selection-adjust handles for an edge in every overlay (the master and each frozen
+   * clone). A selection crossing a frozen pane is drawn once per overlay, so this is the locator that
+   * sees a handle duplicated across overlays — the master-scoped ones cannot.
+   */
+  handleInAnyOverlay(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
+    return this.grid.locator(`.wtSelectionHandle--${edge}:visible`);
+  }
+
+  /**
+   * The currently visible selection-adjust handles in every overlay.
+   */
+  visibleHandlesInAnyOverlay(): Locator {
+    return this.grid.locator('.wtSelectionHandle:visible');
+  }
+
+  /**
+   * The visible selection-adjust handle for an edge, scoped to one overlay.
+   */
+  overlayHandle(overlay: OverlayName, edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
+    return this.page.locator(`.${overlayClass(overlay)} .wtSelectionHandle--${edge}:visible`);
+  }
+
+  /**
+   * A data cell as rendered by one overlay (a frozen cell is rendered by its clone, and possibly by
+   * the master underneath it).
+   */
+  overlayCell(overlay: OverlayName, row: number, col: number): Locator {
+    return this.page.locator(`.${overlayClass(overlay)}`).getByTestId(`cell-${row}-${col}`);
+  }
+
+  /**
+   * Scroll the viewport so that the given column is at the inline start, right after the frozen
+   * columns.
+   */
+  async scrollToColumn(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.scrollViewportTo({ col: column, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(c => window.hot.getFirstFullyVisibleColumn() <= c && c <= window.hot.getLastFullyVisibleColumn(), col)).toBe(true);
+  }
+
+  /**
+   * Scroll horizontally so that only `px` pixels of the given scrollable column show past the frozen
+   * columns: the column stays partially visible and the next one becomes the first fully visible one.
+   */
+  async scrollToLeaveSliverOfColumn(col: number, px: number): Promise<void> {
+    await this.page.evaluate(([column, sliver]) => {
+      const { hot } = window;
+      const fixedColumnsStart = hot.getSettings().fixedColumnsStart ?? 0;
+      let scrollLeft = -sliver;
+
+      for (let c = fixedColumnsStart; c <= column; c++) {
+        scrollLeft += hot.getColWidth(c);
+      }
+
+      document.querySelector('.ht_master .wtHolder')!.scrollLeft = scrollLeft;
+    }, [col, px] as const);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col + 1);
+  }
+
+  /**
+   * The edges of the selection-adjust handles a user can actually grab, sorted: displayed, and the
+   * topmost element at their own center. `:visible` does not check occlusion, so a handle drawn
+   * under a frozen pane passes a visibility count; it does not pass this.
+   */
+  async reachableHandleEdges(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const edges: string[] = [];
+
+      document.querySelectorAll('[data-testid="grid"] .wtSelectionHandle').forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+        const edge = (handle.className.match(/wtSelectionHandle--(\w+)/) ?? [])[1];
+
+        if (!edge || getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+        if (hit && (hit === handle || handle.contains(hit))) {
+          edges.push(edge);
+        }
+      });
+
+      return edges.sort();
+    });
+  }
+
+  /**
+   * Scroll the viewport so that the given row is at the top, right below the frozen rows.
+   */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate(targetRow => window.hot.scrollViewportTo({ row: targetRow, verticalSnap: 'top' }), row);
+    await expect.poll(() => this.page.evaluate(r => window.hot.getFirstFullyVisibleRow() <= r && r <= window.hot.getLastFullyVisibleRow(), row)).toBe(true);
+  }
+
+  /**
+   * The bounding box of a data cell rendered by the given overlay, read in the same evaluation as
+   * the visible handles' boxes, so no draw can land between the reads.
+   */
+  async handleBoxesAgainstCell(
+    overlay: OverlayName, row: number, col: number,
+  ): Promise<{ cell: Box, handles: Record<string, Box[]> }> {
+    return this.page.evaluate(([cloneClass, r, c]) => {
+      const toBox = (el: Element) => {
+        const rect = el.getBoundingClientRect();
+
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      };
+      const grid = document.querySelector('[data-testid="grid"]')!;
+      const cell = grid.querySelector(`.${cloneClass} [data-testid="cell-${r}-${c}"]`)!;
+      const handles: Record<string, Box[]> = { top: [], bottom: [], start: [], end: [] };
+
+      grid.querySelectorAll('.wtSelectionHandle').forEach((handle) => {
+        const style = getComputedStyle(handle);
+        const edge = (handle.className.match(/wtSelectionHandle--(\w+)/) ?? [])[1];
+
+        if (edge && style.display !== 'none' && style.visibility !== 'hidden') {
+          handles[edge].push(toBox(handle));
+        }
+      });
+
+      return { cell: toBox(cell), handles };
+    }, [overlayClass(overlay), row, col] as const);
   }
 
   /** The currently visible move-zone bands in the master overlay. */

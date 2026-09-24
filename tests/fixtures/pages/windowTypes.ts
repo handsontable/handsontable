@@ -192,12 +192,14 @@ export interface FixtureHotInstance {
   rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getFirstFullyVisibleColumn(): number;
+  getLastFullyVisibleColumn(): number;
   getLastPartiallyVisibleRow(): number;
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
   getColWidth(col: number): number;
-  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
@@ -218,6 +220,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  getSettings(): { fixedColumnsStart?: number, [key: string]: unknown };
   alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };

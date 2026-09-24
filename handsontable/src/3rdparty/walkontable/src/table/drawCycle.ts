@@ -152,6 +152,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   });
 
   if (ctx.runFastDraw) {
+    snapshotSelectionVisibleRange(table, wtOverlays);
     wtOverlays.refresh(true);
     // Fast (scroll) draws skip the full-render header-height pass below, so the master/top
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
@@ -266,6 +267,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // re-measurable instead of ratcheting on their own cached value.
       const wipedFrozenRows = ctx.syncFrozenRows ? resetFrozenOversizedRows(table) : undefined;
 
+      snapshotSelectionVisibleRange(table, wtOverlays);
       wtOverlays.refresh(false);
       syncOversizedColumnHeadersWithFrozenOverlays(table);
       // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
@@ -955,6 +957,30 @@ export function refillDisagreesWithFrozenColumnSync(
     .getResultsFor('rendered')?.startColumn ?? null;
 
   return (proposedStartColumn !== null && proposedStartColumn > 0) !== ctx.syncFrozenRows;
+}
+
+/**
+ * Snapshots the master's visible rows and columns for the selection handles, right before the
+ * overlays render. The clones render their selections inside `wtOverlays.refresh()` and the master
+ * renders its own afterwards, and `createVisibleCalculators()` can run again in between (after a
+ * frozen-derived row height changed). Every overlay decides which of them draws each handle from this
+ * one snapshot, so the rule can never see two different ranges within a draw. A master draw that
+ * never reaches `refresh()` keeps the previous snapshot, which is also what the clones last drew with.
+ *
+ * @param {Table} table The master table.
+ * @param {Overlays} wtOverlays The master's overlays.
+ */
+function snapshotSelectionVisibleRange(table: Table, wtOverlays: Overlays): void {
+  wtOverlays.selectionVisibleRange = {
+    row: {
+      partial: [table.getFirstPartiallyVisibleRow(), table.getLastPartiallyVisibleRow()],
+      full: [table.getFirstVisibleRow(), table.getLastVisibleRow()],
+    },
+    column: {
+      partial: [table.getFirstPartiallyVisibleColumn(), table.getLastPartiallyVisibleColumn()],
+      full: [table.getFirstVisibleColumn(), table.getLastVisibleColumn()],
+    },
+  };
 }
 
 /**
