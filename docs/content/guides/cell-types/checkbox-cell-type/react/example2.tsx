@@ -4,41 +4,43 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    car: 'Mercedes A 160',
+    year: 2017,
+    available: true,
+    comesInBlack: 'yes',
+  },
+  {
+    car: 'Citroen C4 Coupe',
+    year: 2018,
+    available: false,
+    comesInBlack: 'yes',
+  },
+  {
+    car: 'Audi A4 Avant',
+    year: 2019,
+    available: true,
+    comesInBlack: 'no',
+  },
+  {
+    car: 'Opel Astra',
+    year: 2020,
+    available: false,
+    comesInBlack: 'yes',
+  },
+  {
+    car: 'BMW 320i Coupe',
+    year: 2021,
+    available: false,
+    comesInBlack: 'no',
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        {
-          car: 'Mercedes A 160',
-          year: 2017,
-          available: true,
-          comesInBlack: 'yes',
-        },
-        {
-          car: 'Citroen C4 Coupe',
-          year: 2018,
-          available: false,
-          comesInBlack: 'yes',
-        },
-        {
-          car: 'Audi A4 Avant',
-          year: 2019,
-          available: true,
-          comesInBlack: 'no',
-        },
-        {
-          car: 'Opel Astra',
-          year: 2020,
-          available: false,
-          comesInBlack: 'yes',
-        },
-        {
-          car: 'BMW 320i Coupe',
-          year: 2021,
-          available: false,
-          comesInBlack: 'no',
-        },
-      ]}
+      data={data}
       colHeaders={['Car model', 'Year of manufacture', 'Comes in black']}
       height="auto"
       columns={[

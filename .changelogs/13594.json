@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `getCellDependents` and `getCellPrecedents` methods to the Formulas plugin.",
+  "type": "added",
+  "issueOrPR": 13594,
+  "breaking": false,
+  "framework": "none"
+}

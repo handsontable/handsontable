@@ -41,6 +41,18 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
+    sheetId: number | null,
+    sheetName: string | null,
+    /** DEV-207: `showFormulas()`/`hideFormulas()`/`isShowingFormulas()` toggle. */
+    showFormulas(): void,
+    hideFormulas(): void,
+    isShowingFormulas(): boolean,
+    // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
+    // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
+    engine: {
+      getSheetDimensions(sheetId: number): { width: number, height: number },
+      getSheetSerialized(sheetId: number): unknown[][],
+    } | null,
   };
   getPlugin(name: 'undoRedo'): {
     undo(): void,
@@ -184,6 +196,7 @@ export interface FixtureHotInstance {
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
+  getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
@@ -251,8 +264,25 @@ declare global {
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
     /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
     htDropdownOptions: string[];
-    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    /** DEV-2938 / DEV-2978 fixtures: everything the page logged through `console.error`, in order. */
     consoleErrors?: string[];
+    /** DEV-2978 fixture: how many `setSheetContent` calls the bound engine has taken since the last reset. */
+    sheetWriteCount?: number;
+    /**
+     * DEV-2978 fixture, `sheet-switch` scenario, and the DEV-2905 fixture: the shared HyperFormula
+     * instance the grid and the spec both address, so a spec can read a sheet the grid is not
+     * currently bound to, or remove the bound one.
+     */
+    htEngine?: {
+      getSheetId(name: string): number,
+      getSheetSerialized(sheetId: number): unknown[][],
+      /** DEV-2905 fixture: removes a sheet behind the Formulas plugin's back. */
+      removeSheet(sheetId: number): unknown,
+    };
+    /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
+    measuredColumns?: number;
+    /** DEV-2905 fixture: reloads the active sheet through `loadData()` with values the engine has not seen. */
+    loadFreshBudget?(): void;
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
     /** DEV-2938 fixture: how many times the grid has drawn since it was built. */

@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { format, isDate } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import { editorFactory } from 'handsontable/editors';
@@ -82,10 +82,12 @@ const data = [
 const container = document.querySelector('#example1');
 const cellDefinition = {
   validator: (value, callback) => {
-    callback(isDate(new Date(value)));
+    callback(!value || isValid(parseISO(value)));
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
-    td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
+    const date = parseISO(value);
+
+    td.innerText = value && isValid(date) ? format(date, cellProperties.renderFormat) : value || '';
   }),
   editor: editorFactory({
     init(editor) {

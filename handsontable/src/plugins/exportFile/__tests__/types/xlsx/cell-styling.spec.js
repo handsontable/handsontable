@@ -136,6 +136,21 @@ describe('exportFile XLSX type — cell styling', () => {
 
       expect(ws.getRow(1).getCell(1).alignment).toBeUndefined();
     });
+
+    it('should export a `type: \'numeric\'` cell holding a non-numeric value as horizontal right ' +
+      'alignment, because the cell is still configured as numeric (DEV-135)', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'numeric' }],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.getRow(1).getCell(1).alignment).toEqual(
+        jasmine.objectContaining({ horizontal: 'right' })
+      );
+    });
   });
 
   describe('cell borders', () => {

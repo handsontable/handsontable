@@ -7,26 +7,28 @@ registerAllModules();
 const formatJP = { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 };
 const formatTR = { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
+const data = [
+  {
+    productName: 'Product A',
+    JP_price: 1450.32,
+    TR_price: 202.14,
+  },
+  {
+    productName: 'Product B',
+    JP_price: 2430.22,
+    TR_price: 338.86,
+  },
+  {
+    productName: 'Product C',
+    JP_price: 3120.1,
+    TR_price: 435.2,
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        {
-          productName: 'Product A',
-          JP_price: 1450.32,
-          TR_price: 202.14,
-        },
-        {
-          productName: 'Product B',
-          JP_price: 2430.22,
-          TR_price: 338.86,
-        },
-        {
-          productName: 'Product C',
-          JP_price: 3120.1,
-          TR_price: 435.2,
-        },
-      ]}
+      data={data}
       autoRowSize={false}
       autoColumnSize={false}
       columnSorting={true}

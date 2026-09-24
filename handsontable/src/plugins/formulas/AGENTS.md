@@ -31,6 +31,21 @@ Related, on the hook side: **`afterSetDataAtCell` carries visual rows while
 and silently suppresses whichever cell it collides with. `prop` needs no such care: `propToCol()` returns a
 visual column on both paths.
 
+> **The two exceptions to "always translate": `getCellDependents` / `getCellPrecedents`.** These public
+> methods (DEV-204) are the only ones that speak HF index space at their boundary. They neither translate
+> the incoming address nor translate the addresses they return, unlike `getCellType` / `isFormulaCellType`,
+> which take visual `(row, column)`. It is deliberate, not a missed `getVisualIndexFromHfIndex()`.
+> HyperFormula's dependency graph is inherently an HF-space concept, and its results cannot be expressed in
+> visual space: a dependent can live on another sheet, the result can be a range rather than a cell, and a
+> named-expression reference comes back with `sheet: -1`, none of which has a Handsontable visual
+> coordinate. The consequence a caller must know (and the JSDoc states): the returned HF indexes equal
+> visual indexes only when nothing is trimmed, hidden, moved, or sorted. Do not "fix" these two by routing
+> them through the axis syncers, and do not copy their raw-address pattern into a method that is supposed to
+> be visual. The public argument/return types are `FormulasCellAddress` / `FormulasCellRange`
+> (`engine/types.ts`, re-exported from the plugin barrel). They are named to avoid a collision with
+> HyperFormula's own `SimpleCellAddress` / `SimpleCellRange`, since core source never imports from
+> `'hyperformula'`.
+
 ## Undo/redo bypasses the change listeners — and that is the design
 
 ```js
@@ -88,6 +103,56 @@ Two performance rules and one mid-batch guard:
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
 
+## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
+
+Every other plugin reads cells through `modifyData`, and this listener is what puts the new data into the
+engine (`setSheetContent`). At the default order it ran after AutoColumnSize's full sweep — that plugin has
+the lowest `PLUGIN_PRIORITY` — so the sweep measured formula columns against the previous dataset's results,
+and the `valuesUpdated` batch this listener triggers queued every changed cell for a second synchronous full
+rescan. This listener moved rather than that one because moving the sweep later changed what every other
+`afterLoadData` listener sees: AutoRowSize measures row heights against the sweep's widths, and host
+callbacks read `getColWidth()`. `afterUpdateData` carries the same order for symmetry. The `updateSettings`
+data path is unaffected either way — with `source === 'updateSettings'` this listener returns early and the
+engine is fed from `afterCellMetaReset`.
+
+**The listener also overtakes `manualColumnMove` / `manualRowMove`, and that changed which engine call
+carries a configured order on a later `loadData()`.** Init is untouched: those plugins apply their arrays in
+`enablePlugin`, so at the first `afterLoadData` the sequence is already non-identity and
+`setupSyncEndpoint()` → `#syncInitialOrder()` sends `setColumnOrder` / `setRowOrder` on both develop and this
+branch (measured with the engine methods spied; the reference rewrite that
+`__tests__/plugins/initialManualColumnMove.spec.js` pins at init is unchanged). On a `loadData()` after
+init the two plugins re-apply the arrays in their own `afterLoadData`. Develop ran that before this listener,
+and the order reached the engine **twice**: `moveColumns` from the move, then `setSheetContent`, then
+`setColumnOrder` from `#syncInitialOrder()` — a double transform that rewrote `=A1+10` to `=B1+10` (510
+instead of 15 on the spec's data). Now this listener runs first, `#syncInitialOrder()` sees the identity
+sequence and sends nothing, and the move that follows reaches the engine once through `syncMoves()`. The
+spec's `loadData()` case pins the formula staying `=A1+10`. Do not "restore" the `setColumnOrder` path by
+postponing `setupSyncEndpoint()` behind the moves without re-measuring that case.
+
+## The per-cell read path caches "the engine holds my sheet" (DEV-2905)
+
+`modifyData` and `modifySourceData` fire once per cell of every bulk read (AutoColumnSize sampling, the
+filters column scan), so `#onModifyData` is the plugin's hottest path. Two rules keep it cheap:
+
+- **`#hasOwnSheet()` replaces `engine.doesSheetExist(this.sheetName)` on those two hooks.** The answer is
+  cached in `#ownSheetExists` and dropped to `null` from every place the answer can change: the engine's own
+  `sheetAdded` / `sheetRenamed` / `sheetRemoved` listeners (engine-wide, so a second instance on the same
+  engine removing this instance's sheet still invalidates it), `#updateSheetNameAndSheetId()`, the `engine`
+  assignments in `enablePlugin` / `disablePlugin` / `destroy`, and the plugin's own `engine.undo()` /
+  `engine.redo()` calls — HyperFormula's undo and redo add, remove, and rename sheets through its
+  `UndoRedo` operations, which emit no sheet event. A host calling `engine.undo()` directly on a sheet
+  operation is the one path left uncovered; it also desyncs the two undo stacks, so it is unsupported
+  regardless. A new invalidation point is needed whenever a new path writes `sheetName`, `sheetId`, or
+  `engine` without going through those. `#onEngineSheetRemoved` still does not null `sheetName` — the
+  cached `false` is what protects reads after an external `removeSheet` of the own sheet
+  (`__tests__/ownSheetCache.unit.js`, `tests/e2e/sheet-switch-autosize.spec.ts`).
+- **One address translation per read, on both hooks.** `#toEngineAddress()` does the `toPhysical*` bounds
+  check and the two axis-syncer translations once; the type lookup, the dimensions check, and the value
+  read share the result. Keep the `VALUE` / `EMPTY` early return — it hands back the raw source string
+  (after `unescapeFormulaExpression`), while `getCellValue` would return the engine's parsed value (numeric
+  strings as numbers, date text as serials), and array-spill cells have an empty source value yet a real
+  engine value, so the type branch cannot be replaced by a check on the source value either.
+
 ## Engine settings: `maxRows` / `maxColumns` do NOT reach the engine
 
 HyperFormula's own default sheet size is 40000. Handsontable used to pass its `maxRows`, which defaults to
@@ -99,6 +164,135 @@ switches the sheet, and dropping them would skip that.
 `engine/register.ts` accepts three shapes: an engine class, an engine instance, or
 `{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
 registry.
+
+## `updateSettings()` resyncs the sheet ONCE, after the plugins update
+
+The sheet is rebuilt from the source data by `#resyncSheet()` — one full scan of the source data, one
+`setSheetContent`. The Core fires `afterCellMetaReset` in the **middle** of `updateSettings()`, before
+`afterUpdateSettings`, which is where every plugin's `onUpdateSettings` runs. So a scan run there describes
+a layout a plugin may be about to replace: `nestedRows: true` flattens a two-row tree into four rows, and
+an engine left with the two-row sheet rendered `Root B`'s `=UPPER(A1)` as its own raw text while the
+computed value slid onto another row (DEV-2978).
+
+One flag, `#sheetResyncPending`, connects four drains:
+
+- **`#onAfterCellMetaReset`** records that a resync is owed and which sheet it belongs to
+  (`#sheetIdAtLastSync`). It scans eagerly in exactly two cases: **construction**, because the Core skips
+  `afterUpdateSettings` on its first run and `hot.view` does not exist yet, so there is no late pass to
+  defer to; and the **empty-data branch**, which is not a scan but a reload of the grid FROM the sheet
+  (`switchSheet()`), and which records the layout it produced.
+- **`#onBeforeRender`** drains it before a draw starts. This is where the scan actually lands on the
+  `nestedRows` toggle: NestedRows renders from its own `onUpdateSettings`, after it has flattened the tree.
+  Without this drain the first cell's paint gate would drain it through `#onModifyData`, and the full scan
+  plus the dependent grids' redraw would run from inside a cell paint of this grid's own draw (measured
+  stack: `#resyncSheet <- #onModifyData <- CellPainter.shouldPaint <- TableView.render <-
+  NestedRows.onUpdateSettings`).
+- **`#onModifyData` / `#onModifySourceData`** drain it when something reads the engine before either of
+  the above — a plugin's `onUpdateSettings`, a user's default-order `afterUpdateSettings` listener.
+- **`#onAfterUpdateSettingsRowCount`**, the `afterUpdateSettings` listener registered with
+  **`orderIndex: 1`** — after every default-order listener, the plugins' included — drains whatever is
+  still owed. When nothing is (an earlier drain ran, or the eager branch did) it falls back to the DEV-2978
+  gate: `countSourceRows()` against the count the last write recorded (`#recordSyncedLayout()`), on the
+  same sheet id, and rescans only when the count moved after that write.
+
+That is one scan per `updateSettings()`. Measured locally with the `performance-tests` harness on a
+throwaway scenario — the perf suite stays small and broad, and the count is pinned by the tests below —
+(5,000 parents with one child each, 10,000 rows flattened, `updateSettings({ nestedRows: true })`):
+**151 ms → 99 ms total (−34%), 2 → 1 `setSheetContent` per toggle, 5 iterations** (DEV-3006; heap moved
+−4% to −11% across develop runs, so read that column loosely). Before DEV-3006 the mid-update scan ran and was discarded, and the late
+listener scanned again. The total did not shrink for a settings change that leaves the row count alone: the
+one scan moved from `afterCellMetaReset` to the first drain, so a user listener that reads one cell mid-cycle
+now pays it inside that read (measured 78–90 ms at 10,000 rows, against 0 ms before), and a profiler bills
+it to the listener.
+
+Rules that keep it correct:
+
+- **Reads through the Core data API never see a stale engine; the plugin's own methods can.**
+  `getDataAtCell()`, `getData()`, `getSourceDataAtCell()`, `getSourceData()` and a render all pass through
+  the two read hooks, which drain the flag after their own early-return guards, so a plugin's
+  `onUpdateSettings` or a user's default-order listener that reads a cell gets the sheet the update
+  produced. `getCellType()`, `isFormulaCellType()`, `getCellDependents()`, `getCellPrecedents()` and a
+  direct `plugin.engine.*` read do NOT drain: from a default-order listener they answer for the PREVIOUS
+  sheet until the update returns, where before DEV-3006 they answered for the mid-update scan (a different
+  stale state, but stale on a row-count change too). A second grid on the same engine reading this sheet
+  through a cross-sheet reference sees the previous sheet in that window as well; it is re-rendered when
+  the drain runs. No core plugin reads any of those inside the window.
+- **A listener throw is self-healing; a scan throw is not retried.** If a default-order listener throws,
+  `updateSettings()` unwinds before the late listener runs and the flag stays set; the next draw or engine
+  read drains it, and so does the next `updateSettings()` or `loadData()`. If the SCAN throws — a `cells()`
+  handler that throws for one cell, a dependent grid whose `afterRender` throws — `#resyncSheet()` leaves
+  the flag cleared and the layout unrecorded, and the next `updateSettings()` retries. It must not re-arm
+  the flag: measured with a persistently throwing write, a re-armed flag turned every later `getDataAtCell()`
+  and `render()` into a full scan that threw again (3 reads, 3 throws, 4 writes), where develop threw once
+  and kept rendering. The one deterministic engine throw, a sheet over `maxRows` / `maxColumns`, is not
+  thrown at all: `isItPossibleToReplaceSheetContent` is checked first and `#clearRejectedSheet()` empties
+  the sheet with a warning, the same treatment `#onAfterLoadData` gives a rejected load. Covered by `syncs
+  the sheet on the next read when a default-order listener throws`, `does not retry a scan that threw until
+  the next settings update`, `stops scanning after a write that fails on every attempt`, and `empties the
+  sheet instead of throwing when the engine cannot hold the layout`.
+- **A scan can now throw out of a READ or a RENDER.** The drain moved from `updateSettings()` into the
+  hooks, so a resync that fails surfaces from the `getDataAtCell()`, `getSourceDataAtCell()` or `render()`
+  that drained it, where before it surfaced from `updateSettings()`. Accepted: the alternative is serving a
+  value from a sheet known to be stale. It surfaces once, per the rule above.
+- **`#resyncSheet()` clears the flag FIRST.** The scan reads the source data through the very hooks that
+  drain the flag — `#getProcessedSourceDataArray` suspends the projection for its bulk read but not for the
+  `getSourceDataAtRow` probe that follows it — so a flag still set inside the scan re-enters the method from
+  its own scan (measured as a stack overflow). Every write releases `#internalOperationPending` in a
+  `finally` — `#writeSheet()` is the one full-write path, shared by `#resyncSheet()` and the
+  `#onAfterLoadData` write branch, and `#clearRejectedSheet()` does the same for the emptying write —
+  because the read hooks return early while it is set and would otherwise serve raw formula text until
+  the next settings update. That is what the frozen Jasmine spec `should recover when a dependent grid
+  throws mid-write` used to pin as an intermediate state and now asserts the healed value of, and what
+  `keeps serving the engine after a dependent grid throws during a loadData write` pins for the load path.
+- **Binding another sheet cancels the owed resync.** `#updateSheetNameAndSheetId()` clears the flag, so
+  `switchSheet()` (which loads the grid FROM the sheet) and the `addSheet` callers (which filled the sheet
+  from the grid) leave nothing to carry — a drain after them would write this grid's visible-column
+  projection over the sheet just bound: a grid showing one column of a three-column sheet truncated that
+  sheet for every grid sharing the engine (the DEV-2978 data-loss case). The late listener's sheet-id check
+  is the second line of defense. Covered by `does not write the grid into a sheet the update switched to`
+  (unit) and `does not write the grid back into a sheet it just switched to` (Playwright).
+  `#onAfterLoadData`'s own write clears it for the same reason.
+- **Key the fallback gate off the row COUNT, never off a plugin.** Nothing here knows what changed the
+  layout, which is the point — the next plugin to flatten, group or expand rows at settings time is
+  covered without a change, **as long as it reports through `modifySourceLength`**. `minRows` /
+  `minSpareRows` are NOT in that class: the Core creates those rows in `adjustRowsAndCols()`, after
+  `afterUpdateSettings`, and they reach the engine through `afterCreateRow`. A read that drains BEFORE a
+  row-count-changing plugin runs (a listener on `afterCellMetaReset`) costs the second scan the gate exists
+  for — covered by `rescans when the row count moves after an early drain`.
+- **Record the layout at the END of every write, never at the start.** `#resyncSheet()`,
+  `#clearRejectedSheet()`, the `#onAfterLoadData` write branch and the empty-data reload all record it.
+  The empty-data branch's `switchSheet()` runs `loadData()`, which moves the row count itself; a count
+  taken first describes a layout the handler then replaced, and the late listener re-entered for a change
+  the handler had just made. A `loadData()` from a default-order listener records too, so the gate does not
+  take the rows it loaded for a foreign layout change — covered by `lets a default-order listener load data
+  without a second scan`.
+- **One `setSheetContent` per update is also one engine undo entry per update.** Every write pushes a
+  HyperFormula undo entry and clears its redo stack, and the grid records no action for a settings update,
+  so the discarded second scan used to add an entry the grid could never match. Covered by `pushes exactly
+  one engine undo entry per settings update`; it counts entries, it does not prove the two stacks agree
+  after an `undo()`, because NestedRows clears the grid's history on enable.
+- **`hot.view` is the init detector, on purpose.** The Core creates the view right after the first
+  `updateSettings(settings, true)`, so it is absent during the construction-time `afterCellMetaReset`
+  and present for every later one; `collapsibleColumns` and `emptyDataState` read the same signal. Covered
+  by `fills the sheet before the first draw at construction`.
+- **The incremental alternative was considered and rejected.** Replacing the late full scan with
+  `addRows` / `removeRows` for the row delta does not work: flattening inserts rows in the INTERIOR of the
+  sheet, not at the end, so the delta is not an append and the insert positions would have to be derived
+  from the tree. More machinery and more ways to be quietly wrong; revisit only if the deferral above turns
+  out to be unsafe.
+- **Known gap:** a foreign `afterUpdateSettings` listener that runs `disablePlugin(); enablePlugin()` on
+  this plugin mid-update drops the owed resync (`disablePlugin` clears the flag, `enablePlugin` finds the
+  sheet still in a user-supplied engine and skips the rebuild), so the sheet keeps the previous data until
+  the next update. Formulas' own `updatePlugin` does not do this. Not fixed, because setting the flag on
+  every re-enable would also rescan a plain runtime re-enable, which never rebuilt the sheet before.
+- **On a SHRINK, `getSheetDimensions()` is the wrong probe.** The engine grows a sheet to calculate
+  values outside it and does not hand that extent back, so after a four-row grid drops to two the
+  dimensions still report four while the content is correct. Assert `getSheetSerialized()` instead —
+  `tests/e2e/formulas-nested-rows-toggle.spec.ts` does.
+
+Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, listener and scan throws,
+engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
+(`rebuilds the sheet once per toggle`).
 
 ## The engine's sheet size is not the grid's axis length, in either direction
 
@@ -192,6 +386,61 @@ summary formulas stay out of the sort (#12627). User-facing copy:
   anchor (`hideSchemePrefix()` in `../../utils/cellLinks/linkElement.ts`), and the wrap that follows would then carry
   that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
   it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
+
+## `showFormulas()`/`hideFormulas()`: display-only, on purpose (DEV-207)
+
+`#showFormulasFlag` makes a `FORMULA`/`ARRAYFORMULA` cell show its formula text instead of its
+calculated value. It is deliberately **not** read by `#onModifyData`: that hook feeds every
+`getDataAtCell()` consumer — the renderer, `CopyPaste`, but also column sorting's comparator, the
+Filters value-list dropdown, and cell validation — and gating there would make sorting order by
+formula text and the value-list dropdown show formula strings, which neither Excel nor Google
+Sheets does. Cell validation happens to be immune regardless: `#onBeforeValidate` (below) already
+recomputes the calculated value from the engine directly, ignoring whatever `modifyData` reports.
+
+Two separate mechanisms carry the mode instead, both scoped to exactly where a user expects it:
+
+- **Paint**: `#onPaintFormulaText`, a *second* `afterRenderer` hook registered with `orderIndex: 1`
+  (`this.addHook('afterRenderer', this.#onPaintFormulaText, 1)`), so it always runs after every
+  default-order (`orderIndex` 0) `afterRenderer` listener — this plugin's own `#onAfterRenderer`
+  above (the `HYPERLINK` wrap) and `AutoLink`'s. **The `orderIndex` is load-bearing, not tidiness.**
+  `AutoLink`'s hook reads the TD's *live rendered text*, not the hook's `value` argument, so without
+  it a `=HYPERLINK("https://…", label)` formula's own painted text would get re-linkified by
+  `AutoLink` the instant this plugin wrote it — measured and confirmed with a negative control
+  (`tests/e2e/formulas-show-formulas.spec.ts`, "does not let AutoLink re-linkify…"). Running last
+  makes this plugin's paint the final write for the cell regardless of which plugin enabled first.
+- **Copy/cut**: `#onBeforeCopyOrCut`, registered on both `beforeCopy` and `beforeCut`, rewrites only
+  the copied array in place — never touches `getDataAtCell()` or the data map. It has to map each
+  `data[i][j]` back to a `(row, column)` from the `coords` argument alone, the same way
+  `CopyPaste#getRangedData()`/`normalizeRanges()` (`../copyPaste/copyableRanges.ts`) built that array
+  in the first place: dedupe each range's rows and columns, first-seen order. `copiedRowsAndColumns()`
+  reimplements that small, pure derivation locally rather than importing it, to avoid a cross-plugin
+  dependency on `copyPaste`'s internal module — keep the two in sync if that algorithm ever changes.
+  A negative row in `coords` is a copied column header (`CopyPaste#getRangedData`'s `row < 0`
+  convention), never a formula cell, and is skipped.
+
+`showFormulas()`/`hideFormulas()` both guard on `this.enabled` and no-op while the plugin is
+disabled — `#onModifyData`/`#onPaintFormulaText` cost nothing while disabled either way, but a bare
+flag flip with no hook to act on it would make `isShowingFormulas()` report a mode that shows
+nothing.
+
+The `Ctrl`+`` ` `` grid shortcut is registered/removed with the plugin's own `#registerToggleFormulasShortcut`/
+`#unregisterToggleFormulasShortcut` (own `SHORTCUTS_GROUP = PLUGIN_KEY`), called from
+`enablePlugin()`/`disablePlugin()` — **not** through the deprecated `registerShortcuts()`/
+`unregisterShortcuts()` no-op shims, which exist only for the pre-19.0.0 `Alt`+`Enter` link shortcut
+and must keep doing nothing. The binding is `['Control', 'backquote']`, not `Control/Meta` and not
+the literal `` ` `` character: `Cmd`+`` ` `` is macOS's own "move focus to the next window" shortcut
+(the same reason `MergeCells` binds `['Control', 'm']`), and a real backquote keypress's
+`keyCode`/`which` (192) normalizes to the string `'backquote'`, never to the character itself
+(`shortcuts/utils.ts`'s `specialCharactersSet`) — the Jasmine `keyDownUp()` simulator cannot
+reproduce that real `keyCode`, which is why the shortcut's real-keypress coverage lives in
+`tests/e2e/formulas-show-formulas.spec.ts` instead of the Jasmine suite.
+
+**Known limitation: `AutoColumnSize`/`AutoRowSize` measure the calculated value, not the painted
+text.** Both size through `GhostTable`, which calls a cell's renderer directly and never fires
+`afterRenderer` — so a column stays sized for `3` while the DOM shows `=A1+B1`, and a long formula
+can clip for as long as the mode is on. No render or settings change recalculates it. Accepted
+trade-off for keeping the toggle purely display-only rather than feeding the sampler a second, mode-
+dependent measurement path.
 
 ## Testing
 

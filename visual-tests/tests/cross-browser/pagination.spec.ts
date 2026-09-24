@@ -1,5 +1,5 @@
 import { helpers } from '../../src/helpers';
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   selectColumnHeaderByIndex,
   openHeaderDropdownMenu,
@@ -10,7 +10,11 @@ import {
   forPaginationClickPrevPageButton,
 } from '../../src/page-helpers';
 
-test('Test pagination', async({ goto, tablePage }) => {
+visualTest('Test pagination', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/pagination-demo');
 
   // filtering

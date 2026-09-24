@@ -32,11 +32,13 @@ export class SettingsMapper {
   /**
    * Parse component settings into Handsontable-compatible settings.
    *
-   * @param {Object} properties Object containing properties from the HotTable object.
-   * @param {Object} additionalSettings Additional settings.
+   * @param {object} properties Object containing properties from the HotTable object.
+   * @param {object} additionalSettings Additional settings.
    * @param {boolean} additionalSettings.isInit Flag determining whether the settings are being set during initialization.
    * @param {string[]} additionalSettings.initOnlySettingKeys Array of keys that can be set only during initialization.
-   * @returns {Object} Handsontable-compatible settings object.
+   * @param {HotTableProps} additionalSettings.prevProps The component's props before the current update.
+   * @param {Handsontable.GridSettings} additionalSettings.currentSettings The grid's current live settings.
+   * @returns {object} Handsontable-compatible settings object.
    */
   static getSettings(
     properties: HotTableProps,
@@ -73,17 +75,16 @@ export class SettingsMapper {
 
       return false;
     };
-    let newSettings: Handsontable.GridSettings = {};
+    const newSettings: Handsontable.GridSettings = {};
 
-    for (const key in properties) {
+    Object.keys(properties).forEach((key) => {
       if (
         key !== 'children' &&
-        !shouldSkipProp(key as keyof Handsontable.GridSettings) &&
-        properties.hasOwnProperty(key)
+        !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
         (newSettings as any)[key] = properties[key as keyof HotTableProps];
       }
-    }
+    });
 
     return newSettings;
   }

@@ -5,6 +5,19 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+  [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+  [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+  [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+  [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+  [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+  [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+  [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+  [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
   const [counter, setCounter] = useState(0);
@@ -81,18 +94,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
-          [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
-          [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
-          [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
-          [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
-          [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
-          [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
-          [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
-          [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-          [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
-        ]}
+        data={data}
         width="auto"
         height="auto"
         colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}

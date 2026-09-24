@@ -13,8 +13,20 @@ Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 - Type tests (`*.types.ts`) updated if public API changed: <!-- paths -->
 - For a bug fix — the spec that fails without this fix: <!-- name -->
 - Demo page / recorded trace (for UI changes): <!-- link -->
+- Visual spec added/modified (`visual-tests/tests/**/*.spec.ts`, only for pixels no DOM probe can express — in addition to, never instead of the E2E above): <!-- paths, or "none"; rule: visual-tests/AGENTS.md → Decision rule -->
 
 <!--
+Visual budget: a change that grows the golden set (a new visual spec, a new
+capture) declares it with [visual budget: N – reason] in this description
+OUTSIDE any HTML comment — here, inside a comment, it is inert. N is the
+full-tier golden total after the change, and it has to match what
+visual-tests/visual-budget.json sums to — update both. The `Visual budget` step
+of Visual / Compare reads the live description and refuses a pull request that
+raises that file without saying so; a render OVER the file fails whether or not
+the marker is there. A render under it asks you to lower the file in the same
+PR, which the tooling suite then requires anyway. What earns a capture at all is
+visual-tests/AGENTS.md → Decision rule; the budget is under Guardrails there.
+
 Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
 excluded) requires a new .changelogs/*.json entry — run `npm run changelog
 entry` AFTER opening the PR (the file is named after the PR number). Docs-,
@@ -58,4 +70,4 @@ not lift the limit.
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
+- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (the author counts — GitHub records who clicked). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->

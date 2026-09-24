@@ -644,6 +644,42 @@ const hotSettings2 = ref({
 For the full list of configuration options and plugin methods, see the
 [`Formulas` API reference](@/api/formulas.md).
 
+## Inspect formula dependencies
+
+The plugin exposes two methods that read the dependency graph HyperFormula builds for your formulas.
+Use them to debug why a cell recalculates.
+
+- [`getCellPrecedents(address)`](@/api/formulas.md#getcellprecedents) returns the cells and ranges that a
+  cell's formula reads.
+- [`getCellDependents(address)`](@/api/formulas.md#getcelldependents) returns the cells whose formulas read
+  a given cell.
+
+Both take a HyperFormula address (`{ sheet, row, col }`) or a range (`{ start, end }`), and both return an
+array of addresses and ranges.
+
+```javascript
+const formulas = hot.getPlugin('formulas');
+
+// The cells that reference A1.
+formulas.getCellDependents({ sheet: 0, row: 0, col: 0 });
+
+// The cells that the formula in C1 reads.
+formulas.getCellPrecedents({ sheet: 0, row: 0, col: 2 });
+```
+
+The returned coordinates use HyperFormula's index space, which matches Handsontable's visual coordinates
+only when no rows or columns are trimmed, hidden, moved, or sorted. Results can include cells on other
+sheets and, for a named expression, a `sheet` id of `-1`.
+
+Each result can hold ranges as well as single cells. `getCellDependents` can return a range that contains
+the address you passed, and `getCellPrecedents` can return a range that the address reads. When you pass a
+range, HyperFormula returns some of the related cells and ranges, not always every one, because it
+optimizes how large ranges are stored. Pass a single cell address when you need the complete set for that
+cell.
+
+Both methods throw when `address` is neither a valid address nor a range, names a sheet id that does not
+exist, or is a range whose `start` and `end` are on different sheets. Always set the `sheet` id.
+
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
@@ -707,6 +743,43 @@ Each link element gets the `ht-link` and `ht-hyperlink` classes, and takes its c
 
 To render links in cells that hold plain URLs rather than formulas, use the
 [`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option.
+
+## Show formulas instead of values
+
+By default, a formula cell displays its calculated value. To display the formula text instead (for
+example, `=SUM(A1:A2)`), call [`showFormulas()`](@/api/formulas.md#showformulas):
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.showFormulas();
+```
+
+Call [`hideFormulas()`](@/api/formulas.md#hideformulas) to display calculated values again, and
+[`isShowingFormulas()`](@/api/formulas.md#isshowingformulas) to check the current mode.
+
+```js
+formulas.hideFormulas();
+formulas.isShowingFormulas(); // false
+```
+
+While formulas are shown, copying or cutting a formula cell copies its formula text, matching what's
+on screen.
+
+This mode is display-only. Sorting, the [filter-by-value list](@/guides/columns/column-filter/column-filter.md),
+and cell validation keep reading each formula cell's calculated value, not its formula text - the
+same as in Excel and Google Sheets. Pasting is unaffected either way: what lands in a cell depends
+on the clipboard content, not on whether formulas are currently shown.
+
+Column and row sizing (`autoColumnSize`, `autoRowSize`) also keep measuring the calculated value,
+since they sample cells directly rather than through the grid's normal render pass. A column sized
+for a short calculated value can clip a long formula while it's shown.
+
+### Keyboard shortcut
+
+Press <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> to toggle between showing formulas and showing values.
+On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</kbd>+<kbd>**`**</kbd> -
+`Cmd`+`` ` `` is the system's window-cycling shortcut.
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
@@ -1327,3 +1400,5 @@ After setting up the `Formulas` plugin with a HyperFormula engine, cells that co
 - [Formulas](@/api/formulas.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

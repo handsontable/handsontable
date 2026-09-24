@@ -34,6 +34,7 @@ import {
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
+import { fastInnerText } from '../../helpers/dom/element';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -41,8 +42,9 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
-import type { HyperFormulaEngine } from './engine/types';
-import type { CellChange } from '../../settings';
+import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
+import type { CellChange, CellValue } from '../../settings';
+import type { RangeType } from '../../core/types';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
@@ -123,11 +125,55 @@ function hasValueProperty(candidate: unknown): candidate is { value: unknown } {
   return typeof candidate === 'object' && candidate !== null && 'value' in candidate;
 }
 
+/**
+ * Reconstructs the visual `(row, column)` pairs `CopyPaste#getRangedData` walks to build the `data`
+ * array `beforeCopy`/`beforeCut` receive, from the same `coords` argument those hooks receive:
+ * `data[i][j]` corresponds to `rows[i]`/`columns[j]`. A distinct-rows array and a distinct-columns
+ * array, each built by visiting every range in order and keeping only the first occurrence of each
+ * index - the same shape `normalizeRanges()` in `../copyPaste/copyableRanges.ts` produces, kept as a
+ * local copy rather than an import to avoid a cross-plugin dependency on that plugin's internal
+ * module. Keep the two in sync if that algorithm changes.
+ *
+ * @param {RangeType[]} coords The ranges passed to `beforeCopy`/`beforeCut`.
+ * @returns {{rows: number[], columns: number[]}} The distinct rows and columns, in `data` order.
+ */
+function copiedRowsAndColumns(coords: RangeType[]): { rows: number[]; columns: number[] } {
+  const rows: number[] = [];
+  const columns: number[] = [];
+  const seenRows = new Set<number>();
+  const seenColumns = new Set<number>();
+
+  coords.forEach(({ startRow, endRow, startCol, endCol }) => {
+    const minRow = Math.min(startRow, endRow);
+    const maxRow = Math.max(startRow, endRow);
+
+    for (let row = minRow; row <= maxRow; row++) {
+      if (!seenRows.has(row)) {
+        seenRows.add(row);
+        rows.push(row);
+      }
+    }
+
+    const minCol = Math.min(startCol, endCol);
+    const maxCol = Math.max(startCol, endCol);
+
+    for (let col = minCol; col <= maxCol; col++) {
+      if (!seenColumns.has(col)) {
+        seenColumns.add(col);
+        columns.push(col);
+      }
+    }
+  });
+
+  return { rows, columns };
+}
+
 export const PLUGIN_KEY = 'formulas';
 // `maxRows` and `maxColumns` no longer reach the engine at all (GH #10672), but they stay here:
 // `updatePlugin` also creates or switches the sheet, and dropping them would skip that.
 export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -259,12 +305,62 @@ export class Formulas extends BasePlugin {
   #hyperlinkCells = new Set<string>();
 
   /**
+   * Whether formula cells display their formula text (`showFormulas()`) instead of their
+   * calculated value. Deliberately NOT read by `#onModifyData`: this is display-only, matching
+   * Excel/Sheets, so `getDataAtCell()` and everything reading through it - sorting, filtering,
+   * validation - stay on the calculated value. Read instead by `#onAfterRenderer` (paints the
+   * formula text over the rendered value, and stops a `HYPERLINK` cell from rendering as a link
+   * while its formula text is shown) and `#onBeforeCopyOrCut` (rewrites what's copied/cut to match).
+   * The source-data read path (`#onModifySourceData`) already reports the formula text regardless of
+   * this flag, which is what lets the cell editor show it whether or not this mode is on.
+   */
+  #showFormulasFlag = false;
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * How many source rows the grid held the last time the sheet was written or reloaded - a scan,
+   * a rejected-write clear, an `afterLoadData` write, or the empty-data reload - or `null` before
+   * the first one. Recorded by `#recordSyncedLayout()`.
+   *
+   * Compared against the count the settings update ends on, which is what tells a row count that
+   * moved after the last write apart from one the write already saw.
+   *
+   * @type {number|null}
+   */
+  #sourceRowCountAtLastSync: number | null = null;
+
+  /**
+   * Which engine sheet the count above describes, or `null` before the first resync.
+   *
+   * Compared alongside the count so that a sheet switch performed by this plugin during the same
+   * `updateSettings()` is not mistaken for another plugin reshaping the grid.
+   *
+   * @type {number|null}
+   */
+  #sheetIdAtLastSync: number | null = null;
+
+  /**
+   * Whether `afterCellMetaReset` fired during a settings update and left the sheet resync for
+   * later, instead of scanning the source data mid-update.
+   *
+   * The Core fires `afterCellMetaReset` before the plugins update, so a scan there describes a
+   * layout a plugin may be about to replace. The owed resync runs once, from whichever comes
+   * first: the late `afterUpdateSettings` listener (`#onAfterUpdateSettingsRowCount`), the next
+   * draw (`#onBeforeRender`), or the first engine read a default-order listener makes
+   * (`#onModifyData`, `#onModifySourceData`). Binding another sheet cancels it
+   * (`#updateSheetNameAndSheetId`), because the engine is then authoritative for the grid. A
+   * throw from the scan clears it without retry - see `#resyncSheet` (DEV-3006).
+   *
+   * @type {boolean}
+   */
+  #sheetResyncPending = false;
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -522,6 +618,7 @@ export class Formulas extends BasePlugin {
    * @param {string} addedSheetDisplayName The name of the added sheet.
    */
   #onEngineSheetAdded = (addedSheetDisplayName: string) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
   };
 
@@ -533,6 +630,8 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
+    this.#ownSheetExists = null;
+
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
     // Sheet ids are compared rather than names: the engine matches names without looking at the
@@ -553,6 +652,7 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
+    this.#ownSheetExists = null;
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   };
 
@@ -598,6 +698,15 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName: string | null = null;
+
+  /**
+   * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
+   * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
+   * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
+   * removed in the engine, or when this instance's binding or engine changes.
+   */
+  #ownSheetExists: boolean | null = null;
+
   /**
    * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
    *
@@ -642,8 +751,11 @@ export class Formulas extends BasePlugin {
     // also covers a `disablePlugin()` that lands mid-span.
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
+    this.#sheetResyncPending = false;
+    this.#showFormulasFlag = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
+    this.#ownSheetExists = null;
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -666,11 +778,20 @@ export class Formulas extends BasePlugin {
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
+    // Ahead of every default-order `afterLoadData` listener: the engine has to hold the new data
+    // before another plugin reads cells through `modifyData`. AutoColumnSize sweeps every column
+    // in its own `afterLoadData` listener, and registered behind it (this plugin's priority is
+    // higher) the sweep measured formula columns against the previous dataset's results, after
+    // which the engine's `valuesUpdated` batch queued every changed cell for a second synchronous
+    // full rescan on the resume render. Moving this listener, rather than that one, keeps the sweep
+    // where AutoRowSize and host callbacks expect it. The one listener this overtakes with an effect
+    // is the `manualColumnMove` / `manualRowMove` re-apply of a configured order, and the effect is a
+    // fix: the order used to reach the engine twice on a `loadData()` (see the plugin's AGENTS.md).
+    this.addHook('afterLoadData', this.#onAfterLoadData, -1);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
     this.addHook('beforeUpdateData', this.#onBeforeLoadData);
-    this.addHook('afterUpdateData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterLoadData, -1);
 
     this.addHook('modifyData', this.#onModifyData);
     this.addHook('modifySourceData', this.#onModifySourceData);
@@ -755,6 +876,12 @@ export class Formulas extends BasePlugin {
     // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
     // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
+    this.addHook('beforeRender', this.#onBeforeRender);
+
+    // `orderIndex: 1` puts this after every default-order listener, and the plugins' own
+    // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
+    // they have run. See `#onAfterUpdateSettingsRowCount`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -763,6 +890,9 @@ export class Formulas extends BasePlugin {
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
       this.#undoRedoDependentCells = this.engine!.undo() ?? [];
+      // The engine's undo can add, remove, or rename a sheet without emitting the sheet events
+      // that otherwise drop this cache.
+      this.#ownSheetExists = null;
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
@@ -786,6 +916,8 @@ export class Formulas extends BasePlugin {
       // Handsontable move must be validated first), so `engine.redo()` is not called here and
       // there are no engine-reported dependent cells to collect.
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
+      // Same as the undo: a redone sheet operation emits no sheet event.
+      this.#ownSheetExists = null;
     });
 
     this.addHook('afterUndo', (action: unknown) => {
@@ -825,6 +957,13 @@ export class Formulas extends BasePlugin {
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    // Positive `orderIndex`: must run after every default-order `afterRenderer` listener (this
+    // plugin's own above, and AutoLink's) - see `#onPaintFormulaText`'s own doc for why.
+    this.addHook('afterRenderer', this.#onPaintFormulaText, 1);
+    this.addHook('beforeCopy', this.#onBeforeCopyOrCut);
+    this.addHook('beforeCut', this.#onBeforeCopyOrCut);
+
+    this.#registerToggleFormulasShortcut();
 
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
@@ -846,8 +985,18 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unregisterToggleFormulasShortcut();
+    this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
+
+    // The recorded layout belongs to the engine session being torn down. Nothing reads it before
+    // `#onAfterCellMetaReset` refreshes it - the Core fires `afterCellMetaReset` before
+    // `afterUpdateSettings`, and a listener registered mid-run does not fire that run - so this is
+    // consistency with the two guard flags `enablePlugin()` clears, not a live defect.
+    this.#sourceRowCountAtLastSync = null;
+    this.#sheetIdAtLastSync = null;
+    this.#sheetResyncPending = false;
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -855,6 +1004,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     // `#unwrapRenderedHyperlinks()` above already removed this plugin's own anchors from the
     // currently-rendered DOM, eagerly - but a cell that HELD one is now plain URL text, which a
@@ -963,6 +1113,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.engine = null;
+    this.#ownSheetExists = null;
 
     super.destroy();
   }
@@ -980,6 +1131,59 @@ export class Formulas extends BasePlugin {
     // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
+    this.#ownSheetExists = null;
+
+    // Every caller has just made the engine authoritative for the grid - `switchSheet()` is about
+    // to load the grid FROM the sheet, `addSheet()` callers filled it from the grid - so a resync
+    // owed from earlier in the same settings update has nothing left to carry. Drained later, it
+    // would write this grid's visible-column projection over the sheet just bound.
+    this.#sheetResyncPending = false;
+  }
+
+  /**
+   * Returns `true` when the engine holds the sheet this instance is bound to. The engine is asked
+   * once per invalidation (see `#ownSheetExists`); the hot read paths get the cached answer.
+   *
+   * @returns {boolean}
+   */
+  #hasOwnSheet(): boolean {
+    if (this.#ownSheetExists === null) {
+      this.#ownSheetExists = this.sheetName !== null && this.engine?.doesSheetExist(this.sheetName) === true;
+    }
+
+    return this.#ownSheetExists;
+  }
+
+  /**
+   * Translates visual coordinates once into everything a per-cell read needs: the engine address of
+   * the bound sheet and the physical coordinates the cell meta is keyed by. Returns `null` when the
+   * cell has no physical counterpart (out of bounds) or no sheet is bound.
+   *
+   * @param {number} visualRow Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @returns {{ address: { sheet: number, row: number, col: number }, physicalRow: number, physicalColumn: number } | null}
+   */
+  #toEngineAddress(visualRow: number, visualColumn: number): {
+    address: { sheet: number; row: number; col: number };
+    physicalRow: number;
+    physicalColumn: number;
+  } | null {
+    const physicalRow = this.hot.toPhysicalRow(visualRow);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (this.sheetId === null || physicalRow === null || physicalColumn === null) {
+      return null;
+    }
+
+    return {
+      address: {
+        sheet: this.sheetId,
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      },
+      physicalRow,
+      physicalColumn,
+    };
   }
 
   /**
@@ -1108,6 +1312,122 @@ export class Formulas extends BasePlugin {
       row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
+  }
+
+  /**
+   * Makes every formula cell display its formula text (for example `=SUM(A1:A2)`) instead of its
+   * calculated value, until {@link Formulas#hideFormulas} is called. Copying a formula cell in this
+   * mode copies its formula text, matching what is on screen. Toggled by default with
+   * `Ctrl`+`` ` ``. Does nothing while the plugin is disabled.
+   */
+  showFormulas(): void {
+    if (!this.enabled || this.#showFormulasFlag) {
+      return;
+    }
+
+    this.#showFormulasFlag = true;
+    this.hot.markAllCellsChanged();
+    this.hot.render();
+  }
+
+  /**
+   * Reverts {@link Formulas#showFormulas}: formula cells display their calculated value again. Does
+   * nothing while the plugin is disabled.
+   */
+  hideFormulas(): void {
+    if (!this.enabled || !this.#showFormulasFlag) {
+      return;
+    }
+
+    this.#showFormulasFlag = false;
+    this.hot.markAllCellsChanged();
+    this.hot.render();
+  }
+
+  /**
+   * Returns `true` when formula cells are currently displaying their formula text instead of their
+   * calculated value (see {@link Formulas#showFormulas}).
+   *
+   * @returns {boolean}
+   */
+  isShowingFormulas(): boolean {
+    return this.#showFormulasFlag;
+  }
+
+  /**
+   * Returns the cells and cell ranges that depend on the provided cell or range (its out-neighbors in
+   * HyperFormula's dependency graph). These are the cells whose formulas reference the given address.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges that contain the given address, not only
+   * single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
+   */
+  getCellDependents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellDependents(address);
+  }
+
+  /**
+   * Returns the cells and cell ranges that the provided cell or range depends on (its in-neighbors in
+   * HyperFormula's dependency graph). These are the cells and ranges the given cell's formula reads.
+   *
+   * The `address` argument and the returned coordinates are in HyperFormula's index space, the same space
+   * as `hot.getPlugin('formulas').engine`. HyperFormula indexes match Handsontable visual indexes only
+   * when no rows or columns are trimmed, hidden, moved, or sorted. Named-expression references are returned
+   * with a `sheet` id of `-1`. The result may include ranges contained in the given cell or range, not
+   * only single cells.
+   *
+   * @param {object} address The cell address `{ sheet, row, col }` or range `{ start, end }`, in HyperFormula's index space.
+   * @returns {Array} An array of cell addresses and/or ranges in HyperFormula's index space.
+   * @throws {Error} When `address` is neither an address nor a range, names a sheet id that does not exist, or is a range whose `start` and `end` are on different sheets.
+   */
+  getCellPrecedents(address: FormulasCellAddress | FormulasCellRange): (FormulasCellAddress | FormulasCellRange)[] {
+    return this.engine!.getCellPrecedents(address);
+  }
+
+  /**
+   * Registers the `Ctrl`+`` ` `` shortcut that toggles {@link Formulas#showFormulas} /
+   * {@link Formulas#hideFormulas}. The plugin's own `registerShortcuts()` is a deprecated no-op kept
+   * for backward compatibility, so this uses its own group name instead of that method.
+   *
+   * The key name is `'backquote'`, not the literal `` ` `` character: `normalizeEventKey()`
+   * (`shortcuts/utils.ts`) maps a real backquote keypress (`keyCode`/`which` 192) through its
+   * `specialCharactersSet` to the string `'backquote'`, never to the character itself.
+   *
+   * `Control`, not `Control/Meta`: on macOS, `Cmd`+`` ` `` is the system "move focus to the next
+   * window" shortcut, so Chrome consumes it before the page ever sees the keydown - the same reason
+   * `MergeCells` binds `['Control', 'm']` instead of `Control/Meta`. Excel for Mac and Google Sheets
+   * both use `Ctrl`+`` ` `` on macOS too, so this matches the real product convention, not just the
+   * OS-conflict workaround.
+   */
+  #registerToggleFormulasShortcut() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.addShortcut({
+        keys: [['Control', 'backquote']],
+        callback: () => {
+          if (this.isShowingFormulas()) {
+            this.hideFormulas();
+          } else {
+            this.showFormulas();
+          }
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Removes the shortcut registered by `#registerToggleFormulasShortcut`.
+   */
+  #unregisterToggleFormulasShortcut() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -2214,32 +2534,216 @@ export class Formulas extends BasePlugin {
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * The Core fires it in the middle of `updateSettings()`, before `afterUpdateSettings` and so
+   * before any plugin has applied the new settings. A scan run here describes the layout the
+   * plugins are about to replace, so outside of construction the scan is only recorded as owed
+   * and `#resyncSheet` runs it later, once per cycle - see `#sheetResyncPending`. Construction
+   * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
+   * stays eager there; `hot.view` is what the Core creates right after that first run.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    // Runs on every `updateSettings()` call, and both branches below re-run a full-dataset scan
-    // whose per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta`
-    // listeners – see `#escapeSourceDataArray` for what that changes for a listener with side
-    // effects.
+    // The reload below and the scan in `#resyncSheet` both run a full-dataset read whose per-cell
+    // meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners – see
+    // `#escapeSourceDataArray` for what that changes for a listener with side effects.
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
         this.switchSheet(this.sheetName);
       }
 
+      this.#recordSyncedLayout();
+
       return;
     }
 
+    if (this.hot.view) {
+      this.#sheetResyncPending = true;
+      this.#sheetIdAtLastSync = this.sheetId;
+
+      return;
+    }
+
+    this.#resyncSheet();
+  };
+
+  /**
+   * Rebuilds the engine sheet from the source data: one full scan, one `setSheetContent`.
+   *
+   * `#sheetResyncPending` is cleared FIRST. The scan reads the source data through the read hooks
+   * that drain the flag - `#getProcessedSourceDataArray` suspends the projection for its bulk
+   * read but not for the `getSourceDataAtRow` probe that follows it - so a flag still set here
+   * would re-enter this method from inside its own scan.
+   *
+   * A throw from the scan leaves the flag CLEARED and the layout unrecorded. It is not re-armed: a
+   * throw that repeats on every scan - a `cells()` handler that throws for one cell, a dependent
+   * grid whose `afterRender` throws - would otherwise turn every later read and render into a
+   * full scan that throws again, where before this plugin the throw surfaced once, from
+   * `updateSettings()`. The next `updateSettings()` marks the flag again and retries there. The
+   * one throw the engine itself raises deterministically, a sheet over its `maxRows` /
+   * `maxColumns`, is not thrown at all: the layout is checked first and the sheet is emptied with
+   * a warning, as `#onAfterLoadData` does. `#internalOperationPending` is released on every path,
+   * because the read hooks return early while it is set and would otherwise serve raw formula
+   * text until the next settings update.
+   */
+  #resyncSheet() {
+    this.#sheetResyncPending = false;
+
     const sourceDataArray = this.#getProcessedSourceDataArray();
 
+    if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+      this.#clearRejectedSheet();
+
+      return;
+    }
+
+    this.#writeSheet(sourceDataArray);
+  }
+
+  /**
+   * Writes a processed source data array into the grid's sheet: escapes it, replaces the sheet
+   * content, re-syncs the index endpoint, redraws the dependent grids, and records the layout.
+   * The one place `#internalOperationPending` is opened across a full write, and it is released
+   * in a `finally`: the read hooks return early while it is set, so a throw from the write or
+   * from a dependent grid's render would otherwise leave every formula cell reading raw text until
+   * the next settings update. Shared by `#resyncSheet()` and the `#onAfterLoadData` write branch,
+   * so the two cannot drift.
+   *
+   * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
+   */
+  #writeSheet(sourceDataArray: unknown[][]) {
     this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
-    const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-    this.renderDependentSheets(dependentCells);
-    this.#internalOperationPending = false;
+    try {
+      const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+
+      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+      this.renderDependentSheets(dependentCells);
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#recordSyncedLayout();
+  }
+
+  /**
+   * Empties the sheet when the engine cannot hold the grid's layout - it exceeds the engine's
+   * `maxRows` or `maxColumns` - and warns. Leaving the sheet untouched would keep the previous
+   * data in the engine while the grid already shows the new one, so stale values would be served;
+   * emptying it changes what every grid reading it computes, hence the dependent redraw. The
+   * layout is recorded so the late `afterUpdateSettings` listener does not take the emptied sheet
+   * for a row-count change and scan a layout the engine just rejected.
+   */
+  #clearRejectedSheet() {
+    this.#internalOperationPending = true;
+
+    try {
+      const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+
+      this.renderDependentSheets(dependentCells);
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#recordSyncedLayout();
+
+    warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
+      'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+  }
+
+  /**
+   * `beforeRender` hook callback.
+   *
+   * Drains a resync the settings update in flight still owes, before the draw starts. Without it
+   * the first cell's paint gate would drain it through `#onModifyData`, and the full scan plus the
+   * dependent grids' redraw would run from inside a cell paint of this grid's own draw. A plugin
+   * that renders from its own `onUpdateSettings` - NestedRows does - reaches this before the late
+   * `afterUpdateSettings` listener.
+   */
+  #onBeforeRender = () => {
+    if (this.engine && this.#sheetResyncPending) {
+      this.#resyncSheet();
+    }
+  };
+
+  /**
+   * Records which sheet the engine was last brought in line with, and how many source rows the
+   * grid held at that moment. `#onAfterUpdateSettingsRowCount` compares the count the settings
+   * update ends on against it.
+   *
+   * Called at the END of every write - `#resyncSheet()`, `#clearRejectedSheet()`, the
+   * `#onAfterLoadData` write branch - and at the end of the empty-data reload, never at its start:
+   * that branch's own `switchSheet()` runs `loadData()`, which moves the row count itself, so a
+   * count taken beforehand describes a layout that no longer exists and makes the late listener
+   * re-enter for a change the handler had just made. A throw inside a write leaves the previous
+   * values in place; the flag, not this record, is what carries a retry (see `#sheetResyncPending`).
+   */
+  #recordSyncedLayout() {
+    this.#sourceRowCountAtLastSync = this.hot.countSourceRows();
+    this.#sheetIdAtLastSync = this.sheetId;
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback, registered to run after every other listener.
+   *
+   * The Core fires `afterCellMetaReset` in the middle of `updateSettings()` - before the plugins
+   * update - so `#onAfterCellMetaReset` only records that a resync is owed, and this listener
+   * performs it once the plugins have finished shaping the layout: turning `nestedRows` on flattens
+   * the tree into twice as many rows, and a scan run before that described a layout the engine
+   * then held while the grid showed another, so a formula the flatten moved rendered as raw text
+   * and its value landed on another row (DEV-2978). This is the one scan an ordinary
+   * `updateSettings()` call - the one a React re-render sends - pays (DEV-3006).
+   *
+   * The owed resync may already have been drained earlier in the same update: by `beforeRender`,
+   * when a plugin renders from its own `onUpdateSettings`, or by a read hook, when a listener reads
+   * a cell. Then only a row count that moved since that scan calls for another, which is what the
+   * comparison against `#recordSyncedLayout()` decides. Nothing here knows which plugin moved it.
+   * `minRows`/`minSpareRows` are NOT in that class: the Core creates those rows in
+   * `adjustRowsAndCols()`, after this hook, and they reach the engine through `afterCreateRow`.
+   *
+   * The sheet id is compared as well as the count, because a count change this plugin caused ITSELF
+   * is not a foreign layout change. `updatePlugin()` switches the sheet from a default-order
+   * `afterUpdateSettings` listener, and `switchSheet()` loads the new sheet's rows into the grid -
+   * so on a switch between sheets of different heights the count differs for a reason that needs no
+   * resync. Re-entering there wrote the grid BACK into the sheet just switched to, through this
+   * grid's visible-column projection: a grid showing one column of a three-column sheet truncated
+   * that sheet to one column, destroying the rest for every grid sharing the engine.
+   */
+  #onAfterUpdateSettingsRowCount = () => {
+    if (!this.engine) {
+      return;
+    }
+
+    if (this.sheetId !== this.#sheetIdAtLastSync) {
+      return;
+    }
+
+    // The resync `afterCellMetaReset` left for this pass. This is the one scan an ordinary
+    // settings update pays, and it runs against the layout the plugins have finished shaping.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
+
+      return;
+    }
+
+    // The resync already ran - construction, the empty-data reload, or a default-order listener
+    // that read the engine and drained it before the plugins updated - so only a row count that
+    // moved since then calls for another.
+    if (this.#sourceRowCountAtLastSync === null || this.hot.countSourceRows() === this.#sourceRowCountAtLastSync) {
+      return;
+    }
+
+    if (this.#hotWasInitializedWithEmptyData) {
+      this.#onAfterCellMetaReset();
+
+      return;
+    }
+
+    this.#closeLeakedGuards();
+    this.#resyncSheet();
   };
 
   /**
@@ -2277,6 +2781,10 @@ export class Formulas extends BasePlugin {
     }
 
     if (!this.#hotWasInitializedWithEmptyData) {
+      // Whatever the branches below write supersedes a resync still owed from a settings update
+      // this load interrupted.
+      this.#sheetResyncPending = false;
+
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       // The guard only range-checks the sheet against the array dimensions, so escaping can run
@@ -2285,31 +2793,12 @@ export class Formulas extends BasePlugin {
       // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
       // the pre-guard scan used to invoke them before discarding the result.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-        this.#escapeSourceDataArray(sourceDataArray);
-
-        this.#internalOperationPending = true;
-
-        const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
-
-        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-        this.renderDependentSheets(dependentCells);
-
-        this.#internalOperationPending = false;
+        // Records the layout too, so a settings update this load ran inside of has no row-count
+        // change left to carry.
+        this.#writeSheet(sourceDataArray);
 
       } else {
-        // The sheet is reused, so leaving it untouched would keep the previous data in the engine
-        // while the grid already shows the new one. Empty it instead of serving stale values.
-        this.#internalOperationPending = true;
-
-        const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
-
-        // Emptying the sheet changes what the grids reading it compute, so they need a redraw.
-        this.renderDependentSheets(dependentCells);
-
-        this.#internalOperationPending = false;
-
-        warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
-          'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+        this.#clearRejectedSheet();
       }
 
     } else if (this.sheetName !== null) {
@@ -2327,12 +2816,7 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   #onModifyData = (visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) => {
-    if (
-      ioMode !== 'get' ||
-      this.#internalOperationPending ||
-      this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
-    ) {
+    if (ioMode !== 'get' || this.#internalOperationPending || !this.#hasOwnSheet()) {
       return;
     }
 
@@ -2340,7 +2824,28 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // A read made while a settings update is still in flight - by a plugin's `onUpdateSettings`
+    // or a default-order `afterUpdateSettings` listener - gets the sheet the update produced,
+    // not the one it started from. Reached after the `#internalOperationPending` check above, so
+    // the scan's own re-entrant reads never drain it again.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
+    }
+
+    // One translation serves the type lookup, the value read, and the meta read; this hook runs once
+    // per cell of every bulk read (AutoColumnSize sampling, the filters column scan), so the per-cell
+    // work is what is paid.
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
+
+    // Out of bounds reads as `EMPTY`, like `getCellType()` reports it.
+    if (engineCell === null) {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+
+      return;
+    }
+
+    const { address, physicalRow, physicalColumn } = engineCell;
+    const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {
       valueHolder.value = unescapeFormulaExpression(valueHolder.value);
@@ -2348,18 +2853,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     // The uncached read matters here: this hook fires inside bulk data reads (for example, the
     // filters column scan), so an eager read would materialize one meta per scanned cell.
     const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
-      { visualRow, visualColumn },
+      physicalRow, physicalColumn, { visualRow, visualColumn },
     );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -2391,8 +2890,18 @@ export class Formulas extends BasePlugin {
     // from the current formula instead of inheriting whatever the previous pass resolved.
     unwrapLinks(TD, `a.${HYPERLINK_CLASS_NAME}`);
 
-    const href = this.#getHyperlinkHref(row, column);
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
+
+    // While formulas are shown as raw text, the rendered content is the formula itself, not the
+    // HYPERLINK's label, so wrapping it in a link would misrepresent what is on screen -
+    // `#onPaintFormulaText` (registered to run after this hook) overwrites it either way.
+    if (this.#showFormulasFlag) {
+      this.#hyperlinkCells.delete(hyperlinkKey);
+
+      return;
+    }
+
+    const href = this.#getHyperlinkHref(row, column);
 
     if (href === null) {
       this.#hyperlinkCells.delete(hyperlinkKey);
@@ -2425,6 +2934,87 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * `afterRenderer` hook callback, registered with a positive `orderIndex` so it always runs after
+   * every default-order `afterRenderer` listener - this plugin's own `#onAfterRenderer` above, and
+   * AutoLink's, which reads the TD's live text and would otherwise linkify a URL substring inside
+   * the painted formula text (the URL argument of a `=HYPERLINK(url, label)` formula, for instance),
+   * since it detects URLs in whatever the cell currently displays, not in the hook's `value`
+   * argument. Running last makes this the final write for the cell regardless of which plugin
+   * enabled first, or whether AutoLink is even registered at all.
+   *
+   * An `ARRAY` cell (a non-origin spill cell) has no formula text of its own - `getCellSerialized()`
+   * would return its raw, unformatted value for it, skipping the date/time conversion and error
+   * unwrapping the normal value path applies - so it is left showing its calculated value, same as
+   * `VALUE`/`EMPTY`.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onPaintFormulaText = (TD: HTMLTableCellElement, row: number, column: number) => {
+    if (this.#internalOperationPending || !this.#showFormulasFlag) {
+      return;
+    }
+
+    const cellType = this.getCellType(row, column);
+
+    if (cellType !== 'FORMULA' && cellType !== 'ARRAYFORMULA') {
+      return;
+    }
+
+    const address = {
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
+      sheet: this.sheetId,
+    };
+
+    fastInnerText(TD, String(this.engine!.getCellSerialized(address)));
+  };
+
+  /**
+   * `beforeCopy`/`beforeCut` hook callback. While formulas are shown, rewrites each copied/cut
+   * FORMULA/ARRAYFORMULA cell's value to its formula text, matching what is on screen - mutating
+   * `data` in place, which is how both hooks let a listener reshape what actually reaches the
+   * clipboard (`CopyPaste` copies from this same array afterward). This never touches the data
+   * model, so `getDataAtCell()` and everything reading through it (sorting, filtering, validation)
+   * are unaffected.
+   *
+   * @param {Array[]} data An array of arrays with the copied/cut data.
+   * @param {RangeType[]} coords The ranges being copied/cut.
+   */
+  #onBeforeCopyOrCut = (data: CellValue[][], coords: RangeType[]) => {
+    if (!this.#showFormulasFlag) {
+      return;
+    }
+
+    const { rows, columns } = copiedRowsAndColumns(coords);
+
+    rows.forEach((row, rowIndex) => {
+      // A copied column header is a negative-indexed row (`CopyPaste#getRangedData`), never a
+      // formula cell.
+      if (row < 0) {
+        return;
+      }
+
+      columns.forEach((column, columnIndex) => {
+        const cellType = this.getCellType(row, column);
+
+        if (cellType !== 'FORMULA' && cellType !== 'ARRAYFORMULA') {
+          return;
+        }
+
+        const address = {
+          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
+          sheet: this.sheetId,
+        };
+
+        data[rowIndex][columnIndex] = this.engine!.getCellSerialized(address);
+      });
+    });
+  };
+
+  /**
    * `modifySourceData` hook callback.
    *
    * @param {number} row Physical row index.
@@ -2445,8 +3035,7 @@ export class Formulas extends BasePlugin {
       this.#sourceDataSyncPending ||
       // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
       this.#sourceDataProjectionSuspended ||
-      this.sheetName === null ||
-      !this.engine?.doesSheetExist(this.sheetName)
+      !this.#hasOwnSheet()
     ) {
       return;
     }
@@ -2458,13 +3047,28 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellType = this.getCellType(visualRow, visualColumn);
+    // Same drain as in `#onModifyData`: the projection has to describe the sheet the in-flight
+    // settings update produced. Reached after the `#sourceDataProjectionSuspended` check above,
+    // so the scan's own source read never drains it again.
+    if (this.#sheetResyncPending) {
+      this.#resyncSheet();
+    }
+
+    // One translation for the type lookup, the dimensions check, and the serialized read.
+    const engineCell = this.#toEngineAddress(visualRow, visualColumn);
+
+    if (engineCell === null) {
+      return;
+    }
+
+    const { address } = engineCell;
+    const cellType = this.engine!.getCellType(address);
 
     if (cellType === 'VALUE' || cellType === 'EMPTY') {
       return;
     }
 
-    const dimensions = this.engine!.getSheetDimensions(this.engine!.getSheetId(this.sheetName));
+    const dimensions = this.engine!.getSheetDimensions(address.sheet);
 
     // Don't actually change the source data if HyperFormula is not
     // initialized yet. This is done to allow the `afterLoadData` hook to
@@ -2473,12 +3077,6 @@ export class Formulas extends BasePlugin {
     if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
-
-    const address = {
-      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-      sheet: this.sheetId
-    };
 
     valueHolder.value = this.engine!.getCellSerialized(address);
   };

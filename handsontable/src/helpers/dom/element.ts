@@ -1559,6 +1559,10 @@ export function clearTextSelection(rootWindow: Window = window): void {
 /**
  * Sets caret position in text input.
  *
+ * For input types that do not support the selection API (for example, `date`, `time`,
+ * `datetime-local`, or `number`), the element is focused and the caret position is left untouched,
+ * because calling `setSelectionRange()` on them throws an `InvalidStateError`.
+ *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
  * @param {HTMLInputElement|HTMLTextAreaElement} element An element to process.
  * @param {number} pos The selection start position.
@@ -1573,6 +1577,11 @@ export function setCaretPosition(
 
   if (element.setSelectionRange) {
     element.focus();
+
+    // `selectionStart` is `null` for input types that do not support selection.
+    if (element.selectionStart === null) {
+      return;
+    }
 
     try {
       element.setSelectionRange(pos, endPos);

@@ -1,8 +1,12 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { resizeRow } from '../../src/page-helpers';
 
-test('Test rows resizing', async({ goto, tablePage }) => {
+visualTest('Test rows resizing', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/cell-types-demo');
   await resizeRow(2, 200);
 

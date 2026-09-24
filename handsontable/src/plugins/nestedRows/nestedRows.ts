@@ -158,7 +158,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
-    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData, 1);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
 
@@ -168,12 +168,21 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * The header decoration is stripped last, after the hooks are gone. `afterGetRowHeader` is the
+   * only code that ever removes it, and Walkontable recycles `<th>` elements, so anything left in
+   * one once that hook is unregistered stays for the instance's life (DEV-2982). Stripping before
+   * the teardown would leave a window: `unregisterMap()` fires the public
+   * `afterRowSequenceCacheUpdate` hook, and a consumer rendering from it would re-decorate the
+   * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
     super.disablePlugin();
+
+    this.headersUI!.removeRenderedLevelIndicators();
   }
 
   /**

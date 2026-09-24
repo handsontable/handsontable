@@ -24,7 +24,7 @@ describe('Core.getCellMetaTransient', () => {
         return null;
       },
       beforeGetCellMeta(row, column, cellProperties) {
-        if (row === 2 && column === 0) {
+        if (row === 2 && column === 1) {
           cellProperties.className = 'fromHook';
         }
       },
@@ -36,7 +36,9 @@ describe('Core.getCellMetaTransient', () => {
     expect(meta.col).toBe(0);
     expect(meta.type).toBe('numeric'); // column layer through the prototype chain
     expect(meta.readOnly).toBe(true); // `cells` function applied
-    expect(getCellMetaTransient(2, 0).className).toBe('fromHook'); // hook applied
+    // Column 1 (not `type: 'numeric'`) keeps this assertion independent of numericRenderer's own
+    // className writes on column 0.
+    expect(getCellMetaTransient(2, 1).className).toBe('fromHook'); // hook applied
   });
 
   it('should not permanently retain a meta object for a cell without stored meta', async() => {

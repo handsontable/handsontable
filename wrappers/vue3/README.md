@@ -200,6 +200,14 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 <br>
 
+## 🤖 AI & agent resources
+
+Working with an AI assistant or coding agent? Handsontable and HyperFormula ship first-party agent resources:
+
+- **Agent Skills** — install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills` → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **Docs MCP server** — live semantic search over the docs, API reference, release notes, and GitHub issues: `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp` → [guide](https://handsontable.com/docs/vue-data-grid/docs-mcp-server/)
+- **Docs written for agents** — every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt)
+
 ## 🛟 Support
 
 **We're here to help!**

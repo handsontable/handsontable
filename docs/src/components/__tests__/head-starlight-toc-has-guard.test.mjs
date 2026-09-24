@@ -220,3 +220,30 @@ test('the guard leaves unrelated custom element definitions untouched', () => {
 
   assert.equal(customElements.get('hot-version-switcher'), UnrelatedElement);
 });
+
+test('a repeated define of an already registered name is skipped instead of throwing', () => {
+  // Regression guard for HANDSONTABLE-DOCS-22D: when the module that registers
+  // <starlight-toc> is evaluated a second time, the browser rejects the repeat with a
+  // NotSupportedError. The fake registry below throws the same way a real one does.
+  const registry = createRegistry();
+  const customElements = {
+    ...registry,
+    define(name, constructor) {
+      if (registry.get(name)) {
+        throw new DOMException(`the name "${name}" has already been used with this registry`, 'NotSupportedError');
+      }
+
+      registry.define(name, constructor);
+    },
+  };
+  const runGuardScript = new Function('customElements', 'DOMException', readTocGuardScript());
+
+  runGuardScript(customElements, DOMException);
+
+  customElements.define('starlight-toc', createStarlightTocClass());
+
+  const FirstRegisteredClass = customElements.get('starlight-toc');
+
+  assert.doesNotThrow(() => customElements.define('starlight-toc', createStarlightTocClass()));
+  assert.equal(customElements.get('starlight-toc'), FirstRegisteredClass, 'the first definition must stay registered');
+});
