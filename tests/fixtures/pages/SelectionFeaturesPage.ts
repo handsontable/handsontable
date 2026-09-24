@@ -921,6 +921,53 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Scroll horizontally so that only `px` pixels of the given scrollable column show past the frozen
+   * columns: the column stays partially visible and the next one becomes the first fully visible one.
+   */
+  async scrollToLeaveSliverOfColumn(col: number, px: number): Promise<void> {
+    await this.page.evaluate(([column, sliver]) => {
+      const { hot } = window;
+      const fixedColumnsStart = hot.getSettings().fixedColumnsStart ?? 0;
+      let scrollLeft = -sliver;
+
+      for (let c = fixedColumnsStart; c <= column; c++) {
+        scrollLeft += hot.getColWidth(c);
+      }
+
+      document.querySelector('.ht_master .wtHolder')!.scrollLeft = scrollLeft;
+    }, [col, px] as const);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col + 1);
+  }
+
+  /**
+   * The edges of the selection-adjust handles a user can actually grab, sorted: displayed, and the
+   * topmost element at their own center. `:visible` does not check occlusion, so a handle drawn
+   * under a frozen pane passes a visibility count; it does not pass this.
+   */
+  async reachableHandleEdges(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const edges: string[] = [];
+
+      document.querySelectorAll('[data-testid="grid"] .wtSelectionHandle').forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+        const edge = (handle.className.match(/wtSelectionHandle--(\w+)/) ?? [])[1];
+
+        if (!edge || getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+        if (hit && (hit === handle || handle.contains(hit))) {
+          edges.push(edge);
+        }
+      });
+
+      return edges.sort();
+    });
+  }
+
+  /**
    * Scroll the viewport so that the given row is at the top, right below the frozen rows.
    */
   async scrollToRow(row: number): Promise<void> {
