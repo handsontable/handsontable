@@ -3275,6 +3275,18 @@ export const REGISTERED_HOOKS = [
   'afterSheetTabAdd',
 
   /**
+   * Fired by {@link SheetsBar} plugin after duplicating a sheet, after `afterSheetTabAdd`. This
+   * hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabDuplicate
+   * @param {number} sourceSheetId The id of the sheet the duplicate was copied from.
+   * @param {number} sheetId The id of the duplicate sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabDuplicate',
+
+  /**
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *

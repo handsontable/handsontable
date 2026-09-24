@@ -15,8 +15,8 @@ import {
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
-import { isPlainObject } from '../../helpers/object';
-import { warn } from '../../helpers/console';
+import { hasOwnProperty, isPlainObject } from '../../helpers/object';
+import { warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'sheetsBar';
@@ -33,6 +33,17 @@ export const SOURCE_API = 'SheetsBar.api';
  * Source tag for operations initiated from the bar UI.
  */
 export const SOURCE_UI = 'SheetsBar.ui';
+
+/**
+ * `warnOnce` key for the grid-level `dataProvider` that the sheets bar disables.
+ */
+export const GRID_LEVEL_DATA_PROVIDER_WARN_KEY = 'sheetsBar.gridLevelDataProvider';
+
+/**
+ * Console message for the grid-level `dataProvider` that the sheets bar disables.
+ */
+export const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disabled while `sheetsBar` is ' +
+  'enabled. Declare `dataProvider` in the `settings` of each sheet that loads from a server.';
 
 /**
  * A sheet definition accepted by the `sheets` setting.
@@ -555,6 +566,7 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
 
     this.#refreshUI();
 
@@ -1155,9 +1167,38 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    const merged = { ...restored, ...(settings ?? {}) };
+    // The bar introduces the incompatibility between a grid-level `dataProvider` and a
+    // multi-sheet workbook — most sheets have no server of their own — so it owns blocking it,
+    // rather than the plugin conflict registry (which would also block a sheet's own provider).
+    // A sheet without its own `dataProvider` gets `null` forced, and the grid-level value the
+    // user configured is kept in the baseline so a genuine teardown can give it back.
+    if (!hasOwnProperty(settings ?? {}, 'dataProvider')) {
+      if (!this.#settingsBaseline.has('dataProvider')) {
+        this.#settingsBaseline.set('dataProvider', this.hot.getSettings().dataProvider);
+      }
 
-    return Object.keys(merged).length > 0 ? merged : null;
+      if (this.#settingsBaseline.get('dataProvider')) {
+        warnOnce(this, GRID_LEVEL_DATA_PROVIDER_WARN_KEY, GRID_LEVEL_DATA_PROVIDER_WARNING);
+      }
+
+      restored.dataProvider = null;
+    }
+
+    const merged = { ...restored, ...(settings ?? {}) };
+    const mergedKeys = Object.keys(merged);
+
+    if (mergedKeys.length === 0) {
+      return null;
+    }
+
+    // A plain workbook where no sheet ever declared a `dataProvider` would otherwise pay one
+    // `updateSettings()` call per switch for a value that is already `null` on the grid.
+    if (mergedKeys.length === 1 && mergedKeys[0] === 'dataProvider' && merged.dataProvider === null
+      && !this.hot.getSettings().dataProvider) {
+      return null;
+    }
+
+    return merged;
   }
 
   /**
@@ -1495,7 +1536,13 @@ export class SheetsBar extends BasePlugin {
       source,
     );
 
-    return duplicated === false ? null : { id: duplicated.id, name: duplicated.name, isActive: false };
+    if (duplicated === false) {
+      return null;
+    }
+
+    this.hot.runHooks('afterSheetTabDuplicate', id, duplicated.id, source);
+
+    return { id: duplicated.id, name: duplicated.name, isActive: false };
   }
 
   /**
@@ -1957,6 +2004,31 @@ export class SheetsBar extends BasePlugin {
     }
 
     return activeSheet.data;
+  };
+
+  /**
+   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
+   * `#withBaselineFor` blocks it on a switch. A switch applies a sheet's `dataProvider` through
+   * that same method, so it must not re-enter this guard — nor must the initial workbook build,
+   * which runs before the plugin is marked enabled. The active sheet's own declared
+   * `dataProvider` is left alone: the user re-configuring the visible server sheet is not the
+   * grid-level value this plugin disables.
+   */
+  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (!newSettings.dataProvider || this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+    const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+
+    if (activeSheet && hasOwnProperty(activeSheet.settings ?? {}, 'dataProvider')) {
+      return;
+    }
+
+    this.#settingsBaseline.set('dataProvider', newSettings.dataProvider);
+    warnOnce(this, GRID_LEVEL_DATA_PROVIDER_WARN_KEY, GRID_LEVEL_DATA_PROVIDER_WARNING);
+    this.hot.updateSettings({ dataProvider: null });
   };
 
   /**

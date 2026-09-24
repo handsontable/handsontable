@@ -280,7 +280,7 @@ export interface GridSettings {
   customBorders?: boolean | object[];
   customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
-  dataProvider?: DataProviderConfig;
+  dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
@@ -545,6 +545,7 @@ export interface GridSettings {
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
   afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
   afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
+  afterSheetTabDuplicate?: (sourceSheetId: number, sheetId: number, source: string) => void;
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;

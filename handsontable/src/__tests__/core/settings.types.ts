@@ -601,6 +601,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
   afterSheetTabAdd: (sheetId, name, source) => {},
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  afterSheetTabDuplicate: (sourceSheetId, sheetId, source) => {},
   afterSheetTabMove: (sheetId, finalIndex, source) => {},
   afterSheetTabRemove: (sheetId, source) => {},
   afterSheetTabRename: (sheetId, oldName, newName, source) => {},
