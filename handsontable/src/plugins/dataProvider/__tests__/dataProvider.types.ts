@@ -105,6 +105,10 @@ const dataProviderPlugin = hot.getPlugin('dataProvider');
 if (dataProviderPlugin) {
   void dataProviderPlugin.getQueryParameters();
   void dataProviderPlugin.fetchData({ skipLoading: true });
+
+  const fetching: boolean = dataProviderPlugin.isFetching();
+
+  void fetching;
 }
 
 void minimalConfig;

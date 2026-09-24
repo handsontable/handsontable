@@ -554,6 +554,19 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Tells whether the visible sheet is waiting for a `fetchRows` response that shows the loading overlay
+   * (internal refetches that pass `skipLoading` do not count).
+   *
+   * @returns {boolean}
+   */
+  isFetching(): boolean {
+    const key = this.#currentBinding()?.sheetId ?? null;
+    const entry = this.#inFlight.get(key);
+
+    return entry !== undefined && !entry.skipLoading && this.#isVisible(entry.binding);
+  }
+
+  /**
    * Raw `dataProvider` setting (config object only).
    *
    * @returns {object|undefined}

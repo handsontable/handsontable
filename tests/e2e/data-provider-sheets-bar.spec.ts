@@ -211,8 +211,7 @@ test.describe('dataProvider with sheetsBar', () => {
       expect((await grid.pagination()).currentPage).toBe(2);
     });
 
-    // eslint-disable-next-line no-restricted-syntax -- DEV-3041: EmptyDataState keeps the loading overlay across a switch, fixed in Task 6
-    test.fixme('returning while the fetch is still running waits for it (rule 6)', async() => {
+    test('returning while the fetch is still running waits for it (rule 6)', async() => {
       await grid.startFetch();
       await grid.clickTab(1);
       await expect(grid.loadingOverlayVisible()).toBeHidden();
@@ -223,6 +222,22 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.release('ORD');
       await expect(grid.cell(0, 1)).toHaveText('#2');
       expect(await grid.fetchCount('ORD')).toBe(2);
+    });
+
+    test('leaving mid-fetch hides the loading overlay on the next sheet', async() => {
+      await grid.startFetch();
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
+      await grid.clickTab(1);
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+    });
+
+    test('local sheet after a paged server sheet shows its own rows (review focus 1)', async() => {
+      await grid.goToPage(3);
+      await grid.release('ORD');
+      await grid.clickTab(1);
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      expect((await grid.pagination()).currentPage).toBe(1);
     });
 
     test('a canceled switch leaves the fetch running on the current sheet (rule 9)', async() => {

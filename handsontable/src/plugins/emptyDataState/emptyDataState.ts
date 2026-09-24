@@ -341,6 +341,7 @@ export class EmptyDataState extends BasePlugin {
     });
     this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
     this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
+    this.addHook('afterSheetTabChange', this.#onAfterSheetTabChange);
 
     super.enablePlugin();
 
@@ -715,6 +716,20 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Re-syncs the loading overlay with the sheet SheetsBar switched to: a fetch started on another sheet must not
+   * keep the overlay up, and returning to a sheet whose fetch is still running must show it again.
+   *
+   * @returns {void}
+   */
+  readonly #onAfterSheetTabChange = () => {
+    if (this.hot.getPlugin('dataProvider')?.isFetching()) {
+      this.#setLoadingActive();
+    } else {
+      this.#clearLoadingActive();
     }
   };
 
