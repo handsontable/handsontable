@@ -32,6 +32,13 @@ const RESTRICTED_SYNTAX = [
     selector: "CallExpression[callee.property.name='with']",
     message: 'Array#with needs Firefox 140+ and TypedArray#with needs Safari/iOS 26+, both above the ../browser-targets.js baseline (Firefox >= 132, Safari >= 18.2, iOS >= 18.2). Use arr.slice() plus an index assignment instead.',
   },
+  // The minified dist/ bundles must stay 7-bit ASCII (DEV-111, handsontable/AGENTS.md, Build).
+  // The SWC minifier's `asciiOnly` escapes every string and untagged template, but it cannot escape
+  // a tagged template without changing the tag's `strings.raw`, so the raw character ships as is.
+  {
+    selector: 'TaggedTemplateExpression > TemplateLiteral > TemplateElement[value.raw=/[^\\x00-\\x7F]/]',
+    message: 'A tagged template must not contain a raw non-ASCII character: the minifier cannot escape it, so pages that are not UTF-8 decode it wrongly. Write it as a \\u escape (toSingleLine reads the cooked strings).',
+  },
 ];
 
 module.exports = {

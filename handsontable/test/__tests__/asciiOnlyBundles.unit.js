@@ -1,15 +1,14 @@
 /**
  * @jest-environment node
  */
+import { readdirSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
 import rspack from '@rspack/core';
 
-import { SWC_MINIFIER_OPTIONS } from '../../.config/helper/swc-minimizer';
+import { createSwcJsMinimizer } from '../../.config/helper/swc-minimizer';
 
-const PRODUCTION_CONFIGS = [
-  '../../.config/production',
-  '../../.config/languages-production',
-  '../../.config/themes-umd-production',
-];
+const CONFIG_DIR = resolve(__dirname, '../../.config');
+const HELPER_PATH = join(CONFIG_DIR, 'helper/swc-minimizer.js');
 
 /**
  * HyperFormula builds its lexer from escaped strings like these (`UNICODE_LETTER_PATTERN` in its
@@ -32,45 +31,53 @@ module.exports = (() => {
 `;
 
 /**
- * Minifies the fixture with the given SWC minifier options.
+ * Reads the options a minimizer plugin hands to the Rspack binding, after Rspack's own defaults
+ * (`compress`, `mangle`, `ecma`) are applied. `raw()` is the method Rspack itself calls to build
+ * the binding options.
  *
- * @param {object} minimizerOptions The `minimizerOptions` passed to `SwcJsMinimizerRspackPlugin`.
- * @returns {string} The minified code.
+ * @param {rspack.SwcJsMinimizerRspackPlugin} plugin The minimizer plugin.
+ * @returns {object} The resolved `minimizerOptions`.
  */
-function minify(minimizerOptions) {
-  return rspack.experiments.swc.minifySync(ESCAPED_SOURCE, minimizerOptions).code;
+function getMinimizerOptions(plugin) {
+  return plugin.raw({}).options.minimizerOptions;
 }
 
 /**
- * Runs minified fixture code and returns what it exports.
+ * Minifies the fixture the way the production build does.
+ *
+ * @returns {string} The minified code.
+ */
+function minify() {
+  return rspack.experiments.swc.minifySync(ESCAPED_SOURCE, getMinimizerOptions(createSwcJsMinimizer())).code;
+}
+
+/**
+ * Runs the minified fixture as a browser would after decoding its bytes with `encoding`, and
+ * returns what it exports.
  *
  * @param {string} code The minified code.
+ * @param {string} encoding The encoding the page decodes the script with.
  * @returns {{letters: string, sheetName: RegExp, text: string}}
  */
-function run(code) {
+function runDecodedAs(code, encoding) {
   const module = {};
+  const decoded = new TextDecoder(encoding).decode(Buffer.from(code, 'utf8'));
 
   // eslint-disable-next-line no-new-func
-  new Function('module', code)(module);
+  new Function('module', decoded)(module);
 
   return module.exports;
 }
 
 describe('SWC minifier output charset', () => {
   it('should emit only ASCII bytes for escaped non-ASCII characters', () => {
-    const bytes = Buffer.from(minify(SWC_MINIFIER_OPTIONS), 'utf8');
+    const bytes = Buffer.from(minify(), 'utf8');
 
     expect(bytes.every(byte => byte <= 0x7F)).toBe(true);
   });
 
-  it('should read the same under a windows-1252 decode as under UTF-8', () => {
-    const bytes = Buffer.from(minify(SWC_MINIFIER_OPTIONS), 'utf8');
-
-    expect(new TextDecoder('windows-1252').decode(bytes)).toBe(new TextDecoder('utf-8').decode(bytes));
-  });
-
-  it('should keep the escaped strings and patterns equal to the source values', () => {
-    const { letters, sheetName, text } = run(minify(SWC_MINIFIER_OPTIONS));
+  it.each(['utf-8', 'windows-1252'])('should keep strings and patterns intact when decoded as %s', (encoding) => {
+    const { letters, sheetName, text } = runDecodedAs(minify(), encoding);
 
     expect(letters).toBe(`A-Za-z${String.fromCharCode(0xC0)}-${String.fromCharCode(0x2AF)}`);
     expect(text).toBe(`There${String.fromCharCode(0x2019)}s nothing to display yet${String.fromCharCode(0x2026)}`);
@@ -80,25 +87,32 @@ describe('SWC minifier output charset', () => {
 });
 
 describe('production build configs', () => {
-  it.each(PRODUCTION_CONFIGS)('should minify %s with ASCII-only output', (configPath) => {
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    const configs = [].concat(require(configPath).create({}));
+  it('should build every SWC minimizer through createSwcJsMinimizer()', () => {
+    const configFiles = readdirSync(CONFIG_DIR, { recursive: true })
+      .filter(name => name.endsWith('.js'))
+      .map(name => join(CONFIG_DIR, name))
+      .filter(path => path !== HELPER_PATH);
+    const inlineMinimizers = configFiles
+      .filter(path => readFileSync(path, 'utf8').includes('SwcJsMinimizerRspackPlugin'));
 
-    expect(configs.length).toBeGreaterThan(0);
+    expect(configFiles.length).toBeGreaterThan(0);
+    expect(inlineMinimizers).toEqual([]);
+  });
+
+  it.each([
+    'production.js',
+    'languages-production.js',
+    'themes-umd-production.js',
+  ])('should minify with ASCII-only output in %s', (name) => {
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const configs = [].concat(require(join(CONFIG_DIR, name)).create({}));
 
     configs.forEach((config) => {
-      const minimizers = config.optimization?.minimizer ?? [];
-      const swcMinimizers = minimizers.filter(plugin => plugin instanceof rspack.SwcJsMinimizerRspackPlugin);
+      const swcMinimizers = (config.optimization?.minimizer ?? [])
+        .filter(plugin => plugin instanceof rspack.SwcJsMinimizerRspackPlugin);
 
-      expect(swcMinimizers.length).toBeGreaterThan(0);
-
-      swcMinimizers.forEach((plugin) => {
-        // Rspack's builtin plugins keep their constructor options in the private `_args` field,
-        // with no public getter. If an Rspack upgrade moves it, this read fails loudly.
-        const [options] = plugin._args;
-
-        expect(options.minimizerOptions.format.asciiOnly).toBe(true);
-      });
+      expect(swcMinimizers.length).toBe(1);
+      expect(getMinimizerOptions(swcMinimizers[0]).format.asciiOnly).toBe(true);
     });
   });
 });
