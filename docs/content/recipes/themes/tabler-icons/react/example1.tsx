@@ -72,7 +72,7 @@ const ExampleComponent = () => {
       dropdownMenu={true}
       filters={true}
       hiddenColumns={{ indicators: true }}
-      height="auto"
+      height={260}
       licenseKey="non-commercial-and-evaluation"
     />
   );
