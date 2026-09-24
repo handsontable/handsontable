@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a built-in XLSX engine, so `importFile: true` and `exportFile: true` read and write `.xlsx` files without ExcelJS; `engines: { xlsx: ExcelJS }` keeps working.",
+  "type": "added",
+  "issueOrPR": 13634,
+  "breaking": false,
+  "framework": "none"
+}
