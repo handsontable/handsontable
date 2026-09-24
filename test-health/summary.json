@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T08:40:04.203Z",
+  "generatedAt": "2026-09-24T08:48:24.391Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -197,7 +197,7 @@
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
       "line": 81,
       "title": "oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
-      "count7": 2,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 2,
@@ -10052,7 +10052,7 @@
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
       "line": 54,
       "title": "oversized cell mouse scroll › mouse-selecting an oversized row start-snaps the clipped start into view",
-      "count7": 2,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
@@ -10214,7 +10214,7 @@
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
       "line": 153,
       "title": "oversized cell mouse scroll › mouse-selecting a content-tall row without rowHeights start-snaps the clipped start",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
@@ -10245,7 +10245,7 @@
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
       "line": 27,
       "title": "oversized cell mouse scroll › mouse-selecting an oversized column start-snaps the clipped start into view",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
