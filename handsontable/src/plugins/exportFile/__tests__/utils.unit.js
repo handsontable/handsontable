@@ -1,4 +1,4 @@
-import { buildExportDialogContent } from '../utils';
+import { buildExportDialogContent, expandNestedHeaderLayers } from '../utils';
 
 describe('buildExportDialogContent', () => {
   it('should render the passed title', () => {
@@ -50,5 +50,64 @@ describe('buildExportDialogContent', () => {
     expect(path.getAttribute('d')).toBe('M15 8a7 7 0 1 1-3.5-6.062');
     expect(path.getAttribute('stroke')).toBe('currentColor');
     expect(path.getAttribute('stroke-width')).toBe('2');
+  });
+});
+
+describe('expandNestedHeaderLayers', () => {
+  it('should repeat a group label once per column it spans, top layer first', () => {
+    const layers = [
+      [{ label: '2024', colspan: 2 }, { label: '2025', colspan: 2 }],
+      [
+        { label: 'Q1', colspan: 1 },
+        { label: 'Q2', colspan: 1 },
+        { label: 'Q1', colspan: 1 },
+        { label: 'Q2', colspan: 1 },
+      ],
+    ];
+
+    expect(expandNestedHeaderLayers(layers)).toEqual([
+      ['2024', '2024', '2025', '2025'],
+      ['Q1', 'Q2', 'Q1', 'Q2'],
+    ]);
+  });
+
+  it('should keep an empty placeholder label as one empty cell', () => {
+    // A range that starts inside a span yields `{ label: '', colspan: 1 }` for that column
+    // (see DataProvider#_appendNestedHeaderWithoutHidden). The column must stay in the row so
+    // the header lines keep the same column count as the data lines.
+    const layers = [
+      [{ label: '', colspan: 1 }, { label: '2025', colspan: 1 }],
+      [{ label: 'Q2', colspan: 1 }, { label: 'Q1', colspan: 1 }],
+    ];
+
+    expect(expandNestedHeaderLayers(layers)).toEqual([
+      ['', '2025'],
+      ['Q2', 'Q1'],
+    ]);
+  });
+
+  it('should drop an entry whose colspan is zero, because every column it spans is hidden', () => {
+    const layers = [
+      [{ label: 'Hidden group', colspan: 0 }, { label: 'Shown', colspan: 1 }],
+      [{ label: 'C', colspan: 1 }],
+    ];
+
+    expect(expandNestedHeaderLayers(layers)).toEqual([
+      ['Shown'],
+      ['C'],
+    ]);
+  });
+
+  it('should return an empty array for no layers', () => {
+    expect(expandNestedHeaderLayers([])).toEqual([]);
+  });
+
+  it('should not mutate the input', () => {
+    const layers = [[{ label: 'A', colspan: 2 }]];
+    const snapshot = JSON.stringify(layers);
+
+    expandNestedHeaderLayers(layers);
+
+    expect(JSON.stringify(layers)).toBe(snapshot);
   });
 });
