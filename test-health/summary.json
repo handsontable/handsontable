@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-24T07:58:00.164Z",
+  "generatedAt": "2026-09-24T08:12:27.081Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 6,
     "quarantined": 0,
-    "entries": 1614
+    "entries": 1615
   },
   "rows": [
     {
@@ -94,9 +94,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 5,
-      "count30": 8,
-      "countAll": 8,
+      "count7": 6,
+      "count30": 9,
+      "countAll": 9,
       "runs30": 7,
       "flakyRuns30": 7,
       "branches30": 7,
@@ -112,8 +112,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-24T07:57:06Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35970135239",
+        "seenAt": "2026-09-24T08:11:42Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35970135239/attempts/2",
         "branch": "feature/DEV-3085_Selection-handles-hover-scroll",
         "leg": "e2e-main",
         "status": "flaky",
@@ -128,7 +128,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 5,
+      "count7": 4,
       "count30": 8,
       "countAll": 8,
       "runs30": 7,
