@@ -109,9 +109,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   because `DataMap` does not shift core meta for it either), and a host `loadData` clears
   it, because `loadData` clears core's cell meta. Any new code path that renumbers physical
   indexes must re-key it too, or the serve hook paints a cell's meta onto its neighbor. The
-  re-key is skipped while `#isSwitching`: the arriving sheet's map is in place before
-  `#applySheet` loads its data, so the rows `updateSettings` creates for `minRows` or
-  `minSpareRows` describe the outgoing sheet. The map follows whatever indexes the hooks
+  `auto` skip also covers the rows a switch creates for `minRows` or `minSpareRows` while the
+  arriving sheet's map sits over the outgoing sheet's data, so the re-key needs no
+  `#isSwitching` guard, and must not take one: a host `alter()` from
+  `afterSheetTabStateRestore` runs inside the switch and has to re-key. The four listeners
+  register at `orderIndex` -1, so the map is shifted before a host listener on the same hook
+  reads meta, the way core shifts `MetaManager` before it fires. The map follows whatever indexes the hooks
   report, so the NestedRows tree operations, which fire `afterCreateRow`/`afterRemoveRow` with
   computed indexes (and fire nothing on a tree row move), can still drift from core meta.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`

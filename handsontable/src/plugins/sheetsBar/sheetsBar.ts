@@ -554,10 +554,10 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
-    this.addHook('afterCreateRow', this.#onAfterCreateRow);
-    this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
-    this.addHook('afterCreateCol', this.#onAfterCreateCol);
-    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('afterCreateRow', this.#onAfterCreateRow, -1);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow, -1);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol, -1);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
@@ -1951,19 +1951,17 @@ export class SheetsBar extends BasePlugin {
   /**
    * Moves every tracked bucket at or past `firstPhysicalIndex` on the given axis by `amount`.
    *
-   * Skipped while a switch runs: the arriving sheet's map is already in place while the outgoing
-   * sheet's data is still loaded, so a row the switch creates for `minRows` or `minSpareRows`
-   * describes the outgoing sheet and would shift the arriving sheet's keys. An `auto` insert is
-   * skipped too, because `DataMap` does not shift core's cell meta for it (`minRows`,
-   * `minSpareRows`, and the rows a paste adds). A key can outlive its row after an `updateData`
-   * shrink, so an append is not skipped on its own; it must move such a key the way core moves
-   * its meta.
+   * An `auto` insert is skipped, because `DataMap` does not shift core's cell meta for it
+   * (`minRows`, `minSpareRows`, and the rows a paste adds). That also covers the rows a switch
+   * creates while the arriving sheet's map is in place over the outgoing sheet's data. A key can
+   * outlive its row after an `updateData` shrink, so an append is not skipped on its own; it
+   * must move such a key the way core moves its meta.
    */
   #shiftTrackedCellMetaOnCreate(
     axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, source?: string,
   ) {
     if (
-      this.#isSwitching || source === 'auto' || this.#trackedCellMeta.size === 0 ||
+      source === 'auto' || this.#trackedCellMeta.size === 0 ||
       firstPhysicalIndex === null || amount <= 0
     ) {
       return;
@@ -1975,10 +1973,11 @@ export class SheetsBar extends BasePlugin {
   /**
    * Drops the tracked buckets on the removed physical indexes of the given axis, and moves every
    * other bucket back by the number of removed indexes before it. The removed indexes may be
-   * any set — a multi-range `alter` hands them over non-contiguous and unsorted.
+   * any set: adjacent visual rows or columns map to scattered physical ones once they are
+   * sorted, moved, or trimmed.
    */
   #shiftTrackedCellMetaOnRemove(axis: 'row' | 'col', removedPhysicalIndexes: number[]) {
-    if (this.#isSwitching || this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
+    if (this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
       return;
     }
 

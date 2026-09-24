@@ -869,7 +869,7 @@ describe('SheetsBar plugin', () => {
       expect(hot.getCellMeta(1, 2).readOnly).toBe(true);
     });
 
-    it('does not re-key the arriving sheet for rows the switch itself creates', () => {
+    it('does not re-key the arriving sheet for the `auto` rows the switch creates', () => {
       const tallData = Array.from({ length: 30 }, (_, r) => [`a${r}`]);
       const shortData = Array.from({ length: 5 }, (_, r) => [`b${r}`]);
       const paddedData = Array.from({ length: 8 }, (_, r) => [`c${r}`]);
@@ -898,6 +898,26 @@ describe('SheetsBar plugin', () => {
       sheetsBar.setActiveSheet('C');
 
       expect(getReadOnlyCellValues(hot)).toEqual(['c6']);
+    });
+
+    it('re-keys the arriving sheet for a row the host inserts from `afterSheetTabStateRestore`', () => {
+      hot = createGridWithReadOnlyCells(4, 1, [[1, 0]]);
+      const sheetsBar = hot.getPlugin('sheetsBar');
+      let insertOnRestore = false;
+
+      hot.addHook('afterSheetTabStateRestore', () => {
+        if (insertOnRestore) {
+          insertOnRestore = false;
+          hot.alter('insert_row_above', 0);
+        }
+      });
+
+      sheetsBar.setActiveSheet('B');
+      insertOnRestore = true;
+      sheetsBar.setActiveSheet('A');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0']);
+      expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
     });
 
     it('forgets the tracked properties when the host loads a new dataset', () => {
@@ -933,6 +953,31 @@ describe('SheetsBar plugin', () => {
 
       expect(hot.countRows()).toBe(4);
       expect(getReadOnlyCellValues(hot)).toEqual([]);
+    });
+
+    it('keeps a key between two removed physical rows that sorting made visually adjacent', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['b'], ['x'], ['a'], ['y'], ['z']] },
+            { name: 'B', data: [['q']] },
+          ],
+        },
+        columnSorting: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.setCellMeta(0, 0, 'readOnly', true);
+      hot.setCellMeta(4, 0, 'readOnly', true);
+      hot.alter('remove_row', 2, 2);
+
+      expect(getReadOnlyCellValues(hot).sort()).toEqual(['a', 'z']);
+
+      roundTrip(hot);
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(getReadOnlyCellValues(hot).sort()).toEqual(['a', 'z']);
     });
 
     it('re-keys against physical indexes when the rows are sorted', () => {
