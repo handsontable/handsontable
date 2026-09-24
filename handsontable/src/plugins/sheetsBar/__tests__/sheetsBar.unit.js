@@ -421,6 +421,30 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(1, 0)).toBe('shown');
   });
 
+  it('keeps the in-range trimmed rows when the data of an inactive sheet shrinks', () => {
+    const dataA = [['r0'], ['r1'], ['r2'], ['r3'], ['r4']];
+
+    hot = new Handsontable(container, {
+      trimRows: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: dataA },
+          { name: 'B', data: [['x']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.getPlugin('trimRows').trimRows([1, 4]);
+    sheetsBar.setActiveSheet('B');
+    dataA.length = 3;
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getPlugin('trimRows').getTrimmedRows()).toEqual([1]);
+    expect(hot.getDataAtCol(0)).toEqual(['r0', 'r2']);
+  });
+
   it('keeps `nestedRows` enabled when the active sheet supplies the nested data on init', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 

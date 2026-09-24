@@ -19,10 +19,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
   batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
-  longer matches the data is skipped. Manual sizes are stored as sparse
-  `[physicalIndex, size]` pairs read and written through the resize plugins'
-  `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its height) and
-  cleared through their bulk `clearManualSizes()`.
+  longer matches the data is skipped. Stored trimmed rows past the end of the data are dropped
+  one by one before `trimRows()` — it rejects the whole list when any index is out of range.
+  Manual sizes are stored as sparse `[physicalIndex, size]` pairs read and written through the
+  resize plugins' `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its
+  height) and cleared through their bulk `clearManualSizes()`.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
