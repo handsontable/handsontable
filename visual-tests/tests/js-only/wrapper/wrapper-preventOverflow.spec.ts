@@ -1,6 +1,10 @@
 import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
+/**
+ * Checks that, with `preventOverflow`, a grid wider than a 200 px viewport scrolls horizontally inside its
+ * wrapper instead of overflowing the page. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

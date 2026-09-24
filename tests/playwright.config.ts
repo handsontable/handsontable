@@ -84,6 +84,9 @@ export default defineConfig<TestOptions>({
   timeout: 20_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // The next three CI values are pinned by
+  // .github/scripts/__tests__/playwright-flake-settings.test.mjs — the flake
+  // ledger depends on them (tests/AGENTS.md, "Where a flake goes").
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   // A test that only passes on retry is a hard failure pre-merge.

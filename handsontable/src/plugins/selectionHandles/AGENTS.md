@@ -36,6 +36,28 @@ a handle painted as hovered.
 `bottom`/`end` take `Math.max(...)`. Both are floored at 0. That is what stops a drag from inverting the
 range instead of resizing it.
 
+## Hover must never replay the selection
+
+The hover wiring (`#onCellMouseOver`, `#onRootMouseLeave`, `#onDocumentMouseUp`) only decides which layer shows
+the handles. `Selection#setHandlesHoveredLayer` stores that layer and fires the `afterSetHandlesHoveredLayer`
+local hook, and core answers with `view.render()`. That is enough, because the layer is read only when the
+borders are drawn (`isAdjustHandlesVisibleFor`, through the `adjustHandlesVisible` border setting).
+
+It used to call `selection.refresh()`, which clears and replays every layer through `setRangeEnd` with the
+source `'refresh'`. Two things came with that, both on every hover in and out: the public selection hooks
+(`beforeSetRangeEnd`, `afterSelection`, `afterSelectionEnd` and their `ByProp` twins) fired, and core's
+`afterSetRangeEnd` scrolled the range back into view, because `'refresh'` is not one of its ignored scroll
+sources. For that source `getComputedRowTarget` (`core/viewportScroll/utils.ts`) picks the range's FIRST row
+when the range starts above the viewport and its last row only when it ends below it. A wheel scroll moves
+cells under a resting pointer, so each crossing of the range edge snapped a downward scroll back to the
+range's first row and the scroll stalled (DEV-3085).
+
+Two rules follow. Never route a hover-only state change through `refresh()`. And use `view.render()`, not
+`hot.render()`: the latter forces a full draw, which re-runs every rendered cell's renderer on a hover.
+`tests/e2e/selection-handles.spec.ts` ("selectionHandles hover") pins the scroll offset, the hook log, an
+exact wheel distance, a layer-to-layer hover, and zero cell repaints across a hover in and out (the last one
+is what fails if `hot.render()` replaces `view.render()`).
+
 ## Two input rules
 
 - **A right-press must not start a resize.** It opens the context menu; without the guard the release would

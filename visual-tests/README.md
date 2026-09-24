@@ -15,7 +15,8 @@ We run visual tests automatically by using the following tools:
 
 When you push changes to a GitHub pull request:
 1. The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of each visual test.
+   checks the code of each visual test: no fixed delays, an asserted state before every capture that
+   follows a click or a key press, and a docblock on every test that names the ticket owning it.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
@@ -257,7 +258,7 @@ To add a new visual test:
       - [Take screenshots](#take-screenshots)
 4. Push your changes to a pull request.<br>
    The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of your test.
+   checks the code of your test, including the assertion before each capture and the test's docblock.
 
 ### Take screenshots
 

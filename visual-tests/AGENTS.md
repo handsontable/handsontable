@@ -19,7 +19,12 @@ import { openContextMenu } from '../../../src/page-helpers';
 
 // One capture per distinct visual state, and the state asserted before the capture. What earns a
 // capture at all is the decision rule below; the declaration names the variants this spec renders on,
-// and this one is the default for a new spec — two themes, one browser, no wrapper.
+// and this one is the default for a new spec — two themes, one browser, no wrapper. The docblock is
+// required and must name the owning ticket; no blank line may sit between it and the call.
+/**
+ * Checks that the focused cell and the open context menu render as the theme draws them. Owned by
+ * DEV-<number>.
+ */
 visualTest(__filename, {
   themes: ['main', 'main-dark'],
   browsers: ['chromium'],
@@ -413,13 +418,69 @@ stays legal in `src/`, because that is the form `visualTest()` emits from a
 [variant declaration](#variant-declaration) — plus a ban on element screenshots and the settle the fixture
 does for you):
 
-- **Assert the state the capture is meant to show before capturing.** After any action that changes
-  focus, opens or closes an element, or scrolls, wait for that state with a web-first assertion —
-  `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` / `.toHaveClass()` — or a
-  page helper that does. A capture on the line after a `click()` / `press()` / `type()` with nothing
-  asserted in between photographs whichever half of the transition the runner reached. What a capture
-  is *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs
-  stable.
+- **Assert the state the capture is meant to show before capturing — a lint error when you do not.**
+  After any action that changes focus, opens or closes an element, or scrolls, wait for that state with a
+  web-first assertion — `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` /
+  `.toHaveClass()` — or a page helper that does. A capture on the statement straight after a pointer,
+  keyboard, or focus primitive (a `click`, `dblclick`, `tap`, `hover`, `press`, `pressSequentially`,
+  `type`, `fill`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `dragTo`, `dragAndDrop`,
+  `focus`, `blur`, `selectText` or `dispatchEvent` call, or any `page.mouse` / `page.keyboard` /
+  `page.touchscreen` call — kept in a `const` or not) photographs whichever half of the transition the
+  runner reached, and `CAPTURE_RESTRICTIONS` in `.eslintrc.js` reports it on the capture line. A capture is
+  the statement's own `screenshot()` call, awaited or not, kept in a `const`, returned, or handed straight
+  to `expect()`. The names are matched on any
+  object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
+  (2026-09-23) it found 128 such captures in 50 specs. The 28 in three filters specs (`escaping-the-menu`,
+  `entering-and-escaping-by-value-lists`, `accepting-by-enter`) were repaired — each now asserts the
+  focused component, the hidden menu, or the ticked value first, and all 28 captures rendered
+  byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
+  handler (Tab, Shift+Tab and Escape focus or close synchronously, and no repaired capture follows the
+  condition input's 10 ms focus timer), so there the assertions make a wrong state fail loudly rather than
+  close a race; they are the shape every later repair takes. The other 100, among them 15 in the
+  directory's other six filters specs, carry
+  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
+  directly above the capture, so the debt is counted. `test/__tests__/determinism-lint.test.mjs` fails
+  when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
+  *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
+- **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
+  statement is an expression or a declaration. A comment in between does not hide an action. A neutral
+  statement (`const box = …`) does, and so does an action inside an `if`, `try` or loop block just before
+  the capture, or a capture that opens a block — neither of the last two is in the tree today, and the
+  self-test pins all four as unseen, so a rule that starts seeing one fails loudly until this bullet is
+  updated. A tracked
+  `waitForTimeout()` in between hides the action too: 18 captures in 12 specs sit behind a sleep today.
+  Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
+  its place makes the capture fire, so the disable line moves to the capture. A page helper in between
+  silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
+  `src/page-helpers.ts` act with no `expect()` or wait at all, and three more (`collapseNestedRow`,
+  `resizeColumn`, `resizeRow`) wait only with a fixed sleep. Making each one end on the state it produced
+  is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
+  names are deliberately not in the selector — a renamed helper would drop out of it silently.
+- **The selector has three esquery traps, all measured** (ESLint 8.57.1, esquery 1.7.0), which is why the
+  rule is proven by fixtures in the self-test rather than by reading it. The relative `:has(> X)` form
+  parses and matches nothing, with no error. `~` matches any earlier sibling, so it cannot express
+  "nothing asserted in between". And the capture half must be the statement's own call: a descendant
+  `:has()` there matched a whole `visualTest()` statement whose body captures, right after a test that
+  acted, and reported the test call itself (two false sites in `cross-browser/copy-paste.spec.ts`). Also,
+  `no-restricted-syntax` is one rule id, so this selector cannot be `warn` while the sleep bans are
+  `error`, and a disable line on a capture silences every selector on that line.
+- **Every test call carries a docblock that says what its capture proves and names its owner.**
+  `jsdoc/require-jsdoc`, `jsdoc/require-description` and `jsdoc/match-description` in the
+  `tests/**/*.spec.ts` override require a block directly above each `visualTest()` call — one per inner
+  call in a looped spec — whose main description names a ClickUp ticket (`DEV-`, `PRO-` or `SU-`, never
+  numbered 0) or a GitHub issue of four or more digits (`#12345`). An empty block, or one holding only a
+  tag, fails `require-description`, because `match-description` skips a block with no main description.
+  `require-jsdoc` has its fixer off, so `eslint --fix` (the pre-commit and agent hooks) never writes an
+  empty stub. The legacy specs name DEV-2981, the consolidation that pays their debt, as a **placeholder
+  owner**: closing DEV-2981 means first giving every block and every tracked disable line a real owner,
+  or no golden has one. Where a spec came with a feature, its block also names the pull request that
+  added it (`Added in #12299`), which is where that owner starts. When it landed, 91 of the 115 calls had no block, the
+  24 that had one named no ticket, and six were copies of one filters spec's sentence pasted onto specs
+  about something else. The context names `visualTest`, not only `test`: after the variant declaration
+  renamed every call, a `callee.name="test"` context matched nothing and the rule was silently off. The
+  template (`tests/multi-frameworks/.empty-test-template.ts`) carries a `DEV-<number>` placeholder the
+  lint rejects, so a copy fails until it names a real owner; ESLint never lints the dotfile itself, so the
+  self-test lints its source as a spec.
 - **The filters menu moves focus on a timer.** Choosing a condition focuses that condition's first
   input 10 ms later (`handsontable/src/plugins/filters/component/condition.ts`), so a capture or a key
   press straight after the choice lands on either side of the hand-off; `filterByCondition()` and the
@@ -513,9 +574,11 @@ does for you):
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow.
 - **Two specs are known to photograph the wrong state**: `tab-navigation-from-submenu` and
-  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe (ArrowDown ×3 from
-  the first enabled item stops short of it), so their frames repeat the plain-menu frames other specs own.
-  Repair the keystrokes or convert the coverage in the consolidation phase; do not delete them silently.
+  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe. The menu opens with
+  its first enabled item ("Clear column") highlighted, so their three ArrowDown presses pass "Alignment"
+  (Read only, Alignment, then back to Clear column) and ArrowRight has nothing to open; two presses reach
+  it. Their frames repeat the plain-menu frames other specs own. Repair the keystrokes or convert the
+  coverage in the consolidation phase; do not delete them silently.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -579,13 +642,18 @@ which of these run locally and which only in CI.
   its section to the comment the verdict wrote — which is why it runs between `Visual verdict` and
   `Mirror the verdict to the job summary`, pinned in
   `.github/scripts/__tests__/visual-budget.test.mjs`.
-- **G4 · The capture lint and the spec docblock** — not yet landed. A capture on the statement after an
-  unasserted pointer or keyboard primitive (`click`, `dblclick`, `hover`, `press`, `type`, `fill`,
-  `dragTo`, `mouse.*`, `keyboard.*`) becomes a `no-restricted-syntax` error in `visual-tests/.eslintrc.js`,
-  and every spec carries a docblock naming what its capture proves and the ticket that owns it. The filters
-  family is repaired first (assert the state, then capture); the remaining sites wear
-  `// eslint-disable-next-line no-restricted-syntax -- <ticket>: <why>` naming the consolidation task, so
-  the debt is counted and greppable.
+- **G4 · The capture lint and the spec docblock** — landed. A capture on the statement straight after an
+  unasserted pointer or keyboard primitive is a `no-restricted-syntax` error (`CAPTURE_RESTRICTIONS` in
+  `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
+  and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
+  `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
+  were repaired (assert the state, then capture); the other 100 wear
+  `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
+  counted and greppable. The rules, what they cannot see, and their three
+  esquery traps are the first four bullets of [Determinism](#determinism).
+  `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
+  `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root
+  `test:tooling` glob, whose job installs nothing.
 - **G5 · The compare record, the quarantine, and the nightly stability run** — landed. Three parts.
   - **The record.** Every Compare job, green or red and on both comparison paths, writes
     `.reg/visual-compare-<tier>-<sha>.json` and uploads it as `visual-compare-<tier>`
@@ -632,9 +700,9 @@ which of these run locally and which only in CI.
     A trim that drops `classic` or the chosen theme from a filters spec does not turn it red: the spec skips
     that pass in every render, so the run stays green while it measures less. After such a trim, render a
     theme the filters specs still declare.
-- **G6 · The visual-only-coverage warning** — not yet landed. The presence gate keeps counting a visual
-  spec as coverage and prints an advisory `visual-only-coverage` warning when a source change ships with a
-  screenshot as its only test, pointing at the decision rule above.
+- **G6 · The visual-only-coverage warning** — landed. The presence gate keeps counting a visual spec as
+  coverage and prints an advisory `visual-only-coverage` warning (`.github/scripts/lib/presence-warnings.mjs`)
+  when a source change ships with a screenshot as its only test, pointing at the decision rule above.
 - **G7 · The enforcement map** — landed. `.ai/LOCAL-ENFORCEMENT.md`, *The visual tier's enforcement map*:
   anything syntactic is lint (local and CI), anything that needs a rendered `out.json` is CI-only, and
   running a visual spec is never a hook. `visual-decision-rule.test.mjs` cross-checks the map's two hook

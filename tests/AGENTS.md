@@ -386,8 +386,11 @@ artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
 runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
 outcome (failed, then passed on retry) reaches the ledger only because
 `failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
-The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
-in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+`.github/scripts/__tests__/playwright-flake-settings.test.mjs` pins all three
+settings (`failOnFlakyTests`, `retries`, and `forbidOnly`) as text in the root
+`test:tooling` gate, and fails with this reason if one moves. The report path
+is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
+`.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
 
 ## Quarantine
