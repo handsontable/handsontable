@@ -3,11 +3,16 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * The focus ring on the filter's action controls, and the highlight the loop restores: the "Select all"
- * link, the "OK" button, the "Cancel" button, and — one more Tab — the menu itself, with "Clear column",
- * the item it opened on, highlighted again (#10603). The "Clear" link repeats the ring "Select all"
- * shows. The order itself is asserted hop by hop in `tests/e2e/filters-menu-focus-order.spec.ts`.
- * Owned by DEV-3106.
+ * The focus ring on the filter's action controls, and the menu highlight: the "Select all" link, the
+ * "OK" button, the "Cancel" button, and – one more Tab – the menu itself, focused again with "Clear
+ * column" highlighted. In this demo that row is both the item the menu opened on and its first enabled
+ * item (the demo sets `columns`, so the column items are disabled), so the frame shows how a restored
+ * highlight looks, not that the loop restored it; `tests/e2e/filters-menu-focus-order.spec.ts` asserts
+ * the restore (#10603) on a non-first item, and the order hop by hop. The "Clear" link shares the
+ * "Select all" link's `:focus` rule, so it would repeat a ring already shown.
+ * The bare `classic` pass stays in the declaration: it is the delivery-path parity check
+ * `visual-tests/AGENTS.md` (Tiers) describes, and the `Visual stability` night renders this family on
+ * `classic` and one theme. Owned by DEV-3106.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

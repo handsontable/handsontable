@@ -223,6 +223,27 @@ test.describe('filters menu — keyboard focus order', () => {
     await expect(grid.cell(0, 0)).toBeFocused();
   });
 
+  test('with navigable headers, Enter on "OK" returns the focus to the filtered column\'s header', async({ page }) => {
+    // With `navigableHeaders` on, the keyboard open keeps the highlight on the column header instead of
+    // clamping it to row 0, so closing the menu focuses the header cell. The visual demo runs this way,
+    // and its retired capture asserted exactly this before it photographed the filtered header.
+    await grid.updateSettings('{ navigableHeaders: true }');
+    await grid.openMenuWithKeyboard(0, 0);
+    await page.keyboard.press('Tab');
+    await grid.chooseConditionWithKeyboard('Contains');
+    await expect(grid.conditionInput(0)).toBeFocused();
+    await page.keyboard.type('li');
+
+    // "And", "Or", the second select, the search input, "Select all", "Clear", then "OK".
+    await grid.pressTab(7);
+    await expect(grid.okButton).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(grid.menu).toBeHidden();
+
+    expect(await grid.columnValues(0)).toEqual(['Alice', 'Charlie']);
+    await expect(grid.activeFilterHeaders).toBeFocused();
+  });
+
   test('ArrowDown from the search input enters the value list, and Tab or Shift+Tab leaves it', async({ page }) => {
     await grid.openMenuWithKeyboard(0, 0);
     await grid.pressTab(2);
@@ -255,6 +276,28 @@ test.describe('filters menu — keyboard focus order', () => {
     await expect(grid.focusedListItems()).toHaveCount(0);
   });
 
+  test('a value the list shows only in part scrolls fully into view when the focus reaches it', async({ page }) => {
+    // Twenty values, so the list, a few rows tall on every theme, cannot show them all at once.
+    await grid.replaceData(Array.from({ length: 20 },
+      (_, index) => [`Name ${String(index + 1).padStart(2, '0')}`, 'Blue']));
+    await expect(grid.cell(0, 0)).toHaveText('Name 01');
+    await grid.openMenuWithKeyboard(0, 0);
+    await grid.pressTab(2);
+    await expect(grid.searchInput).toBeFocused();
+
+    expect(await grid.listItemFullyInView('Name 11'), 'the target starts outside the list\'s view').toBe(false);
+
+    await page.keyboard.press('ArrowDown');
+    await expect(grid.listItem('Checked Name 01')).toBeFocused();
+
+    for (let step = 0; step < 10; step++) {
+      await page.keyboard.press('ArrowDown');
+    }
+
+    await expect(grid.listItem('Checked Name 11')).toBeFocused();
+    await expect.poll(() => grid.listItemFullyInView('Name 11')).toBe(true);
+  });
+
   test('Tab from an opened submenu closes it and lands on the first component', async({ page }) => {
     await grid.openMenuWithKeyboard(0, 0);
     await grid.highlightItem('Alignment');
@@ -285,9 +328,10 @@ test.describe('filters menu — keyboard focus order', () => {
     // once: the next Tab records it as the item the loop restores (#10603), so the loop ends on the
     // hovered row instead of the first item, and the control below pins that difference.
     //
-    // Until #11669 (June 2025) a hover selected the row, which reset the Tab order to the first
-    // component. The visual spec `hovering-clears-the-focus-state` was written against that product
-    // and kept its name after its goldens were re-approved on this behavior.
+    // A hover used to select the row, which reset the Tab order to the first component: #11669 (June
+    // 2025) stopped that for the themes and #11950 (February 2026) for the classic delivery path. The
+    // visual spec `hovering-clears-the-focus-state` was written against the old product, kept its
+    // name after its goldens were re-approved on the new behavior, and was retired by #13647.
     await grid.openMenu('Name');
 
     // A menu opened with the pointer highlights nothing, so without a hover the loop ends on the

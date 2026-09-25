@@ -4,7 +4,7 @@
     "",
     "`prefixes` is the full-tier count per variant prefix, measured from base/develop. A build is",
     "judged per prefix rather than on the total, because a pr-tier build renders two of the eleven and",
-    "comparing its 480 records against 1676 would pass anything.",
+    "comparing its two prefixes against the full total would pass anything.",
     "",
     "`captureCap` is the per-spec ceiling. `capExceptions` lists the specs already over it with the",
     "ticket that will bring them down; an exception without a ticket is refused, so the list cannot",

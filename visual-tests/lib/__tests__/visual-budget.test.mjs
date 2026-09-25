@@ -19,8 +19,8 @@ import {
 // in the pull-request description is for.
 //
 // What these pin is the shape of the judgement rather than today's counts: per prefix and never on the
-// total (a pr-tier build renders two of eleven, and 480 clears a 1676 ceiling without meaning
-// anything), the raw item list so quarantining cannot shrink the set, and growth refused unless the
+// total (a pr-tier build renders two of eleven, and its two prefixes clear the full total without
+// meaning anything), the raw item list so quarantining cannot shrink the set, and growth refused unless the
 // author states the new number and the file agrees with them.
 
 const root = path.join(import.meta.dirname, '../../..');
@@ -83,8 +83,8 @@ test('the checked-in budget describes the eleven prefixes develop renders', () =
 });
 
 test('every cap exception carries a ticket that will bring it down', () => {
-  // An exception list without tickets is just a higher cap with extra steps. The nine specs over the
-  // cap today are the consolidation backlog, and each names the task that owns it.
+  // An exception list without tickets is just a higher cap with extra steps. The specs over the cap
+  // today are the consolidation backlog, and each names the task that owns it.
   const exceptions = Object.entries(BUDGET.capExceptions ?? {});
 
   assert.ok(exceptions.length > 0, 'the exception list is empty — if the specs were trimmed, drop the key');
@@ -116,14 +116,17 @@ test('the ceiling is per prefix, because a subset render would clear a total', (
   // A pr-tier build renders two of the eleven prefixes. Judged on the total it could double either one
   // and still sit far under the total — which is the whole reason the file is eleven numbers and not one.
   const prTier = reportWith({
-    'js/chromium-theme-main/': BUDGET.prefixes['js/chromium-theme-main/'] + 1,
+    'js/chromium-theme-main/': BUDGET.prefixes['js/chromium-theme-main/'] + 3,
     'js/chromium-theme-main-dark/': BUDGET.prefixes['js/chromium-theme-main-dark/'],
   });
   const verdict = evaluateBudget({ report: prTier, budget: BUDGET });
 
   assert.equal(verdict.pass, false, 'one prefix over its own number must fail even far under the total');
-  assert.match(verdict.violations.join('\n'),
-    new RegExp(`js\\/chromium-theme-main\\/. rendered ${BUDGET.prefixes['js/chromium-theme-main/'] + 1}`));
+  // Three over, not one: a message printing `allowed + 1` instead of the rendered count passed a +1
+  // fixture, so the count and the delta are pinned apart.
+  assert.match(verdict.violations.join('\n'), new RegExp('js\\/chromium-theme-main\\/. rendered '
+    + `${BUDGET.prefixes['js/chromium-theme-main/'] + 3} record\\(s\\), budget `
+    + `${BUDGET.prefixes['js/chromium-theme-main/']} \\(\\+3\\)`));
 });
 
 test('a prefix nobody budgeted is refused, with its count named', () => {
@@ -145,6 +148,16 @@ test('a build at its numbers passes, and says what it rendered', () => {
   assert.equal(verdict.pass, true, verdict.violations.join('\n'));
   assert.match(verdict.comment, /^## Visual budget/);
   assert.match(verdict.comment, new RegExp(`${TOTAL} record\\(s\\) rendered`));
+
+  // The comment counts what rendered, not what the file allows: at the file's numbers the two are the
+  // same, so a build two short tells them apart.
+  const short = evaluateBudget({
+    report: reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] - 2 }),
+    budget: BUDGET,
+  });
+
+  assert.match(short.comment,
+    new RegExp(`${TOTAL - 2} record\\(s\\) rendered\\. The full-tier budget is ${TOTAL}\\.`));
 });
 
 /**

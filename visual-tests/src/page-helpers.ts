@@ -180,18 +180,6 @@ export async function selectEditor() {
 }
 
 /**
- * Triggers the arrow keys events.
- *
- */
-export async function tryToEscapeFromTheComponentsFocus() {
-  // try to select another menu item using arrow keys (it should not be possible)
-  await getPageInstance().keyboard.press('ArrowDown');
-  await getPageInstance().keyboard.press('ArrowUp');
-  await getPageInstance().keyboard.press('ArrowRight');
-  await getPageInstance().keyboard.press('ArrowLeft');
-}
-
-/**
  * Create a selection from one cell to another.
  *
  * @param {Locator} cellFrom Start cell.

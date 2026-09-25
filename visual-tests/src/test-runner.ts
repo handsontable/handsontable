@@ -163,7 +163,7 @@ async function awaitScrollbarClearance(page: Page): Promise<'closed' | 'pinned' 
 
   // The slow path is about to spend up to another SETTLE_TIMEOUT - FADE_ALLOWANCE, so buy that budget
   // here rather than from the config. A flat per-test bump only helps a test that still has room left:
-  // a filters spec takes four captures plus keyed navigation, so a
+  // `js-only/pagination/auto-page-size-table-with-defined-size.spec.ts` takes nine captures, so a
   // band stuck on a late one would die on "Test timeout of 15000ms exceeded" and the message naming
   // the cause — the whole point of failing loudly — would never be printed. Granting it here makes the
   // diagnosis win on whichever capture hits it.

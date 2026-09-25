@@ -7,11 +7,15 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * The focus ring on each kind of control the Tab order reaches in the filter's condition and value
- * sections: the condition select, a condition's text input (with "Is between" chosen, so both of its
- * inputs are on screen), the "And" radio, and the search input. One capture per kind of control — the
- * second input, the "Or" radio and the second select repeat a ring already shown, and the order itself
- * is asserted hop by hop in `tests/e2e/filters-menu-focus-order.spec.ts`. Owned by DEV-3106.
+ * The focus ring on each kind of control the Tab order reaches in the filter's condition section: the
+ * condition select, a condition's text input (with "Is between" chosen, so both of its inputs are on
+ * screen), the checked "And" radio, and the unchecked "Or" radio. A checked and an unchecked radio take
+ * different focus tokens (`--ht-radio-checked-focus-*` against `--ht-radio-focus-*`), so each gets a
+ * capture. The second input and the search input share the first input's `:focus` rule, and the second
+ * select shares the first one's, so they would repeat a ring already shown.
+ * `tests/e2e/filters-menu-focus-order.spec.ts` asserts the order hop by hop. The bare `classic` pass stays
+ * in the declaration: it is the delivery-path parity check `visual-tests/AGENTS.md` (Tiers) describes,
+ * and the `Visual stability` night renders this family on `classic` and one theme. Owned by DEV-3106.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -24,6 +28,8 @@ visualTest(__filename, {
   const menu = tablePage.locator(helpers.selectors.dropdownMenu);
   const conditionSelect = menu.getByRole('menuitem').filter({ hasText: 'Filter by condition' })
     .getByRole('listbox');
+  const andRadio = menu.getByRole('radio', { name: 'And', exact: true });
+  const orRadio = menu.getByRole('radio', { name: 'Or', exact: true });
   const cell = await selectCell(0, 2);
 
   await cell.click();
@@ -59,16 +65,18 @@ visualTest(__filename, {
 
   await tablePage.keyboard.press('Tab'); // the second input
   await tablePage.keyboard.press('Tab');
-  await expect(menu.getByRole('radio', { name: 'And', exact: true })).toBeFocused();
+  await expect(andRadio).toBeFocused();
+  await expect(andRadio).toBeChecked();
 
-  // the "And" radio focused
+  // the checked "And" radio focused
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  await tablePage.keyboard.press('Tab'); // the "Or" radio
-  await tablePage.keyboard.press('Tab'); // the second condition select
+  // The focus controller owns Tab here, so the focus moves to "Or" without checking it: only an arrow
+  // key would move the check inside the radio group.
   await tablePage.keyboard.press('Tab');
-  await expect(menu.getByPlaceholder('Search', { exact: true })).toBeFocused();
+  await expect(orRadio).toBeFocused();
+  await expect(andRadio).toBeChecked();
 
-  // the search input focused
+  // the unchecked "Or" radio focused, with "And" still checked
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

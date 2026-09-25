@@ -12,14 +12,14 @@ import { join } from 'node:path';
 // out whatever happens to the quarantine.
 
 const PACKAGE_ROOT = join(import.meta.dirname, '..', '..');
-const ITEM = 'js/chromium-theme-main-dark/js-only/filters/tab-navigation-through-action-buttons-4.png';
+const ITEM = 'js/chromium-theme-main-dark/js-only/filters/tab-navigation-through-condition-components-2.png';
 // Live against the real clock, which is the one the scripts read.
 const EXPIRES = new Date(Date.now() + (10 * 86400000)).toISOString().slice(0, 10);
 const LIVE = {
   entries: [{
     taskId: 'DEV-1234',
     expires: EXPIRES,
-    capture: 'js-only/filters/tab-navigation-through-action-buttons-4',
+    capture: 'js-only/filters/tab-navigation-through-condition-components-2',
     legs: ['js/chromium-theme-main-dark'],
     why: 'focus timer',
   }],
@@ -142,7 +142,7 @@ test('an unreadable quarantine fails the nightly, and the summary still says wha
   const result = run('seed-report.mjs', dir, { VISUAL_TIER: 'full', VISUAL_QUARANTINE_FILE: quarantineFile });
 
   assert.equal(result.status, 1);
-  assert.match(result.summary, /tab-navigation-through-action-buttons-4\.png/,
+  assert.match(result.summary, /tab-navigation-through-condition-components-2\.png/,
     'the unpartitioned differences are listed');
   assert.match(result.summary, /The quarantine could not be applied, so this run fails/);
   assert.match(result.output, /^verdict=/m, 'the outputs are still written for the later steps');

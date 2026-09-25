@@ -5,8 +5,11 @@ import { selectCell } from '../../../src/page-helpers';
 /**
  * The focus ring on a value-list cell: ArrowDown from the search input enters the list on its first
  * value, and Space unticks that value, so the capture shows a focused cell with its checkbox cleared.
- * The way into and out of the list, and what Space and Enter toggle, are asserted in
- * `tests/e2e/filters-menu-focus-order.spec.ts`. Owned by DEV-3106.
+ * `tests/e2e/filters-menu-focus-order.spec.ts` asserts the way into and out of the list, what Space and
+ * Enter toggle, and that a focused value scrolls fully into the list's view.
+ * The bare `classic` pass stays in the declaration: it is the delivery-path parity check
+ * `visual-tests/AGENTS.md` (Tiers) describes, and the `Visual stability` night renders this family on
+ * `classic` and one theme. Owned by DEV-3106.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

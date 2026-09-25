@@ -114,8 +114,10 @@ visualTest(__filename, {
   wrapper declarations has been argued for yet, and the constant's name is the grep the audit runs.
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
-  per-prefix totals against the live baseline (1676 records on 2026-09-18), printing the implied total. A
-  trim or a new spec moves a number there, which is the review a description cannot give.
+  per-prefix totals against `visual-budget.json`, printing the implied total. The file held the live
+  baseline's 1676 records on 2026-09-18 and comes down with every trim (1225 after the filters
+  consolidation, #13647). A trim or a new spec moves a number there, which is the review a description
+  cannot give.
 - **`npx playwright test --list --reporter=json` reports every declaration** as a `visual-variants`
   annotation, including on a spec the current variant skips. That is the only form a reader outside the
   run can trust: the browser axis uses the callback form of `test.skip`, which Playwright evaluates in a
@@ -163,13 +165,16 @@ requests: a build rendered 1646 golden records and the visual stage added a mean
 request run. The golden set is 1676 records on 2026-09-18 (`base/develop/out.json`, read cache-busted as
 described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox /
 webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
+The filters consolidation (#13647, 2026-09-25) brought the set to 1225: 187 per js variant, 30 per
+wrapper, the same cross-browser counts, and a `pr`-tier render of 374.
 Every js-only spec renders five times today (the bare chromium run — the "classic" delivery path,
 where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration), and a new spec renders two themes by default,
 so "every js variant renders the same count" stops holding with the first spec that takes the default. The
-bare run was byte-identical to `main` on 199 of its then 234 records (240 today) — it is a delivery-path
+bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18, 187 since the
+filters consolidation) — it is a delivery-path
 parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
 every real change hit all themes or all browsers. So a pull request renders the two default themes on js;
@@ -247,7 +252,8 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
 - **Local use.** `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` is the fast loop — js on
   chromium with two themes, no wrapper installs. Set the same `VISUAL_TIER=pr` on `npm run compare` so the
   prune matches what was rendered; a feature branch otherwise resolves to `full`, and a `pr`-tier render
-  compared as `full` reports the other 1196 records as deleted. A bare `npm run test` on a feature branch
+  compared as `full` reports every record outside its two prefixes as deleted (1196 of the 2026-09-18
+  set, 851 since the filters consolidation). A bare `npm run test` on a feature branch
   renders everything, as before.
 - **Bootstrap seeds the tier's subset, not the branch's full set.** A `pr`-tier pull request that seeds a
   new base branch (`VISUAL_BOOTSTRAP=true`) promotes its 480 records and nothing else; the branch's own
@@ -432,15 +438,17 @@ does for you):
   to `expect()`. The names are matched on any
   object, so a same-named call that is no Playwright action (`Set#clear()`) counts too. When it landed
   (2026-09-23) it found 128 such captures in 50 specs. The 28 in three filters specs (`escaping-the-menu`,
-  `entering-and-escaping-by-value-lists`, `accepting-by-enter`) were repaired — each now asserts the
-  focused component, the hidden menu, or the ticked value first, and all 28 captures rendered
-  byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
+  `entering-and-escaping-by-value-lists`, `accepting-by-enter`, all three retired since by #13647) were
+  repaired — each asserted the focused component, the hidden menu, or the ticked value first, and all 28
+  captures rendered byte-identical to the unrepaired ones. In those three specs the actions settle inside the keydown
   handler (Tab, Shift+Tab and Escape focus or close synchronously, and no repaired capture follows the
   condition input's 10 ms focus timer), so there the assertions make a wrong state fail loudly rather than
   close a race; they are the shape every later repair takes. The other 100, among them 15 in the
-  directory's other six filters specs, carry
+  directory's other six filters specs, got
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
-  directly above the capture, so the debt is counted. `test/__tests__/determinism-lint.test.mjs` fails
+  directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
+  six specs with their 15 lines, and its replacements assert every state they capture, so 85 remain, in
+  41 specs; `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
@@ -453,7 +461,8 @@ does for you):
   Replacing such a sleep with the assertion it stands for clears both lines; deleting it with nothing in
   its place makes the capture fire, so the disable line moves to the capture. A page helper in between
   silences the rule whether or not the helper asserts: 25 of the 48 exported helpers in
-  `src/page-helpers.ts` act with no `expect()` or wait at all, and three more (`collapseNestedRow`,
+  `src/page-helpers.ts` acted with no `expect()` or wait at all on 2026-09-23 (one of them the
+  `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers), and three more (`collapseNestedRow`,
   `resizeColumn`, `resizeRow`) wait only with a fixed sleep. Making each one end on the state it produced
   is its own follow-up, proven by `Visual stability`, since a corrected selector can move pixels. Helper
   names are deliberately not in the selector — a renamed helper would drop out of it silently.
@@ -565,7 +574,8 @@ does for you):
   was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
   (`.github/workflows/visual-stability.yml`) renders the filters family (classic plus one chosen theme;
-  `MULTI_SPECS` names its directory, `tests/js-only/filters` since the consolidation moved it there, and
+  `MULTI_SPECS` names its directory, `tests/js-only/filters` since the consolidation replaced the family
+  there, beside the older `apply-active-class-name-nested-header`, and
   `.github/scripts/__tests__/visual-stability.test.mjs` pins the path) and
   the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten separate runners from
   one commit, and reports byte-unstable captures and the pairs the gate would have called changed. It runs
@@ -575,16 +585,28 @@ does for you):
   machine cannot see the cross-runner half of the
   noise — locally, 39 of 92 captures were byte-unstable across ten renders and the gate tolerated all of
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
-  changed filters item) is one dispatch of that workflow.
+  changed filters item) is one dispatch of that workflow. Since the filters consolidation a dispatch
+  renders the consolidated family, 20 captures a runner where the retired one took 124; the retired
+  captures were removed, not stabilized, so a green dispatch no longer re-tests them.
 - **A keystroke count is a claim about the menu's item order, so a spec that opens a submenu asserts
   `toBeVisible()` on it before it captures.** Two retired specs (`tab-navigation-from-submenu` and
   `shift-tab-navigation-from-submenu`, multi-frameworks/filters) never opened the Alignment submenu they
   described: the menu opens with its first enabled item ("Clear column") highlighted, so their three
   ArrowDown presses passed "Alignment" and ArrowRight had nothing to open, and their frames repeated the
   plain-menu frames other specs owned. `tests/e2e/filters-menu-focus-order.spec.ts` asserts both submenu
-  exits by walking the highlight to "Alignment" by label. The filters family is now three js-only specs
-  of one to four captures each (DEV-3106), one capture per kind of focus ring; the Tab order, the Escape
-  and Enter paths and the hover behavior are that Playwright spec's, not a screenshot's.
+  exits by walking the highlight to "Alignment" by label. The filters family is now four js-only specs
+  under `tests/js-only/filters/`: three added by #13647, of one to four captures each, one capture per
+  distinct focus ring, and the older `apply-active-class-name-nested-header`, which photographs the
+  filtered header's tint. The Tab order, the Escape and Enter paths, and the hover behavior are that
+  Playwright spec's, not a screenshot's. "Distinct" is decided by the stylesheet, not by the element:
+  a checked and an unchecked radio take different focus tokens, so both radios are captured, while the
+  search input shares the condition input's `:focus` rule and is not. A radio's whole focus treatment
+  is a few dozen pixels (33 for the unchecked "Or" on `main`), under the gate's `thresholdPixel` of 150,
+  so the gate reads a lost radio ring as unchanged; those two captures record the tokens for a
+  reviewer's eye rather than for the gate. And no wrapper renders the dropdown menu any more: the
+  family's 186 wrapper renders matched their copied classic goldens byte for byte, and the menu is core
+  code the wrappers only hand their `dropdownMenu` and `filters` settings to, so that hand-off now has
+  no check in this suite or in `tests/e2e`.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -627,9 +649,11 @@ which of these run locally and which only in CI.
   until the consolidation audit gives each one a reason of its own.
 - **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
   prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
-  exception carrying the ticket that will bring it down (four today, all DEV-2981; the filters
-  consolidation split its eight-capture Tab-order spec into two files of four rather than keep an
-  exception no ticket would ever bring down). The `Visual budget`
+  exception carrying the ticket that will bring it down (four today, all owned by the consolidation
+  task; the filters consolidation wrote the eight Tab-order states it kept as two files of four rather
+  than one of eight,
+  because a cap exception needs a ticket that will bring it down and a spec at its floor has none). The
+  `Visual budget`
   step of the Compare job reads `.reg/out.json` and, **on pull requests only**, blocks a render over the
   file and requires `[visual budget: N – reason]` in the description when the pull request RAISES that
   file — N is the full-tier total after the change, and the file has to sum to it, so the number is
@@ -655,9 +679,9 @@ which of these run locally and which only in CI.
   `visual-tests/.eslintrc.js`), and every test call carries a docblock that says what its capture proves
   and names the ticket that owns it (`jsdoc/require-jsdoc` + `jsdoc/match-description` in the
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
-  were repaired (assert the state, then capture); the other 100 wear
+  were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable. The rules, what they cannot see, and their three
+  counted and greppable (85 since #13647 retired the filters family's 15). The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root
