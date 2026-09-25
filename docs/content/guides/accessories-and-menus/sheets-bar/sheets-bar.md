@@ -261,7 +261,7 @@ const hotSettings = {
 
 ## Per-sheet view state
 
-Switching sheets captures the outgoing sheet's scroll position, selection, sort, filters, hidden and trimmed indexes, merged cells, custom borders, manual column widths and row heights, and any cell-meta changes you made while it was active. It restores that state the next time you switch back to it. A sheet you have not visited yet opens with a neutral view state, so it never inherits the previous sheet's filters or sizes. The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore.
+Switching sheets captures the outgoing sheet's scroll position, selection, pagination page and page size, sort, filters, hidden and trimmed indexes, merged cells, custom borders, manual column widths and row heights, and any cell-meta changes you made while it was active. It restores that state the next time you switch back to it. A sheet you have not visited yet opens with a neutral view state, so it never inherits the previous sheet's filters or sizes. The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore.
 
 ## Use formulas across sheets
 

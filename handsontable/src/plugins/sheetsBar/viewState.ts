@@ -34,8 +34,28 @@ export interface ViewState {
   fixedColumnsStart: number | undefined;
   customBorders: Array<Record<string, unknown>>;
   cellMeta: TrackedCellMeta[];
+  pagination: PaginationState | null;
   selection: number[][] | undefined;
   scroll: { row: number, col: number };
+}
+
+/**
+ * The page and page size of one sheet, or `null` in a view state captured while the Pagination
+ * plugin was off.
+ */
+export interface PaginationState {
+  page: number;
+  pageSize: number | 'auto';
+}
+
+/**
+ * The part of the Pagination plugin the view state talks to.
+ */
+interface PaginationPlugin {
+  getCurrentPage: () => number;
+  getCurrentPageSize: () => number | 'auto';
+  setPage: (page: number) => void;
+  setPageSize: (pageSize: number | 'auto') => void;
 }
 
 /**
@@ -252,6 +272,42 @@ function captureCustomBorders(hot: HotInstance): Array<Record<string, unknown>> 
 }
 
 /**
+ * Captures the page and page size. Pagination keeps one current page for the whole grid and
+ * clamps it to the page count on every load, so a switch through a shorter sheet would
+ * otherwise bring the sheet back on a different page than the one it left.
+ */
+function capturePagination(hot: HotInstance): PaginationState | null {
+  const pagination = getEnabledPlugin(hot, 'pagination') as PaginationPlugin | undefined;
+
+  if (!pagination) {
+    return null;
+  }
+
+  return { page: pagination.getCurrentPage(), pageSize: pagination.getCurrentPageSize() };
+}
+
+/**
+ * Puts a page and page size back through the Pagination API, skipping the calls that would not
+ * change anything so a switch between sheets on the same page fires no page hooks. The page
+ * size goes first: changing it re-clamps the current page.
+ */
+function applyPagination(hot: HotInstance, state: PaginationState) {
+  const pagination = getEnabledPlugin(hot, 'pagination') as PaginationPlugin | undefined;
+
+  if (!pagination) {
+    return;
+  }
+
+  if (pagination.getCurrentPageSize() !== state.pageSize) {
+    pagination.setPageSize(state.pageSize);
+  }
+
+  if (pagination.getCurrentPage() !== state.page) {
+    pagination.setPage(state.page);
+  }
+}
+
+/**
  * Captures the current runtime view state of the grid.
  */
 export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellMeta[]): ViewState {
@@ -268,6 +324,7 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
     fixedColumnsStart: hot.getSettings().fixedColumnsStart as number | undefined,
     customBorders: captureCustomBorders(hot),
     cellMeta: trackedCellMeta.slice(),
+    pagination: capturePagination(hot),
     selection: hot.getSelected(),
     scroll: { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() },
   };
@@ -508,11 +565,17 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
 }
 
 /**
- * Puts the selection and the scroll position back. Runs after the render batch the rest of
- * the restore happens in: scrolling to a column while rendering is suspended measures the
- * widths of the sheet that has just left, and lands short by the difference.
+ * Puts the page, the selection, and the scroll position back. Runs after the render batch the
+ * rest of the restore happens in: scrolling to a column while rendering is suspended measures
+ * the widths of the sheet that has just left, and lands short by the difference. The page goes
+ * first, because the rows of every other page are hidden, and a selection or a scroll aimed at a
+ * hidden row does nothing.
  */
 export function restoreViewport(hot: HotInstance, state: ViewState): void {
+  if (state.pagination) {
+    applyPagination(hot, state.pagination);
+  }
+
   if (state.selection) {
     hot.selectCells(state.selection, false, false);
   }
@@ -542,6 +605,7 @@ function createNeutralViewState(): ViewState {
     fixedColumnsStart: undefined,
     customBorders: [],
     cellMeta: [],
+    pagination: null,
     selection: undefined,
     scroll: { row: 0, col: 0 },
   };

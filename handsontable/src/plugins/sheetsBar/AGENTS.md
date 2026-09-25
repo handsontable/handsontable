@@ -18,7 +18,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
+  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
+  Pagination page and page size back first (`setPageSize()` then `setPage()`, skipped when
+  unchanged): Pagination holds one page for the whole grid and clamps it on every load, so a
+  switch through a shorter sheet moves it, and a selection or scroll aimed at a row on another
+  page lands on a hidden row and does nothing. A stored order whose length no
   longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
   read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
   count — are dropped one by one before `trimRows()`, which rejects the whole list when any

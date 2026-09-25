@@ -7,9 +7,10 @@ import { DropdownMenu } from '../../dropdownMenu';
 import { AutoColumnSize } from '../../autoColumnSize';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
+import { Pagination } from '../../pagination';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
 import { SheetsBar } from '../sheetsBar';
-import { captureViewState, restoreViewState } from '../viewState';
+import { captureViewState, restoreViewState, restoreViewport } from '../viewState';
 
 describe('SheetsBar view state', () => {
   let container;
@@ -24,6 +25,7 @@ describe('SheetsBar view state', () => {
     registerPlugin(HiddenRows);
     registerPlugin(Filters);
     registerPlugin(HiddenColumns);
+    registerPlugin(Pagination);
     registerPlugin(SheetsBar);
   });
 
@@ -213,5 +215,78 @@ describe('SheetsBar view state', () => {
     hot.getPlugin('sheetsBar').setActiveSheet('A');
 
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+
+  it('captures the page and the page size when Pagination is enabled', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('pagination').setPageSize(20);
+    hot.getPlugin('pagination').setPage(4);
+
+    expect(captureViewState(hot, []).pagination).toEqual({ page: 4, pageSize: 20 });
+  });
+
+  it('captures no pagination state when Pagination is disabled', () => {
+    hot = new Handsontable(container, {
+      data: [['a'], ['b']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(captureViewState(hot, []).pagination).toBeNull();
+  });
+
+  it('puts the page back before the selection, so the restored row is on the visible page', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+
+    const state = captureViewState(hot, []);
+
+    pagination.setPage(2);
+    hot.deselectCell();
+
+    expect(hot.rowIndexMapper.isHidden(64)).toBe(true);
+
+    restoreViewport(hot, state);
+
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(hot.rowIndexMapper.isHidden(64)).toBe(false);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('keeps the page of each sheet across a sheet switch', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Short', data: Array.from({ length: 15 }, (_, row) => [`Short row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    pagination.setPage(7);
+    sheetsBar.setActiveSheet('Short');
+
+    expect(pagination.getCurrentPage()).toBe(2);
+
+    sheetsBar.setActiveSheet('Long');
+
+    expect(pagination.getCurrentPage()).toBe(7);
   });
 });
