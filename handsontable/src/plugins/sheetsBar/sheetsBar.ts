@@ -6,6 +6,7 @@ import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearMergedCells,
   resetViewState,
   restoreViewState,
   restoreViewport,
@@ -1019,7 +1020,7 @@ export class SheetsBar extends BasePlugin {
         resetViewState(this.hot, this.#neutralFixedColumnsStart);
       }
 
-      this.#applySheet(newSheet, source);
+      this.#applySheet(newSheet, source, viewState !== undefined);
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
@@ -1098,8 +1099,14 @@ export class SheetsBar extends BasePlugin {
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
    * the arriving sheet's data before its `afterLoadData`.
+   *
+   * With `clearsMerges` set, the merged cells are dropped between the settings update and the
+   * load: a sheet that returns with a stored view state restores its own merges, and the update
+   * has just regenerated every merge declared in the settings, which would otherwise outlive
+   * the load and win over the ones the user changed. The departing data is still loaded at that
+   * point, so the clear addresses rows that exist.
    */
-  #applySheet(sheet: Sheet, source: string) {
+  #applySheet(sheet: Sheet, source: string, clearsMerges = false) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
@@ -1107,6 +1114,9 @@ export class SheetsBar extends BasePlugin {
         this.#withoutAutoPadding(() => {
           this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
         });
+      }
+      if (clearsMerges) {
+        clearMergedCells(this.hot);
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
     };

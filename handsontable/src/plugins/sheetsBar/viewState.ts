@@ -419,23 +419,53 @@ function restoreFilterConditions(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Restores merged cell ranges, clearing the current collection first.
+ * Drops every merged cell of the sheet on screen. Must run while that sheet's data is still
+ * loaded: MergeCells does not react to `loadData`, and clearing a merge resets the cell meta
+ * of every cell it covers, so run against a shorter sheet it addresses rows that no longer
+ * exist and throws.
+ */
+export function clearMergedCells(hot: HotInstance): void {
+  const mergeCells = getEnabledPlugin(hot, 'mergeCells') as { clearCollections: () => void } | undefined;
+
+  mergeCells?.clearCollections();
+}
+
+/**
+ * Restores merged cell ranges into a collection {@link clearMergedCells} emptied before the
+ * sheet's data was loaded. A stored merge that no longer fits — the sheet's data is the
+ * caller's own and can shrink while the sheet is away — is dropped without the settings
+ * validation's warning. The rest go through the automatic merge path, like merges declared
+ * in the settings: the hooks report `auto`, so a listener can tell a restore from a user's
+ * merge, and no cell is written, so the covered cells keep the values they hold. That path
+ * skips the overlap check, so a stored merge that would overlap a merge already on screen is
+ * dropped here instead: the stored list keeps a merge whose rows were all trimmed at its last
+ * visual position, which can land on another merge's cells.
  */
 function restoreMergedCells(hot: HotInstance, state: ViewState) {
   const mergeCells = getEnabledPlugin(hot, 'mergeCells') as
     {
-      clearCollections: () => void,
-      merge: (row: number, col: number, row2: number, col2: number) => void,
+      mergeRange: (range: unknown, auto: boolean, preventPopulation: boolean) => unknown,
+      mergedCellsCollection: { getWithinRange: (range: unknown, countPartials: boolean) => unknown[] },
     } | undefined;
 
   if (!mergeCells) {
     return;
   }
 
-  mergeCells.clearCollections();
-  state.mergedCells.forEach(({ row, col, rowspan, colspan }) => {
-    mergeCells.merge(row, col, row + rowspan - 1, col + colspan - 1);
-  });
+  const rowCount = hot.countRows();
+  const colCount = hot.countCols();
+
+  state.mergedCells
+    .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
+    .forEach(({ row, col, rowspan, colspan }) => {
+      const from = hot._createCellCoords(row, col);
+      const to = hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
+      const range = hot._createCellRange(from, from, to);
+
+      if (mergeCells.mergedCellsCollection.getWithinRange(range, true).length === 0) {
+        mergeCells.mergeRange(range, true, true);
+      }
+    });
 }
 
 /**
@@ -571,7 +601,7 @@ export function resetViewState(hot: HotInstance, fixedColumnsStart?: number): vo
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);
-    restoreMergedCells(hot, state);
+    clearMergedCells(hot);
     restoreCustomBorders(hot, state);
   });
 

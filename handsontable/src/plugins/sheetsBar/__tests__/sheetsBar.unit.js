@@ -2198,6 +2198,178 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 1).colspan).toBe(2);
   });
 
+  it('switches back to a shorter sheet after restoring a merge below its last row', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Big', data: Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)) },
+          { name: 'Small', data: [['a']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [big, small] = sheetsBar.getSheets();
+
+    hot.getPlugin('mergeCells').merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(small.id);
+    sheetsBar.setActiveSheet(big.id);
+
+    expect(() => sheetsBar.setActiveSheet(small.id)).not.toThrow();
+    expect(sheetsBar.getSheets()[1].isActive).toBe(true);
+    expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
+
+    sheetsBar.setActiveSheet(big.id);
+
+    expect(hot.getCellMeta(4, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(4, 0).colspan).toBe(2);
+  });
+
+  it('drops a stored merge that no longer fits the sheet without a warning', () => {
+    const data = Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    mergeCells.merge(0, 0, 1, 1);
+    mergeCells.merge(2, 2, 2, 3);
+    mergeCells.merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    data.splice(4);
+    data.forEach(row => row.splice(3));
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
+      [row, col, rowspan, colspan]
+    ))).toEqual([[0, 0, 2, 2]]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+    expect(hot.getCellMeta(2, 2).colspan).toBeUndefined();
+  });
+
+  it('restores merges as automatic merges that write no data', () => {
+    const data = [['a', 'b', 'c'], [null, null, 'f']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const beforeMergeCells = jest.fn();
+    const afterMergeCells = jest.fn();
+    const afterChange = jest.fn();
+
+    hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    data[1][1] = 'kept';
+    hot.addHook('beforeMergeCells', beforeMergeCells);
+    hot.addHook('afterMergeCells', afterMergeCells);
+    hot.addHook('afterChange', afterChange);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeMergeCells).toHaveBeenCalledTimes(1);
+    expect(beforeMergeCells.mock.calls[0][1]).toBe(true);
+    expect(afterMergeCells).toHaveBeenCalledTimes(1);
+    expect(afterMergeCells.mock.calls[0][2]).toBe(true);
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'MergeCells')).toEqual([]);
+    expect(hot.getSourceDataAtCell(1, 1)).toBe('kept');
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+  });
+
+  it('keeps the merges the user changed over the ones a sheet declares in its settings', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: grid() },
+          { name: 'Declared', data: grid(), settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] } },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const merges = () => mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
+      [row, col, rowspan, colspan]
+    ));
+
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([[0, 0, 2, 2]]);
+
+    mergeCells.unmerge(0, 0, 1, 1);
+    sheetsBar.setActiveSheet(plain.id);
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([]);
+
+    mergeCells.merge(1, 1, 2, 2);
+    sheetsBar.setActiveSheet(plain.id);
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([[1, 1, 2, 2]]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
+  });
+
+  it('does not restore a merge whose rows were all trimmed over another merge', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    mergeCells.merge(4, 1, 5, 2);
+    mergeCells.merge(2, 0, 3, 1);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    const visible = mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    expect(visible).toEqual([[2, 1, 2, 2]]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
   it('runs no filter pass on a switch between two sheets that were never filtered', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

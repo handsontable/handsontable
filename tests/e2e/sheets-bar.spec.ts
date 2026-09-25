@@ -52,6 +52,43 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'A3');
   });
 
+  test('switching back to a shorter sheet after restoring a merge below its last row', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+    const pageErrors: string[] = [];
+
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      const hot = (window as never as { hot: any }).hot;
+
+      hot.updateSettings({ mergeCells: true });
+      hot.alter('insert_row_below', 1, 2);
+      hot.getPlugin('mergeCells').merge(2, 0, 3, 1);
+    });
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+    await bar.clickTab(1);
+
+    await bar.expectActiveTab(1);
+    await bar.expectCell(0, 0, 'B1');
+    expect(pageErrors).toEqual([]);
+
+    await bar.clickTab(0);
+
+    const span = await page.evaluate(() => {
+      const meta = (window as never as { hot: any }).hot.getCellMeta(2, 0);
+
+      return [meta.rowspan, meta.colspan];
+    });
+
+    expect(span).toEqual([2, 2]);
+  });
+
   test('Ctrl+Z after a sheet round-trip does not undo the restored sort', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
