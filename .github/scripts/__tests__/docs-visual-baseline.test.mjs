@@ -1,8 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 // docs/tests/paths.js is CommonJS, and this file is ESM.
@@ -31,8 +33,10 @@ const require = createRequire(import.meta.url);
 //   4. the seed chain stops matching the deployed commit, cancels itself, or
 //      seeds from a pull request's deploy;
 //   5. a render writes golden records without the example grid layout spec
-//      passing first, so blank grids become the baseline again (#13381 to
-//      #13626), or a seed that fails says nothing.
+//      passing first (a flaky pass or a skipped test is not a pass), or from a
+//      build other than the one it checked, so blank or mixed grids become the
+//      baseline again (#13381 to #13626); a refused bootstrap claims a baseline
+//      it never wrote; or a seed that fails says nothing.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.
@@ -253,8 +257,14 @@ test('every render that writes golden records first passes the example grid layo
   assert.ok(all.indexOf(layout) < all.indexOf(render), 'the layout check must run before the render it gates');
   assert.equal(stepIf(layout), stepIf(render),
     'the check must guard exactly the runs that render golden records: a seed, a re-seed dispatch, and a bootstrap');
-  assert.match(layout, /run: npx playwright test --project=functional exampleGridLayout\.spec\.ts$/m);
-  assert.doesNotMatch(layout, /continue-on-error/, 'a layout failure must fail the job, or the render runs anyway');
+  assert.match(layout, /\n\s+id: layout\n/, 'the verdict step reads steps.layout.outcome');
+  // With the config's three CI retries, a grid that collapses on 30% of page loads passes about 85%
+  // of runs as "flaky", so a retry must not count as a pass here.
+  assert.match(layout, /^\s+npx playwright test --project=functional --fail-on-flaky-tests exampleGridLayout\.spec\.ts$/m);
+  assert.match(layout, /jq -e '\.stats\.skipped == 0 and \.stats\.expected > 0' \.\/tests\/test-artifacts\/report\.json/,
+    'Playwright exits 0 when every test was skipped, so the report must show tests that ran');
+  // The YAML key, not the word: the splitter attaches the next step's leading comment to this step.
+  assert.doesNotMatch(layout, /^\s+continue-on-error:/m, 'a layout failure must fail the job, or the render runs anyway');
   assert.match(layout, /BASE_URL: \$\{\{ inputs\.test-url \}\}/, 'the check must read the URL the render reads');
   assert.match(layout, /PASS_COOKIE: \$\{\{ inputs\.pass-cookie \}\}/);
 
@@ -265,8 +275,8 @@ test('every render that writes golden records first passes the example grid layo
       `${name} carries a status-check function, so it would still run after a failed layout check`);
   }
 
-  // The spec must keep checking both facts on every framework, or the gate passes a broken render
-  // without anything going red.
+  // The spec must keep checking both facts, on every page and framework, with nothing skipped, or
+  // the gate passes a broken render without anything going red.
   const specPath = 'docs/tests/exampleGridLayout.spec.ts';
 
   assert.ok(existsSync(path.join(root, specPath)), `${specPath} is missing`);
@@ -274,12 +284,88 @@ test('every render that writes golden records first passes the example grid layo
   const spec = read(specPath);
 
   assert.match(spec, /'\.hot-example-preview \.ht_master \.wtHolder'/, 'the spec no longer measures the example grids');
-  assert.match(spec, /holderHeight === 0/, 'the spec no longer fails a collapsed grid');
-  assert.match(spec, /holderWidth > rootWidth/, 'the spec no longer fails a holder wider than its grid root');
+  assert.match(spec, /if \(holderHeight === 0\) \{/, 'the spec no longer fails a collapsed grid');
+  assert.match(spec, /if \(holderWidth > rootWidth\) \{/, 'the spec no longer fails a holder wider than its grid root');
   assert.match(spec, /'no example grid rendered on the page'/, 'a page with no grid would pass the check');
+  assert.match(spec, /\}\)\.toEqual\(\[\]\);/, 'the spec no longer requires an empty list of problems');
+  assert.doesNotMatch(spec, /\b(?:test|describe)(?:\.describe)?\.(?:skip|fixme|fail|only)\s*\(/,
+    'a skipped, fixme\'d, expected-to-fail, or focused test turns the gate off');
+  for (const slug of ['row-height', 'column-width', 'batch-operations', 'demo', 'grid-size']) {
+    assert.ok(spec.includes(`'${slug}',`), `the spec no longer covers ${slug}; replace a page and update this list, never drop one`);
+  }
   for (const urlPath of ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid']) {
     assert.ok(spec.includes(`urlPath: '${urlPath}'`), `the spec no longer covers ${urlPath}`);
   }
+});
+
+test('a seed pins the build it renders, before the layout check and after the render', () => {
+  // A seed renders a moving alias for about 13 minutes. On 2026-09-18 the seed of eef5d1822 rendered
+  // from 12:08 to 12:20 while the next deploy took the alias at 12:18, so that baseline mixed two
+  // deploys, and a layout check can vouch for only one of them.
+  const pin = actionStep('Pin the build the golden records come from');
+  const layout = actionStep('Check that the example grids are laid out');
+  const render = actionStep('Render the baseline');
+  const confirm = actionStep('Confirm the build did not change during the render');
+  const seedStep = actionStep('Seed the golden records');
+  const all = actionSteps();
+  const order = [pin, layout, render, confirm, seedStep].map(step => all.indexOf(step));
+
+  assert.deepEqual(order, [...order].sort((a, b) => a - b),
+    'the order must be: pin the build, check the layout, render, confirm the build, seed');
+
+  assert.equal(stepIf(pin), "inputs.mode == 'seed'");
+  assert.equal(stepIf(confirm), "inputs.mode == 'seed' && env.DOCS_VISUAL_PINNED_BUILD");
+  for (const [name, step] of [['the layout check', layout], ['the render', render], ['the seed', seedStep]]) {
+    assert.match(stepIf(step), /&& env\.DOCS_VISUAL_SUPERSEDED != 'true'/,
+      `${name} must not run once a newer deploy superseded this seed`);
+  }
+
+  assert.match(pin, /EXPECTED_SHA: \$\{\{ inputs\.expected-sha \}\}/);
+  assert.match(pin, /echo "DOCS_VISUAL_PINNED_BUILD=\$served" >> "\$GITHUB_ENV"/);
+  assert.match(pin, /echo "DOCS_VISUAL_SUPERSEDED=true" >> "\$GITHUB_ENV"/);
+  assert.match(pin, /if \[ -z "\$served" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
+    'with expected-sha set, a target that shows no build SHA must refuse, not render unpinned');
+  assert.match(confirm, /echo "DOCS_VISUAL_SUPERSEDED=true" >> "\$GITHUB_ENV"/);
+  assert.match(confirm, /elif \[ -z "\$served" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
+    'a target that stops showing its build SHA mid-run cannot prove the render came from one build');
+
+  // Both reads use one pattern, and it must match what a staging docs build prints.
+  const pattern = "grep -oE '0\\.0\\.0-next-[0-9a-f]{7}-[0-9]{8}'";
+
+  for (const [name, step] of [['pin', pin], ['confirm', confirm]]) {
+    assert.ok(step.includes(pattern), `the ${name} step no longer reads the build SHA with ${pattern}`);
+    assert.ok(step.includes('"$BASE_URL/javascript-data-grid/demo/"'), `the ${name} step no longer reads the demo page`);
+  }
+
+  const sha = '0123456789abcdef0123456789abcdef01234567';
+  const versionModule = pathToFileURL(path.join(root, 'docs/src/plugins/docs-version.mjs')).href;
+  const printed = execFileSync(process.execPath, ['--input-type=module', '-e',
+    `const { CURRENT_DOCS_VERSION } = await import(${JSON.stringify(versionModule)}); process.stdout.write(CURRENT_DOCS_VERSION);`,
+  ], { env: { ...process.env, GITHUB_SHA: sha, BUILD_MODE: '' }, encoding: 'utf8' });
+
+  assert.match(printed, /^0\.0\.0-next-[0-9a-f]{7}-[0-9]{8}$/, `a staging build prints ${printed}, which the pin cannot read`);
+  assert.equal(printed.split('-')[2], sha.slice(0, 7), 'the build SHA a staging build prints is not its commit\'s first 7 characters');
+
+  // Develop seeds pin to the deploy they chain on; a release build prints a version, not a SHA.
+  assert.match(job(seed, 'seed'),
+    /expected-sha: \$\{\{ steps\.target\.outputs\.branch == 'develop' && github\.event\.workflow_run\.head_sha \|\| '' \}\}/);
+});
+
+test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
+  // The core gate reads a trusted bootstrap as "this build became the baseline", assuming that the
+  // render and the seed ran. After a refused layout check or a failed render, they did not.
+  const gate = actionStep('Docs visual verdict');
+
+  assert.match(actionStep('Seed the golden records'), /\n\s+id: seed\n/, 'the verdict step reads steps.seed.outcome');
+  assert.match(gate, /LAYOUT_OUTCOME: \$\{\{ steps\.layout\.outcome \}\}/);
+  assert.match(gate, /SEED_OUTCOME: \$\{\{ steps\.seed\.outcome \}\}/);
+  assert.match(gate,
+    /if \[ "\$VISUAL_BOOTSTRAP" = "true" \] && \[ "\$IS_UNTRUSTED" != "true" \] && \[ "\$SEED_OUTCOME" != "success" \]; then/);
+  assert.match(gate, /no baseline created/);
+  assert.match(gate, /echo "verdict=error" >> "\$GITHUB_OUTPUT"/);
+  // It must answer before the core gate runs, which would overwrite comment.md.
+  assert.ok(gate.indexOf('verdict=error') < gate.indexOf('node ../visual-tests/scripts/visual-gate.mjs'),
+    'the refused-bootstrap comment must be written instead of the core gate\'s, not before it');
 });
 
 test('the docs Playwright config fails a missing golden on CI, keeps the snapshot path, and splits the two projects', () => {
@@ -504,8 +590,10 @@ test('a failed docs seed posts to Slack, through a condition that can actually f
 
   assert.ok(notify, 'docs-visual-seed.yml has no notify job, so a failed or refused seed is silent');
   assert.match(notify, /needs: \[ seed \]/);
-  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.seed\.result == 'failure' \}\}/,
-    'without a status-check function GitHub ANDs an implicit success() onto the condition, and the job never runs');
+  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.seed\.result == 'failure' && github\.event_name == 'workflow_run' \}\}/,
+    'without a status-check function GitHub ANDs an implicit success() onto the condition, and the job never runs; '
+      + 'a hand dispatch has someone watching it');
+  assert.doesNotMatch(job(seed, 'seed'), /^\s+continue-on-error:/m, 'a seed job that cannot fail never triggers the notify job');
   assert.match(notify, /permissions: \{\}/, 'the ping goes through the webhook and needs no token');
   assert.match(notify, /SLACK_WEBHOOK_URL: \$\{\{ secrets\.SLACK_VISUAL_WEBHOOK_URL \}\}/, 'the core visual seed\'s hook');
   assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/, 'an absent secret must skip the step, not fail the job');

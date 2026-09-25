@@ -19,10 +19,10 @@ import { test, expect, type Page } from '@playwright/test';
  *   that as well, and #13626 did not fix it: on 2026-09-25 the develop staging deploy had a holder
  *   33 to 35px wider than its root on 819 of its 976 example grids.
  *
- * `.github/actions/docs-visual-run/action.yml` runs this spec before every render that writes
- * golden records (a seed, a re-seed dispatch, a pull request bootstrap) and renders nothing when it
- * fails, so a render that breaks either fact never becomes the baseline. Every docs pull request
- * runs it too, in the `functional` project.
+ * `.github/actions/docs-visual-run/action.yml` runs this spec, with `--fail-on-flaky-tests`, before
+ * every render that writes golden records (a seed, a re-seed dispatch, a pull request bootstrap),
+ * and renders nothing when it fails. Every docs pull request runs it too, in the `functional`
+ * project.
  */
 
 /**
@@ -59,7 +59,8 @@ function measureExampleGrids(page: Page) {
   return page.evaluate(() => Array.from(
     document.querySelectorAll<HTMLElement>('.hot-example-preview .ht_master .wtHolder'),
     (holder, index) => {
-      // `.ht_master` is a direct child of the grid root, the `.ht-wrapper` the grid was created on.
+      // `.ht_master` is a direct child of the grid root: the `.ht-wrapper` element that core creates
+      // inside the container the grid was created on.
       const root = holder.closest('.ht_master')?.parentElement;
 
       return {

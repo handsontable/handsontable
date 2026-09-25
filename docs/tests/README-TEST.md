@@ -40,7 +40,8 @@ There is no snapshot cache. The goldens live in the `handsontable-visual` R2 buc
 - `Docs visual seed` runs after every push build of `Docs Staging Deployment` (`develop`, `release/x.y.z`)
   and re-seeds `docs/base/<branch>` from the pages that deploy served. It first runs
   `exampleGridLayout.spec.ts` against that deploy and writes nothing when an example grid is collapsed or
-  wider than its root; a failed seed posts to Slack. Dispatch it with `branch` to re-seed by hand.
+  wider than its root; a failed seed posts to Slack. A develop seed also pins the build it renders, and
+  writes nothing when a newer deploy takes over mid-run. Dispatch it with `branch` to re-seed by hand.
 - `Docs Visual Tests` (dispatch only) with `update-snapshots` ticked re-seeds `docs/base/<this branch>` from
   the chosen `test_env`; unticked, it compares against that baseline and publishes the report under
   `docs/dispatch/<branch>/<run_id>`.

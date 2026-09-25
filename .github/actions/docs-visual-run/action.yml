@@ -12,12 +12,21 @@ description: >-
   cannot read `secrets`, so the caller passes the R2 credentials as inputs.
   Requires checkout first. A run that writes golden records first runs
   docs/tests/exampleGridLayout.spec.ts against the same URL and renders
-  nothing when an example grid is collapsed or wider than its root.
+  nothing when an example grid is collapsed or wider than its root; a seed
+  also pins the build it renders (see `expected-sha`).
 
 inputs:
   test-url:
     description: 'Base docs URL to test (the pull request preview, a staging deploy, or localhost)'
     required: true
+  expected-sha:
+    description: >-
+      Seed mode: the commit the target deploy was built from (docs-visual-seed.yml
+      passes a develop deploy's head_sha). The seed then writes nothing unless the
+      target serves that build both before the layout check and after the render.
+      Empty: the seed pins to whatever build the target serves when it starts.
+    required: false
+    default: ''
   mode:
     description: >-
       compare: fetch the golden records under base-key, run the suite against
@@ -204,6 +213,65 @@ runs:
         PASS_COOKIE: ${{ inputs.pass-cookie }}
       run: npx playwright test --project=visual
 
+    # Which build the golden records come from. A seed renders a moving alias
+    # -- handsontable-docs-staging.pages.dev follows every develop deploy --
+    # and the render takes about 13 minutes. A deploy that landed mid-render
+    # used to mix two deploys into one baseline: the seed of eef5d1822 on
+    # 2026-09-18 rendered from 12:08 to 12:20, and the next deploy took the
+    # alias at 12:18. The layout check below would vouch for only one of them.
+    # A staging build prints its short SHA into every sandbox link
+    # (`0.0.0-next-<sha>-<date>`, docs/src/plugins/docs-version.mjs), so this
+    # step pins the run to it. With `expected-sha` the served build must be that
+    # commit. The alias gets a minute to catch up; after that a different build
+    # means a newer deploy superseded this one, and its own seed writes the
+    # baseline, so nothing below renders or writes. Without `expected-sha` the
+    # run pins to whatever build is served. A production-mode build (production,
+    # or a release branch's staging deploy) prints a version, not a SHA, so
+    # there is nothing to pin to.
+    - name: Pin the build the golden records come from
+      if: inputs.mode == 'seed'
+      shell: bash
+      env:
+        BASE_URL: ${{ inputs.test-url }}
+        EXPECTED_SHA: ${{ inputs.expected-sha }}
+      run: |
+        served_build() {
+          curl -fsSL --max-time 30 --retry 3 --retry-all-errors -H 'Cache-Control: no-cache' \
+            "$BASE_URL/javascript-data-grid/demo/" \
+            | grep -oE '0\.0\.0-next-[0-9a-f]{7}-[0-9]{8}' | head -n 1 | cut -d- -f3 || true
+        }
+
+        expected="${EXPECTED_SHA:0:7}"
+        served=$(served_build)
+
+        if [ -n "$expected" ]; then
+          for attempt in 1 2 3 4; do
+            [ "$served" = "$expected" ] && break
+            echo "Attempt $attempt: $BASE_URL serves build ${served:-none}, waiting for $expected."
+            sleep 15
+            served=$(served_build)
+          done
+
+          if [ -z "$served" ]; then
+            echo "::error::$BASE_URL shows no build SHA, so this run cannot prove it renders $expected. Nothing was rendered."
+            exit 1
+          fi
+
+          if [ "$served" != "$expected" ]; then
+            echo "::notice::$BASE_URL serves build $served, not $expected: a newer deploy superseded this one, and its own seed writes the baseline. Nothing was rendered or seeded."
+            echo "Superseded: $BASE_URL serves build $served, not $expected, so nothing was rendered or seeded." >> "$GITHUB_STEP_SUMMARY"
+            echo "DOCS_VISUAL_SUPERSEDED=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+        fi
+
+        if [ -n "$served" ]; then
+          echo "DOCS_VISUAL_PINNED_BUILD=$served" >> "$GITHUB_ENV"
+          echo "Pinned to build $served."
+        else
+          echo "::notice::$BASE_URL shows no build SHA, so this run cannot detect a deploy that lands mid-render."
+        fi
+
     # Every run that writes golden records -- a seed, a re-seed dispatch, a
     # bootstrap -- first proves that the example grids are laid out, because the
     # render below takes whatever the target serves as the truth. Between #13381
@@ -211,31 +279,64 @@ runs:
     # wrote the blank grids into `docs/base/develop`, and every compare against
     # them then "matched". The spec fails on a collapsed grid or on a holder
     # wider than its grid root, on five pages in all four frameworks; its header
-    # says what each page covers. Failing here fails the job, and neither the
-    # render nor the seed step below carries a status-check function, so both
-    # are skipped and the baseline does not move. docs-visual-seed.yml's notify
-    # job posts a failed seed to Slack.
+    # says what each page covers. `--fail-on-flaky-tests` because a retry must
+    # not launder a grid that collapses on some page loads: with the config's
+    # three retries, one that collapses 30% of the time passes about 85% of runs.
+    # Playwright exits 0 when every test was skipped, so the report must also
+    # show tests that ran. Failing here fails the job, and neither the render
+    # nor the seed step below carries a status-check function, so both are
+    # skipped and the baseline does not move. docs-visual-seed.yml's notify job
+    # posts a failed develop or release seed to Slack.
     - name: Check that the example grids are laid out
-      if: inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
+      id: layout
+      if: (inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true') && env.DOCS_VISUAL_SUPERSEDED != 'true'
       shell: bash
       working-directory: ./docs
       env:
         BASE_URL: ${{ inputs.test-url }}
         PASS_COOKIE: ${{ inputs.pass-cookie }}
-      run: npx playwright test --project=functional exampleGridLayout.spec.ts
+      run: |
+        npx playwright test --project=functional --fail-on-flaky-tests exampleGridLayout.spec.ts
+        jq -e '.stats.skipped == 0 and .stats.expected > 0' ./tests/test-artifacts/report.json > /dev/null \
+          || { echo "::error::The layout check ran no test to completion, so it proved nothing. Nothing was rendered."; exit 1; }
 
     # A seed, or the first compare against a branch with no golden records.
     # `--update-snapshots` writes every golden the suite declares. Failures here
     # DO fail the step -- a page that 404s or never settles must not leave a
     # hole in the baseline that every later pull request then reports as new.
     - name: Render the baseline
-      if: inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
+      if: (inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true') && env.DOCS_VISUAL_SUPERSEDED != 'true'
       shell: bash
       working-directory: ./docs
       env:
         BASE_URL: ${{ inputs.test-url }}
         PASS_COOKIE: ${{ inputs.pass-cookie }}
       run: npx playwright test --project=visual --update-snapshots
+
+    # The other half of the pin: the target must still serve the pinned build
+    # once the render is done. If it moved, the screenshots may mix two deploys
+    # and the layout check vouched for only one, so nothing is seeded; the
+    # newer deploy's own seed renders it whole.
+    - name: Confirm the build did not change during the render
+      if: inputs.mode == 'seed' && env.DOCS_VISUAL_PINNED_BUILD
+      shell: bash
+      env:
+        BASE_URL: ${{ inputs.test-url }}
+      run: |
+        served=$(curl -fsSL --max-time 30 --retry 3 --retry-all-errors -H 'Cache-Control: no-cache' \
+          "$BASE_URL/javascript-data-grid/demo/" \
+          | grep -oE '0\.0\.0-next-[0-9a-f]{7}-[0-9]{8}' | head -n 1 | cut -d- -f3 || true)
+
+        if [ "$served" = "$DOCS_VISUAL_PINNED_BUILD" ]; then
+          echo "The render came from build $served throughout."
+        elif [ -z "$served" ]; then
+          echo "::error::$BASE_URL no longer shows a build SHA, so this run cannot prove its render came from build $DOCS_VISUAL_PINNED_BUILD. Nothing was seeded."
+          exit 1
+        else
+          echo "::notice::$BASE_URL moved from build $DOCS_VISUAL_PINNED_BUILD to $served during the render, so the screenshots may mix two deploys. Nothing was seeded; the newer deploy's seed renders it whole."
+          echo "Superseded mid-render: $BASE_URL moved from build $DOCS_VISUAL_PINNED_BUILD to $served, so nothing was seeded." >> "$GITHUB_STEP_SUMMARY"
+          echo "DOCS_VISUAL_SUPERSEDED=true" >> "$GITHUB_ENV"
+        fi
 
     # The adapter (docs/tests/lib/visual-manifest.mjs) turns Playwright's JSON
     # report into the reg-suit `out.json` shape visual-gate.mjs already reads.
@@ -308,12 +409,15 @@ runs:
     # request this runs only for a bootstrap (no baseline existed) and only from
     # the main repository -- the canonical fork guard, both halves. No status
     # function: a failed render skips this step, so a seed with holes never
-    # lands.
+    # lands. A superseded seed skips it too, without failing: a newer deploy's
+    # seed writes the baseline.
     - name: Seed the golden records
-      if: ${{ inputs.mode == 'seed'
+      id: seed
+      if: ${{ (inputs.mode == 'seed'
         || (env.DOCS_VISUAL_BOOTSTRAP == 'true' && github.event_name == 'pull_request'
             && (github.event.pull_request.head.repo.full_name == github.repository
-                && github.actor != 'dependabot[bot]')) }}
+                && github.actor != 'dependabot[bot]')))
+        && env.DOCS_VISUAL_SUPERSEDED != 'true' }}
       shell: bash
       working-directory: ./docs
       env:
@@ -375,11 +479,36 @@ runs:
         IS_UNTRUSTED: ${{ github.event_name == 'pull_request'
           && (github.event.pull_request.head.repo.full_name != github.repository
               || github.actor == 'dependabot[bot]') }}
+        LAYOUT_OUTCOME: ${{ steps.layout.outcome }}
+        SEED_OUTCOME: ${{ steps.seed.outcome }}
       run: |
         if [ "$IS_UNTRUSTED" = "true" ]; then
           export VISUAL_PUBLISHED=false VISUAL_SEEDED=false
         else
           export VISUAL_PUBLISHED=true VISUAL_SEEDED=true
+        fi
+
+        # On a trusted bootstrap the core gate reports "baseline created",
+        # because it assumes the render and the seed ran. When the seed did not
+        # succeed, say why instead of claiming a baseline that does not exist.
+        if [ "$VISUAL_BOOTSTRAP" = "true" ] && [ "$IS_UNTRUSTED" != "true" ] && [ "$SEED_OUTCOME" != "success" ]; then
+          if [ "$LAYOUT_OUTCOME" = "failure" ]; then
+            reason='its example grids failed the layout check (`docs/tests/exampleGridLayout.spec.ts`), so nothing was rendered'
+          else
+            reason='its render or its seed did not finish'
+          fi
+
+          {
+            echo "## $VISUAL_GATE_TITLE — no baseline created"
+            echo
+            echo "This base branch has no golden records yet, and this build could not create them: $reason."
+            echo "The run's \`$VISUAL_GATE_ARTIFACT\` artifact has the report."
+            echo
+            echo "[Workflow run]($VISUAL_RUN_URL)"
+          } > "$VISUAL_GATE_DIR/comment.md"
+          echo "verdict=error" >> "$GITHUB_OUTPUT"
+          echo "report-url=$VISUAL_RUN_URL" >> "$GITHUB_OUTPUT"
+          exit 0
         fi
 
         node ../visual-tests/scripts/visual-gate.mjs

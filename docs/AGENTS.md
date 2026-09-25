@@ -886,15 +886,29 @@ concluding anything from a golden you read back.
   asserts two facts for every example grid on five pages (`demo`, `grid-size`, `column-width`,
   `row-height`, `batch-operations`) in all four frameworks: the master holder has a height, and it is no
   wider than the grid root. The action's `Check that the example grids are laid out` step runs it right
-  before `Render the baseline`, on the same condition – a seed, a re-seed dispatch, or a bootstrap – and a
-  failure there skips the render and the seed, so the baseline does not move. `docs-visual-seed.yml`'s
-  `notify` job posts every failed seed to Slack through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an
-  absent secret skips it). So **a red seed can mean the deploy is broken**: read the check's report in the
-  run's `docs-visual-report` artifact and fix the render. Never loosen the spec to let a seed through; a
-  page on its list that legitimately stops rendering a grid gets replaced, not exempted. As of 2026-09-25
-  the width fact fails on develop – #13381 also made the holder 33 to 35px wider than its root on 819 of the
-  976 example grids, and #13626 fixed only the height – so no develop seed lands until that is fixed. The spec
-  runs in the `functional` project on every docs pull request too.
+  before `Render the baseline`, on the same condition – a seed, a re-seed dispatch, or a bootstrap. It runs
+  with `--fail-on-flaky-tests`, because the config's three CI retries would pass a grid that collapses on
+  some page loads, and then checks the JSON report, because Playwright exits 0 when every test was
+  skipped. A failure skips the render and the seed, so the baseline does not move, and a refused pull
+  request bootstrap says "no baseline created" instead of the core gate's "baseline created".
+  `docs-visual-seed.yml`'s `notify` job posts every failed automatic seed to Slack through the core seed's
+  `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand dispatch posts nothing). So **a red seed can
+  mean the deploy is broken**: read the check's report in the run's `docs-visual-report` artifact and fix
+  the render. Never loosen the spec to let a seed through; a page on its list that legitimately stops
+  rendering a grid gets replaced, not exempted. As of 2026-09-25 the width fact fails on develop – #13381
+  also made the holder 33 to 35px wider than its root on 819 of the 976 example grids, and #13626 fixed only
+  the height – so no develop seed lands until that is fixed. The spec runs in the `functional` project on
+  every docs pull request too.
+- **A seed renders one build.** The staging alias moves with every develop deploy, and a render takes about
+  13 minutes, so a deploy that landed mid-render mixed two deploys into one baseline (the seed of
+  `eef5d1822` on 2026-09-18). A staging build prints its short SHA into every sandbox link
+  (`0.0.0-next-<sha>-<date>`, `src/plugins/docs-version.mjs`), so the action reads it before the layout
+  check and again after the render, and seeds nothing when it changed. A develop seed passes its deploy's
+  `head_sha` as `expected-sha` and must see that build. When a newer deploy already took the alias, the seed
+  writes nothing and ends green, because that deploy's own seed writes the baseline. A release branch
+  builds its staging deploy in production mode, which prints a version instead of a SHA, so a release
+  seed is not pinned, and neither is a dispatch against production; a hand dispatch pins to whatever
+  build is served when it starts.
 - **The visual project stays opt-in through the `run-docs-visual` label** – 441 full-page captures per run
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
