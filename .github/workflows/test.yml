@@ -41,7 +41,7 @@ concurrency:
 
 jobs:
   # ── Tier 0: the gatekeepers. Scope routing + the gates that STOP the pipeline
-  # when red (presence warn, changelog block). Everything downstream needs this.
+  # when red (presence and changelog both block). Everything downstream needs this.
   checks:
     name: Checks
     uses: ./.github/workflows/checks.yml

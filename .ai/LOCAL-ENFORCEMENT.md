@@ -287,8 +287,31 @@ Machine-enforced by the presence gate; full decision rules in
 - **Logic / invisible** (data, indexing, algorithms, internal state) → **Jest unit**, `*.unit.js` in a `__tests__/` dir next to the source.
 - **Public API / type surface** → a **type test**, `*.types.ts`.
 - **Framework consumption** (wrapper / npm) → an integration demo (matrix; being built).
-- **Pure refactor / non-runtime** (types, docs, config, i18n text, re-exports) → **no test**; declare `Refactor-only: <reason>` as a commit trailer.
+- **Pure refactor / non-runtime** (types, docs, config, i18n text, re-exports) → **no test**; declare `Refactor-only: <reason>` as a trailer on the commit that makes the refactor.
 - New Jasmine `*.spec.js` is **blocked** — new E2E is Playwright; migrate broken Jasmine specs rather than patch them.
+
+**What the presence gate accepts as "a matching test"** (`.github/scripts/lib/presence-gate.mjs`, DEV-3066):
+
+- **A test in the changed package.** A core source change (`handsontable/src/**`) needs a unit or type test under
+  `handsontable/`, a case in an existing Jasmine spec, or a Playwright spec under `tests/`. A wrapper's source
+  needs a test in that wrapper. A visual spec counts for any package (the visual-only-coverage advisory flags it).
+  A test in another package, `docs/tests/`, `evals/`, `examples/`, or `performance-tests/` covers nothing.
+- **Not a deleted test.** Removing a test is never coverage.
+- **A trailer covers its own commit only.** A source file with no test passes when every commit that changed it
+  carries `Refactor-only: <reason>`, or was written by `git revert` (`This reverts commit <sha>.`). One trailer
+  no longer waives a whole branch, so put it on the refactor commit, not on a later one.
+- **A comment-only change needs no test.** When a source file's diff changes nothing but comments and whitespace
+  (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments from both
+  versions and compares them; a trailing comment on a code line or a reindent still counts as code.
+
+**In CI the gate blocks** (`GATE_MODE: block` on `Checks / test presence`): a red verdict fails the Checks
+module, which stops the pipeline like the changelog gate. A tooling gap – an unreadable base ref, say – is a
+skip with a warning, never a block. CI hands the gate the base branch's live tip (`origin/<base.ref>`), never
+the payload's `base.sha` – the blocking-gate rule in [`.ai/CI.md`](CI.md). Replayed over develop's last 600
+first-parent commits (303 change source), these rules block 5, each a real miss: a type change in the React
+wrapper with no React test (twice), a language file and a theme cleanup with no trailer, and an editor change
+with no test. The same replay under the old rules failed 31, nearly all JSDoc-only docs PRs. Over the last 300
+commits, the new rules block none.
 
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.

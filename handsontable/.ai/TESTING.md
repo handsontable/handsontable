@@ -308,7 +308,7 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
 - **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, **in addition to, never instead of** the E2E above — a screenshot proves pixels only, and the presence gate counts it as coverage, so the reviewer holds this line. The rule is `visual-tests/AGENTS.md` → Decision rule.
 - **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest unit test** (`*.unit.js` or `*.unit.ts`). Still mandatory — "not user-facing" is not a free pass.
-- **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
+- **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` trailer on the commit that makes it (a trailer covers only its own commit's files).
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
 

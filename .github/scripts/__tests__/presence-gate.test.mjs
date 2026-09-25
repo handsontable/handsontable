@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   classify, isCoverage, isNewJasmineSpec, refactorDeclared, evaluate,
+  sourceGroup, coverageGroups, waivedFiles, isRefactorCommit, isRevertCommit,
+  stripComments, isCommentOnlyChange,
 } from '../lib/presence-gate.mjs';
 
 // --- classify: the 17 real-repo paths validated during scoping ---
@@ -192,4 +194,261 @@ test('a spec under src/__tests__/ with no intermediate directory is inside the f
   assert.equal(isNewJasmineSpec({ status: 'M', path: spec }), false, 'editing one is not a violation');
   assert.equal(isCoverage({ status: 'M', path: spec }), true, 'editing an existing spec there counts as coverage');
   assert.equal(isCoverage({ status: 'A', path: spec }), false, 'a new spec there does not count as coverage');
+});
+
+// --- DEV-3066: a matching test, not any test ---
+const CORE_SRC = 'handsontable/src/plugins/filters/filters.ts';
+const REACT_SRC = 'wrappers/react-wrapper/src/hotTableInner.tsx';
+const ANGULAR_SRC = 'wrappers/angular-wrapper/projects/hot-table/src/lib/hot-table.component.ts';
+
+test('a deleted test is never coverage, whatever its kind', () => {
+  // Prevents: removing a failing test next to a source change passing the gate
+  // (the patterns used to ignore the git status).
+  for (const path of [
+    'handsontable/src/plugins/filters/__tests__/x.unit.js',
+    'handsontable/src/__tests__/core/x.types.ts',
+    'tests/e2e/filters/menu.spec.ts',
+    'handsontable/src/plugins/filters/__tests__/filters.spec.js',
+    'wrappers/react-wrapper/test/hotColumn.spec.tsx',
+  ]) {
+    assert.equal(isCoverage({ status: 'D', path }), false, `a deleted ${path} is not coverage`);
+    assert.equal(isCoverage({ status: 'M', path }), true, `a modified ${path} still is`);
+  }
+});
+
+test('a source change whose only test change is a deletion fails with missing-coverage', () => {
+  const r = evaluate([
+    { status: 'M', path: CORE_SRC },
+    { status: 'D', path: 'tests/e2e/filters/menu.spec.ts' },
+  ]);
+
+  assert.equal(r.pass, false);
+  assert.equal(r.reason, 'missing-coverage');
+  assert.deepEqual(r.uncovered, [{ group: 'core', files: [CORE_SRC] }]);
+});
+
+test('sourceGroup maps each production tree to its package', () => {
+  assert.equal(sourceGroup(CORE_SRC), 'core');
+  assert.equal(sourceGroup('handsontable/src/3rdparty/walkontable/src/table.ts'), 'core');
+  assert.equal(sourceGroup(REACT_SRC), 'react-wrapper');
+  assert.equal(sourceGroup('wrappers/vue3/src/HotTable.vue'), 'vue3');
+  assert.equal(sourceGroup(ANGULAR_SRC), 'angular-wrapper');
+});
+
+test('coverageGroups maps each test root to the packages it can cover, and nothing else', () => {
+  assert.deepEqual(coverageGroups('handsontable/src/plugins/filters/__tests__/x.unit.js'), ['core']);
+  assert.deepEqual(coverageGroups('tests/e2e/filters/menu.spec.ts'), ['core']);
+  assert.deepEqual(coverageGroups('wrappers/react-wrapper/test/hotColumn.spec.tsx'), ['react-wrapper']);
+  assert.deepEqual(coverageGroups('wrappers/vue3/test/types/vue3.types.ts'), ['vue3']);
+  assert.deepEqual(coverageGroups(ANGULAR_SRC.replace(/\.ts$/, '.spec.ts')), ['angular-wrapper']);
+  assert.deepEqual(coverageGroups('visual-tests/tests/js-only/filters/menu.spec.ts'),
+    ['core', 'react-wrapper', 'vue3', 'angular-wrapper'], 'a capture spec renders every package');
+
+  for (const path of [
+    'docs/tests/search.spec.ts',
+    'evals/fixtures/bug-fix-number-helper/reference/number.unit.ts',
+    'examples/next/docs/js/demo/spec/Smoke.spec.js',
+    'performance-tests/scenarios/scroll/scroll.spec.ts',
+  ]) {
+    assert.deepEqual(coverageGroups(path), [], `${path} covers no library source`);
+    assert.equal(isCoverage({ status: 'M', path }), false, `${path} is not coverage`);
+  }
+});
+
+test('a core change is not covered by a wrapper test, and a wrapper change is not covered by a core test', () => {
+  const core = evaluate([
+    { status: 'M', path: CORE_SRC },
+    { status: 'A', path: 'wrappers/react-wrapper/test/x.spec.tsx' },
+  ]);
+
+  assert.equal(core.pass, false);
+  assert.deepEqual(core.uncovered, [{ group: 'core', files: [CORE_SRC] }]);
+
+  const wrapper = evaluate([
+    { status: 'M', path: REACT_SRC },
+    { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/x.unit.js' },
+  ]);
+
+  assert.equal(wrapper.pass, false);
+  assert.deepEqual(wrapper.uncovered, [{ group: 'react-wrapper', files: [REACT_SRC] }]);
+});
+
+test('a wrapper change is covered by its own suite', () => {
+  const r = evaluate([
+    { status: 'M', path: REACT_SRC },
+    { status: 'M', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' },
+  ]);
+
+  assert.equal(r.pass, true);
+  assert.equal(r.reason, 'ok');
+});
+
+test('a PR touching two packages needs a test for each, and the verdict names only the uncovered one', () => {
+  const r = evaluate([
+    { status: 'M', path: CORE_SRC },
+    { status: 'M', path: REACT_SRC },
+    { status: 'A', path: 'tests/e2e/filters/menu.spec.ts' },
+  ]);
+
+  assert.equal(r.pass, false);
+  assert.deepEqual(r.uncovered, [{ group: 'react-wrapper', files: [REACT_SRC] }]);
+  assert.deepEqual(r.sourceFiles, [CORE_SRC, REACT_SRC], 'sourceFiles still lists every source file');
+});
+
+test('a visual spec still covers any package (the visual-only advisory owns that question)', () => {
+  const r = evaluate([
+    { status: 'M', path: CORE_SRC },
+    { status: 'M', path: REACT_SRC },
+    { status: 'A', path: 'visual-tests/tests/multi-frameworks/filters.spec.ts' },
+  ]);
+
+  assert.equal(r.pass, true);
+});
+
+test('isRefactorCommit reads the trailer anywhere in the message and needs a reason', () => {
+  assert.equal(isRefactorCommit('DEV-1: move helpers\n\nRefactor-only: moved, no behavior change\n'), true);
+  assert.equal(isRefactorCommit('DEV-1: move helpers\n\nRefactor-only:\n'), false, 'an empty reason does not count');
+  assert.equal(isRefactorCommit('DEV-1: fix the filter\n'), false);
+  assert.equal(isRefactorCommit(undefined), false);
+});
+
+test('a Refactor-only trailer waives only the files its own commit changed', () => {
+  // Prevents: one trailer anywhere in the branch waiving every file in it.
+  const FILE_A = 'handsontable/src/helpers/a.ts';
+  const FILE_B = 'handsontable/src/helpers/b.ts';
+  const r = evaluate([{ status: 'M', path: FILE_A }, { status: 'M', path: FILE_B }], [
+    { message: 'DEV-1: extract a helper\n\nRefactor-only: pure extraction', files: [FILE_A] },
+    { message: 'DEV-1: change the rounding', files: [FILE_B] },
+  ]);
+
+  assert.equal(r.pass, false);
+  assert.deepEqual(r.waived, [FILE_A]);
+  assert.deepEqual(r.uncovered, [{ group: 'core', files: [FILE_B] }]);
+});
+
+test('a file changed by a refactor commit and by an ordinary commit is not waived', () => {
+  const FILE = 'handsontable/src/helpers/a.ts';
+  const commits = [
+    { message: 'Refactor-only: rename a local', files: [FILE] },
+    { message: 'DEV-1: change the behavior', files: [FILE] },
+  ];
+
+  assert.deepEqual([...waivedFiles(commits)], []);
+  assert.equal(evaluate([{ status: 'M', path: FILE }], commits).reason, 'missing-coverage');
+});
+
+test('every uncovered file waived: pass as a declared refactor, listing the waived files', () => {
+  const FILE = 'handsontable/src/helpers/a.ts';
+  const r = evaluate([{ status: 'M', path: FILE }], [{ message: 'Refactor-only: rename a local', files: [FILE] }]);
+
+  assert.equal(r.pass, true);
+  assert.equal(r.reason, 'refactor-declared');
+  assert.deepEqual(r.waived, [FILE]);
+});
+
+test('a waiver never hides behind coverage: a covered package needs no waiver and reports ok', () => {
+  const r = evaluate(
+    [{ status: 'M', path: CORE_SRC }, { status: 'A', path: 'tests/e2e/filters/menu.spec.ts' }],
+    [{ message: 'Refactor-only: rename', files: [CORE_SRC] }],
+  );
+
+  assert.equal(r.reason, 'ok');
+  assert.deepEqual(r.waived, [], 'nothing needed waiving');
+});
+
+test('the squashed form (message lines for the whole change set) waives every changed file', () => {
+  // The shape of one squash commit, which is what a replay of develop's
+  // first-parent history sees; the CLI passes real commits.
+  const r = evaluate([{ status: 'M', path: CORE_SRC }], ['Refactor-only: renamed a private field']);
+
+  assert.equal(r.pass, true);
+  assert.equal(r.reason, 'refactor-declared');
+  assert.equal(evaluate([{ status: 'M', path: CORE_SRC }], ['DEV-1: no trailer']).reason, 'missing-coverage');
+});
+
+test('a git revert waives its own files: it restores code that was tested before', () => {
+  // The one verdict the new rules flipped in a 300-commit replay of develop
+  // (#13508): a revert restored a source file and deleted the reverted
+  // feature's spec, which is no longer coverage.
+  const FILE = 'handsontable/src/dataMap/metaManager/metaSchema.ts';
+  const revert = 'Revert "DEV-1: add the option"\n\nThis reverts commit 031ce6d229f710a67d655e3b9cd66acfc6e5f2d4.\n';
+  const r = evaluate(
+    [{ status: 'M', path: FILE }, { status: 'D', path: 'tests/e2e/option.spec.ts' }],
+    [{ message: revert, files: [FILE, 'tests/e2e/option.spec.ts'] }],
+  );
+
+  assert.equal(isRevertCommit(revert), true);
+  assert.equal(r.pass, true);
+  assert.equal(r.reason, 'refactor-declared');
+  assert.equal(isRevertCommit('DEV-1: this reverts commit abc1234 in prose'), false, 'only the line git writes counts');
+  assert.equal(isRevertCommit('DEV-1: fix'), false);
+});
+
+// --- comment-only changes need no test ---
+test('stripComments drops comments, keeps literals verbatim, and reports the lines that hold code', () => {
+  const r = stripComments([
+    '/**',
+    ' * The doc.',
+    ' */',
+    'export const a = "// not a comment"; // trailing',
+    'const t = `x /* kept */ y`;',
+    '',
+    'const b = \'/* also kept */\';',
+  ].join('\n'));
+
+  assert.equal(r.text, 'export const a = "// not a comment"; const t = `x /* kept */ y`; '
+    + 'const b = \'/* also kept */\';');
+  assert.deepEqual([...r.codeLines], [4, 5, 7]);
+  assert.equal(r.complete, true);
+});
+
+test('stripComments reports an incomplete lex, which callers treat as code', () => {
+  assert.equal(stripComments('const x = 1; /* never closed\n').complete, false);
+  assert.equal(stripComments('const s = "never closed\nconst y = 2;\n').complete, false);
+  // A regex literal holding a comment opener derails the lexer into a comment
+  // that never closes; the incomplete lex is what keeps it safe.
+  assert.equal(stripComments('const re = /\\/*/;\nconst y = 2;\n').complete, false);
+});
+
+test('a JSDoc-only edit is comment-only; a code edit, or a blank line, is judged exactly', () => {
+  const base = '/**\n * Old words.\n */\nexport function f() {\n  return 1;\n}\n';
+
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('Old words.', 'New words.'), removed: [2], added: [2],
+  }), true, 'rewording the JSDoc');
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('return 1', 'return 2'), removed: [5], added: [5],
+  }), false, 'changing the returned value');
+  assert.equal(isCommentOnlyChange({
+    baseText: base, headText: base.replace('export function', '\nexport function'), removed: [], added: [4],
+  }), true, 'adding a blank line');
+});
+
+test('conservative by design: a trailing comment on a code line, or a reindent, still counts as code', () => {
+  // The stripped texts are identical in both cases, but a changed line holds
+  // code, so the gate asks for a test or a trailer rather than guess.
+  assert.equal(isCommentOnlyChange({
+    baseText: 'const x = 1;\n', headText: 'const x = 1; // why\n', removed: [1], added: [1],
+  }), false);
+  assert.equal(isCommentOnlyChange({
+    baseText: 'if (a) {\nx();\n}\n', headText: 'if (a) {\n  x();\n}\n', removed: [2], added: [2],
+  }), false);
+  assert.equal(isCommentOnlyChange({
+    baseText: 'const re = /\\/*/;\n', headText: 'const re = /\\/*/; // x\n', removed: [1], added: [1],
+  }), false, 'an incomplete lex is code');
+});
+
+test('evaluate: comment-only files need no test; any other uncovered file still does', () => {
+  const DOC = 'handsontable/src/core.ts';
+  const CODE = 'handsontable/src/helpers/a.ts';
+  const only = evaluate([{ status: 'M', path: DOC }], [], { commentOnly: [DOC] });
+
+  assert.equal(only.pass, true);
+  assert.equal(only.reason, 'comments-only');
+  assert.deepEqual(only.commentOnly, [DOC]);
+
+  const mixed = evaluate([{ status: 'M', path: DOC }, { status: 'M', path: CODE }], [], { commentOnly: [DOC] });
+
+  assert.equal(mixed.pass, false);
+  assert.deepEqual(mixed.uncovered, [{ group: 'core', files: [CODE] }]);
 });

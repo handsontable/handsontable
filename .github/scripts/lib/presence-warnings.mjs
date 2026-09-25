@@ -366,10 +366,10 @@ export function walkontableRouting(changes) {
  * not behavior.
  *
  * Deletions count on neither side. A removed source file needs no test, and a
- * removed visual spec is not the coverage this warning is about — that the gate
- * still accepts a deleted `*.spec.ts` as coverage (`COVERAGE_ANY_STATUS` is
- * status-independent) is a separate matter, left alone here because changing
- * it changes verdicts. Added, modified, and renamed specs all count: the
+ * removed visual spec is not the coverage this warning is about – nor, since
+ * DEV-3066, coverage to the gate (`isCoverage()` rejects status `D`, although
+ * the `COVERAGE_ANY_STATUS` patterns themselves still match any status the
+ * gate admits). Added, modified, and renamed specs all count: the
  * question is what proves the source change, not whether the spec is new, and
  * a one-line edit to an existing capture spec is a cheaper gate-pass than a new
  * file. Silent when there is no coverage at all — the verdict already says
