@@ -764,6 +764,24 @@ test.describe('moveCells edge move bands', () => {
       await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(8);
     });
 
+    test('draws no band on an edge scrolled out of the rendered rows when nothing is frozen', async () => {
+      await grid.initGrid({
+        data: Array.from({ length: 60 }, (_, row) => Array.from({ length: 10 }, (__, col) => `R${row + 1}C${col + 1}`)),
+      });
+      await grid.selectCells(0, 1, 50, 3);
+      await grid.scrollToRow(25);
+
+      // Neither row 0 nor row 50 is rendered, so the master clamps both edges to its rendered band. The
+      // band on the band's edge would sit inside the selection; only the start and end bands remain.
+      await expect.poll(() => grid.firstRenderedRow()).toBeGreaterThan(0);
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(2);
+
+      await grid.scrollToRow(0);
+
+      // Scrolled back to the start, the top edge is rendered again and gets its band back.
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(3);
+    });
+
     test('keeps all four bands in the master when nothing is frozen', async () => {
       await grid.selectCells(1, 1, 3, 3);
 

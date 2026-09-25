@@ -128,6 +128,12 @@ freeze line inside the selection (16 bands for a selection crossing both lines, 
   frozen pane, so it cannot be grabbed and needs no hiding.
 - **Resolved apart from the handles.** `Border#getMoveZoneOwnership` builds the layout itself, because
   `planAdjustHandles` gives up when the adjust handles are off (`selectionHandles: false`).
+- **The clamp applies to every grid, frozen panes or not.** In a plain grid the master is the only
+  overlay, so a selection taller or wider than the rendered band loses the band on an edge that lies
+  past the band, where it used to get one on the rendered band's edge, inside the selection. A
+  "missing" top or bottom band on a tall selection is therefore expected while that edge is scrolled
+  out of the rendered rows; it comes back once the edge is rendered. The adjust handles behave the
+  same way.
 - **Header-anchored corners never reach it.** `canMoveRange` rejects entire-row, entire-column, and
   header selections, so the negative raw corners of such a selection never meet the rule.
 
