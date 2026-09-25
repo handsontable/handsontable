@@ -4,25 +4,23 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const data = [
-  ['SKU-4821', 'Bolt', 142],
-  ['SKU-0093', 'Stainless steel mounting bracket', 67],
-  ['SKU-1147', 'Washer', 210],
-  ['SKU-2205', 'Hex nut assortment pack', 38],
-  ['SKU-3310', 'Cable tie', 95],
-];
-
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={data}
+      data={[
+        ['H', 'Nonmetal', 1],
+        ['He', 'Noble gas', 2],
+        ['Li', 'Alkali metal', 3],
+        ['Be', 'Alkaline earth metal', 4],
+        ['B', 'Metalloid', 5],
+      ]}
       width="100%"
       height="auto"
-      colHeaders={['SKU', 'Product', 'Stock']}
+      colHeaders={['Symbol', 'Category', 'Atomic Number']}
       rowHeaders={true}
-      colWidths={[90, undefined, 60]}
+      columns={[{ width: 90 }, {}, { width: 60 }]}
       modifyColWidth={(width, column) => {
-        if (column === 1 && width > 150) {
+        if (column === 1 && width > 120) {
           return 100;
         }
       }}
