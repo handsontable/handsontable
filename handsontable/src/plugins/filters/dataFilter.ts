@@ -1,4 +1,6 @@
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach } from '../../helpers/array';
+import { ColumnDataMap } from './columnDataMap';
+import type { ColumnDataEntry } from './columnDataMap';
 
 /**
  * @private
@@ -24,7 +26,7 @@ class DataFilter {
    */
   constructor(
     conditionCollection: { getFilteredColumns: () => unknown[]; isMatch: (value: unknown, column: number) => boolean },
-    columnDataFactory: (column: number, physicalRows?: number[]) => unknown[] = () => []
+    columnDataFactory: (column: number, physicalRows?: number[]) => ColumnDataMap = () => ColumnDataMap.empty()
   ) {
     this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
@@ -33,48 +35,53 @@ class DataFilter {
   /**
    * Filter data based on the conditions collection.
    *
-   * @returns {Array}
+   * @returns {number[]} The physical row indexes that matched every filtered column, in read order.
    */
-  filter() {
-    let filteredData: unknown[] = [];
+  filter(): number[] {
+    let matchedRows: number[] = [];
 
     arrayEach(this.conditionCollection.getFilteredColumns(), (physicalColumn, index) => {
-      let columnData;
+      // Materialize only the rows that survived the previous columns' conditions instead of
+      // re-reading (and re-creating cell meta for) every source row once per filtered column.
+      const columnData = index
+        ? this.columnDataFactory(physicalColumn as number, matchedRows)
+        : this.columnDataFactory(physicalColumn as number);
 
-      if (index) {
-        // Materialize only the rows that survived the previous columns' conditions instead of
-        // re-reading (and re-creating cell meta for) every source row once per filtered column.
-        const survivingRows = arrayMap(filteredData,
-          rowData => (rowData as { row: number }).row);
-
-        columnData = this.columnDataFactory(physicalColumn as number, survivingRows);
-      } else {
-        columnData = this.columnDataFactory(physicalColumn as number);
-      }
-
-      filteredData = this.filterByColumn(physicalColumn as number, columnData);
+      matchedRows = this.filterByColumn(physicalColumn as number, columnData);
     });
 
-    return filteredData;
+    return matchedRows;
   }
 
   /**
-   * Filter data based on specified physical column index.
+   * Filter the rows of one column read, by physical column index.
+   *
+   * Each condition call gets its own `{ row, meta, value }` object, with the cell meta of that row
+   * alone. A condition is user code that may keep either past its own call, so neither the object
+   * nor its meta is ever shared between rows.
    *
    * @param {number} column The physical column index.
-   * @param {Array} [dataSource] Data source as array of objects with `value` and `meta` keys (e.g. `{value: 'foo', meta: {}}`).
-   * @returns {Array} Returns filtered data.
+   * @param {ColumnDataMap} [dataSource] The column read to filter.
+   * @returns {number[]} The physical row indexes that matched.
    */
-  filterByColumn(column: number, dataSource: unknown[] = []) {
-    const filteredData: unknown[] = [];
+  filterByColumn(column: number, dataSource: ColumnDataMap = ColumnDataMap.empty()): number[] {
+    const matchedRows: number[] = [];
+    const rowsCount = dataSource.length;
 
-    arrayEach(dataSource, (dataRow) => {
-      if (dataRow !== undefined && this.conditionCollection.isMatch(dataRow, column)) {
-        filteredData.push(dataRow);
+    for (let index = 0; index < rowsCount; index++) {
+      const physicalRow = dataSource.getRow(index);
+      const dataRow: ColumnDataEntry = {
+        row: physicalRow,
+        meta: dataSource.getMeta(index),
+        value: dataSource.getValue(index),
+      };
+
+      if (this.conditionCollection.isMatch(dataRow, column)) {
+        matchedRows.push(physicalRow);
       }
-    });
+    }
 
-    return filteredData;
+    return matchedRows;
   }
 }
 
