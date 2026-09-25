@@ -290,11 +290,15 @@ They are written in different places and can drift. Keep this in mind:
   plugin enabled at runtime. **Registration order is not stable even for a grid built with the plugin
   on.** `updatePlugin()` runs `disablePlugin()` (which clears the hooks) and `enablePlugin()` on every
   `updateSettings()` carrying the `nestedRows` key, which in React is every re-render, so before the
-  negative index the listener moved to the tail. From then on, a host `beforeRemoveRow` and UndoRedo saw
-  the parent alone too. That made what a host hook received depend on whether a settings update had
-  happened. The negative index makes the list the same every time. The one listener it moves behind is
-  a host `hot.addHook('beforeRemoveRow', fn, -1)`, which ran before the expansion and now runs after it,
-  because equal order indexes keep insertion order.
+  negative index the listener moved to the tail. From then on, a host `beforeRemoveRow` saw the parent
+  alone too, so what it received depended on whether a settings update had happened. The negative index
+  makes the list the same every time for every default-order listener. UndoRedo was never affected
+  either way: `RemoveRowAction` snapshots the tree through `NestedRows#captureRemovedRows()` (delegating to the `DataManager`), which walks
+  each removed row's subtree itself. The guarantee stops at order index `-1`. A host listener registered
+  with a lower index always runs before the expansion. One registered with `-1` itself is ordered by
+  insertion (`HooksBucket#insertByOrder` places an entry after the existing entries with the same
+  index), so it runs after the expansion when it was added after the plugin was enabled, and before it
+  once `updatePlugin()` has re-registered the plugin's listener.
   Global (`Hooks.getSingleton()`) listeners still run first, because the
   global bucket runs before the instance bucket. The expansion has no side effects and is idempotent (the
   accumulator is a `Set`), so it may run even when a later listener vetoes the removal, and a detach,
