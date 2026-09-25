@@ -1,4 +1,7 @@
 name: Docs visual seed
+# The seeded branch is in every run's name, so the notify job can find the
+# previous seed of the same branch.
+run-name: Docs visual seed (${{ github.event.workflow_run.head_branch || inputs.branch }})
 
 # Writes the golden records of the docs visual suite -- `docs/base/<branch>/`
 # in R2, the baseline every docs pull request into <branch> is compared
@@ -33,17 +36,19 @@ name: Docs visual seed
 # trigger is a separate call: it costs a docs deploy of about 10 minutes per
 # core merge.
 #
-# A seed writes only a render of one build that passes the layout gate. Before
-# it renders anything, the docs-visual-run action checks that the alias serves
-# the deploy's own build (see the seed step) and runs
-# docs/tests/exampleGridLayout.spec.ts against it; after the render it checks
-# the build again. It fails without writing when an example grid is collapsed
-# or wider than its root. When a newer deploy took the alias, it writes nothing
-# and ends green, because that deploy's own seed writes the baseline. Between
-# #13381 and #13626, 21 seeds wrote blank grids into this baseline and every
-# docs pull request "matched" them. So a red run here can mean that the deploy
-# is broken, not the seed. The `notify` job posts every failed automatic seed
-# to Slack, because nothing else says the baseline stopped moving.
+# A seed writes only a render of one deploy that passes the layout gate. It
+# renders the deploy's own URL, https://<hash>.handsontable-docs-staging.pages.dev,
+# which docs-staging.yml records in a `docs-staging-deploy` artifact, instead of
+# the branch alias, which moves with the next deploy: on 2026-09-18 a seed
+# rendered from 12:08 to 12:20 while the next deploy took the alias at 12:18,
+# and wrote a baseline mixed from two deploys. Before it renders, the
+# docs-visual-run action runs docs/tests/exampleGridLayout.spec.ts against that
+# URL and fails without writing when an example does not lay out its grid.
+# Between #13381 and #13626, 21 seeds wrote blank grids into this baseline and
+# every docs pull request "matched" them. So a red run here can mean that the
+# deploy is broken, not the seed. The `notify` job posts the first failed
+# automatic seed of a streak to Slack, because nothing else says the baseline
+# stopped moving.
 #
 # The group never cancels (visual-seed.yml's rule): GitHub keeps one running
 # and one pending run per group, so the LAST deploy of a burst is always
@@ -77,50 +82,72 @@ jobs:
       || (github.event.workflow_run.conclusion == 'success'
           && github.event.workflow_run.event == 'push')
     # Read-only: no comment, no pull request. The R2 writes go through the
-    # action's inputs, not the token.
+    # action's inputs, not the token. `actions: read` downloads the staging
+    # run's deploy record.
     permissions:
       contents: read
+      actions: read
     steps:
-      # The specs must match the deployed docs: a page added to paths.js in the
-      # deployed commit has to be declared by the suite that seeds it.
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.branch }}
-
-      # The URL shapes are docs-staging.yml's cf-target step: develop is the
-      # project's apex branch; a release branch deploys to `rc-<version>` with
-      # the dots turned into dashes. Anything else is not a base branch and has
-      # no baseline to seed. The branch name goes through `env:`, never into the
-      # script body.
+      # Which deploy to seed from, by its own URL. A workflow_run seed reads the
+      # record of the staging run that triggered it, and requires it to name that
+      # run's commit. A dispatch has no deploy of its own, so it reads the record
+      # of the branch's latest successful staging run. Only develop and
+      # release/x.y.z have a baseline. The inputs go through `env:`, never into
+      # the script body.
       - name: Resolve the staging deploy to seed from
         id: target
         env:
           BRANCH: ${{ github.event.workflow_run.head_branch || inputs.branch }}
+          DEPLOY_RUN_ID: ${{ github.event.workflow_run.id }}
+          DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          if [ "$BRANCH" = "develop" ]; then
-            url="https://handsontable-docs-staging.pages.dev/docs"
-          elif [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            version="${BRANCH#release/}"
-            url="https://rc-${version//./-}.handsontable-docs-staging.pages.dev/docs"
-          else
+          if [ "$BRANCH" != "develop" ] && [[ ! "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::$BRANCH is neither develop nor release/x.y.z; only those have a staging deploy and a docs baseline."
             exit 1
           fi
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
-          echo "Seeding docs/base/$BRANCH from $url."
 
-      # `expected-sha` pins the seed to the build it chains on: the action reads
-      # the build SHA the deploy prints into its sandbox links and writes nothing
-      # unless the alias serves that commit both before the check and after the
-      # render. Develop only: a release branch's staging build runs in production
-      # mode and prints a version instead, and a dispatch has no deploy to chain
-      # on, so both pin to whatever the alias serves when the seed starts.
+          if [ -z "$DEPLOY_RUN_ID" ]; then
+            DEPLOY_RUN_ID=$(gh run list --repo "$REPO" --workflow docs-staging.yml --branch "$BRANCH" \
+              --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          fi
+
+          if [ -z "$DEPLOY_RUN_ID" ] \
+            || ! gh run download "$DEPLOY_RUN_ID" --repo "$REPO" --name docs-staging-deploy --dir "$RUNNER_TEMP/docs-staging-deploy"; then
+            echo "::error::No docs-staging-deploy record for $BRANCH (staging run ${DEPLOY_RUN_ID:-none}), so there is no fixed URL to seed from. Nothing was rendered."
+            exit 1
+          fi
+
+          url=$(jq -r '.url // empty' "$RUNNER_TEMP/docs-staging-deploy/deploy.json")
+          sha=$(jq -r '.sha // empty' "$RUNNER_TEMP/docs-staging-deploy/deploy.json")
+
+          if [[ ! "$url" =~ ^https://[0-9a-f]{8}\.handsontable-docs-staging\.pages\.dev$ ]] || [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::The deploy record of staging run $DEPLOY_RUN_ID is malformed (url '$url', sha '$sha')."
+            exit 1
+          fi
+
+          if [ -n "$DEPLOYED_SHA" ] && [ "$sha" != "$DEPLOYED_SHA" ]; then
+            echo "::error::The deploy record of staging run $DEPLOY_RUN_ID names $sha, not the deployed commit $DEPLOYED_SHA."
+            exit 1
+          fi
+
+          echo "url=$url/docs" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Seeding docs/base/$BRANCH from $url/docs, the deploy of $sha."
+
+      # The specs must match the deployed docs: a page added to paths.js in the
+      # deployed commit has to be declared by the suite that seeds it. So the
+      # checkout is the commit the deploy was built from, for a dispatch too.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+
       - name: Seed the docs golden records
         uses: ./.github/actions/docs-visual-run
         with:
           test-url: ${{ steps.target.outputs.url }}
-          expected-sha: ${{ steps.target.outputs.branch == 'develop' && github.event.workflow_run.head_sha || '' }}
           mode: seed
           base-key: docs/base/${{ steps.target.outputs.branch }}
           actual-key: docs/base/${{ steps.target.outputs.branch }}
@@ -133,29 +160,66 @@ jobs:
   # A failed seed leaves `docs/base/<branch>` where it was, and that is quiet on
   # its own: this workflow is not a required check, and GitHub's failure email
   # reaches only whoever triggered the deploy. visual-seed.yml's notify job has
-  # the same reason and the same shape. Automatic seeds only: whoever dispatches
-  # a seed is watching it, and a mistyped branch is not news for the channel.
-  # The `!cancelled()` is load-bearing: a job `if:` with no status-check
-  # function gets an implicit `success()`, which can never hold together with
-  # `needs.seed.result == 'failure'` (.ai/CI.md, the status-function entry). A
-  # superseded seed ends green, so it posts nothing. An absent secret is an
-  # empty string, so the step skips itself and the hook stays optional.
+  # the same reason. Automatic seeds only: whoever dispatches a seed is watching
+  # it, and a mistyped branch is not news for the channel. The `!cancelled()` is
+  # load-bearing: a job `if:` with no status-check function gets an implicit
+  # `success()`, which can never hold together with `needs.seed.result ==
+  # 'failure'` (.ai/CI.md, the status-function entry). An absent secret is an
+  # empty string, so the steps skip themselves and the hook stays optional.
+  # `actions: read` lists this workflow's earlier runs; the post itself goes
+  # through the webhook.
   notify:
     name: Notify Slack
     needs: [ seed ]
     if: ${{ !cancelled() && needs.seed.result == 'failure' && github.event_name == 'workflow_run' }}
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      actions: read
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
     steps:
-      - name: Send the failure to Slack
+      # One post per breakage. While a branch's docs render stays broken, every
+      # docs deploy fails its seed, and a post per deploy teaches the channel to
+      # skip them all. So this posts only when the previous finished seed of the
+      # same branch did not fail as well. The `run-name` at the top of this file
+      # carries the branch, which is what makes the runs comparable.
+      - name: Check whether the previous seed of this branch failed too
+        id: streak
         if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NAME: Docs visual seed (${{ github.event.workflow_run.head_branch }})
+        run: |
+          previous=$(gh run list --repo "$REPO" --workflow docs-visual-seed.yml --limit 50 \
+            --json databaseId,displayTitle,conclusion \
+            --jq '[.[] | select(.databaseId != (env.RUN_ID | tonumber) and .displayTitle == env.RUN_NAME
+              and (.conclusion == "success" or .conclusion == "failure"))][0].conclusion // "none"')
+          echo "The previous finished seed of this branch: $previous."
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+
+      # jq builds the payload, so no branch name can break its JSON.
+      - name: Write the Slack message
+        if: env.SLACK_WEBHOOK_URL != '' && steps.streak.outputs.previous != 'failure'
+        env:
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          text=$(printf '%s\n' \
+            ":red_circle: Docs visual seed failed on $BRANCH ($SHA)." \
+            "The seed did not finish, so \`docs/base/$BRANCH\` most likely still holds the previous render, and docs pull requests are compared against that." \
+            "If it failed at \`Check that the example grids are laid out\`, an example on the deploy did not lay out its grid (missing, collapsed, too short to show a row, wider than its root, or cut off), or a page did not load. The report is in the run's \`docs-visual-report\` artifact." \
+            "Later failed seeds of $BRANCH post nothing until one succeeds." \
+            "Run: $RUN_URL" \
+            "Re-seed by hand once the deploy is fixed: dispatch \`Docs visual seed\` with the branch.")
+          jq -n --arg text "$text" '{text: $text}' > "$RUNNER_TEMP/slack-payload.json"
+
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != '' && steps.streak.outputs.previous != 'failure'
         uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": ":red_circle: Docs visual seed failed on ${{ github.event.workflow_run.head_branch }} (${{ github.event.workflow_run.head_sha }}).\nThe seed did not finish, so `docs/base/${{ github.event.workflow_run.head_branch }}` most likely still holds the previous render, and docs pull requests are compared against that.\nIf it failed at `Check that the example grids are laid out`, the deploy's example grids did not pass the layout check (a grid collapsed or wider than its root, a page with no grid, or a page that did not load); the check's report is in the run's `docs-visual-report` artifact. Fix the deploy, and the next docs deploy seeds again.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nRe-seed by hand: dispatch `Docs visual seed` with the branch."
-            }
+          payload-file-path: ${{ runner.temp }}/slack-payload.json

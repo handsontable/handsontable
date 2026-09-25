@@ -1,7 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * Fails when a docs example grid is laid out collapsed, or wider than its own root.
+ * Fails when a docs example does not lay out its grid: collapsed, too short to show a row, wider
+ * than its own root, cut off by the example, or missing.
  *
  * Between #13381 (2026-09-18) and #13626 (2026-09-24) every `height: 'auto'` example grid on the
  * develop docs rendered with a 0px `.ht_master .wtHolder` - each example sits in an
@@ -11,13 +12,17 @@ import { test, expect, type Page } from '@playwright/test';
  * bug never touched. The docs visual seed wrote the blank grids into the golden records 21 times,
  * and a docs pull request's visual run then reported that all 437 screenshots matched.
  *
- * So this spec reads two layout facts directly, for every example grid on the page:
+ * So this spec reads the layout facts directly, for every example on the page:
  *
- * - the master holder has a height (0px is the collapse above);
- * - the master holder is no wider than the grid root it sits in. A wider holder spills past the
- *   root, and the example wrapper clips it, cutting off the grid's right edge. #13381 introduced
- *   that as well, and #13626 did not fix it: on 2026-09-25 the develop staging deploy had a holder
- *   33 to 35px wider than its root on 819 of its 976 example grids.
+ * - the example rendered a grid (the example runner removes the loading overlay whether or not
+ *   the example mounted);
+ * - the master holder has a height (0px is the collapse above), and it is tall enough to show at
+ *   least one whole row;
+ * - the master holder is no wider than the grid root it sits in. #13381 made it wider as well, and
+ *   #13626 did not fix that: on 2026-09-25 the develop staging deploy had a holder 33 to 35px
+ *   wider than its root on 819 of its 976 example grids;
+ * - the example wrapper cuts nothing off the grid. A holder or a root that reaches past the
+ *   wrapper's padding box loses that part to its `overflow: hidden`.
  *
  * `.github/actions/docs-visual-run/action.yml` runs this spec, with `--fail-on-flaky-tests`, before
  * every render that writes golden records (a seed, a re-seed dispatch, a pull request bootstrap),
@@ -50,51 +55,84 @@ const FRAMEWORKS = [
 ];
 
 /**
- * Measures every example grid on the page, in document order.
+ * Measures every example on the page and the grids it rendered, in document order.
  *
  * @param page The docs page.
- * @returns One entry per grid: its example's id and the holder's and the root's size in pixels.
+ * @returns One entry per example: its id, and per grid the holder's and the root's size, whether
+ * the holder shows a whole row, and how many pixels the example wrapper cuts off each side.
  */
-function measureExampleGrids(page: Page) {
-  return page.evaluate(() => Array.from(
-    document.querySelectorAll<HTMLElement>('.hot-example-preview .ht_master .wtHolder'),
-    (holder, index) => {
-      // `.ht_master` is a direct child of the grid root: the `.ht-wrapper` element that core creates
-      // inside the container the grid was created on.
-      const root = holder.closest('.ht_master')?.parentElement;
+function measureExamples(page: Page) {
+  return page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>('.hot-example-preview'), (preview, index) => {
+    // The wrapper is `overflow: hidden`, so it cuts off whatever reaches past its padding box.
+    const wrapper = preview.closest<HTMLElement>('.hot-example') ?? preview;
+    const clipLeft = wrapper.getBoundingClientRect().left + wrapper.clientLeft;
+    const clipRight = clipLeft + wrapper.clientWidth;
 
-      return {
-        grid: holder.closest('.hot-example')?.id.replace(/^hot-example-/, '') || `grid ${index + 1}`,
-        holderHeight: holder.offsetHeight,
-        holderWidth: holder.offsetWidth,
-        rootWidth: root?.offsetWidth ?? 0,
-      };
-    },
-  ));
+    return {
+      example: wrapper.id.replace(/^hot-example-/, '') || `example ${index + 1}`,
+      grids: Array.from(preview.querySelectorAll<HTMLElement>('.ht_master .wtHolder'), (holder) => {
+        // `.ht_master` is a direct child of the grid root: the `.ht-wrapper` element that core creates
+        // inside the container the grid was created on.
+        const root = holder.closest('.ht_master')?.parentElement;
+        const holderRect = holder.getBoundingClientRect();
+        const rootRect = root?.getBoundingClientRect() ?? holderRect;
+        const viewportTop = holderRect.top + holder.clientTop;
+        const viewportBottom = viewportTop + holder.clientHeight;
+        const rows = Array.from(holder.querySelector<HTMLTableElement>('table.htCore')?.tBodies[0]?.rows ?? []);
+
+        return {
+          holderHeight: holder.offsetHeight,
+          holderWidth: holder.offsetWidth,
+          rootWidth: root?.offsetWidth ?? 0,
+          showsARow: rows.some((row) => {
+            const rowRect = row.getBoundingClientRect();
+
+            return rowRect.height > 0 && rowRect.top >= viewportTop - 1 && rowRect.bottom <= viewportBottom + 1;
+          }),
+          cutOffLeft: Math.max(0, Math.floor(clipLeft - Math.min(holderRect.left, rootRect.left))),
+          cutOffRight: Math.max(0, Math.floor(Math.max(holderRect.right, rootRect.right) - clipRight)),
+        };
+      }),
+    };
+  }));
 }
 
 /**
- * Lists what is wrong with the measured grids, one line per broken fact.
+ * Lists what is wrong with the measured examples, one line per broken fact.
  *
- * @param grids The measurements from `measureExampleGrids()`.
- * @returns The problems; empty when every grid is laid out.
+ * @param examples The measurements from `measureExamples()`.
+ * @returns The problems; empty when every example laid out its grid.
  */
-function layoutProblems(grids: Awaited<ReturnType<typeof measureExampleGrids>>): string[] {
-  if (grids.length === 0) {
-    return ['no example grid rendered on the page'];
+function layoutProblems(examples: Awaited<ReturnType<typeof measureExamples>>): string[] {
+  if (examples.length === 0) {
+    return ['no example on the page'];
   }
 
-  return grids.flatMap(({ grid, holderHeight, holderWidth, rootWidth }) => {
-    const problems: string[] = [];
-
-    if (holderHeight === 0) {
-      problems.push(`${grid}: the master .wtHolder is 0px tall`);
-    }
-    if (holderWidth > rootWidth) {
-      problems.push(`${grid}: the master .wtHolder is ${holderWidth}px wide in a ${rootWidth}px grid root`);
+  return examples.flatMap(({ example, grids }) => {
+    if (grids.length === 0) {
+      return [`${example}: no grid rendered`];
     }
 
-    return problems;
+    return grids.flatMap(({ holderHeight, holderWidth, rootWidth, showsARow, cutOffLeft, cutOffRight }) => {
+      const problems: string[] = [];
+
+      if (holderHeight === 0) {
+        problems.push(`${example}: the master .wtHolder is 0px tall`);
+      } else if (!showsARow) {
+        problems.push(`${example}: the master .wtHolder is ${holderHeight}px tall, too short to show a whole row`);
+      }
+      if (holderWidth > rootWidth) {
+        problems.push(`${example}: the master .wtHolder is ${holderWidth}px wide in a ${rootWidth}px grid root`);
+      }
+      if (cutOffLeft > 0) {
+        problems.push(`${example}: the example wrapper cuts ${cutOffLeft}px off the grid's left edge`);
+      }
+      if (cutOffRight > 0) {
+        problems.push(`${example}: the example wrapper cuts ${cutOffRight}px off the grid's right edge`);
+      }
+
+      return problems;
+    });
   });
 }
 
@@ -128,7 +166,7 @@ test.beforeEach(async({ page, baseURL }) => {
 
 FRAMEWORKS.forEach(({ prefix, urlPath }) => {
   PAGES.forEach((slug) => {
-    test(`${prefix} ${slug}: every example grid has a height and fits its root`, async({ page, baseURL }) => {
+    test(`${prefix} ${slug}: every example lays out its grid`, async({ page, baseURL }) => {
       const path = `/${urlPath}/${slug}`;
 
       await page.goto(`${baseURL}${path}`);
@@ -146,15 +184,15 @@ FRAMEWORKS.forEach(({ prefix, urlPath }) => {
       let previous = '';
 
       await expect.poll(async() => {
-        const grids = await measureExampleGrids(page);
-        const signature = JSON.stringify(grids);
+        const examples = await measureExamples(page);
+        const signature = JSON.stringify(examples);
         const settled = signature === previous;
 
         previous = signature;
 
-        return settled ? layoutProblems(grids) : ['the example grids are still settling'];
+        return settled ? layoutProblems(examples) : ['the example grids are still settling'];
       }, {
-        message: `every example grid on ${path} has a height and fits inside its root`,
+        message: `every example on ${path} lays out its grid`,
         timeout: 15000,
       }).toEqual([]);
     });

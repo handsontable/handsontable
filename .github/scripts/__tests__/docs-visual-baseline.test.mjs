@@ -1,10 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 // docs/tests/paths.js is CommonJS, and this file is ESM.
@@ -34,9 +32,10 @@ const require = createRequire(import.meta.url);
 //      seeds from a pull request's deploy;
 //   5. a render writes golden records without the example grid layout spec
 //      passing first (a flaky pass or a skipped test is not a pass), or from a
-//      build other than the one it checked, so blank or mixed grids become the
-//      baseline again (#13381 to #13626); a refused bootstrap claims a baseline
-//      it never wrote; or a seed that fails says nothing.
+//      moving branch alias instead of the deploy's own URL, so blank or mixed
+//      grids become the baseline again (#13381 to #13626); a refused bootstrap
+//      claims a baseline it never wrote; or a failed seed says nothing, or says
+//      it again on every deploy of a streak.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.
@@ -275,7 +274,7 @@ test('every render that writes golden records first passes the example grid layo
       `${name} carries a status-check function, so it would still run after a failed layout check`);
   }
 
-  // The spec must keep checking both facts, on every page and framework, with nothing skipped, or
+  // The spec must keep checking every fact, on every page and framework, with nothing skipped, or
   // the gate passes a broken render without anything going red.
   const specPath = 'docs/tests/exampleGridLayout.spec.ts';
 
@@ -283,10 +282,16 @@ test('every render that writes golden records first passes the example grid layo
 
   const spec = read(specPath);
 
-  assert.match(spec, /'\.hot-example-preview \.ht_master \.wtHolder'/, 'the spec no longer measures the example grids');
+  assert.match(spec, /querySelectorAll<HTMLElement>\('\.hot-example-preview'\)/, 'the spec no longer measures every example');
+  assert.match(spec, /querySelectorAll<HTMLElement>\('\.ht_master \.wtHolder'\)/, 'the spec no longer finds the example grids');
+  assert.match(spec, /return \['no example on the page'\];/, 'a page with no example would pass the check');
+  assert.match(spec, /if \(grids\.length === 0\) \{\n\s+return \[`\$\{example\}: no grid rendered`\];/,
+    'an example that failed to mount would pass the check');
   assert.match(spec, /if \(holderHeight === 0\) \{/, 'the spec no longer fails a collapsed grid');
+  assert.match(spec, /\} else if \(!showsARow\) \{/, 'the spec no longer fails a holder too short to show a row');
   assert.match(spec, /if \(holderWidth > rootWidth\) \{/, 'the spec no longer fails a holder wider than its grid root');
-  assert.match(spec, /'no example grid rendered on the page'/, 'a page with no grid would pass the check');
+  assert.match(spec, /if \(cutOffLeft > 0\) \{/, 'the spec no longer fails a grid the example cuts off on the left');
+  assert.match(spec, /if \(cutOffRight > 0\) \{/, 'the spec no longer fails a grid the example cuts off on the right');
   assert.match(spec, /\}\)\.toEqual\(\[\]\);/, 'the spec no longer requires an empty list of problems');
   assert.doesNotMatch(spec, /\b(?:test|describe)(?:\.describe)?\.(?:skip|fixme|fail|only)\s*\(/,
     'a skipped, fixme\'d, expected-to-fail, or focused test turns the gate off');
@@ -296,59 +301,6 @@ test('every render that writes golden records first passes the example grid layo
   for (const urlPath of ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid']) {
     assert.ok(spec.includes(`urlPath: '${urlPath}'`), `the spec no longer covers ${urlPath}`);
   }
-});
-
-test('a seed pins the build it renders, before the layout check and after the render', () => {
-  // A seed renders a moving alias for about 13 minutes. On 2026-09-18 the seed of eef5d1822 rendered
-  // from 12:08 to 12:20 while the next deploy took the alias at 12:18, so that baseline mixed two
-  // deploys, and a layout check can vouch for only one of them.
-  const pin = actionStep('Pin the build the golden records come from');
-  const layout = actionStep('Check that the example grids are laid out');
-  const render = actionStep('Render the baseline');
-  const confirm = actionStep('Confirm the build did not change during the render');
-  const seedStep = actionStep('Seed the golden records');
-  const all = actionSteps();
-  const order = [pin, layout, render, confirm, seedStep].map(step => all.indexOf(step));
-
-  assert.deepEqual(order, [...order].sort((a, b) => a - b),
-    'the order must be: pin the build, check the layout, render, confirm the build, seed');
-
-  assert.equal(stepIf(pin), "inputs.mode == 'seed'");
-  assert.equal(stepIf(confirm), "inputs.mode == 'seed' && env.DOCS_VISUAL_PINNED_BUILD");
-  for (const [name, step] of [['the layout check', layout], ['the render', render], ['the seed', seedStep]]) {
-    assert.match(stepIf(step), /&& env\.DOCS_VISUAL_SUPERSEDED != 'true'/,
-      `${name} must not run once a newer deploy superseded this seed`);
-  }
-
-  assert.match(pin, /EXPECTED_SHA: \$\{\{ inputs\.expected-sha \}\}/);
-  assert.match(pin, /echo "DOCS_VISUAL_PINNED_BUILD=\$served" >> "\$GITHUB_ENV"/);
-  assert.match(pin, /echo "DOCS_VISUAL_SUPERSEDED=true" >> "\$GITHUB_ENV"/);
-  assert.match(pin, /if \[ -z "\$served" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
-    'with expected-sha set, a target that shows no build SHA must refuse, not render unpinned');
-  assert.match(confirm, /echo "DOCS_VISUAL_SUPERSEDED=true" >> "\$GITHUB_ENV"/);
-  assert.match(confirm, /elif \[ -z "\$served" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
-    'a target that stops showing its build SHA mid-run cannot prove the render came from one build');
-
-  // Both reads use one pattern, and it must match what a staging docs build prints.
-  const pattern = "grep -oE '0\\.0\\.0-next-[0-9a-f]{7}-[0-9]{8}'";
-
-  for (const [name, step] of [['pin', pin], ['confirm', confirm]]) {
-    assert.ok(step.includes(pattern), `the ${name} step no longer reads the build SHA with ${pattern}`);
-    assert.ok(step.includes('"$BASE_URL/javascript-data-grid/demo/"'), `the ${name} step no longer reads the demo page`);
-  }
-
-  const sha = '0123456789abcdef0123456789abcdef01234567';
-  const versionModule = pathToFileURL(path.join(root, 'docs/src/plugins/docs-version.mjs')).href;
-  const printed = execFileSync(process.execPath, ['--input-type=module', '-e',
-    `const { CURRENT_DOCS_VERSION } = await import(${JSON.stringify(versionModule)}); process.stdout.write(CURRENT_DOCS_VERSION);`,
-  ], { env: { ...process.env, GITHUB_SHA: sha, BUILD_MODE: '' }, encoding: 'utf8' });
-
-  assert.match(printed, /^0\.0\.0-next-[0-9a-f]{7}-[0-9]{8}$/, `a staging build prints ${printed}, which the pin cannot read`);
-  assert.equal(printed.split('-')[2], sha.slice(0, 7), 'the build SHA a staging build prints is not its commit\'s first 7 characters');
-
-  // Develop seeds pin to the deploy they chain on; a release build prints a version, not a SHA.
-  assert.match(job(seed, 'seed'),
-    /expected-sha: \$\{\{ steps\.target\.outputs\.branch == 'develop' && github\.event\.workflow_run\.head_sha \|\| '' \}\}/);
 });
 
 test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
@@ -564,18 +516,17 @@ test('the docs seed chains on the staging deploy, seeds only a successful push b
   assert.match(condition, /github\.event\.workflow_run\.event == 'push'/, 'a pull request\'s deploy is not a base branch\'s');
   assert.match(condition, /github\.event_name == 'workflow_dispatch'/);
 
-  assert.match(seedJob, /ref: \$\{\{ github\.event\.workflow_run\.head_sha \|\| inputs\.branch \}\}/,
-    'the specs must be the deployed commit\'s');
+  assert.match(seedJob, /ref: \$\{\{ steps\.target\.outputs\.sha \}\}/,
+    'the specs must be the commit the seeded deploy was built from');
   assert.match(seedJob, /BRANCH: \$\{\{ github\.event\.workflow_run\.head_branch \|\| inputs\.branch \}\}/,
     'the branch goes through env, never into the script body');
-  assert.match(seedJob, /url="https:\/\/handsontable-docs-staging\.pages\.dev\/docs"/, 'develop is the apex deploy');
-  assert.match(seedJob, /url="https:\/\/rc-\$\{version\/\/\.\/-\}\.handsontable-docs-staging\.pages\.dev\/docs"/,
-    'release/x.y.z deploys to rc-x-y-z, dots to dashes, as docs-staging.yml\'s cf-target does');
-  assert.match(seedJob, /else\n\s+echo "::error::[^\n]*\n\s+exit 1/, 'any other branch has no baseline to seed');
+  assert.match(seedJob,
+    /if \[ "\$BRANCH" != "develop" \] && \[\[ ! "\$BRANCH" =~ \^release\/\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$ \]\]; then\n\s+echo "::error::[^\n]*\n\s+exit 1/,
+    'any branch but develop and release/x.y.z has no baseline to seed');
   assert.match(seedJob, /mode: seed$/m);
   assert.match(seedJob, /base-key: docs\/base\/\$\{\{ steps\.target\.outputs\.branch \}\}\n\s+actual-key: docs\/base\/\$\{\{ steps\.target\.outputs\.branch \}\}/,
     'a seed publishes under the key it writes');
-  assert.match(seedJob, /permissions:\n\s+contents: read/);
+  assert.match(seedJob, /permissions:\n\s+contents: read\n\s+actions: read/, 'read-only, plus the deploy record download');
   assert.doesNotMatch(seed, /aws s3/, 'the seed workflow writes nothing itself; the action owns the bucket writes');
 
   assert.match(seed,
@@ -583,10 +534,59 @@ test('the docs seed chains on the staging deploy, seeds only a successful push b
     'the seed group must never cancel a seed halfway through its --delete reconcile');
 });
 
-test('a failed docs seed posts to Slack, through a condition that can actually fire', () => {
+test('a seed renders the staging deploy\'s own URL, which the deploy records for it', () => {
+  // The branch alias moves with every deploy. On 2026-09-18 a seed rendered from 12:08 to 12:20 while
+  // the next deploy took the alias at 12:18, and wrote a baseline mixed from two deploys. A deploy's own
+  // URL never moves, so docs-staging.yml records it and the seed renders it.
+  const staging = read('.github/workflows/docs-staging.yml');
+  const [, stagingJob = ''] = staging.split(/^jobs:$/m);
+  const stagingSteps = stagingJob.split(/^ {6}(?=- )/m);
+  const stagingStep = name => stagingSteps.find(step => step.includes(`name: ${name}\n`)) ?? '';
+  const deploy = stagingStep('Deploy to Cloudflare Pages');
+  const record = stagingStep('Record the deploy\'s own URL for the docs visual seed');
+  const upload = stagingStep('Upload the deploy record');
+
+  assert.match(deploy, /WRANGLER_OUTPUT_FILE_PATH: \$\{\{ runner\.temp \}\}\/wrangler-output\.ndjson/,
+    'wrangler writes the deploy\'s own URL only to the file this names');
+  assert.ok(record, 'docs-staging.yml no longer records the deploy URL, so no seed can find a fixed URL');
+  assert.match(record, /if: \$\{\{ steps\.cf-pages-deploy\.outcome == 'success' && github\.event_name != 'pull_request' \}\}/);
+  assert.match(record, /jq -r 'select\(\.type == "pages-deploy-detailed"\) \| \.url \/\/ empty' "\$OUTPUT_FILE"/);
+  assert.match(record, /--arg url "\$url" --arg sha "\$GITHUB_SHA"/, 'the record names the commit the deploy was built from');
+  assert.doesNotMatch(record, /exit 1/, 'a missing record must not fail the deploy; the seed fails and says why');
+  assert.match(upload, /if: \$\{\{ steps\.deploy-record\.outputs\.recorded == 'true' \}\}/);
+  assert.match(upload, /name: docs-staging-deploy\n\s+path: \$\{\{ runner\.temp \}\}\/docs-staging-deploy\/deploy\.json/);
+
+  const resolve = steps(job(seed, 'seed')).find(step => step.includes('name: Resolve the staging deploy to seed from'));
+  const seedSteps = steps(job(seed, 'seed'));
+
+  assert.ok(resolve, 'the seed no longer resolves a deploy');
+  assert.ok(seedSteps.indexOf(resolve) < seedSteps.findIndex(step => step.includes('uses: actions/checkout@')),
+    'the checkout needs the deploy\'s commit, so the deploy is resolved first');
+  assert.match(resolve, /DEPLOY_RUN_ID: \$\{\{ github\.event\.workflow_run\.id \}\}/);
+  assert.match(resolve, /DEPLOYED_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+  assert.match(resolve, /gh run list --repo "\$REPO" --workflow docs-staging\.yml --branch "\$BRANCH" \\\n\s+--status success --limit 1/,
+    'a dispatch seeds from the branch\'s latest successful deploy');
+  assert.match(resolve, /gh run download "\$DEPLOY_RUN_ID" --repo "\$REPO" --name docs-staging-deploy /,
+    'the seed downloads the record under the name docs-staging.yml uploads it');
+  assert.match(resolve, /\[\[ ! "\$url" =~ \^https:\/\/\[0-9a-f\]\{8\}\\\.handsontable-docs-staging\\\.pages\\\.dev\$ \]\]/,
+    'only a deploy\'s own URL is seeded from, never an alias');
+  assert.match(resolve, /if \[ -n "\$DEPLOYED_SHA" \] && \[ "\$sha" != "\$DEPLOYED_SHA" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
+    'a record for another commit must not be seeded from');
+  assert.match(resolve, /echo "url=\$url\/docs" >> "\$GITHUB_OUTPUT"/);
+  assert.match(job(seed, 'seed'), /test-url: \$\{\{ steps\.target\.outputs\.url \}\}/);
+  assert.doesNotMatch(seed, /url="https:\/\/(?:rc-[^"]*\.)?handsontable-docs-staging\.pages\.dev\/docs"/,
+    'a seed from a branch alias can mix two deploys again');
+});
+
+test('a failed docs seed posts to Slack once per streak, through a condition that can actually fire', () => {
   // A seed the layout check refuses leaves docs/base/<branch> where it was, and nothing else says so:
-  // the workflow is not a required check. visual-seed.yml's notify job is the model.
+  // the workflow is not a required check. visual-seed.yml's notify job is the model. While a render
+  // stays broken every docs deploy fails its seed, so only the first failure of a streak posts.
   const notify = job(seed, 'notify');
+  const notifySteps = steps(notify);
+  const streak = notifySteps.find(step => step.includes('name: Check whether the previous seed of this branch failed too'));
+  const message = notifySteps.find(step => step.includes('name: Write the Slack message'));
+  const send = notifySteps.find(step => step.includes('name: Send the failure to Slack'));
 
   assert.ok(notify, 'docs-visual-seed.yml has no notify job, so a failed or refused seed is silent');
   assert.match(notify, /needs: \[ seed \]/);
@@ -594,10 +594,28 @@ test('a failed docs seed posts to Slack, through a condition that can actually f
     'without a status-check function GitHub ANDs an implicit success() onto the condition, and the job never runs; '
       + 'a hand dispatch has someone watching it');
   assert.doesNotMatch(job(seed, 'seed'), /^\s+continue-on-error:/m, 'a seed job that cannot fail never triggers the notify job');
-  assert.match(notify, /permissions: \{\}/, 'the ping goes through the webhook and needs no token');
+  assert.match(notify, /permissions:\n\s+actions: read\n/, 'listing earlier runs needs actions: read and nothing more');
   assert.match(notify, /SLACK_WEBHOOK_URL: \$\{\{ secrets\.SLACK_VISUAL_WEBHOOK_URL \}\}/, 'the core visual seed\'s hook');
-  assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/, 'an absent secret must skip the step, not fail the job');
-  assert.match(notify, /uses: slackapi\/slack-github-action@[0-9a-f]{40} /, 'the Slack action is pinned by SHA');
+
+  // The streak is keyed on the run name, which must carry the seeded branch the same way on both sides.
+  assert.match(seed, /^run-name: Docs visual seed \(\$\{\{ github\.event\.workflow_run\.head_branch \|\| inputs\.branch \}\}\)$/m);
+  assert.ok(streak, 'the notify job no longer checks for a streak, so every failed deploy posts');
+  assert.match(streak, /RUN_NAME: Docs visual seed \(\$\{\{ github\.event\.workflow_run\.head_branch \}\}\)/);
+  assert.match(streak, /gh run list --repo "\$REPO" --workflow docs-visual-seed\.yml/);
+  assert.match(streak, /\.displayTitle == env\.RUN_NAME/);
+  assert.match(streak, /\.conclusion == "success" or \.conclusion == "failure"/, 'a skipped or cancelled run neither starts nor ends a streak');
+
+  for (const [name, step] of [['streak', streak], ['message', message], ['send', send]]) {
+    assert.match(stepIf(step), /env\.SLACK_WEBHOOK_URL != ''/, `the ${name} step must skip itself without the secret`);
+  }
+  for (const [name, step] of [['message', message], ['send', send]]) {
+    assert.match(stepIf(step), /steps\.streak\.outputs\.previous != 'failure'/, `the ${name} step must stay quiet mid-streak`);
+  }
+  assert.match(message, /jq -n --arg text "\$text" '\{text: \$text\}' > "\$RUNNER_TEMP\/slack-payload\.json"/,
+    'jq builds the payload, so no branch name can break its JSON');
+  assert.match(send, /payload-file-path: \$\{\{ runner\.temp \}\}\/slack-payload\.json/);
+  assert.doesNotMatch(send, /\n\s+payload: /, 'an inline payload interpolates values into JSON unescaped');
+  assert.match(send, /uses: slackapi\/slack-github-action@[0-9a-f]{40} /, 'the Slack action is pinned by SHA');
 });
 
 test('the dispatch workflow is a thin caller of the action: no workflow_call, no label, no cache', () => {
