@@ -5,7 +5,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { flattenCssVariables } from './utils/cssVariables';
 import { validateColorScheme, validateDensityType } from './utils/validation';
 import { splitIcons, ICON_CLASS, ICON_EXTERNAL_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName } from './utils/icons';
-import type { ThemeConfig, ThemeColorScheme, DensityType, IconKey, IconValue } from '../types';
+import type { ThemeConfig, ThemeColorScheme, DensityType, IconKey, IconValue, ThemeIconsConfig } from '../types';
 import type { ThemeBuilder } from './builder';
 import type { IconOptions } from './icons';
 
@@ -134,6 +134,12 @@ export class ThemeManager {
    * @type {number}
    */
   #iconsRevision = 0;
+
+  /**
+   * The icons mapping `#resolveIcons()` last resolved, so a re-resolve that changes nothing does
+   * not bump the revision.
+   */
+  #lastIcons: ThemeIconsConfig | null = null;
 
   /**
    * Class that scopes the per-instance override rules to this grid only. Stamped on the wrapper and
@@ -343,12 +349,40 @@ export class ThemeManager {
    * @returns {Record<string, string>} The glyph URLs keyed by icon name.
    */
   #resolveIcons(): Record<string, string> {
-    const { glyphs, external } = splitIcons(this.themeConfig?.icons ?? {});
+    const icons = this.themeConfig?.icons ?? {};
+    const { glyphs, external } = splitIcons(icons);
+
+    // Bump the revision only when the mapping really moved. `#injectThemeStyles()` re-resolves on
+    // every call - a density or color-scheme override included - and an unconditional bump made
+    // `syncIcon()` re-apply every kept icon on the next draw although no icon had changed.
+    if (this.#iconsChanged(icons)) {
+      this.#lastIcons = { ...icons };
+      this.#iconsRevision += 1;
+    }
 
     this.#externalIcons = external;
-    this.#iconsRevision += 1;
 
     return glyphs;
+  }
+
+  /**
+   * Tells whether an icons mapping differs from the last one `#resolveIcons()` saw. Strings compare
+   * by value, renderer callbacks by identity.
+   */
+  #iconsChanged(icons: ThemeIconsConfig): boolean {
+    const previous = this.#lastIcons;
+
+    if (previous === null) {
+      return true;
+    }
+
+    const nextKeys = Object.keys(icons);
+
+    if (nextKeys.length !== Object.keys(previous).length) {
+      return true;
+    }
+
+    return nextKeys.some(key => previous[key as keyof ThemeIconsConfig] !== icons[key as keyof ThemeIconsConfig]);
   }
 
   /**

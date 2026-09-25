@@ -940,8 +940,13 @@ describe('ThemeManager', () => {
 
           expect(afterConstruction).toEqual(expect.any(Number));
 
-          // Path 1: `update()` with a brand new theme object (e.g. `useTheme()` at runtime).
-          manager.update(createTheme(createValidThemeConfig({ name: 'revision-theme-2' })));
+          // Path 1: `update()` with a brand new theme object (e.g. `useTheme()` at runtime) whose
+          // icons DIFFER. A theme that maps the same icons leaves every kept element correct, so it
+          // must not bump (asserted further down).
+          manager.update(createTheme(createValidThemeConfig({
+            name: 'revision-theme-2',
+            icons: { arrowRight: 'url(other.svg)' },
+          })));
           const afterUpdate = manager.getIconsRevision();
 
           expect(afterUpdate).toBeGreaterThan(afterConstruction);
@@ -958,12 +963,31 @@ describe('ThemeManager', () => {
 
           expect(afterThemeParamsChange).toBeGreaterThan(afterSubscribedUpdate);
 
-          // Path 3: `setOverrides()` (color scheme / density) re-injects the theme styles too,
-          // and `#injectThemeStyles()` re-resolves icons unconditionally on every call.
+          // Path 3: `setOverrides()` (color scheme / density) re-injects the theme styles, which
+          // re-resolves the icons - but nothing about them changed, so the revision must hold, or
+          // every kept icon on the grid is re-applied for a density switch (PR #13639 review).
           manager.setOverrides({ colorScheme: 'dark' });
-          const afterSetOverrides = manager.getIconsRevision();
+          manager.setOverrides({ density: 'compact' });
 
-          expect(afterSetOverrides).toBeGreaterThan(afterThemeParamsChange);
+          expect(manager.getIconsRevision()).toBe(afterThemeParamsChange);
+
+          // A `params()` call that re-states the SAME mapping is not a change either.
+          subscribedTheme.params({ icons: { arrowRight: 'ti ti-x' } });
+
+          expect(manager.getIconsRevision()).toBe(afterThemeParamsChange);
+
+          // Changing a value bumps; a renderer callback counts by identity, so a new function is a
+          // change and the same function is not.
+          const renderer = () => {};
+
+          subscribedTheme.params({ icons: { arrowRight: renderer } });
+          const afterRenderer = manager.getIconsRevision();
+
+          expect(afterRenderer).toBeGreaterThan(afterThemeParamsChange);
+
+          subscribedTheme.params({ icons: { arrowRight: renderer } });
+
+          expect(manager.getIconsRevision()).toBe(afterRenderer);
         });
       });
     });
