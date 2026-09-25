@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-25T08:04:15.595Z",
+  "generatedAt": "2026-09-25T10:20:38.439Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8815,7 +8815,7 @@
       "file": "handsontable/src/plugins/multiColumnSorting/__tests__/sortingConflicts.spec.js",
       "line": null,
       "title": "MultiColumnSorting cooperation with ColumnSorting should print warning and set the correct plugin's enabled state when the both plugins are enabled",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
