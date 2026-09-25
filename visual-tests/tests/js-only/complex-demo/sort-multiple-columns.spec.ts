@@ -10,6 +10,10 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
+/**
+ * Checks that a two-column sort (Age descending, then Interest ascending) renders both sort indicators and
+ * their order numbers on the complex demo. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

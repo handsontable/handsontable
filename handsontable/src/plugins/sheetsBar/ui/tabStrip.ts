@@ -229,7 +229,7 @@ export class TabStrip {
       this.runLocalHooks('tabClick', sheet.id);
     });
     tab.addEventListener('dblclick', (event) => {
-      if (!this.#isWithinRenameInput(event)) {
+      if (!this.#isWithinRenameInput(event) && !this.#isWithinChevron(event)) {
         this.startRename(sheet.id);
       }
     });

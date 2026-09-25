@@ -12,7 +12,11 @@ const urls = [
 ];
 
 urls.forEach((url) => {
-  visualTest(`Test rows resizing for: ${url}`, {
+  /**
+   * Checks that scrolling the grid with the mouse wheel from a selected cell renders the scrolled viewport
+   * on this demo route. One capture per route in `urls`, in each browser. Owned by DEV-2981.
+   */
+  visualTest(`Test scrolling for: ${url}`, {
     themes: [CLASSIC],
     browsers: CROSS_BROWSERS,
     wrappers: [],

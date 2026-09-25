@@ -368,6 +368,8 @@ The one difference between `'auto'` and an unset `height` is the inline `height:
 
 Inside a parent with a fixed height and `overflow: auto`, a grid with `height: 'auto'` fills the parent and scrolls inside it rather than growing past it.
 
+Inside a parent with `overflow: auto` or `overflow: hidden` but no height of its own, a grid with `height: 'auto'` grows to fit its rows, and the parent grows with it.
+
 :::
 
 ### Accepted values

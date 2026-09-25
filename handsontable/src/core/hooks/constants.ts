@@ -3890,6 +3890,9 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeDetachChild
    * @param {object} parent An object representing the parent from which the element is to be detached.
    * @param {object} element The detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeDetachChild',
 
@@ -3901,6 +3904,9 @@ export const REGISTERED_HOOKS = [
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementPosition The final row index of the detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterDetachChild',
 

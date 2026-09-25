@@ -168,7 +168,9 @@ export interface ExportOptions {
    */
   rowDelimiter?: string;
   /**
-   * Include column headers.
+   * Include column headers. With the NestedHeaders plugin, every header layer is exported: XLSX writes
+   * one header row per layer with merged group cells, and CSV writes one header line per layer with a
+   * group label repeated across every column it spans.
    */
   colHeaders?: boolean;
   /**

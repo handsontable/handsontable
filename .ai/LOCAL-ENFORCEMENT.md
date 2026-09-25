@@ -308,7 +308,7 @@ agree on what a "fixed wait" is:
 | Tier | Where | Level | Flags |
 |---|---|---|---|
 | Playwright (`tests/`) | `tests/.eslintrc.cjs` (`no-restricted-syntax`) | **error** | `waitForTimeout(`, `sleep(`, `setTimeout(` (the global timer only — bare, `window.`, or `globalThis.` — inside `page.evaluate` too; `test.setTimeout(ms)` / `testInfo.setTimeout(ms)` set a budget, not a wait, and pass), `'networkidle'`, `.only`, `.skip`, bare `test.fixme` |
-| Visual (`visual-tests/src`, `visual-tests/tests`) | `visual-tests/.eslintrc.js` (`no-restricted-syntax`, the functional tier's list copied) | **error** | the same flags, plus `locator.screenshot()` / `elementHandle.screenshot()` (bypasses the settle and the selection clear in `src/test-runner.ts` — clip a `tablePage.screenshot()` instead) and `test.fixme`; the conditional `test.skip(condition, why)` is the one legal skip — plus, once landed, the capture after an unasserted action rule and the spec docblock (`visual-tests/AGENTS.md`, Guardrails) |
+| Visual (`visual-tests/src`, `visual-tests/tests`) | `visual-tests/.eslintrc.js` (`no-restricted-syntax`, the functional tier's list copied; `jsdoc/require-jsdoc` + `jsdoc/match-description` in specs) | **error** | the same flags, plus `locator.screenshot()` / `elementHandle.screenshot()` (bypasses the settle and the selection clear in `src/test-runner.ts` — clip a `tablePage.screenshot()` instead) and `test.fixme`; the conditional `test.skip(condition, why)` is the one legal skip — plus two visual-only rules: a capture after an unasserted action (a capture on the statement straight after a pointer or keyboard primitive, with no assertion between), and the spec docblock (a block above every `visualTest()` call naming what it proves and its owning ticket) — `visual-tests/AGENTS.md`, Determinism |
 | Frozen Jasmine + Jest (`*.spec.js`, `*.unit.js`, `*.unit.ts`) | `handsontable/no-fixed-sleep-in-spec` (`handsontable/.config/plugin/eslint/rules/`) | warn | `sleep(` (`noSleep`), `setTimeout(fn, <non-zero numeric literal>)` on the global timer (`noSetTimeout` — a literal `0` is a macrotask hand-off, not a wait, and passes), `waitForNextAnimationFrames(` (`noFrameWait` — a literal `0` resolves at once and passes too) |
 | Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` — with the frozen rule's exemptions: the global timer only, a non-zero numeric-literal delay only, a literal `0` frame count passes — plus `theme-sensitive-viewport`, a rendered-row count read from a grid with no pinned viewport (a different number on each leg of the theme matrix) |
 
@@ -351,9 +351,14 @@ each enforceable half of that rule runs.
   package), which `test.yml` runs when `checks.yml`'s `test-visual` filter
   (`visual-tests/**`, `examples/next/visual-tests/**`, `pnpm-lock.yaml`,
   `pnpm-workspace.yaml`) or `run-all` fires. The rule against a
-  capture after an unasserted action, and the spec docblock (G4 under
-  `visual-tests/AGENTS.md`, Guardrails), join this row when they land; they are
-  lint too, so they inherit all three points.
+  capture after an unasserted action and the spec docblock (G4 under
+  `visual-tests/AGENTS.md`, Guardrails) are in that row, so they inherit all
+  three points. The config's own proof is not lint:
+  `visual-tests/test/__tests__/determinism-lint.test.mjs` runs those rules on
+  fixtures (a selector esquery cannot use matches nothing and lints green), and
+  it imports ESLint, so its one runner is the second step of that same CI job
+  (`npm run in visual-tests test:lint-config`) — never a hook, and never the root
+  `test:tooling` glob, whose job installs nothing.
 - **A rendered `out.json`, CI only.** `visual-tests/scripts/visual-gate.mjs`
   (the pull request verdict) and `scripts/seed-report.mjs` (the seed and
   nightly summaries) read `.reg/out.json`, which `scripts/compare.mjs` (or

@@ -253,3 +253,42 @@ test('the comment falls back to the run link, and to no link', () => {
   assert.match(runOnly.comment, /\*\*\[Open the seed run\]\(https:\/\/r\/1\)\*\* — the `visual-diff-report` artifact/);
   assert.doesNotMatch(none.comment, /Open the/);
 });
+
+// The nightly's quarantine, applied by scripts/seed-report.mjs before this runs (the full tier only): the
+// quarantined items are gone from `failedItems` and passed in to be listed.
+const parked = [{
+  item: 'js/chromium-theme-main-dark/multi-frameworks/filters/escaping-the-menu-12.png',
+  entry: { taskId: 'DEV-1234', expires: '2026-10-10', why: 'focus timer' },
+}];
+
+test('a nightly whose only differences are quarantined does not block, and lists them', () => {
+  const s = build({ tier: 'full', report: report({ passed: 1675 }), quarantined: parked });
+
+  assert.equal(s.verdict, 'clean');
+  assert.equal(s.blocking, false, 'one flaky golden must not turn every night red');
+  assert.match(s.markdown, /### Quarantined — reported, not blocking/);
+  assert.match(s.markdown, /escaping-the-menu-12\.png` — DEV-1234 until 2026-10-10 — focus timer/);
+  assert.doesNotMatch(s.markdown, /All 1675 screenshots match/, 'they did not all match; one is parked');
+  assert.match(s.summary, /, 1 quarantined\.$/, 'the job log still says what differed');
+});
+
+test('a nightly whose only differences are quarantined, with nothing passing, still compared something', () => {
+  const s = build({ tier: 'full', report: report({}), quarantined: parked });
+
+  assert.notEqual(s.verdict, 'error', 'the parked items were compared and did differ');
+  assert.equal(s.blocking, false);
+});
+
+test('a nightly with an expired entry blocks again and says why', () => {
+  const s = build({ tier: 'full', report: report({ changed: 1, passed: 1675 }), expired: parked });
+
+  assert.equal(s.blocking, true);
+  assert.match(s.markdown, /### Expired quarantine — blocking again/);
+});
+
+test('a nightly with no quarantine renders exactly as before', () => {
+  const s = build({ tier: 'full', report: report({ passed: 1676 }) });
+
+  assert.doesNotMatch(s.markdown, /uarantine/);
+  assert.match(s.markdown, /All 1676 screenshots match the golden records\./);
+});

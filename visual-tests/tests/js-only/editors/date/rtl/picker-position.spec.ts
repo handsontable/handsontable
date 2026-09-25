@@ -4,6 +4,10 @@ import {
   doubleClickRelativeToViewport,
 } from '../../../../../src/page-helpers';
 
+/**
+ * Checks that, in RTL, the date editor's picker opens inside the viewport from a cell near each corner of
+ * the grid. One capture per corner. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

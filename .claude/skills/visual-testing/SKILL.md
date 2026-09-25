@@ -44,6 +44,9 @@ import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
+/**
+ * Checks that the focused cell renders its current-cell highlight. Owned by DEV-<number>.
+ */
 visualTest(__filename, {
   themes: ['main', 'main-dark'],
   browsers: ['chromium'],
@@ -58,6 +61,8 @@ visualTest(__filename, {
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
 ```
+
+Every test call carries a docblock that says what its capture proves and names the ticket that owns it — a ClickUp ID in the `DEV-`, `PRO-` or `SU-` space, or a GitHub issue of four or more digits as `#12345`. Both halves are lint errors when missing (`jsdoc/require-jsdoc`, `jsdoc/require-description`, `jsdoc/match-description`), and `DEV-<number>` above is deliberately a placeholder the lint rejects, so a copy of the example fails until it names a real owner. The assertion before the capture is a lint error too when it is missing: a capture on the statement straight after a click, a key press, or any other pointer or keyboard action is reported at the capture.
 
 Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 
@@ -76,6 +81,9 @@ The directory decides which Playwright config runs the spec; the declaration dec
 For tests targeting a specific demo route (not the default `/` grid), use the `goto` fixture:
 
 ```typescript
+/**
+ * Checks that the my-feature demo renders its grid. Owned by DEV-<number>.
+ */
 visualTest(__filename, {
   themes: ['main', 'main-dark'],
   browsers: ['chromium'],
@@ -106,7 +114,7 @@ Check `visual-tests/package.json` for available scripts. Configuration files:
 What CI renders depends on the tier (`VISUAL_TIERS` in `visual-tests/src/config.mjs`; the reasoning and the measured numbers are in `visual-tests/AGENTS.md`, Tiers):
 
 - A pull request renders the `pr` tier: the vanilla JS specs on Chromium with the `main` and `main-dark` themes, plus a wrapper only when that wrapper's own `wrappers/<pkg>/` tree changed. No horizon themes, no bare "classic" run, no Firefox or WebKit.
-- Horizon, the classic delivery path, Firefox, and WebKit are rendered by the develop seed (`visual-seed.yml`) minutes after a merge; when the merge changed any of them, the seed comments the list on the merged pull request, and those renders become the golden records. The wrappers are rendered for real only by the weekday nightly (`visual-nightly.yml`; the seed copies the js render into their goldens), which goes red on any difference from the seed — a wrapper drifting from js, a flaky or poisoned golden, or a commit whose seed never landed. A theme-only regression shows in the seed's comment, never as a red nightly.
+- Horizon, the classic delivery path, Firefox, and WebKit are rendered by the develop seed (`visual-seed.yml`) minutes after a merge; when the merge changed any of them, the seed comments the list on the merged pull request, and those renders become the golden records. The wrappers are rendered for real only by the weekday nightly (`visual-nightly.yml`; the seed copies the js render into their goldens), which goes red on any difference from the seed outside the visual quarantine (`visual-tests/visual-quarantine.json`) — a wrapper drifting from js, a flaky or poisoned golden, or a commit whose seed never landed. A theme-only regression shows in the seed's comment, never as a red nightly.
 - A pull request that touches `visual-tests/**` or `examples/next/visual-tests/**` renders everything (the `full` tier), so a spec or demo change is proven on every variant before it merges.
 - Locally, `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` (from `visual-tests/`) renders what a pull request renders and skips the wrapper installs; pass the same `VISUAL_TIER=pr` to `npm run compare`. A bare `npm run test` on a feature branch still renders everything. Running a visual spec is never a git or agent hook — the enforcement map in `.ai/LOCAL-ENFORCEMENT.md` says why.
 
@@ -117,7 +125,8 @@ A new feature gets its own `/<feature>-demo` route on the js demo's Navigo route
 ## Common Mistakes
 
 - Not using `helpers.screenshotPath()` -- breaks screenshot matching, which is purely path-based.
-- Capturing on the line after `click()` / `press()` / `type()` with nothing asserted in between -- the golden records whichever half of the transition the runner reached. Assert the state first (`toBeFocused()`, `toBeVisible()`, `toHaveClass()`); the Determinism section of `visual-tests/AGENTS.md` lists the shapes that have flaked.
+- Capturing on the statement after `click()` / `press()` / `type()` (or any pointer or keyboard action) with nothing asserted in between -- a lint error, because the golden records whichever half of the transition the runner reached. Assert the state first (`toBeFocused()`, `toBeVisible()`, `toBeHidden()`, `toHaveClass()`); the Determinism section of `visual-tests/AGENTS.md` lists the shapes that have flaked. A page helper call in between silences the lint whether or not the helper asserts, so check that it does: 25 of the 48 exported helpers in `src/page-helpers.ts` call a pointer or keyboard action and no `expect()` or wait (2026-09-23).
+- A test call with no docblock, or a docblock that names no ticket -- a lint error. Say what the capture proves and who owns it.
 - A second screenshot of the same visual state -- one capture per state; a second capture is a second state.
 - `locator.screenshot()` -- a lint error; it bypasses the fixture's settle and selection clear. Clip a `tablePage.screenshot()` instead.
 - A fixed delay (`waitForTimeout()`, `setTimeout`) -- a lint error; wait for the condition.
