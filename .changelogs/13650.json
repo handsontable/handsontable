@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the Formulas plugin keeping the children of a removed parent row when the Nested Rows plugin is enabled.",
+  "title": "Fixed the Formulas plugin keeping the children of a removed parent row when the Nested Rows plugin is enabled, and the `beforeRemoveRow` hook receiving only the parent row after an `updateSettings()` call.",
   "type": "fixed",
   "issueOrPR": 13650,
   "breaking": false,
