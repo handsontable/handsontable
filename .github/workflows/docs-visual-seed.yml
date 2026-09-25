@@ -33,6 +33,15 @@ name: Docs visual seed
 # trigger is a separate call: it costs a docs deploy of about 10 minutes per
 # core merge.
 #
+# A seed writes only a render that passes the layout gate. Before it renders
+# anything, the docs-visual-run action runs docs/tests/exampleGridLayout.spec.ts
+# against the deploy, and it fails without writing when an example grid is
+# collapsed or wider than its root. Between #13381 and #13626, 21 seeds wrote
+# blank grids into this baseline and every docs pull request "matched" them. So
+# a red run here can mean that the deploy is broken, not the seed. The `notify`
+# job posts every failure to Slack, because nothing else says the baseline
+# stopped moving.
+#
 # The group never cancels (visual-seed.yml's rule): GitHub keeps one running
 # and one pending run per group, so the LAST deploy of a burst is always
 # seeded, and an in-flight seed is never killed halfway through its
@@ -110,3 +119,31 @@ jobs:
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  # A failed seed leaves `docs/base/<branch>` where it was, and that is quiet on
+  # its own: this workflow is not a required check, and GitHub's failure email
+  # reaches only whoever triggered the deploy. visual-seed.yml's notify job has
+  # the same reason and the same shape. The `!cancelled()` is load-bearing: a
+  # job `if:` with no status-check function gets an implicit `success()`, which
+  # can never hold together with `needs.seed.result == 'failure'` (.ai/CI.md,
+  # the status-function entry). An absent secret is an empty string, so the step
+  # skips itself and the hook stays optional.
+  notify:
+    name: Notify Slack
+    needs: [ seed ]
+    if: ${{ !cancelled() && needs.seed.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Docs visual seed failed on ${{ github.event.workflow_run.head_branch || inputs.branch }} (${{ github.event.workflow_run.head_sha || 'hand dispatch' }}).\n`docs/base/${{ github.event.workflow_run.head_branch || inputs.branch }}` did NOT move, so docs pull requests are still compared against the previous render.\nIf the run failed at `Check that the example grids are laid out`, the deploy itself renders an example grid collapsed or wider than its root: fix the render, and the next docs deploy seeds again.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nRe-seed by hand: dispatch `Docs visual seed` with the branch."
+            }

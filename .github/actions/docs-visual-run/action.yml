@@ -10,7 +10,9 @@ description: >-
   and the docs-visual-tests.yml dispatch. It replaced an actions/cache baseline
   that never was one (DEV-2860; the probe step says why). A composite action
   cannot read `secrets`, so the caller passes the R2 credentials as inputs.
-  Requires checkout first.
+  Requires checkout first. A run that writes golden records first runs
+  docs/tests/exampleGridLayout.spec.ts against the same URL and renders
+  nothing when an example grid is collapsed or wider than its root.
 
 inputs:
   test-url:
@@ -201,6 +203,26 @@ runs:
         BASE_URL: ${{ inputs.test-url }}
         PASS_COOKIE: ${{ inputs.pass-cookie }}
       run: npx playwright test --project=visual
+
+    # Every run that writes golden records -- a seed, a re-seed dispatch, a
+    # bootstrap -- first proves that the example grids are laid out, because the
+    # render below takes whatever the target serves as the truth. Between #13381
+    # and #13626 every `height: 'auto'` example grid rendered 0px tall, 21 seeds
+    # wrote the blank grids into `docs/base/develop`, and every compare against
+    # them then "matched". The spec fails on a collapsed grid or on a holder
+    # wider than its grid root, on five pages in all four frameworks; its header
+    # says what each page covers. Failing here fails the job, and neither the
+    # render nor the seed step below carries a status-check function, so both
+    # are skipped and the baseline does not move. docs-visual-seed.yml's notify
+    # job posts a failed seed to Slack.
+    - name: Check that the example grids are laid out
+      if: inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
+      shell: bash
+      working-directory: ./docs
+      env:
+        BASE_URL: ${{ inputs.test-url }}
+        PASS_COOKIE: ${{ inputs.pass-cookie }}
+      run: npx playwright test --project=functional exampleGridLayout.spec.ts
 
     # A seed, or the first compare against a branch with no golden records.
     # `--update-snapshots` writes every golden the suite declares. Failures here

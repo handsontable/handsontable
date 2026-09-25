@@ -29,7 +29,10 @@ const require = createRequire(import.meta.url);
 //      recorded approval, or the functional project starts blocking merges
 //      before its sprint of report-only runs is over;
 //   4. the seed chain stops matching the deployed commit, cancels itself, or
-//      seeds from a pull request's deploy.
+//      seeds from a pull request's deploy;
+//   5. a render writes golden records without the example grid layout spec
+//      passing first, so blank grids become the baseline again (#13381 to
+//      #13626), or a seed that fails says nothing.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.
@@ -239,6 +242,46 @@ test('the seed step refuses an empty manifest, reconciles with --delete, and bot
   }
 });
 
+test('every render that writes golden records first passes the example grid layout spec, and a failure writes nothing', () => {
+  // Between #13381 and #13626 every `height: 'auto'` example grid rendered 0px tall, and 21 seeds
+  // wrote the blank grids into docs/base/develop. The render takes whatever the target serves as
+  // the truth, so the layout spec is the only thing between a broken deploy and the baseline.
+  const layout = actionStep('Check that the example grids are laid out');
+  const render = actionStep('Render the baseline');
+  const all = actionSteps();
+
+  assert.ok(all.indexOf(layout) < all.indexOf(render), 'the layout check must run before the render it gates');
+  assert.equal(stepIf(layout), stepIf(render),
+    'the check must guard exactly the runs that render golden records: a seed, a re-seed dispatch, and a bootstrap');
+  assert.match(layout, /run: npx playwright test --project=functional exampleGridLayout\.spec\.ts$/m);
+  assert.doesNotMatch(layout, /continue-on-error/, 'a layout failure must fail the job, or the render runs anyway');
+  assert.match(layout, /BASE_URL: \$\{\{ inputs\.test-url \}\}/, 'the check must read the URL the render reads');
+  assert.match(layout, /PASS_COOKIE: \$\{\{ inputs\.pass-cookie \}\}/);
+
+  // What turns a failed check into "nothing written": GitHub ANDs an implicit success() onto a
+  // condition with no status-check function, so both writers are skipped after the check fails.
+  for (const [name, step] of [['Render the baseline', render], ['Seed the golden records', actionStep('Seed the golden records')]]) {
+    assert.doesNotMatch(stepIf(step), /\b(?:always|success|failure|cancelled)\s*\(\s*\)/,
+      `${name} carries a status-check function, so it would still run after a failed layout check`);
+  }
+
+  // The spec must keep checking both facts on every framework, or the gate passes a broken render
+  // without anything going red.
+  const specPath = 'docs/tests/exampleGridLayout.spec.ts';
+
+  assert.ok(existsSync(path.join(root, specPath)), `${specPath} is missing`);
+
+  const spec = read(specPath);
+
+  assert.match(spec, /'\.hot-example-preview \.ht_master \.wtHolder'/, 'the spec no longer measures the example grids');
+  assert.match(spec, /holderHeight === 0/, 'the spec no longer fails a collapsed grid');
+  assert.match(spec, /holderWidth > rootWidth/, 'the spec no longer fails a holder wider than its grid root');
+  assert.match(spec, /'no example grid rendered on the page'/, 'a page with no grid would pass the check');
+  for (const urlPath of ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid']) {
+    assert.ok(spec.includes(`urlPath: '${urlPath}'`), `the spec no longer covers ${urlPath}`);
+  }
+});
+
 test('the docs Playwright config fails a missing golden on CI, keeps the snapshot path, and splits the two projects', () => {
   const config = read('docs/playwright.config.ts');
 
@@ -386,7 +429,7 @@ test('manual-qa, the visual approval and the docs visual approval assert their a
 test('the functional docs specs run on every docs pull request, report-only for now', () => {
   const functional = job(docs, 'functional');
 
-  assert.ok(functional, 'docs.yml has no functional job; the 11 functional specs would again run only under the visual label');
+  assert.ok(functional, 'docs.yml has no functional job; the functional specs would again run only under the visual label');
   assert.match(functional, /needs: \[ preview \]/);
   assert.match(functional, /needs\.preview\.result == 'success'/);
   assert.doesNotMatch(functional, /visual-label/, 'the functional specs must not depend on the visual label');
@@ -452,6 +495,21 @@ test('the docs seed chains on the staging deploy, seeds only a successful push b
   assert.match(seed,
     /concurrency:\n(?:\s+#.*\n)*\s+group: docs-visual-seed-\$\{\{ github\.event\.workflow_run\.head_branch \|\| inputs\.branch \}\}\n\s+cancel-in-progress: false/,
     'the seed group must never cancel a seed halfway through its --delete reconcile');
+});
+
+test('a failed docs seed posts to Slack, through a condition that can actually fire', () => {
+  // A seed the layout check refuses leaves docs/base/<branch> where it was, and nothing else says so:
+  // the workflow is not a required check. visual-seed.yml's notify job is the model.
+  const notify = job(seed, 'notify');
+
+  assert.ok(notify, 'docs-visual-seed.yml has no notify job, so a failed or refused seed is silent');
+  assert.match(notify, /needs: \[ seed \]/);
+  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.seed\.result == 'failure' \}\}/,
+    'without a status-check function GitHub ANDs an implicit success() onto the condition, and the job never runs');
+  assert.match(notify, /permissions: \{\}/, 'the ping goes through the webhook and needs no token');
+  assert.match(notify, /SLACK_WEBHOOK_URL: \$\{\{ secrets\.SLACK_VISUAL_WEBHOOK_URL \}\}/, 'the core visual seed\'s hook');
+  assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/, 'an absent secret must skip the step, not fail the job');
+  assert.match(notify, /uses: slackapi\/slack-github-action@[0-9a-f]{40} /, 'the Slack action is pinned by SHA');
 });
 
 test('the dispatch workflow is a thin caller of the action: no workflow_call, no label, no cache', () => {
