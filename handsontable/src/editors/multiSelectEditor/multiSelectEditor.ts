@@ -156,6 +156,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting<boolean>('searchInput'));
+    // The dropdown is built once and reused, so the search icon picks up a runtime `icons` remap or
+    // theme switch here (PR #13639 review). A no-op unless the theme's icons revision moved.
+    this.dropdownController!.refreshIcons();
 
     if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(this.#getEditorSetting<number>('maxSelections'));

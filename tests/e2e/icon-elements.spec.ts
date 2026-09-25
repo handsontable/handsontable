@@ -2250,6 +2250,48 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(page.locator('.htDropdownMenu:visible')).toHaveCount(1);
     });
 
+    // The multi-select editor's dropdown is built once per editor and reused, so its search icon
+    // used to keep whichever mapping was active when the editor was first created. It refreshes
+    // from `prepare()` now, like the other create-once hosts (PR #13639 review).
+    test('a runtime icons remap reaches the reused multi-select search icon', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', multiSelect: true });
+
+      const openEditorOnFirstCell = async() => {
+        await page.locator('.ht_master td.ht-multi-select-renderer').first().dblclick();
+        await expect(page.locator('.handsontableEditor.ht_editor_visible .ht-multi-select-editor')).toBeVisible();
+      };
+
+      await openEditorOnFirstCell();
+
+      const searchIcon = page.locator('.ht-multi-select-editor .ht-icon-search').first();
+
+      await expect(searchIcon).toHaveCount(1);
+      // The legacy class stays on the element through every refresh.
+      await expect(searchIcon).toHaveClass(/ht-multi-select-editor-search-icon/);
+
+      await page.keyboard.press('Escape');
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler')
+          .params({ icons: { search: 'ti ti-zoom-in' } });
+      });
+
+      await openEditorOnFirstCell();
+
+      const refreshed = page.locator('.ht-multi-select-editor .ht-icon-search').first();
+
+      await expect(refreshed).toHaveCount(1);
+      await expect(refreshed).toHaveClass(/ti-zoom-in/);
+      await expect(refreshed).toHaveClass(/ht-icon--external/);
+      await expect(refreshed).toHaveClass(/ht-multi-select-editor-search-icon/);
+      // Refreshed in place, never appended alongside the old one.
+      await expect(page.locator('.ht-multi-select-editor .ht-icon-search')).toHaveCount(1);
+    });
+
     test('an unmapped slot keeps the built-in glyph - mapping is per-slot, not all-or-nothing', async({
       page, theme, bundle,
     }) => {

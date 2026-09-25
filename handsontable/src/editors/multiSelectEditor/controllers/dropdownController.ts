@@ -10,6 +10,7 @@ import {
   deselectItem,
   createSearchInputWrapper,
   createSearchIcon,
+  refreshSearchIcon,
   createSearchInputElement,
   createSeparatorElement,
   createListElement,
@@ -147,12 +148,10 @@ export class DropdownController {
     this.#dropdownListElement = createListElement({ root: this.#rootDocument });
     this.#searchInputElement = createSearchInputElement({ root: this.#rootDocument });
 
-    const searchIcon = createSearchIcon({ hotInstance: this.#hotInstance });
-
     this.#searchInputWrapper = createSearchInputWrapper({ root: this.#rootDocument });
     this.#separatorElement = createSeparatorElement({ root: this.#rootDocument });
 
-    this.#searchInputWrapper!.appendChild(searchIcon);
+    this.#searchInputWrapper!.appendChild(createSearchIcon({ hotInstance: this.#hotInstance }));
     this.#searchInputWrapper!.appendChild(this.#searchInputElement);
     this.#containerElement.appendChild(this.#searchInputWrapper);
     this.#containerElement.appendChild(this.#separatorElement);
@@ -162,6 +161,18 @@ export class DropdownController {
       input: this.#searchInputElement,
       eventManager: this.#eventManager,
     });
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the search icon. The dropdown is built once in
+   * `init()` and reused for the life of the editor, so this is what lets a runtime `icons` remap or
+   * theme switch reach it; the editor calls it from `prepare()`. A no-op unless the theme's icons
+   * revision moved.
+   */
+  refreshIcons(): void {
+    if (this.#searchInputWrapper) {
+      refreshSearchIcon({ hotInstance: this.#hotInstance, wrapper: this.#searchInputWrapper });
+    }
   }
 
   /**

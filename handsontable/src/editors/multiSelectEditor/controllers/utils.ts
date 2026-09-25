@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import { addClass, removeClass, setAttribute } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
-import { createIcon } from '../../../themes/engine/icons';
+import { createIcon, syncIcon } from '../../../themes/engine/icons';
 import { getCheckboxElement } from '../utils/utils';
 
 const classPrefix = 'ht-multi-select-editor';
@@ -64,6 +64,12 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
 export const LEGACY_SEARCH_ICON_CLASS = 'ht-multi-select-editor-search-icon';
 
 /**
+ * The slot class `syncIcon()` keys the search icon on, so a refresh re-applies the mapping to the
+ * existing element instead of appending a second icon to the wrapper.
+ */
+const SEARCH_ICON_SLOT_CLASS = 'ht-multi-select-editor-search-slot';
+
+/**
  * Creates the search icon element: a real `<i class="ht-icon ht-icon-search">` (`createIcon()`),
  * styled by the generic `.ht-icon-search` rule the theme engine generates for every icon slot, and
  * still carrying the legacy class name.
@@ -71,7 +77,23 @@ export const LEGACY_SEARCH_ICON_CLASS = 'ht-multi-select-editor-search-icon';
 export function createSearchIcon(
   { hotInstance }: { hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'> }
 ): HTMLElement {
-  return createIcon(hotInstance, 'search', { className: LEGACY_SEARCH_ICON_CLASS });
+  return createIcon(hotInstance, 'search', { className: `${LEGACY_SEARCH_ICON_CLASS} ${SEARCH_ICON_SLOT_CLASS}` });
+}
+
+/**
+ * Re-applies the theme's current icon mapping to the search icon inside a dropdown's search-input
+ * wrapper. The dropdown is built once per editor and reused, so without this a runtime `icons` remap
+ * or theme switch would never reach the slot. A no-op unless the theme's icons revision moved.
+ */
+export function refreshSearchIcon(
+  { hotInstance, wrapper }: {
+    hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
+    wrapper: HTMLElement;
+  }
+): void {
+  syncIcon(hotInstance, wrapper, SEARCH_ICON_SLOT_CLASS, 'search', {
+    className: LEGACY_SEARCH_ICON_CLASS,
+  });
 }
 
 /**
