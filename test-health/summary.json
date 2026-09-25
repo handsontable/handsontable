@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-25T10:59:48.369Z",
+  "generatedAt": "2026-09-25T12:31:57.526Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 5,
+      "count7": 3,
       "count30": 16,
       "countAll": 16,
       "runs30": 9,
@@ -57,7 +57,7 @@
       "file": "handsontable/src/__tests__/core/batch.spec.js",
       "line": null,
       "title": "Core.batch should batch adjusting fixed headers correctly",
-      "count7": 12,
+      "count7": 6,
       "count30": 12,
       "countAll": 12,
       "runs30": 2,
@@ -134,7 +134,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 2,
+      "count7": 1,
       "count30": 8,
       "countAll": 8,
       "runs30": 7,
@@ -171,7 +171,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 4,
+      "count7": 3,
       "count30": 6,
       "countAll": 6,
       "runs30": 5,
