@@ -1043,10 +1043,13 @@ export class ColumnSorting extends BasePlugin {
     // The indicator used to be a `::before` of the label, so a press on the arrow targeted the
     // label itself. It is a sibling `<i>` now (DEV-3003) with its own hit surface, so accept it
     // as a sort click too - otherwise the arrow becomes the one part of a sortable header that
-    // does not sort.
+    // does not sort. Matched by ancestor, not by the target's own class: a theme `icons`
+    // renderer callback may put its own markup inside the `<i>` (an inline SVG, a ligature
+    // span), and a press then targets that child.
+    const pressedIndicator = target.closest(`.${SORT_INDICATOR_SLOT_CLASS}`) !== null;
+
     return (
-      headerActionEnabled
-      && (hasClass(target, HEADER_SPAN_CLASS) || hasClass(target, SORT_INDICATOR_SLOT_CLASS))
+      headerActionEnabled && (hasClass(target, HEADER_SPAN_CLASS) || pressedIndicator)
     );
   }
 

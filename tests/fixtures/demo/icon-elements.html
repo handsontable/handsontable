@@ -156,7 +156,17 @@
           // Mapped on the sort-indicator slot, which the fixture's column-sorting tests already
           // exercise, so a real click renders it.
           arrowNarrowUp: (element) => {
-            element.textContent = 'sort_asc';
+            // Rendered as a CHILD element on purpose, the way an inline-SVG renderer would: a
+            // press on the arrow then targets this span, not the `<i>` slot itself, and the sort
+            // click gate must still accept it (`wasClickableHeaderClicked`, `columnSorting.ts`).
+            const glyph = document.createElement('span');
+
+            glyph.className = 'renderer-glyph';
+            glyph.textContent = 'sort_asc';
+            // Sized to the slot box like an inline SVG would be, so the child does not overflow
+            // into the neighbouring header menu button and steal that button's hit area.
+            glyph.style.cssText = 'display:inline-block;width:100%;height:100%;overflow:hidden;';
+            element.replaceChildren(glyph);
           },
         },
       });

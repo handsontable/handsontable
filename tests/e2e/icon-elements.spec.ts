@@ -2050,6 +2050,40 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(await grid.maskImage(grid.icon('checkbox').first())).toMatch(/^url\(/);
     });
 
+    // A renderer callback owns the inside of the `<i>`: the fixture's `arrowNarrowUp` renderer
+    // inserts a child span, so a press on the arrow targets that span. The sort click gate must
+    // accept any target inside the indicator, not only the slot element itself (PR review).
+    test('a click on markup a renderer callback put inside the indicator still toggles the sort', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler' });
+
+      const header = page.locator('.ht_clone_top th').nth(2);
+
+      await header.locator('.colHeader').click();
+
+      const glyph = header.locator('.ht-sort-indicator .renderer-glyph');
+
+      await expect(glyph).toHaveText('sort_asc');
+
+      const hitTarget = await glyph.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+
+        return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === el;
+      });
+
+      expect(hitTarget).toBe(true);
+
+      await glyph.click();
+
+      // `arrowNarrowDown` is unmapped in this fixture, so the descending state paints the
+      // built-in glyph - which is exactly what proves the click was taken as a sort toggle.
+      await expect(grid.icon('arrow-narrow-down', header)).toHaveCount(1);
+      await expect(header.locator('.renderer-glyph')).toHaveCount(0);
+    });
+
     test('an unmapped slot keeps the built-in glyph - mapping is per-slot, not all-or-nothing', async({
       page, theme, bundle,
     }) => {
