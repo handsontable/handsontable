@@ -117,8 +117,23 @@ Testing needs care:
 
 All of this is in `tests/e2e/selection-handles.spec.ts`, "a selection crossing a frozen pane".
 
-The `moveCells` bands (`positionMoveZone`) are still drawn per overlay, and a slice's band still sits
-on the freeze line.
+The `moveCells` bands (`.wtMoveZone`, `Border#positionMoveZone`) follow the same ownership idea, but
+only its own-axis half (`getMoveZoneOwnership`, built on the `ownsEdgeOnOwnAxis` predicate the handle
+rule also uses). Each slice used to show all four bands on its clamped box, so a band sat on each
+freeze line inside the selection (16 bands for a selection crossing both lines, where 8 are right).
+
+- **No cross-axis center rule.** A band spans its whole edge, so an edge that crosses a freeze line is
+  drawn by every overlay it passes through, each band covering that overlay's slice.
+- **No visibility clause.** A band on an overscan track is clipped by the holder or covered by a
+  frozen pane, so it cannot be grabbed and needs no hiding.
+- **Resolved apart from the handles.** `Border#getMoveZoneOwnership` builds the layout itself, because
+  `planAdjustHandles` gives up when the adjust handles are off (`selectionHandles: false`).
+- **Header-anchored corners never reach it.** `canMoveRange` rejects entire-row, entire-column, and
+  header selections, so the negative raw corners of such a selection never meet the rule.
+
+The same testing trap applies: the master-scoped `visibleMoveZones()` passes on the bug, so count with
+`visibleMoveZonesInAnyOverlay()` and hit-test with `moveZoneHitsAt()` (`tests/e2e/move-zone.spec.ts`,
+"a selection crossing a frozen pane").
 
 ## Custom border `width: 0` is a real value (DEV-1137)
 

@@ -3,8 +3,10 @@ import {
   getCenterSegment,
   getHandleOwnership,
   getHandlesSpan,
+  getMoveZoneOwnership,
   getOverlaySegment,
   isTrackEdgeVisible,
+  ownsEdgeOnOwnAxis,
 } from 'walkontable/selection/border/adjustHandlesOwnership';
 import type {
   AdjustHandlesAxisLayout,
@@ -221,6 +223,132 @@ describe('getHandleOwnership', () => {
 
     expect(ownership('master', axes, [4, 3, 8, 5], [4, 3, 8, 5]))
       .toEqual({ top: true, bottom: true, start: false, end: false });
+  });
+});
+
+describe('ownsEdgeOnOwnAxis', () => {
+  it('should own an edge in the overlay segment that is rendered unclamped', () => {
+    const axis = axisLayout({ fixedStart: 2, overlaySegment: 'main' });
+
+    expect(ownsEdgeOnOwnAxis(axis, 5, 5)).toBe(true);
+  });
+
+  it('should not own an edge the overlay renders clamped', () => {
+    const axis = axisLayout({ total: 60, overlaySegment: 'main' });
+
+    // The edge lies in the overlay's own segment, but row 50 is past the rendered band (ending at 39).
+    expect(ownsEdgeOnOwnAxis(axis, 50, 50)).toBe(true);
+    expect(ownsEdgeOnOwnAxis(axis, 50, 39)).toBe(false);
+  });
+
+  it('should not own an edge that lies in another segment', () => {
+    // At scroll offset 0 the master also renders the frozen rows, unclamped, behind the frozen pane.
+    expect(ownsEdgeOnOwnAxis(axisLayout({ fixedStart: 2, overlaySegment: 'main' }), 1, 1)).toBe(false);
+    expect(ownsEdgeOnOwnAxis(axisLayout({ total: 10, fixedEnd: 2, overlaySegment: 'main' }), 8, 8)).toBe(false);
+  });
+});
+
+describe('getMoveZoneOwnership', () => {
+  /**
+   * Runs the rule for one overlay.
+   *
+   * @param {string} overlayName The overlay.
+   * @param {object} axes The row and column axis options (without the overlay segment).
+   * @param {number[]} corners The raw corners.
+   * @param {number[]} clampedCorners The corners as the overlay renders them.
+   * @returns {object}
+   */
+  function ownership(
+    overlayName: string,
+    axes: { row: Parameters<typeof axisLayout>[0], column: Parameters<typeof axisLayout>[0] },
+    corners: number[],
+    clampedCorners: number[],
+  ) {
+    return getMoveZoneOwnership({
+      row: axisLayout({ ...axes.row, overlaySegment: getOverlaySegment(overlayName, 'row') }),
+      column: axisLayout({ ...axes.column, overlaySegment: getOverlaySegment(overlayName, 'column') }),
+    }, corners, clampedCorners);
+  }
+
+  describe('a selection crossing both freeze lines (fixedRowsTop: 2, fixedColumnsStart: 1, A1:D6)', () => {
+    const axes = { row: { total: 40, fixedStart: 2 }, column: { total: 20, fixedStart: 1 } };
+    const corners = [0, 0, 5, 3];
+
+    // Scrolled to the start, so the master and the scroll-synced clones also render the frozen
+    // tracks, unclamped, behind the frozen panes.
+    it.each([
+      ['top_inline_start_corner', [0, 0, 1, 0], { top: true, bottom: false, start: true, end: false }],
+      ['top', [0, 0, 1, 3], { top: true, bottom: false, start: false, end: true }],
+      ['inline_start', [0, 0, 5, 0], { top: false, bottom: true, start: true, end: false }],
+      ['master', [0, 0, 5, 3], { top: false, bottom: true, start: false, end: true }],
+    ])('should give the %s overlay only the outer edges of its slice', (overlayName, clamped, expected) => {
+      expect(ownership(overlayName, axes, corners, clamped)).toEqual(expected);
+    });
+
+    it('should draw every edge in exactly the two overlays it passes through', () => {
+      const slices: [string, number[]][] = [
+        ['top_inline_start_corner', [0, 0, 1, 0]],
+        ['top', [0, 0, 1, 3]],
+        ['inline_start', [0, 0, 5, 0]],
+        ['master', [0, 0, 5, 3]],
+      ];
+      const counts = { top: 0, bottom: 0, start: 0, end: 0 };
+
+      slices.forEach(([overlayName, clamped]) => {
+        const owned = ownership(overlayName, axes, corners, clamped);
+
+        (Object.keys(counts) as (keyof typeof counts)[]).forEach((edge) => {
+          counts[edge] += owned[edge] ? 1 : 0;
+        });
+      });
+
+      expect(counts).toEqual({ top: 2, bottom: 2, start: 2, end: 2 });
+    });
+  });
+
+  it('should give the bottom band to the frozen bottom pane', () => {
+    // 10 rows, fixedRowsBottom: 2, selection rows 3-8.
+    const axes = { row: { total: 10, fixedEnd: 2 }, column: {} };
+    const corners = [3, 1, 8, 3];
+
+    expect(ownership('master', axes, corners, [3, 1, 7, 3]))
+      .toEqual({ top: true, bottom: false, start: true, end: true });
+    expect(ownership('bottom', axes, corners, [8, 1, 8, 3]))
+      .toEqual({ top: false, bottom: true, start: true, end: true });
+  });
+
+  it('should split every edge of a selection crossing the bottom and the column freeze lines', () => {
+    // 10 rows, fixedRowsBottom: 2, fixedColumnsStart: 1, selection rows 3-8, columns 0-3.
+    const axes = { row: { total: 10, fixedEnd: 2 }, column: { total: 10, fixedStart: 1 } };
+    const corners = [3, 0, 8, 3];
+
+    expect(ownership('master', axes, corners, [3, 0, 7, 3]))
+      .toEqual({ top: true, bottom: false, start: false, end: true });
+    expect(ownership('inline_start', axes, corners, [3, 0, 7, 0]))
+      .toEqual({ top: true, bottom: false, start: true, end: false });
+    expect(ownership('bottom', axes, corners, [8, 0, 8, 3]))
+      .toEqual({ top: false, bottom: true, start: false, end: true });
+    expect(ownership('bottom_inline_start_corner', axes, corners, [8, 0, 8, 0]))
+      .toEqual({ top: false, bottom: true, start: true, end: false });
+  });
+
+  it('should give the master all four bands of a selection in a grid with no frozen panes', () => {
+    expect(ownership('master', { row: {}, column: {} }, [4, 1, 8, 3], [4, 1, 8, 3]))
+      .toEqual({ top: true, bottom: true, start: true, end: true });
+  });
+
+  it('should not draw a band on an edge clamped to the rendered band', () => {
+    // A plain grid scrolled into the middle of a tall selection: rows 2 and 50 are not rendered.
+    expect(ownership('master', { row: { total: 60 }, column: {} }, [2, 1, 50, 3], [18, 1, 39, 3]))
+      .toEqual({ top: false, bottom: false, start: true, end: true });
+  });
+
+  it('should keep a band whose edge is rendered but scrolled behind the pane or out of view', () => {
+    // Unlike the handles, a band needs no visible edge: a covered or clipped band cannot be grabbed.
+    const axes = { row: { total: 40 }, column: { total: 40, fixedStart: 1, partial: [2, 9], full: [2, 8] } };
+
+    expect(ownership('master', axes, [4, 1, 8, 1], [4, 1, 8, 1]))
+      .toEqual({ top: true, bottom: true, start: true, end: true });
   });
 });
 
