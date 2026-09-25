@@ -25,14 +25,13 @@
         align-self: stretch;
         position: relative;
 
-        // DEV-3003 breaking change: this used to be a `.ht-multi-select-editor-search-icon` div,
-        // painted directly by an `iconsMap` rule targeting that class (not a `::before`/`::after`
-        // pseudo-element - there was no `mixins.pseudo`/`content` trick here to disarm). The class
-        // is dropped rather than kept alongside a new one - nothing carries it any more, so unlike
-        // the other sites in this task the old rule is removed outright instead of left inert. The
-        // glyph is now a real `<i class="ht-icon ht-icon-search">` element (`createSearchIcon()`,
-        // `controllers/utils.ts`), sized and painted by the generic `.ht-icon`/`.ht-icon-search`
-        // rules every icon slot shares - only the positioning inside this wrapper is local.
+        // DEV-3003: this used to be a `.ht-multi-select-editor-search-icon` div, painted directly
+        // by an `iconsMap` rule targeting that class (not a `::before`/`::after` pseudo-element).
+        // The glyph is now a real `<i class="ht-icon ht-icon-search">` element
+        // (`createSearchIcon()`, `controllers/utils.ts`), sized and painted by the generic
+        // `.ht-icon`/`.ht-icon-search` rules every icon slot shares - only the positioning inside
+        // this wrapper is local. The element still carries the legacy class as a hook for custom
+        // stylesheets; this file styles the slot by `.ht-icon-search`, never by that legacy name.
         .ht-icon-search {
           position: absolute;
           left: calc(var(--ht-menu-item-horizontal-padding) + 10px);

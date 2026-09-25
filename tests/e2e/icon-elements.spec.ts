@@ -24,6 +24,35 @@ test.describe('Icon elements (DEV-3003)', () => {
     await expect(grid.icon('arrow-right', menu.locator('td.htSubmenu'))).toHaveClass(/ht-icon--flip-rtl/);
   });
 
+  // 18.1 pinned the RTL submenu arrow and check marks at `4 * gap` from the menu's left edge, NOT
+  // at the LTR distance (`padding + 2 * gap`) mirrored. Those differ per theme in both directions
+  // (main 16 vs 20, classic 8 vs 12, horizon 24 vs 20), so the logical property alone moved every
+  // menu surface's marks in RTL; `_dropdown-menu.scss` restates the 18.1 rule (PR #13639 review).
+  test('in RTL the submenu arrow keeps its 18.1 inset of four gaps from the menu edge', async({ page, theme, bundle }) => {
+    const grid = new IconElementsPage(page, theme, bundle);
+
+    await grid.goto({ dir: 'rtl' });
+    await grid.page.getByTestId('grid').locator('td').first().click({ button: 'right' });
+
+    const menu = page.locator('.htContextMenu');
+
+    await expect(menu).toBeVisible();
+
+    const icon = grid.icon('arrow-right', menu.locator('td.htSubmenu'));
+
+    await expect(icon).toHaveCount(1);
+
+    const { left, fourGaps } = await icon.evaluate((el) => {
+      const styles = getComputedStyle(el);
+      const gap = parseFloat(styles.getPropertyValue('--ht-gap-size'));
+
+      return { left: parseFloat(styles.left), fourGaps: gap * 4 };
+    });
+
+    expect(fourGaps).toBeGreaterThan(0);
+    expect(left).toBe(fourGaps);
+  });
+
   test('every column header dropdown-menu button carries one menu icon', async({ page, theme, bundle }) => {
     const grid = new IconElementsPage(page, theme, bundle);
 
@@ -677,6 +706,27 @@ test.describe('Icon elements (DEV-3003)', () => {
           expect(await grid.transform(icon)).toBe(dir === 'rtl' ? 'matrix(-1, 0, 0, 1, 0, 0)' : 'none');
         }
       }
+    });
+
+    // Mirroring follows the GRID's direction, never the page's. The retired `[dir="rtl"]` descendant
+    // rules mirrored an LTR grid's arrows whenever any ancestor was RTL; `.ht-icon--flip-rtl:dir(rtl)`
+    // resolves against the element's own inherited direction, which the grid root sets from
+    // `layoutDirection`. Disclosed in the 19.0 migration guide (PR #13639 review).
+    test('mirroring follows layoutDirection, not the page dir, when the two disagree', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      // LTR grid on an RTL page: no mirror.
+      await grid.goto({ pageDir: 'rtl' });
+
+      expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
+      expect(await grid.transform(grid.icon('arrow-right', page.locator('.ht-page-next')))).toBe('none');
+
+      // RTL grid on an LTR page: mirrored.
+      await grid.goto({ dir: 'rtl', pageDir: 'ltr' });
+
+      expect(await page.evaluate(() => document.documentElement.dir)).toBe('ltr');
+      expect(await grid.transform(grid.icon('arrow-right', page.locator('.ht-page-next'))))
+        .toBe('matrix(-1, 0, 0, 1, 0, 0)');
     });
 
     test('the page-size caret exists and is never mirrored, in LTR or RTL', async({ page, theme, bundle }) => {
@@ -1796,7 +1846,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(editedCell).toEqual([0, 3]);
     });
 
-    test('opening the editor shows exactly one search icon, and the retired search-icon class is gone', async({
+    test('opening the editor shows exactly one search icon, still carrying the legacy search-icon class', async({
       page, theme, bundle,
     }) => {
       const grid = new IconElementsPage(page, theme, bundle);
@@ -1808,9 +1858,11 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       await expect(searchIcon).toHaveCount(1);
 
-      // DEV-3003 breaking change: `.ht-multi-select-editor-search-icon` is DROPPED, not kept
-      // alongside the new element - nothing in the DOM carries it any more.
-      await expect(page.locator('.ht-multi-select-editor-search-icon')).toHaveCount(0);
+      // `.ai/BREAKING-CHANGES.md`: a class Handsontable produced stays in the DOM. The legacy
+      // `.ht-multi-select-editor-search-icon` now sits on the icon element itself, so a custom
+      // stylesheet written against it still finds the search icon.
+      await expect(page.locator('.ht-multi-select-editor-search-icon')).toHaveCount(1);
+      await expect(searchIcon).toHaveClass(/ht-multi-select-editor-search-icon/);
 
       const maskImage = await grid.maskImage(searchIcon);
 

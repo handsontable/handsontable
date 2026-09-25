@@ -17,6 +17,7 @@ export class IconElementsPage {
   async goto(
     query: {
       dir?: 'rtl';
+      pageDir?: 'rtl' | 'ltr';
       icons?: 'tabler';
       sheetsBar?: boolean;
       nestedHeaders?: boolean;

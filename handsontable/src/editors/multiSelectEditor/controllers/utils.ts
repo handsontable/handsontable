@@ -56,18 +56,22 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
 }
 
 /**
- * Creates the search icon element.
- *
- * DEV-3003 breaking change: this used to be a `<div class="ht-multi-select-editor-search-icon">`
- * painted by an `iconsMap` rule targeting that class directly (not a pseudo-element - there was no
- * `mixins.pseudo`/`content` trick to disarm). The class is dropped rather than kept alongside a new
- * one; the element is now a real `<i class="ht-icon ht-icon-search">` (`createIcon()`), styled by
- * the generic `.ht-icon-search` rule the theme engine already generates for every icon slot.
+ * The class the search icon carried before DEV-3003, when it was a `<div>` painted by an `iconsMap`
+ * rule. Kept on the new `<i class="ht-icon ht-icon-search">` as a legacy hook for custom
+ * stylesheets (`.ai/BREAKING-CHANGES.md`: a class Handsontable produces stays in the DOM); nothing
+ * in the shipped CSS targets it any more.
+ */
+export const LEGACY_SEARCH_ICON_CLASS = 'ht-multi-select-editor-search-icon';
+
+/**
+ * Creates the search icon element: a real `<i class="ht-icon ht-icon-search">` (`createIcon()`),
+ * styled by the generic `.ht-icon-search` rule the theme engine generates for every icon slot, and
+ * still carrying the legacy class name.
  */
 export function createSearchIcon(
   { hotInstance }: { hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'> }
 ): HTMLElement {
-  return createIcon(hotInstance, 'search');
+  return createIcon(hotInstance, 'search', { className: LEGACY_SEARCH_ICON_CLASS });
 }
 
 /**

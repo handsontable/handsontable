@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed icons to render as `<i class=\"ht-icon ht-icon-<name>\">` elements driven by `--ht-icon-<name>` CSS variables, and extended the theme `icons` option to accept SVG strings, class lists (for icon fonts such as Tabler), or renderer callbacks (for Material Symbols ligatures). Pseudo-element icon selectors are removed and the RTL menu mark inset now matches LTR; see the 19.0 migration guide.",
+  "title": "Changed icons to render as `<i class=\"ht-icon ht-icon-<name>\">` elements driven by `--ht-icon-<name>` CSS variables, and extended the theme `icons` option to accept SVG strings, class lists (for icon fonts such as Tabler), or renderer callbacks (for Material Symbols ligatures). Pseudo-element icon selectors are removed and the Filters condition caption text moved into a `htUISelectCaptionLabel` child; see the 19.0 migration guide.",
   "type": "changed",
   "issueOrPR": 13639,
   "breaking": true,

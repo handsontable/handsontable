@@ -1038,9 +1038,16 @@ Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, genera
 - You style a built-in icon with a `::before` or `::after` selector, such as `.changeType::before` or `.ht-page-next::before`.
 - Your tests assert on the DOM structure of a cell, header, or menu item that contains an icon -- for example, counting child elements, or using `:first-child`.
 - Your own CSS has a bare `i` rule, or a selector such as `td.querySelector('i')`, that could now match a Handsontable icon it wasn't written for.
-- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. That class no longer exists.
+- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. The class stays on the icon element as a legacy hook, but the element is now an `<i class="ht-icon ht-icon-search">` painted from a mask, so a rule that set `background-image` on it no longer paints -- override `--ht-icon-search` instead.
 - You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, just a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
-- You select the Filters condition dropdown's caption by its own text content, such as `.htUISelectCaption` read as a text node, or a selector assuming it has no child elements. Unrelated to the icon change but shipped in the same release, the caption's text now lives in a `<span class="htUISelectCaptionLabel">` child instead of being the caption element's own text.
+- You read or select the Filters condition dropdown's caption by its own text content. The caption's text now lives in a `<span class="htUISelectCaptionLabel">` child; see [The Filters caption text moved into a child element](#the-filters-caption-text-moved-into-a-child-element) below.
+- You render a grid whose `layoutDirection` disagrees with the page's `dir` attribute. Mirrored icons (pagination and sheets bar arrows, the submenu arrow) now follow the grid's own direction. Before, the pagination and sheets bar arrows followed any `dir="rtl"` ancestor, so an LTR grid on an RTL page mirrored them; that was a defect and it no longer happens.
+
+### The Filters caption text moved into a child element
+
+The Filters condition dropdown's caption (`.htUISelectCaption`) used to hold its text directly. It now holds a `<span class="htUISelectCaptionLabel">` with the text, followed by the caret icon element. This is a DOM-structure change that ships with the icon change because the caret became a child of the caption: writing the caption's text through `textContent` would have removed the icon on every condition change.
+
+Code that reads the caption through `textContent` still gets the text, with the icon contributing nothing. Code that assumes the caption has no child elements, or that reads its first text node, needs to target `.htUISelectCaptionLabel` instead.
 
 ### The new element can collide with your own selectors
 
@@ -1095,7 +1102,7 @@ The table below lists every selector the old `iconsMap` stylesheet generated and
 | `.ht-multi-select-chip-remove::before` | `.ht-icon-chip-close` |
 | `.ht-notification__close::before` | `.ht-icon-chip-close` |
 | `.ht-multi-select-editor-item-selected input::after` | `.ht-icon-checkbox` |
-| `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element) | `.ht-icon-search` |
+| `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element; kept on the new element as a legacy class) | `.ht-icon-search` |
 | `.ht-sheets-bar__add::before` | `.ht-icon-plus` |
 | `.ht-sheets-bar__all::before` | `.ht-icon-menu-list` |
 | `.ht-sheets-bar__tab-chevron::after` | `.ht-icon-select-arrow` |

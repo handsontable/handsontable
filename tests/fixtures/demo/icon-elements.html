@@ -67,6 +67,12 @@
     const params = new URLSearchParams(location.search);
     const container = document.querySelector('[data-testid="grid"]');
     const dir = params.get('dir') === 'rtl' ? 'rtl' : 'ltr';
+    // `pageDir` sets the DOCUMENT's direction independently of the grid's `layoutDirection`, so a
+    // test can put an LTR grid on an RTL page (and the reverse): mirrored icons must follow the
+    // grid's own direction, never an ancestor's `dir` (`.ht-icon--flip-rtl:dir(rtl)`, `_icon.scss`).
+    if (params.get('pageDir') === 'rtl' || params.get('pageDir') === 'ltr') {
+      document.documentElement.dir = params.get('pageDir');
+    }
     const iconsMode = params.get('icons') || 'default'; // 'default' | 'tabler'
     const sheetsBarEnabled = params.get('sheetsBar') === '1';
     // Task 13: the collapse/expand indicator only renders on a collapsible nested-header group,

@@ -319,9 +319,25 @@
     }
   }
 
-  // The submenu arrow and the check/mixed marks are positioned with `inset-inline-end`, which
-  // already follows the writing direction - no `[dir="rtl"]` override is needed for their
-  // placement any more. The arrow's own mirror comes from `.ht-icon--flip-rtl`
-  // (`src/styles/components/core/_icon.scss`), applied because the icon is created with
-  // `flipInRtl: true`.
+  // The submenu arrow and the check/mixed marks are positioned with `inset-inline-end` above, but
+  // 18.1 did NOT mirror the LTR distance in RTL: it pinned them at `4 * gap` from the left (16px
+  // main, 8px classic, 24px horizon) while LTR uses `padding + 2 * gap` (20px / 12px / 20px). The
+  // logical property alone moved every menu surface's marks in RTL by a theme-dependent amount, in
+  // both directions. Restated here so RTL stays byte-identical to 18.1 on every theme. The arrow's
+  // own mirror comes from `.ht-icon--flip-rtl` (`src/styles/components/core/_icon.scss`), applied
+  // because the icon is created with `flipInRtl: true`.
+  [dir="rtl"].handsontable {
+    &.htDropdownMenu,
+    &.htContextMenu,
+    &.htFiltersConditionsMenu,
+    &.htSheetsBarMenu {
+      table tbody tr td {
+        &.htSubmenu .htItemWrapper .htSubmenuIcon,
+        .htItemWrapper span.selected .ht-icon,
+        .htItemWrapper span.htMixed .ht-icon {
+          inset-inline-end: calc(4 * var(--ht-gap-size));
+        }
+      }
+    }
+  }
 }
