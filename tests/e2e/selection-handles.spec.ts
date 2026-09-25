@@ -929,8 +929,8 @@ test.describe('selectionHandles adjust handles', () => {
 
 /**
  * Hovering a selection only decides which layer shows the handles. It must not replay the
- * selection: a replay fires the public selection hooks, and core scrolls the viewport to the
- * replayed range's end, so a wheel scroll over a selection stalled and snapped back (DEV-3085).
+ * selection: a replay fires the public selection hooks, and core scrolls the replayed range back
+ * into view, so a wheel scroll over a selection stalled and snapped back (DEV-3085).
  */
 test.describe('selectionHandles hover', () => {
   let grid: SelectionFeaturesPage;
@@ -968,16 +968,18 @@ test.describe('selectionHandles hover', () => {
 
     await grid.hoverCell(24, 2);
 
-    // The hover took effect: the hovered layer shows its handles.
-    await expect(grid.visibleHandles()).not.toHaveCount(0);
+    // The hover took effect: the start and end handles show. Rows 2 and 50 stay out of view, so there
+    // is no top or bottom handle. A scroll back to row 2 would add the top one.
+    await expect(grid.visibleHandles()).toHaveCount(2);
     expect(await grid.verticalScrollOffset()).toBe(scrolledOffset);
 
-    // Leaving the selection and coming back sets the hovered layer again.
+    // Leaving the selection and coming back changes the hovered layer twice more.
     await grid.hoverCell(24, 5);
     await expect(grid.visibleHandles()).toHaveCount(0);
+    expect(await grid.verticalScrollOffset()).toBe(scrolledOffset);
 
     await grid.hoverCell(26, 2);
-    await expect(grid.visibleHandles()).not.toHaveCount(0);
+    await expect(grid.visibleHandles()).toHaveCount(2);
     expect(await grid.verticalScrollOffset()).toBe(scrolledOffset);
   });
 
