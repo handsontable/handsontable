@@ -71,22 +71,26 @@ class Csv extends BaseType {
   export() {
     const options = this.options as CsvExportOptions;
     const data = this.dataProvider.getData();
-    let columnHeaders = this.dataProvider.getColumnHeaders();
-    const hasColumnHeaders = columnHeaders.length > 0;
+    // One row per header layer: several with the NestedHeaders plugin, otherwise the bottom-most
+    // headers only. `[[]]` (colHeaders on, empty column range) still writes no header line.
+    const columnHeaderRows = this.dataProvider.getColumnHeaderRows();
+    const hasColumnHeaders = columnHeaderRows.length > 0 && columnHeaderRows[0].length > 0;
     const rowHeaders = this.dataProvider.getRowHeaders();
     const hasRowHeaders = rowHeaders.length > 0;
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = columnHeaders.map(
-        (value: unknown) => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
-      );
+      columnHeaderRows.forEach((headerRow: unknown[]) => {
+        const escapedHeaders = headerRow.map(
+          (value: unknown) => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
+        );
 
-      if (hasRowHeaders) {
-        result += options.columnDelimiter;
-      }
-      result += columnHeaders.join(options.columnDelimiter);
-      result += options.rowDelimiter;
+        if (hasRowHeaders) {
+          result += options.columnDelimiter;
+        }
+        result += escapedHeaders.join(options.columnDelimiter);
+        result += options.rowDelimiter;
+      });
     }
 
     data.forEach((value: unknown, index: number) => {

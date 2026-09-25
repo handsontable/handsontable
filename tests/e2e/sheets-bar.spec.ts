@@ -234,6 +234,30 @@ test.describe('sheets bar', () => {
     await expect(menu).toHaveCount(1);
   });
 
+  test('double-clicking the menu trigger opens the menu without starting a rename', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    const menu = page.locator('.htSheetsBarMenu:visible');
+
+    await bar.chevron(0).dblclick();
+
+    await expect(menu).toHaveCount(1);
+    await expect(bar.renameInput).toHaveCount(0);
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+
+    await bar.chevron(2).dblclick();
+
+    await bar.expectActiveTab(2);
+    await expect(menu).toHaveCount(1);
+    await expect(bar.renameInput).toHaveCount(0);
+  });
+
   test('only the active tab\'s menu trigger answers to hover', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

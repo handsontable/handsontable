@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
-import { normalizeExportOptions } from './utils';
+import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -153,6 +153,33 @@ class DataProvider {
     }
 
     return headers;
+  }
+
+  /**
+   * Gets the column header rows for a text format, top header layer first.
+   *
+   * With the NestedHeaders plugin enabled, every header layer becomes one row and a group label is
+   * repeated once per column it spans, so the rows have the same column count as the data. Without
+   * the plugin the single row is the bottom-most header list from {@link DataProvider#getColumnHeaders}.
+   *
+   * Hidden-column and range handling follow {@link DataProvider#getNestedColumnHeaders}: a group
+   * shrinks to its exported columns, and a column whose group root lies before the range start gets
+   * an empty label on that layer.
+   *
+   * @returns {string[][]} One row per header layer, or an empty array when `colHeaders` is off.
+   */
+  getColumnHeaderRows(): string[][] {
+    if (!this.options.colHeaders) {
+      return [];
+    }
+
+    const nestedLayers = this.getNestedColumnHeaders();
+
+    if (nestedLayers === null) {
+      return [this.getColumnHeaders()];
+    }
+
+    return expandNestedHeaderLayers(nestedLayers);
   }
 
   /**
@@ -518,11 +545,20 @@ class DataProvider {
   getNestedColumnHeaders() {
     const nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
 
-    if (!nestedHeadersPlugin || !nestedHeadersPlugin.isEnabled()) {
+    // `enabled` is the live state; `isEnabled()` only answers whether the settings ask for the plugin.
+    // Today the two never disagree while the plugin has layers, so this check is defensive.
+    if (!nestedHeadersPlugin || !nestedHeadersPlugin.enabled) {
       return null;
     }
 
     const layersCount = nestedHeadersPlugin.getLayersCount();
+
+    // This guard is what fixes a runtime `disablePlugin()`: it clears the plugin's state, so the
+    // plugin reports zero layers while the settings still carry `nestedHeaders`. Taking the nested
+    // path then exported no column headers at all.
+    if (layersCount === 0) {
+      return null;
+    }
     const { startCol, endCol } = this._getDataRange();
     const options = this.options;
     const includeHidden = !!options.exportHiddenColumns;
@@ -549,6 +585,24 @@ class DataProvider {
     }
 
     return layers;
+  }
+
+  /**
+   * Gets the label of the nested header whose span starts at the given column, as the grid displays it.
+   *
+   * The label is read through `getColHeader()`, so the `modifyColumnHeaderValue` hook applies to it the
+   * same way it applies to the rendered header and to the flat header row. Call it for the root column of
+   * a span only: for a column inside a span, `getColHeader()` resolves the covering header and returns
+   * its label again.
+   *
+   * @param {number} col The visual index of the column the header span starts at.
+   * @param {number} layer The header layer index, `0` for the top layer.
+   * @returns {string}
+   */
+  _getNestedHeaderLabel(col: number, layer: number) {
+    const label = this.hot.getColHeader(col, layer);
+
+    return extractText(this.hot, Array.isArray(label) ? '' : label ?? '', 'ExportFile.columnHeader');
   }
 
   /**
@@ -582,7 +636,7 @@ class DataProvider {
       const className = (treeNodeData?.headerClassNames ?? []).join(' ');
 
       layerHeaders.push({
-        label: extractText(this.hot, treeNodeData?.label ?? '', 'ExportFile.columnHeader'),
+        label: treeNodeData ? this._getNestedHeaderLabel(col, layer) : '',
         colspan: effectiveColspan,
         className,
       });
@@ -608,16 +662,28 @@ class DataProvider {
    * @returns {number} The next column index to process.
    */
   _appendNestedHeaderWithoutHidden(
-    nestedHeadersPlugin: NestedHeadersPluginWithSettings, layer: number, col: number,
-    endCol: number, layerHeaders: Array<{ label: string; colspan: number; className: string }>
+    nestedHeadersPlugin: NestedHeadersPluginWithSettings & NestedHeadersPluginWithState, layer: number,
+    col: number, endCol: number, layerHeaders: Array<{ label: string; colspan: number; className: string }>
   ) {
     const settings = nestedHeadersPlugin.getHeaderSettings(layer, col);
 
     if (!settings || settings.isRoot) {
-      const spanColspan = settings?.colspan ?? 1;
+      // The span has to be walked to its real end. With the HiddenColumns plugin, the root's
+      // `colspan` is already reduced by the number of hidden columns in the span, but those hidden
+      // columns still occupy index positions inside it. Walking only `colspan` columns from the root
+      // stops early when a hidden column sits strictly inside the span: the group comes out too
+      // narrow and its last columns are read as continuation cells with an empty label. The tree node
+      // keeps the original span (`columnIndex` + `origColspan`) whatever is hidden.
+      const treeNodeData = settings ? nestedHeadersPlugin.getStateManager().getHeaderTreeNodeData(layer, col) : null;
+      // The state matrix and the header tree are built from the same settings, so a span root always
+      // has a tree node. A column without one is exported as a single column, never through the
+      // reduced `colspan` above.
+      const spanEnd = treeNodeData
+        ? treeNodeData.columnIndex + treeNodeData.origColspan
+        : col + 1;
       let visibleColspan = 0;
 
-      for (let spanCol = col; spanCol < col + spanColspan && spanCol <= endCol; spanCol++) {
+      for (let spanCol = col; spanCol < spanEnd && spanCol <= endCol; spanCol++) {
         if (!this._isHiddenColumn(spanCol)) {
           visibleColspan += 1;
         }
@@ -628,12 +694,12 @@ class DataProvider {
       const className = (settings?.headerClassNames ?? []).join(' ');
 
       layerHeaders.push({
-        label: extractText(this.hot, settings?.label ?? '', 'ExportFile.columnHeader'),
+        label: settings ? this._getNestedHeaderLabel(col, layer) : '',
         colspan: visibleColspan,
         className,
       });
 
-      return col + spanColspan;
+      return spanEnd;
     }
 
     // Continuation cell of a span that started at an earlier column.
