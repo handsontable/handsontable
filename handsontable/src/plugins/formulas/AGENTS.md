@@ -128,11 +128,16 @@ rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, inc
 by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
 of the detach (DEV-138).
 
-**Known gap: removing a nested parent leaves its children in the engine.** This plugin's `beforeRemoveRow`
-listener (priority 260) runs before NestedRows' (300) expands the removal list to the parent's descendants,
-so the engine removes the parent row only while the grid removes the whole subtree. The existing specs
-assert only the state after undo, which lines up again. A detach is not affected: it hands the hook an
-already expanded list.
+**`#onBeforeRemoveRow` relies on NestedRows expanding the removal list first.** NestedRows rewrites the
+`beforeRemoveRow` list by reference to cover the removed parent's whole subtree. It registers that listener
+with `orderIndex: -1`, so this plugin's listener (priority 260) sees the expanded list, and both the engine
+removal and the `isItPossibleToRemoveRows` veto cover every descendant. At the default order this listener
+ran first and read the parent alone, so the engine kept the descendants while the grid dropped them, and
+every reference below the subtree shifted by the number of rows the caller named instead of by the number
+actually removed (DEV-3092). The
+undo-only specs missed it because an undo lines both sides up again. Assert the engine sheet right after the
+removal (`tests/e2e/formulas-nested-rows-remove-parent.spec.ts`). Do not fix a similar ordering problem by
+expanding the list here: that couples this plugin to the tree.
 
 ## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
 
@@ -324,6 +329,29 @@ Rules that keep it correct:
 Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, listener and scan throws,
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
+
+## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
+
+A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call
+`switchSheet()`, which `loadData()`s the engine sheet's serialized content into the grid. A caller
+that loads the sheet's data itself right after the update — the SheetsBar plugin, on every switch —
+paid two full loads (index maps, cell-meta reset, AutoColumnSize sweep, every host `afterLoadData`).
+The `@private` field `skipSheetSwitchLoad` makes `updatePlugin` bind the sheet with
+`#updateSheetNameAndSheetId()` instead, and the caller's `loadData()` then reaches `#onAfterLoadData`,
+which writes the loaded array into the bound sheet — the same final state the double load reached.
+Three rules. A name the engine does not know still goes through `switchSheet()`, so the error is
+reported. The flag is set and reset by the caller around the one `updateSettings()` call, in a
+`finally`, and must never stay on: a host's own `updateSettings({ formulas: { sheetName } })` relies on
+`switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
+`hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
+With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
+anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
+that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
+"loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
+while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas switch
+load and min padding working after a switch threw mid-update" pins the `finally` reset through a
+SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
+SheetsBar, so it only pins the flag's default.
 
 ## The engine's sheet size is not the grid's axis length, in either direction
 
