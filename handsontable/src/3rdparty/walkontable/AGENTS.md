@@ -111,9 +111,6 @@ Testing needs care:
 - The rendered-versus-visible trap only shows when a scrollable track of the selection stays
   rendered behind the pane. Scroll just one track past it (`scrollToColumn(2)` with one frozen
   column), or leave a sliver (`scrollToLeaveSliverOfColumn()`), not to the far end.
-- The first hover over a selection layer calls `Selection#refresh()` (through
-  `setHandlesHoveredLayer`), and that scrolls the focus cell back into view. In a test that scrolls
-  away from a scrollable focus cell, hover first and scroll second.
 
 All of this is in `tests/e2e/selection-handles.spec.ts`, "a selection crossing a frozen pane".
 
