@@ -30,7 +30,10 @@ const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
   '€': 'EUR',
   '£': 'GBP',
   '¥': 'JPY',
-  zł: 'PLN',
+  // An escape, not a bare `z\u0142` key: a raw non-ASCII identifier stops the non-minified bundles from
+  // parsing on a page that is not served as UTF-8 (see the Build section of AGENTS.md).
+  // eslint-disable-next-line quote-props
+  'z\u0142': 'PLN',
   '₹': 'INR',
   '₩': 'KRW',
   CHF: 'CHF',

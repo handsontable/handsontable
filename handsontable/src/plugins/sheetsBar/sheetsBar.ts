@@ -351,6 +351,14 @@ export class SheetsBar extends BasePlugin {
    */
   #retainActiveName: string | null = null;
   /**
+   * Set while `#applySheet` applies a sheet's settings. The grid still holds the departing sheet's
+   * data then, so the rows and columns core adds to meet the `min*` settings are vetoed
+   * (`#onBeforeAutoCreate`); the `loadData()` that follows pads the arriving sheet's data instead.
+   *
+   * @type {boolean}
+   */
+  #blockAutoPadding = false;
+  /**
    * Owns the per-tab and all-sheets dropdown menus.
    *
    * @type {SheetsBarMenus | null}
@@ -425,6 +433,9 @@ export class SheetsBar extends BasePlugin {
     if (this.enabled || this.#isInitializing) {
       return;
     }
+
+    this.addHook('beforeCreateRow', this.#onBeforeAutoCreate);
+    this.addHook('beforeCreateCol', this.#onBeforeAutoCreate);
 
     // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
     // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
@@ -554,6 +565,11 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('afterCreateRow', this.#onAfterCreateRow, -1);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow, -1);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol, -1);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     this.#refreshUI();
@@ -1010,11 +1026,13 @@ export class SheetsBar extends BasePlugin {
       }
     };
 
-    if (this.hot.view) {
-      this.#batchRender(switchSheet);
-    } else {
-      switchSheet();
-    }
+    this.#withoutUndoEntry(() => {
+      if (this.hot.view) {
+        this.#batchRender(switchSheet);
+      } else {
+        switchSheet();
+      }
+    });
 
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
@@ -1064,7 +1082,7 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#neutralFixedColumnsStart));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
@@ -1077,14 +1095,18 @@ export class SheetsBar extends BasePlugin {
    * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
    * grid-level values. Batches the operation into a single render when the grid's view
    * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it.
+   * the grid's own startup render covers it. The settings update runs with core's `min*` padding
+   * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
+   * the arriving sheet's data before its `afterLoadData`.
    */
   #applySheet(sheet: Sheet, source: string) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
       if (settings) {
-        this.hot.updateSettings(settings);
+        this.#withoutAutoPadding(() => {
+          this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+        });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
     };
@@ -1793,10 +1815,14 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Runs a data write without recording it on the undo stack. The rename rewrites travel
-   * through `setDataAtCell` so `afterChange` fires and the grid repaints, but the engine
-   * rename they follow is not an undoable action — an undo restoring the old reference
-   * strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * Runs an operation without recording it on the undo stack. Two callers need it. The rename
+   * rewrites travel through `setDataAtCell` so `afterChange` fires and the grid repaints, but
+   * the engine rename they follow is not an undoable action — an undo restoring the old
+   * reference strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   * And a sheet switch re-applies the arriving sheet's sort, filters, and merges through the
+   * public APIs, which the user did not just perform.
+   *
+   * @param {Function} write The operation to run.
    */
   #withoutUndoEntry(write: () => void) {
     const undoRedo = this.hot.getPlugin('undoRedo') as
@@ -1816,6 +1842,60 @@ export class SheetsBar extends BasePlugin {
       undoRedo.ignoreNewActions = false;
     }
   }
+
+  /**
+   * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
+   * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
+   * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
+   * The grid still holds the departing sheet's data during that update, which is why `#applySheet`
+   * also runs it under `#withoutAutoPadding`.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutFormulasSwitchLoad(update: () => void) {
+    const formulas = this.hot.getPlugin('formulas') as { skipSheetSwitchLoad: boolean } | undefined;
+
+    if (!formulas || formulas.skipSheetSwitchLoad) {
+      update();
+
+      return;
+    }
+
+    formulas.skipSheetSwitchLoad = true;
+
+    try {
+      update();
+    } finally {
+      formulas.skipSheetSwitchLoad = false;
+    }
+  }
+
+  /**
+   * Runs an operation with core's `min*` padding vetoed (`#blockAutoPadding`), restoring the
+   * previous state in a `finally` so a throwing listener cannot leave padding blocked.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutAutoPadding(update: () => void) {
+    const previous = this.#blockAutoPadding;
+
+    this.#blockAutoPadding = true;
+
+    try {
+      update();
+    } finally {
+      this.#blockAutoPadding = previous;
+    }
+  }
+
+  /**
+   * Vetoes a row or column core creates with source `auto` (the `min*` padding in
+   * `adjustRowsAndCols()`) while `#blockAutoPadding` is set. Any other creation, and any creation
+   * outside that window, is left to the other listeners: `undefined` keeps their verdict.
+   */
+  #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
+    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
 
   /**
    * Updates the bar's theme when the grid's theme changes.
@@ -1894,6 +1974,126 @@ export class SheetsBar extends BasePlugin {
       }
     }
   };
+
+  /**
+   * Shifts the tracked rows at or below the first inserted row down by the inserted amount.
+   * The buckets are keyed by physical row, and an insert renumbers every physical row from the
+   * insertion point on — core's `MetaManager` shifts its own cell meta the same way — so a key
+   * left alone would serve its properties onto the cell that now sits at the old index.
+   */
+  #onAfterCreateRow = (visualRow: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('row', this.hot.toPhysicalRow(visualRow), amount, source);
+  };
+
+  /**
+   * Drops the tracked buckets of the removed rows and shifts the rows below them up, so each
+   * bucket keeps following its cell.
+   */
+  #onAfterRemoveRow = (visualRow: number, amount: number, physicalRows: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('row', physicalRows);
+  };
+
+  /**
+   * Shifts the tracked columns at or after the first inserted column by the inserted amount,
+   * for the reason `#onAfterCreateRow` gives.
+   */
+  #onAfterCreateCol = (visualColumn: number, amount: number, source?: string) => {
+    this.#shiftTrackedCellMetaOnCreate('col', this.hot.toPhysicalColumn(visualColumn), amount, source);
+  };
+
+  /**
+   * Drops the tracked buckets of the removed columns and shifts the columns after them, for the
+   * reason `#onAfterRemoveRow` gives.
+   */
+  #onAfterRemoveCol = (visualColumn: number, amount: number, physicalColumns: number[]) => {
+    this.#shiftTrackedCellMetaOnRemove('col', physicalColumns);
+  };
+
+  /**
+   * Forgets every tracked write when the host loads a new dataset. `loadData` clears core's cell
+   * meta, so a surviving bucket would paint the old dataset's `readOnly` or `className` onto
+   * whichever new row sits at that physical index. The plugin's own loads — the initial build
+   * and every switch — are skipped: they bring the arriving sheet's map in themselves.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
+    if (initialLoad || this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    this.#trackedCellMeta = new Map();
+  };
+
+  /**
+   * Moves every tracked bucket at or past `firstPhysicalIndex` on the given axis by `amount`.
+   *
+   * An `auto` insert is skipped, because `DataMap` does not shift core's cell meta for it
+   * (`minRows`, `minSpareRows`, and the rows a paste adds). That also covers the rows a switch
+   * creates while the arriving sheet's map is in place over the outgoing sheet's data. A key can
+   * outlive its row after an `updateData` shrink, so an append is not skipped on its own; it
+   * must move such a key the way core moves its meta.
+   */
+  #shiftTrackedCellMetaOnCreate(
+    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, source?: string,
+  ) {
+    if (
+      source === 'auto' || this.#trackedCellMeta.size === 0 ||
+      firstPhysicalIndex === null || amount <= 0
+    ) {
+      return;
+    }
+
+    this.#rekeyTrackedCellMeta(axis, index => (index >= firstPhysicalIndex ? index + amount : index));
+  }
+
+  /**
+   * Drops the tracked buckets on the removed physical indexes of the given axis, and moves every
+   * other bucket back by the number of removed indexes before it. The removed indexes may be
+   * any set: adjacent visual rows or columns map to scattered physical ones once they are
+   * sorted, moved, or trimmed.
+   */
+  #shiftTrackedCellMetaOnRemove(axis: 'row' | 'col', removedPhysicalIndexes: number[]) {
+    if (this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
+      return;
+    }
+
+    const removed = [...new Set(removedPhysicalIndexes)].sort((a, b) => a - b);
+
+    this.#rekeyTrackedCellMeta(axis, (index) => {
+      let low = 0;
+      let high = removed.length;
+
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+
+        if (removed[middle] < index) {
+          low = middle + 1;
+        } else {
+          high = middle;
+        }
+      }
+
+      return removed[low] === index ? null : index - low;
+    });
+  }
+
+  /**
+   * Rebuilds the tracked map with each bucket's index on the given axis passed through
+   * `mapIndex`. A `null` result drops the bucket.
+   */
+  #rekeyTrackedCellMeta(axis: 'row' | 'col', mapIndex: (index: number) => number | null) {
+    const rekeyed = new Map<string, Map<string, unknown>>();
+
+    this.#trackedCellMeta.forEach((bucket, cellKey) => {
+      const [row, col] = cellKey.split(':').map(Number);
+      const mapped = mapIndex(axis === 'row' ? row : col);
+
+      if (mapped !== null) {
+        rekeyed.set(axis === 'row' ? trackedCellKey(mapped, col) : trackedCellKey(row, mapped), bucket);
+      }
+    });
+
+    this.#trackedCellMeta = rekeyed;
+  }
 
   /**
    * Serves the tracked cell-meta writes lazily, the moment a cell's meta is actually read —

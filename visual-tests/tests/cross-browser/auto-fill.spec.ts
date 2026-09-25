@@ -9,6 +9,10 @@ const urls = [
 ];
 
 urls.forEach((url) => {
+  /**
+   * Checks that double-clicking the fill handle of an edited cell fills its value down the column on this
+   * demo route. One capture per route in `urls`, in each browser. Owned by DEV-2981.
+   */
   visualTest(`Test autofill for: ${url}`, {
     themes: [CLASSIC],
     browsers: CROSS_BROWSERS,
@@ -41,6 +45,7 @@ urls.forEach((url) => {
     const cornerDiv = table.locator('div.wtBorder.current.corner').first();
 
     await cornerDiv.dblclick();
+    // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted dblclick(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
     await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
 });

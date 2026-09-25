@@ -198,6 +198,29 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
+### Export nested headers
+
+With the [`nestedHeaders`](@/api/options.md#nestedheaders) option, `colHeaders: true` exports every header layer, not only the bottom one. Each layer becomes one header line, and a group label repeats across every column it spans, so a spreadsheet that opens the file shows the group above each of its columns.
+
+```js
+const hot = new Handsontable(container, {
+  data: [[1, 2, 3, 4]],
+  colHeaders: true,
+  nestedHeaders: [
+    [{ label: '2024', colspan: 2 }, { label: '2025', colspan: 2 }],
+    ['Q1', 'Q2', 'Q1', 'Q2'],
+  ],
+});
+
+hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
+// The file receives:
+// "2024","2024","2025","2025"
+// "Q1","Q2","Q1","Q2"
+// 1,2,3,4
+```
+
+Hidden columns follow the `exportHiddenColumns` option: a group shrinks to the columns the export includes. A `range` that starts inside a group leaves that group's cells empty on the parent line, so every header line keeps the same column count as the data. When the first columns of a group are hidden, the group starts at its first visible column, as it does in the grid. A `range` that starts on that column writes the group label.
+
 ### Export headers as plain text
 
 A column header setting is also its display string. A header of `'<b>Total</b>'` renders as **Total** in the grid, but the export writes the value it was given, so the file receives the literal `<b>Total</b>`.
@@ -277,7 +300,7 @@ Each method takes two parameters. The first, `format`, is required. The second, 
 | Property               | Type / Default                          | Description |
 | ---------------------- | --------------------------------------- | ----------- |
 | `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
-| `colHeaders`           | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
+| `colHeaders`           | `Boolean`, default `false`              | Include column headers. With the [NestedHeaders](@/api/nestedHeaders.md) plugin, writes one header line per layer, repeating a group label across every column it spans. |
 | `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
 | `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
 | `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |

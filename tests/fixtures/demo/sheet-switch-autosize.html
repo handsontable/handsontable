@@ -97,11 +97,10 @@
     });
 
     // Added at runtime with no `settings`, the way the ticket's sheet was: it inherits the shared
-    // engine under its own name. Because it holds data, a switch to it runs `loadData()` twice:
-    // the bar applies the inherited formula settings through `updateSettings()`, the Formulas
-    // plugin's `switchSheet` loads the engine sheet's content, and then the bar loads its own
-    // array - so AutoColumnSize sweeps the arriving sheet twice by design (a blank sheet is
-    // loaded once). The spec pins that sequence, so the third pass it guards against is visible.
+    // engine under its own name. A switch to it runs `loadData()` once: the bar applies the
+    // inherited formula settings through `updateSettings()`, the Formulas plugin only binds the
+    // engine sheet (DEV-3040), and the bar loads its own array - so AutoColumnSize sweeps the
+    // arriving sheet once. The spec pins that sequence, so any extra pass is visible.
     hot.getPlugin('sheetsBar').addSheet('Big', sheetData('Big', 400, 8, [0, 3]));
     hot.getPlugin('sheetsBar').setActiveSheet('Budget');
 

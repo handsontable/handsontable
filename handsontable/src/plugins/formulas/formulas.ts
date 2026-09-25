@@ -72,6 +72,30 @@ function isHFCellChange(value: unknown): value is HFCellChange {
 }
 
 /**
+ * Counts every descendant of a NestedRows data object.
+ *
+ * @param {object} row NestedRows data object.
+ * @returns {number} Number of descendants in the flattened subtree.
+ */
+function countNestedRowsDescendants(row: Record<string, unknown>): number {
+  const children = row.__children;
+
+  if (!Array.isArray(children)) {
+    return 0;
+  }
+
+  let descendants = 0;
+
+  for (const child of children) {
+    if (isPlainObject(child)) {
+      descendants += 1 + countNestedRowsDescendants(child);
+    }
+  }
+
+  return descendants;
+}
+
+/**
  * The visual-coordinate rectangle of a `moveCells` operation, captured in `beforeMoveCells`.
  *
  * The `afterMoveCells` listener works off this instead of its hook arguments: `Hooks.run` threads a
@@ -189,11 +213,13 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
-// Undo/redo actions that add or remove rows or columns. They are the only ones that make
-// HyperFormula rewrite formula references, so they are the only ones whose source data has to be
-// caught up in `afterUndo`/`afterRedo`. Reordering actions (a row move, for instance) must not
-// trigger the write-back - they leave the source data's own reference frame untouched.
-const STRUCTURAL_ACTION_TYPES = new Set(['insert_row', 'insert_col', 'remove_row', 'remove_col']);
+// Undo/redo actions that change rows or columns and therefore may rewrite formula references.
+// Nested Rows reports its internal row removal/insertion pair as one custom action. Reordering actions
+// (a row move, for instance) must not trigger the write-back - they leave the source data's own
+// reference frame untouched.
+const STRUCTURAL_ACTION_TYPES = new Set([
+  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'nested_rows_detach'
+]);
 
 const getActionType = (action: unknown) => {
   if (typeof action !== 'object' || action === null || !('actionType' in action)) {
@@ -204,6 +230,48 @@ const getActionType = (action: unknown) => {
 };
 
 const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getActionType(action) as string);
+
+const isNestedRowsDetachAction = (action: unknown) => getActionType(action) === 'nested_rows_detach';
+
+/**
+ * Returns how many HyperFormula history entries an UndoRedo action owns.
+ *
+ * @param {unknown} action The action being undone or redone.
+ * @returns {number} Number of HyperFormula history entries to replay.
+ */
+function getFormulasUndoRedoSteps(action: unknown): number {
+  if (typeof action !== 'object' || action === null || !('formulasUndoRedoSteps' in action)) {
+    return 1;
+  }
+
+  const stepCount = action.formulasUndoRedoSteps;
+
+  return typeof stepCount === 'number' && Number.isInteger(stepCount) && stepCount > 0 ? stepCount : 1;
+}
+
+/**
+ * Replays every HyperFormula history entry owned by one Handsontable undo/redo action.
+ *
+ * @param {object} engine The HyperFormula engine.
+ * @param {string} operation The engine operation to execute.
+ * @param {number} stepCount Number of history entries to replay.
+ * @returns {Array} Combined engine-reported changed cells.
+ */
+function replayFormulasUndoRedo(
+  engine: HyperFormulaEngine, operation: 'undo' | 'redo', stepCount: number
+): unknown[] {
+  const changedCells: unknown[] = [];
+
+  for (let step = 0; step < stepCount; step++) {
+    const stepChanges = engine[operation]() ?? [];
+
+    stepChanges.forEach((change) => {
+      changedCells.push(change);
+    });
+  }
+
+  return changedCells;
+}
 
 // `MoveCellsAction.undo` restores both regions with `restoreRegion` instead of replaying the move, so
 // `afterMoveCells` - where the forward direction syncs - never fires. Undo has to cover it here.
@@ -454,9 +522,32 @@ export class Formulas extends BasePlugin {
   #nestedRowsDetachPending = false;
 
   /**
-   * The changes that the engine reported while undoing or redoing an action. They are collected in
-   * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
-   * validated.
+   * Marks an undo whose Formula history waits for the detach removal to succeed.
+   *
+   * UndoRedo does not fire `afterUndo` when a row-removal hook vetoes the action. The marker lets
+   * `#onAfterRedoStackChange` release the index-sync guard on that failure path.
+   *
+   * @type {boolean}
+   */
+  #nestedRowsDetachUndoPending = false;
+
+  /**
+   * Tracks a structural redo between `beforeRedo` and `afterRedo`: `null` outside one, then whether the
+   * action actually landed on the done stack.
+   *
+   * `UndoRedo` fires `afterRedo` even when the action settles with `{ wasRedone: false }` (a late
+   * `beforeRemoveRow` veto, for instance). Its `afterUndoStackChange` fires first, and the done stack grows
+   * only when the redo applied. Replaying HyperFormula's history for a redo that did not apply would advance
+   * the engine while the grid stays undone.
+   *
+   * @type {boolean|null}
+   */
+  #structuralRedoApplied: boolean | null = null;
+
+  /**
+   * The changes that the engine reported while undoing or redoing an action. They are captured when
+   * HyperFormula history is replayed and consumed in `afterUndo`/`afterRedo`, where the dependent cells
+   * get validated.
    *
    * @type {Array}
    */
@@ -698,6 +789,17 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName: string | null = null;
+  /**
+   * The flag that makes a `sheetName` change applied through `updateSettings` bind the sheet
+   * without loading its content into the grid. Set by a caller that loads the sheet's data
+   * itself right after the update (the SheetsBar plugin), so the grid is loaded once, not twice.
+   * That load's `afterLoadData` writes the data into the sheet bound here. A name the engine does
+   * not know still goes through `switchSheet`, which reports it.
+   *
+   * @private
+   * @type {boolean}
+   */
+  skipSheetSwitchLoad = false;
 
   /**
    * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
@@ -751,6 +853,8 @@ export class Formulas extends BasePlugin {
     // also covers a `disablePlugin()` that lands mid-span.
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
+    this.#nestedRowsDetachUndoPending = false;
+    this.#structuralRedoApplied = null;
     this.#sheetResyncPending = false;
     this.#showFormulasFlag = false;
 
@@ -883,17 +987,24 @@ export class Formulas extends BasePlugin {
     // they have run. See `#onAfterUpdateSettingsRowCount`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
-    // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeUndo', () => {
+    // Handling undo actions on data just using HyperFormula's UndoRedo mechanism.
+    this.addHook('beforeUndo', (action: unknown) => {
+      const isNestedRowsDetach = isNestedRowsDetachAction(action);
+
+      this.#releaseIndexSyncGuards();
       this.indexSyncer!.setPerformUndo(true);
+      this.#nestedRowsDetachUndoPending = isNestedRowsDetach;
 
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
-      this.#undoRedoDependentCells = this.engine!.undo() ?? [];
+      this.#undoRedoDependentCells = isNestedRowsDetach
+        ? []
+        : replayFormulasUndoRedo(this.engine!, 'undo', getFormulasUndoRedoSteps(action));
       // The engine's undo can add, remove, or rename a sheet without emitting the sheet events
       // that otherwise drop this cache.
       this.#ownSheetExists = null;
     });
+    this.addHook('afterRedoStackChange', this.#onAfterRedoStackChange);
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
     this.addHook('beforeRedo', (action: unknown) => {
@@ -907,15 +1018,28 @@ export class Formulas extends BasePlugin {
         return false;
       }
 
-      this.indexSyncer!.setPerformRedo(true);
+      this.#releaseIndexSyncGuards();
       this.#isRedoingMoveCells = action.actionType === 'move_cells';
 
       this.#undoRedoChangedCells = [];
       this.#undoRedoWroteData = false;
+
+      // A later `beforeRedo` listener can veto the action. Structural actions must wait until
+      // `afterRedo`, so HyperFormula's history only advances after the grid action is accepted.
+      if (isStructuralAction(action)) {
+        this.#undoRedoDependentCells = [];
+        this.#structuralRedoApplied = false;
+
+        return;
+      }
+
+      this.indexSyncer!.setPerformRedo(true);
       // For a `move_cells` redo the engine operation runs in `commitPendingMoveCells` (the
       // Handsontable move must be validated first), so `engine.redo()` is not called here and
       // there are no engine-reported dependent cells to collect.
-      this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
+      this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : replayFormulasUndoRedo(
+        this.engine!, 'redo', getFormulasUndoRedoSteps(action)
+      );
       // Same as the undo: a redone sheet operation emits no sheet event.
       this.#ownSheetExists = null;
     });
@@ -927,6 +1051,14 @@ export class Formulas extends BasePlugin {
       // next successful redo.
       this.indexSyncer!.setPerformRedo(false);
       this.#isRedoingMoveCells = false;
+
+      if (isNestedRowsDetachAction(action)) {
+        this.#undoRedoDependentCells = replayFormulasUndoRedo(
+          this.engine!, 'undo', getFormulasUndoRedoSteps(action)
+        );
+      }
+
+      this.#nestedRowsDetachUndoPending = false;
       this.#validateUndoRedoDependentCells();
 
       // The structural hooks skip blocked sources, so undoing a row/column change reverts the
@@ -936,11 +1068,22 @@ export class Formulas extends BasePlugin {
       }
     });
 
+    this.addHook('afterUndoStackChange', this.#onAfterUndoStackChange);
     this.addHook('afterRedo', (action: unknown) => {
+      const isAppliedStructuralRedo = isStructuralAction(action) && this.#structuralRedoApplied === true;
+
+      this.#structuralRedoApplied = null;
+
+      if (isAppliedStructuralRedo) {
+        this.#undoRedoDependentCells = replayFormulasUndoRedo(
+          this.engine!, 'redo', getFormulasUndoRedoSteps(action)
+        );
+      }
+
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
 
-      if (isStructuralAction(action)) {
+      if (isAppliedStructuralRedo) {
         this.#syncFormulasToSourceData(canBreakReferences(action));
       }
     });
@@ -1071,7 +1214,12 @@ export class Formulas extends BasePlugin {
       // still differs from the current one and lets `switchSheet` report it.
       this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
-      this.switchSheet(pluginSettings.sheetName);
+      if (this.skipSheetSwitchLoad && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
+        this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
+
+      } else {
+        this.switchSheet(pluginSettings.sheetName);
+      }
     }
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
@@ -4006,8 +4154,12 @@ export class Formulas extends BasePlugin {
    * emitter before this plugin's listener is reached, leaving the flag set. `enablePlugin()` clears
    * it, so that leak is bounded by the next enable rather than lasting the whole session.
    */
-  #onBeforeDetachChild = () => {
+  #onBeforeDetachChild = (_parent: unknown, _element: unknown, source?: string) => {
     this.#nestedRowsDetachPending = true;
+
+    if (source === 'UndoRedo.redo') {
+      this.indexSyncer!.setPerformRedo(true);
+    }
   };
 
   /**
@@ -4033,7 +4185,47 @@ export class Formulas extends BasePlugin {
   #closeLeakedGuards() {
     this.#nestedRowsDetachPending = false;
     this.#internalOperationPending = false;
+    this.#releaseIndexSyncGuards();
   }
+
+  /**
+   * Lowers the index-sync undo and redo flags that an interrupted undo or redo left raised.
+   *
+   * A redo of a NestedRows detach raises the redo flag in `beforeDetachChild`, and `afterRedo` lowers it. When
+   * the detach throws between the two, `UndoRedo` rethrows without firing `afterRedo`, and nothing else would
+   * lower the flag. A raised flag makes the axis syncers skip every later row and column move, so HyperFormula
+   * silently drifts away from the grid. Every undo and redo starts from lowered flags, and so does every
+   * structural reload in `#closeLeakedGuards`, which bounds such a leak to the next of those operations.
+   */
+  #releaseIndexSyncGuards() {
+    this.indexSyncer?.setPerformUndo(false);
+    this.indexSyncer?.setPerformRedo(false);
+    this.#nestedRowsDetachUndoPending = false;
+    this.#structuralRedoApplied = null;
+  }
+
+  /**
+   * Records whether a structural redo landed on the done stack. See `#structuralRedoApplied`.
+   */
+  #onAfterUndoStackChange = (doneActionsBefore: unknown[], doneActionsAfter: unknown[]) => {
+    if (this.#structuralRedoApplied !== null) {
+      this.#structuralRedoApplied = doneActionsAfter.length > doneActionsBefore.length;
+    }
+  };
+
+  /**
+   * Releases the index-sync undo guard after a NestedRows detach undo settles.
+   *
+   * UndoRedo emits this hook after the action has run and before the successful `afterUndo` hook.
+   * No row-index synchronization remains, so both successful and vetoed actions can release the
+   * guard here. A veto never reaches `afterUndo`.
+   */
+  #onAfterRedoStackChange = () => {
+    if (this.#nestedRowsDetachUndoPending) {
+      this.indexSyncer!.setPerformUndo(false);
+      this.#nestedRowsDetachUndoPending = false;
+    }
+  };
 
   /**
    * `afterDetachChild` hook callback.
@@ -4044,12 +4236,15 @@ export class Formulas extends BasePlugin {
    * @param {number} finalElementRowIndex The final row index of the detached element.
    */
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
-                         finalElementRowIndex: number) => {
+                         finalElementRowIndex: number, source?: string) => {
     try {
+      if (isBlockedSource(source)) {
+        return;
+      }
+
       this.#internalOperationPending = true;
 
-      const children = element.__children;
-      const childrenCount = Array.isArray(children) ? children.length : 0;
+      const childrenCount = countNestedRowsDescendants(element);
       const rowsData = this.#getProcessedSourceDataArray(
         finalElementRowIndex,
         0,

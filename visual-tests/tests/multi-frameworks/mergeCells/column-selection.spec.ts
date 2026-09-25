@@ -9,7 +9,8 @@ import {
 } from '../../../src/page-helpers';
 
 /**
- * Checks whether the selection highlights the merged cells correctly.
+ * Checks whether the selection highlights the merged cells correctly: the captures show the merged cell, a
+ * column selection that covers it whole, and one that no longer does. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -25,6 +26,7 @@ visualTest(__filename, {
   await tablePage.keyboard.press('Control+m'); // triggers cell merging
 
   // take a screenshot of the merged cell
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await clickWithPositionAndModifiers(await selectClonedCell(0, 1));

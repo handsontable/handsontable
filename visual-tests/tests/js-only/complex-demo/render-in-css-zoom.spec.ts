@@ -5,6 +5,10 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
+/**
+ * Checks that the complex demo renders its grid with headers, cells, and borders aligned when the page is
+ * zoomed to 125% with CSS `zoom`. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

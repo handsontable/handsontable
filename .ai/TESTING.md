@@ -36,11 +36,13 @@ global helpers, mocking, fixtures, custom matchers), see
 - Build the core package before running wrapper tests. Wrappers consume the
   core `tmp/` output through workspace linking. See
   [`.ai/BUILD.md`](BUILD.md).
-- Flaky and failed tests of every red `Tests` or `Develop` run are collected
-  across runs by `.github/workflows/test-health.yml` into the ledger at
+- Flaky and failed tests of every completed `Tests`, `Develop`, `Publish`, and
+  `Visual nightly` run are collected across runs by
+  `.github/workflows/test-health.yml` into the ledger at
   <https://handsontable.github.io/handsontable/test-health/> (Playwright `flaky`
   and `unexpected` outcomes from the JSON report, Jasmine failures from the
-  Puppeteer runner's failed-specs record). A test that flaked in 2+ distinct
+  Puppeteer runner's failed-specs record, and every changed visual capture
+  from the `visual-compare-*` record). A test that flaked in 2+ distinct
   runs within 30 days is flagged as needing a fix or migration ticket. A known
   flake in the Playwright tier can be quarantined for up to 30 days (six at
   once) through `quarantined()` in `tests/fixtures/quarantine.ts`; it still

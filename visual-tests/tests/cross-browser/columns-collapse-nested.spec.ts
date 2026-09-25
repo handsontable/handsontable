@@ -2,6 +2,10 @@ import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { collapseNestedColumn, scrollTableToTheInlineEnd } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
+/**
+ * Checks that collapsing two nested-header groups ("Category" and "System") after a scroll to the inline
+ * end renders the collapsed headers and the narrower grid. Owned by DEV-2981.
+ */
 visualTest('Test collapsing nested headers', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

@@ -36,6 +36,9 @@ import type { SettingsPort } from '../ports';
  *                                keys on it.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} layoutReservedHeight Option `layoutReservedHeight`.
+ * @property {Option} heightFollowsContent Option `heightFollowsContent` - `true` when the host asked
+ *                                         for the grid's height to follow its content, so a vertical
+ *                                         owner with no height of its own leaves the holder at `auto`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
@@ -132,6 +135,10 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     // resolved owner; only slots that owner CONTAINS count, so a root element that owns the axis
     // itself (an explicit `height`) reserves nothing there. Engine default: no host UI.
     layoutReservedHeight: () => 0,
+    // Whether the host sized the grid by its content (Handsontable's `height: 'auto'`). A single
+    // owner with no height of its own is then content-driven like the window, so the holder keeps
+    // `height: auto` instead of collapsing to that owner's 0px. Engine default: not requested.
+    heightFollowsContent: false,
 
     // data source
     data: undefined,
