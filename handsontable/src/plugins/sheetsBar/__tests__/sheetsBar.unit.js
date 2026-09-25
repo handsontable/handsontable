@@ -436,7 +436,7 @@ describe('SheetsBar plugin', () => {
     });
     const sheetsBar = hot.getPlugin('sheetsBar');
 
-    hot.getPlugin('trimRows').trimRows([1, 4]);
+    hot.getPlugin('trimRows').trimRows([1, 3, 4]);
     sheetsBar.setActiveSheet('B');
     dataA.length = 3;
     sheetsBar.setActiveSheet('A');
