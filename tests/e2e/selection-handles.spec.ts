@@ -730,11 +730,8 @@ test.describe('selectionHandles adjust handles', () => {
         data: Array.from({ length: 60 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`)),
       });
       await grid.selectCells(2, 1, 50, 3);
-      // Hover before scrolling: the first hover over a layer refreshes the selection, and that
-      // refresh scrolls the focus cell (row 2) back into view. The pointer stays over the same layer
-      // after the scroll, so no second refresh follows.
-      await grid.hoverCell(48, 2);
       await grid.scrollToRow(20);
+      await grid.hoverCell(24, 2);
 
       // Rows 2 and 50 are out of view, so there is no top or bottom handle. The rows the grid renders
       // past the viewport (the rendering offset) used to carry them, inside the selection.
@@ -956,6 +953,32 @@ test.describe('selectionHandles hover', () => {
     // The hover took effect: the hovered layer shows its handles.
     await expect(grid.visibleHandles()).not.toHaveCount(0);
     expect(await grid.verticalScrollOffset()).toBe(0);
+  });
+
+  test('does not scroll the viewport back to the focus cell when the pointer enters a selection after a scroll', async () => {
+    // The focus cell (row 2) starts in view, and the scroll then takes it off the top of the viewport.
+    await grid.selectCells(2, 1, 50, 3);
+    await grid.scrollToRow(20);
+
+    const scrolledOffset = await grid.verticalScrollOffset();
+
+    // Positive control: the scroll moved the viewport, so an unchanged offset below is not a no-op.
+    expect(scrolledOffset).toBeGreaterThan(0);
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    await grid.hoverCell(24, 2);
+
+    // The hover took effect: the hovered layer shows its handles.
+    await expect(grid.visibleHandles()).not.toHaveCount(0);
+    expect(await grid.verticalScrollOffset()).toBe(scrolledOffset);
+
+    // Leaving the selection and coming back sets the hovered layer again.
+    await grid.hoverCell(24, 5);
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    await grid.hoverCell(26, 2);
+    await expect(grid.visibleHandles()).not.toHaveCount(0);
+    expect(await grid.verticalScrollOffset()).toBe(scrolledOffset);
   });
 
   test('does not fire the selection hooks when the pointer enters and leaves a selection', async () => {
