@@ -1,4 +1,5 @@
 import { parseRangeRef, type RangeRef } from '../../utils/xlsxEngine/cellRef';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 import { PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, POINTS_PER_PIXEL } from '../../utils/xlsxEngine/units';
 import type {
   CellSnapshot,
@@ -92,16 +93,6 @@ function bareMarkerToCode(marker: string): string | null {
  * captured: digit placeholders, the grouping comma, the decimal point and spacing.
  */
 const PLAIN_NUMBER_PATTERN_REGEX = /^[#0,.\s]+$/;
-
-/**
- * The Excel epoch (1899-12-30) expressed in UTC milliseconds, the base every date serial counts from.
- */
-const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
-
-/**
- * Milliseconds in a day, used to convert whole-day offsets to and from the Excel epoch.
- */
-const MS_PER_DAY = 86400000;
 
 /**
  * Strips bracketed sections (`[$-409]`, `[Red]`, `[h]`) and quoted literals from a number format so

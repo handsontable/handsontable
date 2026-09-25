@@ -1,5 +1,3 @@
-import ExcelJS from 'exceljs';
-
 describe('exportFile XLSX type — headers', () => {
   const id = 'testContainer';
 
@@ -19,7 +17,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx();
@@ -32,7 +30,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -46,7 +44,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(1, 2),
         colHeaders: ['Name', 'Age'],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -59,7 +57,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(1, 2),
         colHeaders: ['<b>Bold</b>', 'Plain'],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -72,7 +70,7 @@ describe('exportFile XLSX type — headers', () => {
         data: createSpreadsheetData(1, 2),
         colHeaders: ['<b>Bold</b>', 'Plain'],
         textExtractor: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -92,7 +90,7 @@ describe('exportFile XLSX type — headers', () => {
           ['<i>A</i>', 'B'],
         ],
         textExtractor: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -110,7 +108,7 @@ describe('exportFile XLSX type — headers', () => {
           ['<b>Group</b>'],
           ['<i>A</i>', 'B'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -129,7 +127,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Q1', 'Q2'],
         ],
         modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -145,7 +143,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx();
@@ -158,7 +156,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ rowHeaders: true });
@@ -172,7 +170,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(2, 1),
         rowHeaders: ['Row A', 'Row B'],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ rowHeaders: true });
@@ -188,7 +186,7 @@ describe('exportFile XLSX type — headers', () => {
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
@@ -215,13 +213,13 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A', 'B']],
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
       const headerCell = ws.getRow(1).getCell(1);
 
-      expect(headerCell.fill).toEqual(DEFAULT_FILL);
+      expect(headerCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       expect(headerCell.border).toEqual(DEFAULT_BORDER);
     });
 
@@ -229,14 +227,14 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A']],
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       // Row header is in column 1; data row 1 is Excel row 1 (no column headers).
       const ws = await parseXlsx({ rowHeaders: true });
       const rowHeaderCell = ws.getRow(1).getCell(1);
 
-      expect(rowHeaderCell.fill).toEqual(DEFAULT_FILL);
+      expect(rowHeaderCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       expect(rowHeaderCell.border).toEqual(DEFAULT_BORDER);
     });
 
@@ -245,14 +243,14 @@ describe('exportFile XLSX type — headers', () => {
         data: [['A']],
         colHeaders: true,
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       // Corner cell: row 1 (header row), col 1 (row-header column).
       const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
       const cornerCell = ws.getRow(1).getCell(1);
 
-      expect(cornerCell.fill).toEqual(DEFAULT_FILL);
+      expect(cornerCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       expect(cornerCell.border).toEqual(DEFAULT_BORDER);
     });
 
@@ -260,23 +258,23 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A']],
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true, headerStyle: { backgroundColor: '#4472C4' } });
 
-      expect(ws.getRow(1).getCell(1).fill).toEqual({
+      expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining({
         type: 'pattern',
         pattern: 'solid',
         fgColor: { argb: 'FF4472C4' },
-      });
+      }));
     });
 
     it('should apply a custom header border style and color when configured', async() => {
       handsontable({
         data: [['A']],
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({
@@ -295,7 +293,7 @@ describe('exportFile XLSX type — headers', () => {
         data: [['A']],
         colHeaders: true,
         rowHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true, rowHeaders: true, headerStyle: null });
@@ -311,7 +309,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A']],
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({
@@ -319,7 +317,7 @@ describe('exportFile XLSX type — headers', () => {
         headerStyle: { backgroundColor: '#F2F2F2', border: null },
       });
 
-      expect(ws.getRow(1).getCell(1).fill).toEqual(DEFAULT_FILL);
+      expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       // ExcelJS may return an empty sentinel {} when another property is set — check no sides exist.
       expect(ws.getRow(1).getCell(1).border?.top).toBeUndefined();
     });
@@ -328,7 +326,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A', 'B']],
         colHeaders: true,
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -344,14 +342,14 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: [['A']],
         nestedHeaders: [['Parent'], ['Child']],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
 
-      expect(ws.getRow(1).getCell(1).fill).toEqual(DEFAULT_FILL);
+      expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       expect(ws.getRow(1).getCell(1).border).toEqual(DEFAULT_BORDER);
-      expect(ws.getRow(2).getCell(1).fill).toEqual(DEFAULT_FILL);
+      expect(ws.getRow(2).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
       expect(ws.getRow(2).getCell(1).border).toEqual(DEFAULT_BORDER);
     });
   });
@@ -365,7 +363,7 @@ describe('exportFile XLSX type — headers', () => {
           { headerClassName: 'htLeft' },
           { headerClassName: 'htRight' },
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -385,7 +383,7 @@ describe('exportFile XLSX type — headers', () => {
           [{ label: 'Centered', colspan: 2, headerClassName: 'htCenter' }],
           ['A', 'B'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -400,7 +398,7 @@ describe('exportFile XLSX type — headers', () => {
         data: createSpreadsheetData(1, 1),
         colHeaders: ['No align'],
         columns: [{ headerClassName: 'custom-class' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -412,7 +410,7 @@ describe('exportFile XLSX type — headers', () => {
       handsontable({
         data: createSpreadsheetData(1, 1),
         colHeaders: ['Header'],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -429,7 +427,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Group A', { label: 'Group B', colspan: 2 }],
           ['Col 1', 'Col 2', 'Col 3'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -450,7 +448,7 @@ describe('exportFile XLSX type — headers', () => {
           ['A', { label: 'Span', colspan: 2 }],
           ['B', 'C', 'D'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -466,7 +464,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Top'],
           ['Bottom'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -483,7 +481,7 @@ describe('exportFile XLSX type — headers', () => {
           [{ label: 'Both', colspan: 2 }],
           ['Col 1', 'Col 2'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
@@ -501,7 +499,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Group', 'Other'],
           ['A', 'B'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx();
@@ -522,7 +520,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Col 1', 'Col 2', 'Col 3'],
         ],
         hiddenColumns: { columns: [1] },
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true, exportHiddenColumns: 'hide' });
@@ -553,7 +551,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Col 1', 'Col 2', 'Col 3'],
         ],
         hiddenColumns: { columns: [1] },
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -582,7 +580,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Col 1', 'Col 2', 'Col 3', 'Col 4', 'Col 5'],
         ],
         hiddenColumns: { columns: [1] },
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -605,7 +603,7 @@ describe('exportFile XLSX type — headers', () => {
           [{ label: 'Group', colspan: 2 }],
           ['Col 1', 'Col 2'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       getPlugin('nestedHeaders').disablePlugin();

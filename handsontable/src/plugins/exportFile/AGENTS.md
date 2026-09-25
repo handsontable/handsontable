@@ -107,6 +107,16 @@ Unit conversions, all constants at the top of `types/xlsx.ts`:
 
 Other rules:
 
+- **`_createTypeFormatter` resolves the engine as `options.engine ?? engines[format]`, never by spreading
+  the options over a default.** It used to build `{ engine: <configured>, ...options }`, so a caller's
+  `engine: null` or `engine: undefined` WON, and `types/xlsx.ts` then mapped that `null` to the built-in
+  engine — a grid configured `exportFile: { engines: { xlsx: ExcelJS } }` silently wrote through the
+  native engine on `downloadFileAsync('xlsx', { engine: null })`, against the `ExportOptions.engine`
+  JSDoc. `null` and `undefined` mean "no override" on both sides now, through
+  `resolveEngineOverride(override, configured)` in `../../utils/xlsxEngine/detect.ts`, which `importFile`
+  uses too — change one plugin's resolution and you have re-opened the drift. `types/xlsx.ts` still maps a
+  RESOLVED `null`/`undefined` to native, which is the `engines`-names-no-xlsx fallback the engine table
+  documents.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet
@@ -142,7 +152,9 @@ Other rules:
   larger. `#getCompressionLevel` therefore returns `6` for anything but `false` and a valid level;
   `xlsxValidationSheetName.unit.js` pins the `writeBuffer` options for unset, `false` and `3`, and
   `exceljsWrite.unit.js` pins STORE-vs-DEFLATE by SIZE (stored output larger than deflated on a repetitive
-  sheet), which is the only assertion that can tell the two apart at the adapter.
+  sheet), which is the only assertion that can tell the two apart at the adapter. The native engine has no
+  level: `false` stores, every other value deflates at the platform default; `nativeWrite.unit.js` pins
+  STORE-vs-DEFLATE by size.
 - **Sheet names are sanitized by the export, not by the engine.** ExcelJS throws for an illegal character
   (`* ? : / \ [ ]`), a leading or trailing `'`, the reserved name `History`, an empty name and a duplicate
   (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export. ExcelJS
@@ -163,6 +175,17 @@ Other rules:
   renderer leaving an object or an array in the cell is all it takes.
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
+- **Every dropped-feature name the export can report is a row in the export guide's dropped-features
+  table**, the same rule `importFile/AGENTS.md` states for the import direction: add to both or neither.
+  The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
+  `DroppedFeatureName` narrows `DroppedFeatures#record()` to exactly those members — they are public
+  output, so a typo at one site would otherwise produce a different key for the same condition with
+  nothing to catch it. A name whose tail is the file's own value (an unsupported validation type, rule
+  kind or number format) is built by `DroppedFeatures#recordUnsupported(group, value)` instead, which
+  checks the group and leaves only the data-driven tail free; `record()` takes no template literal, so a
+  hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
+  The write direction owns `compressionLevel`, `merge:overlap` and the four `conditionalFormatting:*`
+  names; the read direction's are in the import guide.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule
@@ -248,6 +271,7 @@ Other rules:
 - `../../utils/xlsxEngine/` for the neutral workbook model, engine detection, capabilities and the
   ExcelJS adapter this plugin and `importFile` both call — neither plugin touches an engine object
   directly.
+- `../../utils/xlsxEngine/AGENTS.md` for the engine contract and the native adapter's traps.
 - Sources of exported values: `../formulas/AGENTS.md`, `../columnSummary/AGENTS.md`,
   `../nestedHeaders/AGENTS.md`.
 - Menu entry: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.

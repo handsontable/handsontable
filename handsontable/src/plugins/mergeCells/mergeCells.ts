@@ -789,6 +789,10 @@ export class MergeCells extends BasePlugin {
    * @param {MergedCellCoords} mergedCell The merged cell whose meta should be reset.
    */
   #resetMergedCellMeta(mergedCell: MergedCellCoords) {
+    // A shrinking `loadData` or `updateData` leaves the collection holding the previous grid's
+    // coordinates. `Core#removeCellMeta` reads an out-of-range index as the physical one (the way
+    // `setCellMeta` writes one), so those cells are cleared by the same coordinates the merge was
+    // recorded with - which matters on the `updateData` path, where the meta is still there.
     rangeEach(0, mergedCell.rowspan - 1, (i) => {
       rangeEach(0, mergedCell.colspan - 1, (j) => {
         this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'hidden');

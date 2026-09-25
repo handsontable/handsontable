@@ -21,33 +21,33 @@ category: Accessories and menus
 menuTag: new
 ---
 
-Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file through an engine you provide, derives cell types from number formats, and applies the layout the workbook carries.
+Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file with its built-in engine, derives cell types from number formats, and applies the layout the workbook carries.
 
 [[toc]]
 
 ## Prerequisites
 
-- Install [ExcelJS](https://github.com/exceljs/exceljs), the engine that powers XLSX import. The supported version range is **`^4.4.0`**.
+- Register the `ImportFile` plugin (it is part of `registerAllModules()`). No other library is needed.
 
-  ```shell
-  npm install exceljs
-  ```
+### Requirements
+
+The built-in engine unpacks the archive with the Compression Streams API, which every browser Handsontable supports provides. A test environment without it - jsdom, Vitest with the jsdom environment, or Jest's default environment - needs either `CompressionStream` and `DecompressionStream` polyfilled, or ExcelJS injected through the `engines` option.
 
 ## Engines
 
-XLSX import goes through an engine you inject, the same way the export does. ExcelJS is the only supported engine; the per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both directions.
+The plugin reads `.xlsx` files with a built-in engine. To read through [ExcelJS](https://github.com/exceljs/exceljs) instead - for example to keep the behavior of a 19.0 integration - install ExcelJS 4.4 or later and pass it through the `engines` option: `importFile: { engines: { xlsx: ExcelJS } }`. The per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both engines and both directions.
+
+`engines` is keyed by format, so a map that names no `xlsx` engine reads `.xlsx` with the built-in engine, the same way `importFile: true` does. Pass a different engine for one call only with the `engine` option in `importFromArrayBuffer(format, buffer, options)` or `importFromBlob(format, blob, options)`. An `engine` of `null`, or no `engine` key at all, means no override: the call keeps the engine `engines` configured, or the built-in engine when `engines` names none for the format. The export direction resolves its own `engine` option the same way.
 
 ## Steps
 
-1. Pass the engine to the plugin.
+1. Enable the plugin.
 
    ::: only-for javascript
 
    ```javascript
-   import ExcelJS from 'exceljs';
-
    const hot = new Handsontable(container, {
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    });
    ```
@@ -57,10 +57,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for react
 
    ```jsx
-   import ExcelJS from 'exceljs';
-
    <HotTable
-     importFile={{ engines: { xlsx: ExcelJS } }}
+     importFile={true}
      licenseKey="non-commercial-and-evaluation"
    />
    ```
@@ -70,10 +68,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for angular
 
    ```typescript
-   import ExcelJS from 'exceljs';
-
    readonly hotSettings: GridSettings = {
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    };
    ```
@@ -83,10 +79,8 @@ XLSX import goes through an engine you inject, the same way the export does. Exc
    ::: only-for vue
 
    ```js
-   import ExcelJS from 'exceljs';
-
    const hotSettings = ref({
-     importFile: { engines: { xlsx: ExcelJS } },
+     importFile: true,
      licenseKey: 'non-commercial-and-evaluation',
    });
    ```
@@ -125,17 +119,17 @@ Cell styling is applied only when you set [`importStyles: true`](#styles). Witho
 The plugin also reports every dropped feature in one console warning per import call, naming the engine. With `importStyles` off, a workbook that carries any cell styling reports it this way:
 
 ```text
-The "exceljs" xlsx engine dropped features it cannot write or read: cellStyles.
+The "native" xlsx engine dropped features it cannot write or read: cellStyles.
 ```
 
-Expect `cellStyles` on almost any real workbook: Excel assigns a style to most cells you have used, even ones you never formatted yourself, so the plugin sees styling to report whether or not the sheet looks styled.
+Expect `cellStyles` on almost any real workbook read through the ExcelJS engine: ExcelJS resolves a cell's default font and fill into a style object whenever the cell carries any format index at all, so it reports styling even on cells you never formatted yourself. The built-in engine reports `cellStyles` only when a cell carries styling that is actually there.
 
 Three keys on the result carry features that need more than a cell value. Each row says whether the grid applies it:
 
 | Key | What it carries |
 |---|---|
 | `nestedHeaders` | The promoted header band when `headerRows` is above `1`. It is applied - `updateSettings` both configures and enables the [`NestedHeaders`](@/api/nestedHeaders.md) plugin - and `colHeaders` is absent whenever it is present. A later import that promotes a single header row instead clears a previously applied `nestedHeaders` setting automatically, so the new `colHeaders` renders. |
-| `conditionalFormatting` | One entry per rectangle the workbook's rules cover, as `{ rows: [first, last], cols: [first, last], rules }` in zero-based, inclusive grid coordinates. The `rules` are the engine's own rule objects, passed through untouched. Nothing applies them. |
+| `conditionalFormatting` | One entry per rectangle the workbook's rules cover, as `{ rows: [first, last], cols: [first, last], rules }` in zero-based, inclusive grid coordinates. The `rules` are ExcelJS-compatible rule objects (`type`, `operator`, `formulae`, `style`, …), passed through untouched. Nothing applies them. |
 | `layoutDirection` | `'rtl'` or `'ltr'`, the sheet's own direction. Nothing applies it - see below. |
 
 These are the keys the import can report, beyond `cellStyles`:
@@ -157,6 +151,8 @@ These are the keys the import can report, beyond `cellStyles`:
 | `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |
 | `numFmt:<pattern>` | A number format with no `Intl.NumberFormat` equivalent - scientific notation, a fraction, or more than the 100 fraction digits `Intl.NumberFormat` accepts. |
 | `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. A reference to another sheet, such as `Rates!A1`, is kept as written. |
+
+The two keys that end in a value the file wrote - `dataValidation:<type>` and `numFmt:<pattern>` - are bounded, because the workbook is untrusted input. The value is cut to 64 characters and its control characters are replaced, and after 32 distinct values in one import the rest are reported as `dataValidation:other` or `numFmt:other`. The counts stay complete either way.
 
 Click **Import XLSX** and pick a `.xlsx` file to load it into the grid below.
 
@@ -216,6 +212,16 @@ Pass these options as the third argument to `importFromArrayBuffer(format, buffe
 | `engine` | `object` | - | Per-call engine override. |
 | `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. |
 
+### Re-importing an export
+
+A workbook you exported from Handsontable carries its nested headers and its row headers as ordinary sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
+
+```javascript
+await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
+  colHeaders: 'firstRow', headerRows: 2, rowHeaders: true,
+});
+```
+
 ## Styles
 
 By default, the plugin reads cell styling from the workbook but doesn't apply it - it reports `cellStyles` in `result.dropped` instead. Set `importStyles: true` to apply alignment, font, fill, and border styling to the imported cells.
@@ -251,9 +257,12 @@ The workbook is untrusted input, and the plugin treats it that way:
 
 - **Column headers are escaped.** Handsontable renders `colHeaders` as HTML, so a promoted header row is markup unless something stops it. Every header the plugin promotes is HTML-escaped, which also keeps text such as `5 < 10` whole. If you replace the headers with your own unescaped markup after the import, you own that decision - configure the [`sanitizer`](@/api/options.md#sanitizer) option to police it.
 - **Cell values are rendered as text.** They are not projected through any HTML path, so they need no escaping and keep whatever the file wrote.
+- **A text value that starts with `=` stays text.** Such a cell is inert in Excel, but the grid hands every `=`-leading string to HyperFormula. When the [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) plugin is enabled, the plugin writes the value with a leading apostrophe - the formula plugin's own text escape, which the grid renders without the apostrophe - so the file's text cannot become a live formula. A cell the file declares as a formula is imported as one, as before.
+- **A text value that starts with `'=` keeps its apostrophe.** The apostrophe followed by `=` is the escape the Formulas plugin strips on read, so a cell whose text really begins that way would lose the character the file carried. When the Formulas plugin is enabled, such a value is escaped too. The data then keeps the file's value for a re-export, but the cell displays a doubled apostrophe, because the Formulas plugin recognizes exactly one escape level. A value that starts with an apostrophe followed by anything else is imported unchanged, because the grid does not read it as an escape either.
 - **Colors are validated before they reach a stylesheet.** A color that is not a plain hex value is skipped rather than turned into a CSS declaration.
 - **Oversized input is refused.** A file above 128 MiB is rejected before the engine parses it. After the parse, a sheet declaring more than 1,048,576 rows, 16,384 columns, or 5,000,000 cells is refused before the plugin allocates anything for it, and a workbook whose sheets together declare more than 10,000,000 cells is refused too. A file can declare a size it does not hold, and reading it at face value exhausts the tab. The parse itself runs inside the engine you inject, so only the byte cap bounds it. The caps are security bounds, not a promise of comfort: a sheet near the 5,000,000-cell cap takes tens of seconds to read and map and several gigabytes of memory, which is more than a browser tab is usually given. Keep imports well below the cap, or split the workbook.
 - **References are bounded.** A list validation or conditional formatting range that reaches past the sheet limits is not read, and one that spans a whole column or row is clamped to the cells the sheet holds.
+- **A sheet part must be typed as a worksheet.** The built-in engine reads a sheet only from a part the package's `[Content_Types].xml` types as a worksheet, through an `<Override>` for that part or a worksheet `<Default>` for its extension. A package that types its worksheets only by a `<Default Extension="xml" ContentType="application/xml"/>` is refused, with `the sheet "<name>" has no worksheet part.` The OOXML specification requires the worksheet type, and Excel, LibreOffice, and Google Sheets all write it, but a third-party generator may omit it. Read such a file with ExcelJS through the `engines` option.
 
 ## Hooks
 

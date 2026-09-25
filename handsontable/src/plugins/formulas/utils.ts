@@ -1,5 +1,6 @@
 import { isValidISODate } from '../../helpers/dateTime';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 
 /**
  * Checks if provided formula expression is escaped.
@@ -101,9 +102,8 @@ export function getTimeFromHfTimeFraction(numericTime: number): string {
  * @returns {string}
  */
 export function getDateFromExcelDate(numericDate: unknown): string {
-  // HF epoch is 1899-12-30 (UTC).
-  const epochMs = Date.UTC(1899, 11, 30);
-  const dateMs = epochMs + ((numericDate as number) * 86400000);
+  // The HyperFormula epoch is 1899-12-30 (UTC), the same day zero the xlsx engine counts from.
+  const dateMs = EXCEL_EPOCH_UTC + ((numericDate as number) * MS_PER_DAY);
   const d = new Date(dateMs);
   const year = d.getUTCFullYear();
   const month = String(d.getUTCMonth() + 1).padStart(2, '0');

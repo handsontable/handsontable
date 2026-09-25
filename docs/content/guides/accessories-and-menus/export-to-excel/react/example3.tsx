@@ -1,6 +1,5 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -36,7 +35,7 @@ const ExampleComponent = () => (
       autoWrapRow={true}
       autoWrapCol={true}
       contextMenu={true}
-      exportFile={{ engines: { xlsx: ExcelJS } }}
+      exportFile={true}
       licenseKey="non-commercial-and-evaluation"
     />
   </>

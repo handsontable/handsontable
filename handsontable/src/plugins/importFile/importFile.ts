@@ -1,8 +1,10 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
-import { detectXlsxEngine, type DetectedXlsxEngine } from '../../utils/xlsxEngine/detect';
-import { DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
+import {
+  detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
+} from '../../utils/xlsxEngine/detect';
+import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
 import type { ImportedBorder } from './styles';
@@ -16,7 +18,8 @@ export const PLUGIN_PRIORITY = 245;
  */
 export interface ImportFileSettings {
   /**
-   * Map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it, or
+   * with a map that names no engine for the format, the built-in engine reads `.xlsx`.
    */
   engines?: Record<string, object>;
 }
@@ -66,7 +69,8 @@ export interface ImportOptions {
    */
   apply?: boolean;
   /**
-   * Per-call engine override.
+   * An xlsx engine module for this import only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
    */
   engine?: object;
   /**
@@ -263,12 +267,8 @@ function getPluginSettings(settings: unknown): ImportFileSettings | undefined {
  * The engine module configured for `format` under `engines`, keyed by format name the way the
  * option is documented and the way `exportFile` reads its own `engines`.
  */
-function configuredEngine(
-  hot: HotInstance, format: string
-): { engines: Record<string, object> | undefined; injected: object | undefined } {
-  const engines = getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines;
-
-  return { engines, injected: engines?.[format] };
+function configuredEngine(hot: HotInstance, format: string): object | undefined {
+  return getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines?.[format];
 }
 
 /**
@@ -276,35 +276,19 @@ function configuredEngine(
  * `null` instead of throwing when nothing usable was injected.
  */
 function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
-  const injected = override ?? configuredEngine(hot, format).injected;
-
-  if (injected === undefined) {
-    return null;
-  }
-
-  try {
-    return detectXlsxEngine(injected, PLUGIN_KEY);
-  } catch {
-    return null;
-  }
+  return tryDetectXlsxEngine(resolveEngineOverride(override, configuredEngine(hot, format)), PLUGIN_KEY);
 }
 
 /**
  * Detects the engine from the per-call override or the plugin settings and checks it can read the
- * given format. Throws a Handsontable error when no engine is configured or the detected engine
- * cannot read the format.
+ * given format. An `engines` map that names no engine for `format` falls back to the built-in
+ * engine, which is what `supportsImportFormat` predicts and what `exportFile` does for the same
+ * configuration. Throws a Handsontable error when the injected value does not duck-type to a known
+ * engine, or when the detected engine cannot read the format.
  */
 function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
-  const { engines, injected } = configuredEngine(hot, format);
-
-  if (override === undefined && injected === undefined && engines && Object.keys(engines).length > 0) {
-    throwWithCause(
-      `ImportFile: no engine is configured for "${format}" files. ` +
-      `Configured formats: ${Object.keys(engines).join(', ')}.`
-    );
-  }
-
-  const detected = detectXlsxEngine(override ?? injected, PLUGIN_KEY);
+  const injected = resolveEngineOverride(override, configuredEngine(hot, format));
+  const detected = detectXlsxEngine(injected, PLUGIN_KEY);
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(
@@ -333,7 +317,7 @@ function recordLayoutDirectionMismatch(
   }
 
   if (mapped.layoutDirection !== (hot.isRtl() ? 'rtl' : 'ltr')) {
-    dropped.record('layoutDirection');
+    dropped.record(DROPPED_FEATURES.layoutDirection);
   }
 }
 
@@ -346,17 +330,15 @@ function recordLayoutDirectionMismatch(
  * derived from number formats, dropdown sources from list validations, formulas, merged cells,
  * hidden rows and columns, frozen panes, column widths and row heights.
  *
- * XLSX import needs an engine passed through the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs)
- * is the only engine supported today. The plugin reports, in one console warning, anything the
- * engine could not recover from the file.
+ * XLSX import works out of the box through the built-in engine. Pass an engine module through the
+ * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
+ * reports, in one console warning, anything the engine could not recover from the file.
  *
  * @example
  * ::: only-for javascript
  * ```js
- * import ExcelJS from 'exceljs';
- *
  * const hot = new Handsontable(container, {
- *   importFile: { engines: { xlsx: ExcelJS } },
+ *   importFile: true,
  * });
  *
  * const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
@@ -416,8 +398,8 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when an engine is configured for the format and that engine can read it. ExcelJS,
-   * the only engine supported today, reads `xlsx` only.
+   * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
+   * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
    */
   supportsImportFormat(format: string): boolean {
     const detected = tryDetectEngine(this.hot, undefined, format);

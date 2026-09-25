@@ -225,6 +225,7 @@ Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks
 
 - Type check: `npm run test:types`
 - **Never type-check with `npx tsc`.** npm can resolve the deprecated `tsc` placeholder package instead of the compiler, and it prints "No errors found" without type-checking anything. Use `npm run test:types`, or `./node_modules/.bin/tsc --noEmit -p tsconfig.json` from `handsontable/`
+- **`tsc -p tsconfig.json` does not compile the `*.types.ts` regression files.** Those live under `test/types` (their own project), so a source-level type change that breaks one — widening `XlsxEngineKind` broke the `importFile` type test's `'exceljs'` pin (DEV-3011) — passes the main config and fails only in `npm run test:types` and CI. After changing a public type, run `npm run test:types` (or `./node_modules/.bin/tsc -p ./test/types`), not just the main config
 - `readonly #field` syntax IS valid TypeScript — do NOT convert `#field` to `private readonly field` to add `readonly`
 - When removing `as T` casts (e.g. SonarCloud S4325), always rerun `npm run test:types` — some casts are load-bearing
 - Prefer fixing function/method signatures or making them generic over adding `as T[]` casts at call sites

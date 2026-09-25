@@ -961,6 +961,10 @@ export class CustomBorders extends BasePlugin {
     const kept: BorderObject[] = [];
 
     arrayEach(this.savedBorders, (border) => {
+      // A shrinking `loadData` or `updateData` leaves the model holding the previous grid's
+      // coordinates. `Core#removeCellMeta` reads an out-of-range index as the physical one (the way
+      // `setCellMeta` writes one), so such an entry is cleared by the same coordinates it was
+      // recorded with - which matters on the `updateData` path, where the meta is still there.
       if (!this.#writeBordersMeta(border.row, border.col, null)) {
         kept.push(border);
       }

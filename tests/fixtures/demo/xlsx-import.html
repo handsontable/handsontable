@@ -26,6 +26,15 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+
+    // Which xlsx engine the two grids use. `native` is the built-in engine (`importFile: true`,
+    // `exportFile: true`); `exceljs` injects the ExcelJS module the way 19.0 required. The ExcelJS
+    // script is loaded on both legs because the styles round trip reads the re-exported blob back
+    // with it as an oracle.
+    window.htEngine = ({ exceljs: 'exceljs', native: 'native' })[htParams.get('engine') ?? 'exceljs'];
+    if (!window.htEngine) {
+      throw new Error('Unknown ?engine= value: ' + JSON.stringify(htParams.get('engine')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; }
@@ -72,6 +81,7 @@
   <script>
     const sourceEl = document.querySelector('[data-testid="source"]');
     const targetEl = document.querySelector('[data-testid="target"]');
+    const engineSetting = window.htEngine === 'native' ? true : { engines: { xlsx: ExcelJS } };
 
     sourceEl.className = `ht-theme-${window.htTheme}`;
     targetEl.className = `ht-theme-${window.htTheme}`;
@@ -116,7 +126,7 @@
       customBorders: [
         { row: 0, col: 1, top: { width: 2, color: '#0000ff' }, start: { width: 1, color: '#0000ff' } },
       ],
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('source'),
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -135,7 +145,7 @@
         [{ label: 'Team', colspan: 2 }, 'Totals'],
         ['Name', 'Role', 'Revenue'],
       ],
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('source2'),
       licenseKey: 'non-commercial-and-evaluation',
     });
@@ -145,12 +155,12 @@
     const target = new Handsontable(targetEl, {
       data: [[]],
       formulas: { engine: HyperFormula, sheetName: 'Target' },
-      importFile: { engines: { xlsx: ExcelJS } },
+      importFile: engineSetting,
       // Enabled so an imported `customBorders` entry (via `importStyles: true`) actually lands,
       // rather than being reported under `result.dropped` as `cellStyles:borders`.
       customBorders: true,
       // Used only by the styles round trip, to re-export the target and read the styling back.
-      exportFile: { engines: { xlsx: ExcelJS } },
+      exportFile: engineSetting,
       afterRenderer: stamp('target'),
       licenseKey: 'non-commercial-and-evaluation',
     });

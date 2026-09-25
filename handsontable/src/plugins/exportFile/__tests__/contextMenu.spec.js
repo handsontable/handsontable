@@ -1,5 +1,3 @@
-import ExcelJS from 'exceljs';
-
 describe('ExportFile', () => {
   const id = 'testContainer';
 
@@ -66,11 +64,11 @@ describe('ExportFile', () => {
         expect(submenuItems).toContain('To CSV');
       });
 
-      it('should contain "To Excel" in the Export submenu when an engine is configured', async() => {
+      it('should contain "To Excel" in the Export submenu', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
-          exportFile: { engines: { xlsx: ExcelJS } },
+          exportFile: true,
         });
 
         await contextMenu(getCell(1, 1));
@@ -86,7 +84,7 @@ describe('ExportFile', () => {
         expect(submenuItems).toContain('To Excel');
       });
 
-      it('should hide "To Excel" in the Export submenu when no engine is configured', async() => {
+      it('should show "To Excel" in the Export submenu with no engine configured', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
@@ -103,7 +101,8 @@ describe('ExportFile', () => {
         }).get();
 
         expect(submenuItems).toContain('To CSV');
-        expect(submenuItems).not.toContain('To Excel');
+        // The built-in engine needs no configuration, so the item is no longer conditional.
+        expect(submenuItems).toContain('To Excel');
       });
     });
 

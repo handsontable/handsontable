@@ -1,18 +1,24 @@
 import { throwWithCause } from '../../../helpers/errors';
-import type { DroppedFeatures } from '../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../capabilities';
 import {
   createCellSnapshot,
   createSheetSnapshot,
   createWorkbookSnapshot,
+  isProtectionOptionName,
   type CellFormula,
   type CellSnapshot,
   type CellStyleSnapshot,
   type CellValue,
+  type SheetProtectionOptions,
   type SheetSnapshot,
   type WorkbookSnapshot,
 } from '../model';
 import { parseRangeRef } from '../cellRef';
-import { MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../limits';
+import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../dates';
+import {
+  MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwCellLimit,
+  throwColumnLimit, throwRowLimit,
+} from '../limits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -107,7 +113,7 @@ export interface ExcelJsWorksheet {
   getCell(rowNumber: number, colNumber: number): ExcelJsCell;
   mergeCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
   addConditionalFormatting(descriptor: { ref: string; rules: unknown[] }): void;
-  protect(password: string, options?: Record<string, boolean>): void | Promise<void>;
+  protect(password: string, options?: SheetProtectionOptions): void | Promise<void>;
   sheetProtection: Record<string, unknown> | undefined;
   conditionalFormattings: Array<{ ref: string; rules: unknown[] }>;
   rowCount: number;
@@ -329,7 +335,7 @@ async function writeSheetFeatures(
     } catch {
       // ExcelJS throws `Cannot merge already merged cells` on an overlap. One malformed merge must
       // not abandon the whole export, so the range is skipped and reported instead.
-      dropped.record('merge:overlap');
+      dropped.record(DROPPED_FEATURES.mergeOverlap);
     }
   });
 
@@ -337,14 +343,11 @@ async function writeSheetFeatures(
   worksheet.state = sheet.state;
 }
 
-const MS_PER_DAY = 86400000;
-const UNIX_EPOCH_SERIAL = 25569;
-
 /**
  * Converts the `Date` ExcelJS materializes for a date-formatted cell back into its serial number.
  */
 function dateToSerial(date: Date): number {
-  return (date.getTime() / MS_PER_DAY) + UNIX_EPOCH_SERIAL;
+  return (date.getTime() / MS_PER_DAY) + EXCEL_EPOCH_OFFSET;
 }
 
 /**
@@ -443,13 +446,13 @@ function recordLossyValue(raw: ExcelCellValue, dropped: DroppedFeatures): void {
   }
 
   if ('hyperlink' in raw) {
-    dropped.record('hyperlink');
+    dropped.record(DROPPED_FEATURES.hyperlink);
   }
 
   // A hyperlink's own text may itself be a rich-text run list, in which case the runs are nested one
   // level down and the top-level `in` test above does not see them.
   if ('richText' in raw || hasNestedRichText(raw)) {
-    dropped.record('richText');
+    dropped.record(DROPPED_FEATURES.richText);
   }
 }
 
@@ -484,7 +487,7 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
       allowBlank: source.dataValidation.allowBlank ?? true,
     };
   } else if (source.dataValidation?.type) {
-    dropped.record(`dataValidation:${source.dataValidation.type}`);
+    dropped.recordUnsupported('dataValidation', source.dataValidation.type);
   }
 
   if (typeof source.protection?.locked === 'boolean') {
@@ -506,15 +509,15 @@ function readCell(source: ExcelJsCell, dropped: DroppedFeatures): CellSnapshot {
  */
 function recordUnmodelledSheetFeatures(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures): void {
   if ((worksheet.getImages?.() ?? []).length > 0) {
-    dropped.record('images');
+    dropped.record(DROPPED_FEATURES.images);
   }
 
   if (Object.keys(worksheet.tables ?? {}).length > 0) {
-    dropped.record('tables');
+    dropped.record(DROPPED_FEATURES.tables);
   }
 
   if (worksheet.autoFilter) {
-    dropped.record('autoFilter');
+    dropped.record(DROPPED_FEATURES.autoFilter);
   }
 }
 
@@ -597,15 +600,18 @@ function readSheetLayout(
     } & Record<string, unknown>;
 
     if (typeof hashValue === 'string' || typeof algorithmName === 'string') {
-      dropped.record('sheetProtection:password');
+      dropped.record(DROPPED_FEATURES.sheetProtectionPassword);
     }
 
     sheet.protection = {
       enabled: true,
       password: typeof password === 'string' && password !== '' ? password : null,
+      // Only the names the model declares are kept: ExcelJS hands back whatever the file carried,
+      // and an unknown attribute would otherwise live in the snapshot for the import's lifetime.
       options: Object.fromEntries(
-        Object.entries(options).filter(([, optionValue]) => typeof optionValue === 'boolean'),
-      ) as Record<string, boolean>,
+        Object.entries(options)
+          .filter(([key, optionValue]) => typeof optionValue === 'boolean' && isProtectionOptionName(key)),
+      ) as SheetProtectionOptions,
     };
   }
 
@@ -632,16 +638,11 @@ function assertSheetFits(
   name: string, rowCount: number, cellColCount: number, layoutColCount: number, budget: WorkbookBudget
 ): void {
   if (rowCount > MAX_SHEET_ROWS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} rows, above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`
-    );
+    throwRowLimit(name, rowCount);
   }
 
   if (layoutColCount > MAX_SHEET_COLUMNS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${layoutColCount} columns, ` +
-      `above the ${MAX_SHEET_COLUMNS}-column limit this reader accepts.`
-    );
+    throwColumnLimit(name, layoutColCount);
   }
 
   // The product is measured against the CELL column count, never the layout one. Excel writes a
@@ -649,10 +650,7 @@ function assertSheetFits(
   // expands it into 16384 `Column` objects — so a 400-row, one-column workbook would otherwise be
   // refused as "400 × 16384 cells". A column declaration costs one object, not one per row.
   if (rowCount * cellColCount > MAX_SHEET_CELLS) {
-    throwWithCause(
-      `The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, ` +
-      `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`
-    );
+    throwCellLimit(name, rowCount, cellColCount);
   }
 
   // A sheet of rows with no cells still costs one array per row, so it counts one column wide; and
@@ -861,7 +859,7 @@ export const excelJsAdapter: XlsxEngineAdapter = {
 
       writeColumnLayout(worksheet, sheet);
       wroteFormula = writeRows(worksheet, sheet) || wroteFormula;
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- one sheet at a time: `protect()` hashes the password.
       await writeSheetFeatures(worksheet, sheet, dropped);
     }
 

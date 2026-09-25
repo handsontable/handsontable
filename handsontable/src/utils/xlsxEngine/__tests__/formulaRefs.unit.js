@@ -1,4 +1,4 @@
-import { mapFormulaReferences, shiftFormulaReferences } from '../formulaRefs';
+import { mapFormulaReferences, shiftFormulaReferences, translateSharedFormula } from '../formulaRefs';
 import { normalizeFormula } from '../../../plugins/exportFile/types/xlsx/formula-utils';
 
 describe('shiftFormulaReferences', () => {
@@ -164,5 +164,22 @@ describe('mapFormulaReferences', () => {
 
   it('should return null as soon as the mapper rejects a reference', () => {
     expect(mapFormulaReferences('A1+B2', reference => (reference.col === 2 ? null : reference))).toBeNull();
+  });
+});
+
+describe('translateSharedFormula', () => {
+  it('should shift relative references by the slave offset and pin absolute components', () => {
+    expect(translateSharedFormula('A1*2', 1, 0)).toBe('A2*2');
+    expect(translateSharedFormula('SUM($A$1:A1)', 2, 1)).toBe('SUM($A$1:B3)');
+    expect(translateSharedFormula('$A1+A$1', 1, 1)).toBe('$A2+B$1');
+    expect(translateSharedFormula('Rates!A1+"A1"', 1, 1)).toBe('Rates!A1+"A1"');
+  });
+
+  it('should return null when a shifted reference would leave the sheet', () => {
+    expect(translateSharedFormula('A1', -1, 0)).toBeNull();
+  });
+
+  it('should return the formula unchanged for a zero offset', () => {
+    expect(translateSharedFormula('A1', 0, 0)).toBe('A1');
   });
 });

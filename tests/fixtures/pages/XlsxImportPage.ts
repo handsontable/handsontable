@@ -9,14 +9,16 @@ export class XlsxImportPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  readonly engine: string;
   readonly status: Locator;
   readonly sourceMaster: Locator;
   readonly targetMaster: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', engine: 'exceljs' | 'native' = 'exceljs') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.engine = engine;
     this.status = page.getByTestId('status');
     // The source grid has `fixedRowsTop: 1`, so row 0 is rendered twice: once in the master
     // table and once cloned into the top overlay. Both clones carry the same stamped
@@ -28,7 +30,9 @@ export class XlsxImportPage {
 
   /** Open the fixture and wait for the bundle and the source grid. */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/xlsx-import.html?theme=${this.theme}&bundle=${this.bundle}`);
+    const query = `theme=${this.theme}&bundle=${this.bundle}&engine=${this.engine}`;
+
+    await this.page.goto(`/tests/fixtures/demo/xlsx-import.html?${query}`);
     await awaitBundle(this.page);
     await expect(this.sourceCell(0, 0)).toBeVisible();
   }

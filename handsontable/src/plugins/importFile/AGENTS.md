@@ -19,6 +19,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Traps
 
+- **`requireEngine` never refuses a MISSING `engines` entry, and `supportsImportFormat` is why.** An
+  `engines` map that names no engine for the format leaves the format uninjected, so it falls back to the
+  built-in engine — the row `../../utils/xlsxEngine/AGENTS.md` documents, and what `exportFile` does for
+  the same configuration. `requireEngine` used to throw `ImportFile: no engine is configured for
+  "<format>" files` there instead, which made `supportsImportFormat('xlsx')` answer `true` for a call that
+  always threw: a caller gating on the predicate got a false green, and mutating the throw's
+  `Object.keys(engines).length > 0` term survived the whole suite. Both entry points now resolve the
+  override through `resolveEngineOverride(override, configured)` from `../../utils/xlsxEngine/detect.ts`,
+  so `engine: null` per call also means "no override" rather than "built-in engine". The two refusals that
+  remain are an entry that IS present and does not duck-type (`Invalid xlsx engine module.`) and an engine
+  that cannot read the format.
 - **The adapter refuses a sheet before it allocates one.** `src/utils/xlsxEngine/limits.ts` caps a sheet at
   1,048,576 rows, 16,384 columns and 5,000,000 cells, and `readSheet` asserts all three from the DECLARED
   counts before the first row is read. A workbook is untrusted input: a file with one cell at `XFD1048576`
@@ -55,6 +66,31 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   as HTML, so a promoted first row is markup: a cell reading `<img src=x onerror=…>` executes on render.
   `escapeHtml` (`helpers/string.ts`), not `stripTags` — stripping cuts everything from a `<` to the next
   `>`, so `5 < 10` would become `5 `. Cell VALUES are rendered as text and are deliberately left alone.
+- **A text VALUE that starts with `=` is escaped with a leading apostrophe, and only when the Formulas
+  plugin is enabled** (`escapeTextFormula` in `mapper.ts`, on the non-formula branch of `pushCellValue`).
+  Such a cell is a string in the file and inert in Excel, but the grid hands every `=`-leading string to
+  HyperFormula, so importing `=HYPERLINK("http://evil","x")` verbatim turned the file's TEXT into a live
+  formula the file never had. The apostrophe is the Formulas plugin's own escape
+  (`isEscapedFormulaExpression`/`unescapeFormulaExpression` in `plugins/formulas/utils.ts`), stripped again
+  on read, so the cell renders what the file carried. It must stay gated on `formulasEnabled`: with no
+  plugin to unescape it, the apostrophe would become part of the value. The DECLARED-formula path is
+  untouched — it is already gated, because `shift` is `null` unless the plugin is enabled.
+- **A text VALUE that starts with `'=` is escaped the same way, and one that starts with a bare `'` is
+  NOT.** The escape must mirror the INVERSE of `unescapeFormulaExpression` exactly, and the grid's marker
+  is an apostrophe followed by `=` — `isEscapedFormulaExpression` tests both characters. So a file cell
+  reading `'=1+1` carries an apostrophe of its OWN that the grid then ate as its marker (the file's text
+  and an escaped formula were indistinguishable after import), and it is written `''=1+1`; a cell reading
+  `'hello` or `it's fine` is left verbatim, because nothing in the grid touches it either. Escaping every
+  apostrophe-leading value instead would ADD a character to text the grid never reinterprets. One limit
+  stays, and it is in the plugin's escape rather than in the mapper: the marker does not nest, so
+  `''=1+1` is not recognized as escaped and renders with both apostrophes. The import keeps the file's
+  character in `data` (which is what a re-export writes) rather than losing it; rendering it as one
+  apostrophe would need `isEscapedFormulaExpression` to count them, which is a Formulas-plugin change and
+  a behavior change for every grid, not an import one. The same non-nesting marker makes the two file
+  spellings COLLIDE: a file cell reading `'=1+1` and one reading `''=1+1` both land in `data` as `''=1+1`,
+  so after an import the reader cannot tell which the file held. The import guide states the visible half
+  (the doubled apostrophe on screen); state the collision here, because it is what a round-trip test would
+  otherwise read as a mapper bug.
 - **The lossy reads the adapter reports, and why each is only a report.** `hyperlink` (the text is kept, the
   URL is not — and a hyperlink's text may ITSELF be a rich-text run list, nested one level below the cell
   value, so both `hyperlinkText` and the `richText` report have to look there too), `richText` (the text is
@@ -274,6 +310,15 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   only records (`DroppedFeatures.record`); `importFile.ts` calls `dropped.warn(detected.kind)` exactly once
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
   sheet.
+- **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
+  raise seven names of their own (`cellStyles`, `cellStyles:borders`, `comments`,
+  `conditionalFormatting:unparsedRef`, `dataValidation:unresolvedList`, `formula:outOfRange`,
+  `layoutDirection`), and every one of them is passed as a `DROPPED_FEATURES.<member>`
+  (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
+  is a row in the import guide's dropped-features table. The one name built from the file's own value,
+  `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`, which BOUNDS what the
+  file can put in the result: 64 characters per value, control characters replaced, and 32 distinct
+  file-driven names per read before the rest count into `numFmt:other`. Do not rebuild that name by hand.
 - **Merges, hidden rows/columns, and frozen panes are cropped to the import window**, not dropped outright.
   A `range`, a promoted header row, or a dropped row-header column each shift the window; a merge that
   crosses it is cropped to what remains inside, and only dropped when nothing or a single cell remains.
@@ -338,10 +383,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.
-- `../../utils/xlsxEngine/` for the model, detection, capabilities and adapters. ExcelJS is the only
-  engine; a second one adds its kind to `XlsxEngineKind`, its row to `CAPABILITIES`, its duck-typing to
-  `detect.ts` and an adapter beside `adapters/exceljs.ts`. Nothing about any specific future engine is
-  kept in the tree — a SheetJS evaluation was done under DEV-2135 and deliberately not shipped.
+- Two engines: `native` (built in, default) and `exceljs` (injected). `../../utils/xlsxEngine/AGENTS.md`
+  has the engine contract and the native adapter's traps.
 - `../base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table (this plugin is 245).
 
 ## Testing
@@ -349,7 +392,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - `npm run test:unit -- --testPathPattern='importFile|xlsxEngine'`
 - Adapter tests parse real `.xlsx` fixtures under `src/utils/xlsxEngine/__tests__/fixtures/`; regenerate
   them with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` after changing a case, and commit.
-  They run with `@jest-environment node` because ExcelJS parses through Node streams. Three things make
+  They run with `@jest-environment node` because both adapters need Node globals jsdom lacks (ExcelJS:
+  streams; native: `CompressionStream`). Three things make
   that pragma work here: the `'jest-environment'` entry in the root `.eslintrc.js`'s `jsdoc/check-tag-names`
   → `definedTags` list (added in DEV-2135), without which the tag itself fails lint as unknown; and the
   `typeof window === 'undefined'` guards in `test/bootstrap.js` and `test/helpers/custom-matchers.js`,

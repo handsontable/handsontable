@@ -10,10 +10,23 @@ const here = dirname(fileURLToPath(import.meta.url));
 /**
  * Writes a workbook to `<name>.xlsx` beside this script.
  *
+ * The timestamps are pinned to the epoch first. ExcelJS stamps `docProps/core.xml` with `new Date()`
+ * at `Workbook` construction, so without this every regeneration rewrote all nine binaries with
+ * timestamp-only churn — invisible in review, and it made "did the fixture actually change?"
+ * unanswerable from the diff. Nothing else in this file reads a clock or a random number, and every
+ * cell is a literal, so with the stamp pinned a regeneration that changes a byte changed a case.
+ *
+ * The pin takes effect on the NEXT deliberate regeneration: the nine committed fixtures were not
+ * rewritten for it, because churning nine binaries for their timestamps is the exact cost it exists
+ * to avoid.
+ *
  * @param {string} name The fixture name, without extension.
  * @param {import('exceljs').Workbook} workbook The workbook to serialize.
  */
 async function save(name, workbook) {
+  workbook.created = new Date(0);
+  workbook.modified = new Date(0);
+
   writeFileSync(join(here, `${name}.xlsx`), Buffer.from(await workbook.xlsx.writeBuffer()));
 }
 

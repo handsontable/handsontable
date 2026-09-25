@@ -3,6 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
+import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
@@ -221,7 +222,8 @@ export interface ExportOptions {
    */
   headerStyle?: HeaderStyle | null;
   /**
-   * ExcelJS engine instance. Overrides the engine from plugin settings for this call.
+   * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
    */
   engine?: object;
 }
@@ -231,7 +233,8 @@ export interface ExportOptions {
  */
 export interface ExportFileSettings {
   /**
-   * Map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
+   * built-in engine writes `.xlsx`.
    */
   engines?: Record<string, object>;
 }
@@ -273,10 +276,9 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * Supported formats:
  * - **CSV** (`'csv'`) — synchronous, no additional setup required.
- * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Needs an xlsx engine injected and
- *   detected through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs)
- *   (the only engine supported today). Features the engine cannot write are reported in one
- *   console warning per export.
+ * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Uses the built-in xlsx engine unless
+ *   one is passed through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs).
+ *   Features the engine cannot write are reported in one console warning per export.
  *
  * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
  *
@@ -328,8 +330,6 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for react
  * ```jsx
- * import ExcelJS from 'exceljs';
- *
  * const hotRef = useRef(null);
  *
  * ...
@@ -337,7 +337,7 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  * <HotTable
  *   ref={hotRef}
  *   data={getData()}
- *   exportFile={{ engines: { xlsx: ExcelJS } }}
+ *   exportFile={true}
  * />
  *
  * const hot = hotRef.current.hotInstance;
@@ -355,15 +355,13 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for angular
  * ```ts
- * import ExcelJS from 'exceljs';
- *
  * @Component({
  *   template: `<hot-table [settings]="settings"></hot-table>`,
  * })
  * export class AppComponent {
  *   settings = {
  *     data: getData(),
- *     exportFile: { engines: { xlsx: ExcelJS } },
+ *     exportFile: true,
  *   };
  *
  *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
@@ -694,12 +692,10 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Returns `true` when the plugin can produce an export in the given format.
-   *
-   * For text-based formats such as `'csv'`, no extra setup is required and the
-   * method always returns `true`.
-   * For binary formats such as `'xlsx'`, the method returns `true` only when the
-   * corresponding engine has been provided in the plugin's `engines` map.
+   * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,
+   * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
+   * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
+   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -709,20 +705,23 @@ export class ExportFile extends BasePlugin {
       return false;
     }
 
-    if (format === 'xlsx') {
-      const settings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-
-      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines?.xlsx);
+    if (format !== 'xlsx') {
+      return true;
     }
 
-    return true;
+    const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
+
+    return tryDetectXlsxEngine(resolveEngineOverride(undefined, engines?.[format]), PLUGIN_KEY) !== null;
   }
 
   /**
    * Creates and returns a class formatter for the specified export type.
    *
-   * The engine for the requested format is looked up from the plugin's `engines`
-   * map and merged as a default so that per-call options can override it if needed.
+   * The engine for the requested format is the per-call `engine` option when the caller passed one,
+   * and the plugin's `engines` entry for that format otherwise. A per-call `null` or `undefined`
+   * means "no override", so it never bypasses a configured engine; with neither, the format's
+   * exporter falls back to the built-in engine.
    *
    * @private
    * @param {string} format Export format type eq. `'csv'` or `'xlsx'`.
@@ -736,10 +735,8 @@ export class ExportFile extends BasePlugin {
 
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
-    const engineFromSettings = engines?.[format];
-    const mergedOptions = engineFromSettings !== undefined
-      ? { engine: engineFromSettings, ...options }
-      : options;
+    const engine = resolveEngineOverride(options.engine, engines?.[format]);
+    const mergedOptions = engine !== undefined ? { ...options, engine } : options;
     const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
 
     if (formatter === null) {

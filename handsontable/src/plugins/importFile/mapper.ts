@@ -1,6 +1,6 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
-import type { DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
@@ -318,7 +318,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
   const meta: ImportColumn | null = source ? { type: 'dropdown', source } : null;
 
   if (!meta) {
-    scope.dropped.record('dataValidation:unresolvedList');
+    scope.dropped.record(DROPPED_FEATURES.dataValidationUnresolvedList);
   }
 
   scope.listMetaByFormula.set(key, meta);
@@ -334,7 +334,7 @@ function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: 
   const { inferred, meta } = inferredMeta;
 
   if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
+    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
   }
 
   if (cell.validation) {
@@ -364,6 +364,33 @@ interface FormulaShift {
 }
 
 /**
+ * Escapes a plain text value the grid would otherwise reinterpret.
+ *
+ * TWO shapes need it, and they are exactly the values the Formulas plugin's own
+ * `unescapeFormulaExpression` would change (`plugins/formulas/utils.ts`; the predicates are
+ * mirrored here rather than imported, because a plugin never imports another plugin).
+ *
+ * A cell holding the TEXT `=HYPERLINK("http://…")` is inert in Excel - it is a string, not a
+ * formula - but the grid hands every `=`-leading string to HyperFormula, so importing it verbatim
+ * turned the file's text into a formula the file never had.
+ *
+ * A cell whose text is `'=1+1` is the other half: the leading apostrophe is the FILE's own
+ * character, and `isEscapedFormulaExpression` (an apostrophe followed by `=`) reads it as the
+ * grid's escape marker and strips it. Escaping it keeps the file's apostrophe in the data. A value
+ * starting with an apostrophe that is NOT followed by `=` is left alone, because the grid leaves it
+ * alone too - the marker is `'=`, not a bare `'`.
+ *
+ * Only applied when the plugin is enabled: without it an apostrophe would be part of the value.
+ */
+function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
+  if (!formulasEnabled || typeof value !== 'string') {
+    return value;
+  }
+
+  return value.startsWith('=') || value.startsWith('\'=') ? `'${value}` : value;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -375,8 +402,9 @@ interface FormulaShift {
  */
 function pushCellValue(
   pass: CellPass, cell: CellSnapshot, inferred: InferredType | null,
-  shift: FormulaShift | null, row: number, col: number, dropped: DroppedFeatures
+  row: number, col: number, scope: CollectContext
 ): void {
+  const { shift, dropped } = scope;
   const live = cell.formula && shift
     ? shiftFormulaReferences(cell.formula.text, shift.rowDelta, shift.colDelta)
     : null;
@@ -387,13 +415,15 @@ function pushCellValue(
     return;
   }
 
-  pass.data[pass.data.length - 1].push(toGridValue(cell, inferred));
+  pass.data[pass.data.length - 1].push(
+    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
+  );
 
   if (cell.formula) {
     pass.formulas.push({ row, col, formula: cell.formula.text });
 
     if (shift) {
-      dropped.record('formula:outOfRange');
+      dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
   }
 }
@@ -539,7 +569,7 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, options, context, shift, dropped } = scope;
+  const { sheet, options, context, dropped } = scope;
   const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
   const inferred = inferredMeta?.inferred ?? null;
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
@@ -548,7 +578,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.metaByCell.set(`${row}:${col}`, meta);
   }
 
-  pushCellValue(pass, cell, inferred, shift, row, col, dropped);
+  pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
     if (context.commentsEnabled) {
@@ -945,7 +975,7 @@ function mapConditionalFormatting(
     // Flag a token the parser refused, not a difference in counts: a parser that one day coalesces
     // duplicate rectangles must not read as a loss.
     if (tokens.some(token => parseRangeRef(token) === null)) {
-      dropped.record('conditionalFormatting:unparsedRef');
+      dropped.record(DROPPED_FEATURES.conditionalFormattingUnparsedRef);
     }
 
     ranges.forEach((range) => {
@@ -1113,14 +1143,14 @@ export function mapWorkbook(
 
   if (options.importStyles) {
     if (pass.droppedBorders) {
-      dropped.record('cellStyles:borders');
+      dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
   } else if (pass.sawStyle) {
-    dropped.record('cellStyles');
+    dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
   if (pass.droppedComments) {
-    dropped.record('comments');
+    dropped.record(DROPPED_FEATURES.comments);
   }
 
   const result: MappedResult = {
