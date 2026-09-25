@@ -29,7 +29,11 @@ const CROSS_BROWSER = readdirSync(join(PACKAGE_ROOT, 'tests', 'cross-browser'))
   .map(name => name.slice(0, -'.spec.ts'.length));
 const specExists = spec => existsSync(join(REPO_ROOT, spec));
 const NOW = new Date('2026-09-23T12:00:00Z');
-const CAPTURE = 'multi-frameworks/filters/escaping-the-menu-12';
+// The capture behind the 10 ms condition timer, which is what WHY says flakes, and the one after it.
+const CAPTURE = 'js-only/filters/tab-navigation-through-condition-components-2';
+const NEXT_CAPTURE = 'js-only/filters/tab-navigation-through-condition-components-3';
+// A multi-framework spec renders on the five js variants and the three wrappers.
+const MULTI_FRAMEWORK_CAPTURES = ['multi-frameworks/tab-navigation-1', 'multi-frameworks/tab-navigation-2'];
 const entry = overrides => ({
   taskId: 'DEV-1234',
   expires: '2026-10-10',
@@ -86,7 +90,7 @@ test('each broken rule is reported, naming the entry', () => {
     [entry({ capture: `${CAPTURE}.png` }), /`capture` is the item path without its variant prefix/],
     [entry({ legs: [] }), /`legs` names the variants that flake/],
     [entry({ legs: ['js/firefox'] }), /`js\/firefox` is not a variant this suite renders/],
-    [entry({ capture: 'multi-frameworks/filters/no-such-spec-1' }), /no-such-spec\.spec\.ts, which does not exist/],
+    [entry({ capture: 'js-only/filters/no-such-spec-1' }), /no-such-spec\.spec\.ts, which does not exist/],
     // A cross-browser capture on a js leg resolves to a js spec that is not there.
     [entry({ capture: 'selection-arabic-rtl-demo-2', legs: ['js/chromium'] }), /which does not exist/],
   ];
@@ -114,8 +118,10 @@ test('an item quarantined twice is reported', () => {
 
 test('the caps count entries and the items their legs expand to', () => {
   // Six entries at most, like the functional tier's six tests.
-  const seven = Array.from({ length: 7 },
-    (_, i) => entry({ capture: `multi-frameworks/filters/escaping-the-menu-${i + 1}` }));
+  const seven = [
+    ...[1, 2, 3, 4].map(i => `js-only/filters/tab-navigation-through-condition-components-${i}`),
+    ...[1, 2, 3].map(i => `js-only/filters/tab-navigation-through-action-buttons-${i}`),
+  ].map(capture => entry({ capture }));
 
   assert.match(validate(seven).join('\n'), /7 entries are in the quarantine and the cap is 6/);
 
@@ -124,16 +130,16 @@ test('the caps count entries and the items their legs expand to', () => {
   const everywhere = LEGS.filter(leg => !leg.startsWith('cross-browser/'));
 
   assert.equal(everywhere.length, 8, 'a multi-framework capture renders on eight variants');
-  const sixteen = [
-    entry({ legs: everywhere }),
-    entry({ capture: 'multi-frameworks/filters/escaping-the-menu-11', legs: everywhere }),
-  ];
+  const sixteen = MULTI_FRAMEWORK_CAPTURES.map(capture => entry({ capture, legs: everywhere }));
 
   assert.match(validate(sixteen).join('\n'), /16 items are quarantined and the cap is 12/);
   assert.deepEqual(validate(sixteen.slice(0, 1)), [], 'eight items are within the cap');
 
   // Only live items count: an expired entry on the same eight legs is its own problem, not a ninth item.
-  const oneLapsed = [entry({ legs: everywhere, expires: '2026-09-01' }), sixteen[1]];
+  const oneLapsed = [
+    entry({ capture: MULTI_FRAMEWORK_CAPTURES[0], legs: everywhere, expires: '2026-09-01' }),
+    sixteen[1],
+  ];
   const problems = validate(oneLapsed).join('\n');
 
   assert.match(problems, /expired on 2026-09-01/);
@@ -141,9 +147,11 @@ test('the caps count entries and the items their legs expand to', () => {
 });
 
 test('expandItems gives one item per leg, and none for a malformed entry', () => {
-  assert.deepEqual(expandItems(entry({ legs: ['js/chromium', 'react-wrapper/chromium'] })), [
-    `js/chromium/${CAPTURE}.png`,
-    `react-wrapper/chromium/${CAPTURE}.png`,
+  const [multi] = MULTI_FRAMEWORK_CAPTURES;
+
+  assert.deepEqual(expandItems(entry({ capture: multi, legs: ['js/chromium', 'react-wrapper/chromium'] })), [
+    `js/chromium/${multi}.png`,
+    `react-wrapper/chromium/${multi}.png`,
   ]);
   // The gate and the nightly read the file before anything validates it, so a malformed entry must cover
   // nothing rather than throw a TypeError into the comment.
@@ -182,13 +190,13 @@ test('partitionReport parks only changed items under a live entry, and says why 
   const report = {
     failedItems: [quarantinedItem, expiredItem, plain],
     // A quarantined capture that reg-suit calls new is structure, not a flake, and still counts.
-    newItems: [`js/chromium-theme-main-dark/${CAPTURE.replace('-12', '-13')}.png`],
+    newItems: [`js/chromium-theme-main-dark/${NEXT_CAPTURE}.png`],
     deletedItems: [],
     passedItems: ['ok.png'],
   };
   const entries = [
     entry(),
-    entry({ capture: CAPTURE.replace('-12', '-13') }),
+    entry({ capture: NEXT_CAPTURE }),
     entry({ capture: 'js-only/sheetsBar/tabs-6', legs: ['js/chromium-theme-main'], expires: '2026-09-01' }),
   ];
   const { report: rest, quarantined, expired } = partitionReport(report, entries, NOW);

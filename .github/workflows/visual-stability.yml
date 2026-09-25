@@ -30,7 +30,9 @@ name: Visual stability
 # rather than a local repeat.
 #
 # Scope is narrow by default — the filters family plus the RTL selection spec,
-# the two groups that produced every sighting — so a night renders on three
+# the two groups that produced every sighting (the filters family's
+# multi-framework specs did; #13647 replaced them with the js-only specs under
+# `tests/js-only/filters/`) — so a night renders on three
 # runners (the matrix still starts ten jobs, and seven stop at their first
 # step), not three full suites. A dispatch can widen the spec lists to every
 # spec (`scope: full`) for one investigation; the schedule never does. `full`
@@ -79,9 +81,16 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # The two spec groups behind every DEV-2797 sighting. Paths, not tags, so the
-  # `--grep`-free invocation stays identical to what visual.yml renders.
-  MULTI_SPECS: tests/multi-frameworks/filters
+  # The spec groups this matrix watches. Paths, not tags, so the `--grep`-free
+  # invocation stays identical to what visual.yml renders. The filters
+  # family's multi-framework specs produced the flakes this matrix measures; #13647
+  # replaced them with the js-only specs under `tests/js-only/filters/`, and that
+  # directory also holds `apply-active-class-name-nested-header`, which renders
+  # here too. `MULTI_SPECS` keeps its old name and renders on the js pass alone,
+  # which is all this matrix ever ran. A path that matched no spec would not
+  # pass quietly: Playwright fails with "No tests found", so both js passes and
+  # the night go red.
+  MULTI_SPECS: tests/js-only/filters
   CROSS_SPECS: selection
 
 jobs:

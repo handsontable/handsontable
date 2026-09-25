@@ -180,6 +180,32 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   }
 
   /**
+   * Whether the value-list row holding the given value sits inside the list's viewport from top to
+   * bottom. It reads in one evaluation on the list's holder, which the grid never recycles, and finds
+   * the row inside that same evaluation, so a re-render between two round trips cannot swap the row out
+   * from under the measurement. A row the list has not rendered is not in view.
+   *
+   * @param {string} value The row's value, e.g. `Name 11`.
+   * @returns {Promise<boolean>} True when the whole row is in view.
+   */
+  async listItemFullyInView(value: string): Promise<boolean> {
+    return this.menu.locator('.htUIMultipleSelect .ht_master .wtHolder').evaluate((holder, text) => {
+      const view = holder.getBoundingClientRect();
+      const viewBottom = view.top + holder.clientHeight;
+      const row = Array.from(holder.querySelectorAll('tbody td'))
+        .find(cell => cell.textContent?.trim() === text);
+
+      if (!row) {
+        return false;
+      }
+
+      const box = row.getBoundingClientRect();
+
+      return box.top >= view.top - 0.5 && box.bottom <= viewBottom + 0.5;
+    }, value);
+  }
+
+  /**
    * Every selected range, as the grid reports it: `[rowStart, columnStart, rowEnd, columnEnd]`, with
    * `-1` standing for a header. Empty with nothing selected.
    *

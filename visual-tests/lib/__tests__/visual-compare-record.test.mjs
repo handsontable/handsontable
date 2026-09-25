@@ -75,7 +75,7 @@ test('a sample of real golden paths maps to specs that exist', () => {
   // A trimmed copy of the live `base/develop/out.json`: one path per leg, and every cross-browser shape.
   const sample = [
     'angular-wrapper/chromium/multi-frameworks/change-rows-order-1.png',
-    'vue3/chromium/multi-frameworks/filters/accepting-by-enter-5.png',
+    'vue3/chromium/multi-frameworks/tab-navigation-1.png',
     'js/chromium/js-only/sheetsBar/tabs-6.png',
     'js/chromium-theme-horizon/js-only/dialog/dialog-focus-5.png',
     'js/chromium-theme-horizon-dark/multi-frameworks/mouse-wheel-2.png',

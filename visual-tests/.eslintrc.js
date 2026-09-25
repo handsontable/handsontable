@@ -101,12 +101,15 @@ const DETERMINISM_RESTRICTIONS = [
 // verbatim): a functional spec asserts, so it has no capture to guard. A capture on the statement straight
 // after a pointer or keyboard primitive photographs whichever half of the transition the runner reached — the
 // focus move a Tab starts, the highlight a click paints on the next frame. Three filters specs
-// (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter) were repaired when this landed:
+// (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter, all retired since by #13647)
+// were repaired when this landed:
 // their 28 sites assert the state, then capture (28 of 28 captures byte-identical before and after, locally).
 // Their actions settle inside the keydown handler (Tab, Shift+Tab and Escape focus or close synchronously, and
 // no repaired capture follows the condition input's 10 ms focus timer), so there the assertions make a wrong
 // state fail loudly rather than close a race; they are the shape every later repair takes. The other 100, 15
-// of them in the other six filters specs, wear a tracked disable line.
+// of them in the other six filters specs, got a tracked disable line. The filters consolidation (#13647)
+// retired those six with their 15 lines, and its replacements assert every state they capture, so 85
+// remain.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
@@ -131,7 +134,7 @@ const DETERMINISM_RESTRICTIONS = [
 // both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
 // to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
 // list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
-// on 2026-09-23, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
+// on 2026-09-23, one of them the `tryToEscapeFromTheComponentsFocus` #13647 deleted with its callers, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
 // are their own follow-up, each ending on the state it produced.
 //
 // Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any
