@@ -776,7 +776,7 @@ The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mj
 `tests/visualDocs.spec.ts` takes one full-page screenshot per guide page in `tests/paths.js` for each of
 the four frameworks – 441 as of 2026-09-14 – and compares each with `toHaveScreenshot` at a `maxDiffPixelRatio` of
 0.01, or 0.05 for the pages listed in `pathsNeedingMoreTolerance`. Chromium only, against `BASE_URL`
-(`http://localhost:4321/docs` by default; on CI the pull request's Cloudflare preview). Eleven functional
+(`http://localhost:4321/docs` by default; on CI the pull request's Cloudflare preview). The functional
 specs (`tests/*.spec.ts` other than `visualDocs`) share its `testDir`.
 
 Until DEV-2860 the suite's baseline was not a baseline, and it passed by construction:
@@ -867,18 +867,50 @@ concluding anything from a golden you read back.
   all-or-nothing, and the job fails closed – it asserts an approval through the approvals API – so **the
   environment must exist with required reviewers before the first docs pull request with differences
   runs**, or that pull request is stuck red until an admin creates it.
-- **The baseline is seeded from the staging deploy.** `.github/workflows/docs-visual-seed.yml` chains
-  (`workflow_run`) on a successful push run of `Docs Staging Deployment` and seeds `docs/base/<branch>`
-  from what that run deployed: `develop` from `https://handsontable-docs-staging.pages.dev/docs`,
-  `release/x.y.z` from `https://rc-x-y-z.handsontable-docs-staging.pages.dev/docs` (dots to dashes, as
-  `docs-staging.yml`'s `cf-target` does). It checks out the deploy's `head_sha` so the spec matches the
-  deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from `paths.js` leaves the
-  baseline. It never runs for a pull request's staging deploy. Its copy on the default branch is the one
-  that runs, so a change to it is exercised only after merging – dispatch it with `branch` to test that, or
-  to re-seed by hand. **Known lag:** the staging deploy triggers on `docs/**` and `handsontable/package.json`
-  only, so a core-only merge that changes grid rendering is not in the baseline until the next docs merge,
-  and a docs pull request opened in that window reports develop's own grid change as its differences.
-  Widening that trigger is a separate call; it costs a ~10-minute docs deploy per core merge.
+- **The baseline is seeded from the staging deploy, by the deploy's own URL.**
+  `.github/workflows/docs-visual-seed.yml` chains (`workflow_run`) on a successful push run of
+  `Docs Staging Deployment` and seeds `docs/base/<branch>` from exactly what that run deployed. Not from
+  the branch alias (`https://handsontable-docs-staging.pages.dev/docs` for develop,
+  `https://rc-x-y-z.handsontable-docs-staging.pages.dev/docs` for a release): an alias moves with the next
+  deploy, and on 2026-09-18 a seed rendered from 12:08 to 12:20 while the next deploy took the alias at
+  12:18, which wrote a baseline mixed from two deploys. `docs-staging.yml` instead reads the deploy's own
+  URL, `https://<hash>.handsontable-docs-staging.pages.dev`, from wrangler's structured output
+  (`WRANGLER_OUTPUT_FILE_PATH`, the `pages-deploy-detailed` entry) and uploads it with the commit it was
+  built from as a `docs-staging-deploy` artifact (push and dispatch runs, kept 30 days). The seed downloads
+  the record of the run that triggered it, refuses a record for any other commit, checks out that commit so
+  the spec matches the deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from
+  `paths.js` leaves the baseline. A dispatch with `branch` seeds from the record of that branch's latest
+  successful staging run; with no record there, it fails and says so. It never runs for a pull request's
+  staging deploy. Its copy on the default branch is the one that runs, so a change to it is exercised only
+  after merging – dispatch it to test that, or to re-seed by hand. **Known lag:** the staging deploy
+  triggers on `docs/**` and `handsontable/package.json` only, so a core-only merge that changes grid
+  rendering is not in the baseline until the next docs merge, and a docs pull request opened in that window
+  reports develop's own grid change as its differences. Widening that trigger is a separate call; it costs
+  a ~10-minute docs deploy per core merge.
+- **A render that writes golden records passes the example grid layout spec first.** Between #13381
+  (2026-09-18) and #13626 (2026-09-24) every `height: 'auto'` example grid rendered with a 0px
+  `.ht_master .wtHolder`, 21 seeds wrote the blank grids into `docs/base/develop`, and a docs pull
+  request's visual run then reported that all 437 screenshots matched. `tests/exampleGridLayout.spec.ts`
+  checks every example on five pages (`demo`, `grid-size`, `column-width`, `row-height`,
+  `batch-operations`) in all four frameworks: the example rendered a grid; the master holder has a height
+  and is tall enough to show a whole row; it is no wider than the grid root; and the example's
+  `overflow: hidden` wrapper cuts nothing off the grid. The action's `Check that the example grids are
+  laid out` step runs it right before `Render the baseline`, on the same condition – a seed, a re-seed
+  dispatch, or a bootstrap. It runs with `--fail-on-flaky-tests`, because the config's three CI retries
+  would pass a grid that collapses on some page loads, and then checks the JSON report, because Playwright
+  exits 0 when every test was skipped. A failure skips the render and the seed, so the baseline does not
+  move, and a refused pull request bootstrap says "no baseline created" instead of the core gate's
+  "baseline created". So **a red seed can mean the deploy is broken**: read the check's report in the run's
+  `docs-visual-report` artifact and fix the render. Never loosen the spec to let a seed through; a page on
+  its list that legitimately stops rendering a grid gets replaced, not exempted. As of 2026-09-25 the width
+  facts fail on develop – #13381 also made the holder 33 to 35px wider than its root on 819 of the 976
+  example grids, which the wrapper then cuts off, and #13626 fixed only the height – so no develop seed
+  lands until that is fixed. The spec runs in the `functional` project on every docs pull request too.
+- **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
+  automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
+  dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
+  when the previous finished seed of the same branch did not fail too; the workflow's `run-name` carries
+  the branch, which is how it finds that run. `jq` builds the payload, so no branch name can break its JSON.
 - **The visual project stays opt-in through the `run-docs-visual` label** – 441 full-page captures per run
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
@@ -905,6 +937,12 @@ not the CI baseline: to compare against what CI compares against, sync
 `s3://handsontable-visual/docs/base/develop/screenshots` into that directory with the R2 credentials first,
 or read `https://visual.handsontable.com/docs/base/develop/out.json` (`actualItems`) to see what the
 baseline holds.
+
+To run the seed's layout check against a deploy, point `BASE_URL` at it:
+`BASE_URL=https://handsontable-docs-staging.pages.dev/docs npx playwright test --project=functional exampleGridLayout.spec.ts`.
+Every Cloudflare Pages deploy also keeps its own `https://<hash>.handsontable-docs-staging.pages.dev` URL,
+printed in the log of the `Docs Staging Deployment` run that made it, so an older render can be checked
+the same way – that is how the spec was proven red on the #13381 deploy and green on the one before it.
 
 ### Adding, removing, or breaking a page
 

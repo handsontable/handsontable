@@ -108,7 +108,7 @@ jobs:
     uses: ./.github/workflows/docs-staging.yml
     secrets: inherit
 
-  # The 11 functional docs specs (docs/tests/*.spec.ts other than visualDocs)
+  # The functional docs specs (docs/tests/*.spec.ts other than visualDocs)
   # share the visual suite's testDir, so until DEV-2860 they ran only under the
   # `run-docs-visual` label — on one pull request in three weeks. Now their own
   # Playwright project, on every docs pull request with a preview. Report-only
