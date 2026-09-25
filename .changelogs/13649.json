@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `moveCells` drag bands being drawn on the frozen column and row boundary inside a selection that crosses a frozen pane.",
+  "type": "fixed",
+  "issueOrPR": 13649,
+  "breaking": false,
+  "framework": "none"
+}
