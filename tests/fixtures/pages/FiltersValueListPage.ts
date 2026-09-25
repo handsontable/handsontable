@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Escapes a Filter-by-value, header, or condition label so it can be used
@@ -70,6 +71,9 @@ export class FiltersValueListPage {
 
     await this.page.goto(
       `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+    // The bundle first: it is several megabytes and every worker pulls its own copy, so on a cold
+    // server the cell assertion alone times out before the grid has a chance to build.
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
