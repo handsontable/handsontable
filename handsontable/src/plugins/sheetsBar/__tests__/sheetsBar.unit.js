@@ -16,6 +16,7 @@ import { UndoRedo } from '../../undoRedo/undoRedo';
 import { Filters } from '../../filters/filters';
 import { MergeCells } from '../../mergeCells/mergeCells';
 import { DropdownMenu } from '../../dropdownMenu/dropdownMenu';
+import { DataProvider } from '../../dataProvider/dataProvider';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 import { SheetsBarMenus } from '../ui/menus';
@@ -111,6 +112,7 @@ describe('SheetsBar plugin', () => {
     registerCellType(CheckboxCellType);
     registerPlugin(Filters);
     registerPlugin(MergeCells);
+    registerPlugin(DataProvider);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -4058,5 +4060,284 @@ describe('SheetsBar plugin', () => {
 
     expect(() => ui.destroy()).not.toThrow();
     uiHost.remove();
+  });
+
+  describe('grid-level dataProvider', () => {
+    const makeProvider = () => ({
+      rowId: 'id',
+      fetchRows: async() => ({ rows: [], totalRows: 0 }),
+      onRowsCreate: async() => {},
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    });
+
+    it('is replaced by null on a sheet without its own dataProvider, with one warning', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }, { name: 'Other', data: [[2]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Other');
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+
+    it('keeps a sheet-level dataProvider on its own sheet', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: own } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(hot.getSettings().dataProvider).toBe(own);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(own);
+    });
+
+    it('does not warn about the top-level `data` setting when the first sheet declares a complete dataProvider', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const dataSettingWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('`data` setting'));
+
+      expect(dataSettingWarnings).toHaveLength(0);
+      warnSpy.mockRestore();
+    });
+
+    it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: own } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+
+      expect(gateWarnings).toHaveLength(0);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().dataProvider).not.toBe(own);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      warnSpy.mockRestore();
+    });
+
+    it('restores the grid-level value when the sheets bar is turned off', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const gridLevel = makeProvider();
+
+      hot = new Handsontable(container, {
+        dataProvider: gridLevel,
+        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().dataProvider).toBe(gridLevel);
+      warnSpy.mockRestore();
+    });
+
+    it('blocks a grid-level dataProvider set later on a sheet without its own', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ dataProvider: makeProvider() });
+
+      expect(hot.getSettings().dataProvider).toBeNull();
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('grid-level dataProvider warning', () => {
+    const makeProvider = () => ({
+      rowId: 'id',
+      fetchRows: async() => ({ rows: [], totalRows: 0 }),
+      onRowsCreate: async() => {},
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    });
+
+    it('warns once even when every sheet declares its own dataProvider', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
+            { name: 'Customers', data: [], settings: { dataProvider: makeProvider() } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Customers');
+      plugin.setActiveSheet('Orders');
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('grid-level `dataProvider`'));
+
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+
+    it('disables a grid-level dataProvider, with one warning, when no `sheets` are declared', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('grid-level `dataProvider`'));
+
+      expect(hot.getSettings().dataProvider).toBeNull();
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('afterSheetWorkbookReset', () => {
+    it('fires when the workbook is built, rebuilt, and torn down, and not on a preserving update', () => {
+      const spy = jasmine.createSpy('afterSheetWorkbookReset');
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }];
+
+      Handsontable.hooks.add('afterSheetWorkbookReset', spy);
+
+      try {
+        hot = new Handsontable(container, {
+          sheetsBar: { sheets },
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+      } finally {
+        Handsontable.hooks.remove('afterSheetWorkbookReset', spy);
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      hot.addHook('afterSheetWorkbookReset', spy);
+
+      hot.updateSettings({ sheetsBar: { sheets, paging: false } });
+
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'C', data: [[3]] }] } });
+
+      expect(spy).toHaveBeenCalledTimes(3);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(spy).toHaveBeenCalledTimes(4);
+    });
+
+    it('reports no sheets while the teardown restores the grid-level settings', () => {
+      const sheetCounts = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1]], settings: { colHeaders: ['X'] } }] },
+        afterSheetWorkbookReset() {
+          sheetCounts.push(this.getPlugin('sheetsBar').getSheets().length);
+        },
+        afterUpdateSettings(settings) {
+          if ('colHeaders' in settings) {
+            sheetCounts.push(`restore:${this.getPlugin('sheetsBar').getSheets().length}`);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      sheetCounts.length = 0;
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(sheetCounts).toEqual([0, 'restore:0']);
+    });
+  });
+
+  describe('afterSheetTabDuplicate', () => {
+    it('fires with the source id and the new id after afterSheetTabAdd', () => {
+      const calls = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Orders', data: [[1]] }] },
+        afterSheetTabAdd: (id, name, source) => calls.push(['add', id, name, source]),
+        afterSheetTabDuplicate: (sourceId, id, source) => calls.push(['duplicate', sourceId, id, source]),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [orders] = plugin.getSheets();
+      const copy = plugin.duplicateSheet(orders.id);
+
+      expect(calls).toEqual([
+        ['add', copy.id, copy.name, 'SheetsBar.api'],
+        ['duplicate', orders.id, copy.id, 'SheetsBar.api'],
+      ]);
+    });
+
+    it('does not fire when beforeSheetTabAdd cancels the duplicate', () => {
+      const spy = jasmine.createSpy('afterSheetTabDuplicate');
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Orders', data: [[1]] }] },
+        beforeSheetTabAdd: () => false,
+        afterSheetTabDuplicate: spy,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.duplicateSheet(plugin.getSheets()[0].id);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
   });
 });

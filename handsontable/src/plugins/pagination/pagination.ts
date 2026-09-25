@@ -221,13 +221,7 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Whether settings include a complete `dataProvider` configuration (server-backed rows).
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
-   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive` is true.
+   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
    *
    * @type {number|null}
    */
@@ -276,7 +270,6 @@ export class Pagination extends BasePlugin {
       this.#pageSize = this.getSetting<number | 'auto'>('pageSize')!;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
@@ -329,6 +322,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
+    this.addHook('afterSheetTabStateCapture', this.#onAfterSheetTabStateCapture);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
@@ -347,7 +341,7 @@ export class Pagination extends BasePlugin {
     queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown };
     totalRows?: number;
   }) => {
-    if (!this.#isDataProviderActive) {
+    if (!this.#isDataProviderActive()) {
       return;
     }
 
@@ -364,7 +358,7 @@ export class Pagination extends BasePlugin {
       this.#setPageSizeValue(pageSize);
     }
 
-    if (this.#isDataProviderActive && typeof totalRows === 'number' && totalRows >= 0) {
+    if (this.#isDataProviderActive() && typeof totalRows === 'number' && totalRows >= 0) {
       this.#serverSideTotalCount = totalRows;
     }
 
@@ -376,6 +370,17 @@ export class Pagination extends BasePlugin {
     if (oldPageSize !== this.#pageSize) {
       this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     }
+  };
+
+  /**
+   * Forgets the server row total when SheetsBar leaves a sheet: the total described that sheet. A server sheet
+   * that is shown again replays its own total through {@link Hooks#afterDataProviderFetch}; one fetching for the
+   * first time, or showing a failed first fetch, counts its own rows until its response lands.
+   *
+   * @returns {void}
+   */
+  #onAfterSheetTabStateCapture = () => {
+    this.#serverSideTotalCount = null;
   };
 
   /**
@@ -395,6 +400,17 @@ export class Pagination extends BasePlugin {
   #setPageSizeValue(pageSize: number | 'auto') {
     this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
     this.#pageSize = pageSize;
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider` (for example on every
+   * SheetsBar switch between a server sheet and a local one), and this plugin is not updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
   }
 
   /**
@@ -506,7 +522,7 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       const countRows = this.hot.countRows();
 
       if (countRows > 0) {
@@ -831,7 +847,7 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
-    const externalPagedMode = this.#isDataProviderActive;
+    const externalPagedMode = this.#isDataProviderActive();
     const totalItems = externalPagedMode
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;

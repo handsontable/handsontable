@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — dataProvider with sheetsBar</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-3041: DataProvider working per sheet under SheetsBar.
+
+    Three sheets:
+      - "Orders" (index 0) declares its own `dataProvider` (prefix `ORD`).
+      - "Notes" (index 1) holds local rows only, no `dataProvider`.
+      - "Customers" (index 2) declares its own `dataProvider` (prefix `CUS`).
+
+    `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
+    prove SheetsBar disables it for every sheet that does not declare its own and warns once.
+    `?plain=1` builds the same grid without SheetsBar, backed by a grid-level `ORD` provider, so a spec can pin
+    how a grid without sheets behaves; `?noColumns=1` drops the `columns` setting, so the columns come from the
+    loaded rows' schema. `window.htProvider(prefix)` builds a provider for `updateSettings()`.
+    `?invoices=1` appends a fourth server sheet, "Invoices" (prefix `INV`), whose own `columns` swap the two
+    columns, so `id` is column 1 there and column 0 everywhere else. `?notesNullProvider=1` makes Notes declare
+    `dataProvider: null` in its settings. `?activeSheet=<n>` opens the workbook on another sheet.
+    `window.htSetSheets(activeSheet?)` passes a freshly built `sheets` list (new data arrays) to
+    `updateSettings()`: it rebuilds the workbook, or enables SheetsBar on a plain grid.
+
+    `?serverSemantics=custom` gives the server rules no client-side pass reproduces: its "desc" order
+    is a fixed permutation (adjacent pairs of the reversed ids swapped: ORD-24, ORD-25, ORD-22, ...),
+    and its `contains` ignores leading zeros in the number, so `contains ORD-1` also matches ORD-01.
+    `?cachedRows=1` makes `fetchRows` resolve with the same array instance for the same query, the
+    way a memoizing data layer does. `window.htServer.totalRows` sets how many rows the server holds
+    (25 by default), read when a request is released. The server honors `contains` filter conditions,
+    so a filtered total is real. Every pending request records the `params` it was called with.
+
+    Every `fetchRows` call parks on a deferred promise until the spec releases it
+    (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
+    `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` park the same way on
+    `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject, and every
+    `onRowsUpdate` call records its `{ id, changes }` rows in `window.htServer.updatePayloads`. `failNext`
+    makes the next `fetchRows` call for a prefix reject instead of resolving.
+
+    `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
+    assert on it directly instead of reading the browser's own console. `window.htServer.events`
+    records `fetch <prefix> #<n>`, the `afterDataProviderFetch*` hook firings, every `afterColumnSort` (fired
+    only by a sort ColumnSorting runs itself), and the `afterRowsMutation*` firings in order.
+
+    The grid is 720px wide so the pager stays on one line on every theme: at 500px it wrapped from 46px to 96px
+    on horizon only, and EmptyDataState showed a loading overlay sized before the wrap, which reached over the
+    sheet tabs. At 720px the pager is one line on all three themes (one ResizeObserver entry each, 31/42/46px on
+    classic/main/horizon), so the overlay ends at the grid's own bottom edge, above the bar.
+
+    Cells carry `data-testid="cell-<row>-<col>"`; the tabs carry `data-testid="sheet-tab-<index>"`.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const server = {
+      pending: [],
+      pendingUpdates: [],
+      fetchCount: { ORD: 0, CUS: 0, GRID: 0, INV: 0 },
+      failNext: new Set(),
+      failNextUpdate: false,
+      updatePayloads: [],
+      consoleProblems: [],
+      events: [],
+      cancelNextSwitch: false,
+      totalRows: 25,
+      cache: new Map(),
+      release(prefix) {
+        const released = server.pending.filter(r => !prefix || r.prefix === prefix);
+
+        server.pending = server.pending.filter(r => !released.includes(r));
+        released.forEach(r => r.settle());
+
+        return released.length;
+      },
+      releaseUpdates() {
+        const released = server.pendingUpdates.splice(0);
+
+        released.forEach(({ resolve, reject }) => {
+          if (server.failNextUpdate) {
+            server.failNextUpdate = false;
+            reject(new Error('mutation failed'));
+
+            return;
+          }
+          resolve();
+        });
+
+        return released.length;
+      },
+    };
+
+    window.htServer = server;
+
+    ['error', 'warn'].forEach((level) => {
+      const original = console[level];
+
+      console[level] = (...args) => {
+        server.consoleProblems.push(`${level}: ${args.map(String).join(' ')}`);
+        original.apply(console, args);
+      };
+    });
+
+    const fixtureParams = new URLSearchParams(location.search);
+    const customServerSemantics = fixtureParams.get('serverSemantics') === 'custom';
+    const cachedRows = fixtureParams.has('cachedRows');
+
+    const swapPairs = rows => rows.map((row, i) => {
+      const partner = i % 2 === 0 ? i + 1 : i - 1;
+
+      return rows[partner] ?? row;
+    });
+
+    const normalizeForMatch = value => {
+      const lower = String(value).toLowerCase();
+
+      return customServerSemantics ? lower.replace(/-0+(\d)/, '-$1') : lower;
+    };
+
+    const applyFilters = (rows, filters) => (filters ?? []).reduce((kept, column) => {
+      const contains = column.conditions.find(condition => condition.name === 'contains');
+
+      return contains
+        ? kept.filter(row => normalizeForMatch(row[column.prop]).includes(String(contains.args[0]).toLowerCase()))
+        : kept;
+    }, rows);
+
+    const respond = (prefix, n, params) => {
+      const sortedDesc = params.sort && params.sort.order === 'desc';
+      const size = params.pageSize;
+      const start = (params.page - 1) * size;
+      const all = Array.from({ length: server.totalRows }, (_, i) => ({ id: `${prefix}-${String(i + 1).padStart(2, '0')}`, fetch: `#${n}` }));
+      const reversed = all.slice().reverse();
+      const sorted = sortedDesc ? (customServerSemantics ? swapPairs(reversed) : reversed) : all;
+      const filtered = applyFilters(sorted, params.filters);
+      const cacheKey = `${prefix} ${JSON.stringify(params)}`;
+      const rows = cachedRows && server.cache.has(cacheKey)
+        ? server.cache.get(cacheKey)
+        : filtered.slice(start, start + size);
+
+      if (cachedRows) {
+        server.cache.set(cacheKey, rows);
+      }
+
+      return { rows, totalRows: filtered.length };
+    };
+
+    const makeFetchRows = prefix => (params, { signal }) => {
+      server.fetchCount[prefix] += 1;
+
+      const n = server.fetchCount[prefix];
+
+      server.events.push(`fetch ${prefix} #${n}`);
+
+      return new Promise((resolve, reject) => {
+        const request = {
+          prefix,
+          params,
+          signal,
+          settle: () => {
+            if (server.failNext.has(prefix)) {
+              server.failNext.delete(prefix);
+              reject(new Error(`${prefix} failed`));
+
+              return;
+            }
+            resolve(respond(prefix, n, params));
+          },
+        };
+
+        server.pending.push(request);
+        signal.addEventListener('abort', () => {
+          server.pending = server.pending.filter(item => item !== request);
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    };
+
+    const parkMutation = () => new Promise((resolve, reject) => server.pendingUpdates.push({ resolve, reject }));
+
+    const provider = prefix => ({
+      rowId: 'id',
+      fetchRows: makeFetchRows(prefix),
+      onRowsCreate: parkMutation,
+      onRowsUpdate: (rows) => {
+        server.updatePayloads.push(rows.map(row => ({ id: row.id, changes: row.changes })));
+
+        return parkMutation();
+      },
+      onRowsRemove: parkMutation,
+    });
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const gridLevel = fixtureParams.has('gridLevel');
+    const plain = fixtureParams.has('plain');
+    const noColumns = fixtureParams.has('noColumns');
+    const invoices = fixtureParams.has('invoices');
+    const notesNullProvider = fixtureParams.has('notesNullProvider');
+    const activeSheet = Number(fixtureParams.get('activeSheet') ?? 0);
+
+    const buildSheets = () => [
+      { name: 'Orders', data: [], settings: { dataProvider: provider('ORD') } },
+      {
+        name: 'Notes',
+        data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }],
+        ...(notesNullProvider ? { settings: { dataProvider: null } } : {}),
+      },
+      { name: 'Customers', data: [], settings: { dataProvider: provider('CUS') } },
+      ...(invoices ? [{
+        name: 'Invoices',
+        data: [],
+        settings: {
+          columns: [{ data: 'fetch' }, { data: 'id' }],
+          colHeaders: ['Fetch', 'ID'],
+          dataProvider: provider('INV'),
+        },
+      }] : []),
+    ];
+
+    window.htProvider = provider;
+    window.htSetSheets = activeSheet => window.hot.updateSettings({
+      sheetsBar: { sheets: buildSheets(), ...(activeSheet === undefined ? {} : { activeSheet }) },
+    });
+
+    try {
+      window.hot = new Handsontable(container, {
+        ...(noColumns ? { colHeaders: true } : {
+          columns: [{ data: 'id' }, { data: 'fetch' }],
+          colHeaders: ['ID', 'Fetch'],
+        }),
+        rowHeaders: true,
+        renderer: testIdRenderer,
+        width: 720,
+        height: 420,
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        pagination: { pageSize: 5 },
+        notification: true,
+        emptyDataState: true,
+        ...(gridLevel ? { dataProvider: provider('GRID') } : {}),
+        ...(plain ? { dataProvider: provider('ORD') } : {
+          sheetsBar: { sheets: buildSheets(), activeSheet },
+        }),
+        beforeSheetTabChange() {
+          if (server.cancelNextSwitch) {
+            server.cancelNextSwitch = false;
+
+            return false;
+          }
+        },
+        afterDataProviderFetch(result) {
+          server.events.push(`afterFetch ${String(result.rows[0] && result.rows[0].id)}`);
+        },
+        afterDataProviderFetchError(error) {
+          server.events.push(`afterError ${error.message}`);
+        },
+        afterDataProviderFetchAbort() {
+          server.events.push('afterAbort');
+        },
+        afterColumnSort() {
+          server.events.push('afterColumnSort');
+        },
+        afterRowsMutation(operation) {
+          server.events.push(`afterMutation ${operation}`);
+        },
+        afterRowsMutationError(operation) {
+          server.events.push(`afterMutationError ${operation}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+
+    const stampTabs = () => {
+      document.querySelectorAll('.ht-sheets-bar__tab').forEach((tab, index) => {
+        tab.setAttribute('data-testid', `sheet-tab-${index}`);
+      });
+    };
+
+    stampTabs();
+    new MutationObserver(stampTabs).observe(container, { childList: true, subtree: true });
+  </script>
+</body>
+</html>

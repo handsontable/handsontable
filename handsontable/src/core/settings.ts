@@ -280,7 +280,7 @@ export interface GridSettings {
   customBorders?: boolean | object[];
   customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
-  dataProvider?: DataProviderConfig;
+  dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
@@ -547,11 +547,13 @@ export interface GridSettings {
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
   afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
   afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
+  afterSheetTabDuplicate?: (sourceSheetId: number, sheetId: number, source: string) => void;
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
   afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSheetWorkbookReset?: () => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -571,7 +573,9 @@ export interface GridSettings {
     source: ChangeSource) => void | boolean;
   afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
-  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchError?: (
+    error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean
+  ) => void;
   afterViewportColumnCalculatorOverride?: (calc: {
     startColumn: number; endColumn: number; [key: string]: unknown;
   }) => void;

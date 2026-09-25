@@ -136,6 +136,7 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
   `../notification/AGENTS.md`, `../loading/AGENTS.md`.
+- A failed DataProvider fetch hides the loading overlay only when the hook's third argument, `isVisible`, is not `false`. With SheetsBar a sheet the grid does not show can fail while the visible sheet still waits for its own fetch; clearing on that failure dropped the visible sheet's overlay mid-fetch. `afterSheetTabChange` re-syncs the overlay with `dataProvider.isFetching()`.
 - Where the message usually comes from on a server-backed grid: `../dataProvider/AGENTS.md`.
 - Layout slots vs fixed internal elements: `../../core/layout/`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

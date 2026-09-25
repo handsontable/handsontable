@@ -536,6 +536,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after the dataProvider has fetched and loaded data.
    *
+   * With the {@link SheetsBar} plugin, it also fires when you switch back to a sheet whose rows were fetched
+   * earlier, with that sheet's saved response.
+   *
    * @event Hooks#afterDataProviderFetch
    * @since 17.1.0
    * @param {object} result Result object: `{ rows, totalRows, queryParameters, columnSortConfig, filtersConditionsStack }`.
@@ -545,10 +548,17 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the dataProvider fetch throws an error (e.g. network error).
    *
+   * With the {@link SheetsBar} plugin, it also fires for a sheet you have switched away from, right when its
+   * fetch fails; `isVisible` is then passed as `false`, and the error notification waits until you switch back to
+   * that sheet.
+   *
    * @event Hooks#afterDataProviderFetchError
    * @since 17.1.0
    * @param {Error} error The thrown error.
    * @param {object} queryParameters The query parameters that were used for the request.
+   * @param {boolean} [isVisible] Passed as `false` when the request was made for a {@link SheetsBar} sheet other
+   * than the one the grid shows; omitted otherwise, so a grid without SheetsBar gets the same two arguments as
+   * before.
    */
   'afterDataProviderFetchError',
 
@@ -3275,6 +3285,18 @@ export const REGISTERED_HOOKS = [
   'afterSheetTabAdd',
 
   /**
+   * Fired by {@link SheetsBar} plugin after duplicating a sheet, after `afterSheetTabAdd`. This
+   * hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabDuplicate
+   * @param {number} sourceSheetId The id of the sheet the duplicate was copied from.
+   * @param {number} sheetId The id of the duplicate sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabDuplicate',
+
+  /**
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
@@ -3372,6 +3394,21 @@ export const REGISTERED_HOOKS = [
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateRestore',
+
+  /**
+   * Fired by {@link SheetsBar} plugin when it replaces its workbook as a whole: before it builds a workbook (when
+   * the plugin is enabled, and when a changed `sheets` setting rebuilds the workbook), and when the plugin is
+   * disabled. After this hook, no sheet id reported by an earlier hook identifies a sheet any more: a rebuilt
+   * workbook numbers its sheets from 1 again. A changed `sheets` setting fires it twice: once when the old
+   * workbook is discarded, and once when the new one is built.
+   *
+   * The build at the grid's initialization fires before the callbacks declared in the settings object are
+   * attached, so only a global hook (`Handsontable.hooks.add()`) observes that first call.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetWorkbookReset
+   */
+  'afterSheetWorkbookReset',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

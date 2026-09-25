@@ -198,12 +198,14 @@ You can run your code before or after different sheet operations, using the foll
 - [`afterSheetTabAdd()`](@/api/hooks.md#aftersheettabadd)
 - [`beforeSheetTabRemove()`](@/api/hooks.md#beforesheettabremove)
 - [`afterSheetTabRemove()`](@/api/hooks.md#aftersheettabremove)
+- [`afterSheetTabDuplicate()`](@/api/hooks.md#aftersheettabduplicate)
 - [`beforeSheetTabRename()`](@/api/hooks.md#beforesheettabrename)
 - [`afterSheetTabRename()`](@/api/hooks.md#aftersheettabrename)
 - [`beforeSheetTabMove()`](@/api/hooks.md#beforesheettabmove)
 - [`afterSheetTabMove()`](@/api/hooks.md#aftersheettabmove)
 - [`afterSheetTabStateCapture()`](@/api/hooks.md#aftersheettabstatecapture)
 - [`afterSheetTabStateRestore()`](@/api/hooks.md#aftersheettabstaterestore)
+- [`afterSheetWorkbookReset()`](@/api/hooks.md#aftersheetworkbookreset)
 
 ::: only-for javascript
 ```js
@@ -261,6 +263,21 @@ const hotSettings = {
 ## Per-sheet view state
 
 Switching sheets captures the outgoing sheet's scroll position, selection, sort, filters, hidden and trimmed indexes, merged cells, custom borders, manual column widths and row heights, and any cell-meta changes you made while it was active. It restores that state the next time you switch back to it. A sheet you have not visited yet opens with a neutral view state, so it never inherits the previous sheet's filters or sizes. The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore.
+
+## Server-backed sheets
+
+Give one or more sheets their own `dataProvider` to load rows from a server, while other sheets keep local data:
+
+```js
+sheetsBar: {
+  sheets: [
+    { name: 'Orders', data: [], settings: { dataProvider: ordersProvider } },
+    { name: 'Notes', data: notes },
+  ],
+},
+```
+
+Switching to **Orders** fetches its rows from the server. Switching to **Notes** shows its local data with client-side sorting and filtering. See [Use DataProvider with the sheets bar](@/guides/getting-started/server-side-data/server-side-data.md#use-dataprovider-with-the-sheets-bar) for the fetch, switch, and error-handling behavior.
 
 ## Use formulas across sheets
 
@@ -347,6 +364,7 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 - Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
 - The bar shares its container with the grid. When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the bar follows the last row, so on a long sheet you scroll past the data to reach it. To keep the bar in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`. The [`Pagination`](@/api/pagination.md) bar behaves the same way.
+- A grid-level `dataProvider` is disabled while the sheets bar is enabled. Declare it in the `settings` of each sheet that needs one - see [Server-backed sheets](#server-backed-sheets).
 
 ## Related keyboard shortcuts
 
@@ -377,11 +395,13 @@ Use the menu's **Move left** and **Move right** actions to reorder sheets from t
 
 - [afterSheetTabAdd](@/api/hooks.md#aftersheettabadd)
 - [afterSheetTabChange](@/api/hooks.md#aftersheettabchange)
+- [afterSheetTabDuplicate](@/api/hooks.md#aftersheettabduplicate)
 - [afterSheetTabMove](@/api/hooks.md#aftersheettabmove)
 - [afterSheetTabRemove](@/api/hooks.md#aftersheettabremove)
 - [afterSheetTabRename](@/api/hooks.md#aftersheettabrename)
 - [afterSheetTabStateCapture](@/api/hooks.md#aftersheettabstatecapture)
 - [afterSheetTabStateRestore](@/api/hooks.md#aftersheettabstaterestore)
+- [afterSheetWorkbookReset](@/api/hooks.md#aftersheetworkbookreset)
 - [beforeSheetTabAdd](@/api/hooks.md#beforesheettabadd)
 - [beforeSheetTabChange](@/api/hooks.md#beforesheettabchange)
 - [beforeSheetTabMove](@/api/hooks.md#beforesheettabmove)

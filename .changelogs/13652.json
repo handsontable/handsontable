@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `pagination` and `filters` plugins ignoring a `dataProvider` that you add or remove with `updateSettings()` after the grid loads, and a console error when you destroy the grid while `dataProvider` is still fetching. Added the `isFetching()` method to the `dataProvider` plugin.",
+  "type": "fixed",
+  "issueOrPR": 13652,
+  "breaking": false,
+  "framework": "none"
+}
