@@ -2155,6 +2155,49 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(editorArrowIcon).toHaveClass(/ti-caret-down-filled/);
     });
 
+    // The header menu opens from `#onTableClick`, which used to require the click target to BE the
+    // button. A renderer child that takes its own pointer events made the mousedown set the
+    // "button clicked" flag and the click then fail to open the menu (PR #13639 review). Both
+    // gates match by ancestor now, and the menu is positioned from the button, not the child.
+    test('a click on markup a renderer callback put inside the header menu button still opens the menu', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler' });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler').params({
+          icons: {
+            menu: (element: HTMLElement) => {
+              const glyph = document.createElement('span');
+
+              glyph.className = 'renderer-glyph';
+              glyph.textContent = '=';
+              glyph.style.cssText = 'display:inline-block;width:100%;height:100%;overflow:hidden;pointer-events:auto;';
+              element.replaceChildren(glyph);
+            },
+          },
+        });
+      });
+
+      const glyph = page.locator('.ht_clone_top th .changeType .ht-icon .renderer-glyph').first();
+
+      await expect(glyph).toHaveText('=');
+
+      const hitTarget = await glyph.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+
+        return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === el;
+      });
+
+      expect(hitTarget).toBe(true);
+
+      await glyph.click();
+
+      await expect(page.locator('.htDropdownMenu:visible')).toHaveCount(1);
+    });
+
     test('an unmapped slot keeps the built-in glyph - mapping is per-slot, not all-or-nothing', async({
       page, theme, bundle,
     }) => {

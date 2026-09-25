@@ -655,12 +655,16 @@ export class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   #onTableClick(event: Event) {
-    const target = eventTargetEl(event)!;
+    // By ancestor, not by the target's own class, and the BUTTON is what is measured and walked
+    // up from: a theme `icons` renderer may put markup with its own pointer events inside the
+    // button's icon, and the press then targets that markup (`#onBeforeOnCellMouseDown` matches
+    // the same way).
+    const button = eventTargetEl(event)!.closest<HTMLElement>(`.${BUTTON_CLASS_NAME}`);
 
-    if (hasClass(target, BUTTON_CLASS_NAME)) {
+    if (button) {
       const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
-      const buttonRect = this.#getButtonRect(target);
-      const th = target.closest('th');
+      const buttonRect = this.#getButtonRect(button);
+      const th = button.closest('th');
       const cellCoords = th ? this.hot.getCoords(th) : null;
       const visualColumn = cellCoords?.col ?? null;
       const headerRowIndex = cellCoords?.row ?? -1;
@@ -693,7 +697,7 @@ export class DropdownMenu extends BasePlugin {
    */
   #getButtonRect(button: HTMLElement) {
     // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
-    // (`button.appendChild(createIcon(this.hot, 'menu'))` above), not a `::before` pseudo-element -
+    // (`syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu')` above), not a `::before` pseudo-element -
     // measure its own box directly. Falls back to the button's own rect when the icon is missing
     // (a theme config that maps the `menu` slot to nothing renders no `<i>` at all).
     const icon = button.querySelector('.ht-icon');
