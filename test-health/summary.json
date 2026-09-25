@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-25T05:45:58.972Z",
+  "generatedAt": "2026-09-25T08:04:15.595Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8855,7 +8855,7 @@
       "file": "handsontable/src/plugins/exportFile/__tests__/types/xlsx/cell-types.spec.js",
       "line": null,
       "title": "exportFile XLSX type — cell types date type cells should derive the date numFmt from the cell's dateFormat Intl options",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
