@@ -182,7 +182,7 @@ Pagination arrows, the submenu arrow, and the sheets bar arrows mirror in a righ
 
 ## Limitations
 
-- **Runtime theme changes.** Pagination, the sheets bar, and notifications rebuild their icons when the theme changes. The column header menu button, the filters condition select and radio, and the select editor arrow are built once and reused, so they keep the mapping that was active when the grid was created. Re-create the grid to apply a new mapping to those slots.
+- **Runtime theme changes.** A remapped icon reaches every slot without re-creating the grid, but not at the same moment: pagination, the sheets bar, and notifications rebuild at once, the header menu button on the next header render, the filters select and radio on the next menu open, and the select editor arrow on the next editor open.
 - **Class-based theming.** As described in [Step 3](#step-3-pass-the-theme-as-an-object), a class on the container or a `themeName` string ignores the `icons` mapping.
 - **Glyph metrics.** Tabler glyphs are drawn on a 24px grid with a 2px stroke. At the default 16px icon size they read slightly lighter than the built-in set. Raise `--ht-icon-size` or pick a heavier Tabler variant if that matters for your design.
 

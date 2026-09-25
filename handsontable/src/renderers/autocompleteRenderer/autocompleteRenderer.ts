@@ -71,7 +71,11 @@ export function autocompleteRenderer(
       // alongside the context menu. Walkontable pairs that check with a `touchApplied` escape
       // hatch; this path needs none, because a tap reaches it only as a compatibility `mousedown`,
       // which carries `button === 0` like any other left press.
-      if (isLeftClick(event) && hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
+      // Matched by ancestor, not by the target's own class: the arrow hosts a real icon element,
+      // and a theme `icons` renderer may put its own markup inside it (an inline SVG, a span). The
+      // base `.ht-icon` is `pointer-events: none`, which such a child inherits, so today the hit
+      // still lands on the arrow div - but a gate that depends on a CSS property is a trap.
+      if (isLeftClick(event) && eventTargetEl(event)!.closest('.htAutocompleteArrow') !== null) {
         // The `null` event is load-bearing, not laziness: `EditorManager#openEditor` only applies
         // its "no editor for a multi-cell selection" default when the event is a `MouseEvent`, so
         // forwarding the real one here would stop the arrow from opening the list after a

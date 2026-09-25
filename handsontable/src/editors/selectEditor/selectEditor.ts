@@ -10,10 +10,11 @@ import {
 import { objectEach } from '../../helpers/object';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { getSanitizer } from '../../utils/sanitizer';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
+const ARROW_ICON_CLASS_NAME = 'ht-select-editor-arrow-icon';
 
 export const EDITOR_TYPE = 'select';
 
@@ -61,7 +62,7 @@ export class SelectEditor extends BaseEditor {
     // the fallback a bare, unthemed grid renders instead - same choice `autocompleteRenderer.ts`
     // makes for the cell arrow this editor's own arrow mirrors.
     ARROW.appendChild(this.hot.rootDocument.createTextNode(String.fromCharCode(9660)));
-    ARROW.appendChild(createIcon(this.hot, 'selectArrow'));
+    syncIcon(this.hot, ARROW, ARROW_ICON_CLASS_NAME, 'selectArrow');
 
     addClass(this.selectWrapper, 'htSelectEditor');
     this.selectWrapper.appendChild(this.select);
@@ -97,6 +98,17 @@ export class SelectEditor extends BaseEditor {
    */
   open(): void {
     this._opened = true;
+
+    // The editor element is built once and reused, so the arrow icon picks up a runtime `icons`
+    // remap or theme switch here. A no-op unless the theme's icons revision moved. Looked up rather
+    // than kept in a `#` field: `BaseEditor`'s constructor runs `init()` before a subclass's own
+    // field initializers, so a private field assigned there throws.
+    const arrow = this.selectWrapper.querySelector<HTMLElement>('.htAutocompleteArrow');
+
+    if (arrow) {
+      syncIcon(this.hot, arrow, ARROW_ICON_CLASS_NAME, 'selectArrow');
+    }
+
     this.refreshDimensions();
     this.selectWrapper.style.display = '';
 

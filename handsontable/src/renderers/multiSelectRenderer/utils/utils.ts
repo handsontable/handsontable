@@ -226,7 +226,9 @@ export function registerChipRemovingEvents(
   const eventManager = chipsEventManagers.get(hotInstance)!;
 
   eventManager.addEventListener(hotInstance.rootElement, 'click', (event: Event) => {
-    if (!hasClass(eventTargetEl(event)!, CHIP_REMOVE_CLASS)) {
+    // By ancestor, not by the target's own class: the remove button hosts a real icon element
+    // whose markup a theme `icons` renderer may extend, and the press may then target that.
+    if (eventTargetEl(event)!.closest(`.${CHIP_REMOVE_CLASS}`) === null) {
       return;
     }
 
@@ -257,7 +259,7 @@ export function registerChipRemovingEvents(
   hotInstance.addHook('beforeOnCellMouseDown', (...args: unknown[]) => {
     const event = args[0] as Event;
 
-    if (hasClass(eventTargetEl(event)!, CHIP_REMOVE_CLASS)) {
+    if (eventTargetEl(event)!.closest(`.${CHIP_REMOVE_CLASS}`) !== null) {
       stopImmediatePropagation(event as MouseEvent);
     }
   });

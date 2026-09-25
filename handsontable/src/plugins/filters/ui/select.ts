@@ -8,7 +8,9 @@ import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
 import { BaseUI } from './_base';
 import type { BaseUIOptions } from './_base';
 import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
-import { createIcon } from '../../../themes/engine/icons';
+import { syncIcon } from '../../../themes/engine/icons';
+
+const CAPTION_ICON_CLASS_NAME = 'htUISelectCaptionIcon';
 
 interface SelectMenuItem {
   key?: string;
@@ -163,7 +165,7 @@ export class SelectUI extends BaseUI {
       this.#captionLabel = hot.rootDocument.createElement('span');
       addClass(this.#captionLabel, 'htUISelectCaptionLabel');
       this.#captionElement.appendChild(this.#captionLabel);
-      this.#captionElement.appendChild(createIcon(hot, 'selectArrow'));
+      syncIcon(hot, this.#captionElement, CAPTION_ICON_CLASS_NAME, 'selectArrow');
     }
 
     if (hot.getSettings().ariaTags) {
@@ -191,6 +193,17 @@ export class SelectUI extends BaseUI {
     this.#menu.addLocalHook('select', (command: Record<string, unknown>) => this.#onMenuSelect(command));
     this.#menu.addLocalHook('afterClose', () => this.#onMenuClosed());
     this.update();
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the caret. The caption element is built once
+   * and reused for the life of the plugin, so this is what lets a runtime `icons` remap reach it
+   * (called on every menu show). A no-op unless the theme's icons revision moved.
+   */
+  refreshIcons() {
+    if (this.hot && this.#captionElement) {
+      syncIcon(this.hot, this.#captionElement, CAPTION_ICON_CLASS_NAME, 'selectArrow');
+    }
   }
 
   /**

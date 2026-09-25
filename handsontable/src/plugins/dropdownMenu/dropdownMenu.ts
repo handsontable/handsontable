@@ -22,7 +22,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -37,6 +37,7 @@ export type { MenuAnchorRectProvider };
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+const BUTTON_ICON_CLASS_NAME = 'ht-dropdown-menu-button-icon';
 /**
  * Marks a header that carries a trailing icon button, so styles that position something against
  * the header's trailing edge - the ColumnSorting indicator - can keep clear of it. A class rather
@@ -731,6 +732,11 @@ export class DropdownMenu extends BasePlugin {
         addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
       }
 
+      // The button survives too, so its icon must follow a runtime `icons` remap or theme switch
+      // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
+      // moved, so on an ordinary redraw this is one class check per header.
+      syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
       return;
     }
     // Plugin disabled and buttons still exists, so remove them.
@@ -752,7 +758,7 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
-    button.appendChild(createIcon(this.hot, 'menu'));
+    syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu');
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
@@ -840,7 +846,9 @@ export class DropdownMenu extends BasePlugin {
    * @param {MouseEvent} event The mouse event object.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent) => {
-    if (hasClass(eventTargetEl(event)!, BUTTON_CLASS_NAME)) {
+    // By ancestor, not by the target's own class: the button hosts a real icon element whose
+    // markup a theme `icons` renderer may extend, and the press may then target that markup.
+    if (eventTargetEl(event)!.closest(`.${BUTTON_CLASS_NAME}`) !== null) {
       this.#isButtonClicked = true;
     }
   };

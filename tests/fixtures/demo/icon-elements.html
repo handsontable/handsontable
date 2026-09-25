@@ -151,6 +151,20 @@
           arrowLeft: 'ti ti-chevron-left',
           check: 'ti ti-check',
           menu: 'ti ti-menu',
+          // A renderer that inserts a CHILD into the cell arrow, the way an inline-SVG renderer
+          // does. The autocomplete arrow's mousedown gate must accept a press on that child
+          // (`autocompleteRenderer.ts`, matched by ancestor since the PR #13639 review).
+          selectArrow: (element) => {
+            const glyph = document.createElement('span');
+
+            glyph.className = 'renderer-glyph';
+            glyph.textContent = 'v';
+            // `pointer-events: auto` on purpose: the base `.ht-icon` is `pointer-events: none` and a
+            // plain child inherits it, so the press would still land on the arrow div. An SVG or a
+            // widget that takes its own pointer events is the case the ancestor match exists for.
+            glyph.style.cssText = 'display:inline-block;width:100%;height:100%;overflow:hidden;pointer-events:auto;';
+            element.replaceChildren(glyph);
+          },
           // The third icon-value kind, alongside a glyph and a class list: a renderer callback,
           // the shape a Material Symbols integration uses to set a ligature through `textContent`.
           // Mapped on the sort-indicator slot, which the fixture's column-sorting tests already

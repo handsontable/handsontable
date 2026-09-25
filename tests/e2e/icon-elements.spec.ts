@@ -2084,6 +2084,77 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(header.locator('.renderer-glyph')).toHaveCount(0);
     });
 
+    // The cell arrow's mousedown gate used to accept only a target that carried
+    // `htAutocompleteArrow` itself. The fixture's `selectArrow` renderer inserts a child span into
+    // the arrow's icon, so a press on the painted glyph targets that child; the gate matches by
+    // ancestor now (PR #13639 review), and this pins it with a real click on the child.
+    test('a click on markup a renderer callback put inside the cell arrow still opens the editor', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler' });
+
+      const cell = page.locator('.ht_master td.htAutocomplete').first();
+      const glyph = cell.locator('.htAutocompleteArrow .ht-icon .renderer-glyph');
+
+      await expect(glyph).toHaveText('v');
+
+      await glyph.click();
+
+      await expect.poll(() => page.evaluate(() => (
+        (window as unknown as { hot: any }).hot.getActiveEditor()?.isOpened() === true
+      ))).toBe(true);
+
+      const editorCoords = await page.evaluate(() => {
+        const editor = (window as unknown as { hot: any }).hot.getActiveEditor();
+
+        return editor ? [editor.row, editor.col] : null;
+      });
+
+      expect(editorCoords).toEqual([0, 2]);
+    });
+
+    // The header menu button, the Filters condition select, and the select editor arrow are built
+    // once and reused. They used to keep whichever mapping was active when first built; now each
+    // refreshes through `syncIcon()` (button: every header render; select: every menu show;
+    // editor: every open), so a runtime remap reaches them without re-creating the grid.
+    test('a runtime icons remap reaches the reused header button, filters select, and select editor icons', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', selectEditor: true });
+
+      const buttonIcon = page.locator('.ht_clone_top th .changeType .ht-icon').first();
+
+      await expect(buttonIcon).toHaveClass(/ti-menu/);
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler')
+          .params({ icons: { menu: 'ti ti-menu-2', selectArrow: 'ti ti-caret-down-filled' } });
+      });
+
+      // Header button: refreshed on the next header render, which the theme change triggers.
+      await expect(buttonIcon).toHaveClass(/ti-menu-2/);
+      await expect(buttonIcon).not.toHaveClass(/ti-menu(\s|$)/);
+
+      // Filters condition select: refreshed when the dropdown menu shows.
+      await page.locator('.ht_clone_top th .changeType').first().click();
+
+      const captionIcon = page.locator('.htDropdownMenu:visible .htUISelectCaption .ht-icon').first();
+
+      await expect(captionIcon).toHaveClass(/ti-caret-down-filled/);
+      await page.keyboard.press('Escape');
+
+      // Select editor arrow: refreshed when the editor opens. Column D is the select-editor column.
+      await page.locator('.ht_master td').nth(3).dblclick();
+
+      const editorArrowIcon = page.locator('.htSelectEditor .htAutocompleteArrow .ht-icon').first();
+
+      await expect(editorArrowIcon).toHaveClass(/ti-caret-down-filled/);
+    });
+
     test('an unmapped slot keeps the built-in glyph - mapping is per-slot, not all-or-nothing', async({
       page, theme, bundle,
     }) => {
