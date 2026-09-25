@@ -18,6 +18,7 @@ import type { ShortcutManager } from '../shortcuts/manager';
 import type { FocusGridManager as FocusManagerInstance } from '../focusManager/grid';
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
+import type { MinimumSizes } from './minimumSizes';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
@@ -46,6 +47,7 @@ export interface GridHelperInstance {
     method?: string, direction?: string, deltas?: unknown[]
   ): object | false | undefined;
   adjustRowsAndCols(): void;
+  removeSurplusRowsAndCols(previous: MinimumSizes): void;
   [key: string]: unknown;
 }
 
