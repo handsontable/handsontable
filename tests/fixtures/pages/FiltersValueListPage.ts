@@ -9,7 +9,7 @@ import { awaitBundle } from '../bundle';
  * @param {string} label The visible list, header, or condition label.
  * @returns {string} The label with regexp special characters escaped.
  */
-function escapeRegExp(label: string): string {
+export function escapeRegExp(label: string): string {
   return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
@@ -30,6 +30,9 @@ export class FiltersValueListPage {
   readonly valueList: Locator;
   readonly valueLabels: Locator;
   readonly searchInput: Locator;
+  readonly conditionsMenu: Locator;
+  readonly okButton: Locator;
+  readonly cancelButton: Locator;
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -46,10 +49,18 @@ export class FiltersValueListPage {
     this.theme = theme;
     this.bundle = bundle;
     this.fixture = fixture;
-    this.menu = page.locator('.htDropdownMenu');
+    // A submenu's container carries this class too (`Menu.createContainer()` adds the parent's class
+    // and `<class>Sub_<item>`), and a closed submenu stays in the DOM, hidden, until its parent
+    // closes. Leaving those containers out keeps `menu` one element while a submenu exists.
+    this.menu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"])');
     this.valueList = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody tr');
     this.valueLabels = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody label');
     this.searchInput = this.menu.locator('.htUIMultipleSelectSearch input');
+    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container; only the
+    // opened one is rendered.
+    this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
+    this.okButton = this.menu.locator('.htUIButtonOK input');
+    this.cancelButton = this.menu.locator('.htUIButtonCancel input');
   }
 
   /**
@@ -178,7 +189,7 @@ export class FiltersValueListPage {
 
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
-    await this.menu.locator('.htUIButtonOK input').click();
+    await this.okButton.click();
     await expect(this.menu).toBeHidden();
   }
 
@@ -190,13 +201,11 @@ export class FiltersValueListPage {
   async selectCondition(conditionLabel: string): Promise<void> {
     await this.menu.locator('.htFiltersMenuCondition .htUISelect').first().click();
 
-    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container;
-    // only the opened one is rendered.
-    const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
-
-    await expect(conditionsMenu).toBeVisible();
-    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) }).click();
-    await expect(conditionsMenu).toBeHidden();
+    await expect(this.conditionsMenu).toBeVisible();
+    await this.conditionsMenu.locator('td')
+      .filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) })
+      .click();
+    await expect(this.conditionsMenu).toBeHidden();
   }
 
   /**

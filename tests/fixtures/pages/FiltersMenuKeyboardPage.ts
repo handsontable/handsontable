@@ -1,52 +1,51 @@
 import { type Locator, type Page, expect } from '@playwright/test';
-import { FiltersValueListPage } from './FiltersValueListPage';
-
-/**
- * Escapes a menu label for a `^…$` exact-match regexp.
- *
- * @param {string} label The visible label.
- * @returns {string} The label with regexp special characters escaped.
- */
-function escapeRegExp(label: string): string {
-  return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+import { FiltersValueListPage, escapeRegExp } from './FiltersValueListPage';
 
 /**
  * Page Object for keyboard navigation inside the filters dropdown menu: the Tab and Shift+Tab order
  * through the filter components, the way in and out of the value list, the submenu exits, and the
  * menu highlight the loop restores.
  *
- * It extends the value-list page object, whose fixture and menu locators it shares. What it adds is
- * every element the plugin's focus controller (`handsontable/src/plugins/filters/menu/focusController.ts`)
- * can land on, so a spec asserts `toBeFocused()` per hop and never spells a selector. The class hooks are
- * the plugin's own stable names, and the roles come from the elements themselves.
+ * It extends the value-list page object, whose fixture, menu root, conditions menu and action-bar
+ * buttons it shares. What it adds is every other element the plugin's focus controller
+ * (`handsontable/src/plugins/filters/menu/focusController.ts`) can land on, so a spec asserts
+ * `toBeFocused()` per hop and never spells a selector. The class hooks are the plugin's own stable
+ * names, and the roles come from the elements themselves.
  *
  * The menu is a Handsontable instance of its own, and the value list is another one nested inside one
  * of its cells, so every menu-row locator here is scoped to the menu's OWN table (`:scope > .ht_master`).
- * An unscoped `td.current` would also match the list's focused row.
+ * An unscoped `td.current` would also match the list's focused row. A submenu is a third instance,
+ * whose container carries the menu's class as well; the base class's `menu` root leaves those
+ * containers out, so `highlightedItem` never reads a submenu's row while one exists.
  */
 export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   readonly menuRows: Locator;
   readonly highlightedItem: Locator;
-  readonly conditionsMenu: Locator;
   readonly alignmentSubmenu: Locator;
   readonly selectAllLink: Locator;
   readonly clearLink: Locator;
-  readonly okButton: Locator;
-  readonly cancelButton: Locator;
+  readonly activeFilterHeaders: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
-    super(page, theme, bundle);
+  /**
+   * Builds the page object for one fixture, theme and bundle.
+   *
+   * @param {Page} page The Playwright page.
+   * @param {string} theme The active theme.
+   * @param {string} bundle The active bundle.
+   * @param {string} fixture The fixture file to open. The default has text columns only; the
+   *   value-order fixture adds a numeric "Amount" column, whose conditions include the two-input
+   *   "Is between".
+   */
+  constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
+    super(page, theme, bundle, fixture);
     this.menuRows = this.menu.locator(':scope > .ht_master .htCore tbody td');
     this.highlightedItem = this.menu.locator(':scope > .ht_master .htCore tbody td.current');
-    // Each condition select owns a `.htFiltersConditionsMenu`; only the opened one is rendered.
-    this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
     // `Menu.createContainer()` names a submenu after its item: `<menu class>Sub_<item name>`.
     this.alignmentSubmenu = page.locator('.htDropdownMenuSub_Alignment');
     this.selectAllLink = this.menu.locator('.htUISelectAll a');
     this.clearLink = this.menu.locator('.htUIClearAll a');
-    this.okButton = this.menu.locator('.htUIButtonOK input');
-    this.cancelButton = this.menu.locator('.htUIButtonCancel input');
+    // The class the plugin puts on the header cell of a filtered column.
+    this.activeFilterHeaders = page.locator('.ht_clone_top th.htFiltersActive');
   }
 
   /**
@@ -60,17 +59,21 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   }
 
   /**
-   * The text input of the condition chosen in the first select. It exists only once a condition
-   * that takes an argument is chosen.
+   * A text input of one of the two condition components. A one-argument condition shows one input, at
+   * position 0; the two-argument "Is between" shows a second one, at position 1. The component keeps
+   * every input it can show in the DOM and hides the ones the chosen condition does not take, so the
+   * position counts rendered inputs, not visible ones. A hidden input is never a Tab stop.
    *
+   * @param {number} condition 0 for the first condition component, 1 for the second.
+   * @param {number} [position] The input's position inside that component.
    * @returns {Locator} The input element.
    */
-  conditionInput(): Locator {
-    return this.menu.locator('.htFiltersMenuCondition .htUIInput input').first();
+  conditionInput(condition: number, position = 0): Locator {
+    return this.menu.locator('.htFiltersMenuCondition').nth(condition).locator('.htUIInput input').nth(position);
   }
 
   /**
-   * One of the "And" / "Or" radios between the two conditions. They are rendered only once the
+   * One of the "And" / "Or" radios between the two conditions. The menu renders them only while the
    * first condition is not "None".
    *
    * @param {'And' | 'Or'} name The radio's label.
@@ -174,5 +177,17 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
 
       return range ? [range.highlight.row, range.highlight.col] : null;
     });
+  }
+
+  /**
+   * Every selected range, as the grid reports it: `[rowStart, columnStart, rowEnd, columnEnd]`, with
+   * `-1` standing for a header. Empty with nothing selected.
+   *
+   * @returns {Promise<number[][]>} The ranges.
+   */
+  async selectedRanges(): Promise<number[][]> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getSelected(): number[][] | undefined };
+    }).hot.getSelected() ?? []);
   }
 }
