@@ -331,7 +331,7 @@ myTheme.params({
 
 This mapping only takes effect when the grid receives its theme as a configuration object through the `theme` option. If you apply a theme by putting a class such as `ht-theme-main` directly on the container instead, class-list and callback icon mappings do nothing -- CSS variable overrides still work in that setup.
 
-See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#21-icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
+See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#22-icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
 
 ## Option 4: Use the Theme Builder UI
 
