@@ -4,9 +4,9 @@ import {
 } from '../columnSorting';
 import type { HeaderSortPress, SortConfig } from '../columnSorting/columnSorting';
 import type { ColumnStatesManager } from '../columnSorting/columnStatesManager';
-import { registerRootComparator } from '../columnSorting/sortService/registry';
+import { markBuiltInRootComparator, registerRootComparator } from '../columnSorting/sortService/registry';
 import { addClass, removeClass } from '../../helpers/dom/element';
-import { rootComparator } from './rootComparator';
+import { positionComparator, rootComparator } from './rootComparator';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 
@@ -15,6 +15,7 @@ export const PLUGIN_PRIORITY = 170;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+markBuiltInRootComparator(rootComparator, positionComparator);
 
 /**
  * @plugin MultiColumnSorting

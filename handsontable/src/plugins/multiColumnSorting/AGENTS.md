@@ -28,7 +28,24 @@ addresses the right settings key and the right index map names for each subclass
 walks them in order: a column is consulted only while every earlier column compared equal (`DO_NOT_SWAP`).
 
 The row arrays are `[rowIndex, ...values]`, so sorted column *N*'s value sits at index **N + 1** — the
-parent's single-column version reads index 1 as the degenerate case of the same rule.
+parent's single-column version reads index 1 as the degenerate case of the same rule. While
+`sortService/engine.ts` runs a prepared sort, one extra numeric slot sits at the **end** of every row array
+(the row's index into the extracted key stores); it is popped again when the sort finishes, and a custom
+root comparator never sees it.
+
+The prepared-keys seam is resolved **per column**: a column whose compare function implements the seam
+reads extracted keys, while a column with a user-supplied compare function keeps the per-comparison path,
+in the same sort. Membership is a module-private `Symbol` set by a built-in factory, never the presence of
+the method names — see `../columnSorting/AGENTS.md`. The tie-breaker walk is unchanged either way.
+`positionComparator` is the same walk over parallel value arrays, for the path the parent takes by default:
+sorted column *N*'s values live in `columnValues[N]`, indexed by position. `rootComparator` keeps the tuple
+form, where column *N*'s value sits at index **N + 1**. **Both must be kept in step**: they are picked
+between at sort time by `getBuiltInPositionComparator()`, which is an identity check on the registered
+root comparator (see `../columnSorting/AGENTS.md`).
+Getting k=1 right and k>1 wrong is the likely bug here — the k-deep
+`DO_NOT_SWAP` tie-break walk has to be reproduced in both.
+`__tests__/comparatorCrossCheck.unit.ts` fuzzes the two against each other over random values, both
+`sortEmptyCells` settings, both orders and k = 1 to 3, with a seeded generator so a failure reproduces.
 
 Each column reads `columnMeta.multiColumnSorting.compareFunctionFactory`, falling back to the cell type's
 registered factory. Note this subclass reads the settings object **without** optional chaining, unlike the
