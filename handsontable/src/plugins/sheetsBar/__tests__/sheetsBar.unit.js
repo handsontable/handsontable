@@ -532,7 +532,43 @@ describe('SheetsBar plugin', () => {
     expect(collapseSpy).not.toHaveBeenCalled();
   });
 
-  it('collapses the same parent again when rows were added before it while its sheet was away', () => {
+  it('keeps a hidden child of a collapsed parent hidden across a switch away and back', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      hiddenRows: true,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Tree',
+            data: [
+              { a: 'P1', __children: [{ a: 'P1.1' }, { a: 'P1.2' }, { a: 'P1.3' }] },
+              { a: 'P2', __children: [{ a: 'P2.1' }] },
+            ],
+          },
+          { name: 'Other', data: [{ a: 'x' }] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+    const hiddenRows = hot.getPlugin('hiddenRows');
+
+    hiddenRows.hideRows([2]);
+    nestedRows.collapsingUI.toggleCollapsedRows([0], 'collapse');
+    sheetsBar.setActiveSheet('Other');
+    sheetsBar.setActiveSheet('Tree');
+
+    expect(nestedRows.getCollapsedParents()).toEqual([0]);
+
+    nestedRows.collapsingUI.toggleCollapsedRows([0], 'expand');
+
+    expect(hiddenRows.getHiddenRows().map(row => hot.toPhysicalRow(row))).toEqual([2]);
+    expect(hot.getData().map(row => row[0])).toEqual(['P1', 'P1.1', 'P1.2', 'P1.3', 'P2', 'P2.1']);
+    expect(hiddenRows.isHidden(2)).toBe(true);
+  });
+
+  it('collapses the same parent again after its sheet gained a child row under an earlier sibling', () => {
     const treeData = [
       { a: 'P1', __children: [{ a: 'P1.1' }] },
       { a: 'P2', __children: [{ a: 'P2.1' }] },

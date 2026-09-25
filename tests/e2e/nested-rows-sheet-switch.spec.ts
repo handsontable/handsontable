@@ -18,24 +18,24 @@ test.describe('NestedRows collapse state across a sheet switch', () => {
     await grid.collapseButton(0).click();
     await expect.poll(() => grid.visibleNames()).toEqual(['Europe', 'Asia', 'Japan']);
 
-    await grid.clickTab(1);
+    await grid.switchToSheet(1);
     await expect.poll(() => grid.visibleNames()).toEqual(['Fruit', 'Apple', 'Vegetables', 'Carrot']);
 
-    await grid.clickTab(0);
+    await grid.switchToSheet(0);
     await expect.poll(() => grid.visibleNames()).toEqual(['Europe', 'Asia', 'Japan']);
     await expect(grid.cell(1, 0)).toHaveText('Asia');
   });
 
   test('each sheet keeps its own collapsed branches', async () => {
     await grid.collapseButton(0).click();
-    await grid.clickTab(1);
+    await grid.switchToSheet(1);
     await grid.collapseButton(2).click();
     await expect.poll(() => grid.visibleNames()).toEqual(['Fruit', 'Apple', 'Vegetables']);
 
-    await grid.clickTab(0);
+    await grid.switchToSheet(0);
     await expect.poll(() => grid.visibleNames()).toEqual(['Europe', 'Asia', 'Japan']);
 
-    await grid.clickTab(1);
+    await grid.switchToSheet(1);
     await expect.poll(() => grid.visibleNames()).toEqual(['Fruit', 'Apple', 'Vegetables']);
   });
 });

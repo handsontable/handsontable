@@ -93,10 +93,16 @@ interface SortingPlugin {
  * Hidden indexes are stored as physical ones. The hiding plugins report visual indexes, and
  * a visual index only means something against the trimming that was in force when it was
  * read — the restore re-applies filters and trimming first, so the same rows have to be found
- * again by an index that does not move.
+ * again by an index that does not move. The hidden rows are read physically, straight off the
+ * plugin's hiding map: a hidden row that a collapsed NestedRows parent trims has no visual
+ * index, so reading it through `getHiddenRows()` would drop it from the capture.
  */
 function captureAxisState(hot: HotInstance) {
-  const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { getHiddenRows: () => number[] } | undefined;
+  const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { pluginName: string } | undefined;
+  const hiddenRowsMap = hiddenRowsPlugin
+    ? hot.rowIndexMapper.hidingMapsCollection.get(hiddenRowsPlugin.pluginName) as
+      { getHiddenIndexes: () => number[] } | undefined
+    : undefined;
   const hiddenColumnsPlugin =
     getEnabledPlugin(hot, 'hiddenColumns') as { getHiddenColumns: () => number[] } | undefined;
   const trimRowsPlugin = getEnabledPlugin(hot, 'trimRows') as { getTrimmedRows: () => number[] } | undefined;
@@ -105,7 +111,7 @@ function captureAxisState(hot: HotInstance) {
     rowSequence: hot.rowIndexMapper.getIndexesSequence().slice(),
     unsortedRowSequence: captureUnsortedRowSequence(hot),
     columnSequence: hot.columnIndexMapper.getIndexesSequence().slice(),
-    hiddenRows: (hiddenRowsPlugin?.getHiddenRows() ?? []).map(row => hot.toPhysicalRow(row)),
+    hiddenRows: hiddenRowsMap?.getHiddenIndexes() ?? [],
     hiddenColumns: (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)),
     trimmedRows: trimRowsPlugin?.getTrimmedRows() ?? [],
   };
@@ -127,13 +133,13 @@ function captureUnsortedRowSequence(hot: HotInstance): number[] {
  * The part of the NestedRows plugin the view state talks to.
  */
 interface NestedRowsPlugin {
+  getCollapsedParents: () => number[];
   dataManager: {
     getRowTreePath: (row: number) => number[] | null,
     getRowIndexByTreePath: (path: number[] | null) => number | null,
     hasChildren: (row: number) => boolean,
   } | null;
   collapsingUI: {
-    getCollapsedParents: () => number[],
     toggleCollapsedRows: (
       parents: number[], action: 'collapse', shouldRunHooks?: boolean, forceRender?: boolean
     ) => boolean,
@@ -153,7 +159,7 @@ function captureCollapsedParents(hot: HotInstance): number[][] {
     return [];
   }
 
-  return (nestedRows.collapsingUI?.getCollapsedParents() ?? [])
+  return nestedRows.getCollapsedParents()
     .map(row => dataManager.getRowTreePath(row))
     .filter((path): path is number[] => path !== null);
 }
