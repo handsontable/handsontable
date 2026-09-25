@@ -575,4 +575,218 @@ test.describe('moveCells edge move bands', () => {
 
     expect(await grid.cellValue(2, 2)).toBe('R3C3');
   });
+
+  test.describe('a selection crossing a frozen pane', () => {
+    type Point = { x: number, y: number };
+
+    /**
+     * The box of a cell as one overlay renders it.
+     */
+    async function boxOf(locator: ReturnType<SelectionFeaturesPage['cell']>) {
+      const box = await locator.boundingBox();
+
+      expect(box).not.toBeNull();
+
+      return box!;
+    }
+
+    /**
+     * Points on a vertical line, a few pixels either side of it, at the given heights. A band is
+     * 6px wide and centered on its edge, so a band on the line is hit by at least one of them.
+     */
+    function acrossVerticalLine(x: number, ys: number[]): Point[] {
+      return ys.flatMap(y => [x - 2, x, x + 2].map(px => ({ x: px, y })));
+    }
+
+    /**
+     * Points on a horizontal line, a few pixels either side of it, at the given offsets.
+     */
+    function acrossHorizontalLine(y: number, xs: number[]): Point[] {
+      return xs.flatMap(x => [y - 2, y, y + 2].map(py => ({ x, y: py })));
+    }
+
+    /**
+     * The vertical center of a cell box.
+     */
+    function middleY(box: { y: number, height: number }) {
+      return box.y + (box.height / 2);
+    }
+
+    /**
+     * The horizontal center of a cell box.
+     */
+    function middleX(box: { x: number, width: number }) {
+      return box.x + (box.width / 2);
+    }
+
+    /**
+     * Points just inside each outer edge of a range, at the given offsets along each edge. The
+     * positive control: every one of them must land on a band.
+     */
+    function insideOuterEdges(
+      range: { left: number, right: number, top: number, bottom: number }, xs: number[], ys: number[],
+    ): Point[] {
+      return [
+        ...xs.map(x => ({ x, y: range.top + 1 })),
+        ...xs.map(x => ({ x, y: range.bottom - 1 })),
+        ...ys.map(y => ({ x: range.left + 1, y })),
+        ...ys.map(y => ({ x: range.right - 1, y })),
+      ];
+    }
+
+    test('draws bands on the outer edges only, across frozen rows and columns', async () => {
+      await grid.initGrid({ fixedRowsTop: 2, fixedColumnsStart: 1 });
+      await grid.selectCells(0, 0, 5, 3);
+
+      // Every edge crosses one freeze line, so each is drawn by the two overlays it passes through.
+      // Before the fix every overlay drew all four bands on its own slice: 16 bands, with bands on
+      // both freeze lines inside the selection.
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(8);
+
+      const range = await grid.rangeBox(0, 0, 5, 3);
+      const columnSeamX = (b => b.x + b.width)(await boxOf(grid.overlayCell('inline_start', 3, 0)));
+      const rowSeamY = (b => b.y + b.height)(await boxOf(grid.overlayCell('top', 1, 2)));
+      const frozenRowY = middleY(await boxOf(grid.overlayCell('top_inline_start_corner', 0, 0)));
+      const scrollableRowY = middleY(await boxOf(grid.overlayCell('inline_start', 3, 0)));
+      const frozenColumnX = middleX(await boxOf(grid.overlayCell('top_inline_start_corner', 0, 0)));
+      const scrollableColumnX = middleX(await boxOf(grid.overlayCell('top', 0, 2)));
+
+      const seamHits = await grid.moveZoneHitsAt([
+        ...acrossVerticalLine(columnSeamX, [frozenRowY, scrollableRowY]),
+        ...acrossHorizontalLine(rowSeamY, [frozenColumnX, scrollableColumnX]),
+      ]);
+
+      expect(seamHits.every(hit => !hit)).toBe(true);
+
+      const edgeHits = await grid.moveZoneHitsAt(
+        insideOuterEdges(range, [frozenColumnX, scrollableColumnX], [frozenRowY, scrollableRowY]),
+      );
+
+      expect(edgeHits.every(hit => hit)).toBe(true);
+    });
+
+    test('draws bands on the outer edges only once the master no longer renders the frozen rows', async () => {
+      await grid.initGrid({
+        fixedRowsTop: 2,
+        fixedColumnsStart: 1,
+        data: Array.from({ length: 40 }, (_, row) => Array.from({ length: 10 }, (__, col) => `R${row + 1}C${col + 1}`)),
+      });
+      await grid.selectCells(0, 0, 16, 3);
+      await grid.scrollToRow(12);
+
+      // Scrolled past the frozen rows, the master and the frozen-columns overlay clamp the top edge to
+      // their rendered band instead of rendering it behind the pane. The clamp, not the segment, is
+      // what must drop their bands on the row freeze line now.
+      await expect.poll(() => grid.firstRenderedRow()).toBeGreaterThan(1);
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(8);
+
+      const rowSeamY = (b => b.y + b.height)(await boxOf(grid.overlayCell('top', 1, 2)));
+      const frozenColumnX = middleX(await boxOf(grid.overlayCell('top_inline_start_corner', 0, 0)));
+      const scrollableColumnX = middleX(await boxOf(grid.overlayCell('top', 0, 2)));
+      const scrollableCell = await boxOf(grid.overlayCell('inline_start', 14, 0));
+      const columnSeamX = scrollableCell.x + scrollableCell.width;
+
+      expect((await grid.moveZoneHitsAt([
+        ...acrossHorizontalLine(rowSeamY, [frozenColumnX, scrollableColumnX]),
+        ...acrossVerticalLine(columnSeamX, [middleY(scrollableCell)]),
+      ])).every(hit => !hit)).toBe(true);
+    });
+
+    test('draws no band on the column freeze line', async () => {
+      await grid.initGrid({ fixedColumnsStart: 1 });
+      await grid.selectCells(4, 0, 8, 3);
+
+      // The master draws the top, bottom and end bands, and the frozen-columns overlay the top,
+      // bottom and start ones, so the top and bottom edges are split at the freeze line.
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(6);
+
+      const range = await grid.rangeBox(4, 0, 8, 3);
+      const frozenCell = await boxOf(grid.overlayCell('inline_start', 6, 0));
+      const columnSeamX = frozenCell.x + frozenCell.width;
+      const scrollableColumnX = middleX(await boxOf(grid.cell(6, 2)));
+
+      expect((await grid.moveZoneHitsAt(acrossVerticalLine(columnSeamX, [middleY(frozenCell)])))
+        .every(hit => !hit)).toBe(true);
+      expect((await grid.moveZoneHitsAt(
+        insideOuterEdges(range, [middleX(frozenCell), scrollableColumnX], [middleY(frozenCell)]),
+      )).every(hit => hit)).toBe(true);
+    });
+
+    test('draws no band on the column freeze line in RTL', async () => {
+      await grid.initGrid({ fixedColumnsStart: 1, layoutDirection: 'rtl' });
+      await grid.selectCells(4, 0, 8, 3);
+
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(6);
+
+      const range = await grid.rangeBox(4, 0, 8, 3);
+      const frozenCell = await boxOf(grid.overlayCell('inline_start', 6, 0));
+      // The frozen column sits at the inline start, which is the right side in RTL.
+      const columnSeamX = frozenCell.x;
+      const scrollableColumnX = middleX(await boxOf(grid.cell(6, 2)));
+
+      expect((await grid.moveZoneHitsAt(acrossVerticalLine(columnSeamX, [middleY(frozenCell)])))
+        .every(hit => !hit)).toBe(true);
+      expect((await grid.moveZoneHitsAt(
+        insideOuterEdges(range, [middleX(frozenCell), scrollableColumnX], [middleY(frozenCell)]),
+      )).every(hit => hit)).toBe(true);
+    });
+
+    test('draws no band on the bottom freeze line', async () => {
+      // Small enough that no theme scrolls, so every row is on screen.
+      await grid.initGrid({
+        fixedRowsBottom: 2,
+        data: Array.from({ length: 8 }, (_, row) => Array.from({ length: 6 }, (__, col) => `R${row + 1}C${col + 1}`)),
+      });
+      await grid.selectCells(2, 1, 7, 3);
+
+      // The master draws the top, start and end bands, and the bottom overlay the bottom, start
+      // and end ones.
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(6);
+
+      const range = await grid.rangeBox(2, 1, 5, 3);
+      const frozenCell = await boxOf(grid.overlayCell('bottom', 7, 2));
+      const rowSeamY = (await boxOf(grid.overlayCell('bottom', 6, 2))).y;
+
+      expect((await grid.moveZoneHitsAt(acrossHorizontalLine(rowSeamY, [middleX(frozenCell)])))
+        .every(hit => !hit)).toBe(true);
+      expect((await grid.moveZoneHitsAt([
+        { x: middleX(frozenCell), y: range.top + 1 },
+        { x: middleX(frozenCell), y: frozenCell.y + frozenCell.height - 1 },
+        { x: range.left + 1, y: middleY(frozenCell) },
+        { x: range.right - 1, y: middleY(frozenCell) },
+      ])).every(hit => hit)).toBe(true);
+    });
+
+    test('decides the bands without the resize handles', async () => {
+      await grid.initGrid({ fixedRowsTop: 2, fixedColumnsStart: 1, selectionHandles: false });
+      await grid.selectCells(0, 0, 5, 3);
+
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(8);
+    });
+
+    test('draws no band on an edge scrolled out of the rendered rows when nothing is frozen', async () => {
+      await grid.initGrid({
+        data: Array.from({ length: 60 }, (_, row) => Array.from({ length: 10 }, (__, col) => `R${row + 1}C${col + 1}`)),
+      });
+      await grid.selectCells(0, 1, 50, 3);
+      await grid.scrollToRow(25);
+
+      // Neither row 0 nor row 50 is rendered, so the master clamps both edges to its rendered band. The
+      // band on the band's edge would sit inside the selection; only the start and end bands remain.
+      await expect.poll(() => grid.firstRenderedRow()).toBeGreaterThan(0);
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(2);
+
+      await grid.scrollToRow(0);
+
+      // Scrolled back to the start, the top edge is rendered again and gets its band back.
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(3);
+    });
+
+    test('keeps all four bands in the master when nothing is frozen', async () => {
+      await grid.selectCells(1, 1, 3, 3);
+
+      await expect(grid.visibleMoveZones()).toHaveCount(4);
+      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(4);
+    });
+  });
 });
