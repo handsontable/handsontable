@@ -926,6 +926,24 @@ describe('ThemeManager', () => {
           .toBe('ht-icon ht-icon-arrow-right ht-icon--external ti ti-x');
       });
 
+      it('re-asserts aria-hidden after a renderer callback that removed it', () => {
+        const mockHot = hot();
+        const theme = createTheme(createValidThemeConfig({
+          name: 'aria-theme',
+          icons: {
+            arrowRight: (element) => {
+              element.removeAttribute('aria-hidden');
+              element.textContent = 'east';
+            },
+          },
+        }));
+        const manager = createThemeManager({ hot: mockHot, themeObject: theme });
+        const icon = manager.createIcon('arrowRight');
+
+        expect(icon.textContent).toBe('east');
+        expect(icon.getAttribute('aria-hidden')).toBe('true');
+      });
+
       describe('getIconsRevision (DEV-3003)', () => {
         it('bumps the revision on every path that re-resolves icons, so `syncIcon()`\'s ' +
           'keep-path guard can never be bypassed by a re-resolve it does not know about', () => {

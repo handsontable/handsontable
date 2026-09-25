@@ -445,6 +445,9 @@ export class ThemeManager {
       element.className += ` ${external.trim()}`;
     } else if (typeof external === 'function') {
       external(element, name);
+      // The callback owns the element's content, not its role: re-assert the hidden state so a
+      // renderer that rewrote the attributes cannot expose the decorative glyph to assistive tech.
+      element.setAttribute('aria-hidden', 'true');
     }
   }
 
