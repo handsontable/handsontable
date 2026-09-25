@@ -280,6 +280,28 @@ They are written in different places and can drift. Keep this in mind:
   sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
   row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
   splice cannot leave a later one pointing at the wrong sibling.
+- **The `beforeRemoveRow` listener is registered with `orderIndex: -1`, and that number is load-bearing.**
+  `beforeRemoveRow` listeners run in registration order, and registration follows ascending
+  `PLUGIN_PRIORITY`. At the default order, every plugin below 300 read the list before the
+  subtree was added to it. Formulas (260) is the one that broke: it translated the parent alone to HyperFormula
+  indexes, so the engine kept the descendants while the grid dropped them, and its
+  `isItPossibleToRemoveRows` veto never saw them either (DEV-3092). The negative index puts the
+  expansion ahead of every default-order listener, including host hooks and a listener registered by a
+  plugin enabled at runtime. **Registration order is not stable even for a grid built with the plugin
+  on.** `updatePlugin()` runs `disablePlugin()` (which clears the hooks) and `enablePlugin()` on every
+  `updateSettings()` carrying the `nestedRows` key, which in React is every re-render, so before the
+  negative index the listener moved to the tail. From then on, a host `beforeRemoveRow` and UndoRedo saw
+  the parent alone too. That made what a host hook received depend on whether a settings update had
+  happened. The negative index makes the list the same every time. The one listener it moves behind is
+  a host `hot.addHook('beforeRemoveRow', fn, -1)`, which ran before the expansion and now runs after it,
+  because equal order indexes keep insertion order.
+  Global (`Hooks.getSingleton()`) listeners still run first, because the
+  global bucket runs before the instance bucket. The expansion has no side effects and is idempotent (the
+  accumulator is a `Set`), so it may run even when a later listener vetoes the removal, and a detach,
+  which hands the hook a list that is already expanded, is unaffected. `amount` is not rewritten, so a
+  listener that sizes its work from `amount` (ColumnSummary) still sees the count before expansion. Do
+  not "fix" an ordering problem here by raising `PLUGIN_PRIORITY`, and do not make Formulas expand the
+  list itself.
 - **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
   open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
   so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
