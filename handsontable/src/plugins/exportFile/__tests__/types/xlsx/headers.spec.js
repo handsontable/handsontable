@@ -127,7 +127,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Q1', 'Q2'],
         ],
         modifyColumnHeaderValue: (value, column, level) => (level === 0 ? `FY ${value}` : `${value} (USD)`),
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -580,7 +580,7 @@ describe('exportFile XLSX type — headers', () => {
           ['Col 1', 'Col 2', 'Col 3', 'Col 4', 'Col 5'],
         ],
         hiddenColumns: { columns: [1] },
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       const ws = await parseXlsx({ colHeaders: true });
@@ -603,7 +603,7 @@ describe('exportFile XLSX type — headers', () => {
           [{ label: 'Group', colspan: 2 }],
           ['Col 1', 'Col 2'],
         ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        exportFile: true,
       });
 
       getPlugin('nestedHeaders').disablePlugin();
