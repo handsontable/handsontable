@@ -128,11 +128,16 @@ rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, inc
 by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
 of the detach (DEV-138).
 
-**Known gap: removing a nested parent leaves its children in the engine.** This plugin's `beforeRemoveRow`
-listener (priority 260) runs before NestedRows' (300) expands the removal list to the parent's descendants,
-so the engine removes the parent row only while the grid removes the whole subtree. The existing specs
-assert only the state after undo, which lines up again. A detach is not affected: it hands the hook an
-already expanded list.
+**`#onBeforeRemoveRow` relies on NestedRows expanding the removal list first.** NestedRows rewrites the
+`beforeRemoveRow` list by reference to cover the removed parent's whole subtree. It registers that listener
+with `orderIndex: -1`, so this plugin's listener (priority 260) sees the expanded list, and both the engine
+removal and the `isItPossibleToRemoveRows` veto cover every descendant. At the default order this listener
+ran first and read the parent alone, so the engine kept the descendants while the grid dropped them, and
+every reference below the subtree shifted by the number of rows the caller named instead of by the number
+actually removed (DEV-3092). The
+undo-only specs missed it because an undo lines both sides up again. Assert the engine sheet right after the
+removal (`tests/e2e/formulas-nested-rows-remove-parent.spec.ts`). Do not fix a similar ordering problem by
+expanding the list here: that couples this plugin to the tree.
 
 ## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
 
