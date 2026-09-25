@@ -325,6 +325,29 @@ Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, l
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
 
+## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
+
+A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call
+`switchSheet()`, which `loadData()`s the engine sheet's serialized content into the grid. A caller
+that loads the sheet's data itself right after the update — the SheetsBar plugin, on every switch —
+paid two full loads (index maps, cell-meta reset, AutoColumnSize sweep, every host `afterLoadData`).
+The `@private` field `skipSheetSwitchLoad` makes `updatePlugin` bind the sheet with
+`#updateSheetNameAndSheetId()` instead, and the caller's `loadData()` then reaches `#onAfterLoadData`,
+which writes the loaded array into the bound sheet — the same final state the double load reached.
+Three rules. A name the engine does not know still goes through `switchSheet()`, so the error is
+reported. The flag is set and reset by the caller around the one `updateSettings()` call, in a
+`finally`, and must never stay on: a host's own `updateSettings({ formulas: { sheetName } })` relies on
+`switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
+`hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
+With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
+anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
+that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
+"loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
+while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas switch
+load and min padding working after a switch threw mid-update" pins the `finally` reset through a
+SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
+SheetsBar, so it only pins the flag's default.
+
 ## The engine's sheet size is not the grid's axis length, in either direction
 
 `getSheetDimensions()` answers with the extent of the sheet's **content**, and the engine accepts an order
