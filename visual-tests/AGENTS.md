@@ -109,8 +109,9 @@ visualTest(__filename, {
   variants; multi-frameworks declares those five plus all three wrappers, the only value that keeps the
   seed's wholesale copy equal to the declarations; cross-browser specs declare `classic`, and the
   cross-browser projects they actually need — `copy-paste.spec.ts` names chromium alone, which is what
-  it rendered before the declaration existed. The 23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` — none of those wrapper
-  declarations has been argued for yet, and the constant's name is the grep the audit runs.
+  it rendered before the declaration existed. The multi-framework specs (23 when the codemod landed, 14 since
+  the filters consolidation retired that family's nine) share `WRAPPERS_REASON_UNAUDITED` — none of those
+  wrapper declarations has been argued for yet, and the constant's name is the grep the audit runs.
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
   per-prefix totals against the live baseline (1676 records on 2026-09-18), printing the implied total. A
@@ -563,7 +564,9 @@ does for you):
   synchronously and leave the ordering to the browser, where a one-shot read could refuse a render that
   was merely still fetching.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
-  (`.github/workflows/visual-stability.yml`) renders the filters family (classic plus one chosen theme) and
+  (`.github/workflows/visual-stability.yml`) renders the filters family (classic plus one chosen theme;
+  `MULTI_SPECS` names its directory, `tests/js-only/filters` since the consolidation moved it there, and
+  `.github/scripts/__tests__/visual-stability.test.mjs` pins the path) and
   the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten separate runners from
   one commit, and reports byte-unstable captures and the pairs the gate would have called changed. It runs
   on its own every weekday night at 02:30 UTC on three runners (see G5 below), and on dispatch on ten.
@@ -573,12 +576,15 @@ does for you):
   noise — locally, 39 of 92 captures were byte-unstable across ten renders and the gate tolerated all of
   it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
   changed filters item) is one dispatch of that workflow.
-- **Two specs are known to photograph the wrong state**: `tab-navigation-from-submenu` and
-  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe. The menu opens with
-  its first enabled item ("Clear column") highlighted, so their three ArrowDown presses pass "Alignment"
-  (Read only, Alignment, then back to Clear column) and ArrowRight has nothing to open; two presses reach
-  it. Their frames repeat the plain-menu frames other specs own. Repair the keystrokes or convert the
-  coverage in the consolidation phase; do not delete them silently.
+- **A keystroke count is a claim about the menu's item order, so a spec that opens a submenu asserts
+  `toBeVisible()` on it before it captures.** Two retired specs (`tab-navigation-from-submenu` and
+  `shift-tab-navigation-from-submenu`, multi-frameworks/filters) never opened the Alignment submenu they
+  described: the menu opens with its first enabled item ("Clear column") highlighted, so their three
+  ArrowDown presses passed "Alignment" and ArrowRight had nothing to open, and their frames repeated the
+  plain-menu frames other specs owned. `tests/e2e/filters-menu-focus-order.spec.ts` asserts both submenu
+  exits by walking the highlight to "Alignment" by label. The filters family is now three js-only specs
+  of one to four captures each (DEV-3106), one capture per kind of focus ring; the Tab order, the Escape
+  and Enter paths and the hover behavior are that Playwright spec's, not a screenshot's.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -617,11 +623,13 @@ which of these run locally and which only in CI.
   totals from what is checked in, and `.eslintrc.js` bans a bare `test(` and a spec-side `test.skip(`. The
   codemod that landed it wrote today's rendered set out on all 111 live specs — every one but the parked
   `cross-browser/merging.spec.ts` — so no golden record moved; the
-  23 multi-framework specs share `WRAPPERS_REASON_UNAUDITED` until the consolidation audit gives each one
-  a reason of its own.
+  multi-framework specs share `WRAPPERS_REASON_UNAUDITED` (23 then, 14 since the filters consolidation)
+  until the consolidation audit gives each one a reason of its own.
 - **G3 · The golden budget** — landed. `visual-tests/visual-budget.json` holds one count per golden
   prefix (the eleven keys the prune uses) and a per-spec capture cap of 4 keyed by reg-suit stem, each
-  exception carrying the ticket that will bring it down (nine today, all DEV-2981). The `Visual budget`
+  exception carrying the ticket that will bring it down (four today, all DEV-2981; the filters
+  consolidation split its eight-capture Tab-order spec into two files of four rather than keep an
+  exception no ticket would ever bring down). The `Visual budget`
   step of the Compare job reads `.reg/out.json` and, **on pull requests only**, blocks a render over the
   file and requires `[visual budget: N – reason]` in the description when the pull request RAISES that
   file — N is the full-tier total after the change, and the file has to sum to it, so the number is

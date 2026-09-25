@@ -25,6 +25,9 @@ import {
 
 const root = path.join(import.meta.dirname, '../../..');
 const BUDGET = JSON.parse(readFileSync(path.join(root, 'visual-tests/visual-budget.json'), 'utf8'));
+// The live total, so a trim that lowers the file (the consolidation does, family by family) moves the
+// arithmetic below with it; what the numbers are is the declaration sweep's business, not this file's.
+const TOTAL = budgetTotal(BUDGET);
 
 /**
  * A report whose rendered items are exactly the counts asked for.
@@ -111,7 +114,7 @@ test('rendered means rendered: deleted items are not, quarantined ones are', () 
 
 test('the ceiling is per prefix, because a subset render would clear a total', () => {
   // A pr-tier build renders two of the eleven prefixes. Judged on the total it could double either one
-  // and still sit far under 1676 — which is the whole reason the file is eleven numbers and not one.
+  // and still sit far under the total — which is the whole reason the file is eleven numbers and not one.
   const prTier = reportWith({
     'js/chromium-theme-main/': BUDGET.prefixes['js/chromium-theme-main/'] + 1,
     'js/chromium-theme-main-dark/': BUDGET.prefixes['js/chromium-theme-main-dark/'],
@@ -119,7 +122,8 @@ test('the ceiling is per prefix, because a subset render would clear a total', (
   const verdict = evaluateBudget({ report: prTier, budget: BUDGET });
 
   assert.equal(verdict.pass, false, 'one prefix over its own number must fail even far under the total');
-  assert.match(verdict.violations.join('\n'), /js\/chromium-theme-main\/. rendered 241/);
+  assert.match(verdict.violations.join('\n'),
+    new RegExp(`js\\/chromium-theme-main\\/. rendered ${BUDGET.prefixes['js/chromium-theme-main/'] + 1}`));
 });
 
 test('a prefix nobody budgeted is refused, with its count named', () => {
@@ -140,7 +144,7 @@ test('a build at its numbers passes, and says what it rendered', () => {
 
   assert.equal(verdict.pass, true, verdict.violations.join('\n'));
   assert.match(verdict.comment, /^## Visual budget/);
-  assert.match(verdict.comment, /1676 record\(s\) rendered/);
+  assert.match(verdict.comment, new RegExp(`${TOTAL} record\\(s\\) rendered`));
 });
 
 /**
@@ -166,7 +170,7 @@ test('raising the budget file needs the marker, and the marker has to agree with
   const silent = evaluateBudget({ report: atFile, budget: BUDGET, baseBudget: base, body: 'Adds a demo.' });
 
   assert.equal(silent.pass, false, 'raising the file with no marker must fail');
-  assert.match(silent.violations.join('\n'), /raises the golden budget from 1666 to 1676/);
+  assert.match(silent.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 10} to ${TOTAL}`));
   assert.match(silent.violations.join('\n'), /\[visual budget: N — why the set has to grow\]/);
 
   const wrongNumber = evaluateBudget({
@@ -174,7 +178,8 @@ test('raising the budget file needs the marker, and the marker has to agree with
   });
 
   assert.equal(wrongNumber.pass, false, 'a marker that disagrees with the file must fail');
-  assert.match(wrongNumber.violations.join('\n'), /declares a total of 9999 and visual-budget\.json sums to 1676/);
+  assert.match(wrongNumber.violations.join('\n'),
+    new RegExp(`declares a total of 9999 and visual-budget\\.json sums to ${TOTAL}`));
 
   const agreed = evaluateBudget({
     report: atFile, budget: BUDGET, baseBudget: base, body: `[visual budget: ${budgetTotal(BUDGET)} — a new demo]`,
@@ -214,7 +219,7 @@ test('a bootstrap cannot raise the ceiling in the same commit that fills it', ()
   });
 
   assert.equal(raised.pass, false, 'a bootstrap that raises the file must ask for the marker like any other');
-  assert.match(raised.violations.join('\n'), /raises the golden budget from 1656 to 1676/);
+  assert.match(raised.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 20} to ${TOTAL}`));
 
   // And a bootstrap that changed nothing is not asked for one.
   assert.equal(evaluateBudget({ report: everythingNew, budget: BUDGET, baseBudget: BUDGET }).pass, true);

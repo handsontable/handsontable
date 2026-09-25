@@ -29,7 +29,7 @@ const CROSS_BROWSER = readdirSync(join(PACKAGE_ROOT, 'tests', 'cross-browser'))
   .map(name => name.slice(0, -'.spec.ts'.length));
 const specExists = spec => existsSync(join(REPO_ROOT, spec));
 const NOW = new Date('2026-09-23T12:00:00Z');
-const CAPTURE = 'multi-frameworks/filters/escaping-the-menu-12';
+const CAPTURE = 'js-only/filters/tab-navigation-through-action-buttons-12';
 const entry = overrides => ({
   taskId: 'DEV-1234',
   expires: '2026-10-10',
@@ -86,7 +86,7 @@ test('each broken rule is reported, naming the entry', () => {
     [entry({ capture: `${CAPTURE}.png` }), /`capture` is the item path without its variant prefix/],
     [entry({ legs: [] }), /`legs` names the variants that flake/],
     [entry({ legs: ['js/firefox'] }), /`js\/firefox` is not a variant this suite renders/],
-    [entry({ capture: 'multi-frameworks/filters/no-such-spec-1' }), /no-such-spec\.spec\.ts, which does not exist/],
+    [entry({ capture: 'js-only/filters/no-such-spec-1' }), /no-such-spec\.spec\.ts, which does not exist/],
     // A cross-browser capture on a js leg resolves to a js spec that is not there.
     [entry({ capture: 'selection-arabic-rtl-demo-2', legs: ['js/chromium'] }), /which does not exist/],
   ];
@@ -115,7 +115,7 @@ test('an item quarantined twice is reported', () => {
 test('the caps count entries and the items their legs expand to', () => {
   // Six entries at most, like the functional tier's six tests.
   const seven = Array.from({ length: 7 },
-    (_, i) => entry({ capture: `multi-frameworks/filters/escaping-the-menu-${i + 1}` }));
+    (_, i) => entry({ capture: `js-only/filters/tab-navigation-through-action-buttons-${i + 1}` }));
 
   assert.match(validate(seven).join('\n'), /7 entries are in the quarantine and the cap is 6/);
 
@@ -126,7 +126,7 @@ test('the caps count entries and the items their legs expand to', () => {
   assert.equal(everywhere.length, 8, 'a multi-framework capture renders on eight variants');
   const sixteen = [
     entry({ legs: everywhere }),
-    entry({ capture: 'multi-frameworks/filters/escaping-the-menu-11', legs: everywhere }),
+    entry({ capture: 'js-only/filters/tab-navigation-through-action-buttons-11', legs: everywhere }),
   ];
 
   assert.match(validate(sixteen).join('\n'), /16 items are quarantined and the cap is 12/);

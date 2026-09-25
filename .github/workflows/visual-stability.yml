@@ -81,7 +81,10 @@ concurrency:
 env:
   # The two spec groups behind every DEV-2797 sighting. Paths, not tags, so the
   # `--grep`-free invocation stays identical to what visual.yml renders.
-  MULTI_SPECS: tests/multi-frameworks/filters
+  # `MULTI_SPECS` kept its name from when the filters family lived under
+  # `tests/multi-frameworks/`; the consolidation moved it under `tests/js-only/`,
+  # where it renders on the js pass alone, which is all this matrix ever ran.
+  MULTI_SPECS: tests/js-only/filters
   CROSS_SPECS: selection
 
 jobs:

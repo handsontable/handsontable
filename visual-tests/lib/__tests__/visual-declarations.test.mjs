@@ -46,15 +46,17 @@ const LIVE_GOLDENS = JSON.parse(
 // no capture, and carries its own eslint-disable line naming the task that owns it.
 const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
-// How many live specs the sweep expects to read a declaration out of, on 2026-09-18: 112 files, one of
-// them parked. Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too — the
+// How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
+// them parked; 106 since the filters consolidation (DEV-3106) retired seven multi-framework specs and
+// folded two into three js-only ones. Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too — the
 // pair is the review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 111;
+const LIVE_SPEC_COUNT = 105;
 
-// How many of the 23 specs under `tests/multi-frameworks/` still carry the shared unaudited reason.
+// How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
+// consolidation retired that family's nine) still carry the shared unaudited reason.
 // The consolidation audit replaces it with a per-spec reason one spec at a time, so this number falls as
 // the debt is paid; it must never rise.
-const UNAUDITED_WRAPPER_SPECS = 23;
+const UNAUDITED_WRAPPER_SPECS = 14;
 
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.
