@@ -1066,7 +1066,7 @@ A class list or a callback adds the `ht-icon--external` class to the element, wh
 
 The Theme API mapping only works when the grid receives its theme as a configuration object through the `theme` option, as in the example above. If you apply a theme by putting a class such as `ht-theme-main` directly on the container element, Handsontable never creates a theme manager for that instance, so a class-list or callback icon mapping does nothing, silently. Built-in glyphs and CSS variable overrides still work in that setup, because they come from the stylesheet, not from JavaScript.
 
-Even with a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- does not restyle an icon element that a plugin already built and kept around. Pagination, the sheets bar, and notifications refresh their icons on a theme change, because each of those owns a dedicated refresh hook. The dropdown menu button's icon, the Filters plugin's condition-select arrow and radio dot, and the select editor's arrow do not: they're created once and reused for the life of the element, so they keep whichever glyph, class list, or renderer was active when they were first built. To pick up a later `icons` mapping change at those sites, destroy and re-create the Handsontable instance.
+With a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- reaches every icon the grid renders, including the ones a plugin builds once and keeps around. Pagination, the sheets bar, and notifications rebuild their icons on the change. The dropdown menu button refreshes its icon on the next header render, the Filters plugin's condition-select arrow and radio dot on the next menu open, and the select editor's arrow on the next editor open.
 
 :::
 
@@ -1095,7 +1095,7 @@ icons: {
 
 ### Selectors that changed
 
-Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#21-icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
+Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#22-icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
 
 ## The legacy theme
 
