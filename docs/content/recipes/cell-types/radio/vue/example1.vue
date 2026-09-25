@@ -91,7 +91,16 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
     span.className = 'htUIRadioLabel';
     span.textContent = optLabel;
 
+    // The checked dot is a real `<i class="ht-icon ht-icon-radio">` element (Handsontable
+    // itself inserts one as the input's next sibling for its own radio UI), not a CSS
+    // pseudo-element -- so the recipe must add it explicitly to get the dot.
+    const icon = document.createElement('i');
+
+    icon.className = 'ht-icon ht-icon-radio';
+    icon.setAttribute('aria-hidden', 'true');
+
     label.appendChild(input);
+    label.appendChild(icon);
     label.appendChild(span);
     wrapper.appendChild(label);
 
@@ -230,7 +239,10 @@ onMounted(() => {
 .htRadioCell .htUIRadio {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  /* Must equal the theme's own --ht-gap-size: the built-in .ht-icon-radio dot is
+     pulled back by that same variable to land on the input, so a different gap
+     here would offset the dot from the ring. */
+  gap: var(--ht-gap-size);
   font-size: 13px;
   color: var(--ht-foreground-color, #1f2937);
   padding: 2px 6px !important;

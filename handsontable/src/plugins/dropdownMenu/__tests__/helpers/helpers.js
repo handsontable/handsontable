@@ -6,17 +6,18 @@
  * @returns {{ left: number, top: number }}
  */
 export function getDropdownMenuButtonIconOffset(row, column) {
+  // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of `.changeType`
+  // (`button.appendChild(createIcon(this.hot, 'menu'))` in `dropdownMenu.ts`), not a `::before`
+  // pseudo-element on the button - measure its own box directly instead of re-deriving it by
+  // centering a `::before` size inside the button's rect.
   const button = getCell(row, column, true).querySelector('.changeType');
-  const rect = button.getBoundingClientRect();
-  const beforeStyle = getComputedStyle(button, '::before');
-  const iconSize = Number.parseFloat(beforeStyle.width, 10);
+  const icon = button.querySelector('.ht-icon');
+  const rect = icon.getBoundingClientRect();
   const win = button.ownerDocument.defaultView;
-  const iconLeft = rect.left + ((rect.width - iconSize) / 2);
-  const iconTop = rect.top + ((rect.height - iconSize) / 2);
 
   return {
-    left: iconLeft + win.scrollX,
-    top: iconTop + win.scrollY,
+    left: rect.left + win.scrollX,
+    top: rect.top + win.scrollY,
   };
 }
 
@@ -29,8 +30,7 @@ export function getDropdownMenuButtonIconOffset(row, column) {
  */
 export function getDropdownMenuButtonIconWidth(row, column) {
   const button = getCell(row, column, true).querySelector('.changeType');
-  const beforeStyle = getComputedStyle(button, '::before');
-  const iconSize = Number.parseFloat(beforeStyle.width, 10);
+  const icon = button.querySelector('.ht-icon');
 
-  return iconSize;
+  return icon.getBoundingClientRect().width;
 }

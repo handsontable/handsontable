@@ -49,9 +49,11 @@ describe('checkboxRenderer', () => {
 
       checkboxRenderer(instance, TD, 0, 0, undefined, null, cellMeta);
 
+      // DEV-3003: the checkbox tick is now a real `<i class="ht-icon ht-icon-checkbox">` sibling
+      // of the input (`insertAdjacentElement('afterend', ...)`), not a CSS pseudo-element.
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'tabindex="-1" data-row="0" data-col="0"></td>'
+        'tabindex="-1" data-row="0" data-col="0"><i class="ht-icon ht-icon-checkbox"></i></td>'
       ].join(''), toMatchHTMLConfig);
     });
 
@@ -64,7 +66,7 @@ describe('checkboxRenderer', () => {
 
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'tabindex="-1" data-row="100" data-col="50"></td>'
+        'tabindex="-1" data-row="100" data-col="50"><i class="ht-icon ht-icon-checkbox"></i></td>'
       ].join(''), toMatchHTMLConfig);
     });
 

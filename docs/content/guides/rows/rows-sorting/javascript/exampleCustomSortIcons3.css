@@ -31,6 +31,3 @@
   font-size: 10px;
 }
 
-#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable .columnSorting.sortAction::before {
-  right: 5px;
-}

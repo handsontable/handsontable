@@ -22,6 +22,7 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
+import { syncIcon } from '../../themes/engine/icons';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -36,6 +37,7 @@ export type { MenuAnchorRectProvider };
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+const BUTTON_ICON_CLASS_NAME = 'ht-dropdown-menu-button-icon';
 /**
  * Marks a header that carries a trailing icon button, so styles that position something against
  * the header's trailing edge - the ColumnSorting indicator - can keep clear of it. A class rather
@@ -653,12 +655,16 @@ export class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   #onTableClick(event: Event) {
-    const target = eventTargetEl(event)!;
+    // By ancestor, not by the target's own class, and the BUTTON is what is measured and walked
+    // up from: a theme `icons` renderer may put markup with its own pointer events inside the
+    // button's icon, and the press then targets that markup (`#onBeforeOnCellMouseDown` matches
+    // the same way).
+    const button = eventTargetEl(event)!.closest<HTMLElement>(`.${BUTTON_CLASS_NAME}`);
 
-    if (hasClass(target, BUTTON_CLASS_NAME)) {
+    if (button) {
       const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
-      const buttonRect = this.#getButtonRect(target);
-      const th = target.closest('th');
+      const buttonRect = this.#getButtonRect(button);
+      const th = button.closest('th');
       const cellCoords = th ? this.hot.getCoords(th) : null;
       const visualColumn = cellCoords?.col ?? null;
       const headerRowIndex = cellCoords?.row ?? -1;
@@ -690,23 +696,12 @@ export class DropdownMenu extends BasePlugin {
    * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
    */
   #getButtonRect(button: HTMLElement) {
-    const rect = button.getBoundingClientRect();
-    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
-    const iconSize = Number.parseFloat(beforeStyle.width);
-
-    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
-      const left = rect.left + ((rect.width - iconSize) / 2);
-      const top = rect.top + ((rect.height - iconSize) / 2);
-
-      return {
-        top,
-        left,
-        right: left + iconSize,
-        bottom: top + iconSize,
-        width: iconSize,
-        height: iconSize,
-      };
-    }
+    // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
+    // (`syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu')` above), not a `::before` pseudo-element -
+    // measure its own box directly. Falls back to the button's own rect when the icon is missing
+    // (a theme config that maps the `menu` slot to nothing renders no `<i>` at all).
+    const icon = button.querySelector('.ht-icon');
+    const rect = (icon ?? button).getBoundingClientRect();
 
     return {
       top: rect.top,
@@ -741,6 +736,11 @@ export class DropdownMenu extends BasePlugin {
         addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
       }
 
+      // The button survives too, so its icon must follow a runtime `icons` remap or theme switch
+      // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
+      // moved, so on an ordinary redraw this is one class check per header.
+      syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
       return;
     }
     // Plugin disabled and buttons still exists, so remove them.
@@ -762,6 +762,7 @@ export class DropdownMenu extends BasePlugin {
     button.className = BUTTON_CLASS_NAME;
     button.type = 'button';
     button.tabIndex = -1;
+    syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu');
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(button, [
@@ -849,7 +850,9 @@ export class DropdownMenu extends BasePlugin {
    * @param {MouseEvent} event The mouse event object.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent) => {
-    if (hasClass(eventTargetEl(event)!, BUTTON_CLASS_NAME)) {
+    // By ancestor, not by the target's own class: the button hosts a real icon element whose
+    // markup a theme `icons` renderer may extend, and the press may then target that markup.
+    if (eventTargetEl(event)!.closest(`.${BUTTON_CLASS_NAME}`) !== null) {
       this.#isButtonClicked = true;
     }
   };

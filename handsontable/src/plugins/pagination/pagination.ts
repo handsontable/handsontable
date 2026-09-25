@@ -3,6 +3,7 @@ import { clamp } from '../../helpers/number';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
+import { createIcon } from '../../themes/engine/icons';
 import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -295,6 +296,8 @@ export class Pagination extends BasePlugin {
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
+        createIcon: (name: Parameters<typeof createIcon>[1], options: Parameters<typeof createIcon>[2]) =>
+          createIcon(this.hot, name, options),
       });
 
       this.#updateSectionsVisibilityState();
@@ -1090,6 +1093,7 @@ export class Pagination extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.refreshIcons();
   };
 
   /**

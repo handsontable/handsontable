@@ -810,7 +810,9 @@ class CollapsingUI extends BaseUI {
 
     const row = this.translateTrimmedRow((coords as { row: number }).row);
 
-    if (hasClass(eventTargetEl(event)!, HeadersUI.CSS_CLASSES.button)) {
+    // By ancestor, not by the target's own class: the button hosts a real icon element whose
+    // markup a theme `icons` renderer may extend, and the press may then target that markup.
+    if (eventTargetEl(event)!.closest(`.${HeadersUI.CSS_CLASSES.button}`) !== null) {
       this.toggleCollapsedRows([row], this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
       stopImmediatePropagation(event);

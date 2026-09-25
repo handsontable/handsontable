@@ -296,6 +296,43 @@ Scope your rule to the theme class instead. Writing it as a descendant of your c
 
 A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper with the same specificity as the theme's own rule. It wins only when your stylesheet comes after the theme stylesheet, which depends on how your bundler orders CSS.
 
+### Icons
+
+Every built-in icon renders as an `<i class="ht-icon ht-icon-<name>">` element, and its glyph comes from a `--ht-icon-<name>` CSS variable. Override that variable, scoped to the theme class, to replace a single icon with your own SVG:
+
+```css
+#my-grid .ht-theme-main {
+  --ht-icon-search: url("/icons/search.svg");
+}
+```
+
+To replace icons with an icon font instead of a static glyph, use the Theme API's `icons` parameter. A class list works for an icon font that ships CSS classes, such as [Tabler Icons](https://tabler.io/icons):
+
+```js
+myTheme.params({
+  icons: {
+    selectArrow: 'ti ti-chevron-down',
+  },
+});
+```
+
+An icon font that needs text content instead of a class, such as Material Symbols ligatures, takes a renderer callback:
+
+```js
+myTheme.params({
+  icons: {
+    check: (element) => {
+      element.classList.add('material-symbols-outlined');
+      element.textContent = 'check';
+    },
+  },
+});
+```
+
+This mapping only takes effect when the grid receives its theme as a configuration object through the `theme` option. If you apply a theme by putting a class such as `ht-theme-main` directly on the container instead, class-list and callback icon mappings do nothing -- CSS variable overrides still work in that setup.
+
+See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#22-icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
+
 ## Option 4: Use the Theme Builder UI
 
 If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.

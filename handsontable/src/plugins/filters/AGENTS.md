@@ -175,3 +175,15 @@ captured when the plugin is enabled.
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.
 - Plugin contract, hooks, settings validation, IndexMapper integration: `handsontable-plugin-dev` skill.
+
+## The condition-select arrow and the radio dot refresh their icon on every menu show (DEV-3003)
+
+`ui/select.ts` and `ui/radioInput.ts` build their `<i class="ht-icon">` once (`build()`), and the UI
+objects live as long as the plugin - so a runtime `theme.params({ icons })` or theme switch never
+reached them (PR #13639 review). `BaseUI#refreshIcons()` (a no-op in the base class) is overridden in
+both to run `syncIcon()` against the existing element, and `#onAfterDropdownMenuShow` calls it on every
+element of every component after `restoreComponents()`. `syncIcon()` re-applies only when the theme's
+icons revision moved, so an ordinary menu open costs one class check per icon. The radio dot must stay
+the input's NEXT SIBLING (`input + .ht-icon` in `_radio.scss`): `build()` inserts it with
+`insertAdjacentElement('afterend', ...)` carrying the slot class, and the refresh finds it by that class
+instead of appending a second one at the end of the wrapper.

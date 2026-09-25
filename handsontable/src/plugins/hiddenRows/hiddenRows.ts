@@ -4,6 +4,7 @@ import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { Hooks } from '../../core/hooks';
+import { syncIcon } from '../../themes/engine/icons';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import type { HidingMap } from '../../translations';
@@ -18,6 +19,19 @@ export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
 
 const SKIP_ROW_ON_PASTE_BY_PLUGIN = Symbol('skipRowOnPasteByHiddenRows');
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that FOLLOWS a hidden row
+ * (`afterHiddenRow`, glyph pointing down - toward the hidden neighbor) (DEV-3003).
+ */
+const HIDDEN_INDICATOR_START_SLOT_CLASS = 'ht-hidden-indicator-start';
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that PRECEDES a hidden row
+ * (`beforeHiddenRow`, glyph pointing up - toward the hidden neighbor) (DEV-3003). A header can carry
+ * both slots at once when it has a hidden neighbor on each side.
+ */
+const HIDDEN_INDICATOR_END_SLOT_CLASS = 'ht-hidden-indicator-end';
 
 /**
  * @plugin HiddenRows
@@ -274,6 +288,20 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // `super.disablePlugin()` removes the tracked `#onAfterGetRowHeader` hook, so it never runs
+    // again to clear a previously-rendered caret (DEV-3003). A one-shot hook does that on the
+    // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
+    // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
+    const clearRowHeader = (row: number, TH: HTMLTableCellElement) => {
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+    };
+
+    this.hot.addHook('afterGetRowHeader', clearRowHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetRowHeader', clearRowHeader);
+    });
+
     super.disablePlugin();
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
@@ -562,7 +590,13 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetRowHeader = (row: number, TH: HTMLTableCellElement) => {
+
     if (!this.getSetting('indicators') || row < 0) {
+      // The indicator setting can be toggled off, or this can be the corner header - either way,
+      // any caret left over from a previous render must be cleared here, since we return early.
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+
       return;
     }
 
@@ -577,6 +611,13 @@ export class HiddenRows extends BasePlugin {
     }
 
     addClass(TH, classList);
+
+    // Children of the `th` itself, not of its `.relative` wrapper - the `th` is the box the old
+    // `::before`/`::after` positioned against (see `../hiddenColumns/hiddenColumns.ts`).
+    syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS,
+      classList.includes('afterHiddenRow') ? 'caretHiddenDown' : null);
+    syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
+      classList.includes('beforeHiddenRow') ? 'caretHiddenUp' : null);
   };
 
   /**

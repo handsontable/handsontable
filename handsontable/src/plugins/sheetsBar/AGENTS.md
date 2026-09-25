@@ -234,6 +234,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
   Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
   triggers is the remaining per-switch cost outside this plugin.
+- **The strip's own icons (overflow chevron, add/menu buttons) are installed once at build time,
+  not per render** (DEV-3003) — `bar.ts`/`tabStrip.ts` call `createIcon()` when the strip is
+  constructed. `#onAfterSetTheme` calls `this.#ui?.refreshIcons()` because `useTheme()` never
+  goes through `updateSettings()`; skip that call and a theme switch leaves the bar's icons stale
+  while the rest of the chrome re-themes. The active-sheet check mark in `menus.ts` is different:
+  it is built fresh every time a menu row is rendered (`#renderSheetName`, per `open()`), so it
+  always reflects the current theme with no `refreshIcons()` involvement.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

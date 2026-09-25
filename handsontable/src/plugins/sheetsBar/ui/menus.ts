@@ -4,6 +4,7 @@ import { getDocumentOffsetByElement } from '../../contextMenu/utils';
 import { setAttribute, getDeepActiveElement } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import * as C from '../../../i18n/constants';
+import { createIcon } from '../../../themes/engine/icons';
 import type { HotInstance } from '../../../core/types';
 import type { SheetDescriptor } from '../sheetModel';
 
@@ -395,6 +396,7 @@ export class SheetsBarMenus {
 
     mark.className = 'selected';
     mark.textContent = String.fromCharCode(10003);
+    mark.appendChild(createIcon(this.#hot, 'check'));
     setAttribute(mark, [['aria-hidden', 'true']]);
     wrapper.insertBefore(mark, wrapper.firstChild);
 

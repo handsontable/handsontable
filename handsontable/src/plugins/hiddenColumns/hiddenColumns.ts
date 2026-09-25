@@ -1,9 +1,10 @@
 import { BasePlugin } from '../base';
-import { addClass, normalizeClassNames } from '../../helpers/dom/element';
+import { addClass, isBottomMostColumnHeader, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { Hooks } from '../../core/hooks';
+import { syncIcon } from '../../themes/engine/icons';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import type { HidingMap } from '../../translations';
@@ -18,6 +19,19 @@ export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
 
 const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that FOLLOWS a hidden column
+ * (`afterHiddenColumn`, glyph pointing right - toward the hidden neighbor) (DEV-3003).
+ */
+const HIDDEN_INDICATOR_START_SLOT_CLASS = 'ht-hidden-indicator-start';
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that PRECEDES a hidden column
+ * (`beforeHiddenColumn`, glyph pointing left - toward the hidden neighbor) (DEV-3003). A header can
+ * carry both slots at once when it has a hidden neighbor on each side.
+ */
+const HIDDEN_INDICATOR_END_SLOT_CLASS = 'ht-hidden-indicator-end';
 
 /**
  * @plugin HiddenColumns
@@ -274,6 +288,20 @@ export class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // `super.disablePlugin()` removes the tracked `#onAfterGetColHeader` hook, so it never runs
+    // again to clear a previously-rendered caret (DEV-3003). A one-shot hook does that on the
+    // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
+    // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
+    const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+    };
+
+    this.hot.addHook('afterGetColHeader', clearColHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetColHeader', clearColHeader);
+    });
+
     super.disablePlugin();
 
     this.hot.columnIndexMapper.unregisterMap(this.pluginName ?? '');
@@ -569,7 +597,13 @@ export class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
+
     if (!this.getSetting('indicators') || column < 0) {
+      // The indicator setting can be toggled off, or this can be the corner header - either way,
+      // any caret left over from a previous render must be cleared here, since we return early.
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+
       return;
     }
 
@@ -584,6 +618,26 @@ export class HiddenColumns extends BasePlugin {
     }
 
     addClass(TH, classList);
+
+    // The carets are children of the `th` itself, not of its `.relative` wrapper, because the `th`
+    // is the box the old `::before`/`::after` positioned against. `.relative` is only as tall as
+    // its own content: on a `columnHeaderHeight` taller than one line a caret anchored to it sat
+    // above the header's centre. The `th` is `position: relative` (`_base.scss`) and `syncIcon()`
+    // appends after `.relative`, so `appendColHeader()`'s `TH.firstChild` check keeps passing.
+    //
+    // NestedHeaders strips `beforeHiddenColumn` / `afterHiddenColumn` again from every header
+    // level that does not reach the cells (`nestedHeaders.ts`, `reachesCells`): the indicator
+    // belongs only on the header closest to the cells. That worked by itself while the caret was
+    // a pseudo-element gated on those classes. The caret is a real element now (DEV-3003), so the
+    // strip alone would leave an orphaned `<i>` on the upper level, rendered at the base 16px icon
+    // size. Gate creation on the same "reaches the cells" test - the classes keep their old
+    // behavior, only the element is withheld where NestedHeaders would discard its marker anyway.
+    const reachesCells = isBottomMostColumnHeader(TH);
+
+    syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS,
+      reachesCells && classList.includes('afterHiddenColumn') ? 'caretHiddenRight' : null);
+    syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
+      reachesCells && classList.includes('beforeHiddenColumn') ? 'caretHiddenLeft' : null);
   };
 
   /**

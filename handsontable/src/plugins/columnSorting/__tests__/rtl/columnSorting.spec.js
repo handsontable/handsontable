@@ -1,4 +1,13 @@
 describe('ColumnSorting (RTL)', () => {
+  /**
+   * Returns the sort-direction indicator icon for a header label, or `null` when the header shows
+   * none. DEV-3003: the indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
+   * label inside `.relative`, not a `::before` pseudo-element on the label (see the non-RTL
+   * `__tests__/columnSorting.spec.js`, which this file mirrors).
+   *
+   * @param {HTMLElement} headerLabel The `span.colHeader`/`span.columnSorting` label element.
+   * @returns {HTMLElement|null}
+   */
   using('configuration object', [
     { htmlDir: 'rtl', layoutDirection: 'inherit' },
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
@@ -43,52 +52,44 @@ describe('ColumnSorting (RTL)', () => {
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
-      const computedStyle = window.getComputedStyle(sortedColumn, ':before');
+      const icon = getSortIndicatorIcon(sortedColumn);
 
-      expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+      expect(icon).not.toBe(null);
 
-      // _column-sorting.scss sets `top: 50%; right: 2px;` (LTR) or `left: 2px;` (RTL) on
-      // `.columnSorting::before`. The label is sized to its text, so the indicator is positioned
-      // against the header's `.relative` container - that is what keeps it pinned to the header
-      // edge instead of travelling with the label. Assert the hardcoded horizontal offset against
-      // that container, and that the indicator ends up centred in the header cell.
+      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
+      // `_column-sorting.scss` against the header's `.relative` container with
+      // `inset-inline-end: calc(--ht-sort-indicator-offset-end + 2px)` - that is what keeps it
+      // pinned to the header edge instead of travelling with the label. Assert against the real
+      // element's own box, derived from the same custom property the rule reads, rather than a
+      // hardcoded pixel offset - and that it ends up centred in the header cell.
       const container = sortedColumn.closest('.relative');
       const containerRect = container.getBoundingClientRect();
       const headerRect = sortedColumn.closest('th').getBoundingClientRect();
-      const topPx = parseFloat(computedStyle.getPropertyValue('top'));
-      const iconSize = parseFloat(
-        window.getComputedStyle(sortedColumn).getPropertyValue('--ht-icon-size')
-      ) || 16;
+      const iconRect = icon.getBoundingClientRect();
 
-      // `top: 50%` resolves relative to the ::before's containing block; allow a 1px tolerance
-      // for sub-pixel rounding.
-      expect(Math.abs(topPx - (containerRect.height / 2))).toBeLessThanOrEqual(1);
+      // The indicator sits on the header's vertical midline; allow a 1px tolerance for sub-pixel
+      // rounding.
+      const iconCentreY = (iconRect.top + iconRect.bottom) / 2;
 
-      // What the user actually sees: the indicator sits on the header's vertical midline.
-      const indicatorCentreY = containerRect.top + topPx;
+      expect(Math.abs(iconCentreY - ((headerRect.top + headerRect.bottom) / 2))).toBeLessThanOrEqual(1);
 
-      expect(Math.abs(indicatorCentreY - ((headerRect.top + headerRect.bottom) / 2)))
-        .toBeLessThanOrEqual(1);
+      const offsetEnd = parseFloat(
+        window.getComputedStyle(container).getPropertyValue('--ht-sort-indicator-offset-end')
+      ) || 0;
+      // The SCSS rule adds a literal 2px edge margin on top of the custom property (kept from the
+      // old pseudo-element's `right: 2px`/`left: 2px`, on top of its own `margin-inline-end`).
+      const expectedInset = offsetEnd + 2;
 
-      // The indicator carries inline margins that hold it clear of the cell padding, so they are
-      // part of what the free edge resolves to.
-      const inlineMargins = (parseFloat(computedStyle.getPropertyValue('margin-left')) || 0) +
-        (parseFloat(computedStyle.getPropertyValue('margin-right')) || 0);
-      const freeEdge = containerRect.width - iconSize - inlineMargins - 2 - 1;
-
-      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        // In RTL mode the indicator is anchored to the left of the container at exactly 2px.
-        expect(parseFloat(computedStyle.getPropertyValue('left'))).toBe(2);
-        const rightPx = parseFloat(computedStyle.getPropertyValue('right'));
-
-        expect(rightPx).toBeGreaterThanOrEqual(freeEdge);
+      // `inset-inline-end` resolves against the CONTAINER's own computed `direction`, not against
+      // `htmlDir`/`layoutDirection` directly - branching on the resolved direction (rather than the
+      // test parameters) is what keeps this correct for both matrix cases above.
+      if (window.getComputedStyle(container).direction === 'rtl') {
+        // In RTL, `inset-inline-end` resolves to the LEFT edge.
+        expect(Math.abs((iconRect.left - containerRect.left) - expectedInset)).toBeLessThanOrEqual(1);
 
       } else {
-        // In LTR mode the indicator is anchored to the right of the container at exactly 2px.
-        expect(parseFloat(computedStyle.getPropertyValue('right'))).toBe(2);
-        const leftPx = parseFloat(computedStyle.getPropertyValue('left'));
-
-        expect(leftPx).toBeGreaterThanOrEqual(freeEdge);
+        // In LTR, `inset-inline-end` resolves to the RIGHT edge.
+        expect(Math.abs((containerRect.right - iconRect.right) - expectedInset)).toBeLessThanOrEqual(1);
       }
     });
 
@@ -120,17 +121,28 @@ describe('ColumnSorting (RTL)', () => {
       await render();
 
       const label = spec().$container.find('th span.columnSorting')[0];
+      const icon = getSortIndicatorIcon(label);
+
+      expect(icon).not.toBe(null);
+
       const container = label.closest('.relative');
       const containerStyle = window.getComputedStyle(container);
-      const indicatorStyle = window.getComputedStyle(label, ':before');
       const containerRect = container.getBoundingClientRect();
       const labelRect = label.getBoundingClientRect();
-      const iconSize = parseFloat(
-        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
-      ) || 16;
+      const iconRect = icon.getBoundingClientRect();
 
-      // In RTL a left-aligned header pins the indicator to the physical right.
-      expect(parseFloat(indicatorStyle.getPropertyValue('right'))).toBe(2);
+      // In RTL a left-aligned header pins the indicator to the physical right - `inset-inline-end`
+      // resolves to the right edge whenever the container's direction is RTL (the default here,
+      // since `htLeft` is the class that points AGAINST the direction). The inset is the same
+      // `--ht-sort-indicator-offset-end` custom property plus the literal 2px edge margin the old
+      // pseudo-element carried (see the non-RTL spec and `_column-sorting.scss`), not a fixed pixel
+      // tolerance - the property defaults to the cell's own horizontal padding.
+      expect(window.getComputedStyle(container).direction).toBe('rtl');
+
+      const offsetEnd = parseFloat(containerStyle.getPropertyValue('--ht-sort-indicator-offset-end')) || 0;
+      const expectedInset = offsetEnd + 2;
+
+      expect(Math.abs((containerRect.right - iconRect.right) - expectedInset)).toBeLessThanOrEqual(1);
 
       // So the room has to be reserved on the right too, not on the left.
       const paddingLeft = parseFloat(containerStyle.getPropertyValue('padding-left'));
@@ -139,12 +151,7 @@ describe('ColumnSorting (RTL)', () => {
       expect(paddingRight).toBeGreaterThan(paddingLeft);
 
       // What the user sees: the label stops before the indicator instead of running under it.
-      // `.relative` carries no border, so its client rect edges are the padding box edges the
-      // absolutely positioned indicator resolves against.
-      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
-      const indicatorRight = containerRect.right - 2 - marginRight;
-      const indicatorLeft = indicatorRight - iconSize;
-      const overlap = Math.min(labelRect.right, indicatorRight) - Math.max(labelRect.left, indicatorLeft);
+      const overlap = Math.min(labelRect.right, iconRect.right) - Math.max(labelRect.left, iconRect.left);
 
       expect(overlap).toBeLessThanOrEqual(0);
     });

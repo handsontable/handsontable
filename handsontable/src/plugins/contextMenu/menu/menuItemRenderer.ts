@@ -25,6 +25,7 @@ import {
   A11Y_CHECKED,
 } from '../../../helpers/a11y';
 import { getSanitizer } from '../../../utils/sanitizer';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * The mark a checked menu item is prefixed with. Kept as a character code, as the label string it
@@ -134,6 +135,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
 
         checkMark.className = isMixed ? 'htMixed' : 'selected';
         checkMark.textContent = isMixed ? MIXED_MARK : CHECK_MARK;
+        checkMark.appendChild(createIcon(mainTableHot, isMixed ? 'collapseOff' : 'check'));
 
         wrapper.insertBefore(checkMark, wrapper.firstChild);
       }
@@ -147,6 +149,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
 
     } else if (isItemSubMenu(item)) {
       addClass(TD, 'htSubmenu');
+      wrapper.appendChild(createIcon(mainTableHot, 'arrowRight', { flipInRtl: true, className: 'htSubmenuIcon' }));
     }
   };
 }

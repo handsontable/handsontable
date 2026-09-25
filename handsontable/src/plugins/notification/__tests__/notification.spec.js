@@ -456,6 +456,11 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'Close me' });
     await waitForNextAnimationFrames(1);
 
+    // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-chip-close">` element
+    // (`createIcon()` in `NotificationUI#createToastElement`), not a `::before` pseudo-element -
+    // and it must not intercept the click below (`.ht-icon`'s base `pointer-events: none`).
+    expect(document.querySelectorAll('.ht-notification__close .ht-icon.ht-icon-chip-close').length).toBe(1);
+
     await simulateClick(document.querySelector('.ht-notification__close'));
     await waitForNextAnimationFrames(1);
 

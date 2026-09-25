@@ -85,6 +85,7 @@ function buildTabStrip(sheets) {
     translate: key => key,
     ariaTags: true,
     isRtl: false,
+    createIcon: () => document.createElement('i'),
   });
 
   strip.render(sheets);
@@ -2672,11 +2673,14 @@ describe('SheetsBar plugin', () => {
     // through `innerHTML`.
     expect(returned).toBe(wrapper);
     // The row of the active sheet also carries the mark, whose own character sits before the
-    // name — the name itself still arrives as text and builds no elements.
+    // name — the name itself still arrives as text and builds no elements. The only elements in
+    // the wrapper are the mark span and the icon element it carries (DEV-3003) - neither comes
+    // from the sheet name string, so a hostile name still builds nothing.
     expect(wrapper.textContent.endsWith(hostile)).toBe(true);
     expect(wrapper.querySelector('img')).toBe(null);
-    expect(wrapper.querySelectorAll('*')).toHaveLength(1);
+    expect(wrapper.querySelectorAll('*')).toHaveLength(2);
     expect(wrapper.querySelector('.selected')).not.toBe(null);
+    expect(wrapper.querySelector('.selected > .ht-icon')).not.toBe(null);
   });
 
   it('switches to the sheet the add button just created', () => {
@@ -4052,6 +4056,7 @@ describe('SheetsBar plugin', () => {
       themeName: undefined,
       phraseTranslator: () => '',
       a11yAnnouncer: () => {},
+      createIcon: () => document.createElement('i'),
     });
 
     ui.destroy();

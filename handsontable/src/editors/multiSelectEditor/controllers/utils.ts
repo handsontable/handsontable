@@ -1,10 +1,11 @@
+import type { HotInstance } from '../../../core/types';
 import { addClass, removeClass, setAttribute } from '../../../helpers/dom/element';
-import { A11Y_HIDDEN, A11Y_LABEL } from '../../../helpers/a11y';
+import { A11Y_LABEL } from '../../../helpers/a11y';
+import { createIcon, syncIcon } from '../../../themes/engine/icons';
 import { getCheckboxElement } from '../utils/utils';
 
 const classPrefix = 'ht-multi-select-editor';
 const SEARCH_INPUT_WRAPPER_CLASS = `${classPrefix}-search-input-wrapper`;
-const SEARCH_ICON_CLASS = `${classPrefix}-search-icon`;
 const SEARCH_INPUT_CLASS = `${classPrefix}-search-input`;
 const SEPARATOR_CLASS = `${classPrefix}-separator`;
 const SEARCH_INPUT_PLACEHOLDER = 'Search...';
@@ -55,15 +56,44 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
 }
 
 /**
- * Creates the search icon element.
+ * The class the search icon carried before DEV-3003, when it was a `<div>` painted by an `iconsMap`
+ * rule. Kept on the new `<i class="ht-icon ht-icon-search">` as a legacy hook for custom
+ * stylesheets (`.ai/BREAKING-CHANGES.md`: a class Handsontable produces stays in the DOM); nothing
+ * in the shipped CSS targets it any more.
  */
-export function createSearchIcon({ root }: { root: Document }): HTMLDivElement {
-  const iconElement = root.createElement('div');
+export const LEGACY_SEARCH_ICON_CLASS = 'ht-multi-select-editor-search-icon';
 
-  addClass(iconElement, SEARCH_ICON_CLASS);
-  setAttribute(iconElement, [A11Y_HIDDEN()]);
+/**
+ * The slot class `syncIcon()` keys the search icon on, so a refresh re-applies the mapping to the
+ * existing element instead of appending a second icon to the wrapper.
+ */
+const SEARCH_ICON_SLOT_CLASS = 'ht-multi-select-editor-search-slot';
 
-  return iconElement;
+/**
+ * Creates the search icon element: a real `<i class="ht-icon ht-icon-search">` (`createIcon()`),
+ * styled by the generic `.ht-icon-search` rule the theme engine generates for every icon slot, and
+ * still carrying the legacy class name.
+ */
+export function createSearchIcon(
+  { hotInstance }: { hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'> }
+): HTMLElement {
+  return createIcon(hotInstance, 'search', { className: `${LEGACY_SEARCH_ICON_CLASS} ${SEARCH_ICON_SLOT_CLASS}` });
+}
+
+/**
+ * Re-applies the theme's current icon mapping to the search icon inside a dropdown's search-input
+ * wrapper. The dropdown is built once per editor and reused, so without this a runtime `icons` remap
+ * or theme switch would never reach the slot. A no-op unless the theme's icons revision moved.
+ */
+export function refreshSearchIcon(
+  { hotInstance, wrapper }: {
+    hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
+    wrapper: HTMLElement;
+  }
+): void {
+  syncIcon(hotInstance, wrapper, SEARCH_ICON_SLOT_CLASS, 'search', {
+    className: LEGACY_SEARCH_ICON_CLASS,
+  });
 }
 
 /**
@@ -184,6 +214,7 @@ export interface CreateListItemElementOptions {
   indexWithinList: number;
   checked?: boolean;
   disabled?: boolean;
+  hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
 }
 
 /**
@@ -197,6 +228,7 @@ export function createListItemElement({
   indexWithinList,
   checked = false,
   disabled = false,
+  hotInstance,
 }: CreateListItemElementOptions): HTMLLIElement {
   const itemElement = rootDocument.createElement('li');
   const innerContainer = rootDocument.createElement('div');
@@ -217,6 +249,12 @@ export function createListItemElement({
   labelElement.textContent = itemValue;
 
   innerContainer.appendChild(checkboxElement);
+  // Structurally the same as `checkboxRenderer`'s tick (task 16): an `<input>` can hold no
+  // children, so the checked-state icon is a sibling instead, inserted right after it and before
+  // the label. `_multi-select-editor.scss` drives its visibility with `input:checked + .ht-icon`
+  // rather than the `.ht-multi-select-editor-item-selected` class `selectItem()`/`deselectItem()`
+  // also toggle - that class is still applied, but only for the row's background highlight now.
+  innerContainer.appendChild(createIcon(hotInstance, 'checkbox'));
   innerContainer.appendChild(labelElement);
   itemElement.appendChild(innerContainer);
 

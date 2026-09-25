@@ -1,5 +1,3 @@
-@use "../../utils/mixins";
-
 // Manual Column Sorting
 
 @mixin output {
@@ -22,8 +20,9 @@
       // pseudo-element targets the element that owns it.
       position: static;
 
-      // `.relative`'s padding box is the new containing block, so add the cell padding back.
-      &::before,
+      // `.relative`'s padding box is the containing block for the multi-column-sorting sequence
+      // number, which is still a `::after` pseudo-element - the sort-direction arrow is a real
+      // `.ht-sort-indicator` element now (DEV-3003) and positions itself below, without this margin.
       &::after {
         margin-inline: var(--ht-sort-indicator-offset);
         margin-inline-end: var(--ht-sort-indicator-offset-end);
@@ -85,7 +84,7 @@
     }
 
     // Room for the indicator, held on the container rather than as padding on the label - padding
-    // would grow the box that sorts on click. The side follows where `::before` is pinned:
+    // would grow the box that sorts on click. The side follows where the indicator is pinned:
     // inline-end, unless the alignment class points against the direction (`htRight` in LTR,
     // `htLeft` in RTL).
     .relative.has-sort-indicator {
@@ -108,35 +107,47 @@
     .columnSorting:not(.indicatorDisabled) {
       position: relative;
 
-      &.sortAction {
-        &:hover {
-          text-decoration: none;
-          cursor: pointer;
-        }
-
-        &::before {
-          @include mixins.pseudo;
-
-          width: var(--ht-icon-size, 16px);
-          position: absolute;
-          top: 50%;
-          right: 2px;
-          transform: translateY(-50%);
-          text-align: right;
-        }
+      &.sortAction:hover {
+        text-decoration: none;
+        cursor: pointer;
       }
     }
 
-    .htRight {
-      .columnSorting {
-        &.sortAction {
-          &::before {
-            left: 2px;
-            right: auto;
-            text-align: left;
-          }
-        }
-      }
+    // The sort-direction glyph (DEV-3003): a real `<i class="ht-icon ht-sort-indicator">` element,
+    // created by `syncIcon()` in `columnSorting.ts` as a sibling of the `.colHeader` label inside
+    // `.relative`, not a `::before` pseudo-element on the label - so it positions against the
+    // container, using the same offset custom properties the old pseudo-element read, plus the same
+    // literal 2px edge margin the old pseudo's `right: 2px`/`left: 2px` carried on top of its own
+    // `margin-inline-end`. `--ht-sort-indicator-reserve` (above) is calibrated against that same
+    // total (`padding + icon-size + 2px`), so dropping the 2px here measurably narrows the gap to a
+    // trailing dropdown-menu button by 2px - confirmed empirically: without it, the icon overlapped
+    // both the label and the button on an auto-sized `has-header-button` column. Logical properties
+    // resolve the `[dir="rtl"]` mirroring on their own; only the `htRight`/`htLeft` alignment-class
+    // swap below still needs stating by hand, same as the old pseudo did.
+    th .relative > .ht-sort-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      inset-inline-end: calc(var(--ht-sort-indicator-offset-end) + 2px);
+      // The old `::before` belonged to the label, so a press on the arrow sorted. The base
+      // `.ht-icon` is `pointer-events: none`; this slot takes its hits back, and
+      // `wasClickableHeaderClicked()` (`columnSorting.ts`) accepts the slot class as a target.
+      pointer-events: auto;
+    }
+
+    // Same affordance the label shows: the arrow sits outside the label's box, so it cannot
+    // inherit the label's `cursor`.
+    .columnSorting.sortAction ~ .ht-sort-indicator {
+      cursor: pointer;
+    }
+
+    // A right-aligned column's label sits at the container's start edge (see `.htRight
+    // .colHeader.columnSorting.sortAction` above), so the indicator moves to the start edge with
+    // it - the mirror of the `has-sort-indicator` padding swap above.
+    .relative.htRight > .ht-sort-indicator,
+    .htRight .relative > .ht-sort-indicator {
+      inset-inline-end: auto;
+      inset-inline-start: calc(var(--ht-sort-indicator-offset) + 2px);
     }
   }
 
@@ -164,33 +175,29 @@
         --ht-header-button-slot: 0px;
       }
 
-      .columnSorting {
-        &.sortAction {
-          &::before {
-            left: 2px;
-            right: auto;
-            text-align: left;
-          }
-        }
+      // Undoes the LTR `htRight` swap above: in RTL, `htRight` matches the default inline-end
+      // position, so the indicator stays there.
+      .relative.htRight > .ht-sort-indicator,
+      .htRight .relative > .ht-sort-indicator {
+        inset-inline-start: auto;
+        inset-inline-end: calc(var(--ht-sort-indicator-offset-end) + 2px);
       }
 
-      .htLeft {
-        .columnSorting {
-          &.sortAction {
-            &::before {
-              left: auto;
-              right: 2px;
-              text-align: right;
-            }
-          }
-        }
+      // The mirror of the LTR `htRight` swap - `htLeft` is the class that points against the
+      // direction in RTL.
+      .relative.htLeft > .ht-sort-indicator,
+      .htLeft .relative > .ht-sort-indicator {
+        inset-inline-end: auto;
+        inset-inline-start: calc(var(--ht-sort-indicator-offset) + 2px);
       }
     }
   }
 
-  // In the ghost table the indicator is in flow, so `autoColumnSize` already measures it. Counting
-  // the offsets and the button's slot on top would make every auto-sized column wider. Overriding
-  // the properties rather than the rules that read them keeps this to one rule.
+  // The indicator is a real element now (DEV-3003) and, like in the real table, is absolutely
+  // positioned against `.relative` - so it contributes nothing to the ghost table's own flow-based
+  // measurement either. The offsets it would be positioned by are zeroed here for the same reason
+  // they always were: counting them on top of the reserve below would make every auto-sized column
+  // wider than the real table renders it.
   .htGhostTable .htCore .relative {
     --ht-sort-indicator-offset: 0px;
     --ht-sort-indicator-offset-end: 0px;
@@ -205,13 +212,29 @@
     --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
   }
 
+  // DEV-3003: `getColHeader` clones the header through the same `afterGetColHeader` hook the real
+  // table uses, so `.ht-sort-indicator` DOES end up in the ghost table's markup too - but it stays
+  // absolutely positioned there exactly as in the real table (see the base `.ht-sort-indicator` rule
+  // above), so it contributes nothing to the ghost row's own flow-based width, same as the
+  // `::before` pseudo-element it replaced never did either. Measured empirically: dropping this rule
+  // (trusting the real `<i>` to reserve the space by itself) undersized the column - the icon
+  // overlapped the label and the trailing dropdown button rendered outside the header's right edge.
+  // This `*` box is what stands in for the width a header-button column would otherwise get from the
+  // real table's `column-gap` (`--ht-header-button-slot`, zeroed above because ghost headers are not
+  // laid out with that gap at all).
   .htGhostTable
     .htCore
     span.colHeader.columnSorting:not(.indicatorDisabled)::before {
     content: "*";
     display: inline-block;
     position: relative;
-
+    // Before DEV-3003 the real table's `.sortAction::before` rule (the glyph's box) also matched
+    // this pseudo-element and gave it `width: var(--ht-icon-size, 16px)`; this rule only added the
+    // padding below. The measured reserve was therefore `icon-size + (icon-size + 2px)`, not the
+    // glyph's own width plus the padding. That rule is gone with the pseudo-element glyph, so the
+    // width is restated here - dropping it measured every sortable header with a menu button about
+    // 10px narrower than 18.1 (the visual suite caught it on every nested-headers demo).
+    width: var(--ht-icon-size, 16px);
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */

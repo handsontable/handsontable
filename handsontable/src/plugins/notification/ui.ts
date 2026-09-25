@@ -2,6 +2,8 @@ import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
 import { resolveButtonType } from '../../helpers/uiButton';
 import type { SanitizerFn } from '../../utils/sanitizer';
+import type { IconKey } from '../../themes/types';
+import type { IconOptions } from '../../themes/engine/icons';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
 import type { NotificationNormalizedOptions, NotificationAction } from './notification';
 
@@ -43,22 +45,33 @@ export class NotificationUI {
   #stacks: Map<string, HTMLElement> = new Map();
 
   /**
+   * Creates an icon element for a given icon name. Injected so the UI stays decoupled from the
+   * theme engine.
+   *
+   * @type {function(IconKey, IconOptions=): HTMLElement}
+   */
+  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+
+  /**
    * @param {object} params Constructor parameters.
    * @param {HTMLElement} params.overlayElement Handsontable root overlays layer element.
    * @param {boolean|function(string, string): string} params.sanitizer Sanitizer for HTML strings.
    * @param {HTMLElement} params.warnScope Element the missing-sanitizer warning is deduplicated against.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
+   * @param {function(IconKey, IconOptions=): HTMLElement} params.createIcon Icon element factory.
    */
-  constructor({ overlayElement, sanitizer, warnScope, isRtl }: {
+  constructor({ overlayElement, sanitizer, warnScope, isRtl, createIcon }: {
     overlayElement: HTMLElement;
     sanitizer: boolean | SanitizerFn;
     warnScope: HTMLElement;
     isRtl: boolean;
+    createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
   }) {
     this.#overlayElement = overlayElement;
     this.#sanitizer = sanitizer;
     this.#warnScope = warnScope;
     this.#isRtl = isRtl;
+    this.#createIcon = createIcon;
   }
 
   /**
@@ -125,6 +138,23 @@ export class NotificationUI {
    */
   setSanitizer(sanitizer: boolean | SanitizerFn): void {
     this.#sanitizer = sanitizer;
+  }
+
+  /**
+   * Rebuilds the close icon of every currently-open toast after a theme change. A toast is built
+   * once, on `showMessage`, and not re-rendered afterward - so unlike a persistent UI (pagination,
+   * sheets bar), nothing else would ever pick up a class-list or renderer icon change for a toast
+   * already on screen. Safe to call repeatedly: it always removes the existing `.ht-icon` first.
+   */
+  refreshIcons(): void {
+    if (!this.#host) {
+      return;
+    }
+
+    this.#host.querySelectorAll<HTMLElement>(`.${NOTIFICATION_CLASS_NAME}__close`).forEach((closeBtn) => {
+      closeBtn.querySelector('.ht-icon')?.remove();
+      closeBtn.appendChild(this.#createIcon('chipClose'));
+    });
   }
 
   /**
@@ -217,6 +247,7 @@ export class NotificationUI {
       closeBtn.type = 'button';
       closeBtn.className = `${NOTIFICATION_CLASS_NAME}__close`;
       closeBtn.setAttribute('aria-label', closeLabel);
+      closeBtn.appendChild(this.#createIcon('chipClose'));
       inner.appendChild(closeBtn);
     }
 

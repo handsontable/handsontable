@@ -4,6 +4,7 @@ import type TreeNode from '../../../utils/dataStructures/tree';
 import type { HeaderSettings } from '../stateManager/headersTree';
 import { fastInnerHTML } from '../../../helpers/dom/element';
 import { getSanitizer } from '../../../utils/sanitizer';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
@@ -318,6 +319,15 @@ class GhostTable {
 
       indicator.className = 'collapsibleIndicator expanded';
       indicator.textContent = '-';
+
+      // Mirrors `CollapsibleColumns#onAfterGetColHeader` (DEV-3003): the real indicator always
+      // carries a `.ht-icon` child, appended after the text is set (`textContent =` wipes children
+      // the same way `fastInnerText` does). `.collapsibleIndicator`'s own box is sized by the
+      // `--ht-icon-button-hit-area-size` custom property, not by its content, so this element does
+      // not change the measured column width - it is added for DOM parity with the real header,
+      // the same reason every other node here (`.relative`, `.colHeader`, `.changeType`) mirrors
+      // the real table instead of only approximating it.
+      indicator.appendChild(createIcon(this.hot, 'collapseOff'));
       relative.appendChild(indicator);
     }
 

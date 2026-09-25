@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { eventTargetEl } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
@@ -9,6 +10,7 @@ import {
   deselectItem,
   createSearchInputWrapper,
   createSearchIcon,
+  refreshSearchIcon,
   createSearchInputElement,
   createSeparatorElement,
   createListElement,
@@ -46,6 +48,10 @@ export class DropdownController {
    * The Handsontable instance GUID used to scope checkbox IDs within the dropdown.
    */
   #instanceId: string | null = null;
+  /**
+   * The Handsontable instance, used to render icon elements (search, checkbox tick).
+   */
+  #hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
   /**
    * The host div element that contains the search wrapper, separator, and list.
    */
@@ -117,11 +123,17 @@ export class DropdownController {
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
    * @param {string} instanceId Handsontable instance id.
+   * @param {HotInstance} hotInstance The Handsontable instance, used to render icon elements.
    */
-  constructor(containerElement: HTMLDivElement, instanceId: string) {
+  constructor(
+    containerElement: HTMLDivElement,
+    instanceId: string,
+    hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>
+  ) {
     this.#containerElement = containerElement;
     this.#rootDocument = this.#containerElement.ownerDocument;
     this.#instanceId = instanceId;
+    this.#hotInstance = hotInstance;
 
     this.init();
   }
@@ -136,12 +148,10 @@ export class DropdownController {
     this.#dropdownListElement = createListElement({ root: this.#rootDocument });
     this.#searchInputElement = createSearchInputElement({ root: this.#rootDocument });
 
-    const searchIcon = createSearchIcon({ root: this.#rootDocument });
-
     this.#searchInputWrapper = createSearchInputWrapper({ root: this.#rootDocument });
     this.#separatorElement = createSeparatorElement({ root: this.#rootDocument });
 
-    this.#searchInputWrapper!.appendChild(searchIcon);
+    this.#searchInputWrapper!.appendChild(createSearchIcon({ hotInstance: this.#hotInstance }));
     this.#searchInputWrapper!.appendChild(this.#searchInputElement);
     this.#containerElement.appendChild(this.#searchInputWrapper);
     this.#containerElement.appendChild(this.#separatorElement);
@@ -151,6 +161,18 @@ export class DropdownController {
       input: this.#searchInputElement,
       eventManager: this.#eventManager,
     });
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the search icon. The dropdown is built once in
+   * `init()` and reused for the life of the editor, so this is what lets a runtime `icons` remap or
+   * theme switch reach it; the editor calls it from `prepare()`. A no-op unless the theme's icons
+   * revision moved.
+   */
+  refreshIcons(): void {
+    if (this.#searchInputWrapper) {
+      refreshSearchIcon({ hotInstance: this.#hotInstance, wrapper: this.#searchInputWrapper });
+    }
   }
 
   /**
@@ -562,6 +584,7 @@ export class DropdownController {
       indexWithinList,
       checked,
       disabled,
+      hotInstance: this.#hotInstance,
     });
 
     if (checked) {

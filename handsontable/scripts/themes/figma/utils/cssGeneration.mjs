@@ -2,7 +2,7 @@ import {
   OUTPUT_PATH, PREFIX, SIZING_KEY, DENSITY_KEY, COLORS_KEY, TOKENS_KEY, OTHER_VARIABLES, ICONS_SET,
 } from './constants.mjs';
 import { writeFileSync, ensureOutputDirectory } from './helpers/fileSystem.mjs';
-import { iconsMap } from './helpers/iconsMap.mjs';
+import { iconStyles } from './helpers/iconStyles.mjs';
 
 // Default density level to use
 const DEFAULT_DENSITY_LEVEL = 'default';
@@ -208,15 +208,11 @@ function generateThemeCss(themeName, themeVariables, withIcons = false) {
   css += '}\n';
 
   if (withIcons) {
-    css += '\n';
-
-    if (themeName === 'horizon') {
-      css += iconsMap(ICONS_SET.horizon, `${PREFIX}-theme-${themeName}`);
-    } else {
-      css += iconsMap(ICONS_SET.main, `${PREFIX}-theme-${themeName}`);
-    }
+    const icons = ICONS_SET[themeName] ?? ICONS_SET.main;
+    const scope = `[class*=${PREFIX}-theme-${themeName}]`;
 
     css += '\n';
+    css += iconStyles(icons, scope);
   }
 
   return css;
@@ -285,7 +281,12 @@ function writeCssThemeFiles(themeVariables) {
 
   for (const iconName of iconsNames) {
     const icons = ICONS_SET[iconName];
-    const cssContent = iconsMap(icons);
+    // `:root, :host`, not `:root` alone: the standalone icon sheet is also adopted INTO shadow
+    // roots (`.ht-shadow-dom`), where `:root` matches nothing and every `.ht-icon-<name>` mask would
+    // point at an undefined variable. A plain selector list, not `:where()`, so each variable keeps
+    // the (0,1,0) specificity `:root` always had and can still override a theme sheet's
+    // `[class*="ht-theme-"]` declaration by source order, as before.
+    const cssContent = iconStyles(icons, ':root, :host');
     const filePath = `${baseIconsPath}/${PREFIX}-icons-${iconName}.css`;
 
     writeFileSync(filePath, cssContent);

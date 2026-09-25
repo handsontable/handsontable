@@ -5,6 +5,7 @@ import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute, empty } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * Minimal interface for DataManager methods used by HeadersUI.
@@ -149,7 +150,9 @@ class HeadersUI extends BaseUI {
 
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
-      if (this.collapsingUI!.areChildrenCollapsed(rowIndex)) {
+      const collapsed = this.collapsingUI!.areChildrenCollapsed(rowIndex);
+
+      if (collapsed) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
         if (ariaEnabled) {
@@ -167,6 +170,15 @@ class HeadersUI extends BaseUI {
           ]);
         }
       }
+
+      // `buttonsContainer` is a brand-new `DIV` created a few lines above (never reused across
+      // draws - `removeLevelIndicators()` at the top of this method tears down the previous one),
+      // so a plain `appendChild()` can never stack a second icon (DEV-3003): each render starts
+      // from an empty container. `collapsed` mirrors `CollapsibleColumns#onAfterGetColHeader`'s
+      // `isCollapsed` branch - children collapsed (the `+`/expand button, `ht_nestingExpand`) gets
+      // `collapseOn`, children expanded (the `-`/collapse button, `ht_nestingCollapse`) gets
+      // `collapseOff`.
+      buttonsContainer.appendChild(createIcon(this.hot, collapsed ? 'collapseOn' : 'collapseOff'));
 
       innerDiv.appendChild(buttonsContainer);
     }

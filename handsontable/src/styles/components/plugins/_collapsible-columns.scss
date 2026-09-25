@@ -20,10 +20,13 @@
       font-size: 0;
       flex-shrink: 0;
 
-      /* Icon: mask + currentColor from ht-icons-main.css; keep ::before for icon only */
-      &::before {
-        @include mixins.pseudo;
-
+      /* Icon (DEV-3003): a real `<i class="ht-icon ht-icon-collapse-on/-off">` element, created
+         by `collapsibleColumns.ts` (and, for Nested Rows, `ui/headers.ts`) as a direct child of
+         this element - not a `::before` pseudo-element. Positioned exactly like the old pseudo
+         (absolute, centered, above the `::after` chrome layer) so retiring the pseudo changes
+         nothing about layout. Shared by both plugins on purpose - do not scope this to
+         `.collapsibleIndicator` alone. */
+      > .ht-icon {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -54,7 +57,7 @@
 
       &.expanded,
       &.ht_nestingCollapse {
-        &::before {
+        > .ht-icon {
           color: var(--ht-collapse-button-open-icon-color);
         }
 
@@ -64,7 +67,7 @@
         }
 
         &:hover {
-          &::before {
+          > .ht-icon {
             color: var(--ht-collapse-button-open-hover-icon-color);
           }
 
@@ -80,7 +83,7 @@
 
       &.collapsed,
       &.ht_nestingExpand {
-        &::before {
+        > .ht-icon {
           color: var(--ht-collapse-button-close-icon-color);
         }
 
@@ -90,7 +93,7 @@
         }
 
         &:hover {
-          &::before {
+          > .ht-icon {
             color: var(--ht-collapse-button-close-hover-icon-color);
           }
 
@@ -111,12 +114,12 @@
         .ht_nestingButton {
           &.collapsed,
           &.ht_nestingExpand {
-            &::before {
+            > .ht-icon {
               color: var(--ht-collapse-button-close-icon-active-color);
             }
 
             &:hover {
-              &::before {
+              > .ht-icon {
                 color: var(--ht-collapse-button-close-hover-icon-active-color);
               }
             }
@@ -124,12 +127,12 @@
 
           &.expanded,
           &.ht_nestingCollapse {
-            &::before {
+            > .ht-icon {
               color: var(--ht-collapse-button-open-icon-active-color);
             }
 
             &:hover {
-              &::before {
+              > .ht-icon {
                 color: var(--ht-collapse-button-open-hover-icon-active-color);
               }
             }

@@ -1,0 +1,10 @@
+/* A class-list mapping adds `ht-icon--external` to the icon element, which turns off
+   the built-in SVG mask and sizes the font glyph to `--ht-icon-size`. Only the
+   hidden-column and hidden-row carets need their own size: their box is a fixed
+   10px, smaller than the icon size every other slot uses. Three classes, because
+   the grid's own `.ht-icon.ht-icon--external` rule is injected at runtime after
+   this stylesheet, and a selector of equal specificity would lose to it. */
+.ht-icon.ht-hidden-indicator-start.ht-icon--external,
+.ht-icon.ht-hidden-indicator-end.ht-icon--external {
+  font-size: 10px;
+}

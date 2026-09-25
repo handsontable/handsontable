@@ -36,6 +36,7 @@ import {
 } from './constants';
 import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
+import type { BaseUI } from './ui/_base';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -1624,6 +1625,13 @@ export class Filters extends BasePlugin {
     this.restoreComponents(
       Array.from(this.components.values()).filter((c): c is BaseComponent => c !== null)
     );
+
+    // The UI elements live as long as the plugin, so a runtime `icons` remap or theme switch is
+    // picked up here rather than only at build time. Each `refreshIcons()` is a no-op unless the
+    // theme's icons revision moved.
+    this.components.forEach((component) => {
+      component?.getElements().forEach(element => (element as BaseUI).refreshIcons());
+    });
 
     menu.updateMenuDimensions();
   };

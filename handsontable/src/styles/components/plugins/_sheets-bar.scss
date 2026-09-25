@@ -61,7 +61,7 @@ $all-sheets-visible-items: 8;
     // gray and keeps a pale blue accent, which leaves the check barely legible against the row.
     // Following the token that tints the row keeps the mark in whatever color the theme already
     // uses to say "this one", and is the accent again wherever that is what the theme means.
-    &.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after {
+    &.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected .ht-icon {
       color: var(--ht-menu-item-active-color, var(--ht-accent-color));
     }
 
@@ -190,6 +190,7 @@ $all-sheets-visible-items: 8;
       .ht-sheets-bar__button {
         display: flex;
         align-items: center;
+        justify-content: center;
         font-size: inherit;
         border: 1px solid var(--ht-pagination-button-border-color);
         color: var(--ht-pagination-button-foreground-color);
@@ -197,10 +198,6 @@ $all-sheets-visible-items: 8;
         border-radius: var(--ht-icon-button-large-border-radius);
         padding: var(--ht-icon-button-large-padding);
         cursor: pointer;
-
-        &::before {
-          @include mixins.pseudo;
-        }
 
         &:disabled,
         &.ht-sheets-bar__button--disabled {
@@ -353,7 +350,9 @@ $all-sheets-visible-items: 8;
 
         // The hover surface is drawn on its own layer, inset back to the glyph's box: the
         // design paints the icon's own 16px square, while the padding above stays hit area
-        // that must not light up with it.
+        // that must not light up with it. This is chrome, not the icon itself — the glyph is
+        // now a real `.ht-icon` element appended by `TabStrip#buildTab`, and this pseudo-element
+        // must keep painting the hover/focus surface behind it.
         &::before {
           @include mixins.pseudo;
 
@@ -361,11 +360,14 @@ $all-sheets-visible-items: 8;
           inset: var(--ht-gap-size);
           border-radius: var(--ht-icon-button-border-radius);
         }
+      }
 
-        &::after {
-          @include mixins.pseudo;
-        }
-
+      // The glyph paints above the `::before` hover surface. As a static child it would sit
+      // below that positioned pseudo-element, and only `mask-image`'s stacking context saved it -
+      // an external (font) icon mapping clears the mask, so pin the layer explicitly.
+      .ht-sheets-bar__tab-chevron .ht-icon {
+        position: relative;
+        z-index: 1;
       }
 
       // The hover treatment the header menu button uses: the glyph brightens and picks up the

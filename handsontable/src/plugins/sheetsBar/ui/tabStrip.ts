@@ -15,6 +15,8 @@ import type EventManager from '../../../eventManager';
 import { TabDrag } from './tabDrag';
 import { truncateSheetName } from '../sheetModel';
 import type { SheetDescriptor } from '../sheetModel';
+import type { IconKey } from '../../../themes/types';
+import type { IconOptions } from '../../../themes/engine/icons';
 
 /**
  * What the strip needs from the plugin to render.
@@ -44,6 +46,11 @@ export interface TabStripOptions {
    * Whether the grid runs right-to-left, which mirrors the arrow keys.
    */
   isRtl: boolean;
+  /**
+   * Creates an icon element for a given icon name. Injected so the strip stays decoupled from
+   * the theme engine.
+   */
+  createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
 }
 
 /**
@@ -93,6 +100,13 @@ export class TabStrip {
    */
   readonly #isRtl: boolean;
   /**
+   * Creates an icon element for a given icon name. Injected so the strip stays decoupled from
+   * the theme engine.
+   *
+   * @type {function(IconKey, IconOptions=): HTMLElement}
+   */
+  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  /**
    * Drags tabs along the strip and reports where they land.
    */
   readonly #drag: TabDrag;
@@ -124,6 +138,7 @@ export class TabStrip {
     this.#translate = options.translate;
     this.#ariaTags = options.ariaTags;
     this.#isRtl = options.isRtl;
+    this.#createIcon = options.createIcon;
     this.#drag = new TabDrag(
       { host: options.host, dragRoot: options.dragRoot, eventManager: options.eventManager },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
@@ -189,6 +204,7 @@ export class TabStrip {
     label.dir = 'auto';
 
     chevron.className = 'ht-sheets-bar__tab-chevron';
+    chevron.appendChild(this.#createIcon('selectArrow'));
 
     // Pointer-only: the keyboard route to the same menu is the second activation of the tab,
     // so the glyph is decoration to a screen reader rather than a control it should offer.

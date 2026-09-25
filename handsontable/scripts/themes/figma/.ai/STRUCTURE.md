@@ -11,9 +11,9 @@ handsontable/scripts/themes/figma/
 ├── tokensKeys.mjs               # Allow-list + ordering of token keys to emit per theme
 ├── README.md
 ├── .ai/                         # This reference set
-├── __tests__/                   # node:test specs (jsGeneration, iconsMap)
+├── __tests__/                   # node:test specs (jsGeneration, iconStyles)
 ├── templates/
-│   └── iconsMap.ts              # Typed icon-CSS helper, copied verbatim into the output
+│   └── iconStyles.ts            # Typed icon-CSS helper, copied verbatim into the output
 ├── icons/
 │   ├── main.mjs                 # Icon name → SVG data URI for the "main" theme family
 │   └── horizon.mjs              # Icon name → SVG data URI for the "horizon" theme
@@ -25,7 +25,7 @@ handsontable/scripts/themes/figma/
     └── helpers/
         ├── fileSystem.mjs       # fs wrappers + `loadTokens()` (exits on missing file)
         ├── tokenReference.mjs   # `{path.to.ref}` parsing and transformation utilities
-        └── iconsMap.mjs         # Runtime icon-CSS generator (used by cssGeneration at run time)
+        └── iconStyles.mjs       # Runtime icon-CSS generator (used by cssGeneration at run time)
 
 handsontable/src/themes/static/  # OUTPUT — wiped and regenerated on every run
 ├── css/
@@ -38,7 +38,7 @@ handsontable/src/themes/static/  # OUTPUT — wiped and regenerated on every run
     ├── colors/<name>.ts         # const <name>Colors: ThemeColorsConfig
     ├── tokens/<name>.ts         # const <name>Tokens: ThemeTokensConfig
     ├── icons/<name>.ts          # const <name>Icons: ThemeIconsConfig
-    └── helpers/iconsMap.ts      # copied verbatim from templates/iconsMap.ts
+    └── helpers/iconStyles.ts    # copied verbatim from templates/iconStyles.ts
 ```
 
 ## Key files
@@ -52,8 +52,8 @@ Resolves `OUTPUT_PATH` (→ `src/themes/static`) and `TOKENS_PATH` (→ `scripts
 ### `utils/jsGeneration.mjs`
 Stage 2. `buildTsModule({ category, themeName, objectLiteral })` wraps a serialized object literal in a typed module: the `auto-generated` header, a `import type { … } from '…'` line, a named `const`, and `export default <name>`. `tsConstName` derives the const name (`sizing`, `densitySizes`, `<theme>Tokens`, `<theme>Colors`, `<theme>Icons`). `TS_TYPE_MAP` holds the type name and relative import depth per category.
 
-### `templates/iconsMap.ts` and `utils/helpers/iconsMap.mjs`
-Two copies of the same icon-CSS helper. The `.ts` template is the artifact emitted into `static/variables/helpers/iconsMap.ts`. The `.mjs` is the runtime version `cssGeneration.mjs` imports to inline icon CSS while generating. A `node:test` (`__tests__/iconsMap.test.mjs`) asserts they produce identical CSS so they cannot drift.
+### `templates/iconStyles.ts` and `utils/helpers/iconStyles.mjs`
+Two copies of the same icon-CSS helper. The `.ts` template is the artifact emitted into `static/variables/helpers/iconStyles.ts`. The `.mjs` is the runtime version `cssGeneration.mjs` imports to inline icon CSS while generating. A `node:test` (`__tests__/iconStyles.test.mjs`) asserts they produce identical CSS so they cannot drift. `iconStyles(icons, scopeSelector)` emits `--ht-icon-<name>` custom properties plus `.ht-icon-<name>` glyph rules for real `<i class="ht-icon ht-icon-<name>">` elements — the successor to the older `iconsMap()` helper, which generated `::before`/`::after` pseudo-element rules on a fixed list of host selectors and was removed in DEV-3003 once every such selector had a real icon element.
 
 ### `tokensKeys.mjs`
 An explicit, ordered array of token keys. Only tokens listed here are emitted per theme. Adding a new design token almost always means adding a key here.
