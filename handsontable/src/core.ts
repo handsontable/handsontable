@@ -4815,8 +4815,8 @@ export default function Core(
       instance.runHooks('afterUpdateSettings', settings);
     }
 
-    // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed:
-    // the new data map has not created a row or a column yet, and only those count as surplus.
+    // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed: the
+    // data phase already sized the new axis to the merged values, so there is no surplus left to give back.
     if (!init) {
       grid.removeSurplusRowsAndCols(previousMinimumSizes);
     }

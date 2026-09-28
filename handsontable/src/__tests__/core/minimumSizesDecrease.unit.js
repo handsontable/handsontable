@@ -116,6 +116,21 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.countRows()).toBe(4);
     });
 
+    it('should give back only the added rows after one the user inserted in the middle of them', () => {
+      createGrid({ data: [['A1']], minRows: 5 });
+
+      hot.alter('insert_row_above', 3);
+      hot.setCellMeta(3, 0, 'marker', 'inserted');
+
+      expect(hot.countRows()).toBe(6);
+
+      hot.updateSettings({ minRows: 0 });
+
+      // The added rows above the inserted one no longer end the grid, so only the two after it go.
+      expect(hot.countRows()).toBe(4);
+      expect(hot.getCellMeta(3, 0).marker).toBe('inserted');
+    });
+
     it('should remove the added rows after a sort moved them', () => {
       createGrid({
         data: [['b'], ['a']],
@@ -466,6 +481,18 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
 
       expect(() => hot.updateSettings({ minSpareCols: 0 })).not.toThrow();
       expect(hot.countCols()).toBe(3);
+    });
+
+    it('should leave the data alone while `maxCols` hides part of the grid', () => {
+      createGrid({ data: [['A1']], minCols: 5 });
+
+      expect(hot.countSourceCols()).toBe(5);
+
+      // The same guard as the rows': acting on the capped count would take a column out of the middle.
+      hot.updateSettings({ maxCols: 3, minCols: 2 });
+
+      expect(hot.countSourceCols()).toBe(5);
+      expect(hot.getSourceData()).toEqual([['A1', null, null, null, null]]);
     });
 
     it('should move a selection that sat on a removed column onto the last column', () => {
