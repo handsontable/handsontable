@@ -336,4 +336,33 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(2);
     expect(hot.getDataAtCell(3, 0)).toBe(30);
   });
+
+  it('keeps its place from the bottom when a lowered `minRows` removes the rows below it', async() => {
+    // `minRows` fills the grid to five rows, and the summary sits second from the bottom. Lowering the
+    // option gives back the last row with the `auto` source, which the endpoints must follow like any
+    // other removal - only an automatic insertion is skipped.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10], [20]],
+      minRows: 5,
+      columnSummary: [{
+        destinationColumn: 0,
+        destinationRow: 1,
+        reversedRowCoords: true,
+        ranges: [[0, 1]],
+        type: 'sum',
+      }],
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual([10, 20, null, 30, null]);
+
+    await hot.updateSettings({ minRows: 3 });
+
+    expect(hot.countRows()).toBe(4);
+    expect(hot.getDataAtCell(2, 0)).toBe(30);
+    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+    // The cell it left is no longer a summary.
+    expect(hot.getDataAtCell(3, 0)).not.toBe(30);
+    expect(hot.getCellMeta(3, 0).readOnly).toBe(false);
+  });
 });

@@ -1036,6 +1036,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The first row the master renders, as a visual index. Past the frozen rows once the grid is
+   * scrolled far enough that the master stops rendering them behind the frozen pane.
+   */
+  async firstRenderedRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.view.getFirstRenderedVisibleRow());
+  }
+
+  /**
    * Scroll the viewport so that the given row is at the top, right below the frozen rows.
    */
   async scrollToRow(row: number): Promise<void> {
@@ -1076,6 +1084,28 @@ export class SelectionFeaturesPage {
   /** The currently visible move-zone bands in the master overlay. */
   visibleMoveZones(): Locator {
     return this.page.locator('.ht_master .wtMoveZone:visible');
+  }
+
+  /**
+   * The currently visible move-zone bands in every overlay. A selection crossing a frozen pane is
+   * drawn once per overlay, so this is the locator that sees a band a frozen clone adds; the
+   * master-scoped {@link SelectionFeaturesPage#visibleMoveZones} cannot.
+   */
+  visibleMoveZonesInAnyOverlay(): Locator {
+    return this.grid.locator('.wtMoveZone:visible');
+  }
+
+  /**
+   * For each point, whether the topmost element there is a move-zone band, which is what a press at
+   * that point would grab. `:visible` does not check occlusion, so a band drawn under a frozen pane
+   * passes a visibility count; it does not pass this.
+   */
+  async moveZoneHitsAt(points: { x: number, y: number }[]): Promise<boolean[]> {
+    return this.page.evaluate(pts => pts.map(({ x, y }) => {
+      const hit = document.elementFromPoint(x, y);
+
+      return !!hit?.closest('[data-testid="grid"] .wtMoveZone');
+    }), points);
   }
 
   /** The autofill fill handle of the focus selection, scoped to the master overlay. */

@@ -403,6 +403,13 @@ declare global {
       physicalRows: number[];
       source?: string;
     }[];
+    /**
+     * Physical rows a HOST `beforeRemoveRow` listener (declared in the constructor settings) saw on
+     * each call, in firing order - the DEV-3092 remove-parent fixture's `updatePlugin()` regression
+     * case, where NestedRows' own listener has to keep running ahead of this one even after it is
+     * cleared and re-registered by an `updateSettings()` call.
+     */
+    hostBeforeRemoveRowLog?: number[][];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */

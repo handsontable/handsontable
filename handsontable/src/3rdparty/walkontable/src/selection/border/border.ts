@@ -25,6 +25,7 @@ import {
   ADJUST_HANDLE_EDGES,
   getHandleOwnership,
   getHandlesSpan,
+  getMoveZoneOwnership,
   getOverlaySegment,
 } from './adjustHandlesOwnership';
 import type {
@@ -588,13 +589,21 @@ class Border {
    * pixels tall (or wide for the vertical bands) and centered on its respective edge line. RTL layout
    * is handled by using `right` instead of `left` for the inline axis, mirroring `positionAdjustHandles`.
    *
+   * Only the bands in `owned` are shown. A selection that crosses a freeze line is drawn once per
+   * overlay, each slice clamped to what that overlay renders, and a band on a clamped edge would sit
+   * on the freeze line inside the selection (see `getMoveZoneOwnership`).
+   *
    * @private
    * @param {number} top The selection border top (px, container-relative).
    * @param {number} inlineStart The selection border inline-start (px, container-relative).
    * @param {number} width The selection border width (px).
    * @param {number} height The selection border height (px).
+   * @param {object} owned One flag per edge (`top`, `bottom`, `start`, `end`), `true` for a band this
+   * overlay draws.
    */
-  positionMoveZone(top: number, inlineStart: number, width: number, height: number) {
+  positionMoveZone(
+    top: number, inlineStart: number, width: number, height: number, owned: Record<AdjustHandleEdge, boolean>,
+  ) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlineProp = isRtl ? 'right' : 'left';
     // Only ever called from `appear()` after the bands have been created.
@@ -606,28 +615,28 @@ class Border {
     s.top.top = `${top - half}px`;
     s.top.width = `${width}px`;
     s.top.height = `${MOVE_ZONE_THICKNESS}px`;
-    s.top.display = 'block';
+    s.top.display = owned.top ? 'block' : 'none';
 
     // Bottom band — full width, centered on the bottom edge.
     s.bottom[inlineProp] = `${inlineStart}px`;
     s.bottom.top = `${top + height - half}px`;
     s.bottom.width = `${width}px`;
     s.bottom.height = `${MOVE_ZONE_THICKNESS}px`;
-    s.bottom.display = 'block';
+    s.bottom.display = owned.bottom ? 'block' : 'none';
 
     // Start band — full height, centered on the inline-start edge.
     s.start[inlineProp] = `${inlineStart - half}px`;
     s.start.top = `${top}px`;
     s.start.width = `${MOVE_ZONE_THICKNESS}px`;
     s.start.height = `${height}px`;
-    s.start.display = 'block';
+    s.start.display = owned.start ? 'block' : 'none';
 
     // End band — full height, centered on the inline-end edge.
     s.end[inlineProp] = `${inlineStart + width - half}px`;
     s.end.top = `${top}px`;
     s.end.width = `${MOVE_ZONE_THICKNESS}px`;
     s.end.height = `${height}px`;
-    s.end.display = 'block';
+    s.end.display = owned.end ? 'block' : 'none';
   }
 
   /**
@@ -1824,12 +1833,16 @@ class Border {
     // before DEV-1081. Gate it with `isMobileBrowser()` only — `isMobileOrIpadOS()`
     // would hide the band on iPad. Mobile range-handle UI stays on
     // `isMobileOrIpadOS()` (constructor / `adjustHandles` above).
-    if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
+    const ownedMoveZone = !isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')
+      ? this.getMoveZoneOwnership(corners, [fromRow, fromColumn, toRow, toColumn])
+      : null;
+
+    if (ownedMoveZone && ADJUST_HANDLE_EDGES.some(edge => ownedMoveZone[edge])) {
       if (!this.moveZone) {
         this.createMoveZone();
       }
 
-      this.positionMoveZone(top, inlineStartPos, width, height);
+      this.positionMoveZone(top, inlineStartPos, width, height, ownedMoveZone);
     } else if (this.moveZone) {
       this.moveZone.styles.top.display = 'none';
       this.moveZone.styles.bottom.display = 'none';
@@ -2063,6 +2076,26 @@ class Border {
     ADJUST_HANDLE_EDGES.forEach((edge) => {
       this.adjustHandles!.styles[edge].display = 'none';
     });
+  }
+
+  /**
+   * Tells which of the four `moveCells` bands this overlay draws for its slice of the selection. Reads
+   * settings only, no DOM, so it is safe after `appear()` has written its styles (the shared axis
+   * layout also carries the visible range, which the band rule does not use). Resolved independently
+   * of {@link Border#planAdjustHandles}, which gives up when the adjust handles are off.
+   *
+   * @private
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+   * @param {number[]} clampedCorners The corners clamped to the range this overlay renders.
+   * @returns {object} One flag per edge (`top`, `bottom`, `start`, `end`).
+   */
+  getMoveZoneOwnership(corners: number[], clampedCorners: number[]): Record<AdjustHandleEdge, boolean> {
+    const layout: AdjustHandlesLayout = {
+      row: this.getAdjustHandlesAxisLayout('row'),
+      column: this.getAdjustHandlesAxisLayout('column'),
+    };
+
+    return getMoveZoneOwnership(layout, corners, clampedCorners);
   }
 
   /**

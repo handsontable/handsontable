@@ -1,11 +1,12 @@
 /**
- * Pure rules deciding which overlay draws each edge-adjustment handle (`selectionHandles`) of a
- * selection, and which part of the selection the handles are centered on.
+ * Pure rules deciding which overlay draws each edge-adjustment handle (`selectionHandles`) and each
+ * `moveCells` move band of a selection, and which part of the selection the handles are centered on.
  *
  * A selection that crosses a frozen-pane line is drawn once per overlay, each slice clamped to what
  * that overlay renders. Every overlay evaluates these rules on identical inputs (the fixed-pane
  * settings, the raw corners, and the master's visible range snapshotted for the draw), so each handle
- * is claimed by exactly one overlay. Kept free of DOM and Walkontable state so the rules can be unit
+ * is claimed by exactly one overlay. A move band is drawn by every overlay its edge passes through,
+ * and never by an overlay that only clamped the edge. Kept free of DOM and Walkontable state so the rules can be unit
  * tested table-driven; `Border` resolves the inputs and applies the result.
  */
 import {
@@ -159,6 +160,21 @@ export function getCenterSegment(axis: AdjustHandlesAxisLayout, from: number, to
 }
 
 /**
+ * Tells whether the overlay owns a selection edge on the edge's own axis: the edge lies in the
+ * overlay's segment on that axis, and the overlay renders it unclamped. An edge clamped to the
+ * rendered range lies inside the selection, not on it, so a slice ending on a freeze line does not
+ * own the edge it ends on.
+ *
+ * @param {AdjustHandlesAxisLayout} axis The layout of the edge's own axis.
+ * @param {number} index The raw renderable index of the edge's track.
+ * @param {number} clampedIndex The same index clamped to the range the overlay renders.
+ * @returns {boolean}
+ */
+export function ownsEdgeOnOwnAxis(axis: AdjustHandlesAxisLayout, index: number, clampedIndex: number): boolean {
+  return clampedIndex === index && getAxisSegment(axis, index) === axis.overlaySegment;
+}
+
+/**
  * Tells which of the four handles the overlay described by `layout` draws:
  *
  * - The overlay's segment on the handle's own axis must contain the edge, and the overlay must
@@ -185,7 +201,7 @@ export function getHandleOwnership(
   const ownsRowCenter = row.overlaySegment === getCenterSegment(row, fromRow, toRow);
   const ownsColumnCenter = column.overlaySegment === getCenterSegment(column, fromColumn, toColumn);
   const ownsEdge = (axis: AdjustHandlesAxisLayout, index: number, clampedIndex: number, side: 'start' | 'end') =>
-    clampedIndex === index && getAxisSegment(axis, index) === axis.overlaySegment &&
+    ownsEdgeOnOwnAxis(axis, index, clampedIndex) &&
     (axis.overlaySegment !== 'main' || isTrackEdgeVisible(axis.visible, index, side));
 
   return {
@@ -193,6 +209,39 @@ export function getHandleOwnership(
     bottom: ownsColumnCenter && ownsEdge(row, toRow, clampedToRow, 'end'),
     start: ownsRowCenter && ownsEdge(column, fromColumn, clampedFromColumn, 'start'),
     end: ownsRowCenter && ownsEdge(column, toColumn, clampedToColumn, 'end'),
+  };
+}
+
+/**
+ * Tells which of the four `moveCells` move bands the overlay described by `layout` draws. Only the
+ * own-axis half of the handle rule applies ({@link ownsEdgeOnOwnAxis}):
+ *
+ * - A band spans its whole edge, so there is no center to pick on the cross axis. An edge that
+ * crosses a freeze line is drawn by every overlay it passes through, each band covering that
+ * overlay's slice.
+ * - The edge does not have to be on screen. A band on an overscan track is clipped by the holder or
+ * covered by a frozen pane, and a covered band cannot be grabbed.
+ *
+ * @param {AdjustHandlesLayout} layout The per-axis layout.
+ * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` renderable corners.
+ * @param {number[]} clampedCorners The corners clamped to the range the overlay renders.
+ * @returns {object} One flag per edge (`top`, `bottom`, `start`, `end`), `true` when the overlay
+ * draws that edge's band.
+ */
+export function getMoveZoneOwnership(
+  layout: AdjustHandlesLayout,
+  corners: number[],
+  clampedCorners: number[],
+): Record<AdjustHandleEdge, boolean> {
+  const [fromRow, fromColumn, toRow, toColumn] = corners;
+  const [clampedFromRow, clampedFromColumn, clampedToRow, clampedToColumn] = clampedCorners;
+  const { row, column } = layout;
+
+  return {
+    top: ownsEdgeOnOwnAxis(row, fromRow, clampedFromRow),
+    bottom: ownsEdgeOnOwnAxis(row, toRow, clampedToRow),
+    start: ownsEdgeOnOwnAxis(column, fromColumn, clampedFromColumn),
+    end: ownsEdgeOnOwnAxis(column, toColumn, clampedToColumn),
   };
 }
 

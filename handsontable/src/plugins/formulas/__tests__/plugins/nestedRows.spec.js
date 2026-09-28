@@ -433,10 +433,17 @@ describe('Formulas', () => {
         nestedRows: true,
       });
 
-      await alter('remove_row', 0);
-      getPlugin('undoRedo').undo();
-
       const formulasPlugin = getPlugin('formulas');
+
+      await alter('remove_row', 0);
+
+      // DEV-3092: the removed parent's only child must leave the engine with it. Formulas'
+      // `beforeRemoveRow` used to read the removed physical rows before NestedRows expanded that
+      // list to the whole subtree, so the engine dropped the parent and kept the child.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([]);
+      expect(countRows()).toBe(0);
+
+      getPlugin('undoRedo').undo();
 
       expect(countRows()).toBe(2);
       expect(getPlugin('nestedRows').dataManager.getRawSourceData()).toEqual([{
