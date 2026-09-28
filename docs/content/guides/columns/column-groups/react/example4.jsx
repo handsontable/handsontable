@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['$4.2M', '$3.8M', '$4.5M', '$4.1M', '$4.7M', '$5.2M'],
+  ['$3.1M', '$2.9M', '$3.4M', '$3.6M', '$3.8M', '$4.0M'],
+  ['$5.6M', '$5.9M', '$6.3M', '$6.1M', '$6.8M', '$7.2M'],
+  ['$1.4M', '$1.6M', '$1.5M', '$1.7M', '$1.9M', '$2.1M'],
+  ['$2.2M', '$2.0M', '$2.4M', '$2.5M', '$2.7M', '$2.9M'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['$4.2M', '$3.8M', '$4.5M', '$4.1M', '$4.7M', '$5.2M'],
-        ['$3.1M', '$2.9M', '$3.4M', '$3.6M', '$3.8M', '$4.0M'],
-        ['$5.6M', '$5.9M', '$6.3M', '$6.1M', '$6.8M', '$7.2M'],
-        ['$1.4M', '$1.6M', '$1.5M', '$1.7M', '$1.9M', '$2.1M'],
-        ['$2.2M', '$2.0M', '$2.4M', '$2.5M', '$2.7M', '$2.9M'],
-      ]}
+      data={data}
       colHeaders={true}
       rowHeaders={['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East']}
       rowHeaderWidth={120}

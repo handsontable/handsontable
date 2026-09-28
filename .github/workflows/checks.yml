@@ -367,10 +367,10 @@ jobs:
             } catch (error) {
               core.warning(`Could not read the live PR body (${error.message}); the red-spec advisory check is skipped.`);
             }
-      # Prints the verdict plus the ADVISORY warnings (frozen-suite growth,
-      # empty red-spec field, RTL correlation, Walkontable routing) as Markdown
-      # into the step summary; in Actions each warning is also a `::warning`
-      # annotation. The advisories never change the exit code.
+      # Prints the verdict plus the ADVISORY warnings (frozen-suite growth, empty
+      # red-spec field, RTL correlation, Walkontable routing, visual-only coverage)
+      # as Markdown into the step summary; in Actions each warning is also a
+      # `::warning` annotation. The advisories never change the exit code.
       - name: Evaluate test-presence gate (warn)
         run: set -o pipefail; node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:

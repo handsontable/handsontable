@@ -36,61 +36,63 @@ const sanitizeHeader = (html: string): string => {
   return template.innerHTML;
 };
 
+const data = [
+  {
+    model: 'Racing Socks',
+    size: 'S',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: false,
+    color: 'Black',
+    email: '8576@all.xyz',
+  },
+  {
+    model: 'HL Mountain Shirt',
+    size: 'XS',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: false,
+    color: 'White',
+    email: 'tayn@all.xyz',
+  },
+  {
+    model: 'Cycling Cap',
+    size: 'L',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: true,
+    color: 'Green',
+    email: '6lights@far.com',
+  },
+  {
+    model: 'Ski Jacket',
+    size: 'M',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: true,
+    color: 'Blue',
+    email: 'raj@fq1my2c.com',
+  },
+  {
+    model: 'HL Goggles',
+    size: 'XL',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    sellTime: '13:23',
+    inStock: true,
+    color: 'Black',
+    email: 'da@pdc.ga',
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        {
-          model: 'Racing Socks',
-          size: 'S',
-          price: 30,
-          sellDate: '2023-10-11',
-          sellTime: '01:23',
-          inStock: false,
-          color: 'Black',
-          email: '8576@all.xyz',
-        },
-        {
-          model: 'HL Mountain Shirt',
-          size: 'XS',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          sellTime: '11:27',
-          inStock: false,
-          color: 'White',
-          email: 'tayn@all.xyz',
-        },
-        {
-          model: 'Cycling Cap',
-          size: 'L',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          sellTime: '03:17',
-          inStock: true,
-          color: 'Green',
-          email: '6lights@far.com',
-        },
-        {
-          model: 'Ski Jacket',
-          size: 'M',
-          price: 59,
-          sellDate: '2023-08-28',
-          sellTime: '08:01',
-          inStock: true,
-          color: 'Blue',
-          email: 'raj@fq1my2c.com',
-        },
-        {
-          model: 'HL Goggles',
-          size: 'XL',
-          price: 279.99,
-          sellDate: '2023-10-02',
-          sellTime: '13:23',
-          inStock: true,
-          color: 'Black',
-          email: 'da@pdc.ga',
-        },
-      ]}
+      data={data}
       columns={[
         {
           title: 'Model<br>(text)',

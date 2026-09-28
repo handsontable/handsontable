@@ -216,6 +216,8 @@ When using multiple non-adjacent selections (<kbd>**Cmd**</kbd>/<kbd>**Ctrl**</k
 
 The example below customizes the color of each selection layer using these CSS classes.
 
+On print, Handsontable hides the selection outline, the fill handle, and the `.area` cell highlight, so a printout shows a clean grid. Styles you set on the `.area` classes apply on screen only.
+
 ::: only-for javascript
 
 ::: example #example4 --html 1 --css 2 --js 3 --ts 4

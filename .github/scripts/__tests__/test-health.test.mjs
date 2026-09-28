@@ -9,6 +9,8 @@ import {
   PLAYWRIGHT_JSON_REPORT,
   RETENTION_DAYS,
   TICKET_THRESHOLD_RUNS,
+  VISUAL_ARTIFACT_PREFIX,
+  VISUAL_NIGHTLY_WORKFLOW,
   aggregate,
   classifyArtifact,
   collectArtifactFiles,
@@ -17,6 +19,7 @@ import {
   mergeLedger,
   parseJasmineRecord,
   parsePlaywrightReport,
+  parseVisualRecord,
   renderPage,
   renderStepSummary,
   runContextFromRun,
@@ -158,12 +161,15 @@ test('runContextFromRun keeps the run fields the ledger needs and links a re-run
   );
 });
 
-test('classifyArtifact recognizes the two artifact families and nothing else', () => {
+test('classifyArtifact recognizes the three artifact families and nothing else', () => {
   assert.equal(classifyArtifact('playwright-report-classic-min'), 'playwright');
   assert.equal(classifyArtifact('puppeteer-failed-specs-UMD.min-horizon'), 'jasmine');
+  assert.equal(classifyArtifact('visual-compare-full'), 'visual');
   assert.equal(classifyArtifact('handsontable-build-umd'), null);
+  assert.equal(classifyArtifact('visual-diff-report'), null, 'the diff report is images, not a record');
   assert.equal(PLAYWRIGHT_ARTIFACT_PREFIX, 'playwright-report-');
   assert.equal(JASMINE_ARTIFACT_PREFIX, 'puppeteer-failed-specs-');
+  assert.equal(VISUAL_ARTIFACT_PREFIX, 'visual-compare-');
 });
 
 test('parsePlaywrightReport keeps flaky and failed tests with their title path, leg, line and first error', () => {
@@ -335,8 +341,9 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
     + `quarantined (${QUARANTINE_NOTE})\n`));
   assert.ok(markdown.includes('- **failed** on `UMD (theme: main)`: Core_alter remove_row should remove one row '
     + '(`handsontable/test/e2e/core/alter.spec.js`), in isolation: passes alone\n'));
-  assert.ok(markdown.includes('1 test(s) recurred across 2+ distinct branches or flaky reruns in the '
-    + 'last 30 days and need a fix or migration ticket:'));
+  assert.ok(markdown.includes('1 test(s) recurred across 2+ distinct branches or flaky reruns (for a visual '
+    + 'capture, 2+ nightly runs or distinct branches) in the last 30 days and need a fix or migration ticket:'));
+  assert.match(markdown, /— 2 branch\(es\), 0 flaky rerun\(s\), legs: /, 'a functional row states its branches');
   assert.match(markdown, /Notes:\n\n- playwright-report-main: no test-results\/report\.json/);
   assert.match(markdown, /Ledger: https:\/\/handsontable\.github\.io\/handsontable\/test-health\/\n$/);
 
@@ -391,10 +398,17 @@ test('the reporter config, the E2E workflow and the collector agree on the repor
     'the Puppeteer record artifact keeps the prefix the collector classifies by');
 });
 
-test('the test-health workflow chains on the two orchestrators, takes a run id, and stays fork-safe', () => {
+test('the ledger chains on the orchestrators and the visual nightly, takes a run id, and stays fork-safe', () => {
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
-  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish'\]/);
+  // `Visual nightly` is the only run the weekday full render's compare record arrives on; a pull request's
+  // arrives on its `Tests` run. `Visual seed` must stay out – its differences are the merge's own.
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly'\]/);
+  // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
+  assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
+  assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),
+    new RegExp(`^name: ${VISUAL_NIGHTLY_WORKFLOW}$`, 'm'));
+  assert.doesNotMatch(workflow, /workflows: \[[^\]]*'Visual seed'/, 'a seed\'s differences are not flakes');
   assert.match(workflow, /conclusion != 'cancelled'/, 'collects every completed run, not only failures');
   assert.match(workflow, /types: \[completed\]/);
   assert.match(workflow, /workflow_dispatch:\n\s+inputs:\n\s+run-id:/);
@@ -502,4 +516,220 @@ test('the collector and the quarantine policy agree on the annotation type', () 
 
   assert.ok(collector.includes(`candidate.type === '${match[1]}'`),
     'test-health.mjs quarantineOf must read the same annotation type the policy writes');
+});
+
+// The shape `visual-tests/lib/visual-compare-record.mjs` writes (`buildRecord`).
+const VISUAL_RECORD = {
+  version: 1,
+  tier: 'full',
+  expectedKey: 'base/develop',
+  actualKey: 'nightly/develop',
+  items: [
+    {
+      path: 'js/chromium-theme-main/multi-frameworks/filters/escaping-the-menu-12.png',
+      status: 'changed',
+      leg: 'js/chromium-theme-main',
+      spec: 'visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts',
+      capture: 'multi-frameworks/filters/escaping-the-menu-12',
+      actualSha256: '3b1f00aa11bb22cc33dd44ee55ff6677889900aabbccddeeff00112233445566',
+      quarantine: null,
+    },
+    {
+      path: 'js/chromium-theme-main-dark/multi-frameworks/filters/escaping-the-menu-12.png',
+      status: 'changed',
+      leg: 'js/chromium-theme-main-dark',
+      spec: 'visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts',
+      capture: 'multi-frameworks/filters/escaping-the-menu-12',
+      actualSha256: 'ffee',
+      quarantine: 'DEV-1234 until 2026-10-08 — focus timer',
+    },
+    {
+      path: 'js/chromium/js-only/sheetsBar/tabs-7.png',
+      status: 'new',
+      leg: 'js/chromium',
+      capture: 'js-only/sheetsBar/tabs-7',
+    },
+    {
+      path: 'cross-browser/webkit/borders-1.png',
+      status: 'deleted',
+      leg: 'cross-browser/webkit',
+      capture: 'borders-1',
+    },
+  ],
+};
+
+test('parseVisualRecord keeps changed captures with their leg, spec and render hash', () => {
+  const entries = parseVisualRecord(VISUAL_RECORD, runContextFromRun(RUN));
+
+  // New and deleted items are structure – a renamed spec, a missing seed – not flakes.
+  assert.equal(entries.length, 2);
+  assert.deepEqual(entries.map(e => [e.tier, e.leg, e.status]), [
+    ['visual', 'js/chromium-theme-main', 'failed'],
+    ['visual', 'js/chromium-theme-main-dark', 'failed'],
+  ]);
+  assert.equal(entries[0].file, 'visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts');
+  assert.equal(entries[0].title, 'multi-frameworks/filters/escaping-the-menu-12', 'the capture, without the leg');
+  assert.match(entries[0].error, /differs from base\/develop \(full tier\); render sha256 3b1f00aa11bb$/);
+  assert.equal(entries[1].quarantine, 'DEV-1234 until 2026-10-08 — focus timer');
+  // One capture on two themes in one run is one test, the way the two `-min` legs are.
+  assert.equal(testKey(entries[0]), testKey(entries[1]));
+});
+
+test('a seed record adds nothing to the ledger', () => {
+  // A seed's differences are what its merged commit changed. Ingesting them would file every intended
+  // change as a flake – and a seed-tier record also arrives through `Tests`, on the master push.
+  assert.deepEqual(parseVisualRecord({ ...VISUAL_RECORD, tier: 'seed' }, runContextFromRun(RUN)), []);
+});
+
+test('collectArtifactFiles reads a visual record and nothing else in that artifact', () => {
+  const file = (artifact, filePath, text) => ({ artifact, path: filePath, text });
+  const { entries, notes } = collectArtifactFiles([
+    file('visual-compare-full', 'visual-compare-full-0123456789ab.json', JSON.stringify(VISUAL_RECORD)),
+    file('visual-compare-full', 'notes.txt', 'ignored'),
+    file('visual-compare-pr', 'visual-compare-pr-abc.json', '{broken'),
+  ], runContextFromRun(RUN));
+
+  assert.equal(entries.length, 2);
+  assert.equal(notes.length, 1);
+  assert.match(notes[0], /^visual-compare-pr\/visual-compare-pr-abc\.json: could not be read/);
+
+  // A changed item the record could not map to a spec is noted, not dropped silently.
+  const unmapped = { ...VISUAL_RECORD, items: [...VISUAL_RECORD.items, { path: 'odd/x-1.png', status: 'changed' }] };
+  const noted = collectArtifactFiles([
+    file('visual-compare-full', 'visual-compare-full-0123456789ab.json', JSON.stringify(unmapped)),
+  ], runContextFromRun(RUN));
+
+  assert.equal(noted.entries.length, 2);
+  assert.deepEqual(noted.notes, ['visual-compare-full/visual-compare-full-0123456789ab.json: 1 changed item(s) had '
+    + 'no capture (a path the record could not map to a spec), not recorded']);
+});
+
+test('a visual capture needs a ticket after two nights or on two branches, never for one pull request', () => {
+  // Nothing in the visual tier is ever `flaky` (a retry overwrites the screenshot) and the nightly is one
+  // branch, so the functional rule could never flag the same capture red on two nights. A raw run count
+  // would, but it would also flag a pull request's own intended change on its second push.
+  const run = runContextFromRun(RUN);
+  const nightly = { workflow: VISUAL_NIGHTLY_WORKFLOW, branch: 'develop' };
+  const [capture, otherLeg] = parseVisualRecord(VISUAL_RECORD, run);
+  const plain = { ...otherLeg, quarantine: null };
+  const day = 86400000;
+  const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+  const ledgerOf = entries => ({ ...emptyLedger(), entries });
+
+  const oneRun = aggregate(ledgerOf([
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...plain, ...nightly, runId: 'n1', seenAt: at(1) },
+  ]), { now: NOW });
+
+  assert.equal(oneRun.rows.length, 1, 'both legs are one row');
+  assert.deepEqual(oneRun.rows[0].legs, ['js/chromium-theme-main', 'js/chromium-theme-main-dark']);
+  assert.equal(oneRun.rows[0].needsTicket, false, 'two legs in one run is one recurrence');
+
+  const twoNights = aggregate(ledgerOf([
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...capture, ...nightly, runId: 'n2', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(twoNights.rows[0].needsTicket, true, 'the same capture red on two nights needs a ticket');
+  assert.equal(twoNights.rows[0].nightlyRuns30, 2);
+
+  // The record is written before approval, so an intended change is recorded on every push of its pull
+  // request. Two pushes are one branch and no nights: not a flake.
+  const onePullRequest = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, runId: 'p2', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(onePullRequest.rows[0].runs30, 2);
+  assert.equal(onePullRequest.rows[0].needsTicket, false, 'a pull request\'s intended change pushed twice');
+
+  const twoPullRequests = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, runId: 'q1', branch: 'feature/other', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(twoPullRequests.rows[0].needsTicket, true, 'the same capture red on unrelated pull requests');
+
+  const pullRequestAndNight = aggregate(ledgerOf([
+    { ...capture, runId: 'p1', seenAt: at(1) },
+    { ...capture, ...nightly, runId: 'n1', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(pullRequestAndNight.rows[0].needsTicket, true, 'a pull request and a night are two branches');
+
+  const markdown = renderStepSummary({ run, added: [], notes: [], summary: twoNights, pageUrl: 'x' });
+
+  assert.ok(markdown.includes('- multi-frameworks/filters/escaping-the-menu-12 '
+    + '(`visual-tests/tests/multi-frameworks/filters/escaping-the-menu.spec.ts`) — 2 nightly run(s), 1 branch(es), '
+    + 'legs: js/chromium-theme-main\n'), 'a visual row states its nights and branches, not reruns it never has');
+
+  const quarantined = aggregate(ledgerOf([
+    { ...otherLeg, ...nightly, runId: 'n1', seenAt: at(1) },
+    { ...otherLeg, ...nightly, runId: 'n2', seenAt: at(2) },
+  ]), { now: NOW });
+
+  assert.equal(quarantined.rows[0].needsTicket, false, 'a quarantined capture already names its owner');
+});
+
+test('a capture parked on one leg still needs a ticket for the leg that is not, whichever sorts last', () => {
+  // The visual quarantine is per leg. `otherLeg` (main-dark) carries a stamp and `capture` (main) does not;
+  // both differ on the same two nights, at the same instant, so only the entry order decides which one is
+  // "last". Neither the badge nor the ticket line may depend on that.
+  const run = runContextFromRun(RUN);
+  const nightly = { workflow: VISUAL_NIGHTLY_WORKFLOW, branch: 'develop' };
+  const [capture, otherLeg] = parseVisualRecord(VISUAL_RECORD, run);
+  const seenAt = night => new Date(NOW.getTime() - (night * 86400000)).toISOString();
+  const sightings = [1, 2].flatMap(night => [
+    { ...capture, ...nightly, runId: `n${night}`, seenAt: seenAt(night) },
+    { ...otherLeg, ...nightly, runId: `n${night}`, seenAt: seenAt(night) },
+  ]);
+  const rowOf = entries => aggregate({ ...emptyLedger(), entries }, { now: NOW }).rows[0];
+
+  [sightings, [...sightings].reverse()].forEach((order, i) => {
+    const row = rowOf(order);
+
+    assert.equal(row.needsTicket, true, `order ${i}: the unparked leg is red on two nights`);
+    assert.equal(row.quarantine, otherLeg.quarantine, `order ${i}: the row shows the parked leg's entry`);
+    assert.equal(row.nightlyRuns30, 2);
+  });
+
+  // Only the parked leg differs: nothing to file, and the badge says why.
+  const parkedOnly = rowOf(sightings.filter(entry => entry.quarantine));
+
+  assert.equal(parkedOnly.needsTicket, false);
+  assert.equal(parkedOnly.quarantine, otherLeg.quarantine);
+
+  // The parked leg on two nights and the unparked one on a single pull request is one open branch: no ticket.
+  const mixed = rowOf([...sightings.filter(entry => entry.quarantine), { ...capture, runId: 'p1', seenAt: seenAt(3) }]);
+
+  assert.equal(mixed.needsTicket, false);
+  assert.equal(mixed.openBranches30, 1);
+});
+
+test('the Compare job uploads its record under the prefix the collector classifies by', () => {
+  // The same three-place agreement the Playwright report has: the workflow uploads it under this name, the
+  // download step's filter admits it, and the collector classifies it.
+  const root = repoRoot();
+  const visual = readFileSync(path.join(root, '.github/workflows/visual.yml'), 'utf8');
+  const health = readFileSync(path.join(root, '.github/workflows/test-health.yml'), 'utf8');
+
+  // Read inside the two steps, never from the whole file: a commented-out or moved line must not pass.
+  const stepOf = (workflow, name) => {
+    const start = workflow.indexOf(`      - name: ${name}\n`);
+
+    assert.notEqual(start, -1, `lost the step: ${name}`);
+    const next = workflow.indexOf('\n      - ', start + 1);
+
+    return workflow.slice(start, next === -1 ? undefined : next);
+  };
+  const upload = stepOf(visual, 'Upload the visual compare record');
+  const download = stepOf(health, 'Download the run\'s test artifacts');
+
+  assert.ok(upload.includes(`\n          name: ${VISUAL_ARTIFACT_PREFIX}\${{ inputs.tier }}\n`),
+    'visual.yml must upload the record under the prefix the collector classifies by');
+  const families = /test\("\^\(playwright-report-\|puppeteer-failed-specs-\|visual-compare-\)"\)/;
+
+  assert.match(download, new RegExp(`\\n\\s+--jq '[^'\\n]*${families.source}`),
+    'test-health.yml must download the visual records');
+  assert.ok(download.includes(`|${VISUAL_ARTIFACT_PREFIX})`));
 });

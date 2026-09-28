@@ -252,7 +252,10 @@
             margin-right: 12px;
           }
 
-          span.selected {
+          // `htMixed` is the third state of a checkable item – drawn where the check mark is
+          // drawn, in the same color, but with the dash glyph the icons stylesheet maps to it.
+          span.selected,
+          span.htMixed {
             font-size: 0;
             inset: 0;
 
@@ -270,7 +273,8 @@
           }
         }
 
-        div span.selected {
+        div span.selected,
+        div span.htMixed {
           position: absolute;
           inset-inline-end: 0;
         }
@@ -328,7 +332,8 @@
         }
 
         .htItemWrapper {
-          span.selected {
+          span.selected,
+          span.htMixed {
             &::after {
               left: calc(4 * var(--ht-gap-size));
               right: auto;

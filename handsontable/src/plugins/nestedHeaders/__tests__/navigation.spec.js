@@ -1724,23 +1724,26 @@ describe('NestedHeaders', () => {
 
       await selectCell(-1, 0);
 
-      expect(document.activeElement).toEqual(getCell(-1, 0));
+      // The focused header is the visible top-overlay clone; only the owning master header carries the
+      // `aria-describedby` id (DEV-29), so the focused element is matched against the topmost-overlay
+      // cell rather than the master one.
+      expect(document.activeElement).toEqual(getCell(-1, 0, true));
 
       await keyDownUp('arrowright');
 
-      expect(document.activeElement).toEqual(getCell(-1, 1));
+      expect(document.activeElement).toEqual(getCell(-1, 1, true));
 
       await keyDownUp('arrowright');
 
-      expect(document.activeElement).toEqual(getCell(-1, 3));
+      expect(document.activeElement).toEqual(getCell(-1, 3, true));
 
       await keyDownUp('arrowleft');
 
-      expect(document.activeElement).toEqual(getCell(-1, 1));
+      expect(document.activeElement).toEqual(getCell(-1, 1, true));
 
       await keyDownUp('arrowleft');
 
-      expect(document.activeElement).toEqual(getCell(-1, 0));
+      expect(document.activeElement).toEqual(getCell(-1, 0, true));
     });
   });
 });

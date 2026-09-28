@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, test, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -6,9 +6,16 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks the manual row resize on the complex demo: the first capture shows the resize handle on a row
+ * header's bottom edge under the pointer, the second the guide line while the button is held down. Owned by
+ * DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/complex-demo')
@@ -26,10 +33,12 @@ test(__filename, async({ goto, tablePage }) => {
     THboundingBox!.y + THboundingBox!.height - 3
   );
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.move(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   // click third row header bottom line
   await tablePage.mouse.down();
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.down(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

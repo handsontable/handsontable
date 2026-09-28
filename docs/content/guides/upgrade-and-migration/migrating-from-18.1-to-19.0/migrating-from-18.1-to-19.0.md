@@ -1,27 +1,27 @@
 ---
 type: how-to
-title: Migrating from 18.1 to 18.2
-metaTitle: Migrating from 18.1 to 18.2 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 18.1 to Handsontable 18.2.
-permalink: /migration-from-18.1-to-18.2
-canonicalUrl: /migration-from-18.1-to-18.2
+title: Migrating from 18.1 to 19.0
+metaTitle: Migrating from 18.1 to 19.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 18.1 to Handsontable 19.0.
+permalink: /migration-from-18.1-to-19.0
+canonicalUrl: /migration-from-18.1-to-19.0
 pageClass: migration-guide
 react:
-  metaTitle: Migrate from 18.1 to 18.2 - React Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - React Data Grid | Handsontable
 angular:
-  metaTitle: Migrate from 18.1 to 18.2 - Angular Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Migrate from 18.1 to 18.2 - Vue Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-Migrate from Handsontable 18.1 to Handsontable 18.2.
+Migrate from Handsontable 18.1 to Handsontable 19.0.
 
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -282,14 +282,22 @@ enforcing `require-trusted-types-for 'script'` rejected. Each item now declares 
 `checked` option, and Handsontable builds the mark as a DOM node.
 
 `checked` is therefore read on every menu item. An item of your own that already carries a property
-of that name, holding a boolean or a function returning one, now does two things it did not do
-before:
+of that name, holding a boolean, the string `'mixed'`, or a function returning either, now does two
+things it did not do before:
 
-- it draws a check mark before its label whenever the value resolves to `true`
+- it draws a mark before its label: a check mark when the value resolves to `true`, and a dash when
+  it resolves to `'mixed'`
 - it is announced to assistive technology as a checkbox with a state, rather than as a plain menu
   item
 
-A property named `checked` holding anything else, such as a string or a number, is ignored.
+A property named `checked` holding anything else, such as any other string or a number, is ignored.
+
+The built-in "Read only" and "Read-only comment" items use `'mixed'` when only some of the selected
+cells are read-only. They show a dash there, where they used to show a check mark.
+
+If you use a theme without icons, such as `ht-theme-main-no-icons.css`, and draw the check mark
+yourself with a rule for `span.selected::after`, add a matching rule for `span.htMixed::after`.
+Otherwise the dash is not visible.
 
 If the property was your own bookkeeping and you want neither effect, rename it:
 
@@ -364,8 +372,8 @@ This applies only if you call [`registerShortcuts()`](@/api/formulas.md#register
 
 The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now, registered for
 every grid, so the `Formulas` plugin has nothing left for either method to do. Both are deprecated
-no-op methods since 18.2.0, and each prints a one-time console warning when called. They will be
-removed in 19.0.0.
+no-op methods since 19.0.0, and each prints a one-time console warning when called. They will be
+removed in 20.0.0.
 
 Nothing else about the shortcut changes: `Alt`+`Enter` still opens the link of the selected cell the
 same way it always did.
@@ -436,7 +444,7 @@ Removing row `0`:
 |  | Rows removed | Rows left |
 | --- | --- | --- |
 | Up to 18.1 | 2 | 2 blank rows |
-| From 18.2 | 4 | none |
+| From 19.0 | 4 | none |
 
 ### Who is affected
 
@@ -451,7 +459,7 @@ Removing row `0`:
   the row array that hook receives instead.
 - You relied on the blank rows staying behind, for example by writing new values into them. They are
   gone.
-- You undo a removal. From 18.2, undo restores the parent and its descendants. Up to 18.1 it put
+- You undo a removal. From 19.0, undo restores the parent and its descendants. Up to 18.1 it put
   back one row and left the rest on screen with no data behind them.
 
 A tree two levels deep is unaffected. There, the direct children and all descendants are the same
@@ -573,12 +581,12 @@ To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
 
-## 8. Row elements move with their rows on a vertical scroll
+## 14. Row elements move with their rows on a vertical scroll
 
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
 
 Since 18.0, Handsontable kept every `tr` and `td` element at its DOM position during a scroll and wrote
-the row that scrolled into it. In 18.2, a vertical scroll inside the grid's own scrollable area moves
+the row that scrolled into it. In 19.0, a vertical scroll inside the grid's own scrollable area moves
 the `tr` elements instead: a row that stays rendered keeps its element, and the rows that scrolled out
 wrap to the other end of the `tbody` and take the rows that scrolled in. The DOM order still matches
 the rendered order, so the first `tr` is still the first rendered row. The column axis is unchanged.
@@ -615,7 +623,7 @@ default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainte
 
 This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
 
-Before 18.2.0, moving the selection off a merged cell with a left or right arrow kept the row you
+Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
 entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
 from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
 and pressing left.
@@ -640,3 +648,383 @@ A grid without merged cells is unaffected.
 Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
 cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
 that workaround.
+
+## 15. AutoColumnSize includes the list-cell arrow in the column width
+
+This applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on -- the default -- for
+an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), or
+[`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) column, and
+you do not pin those columns with a column [`width`](@/api/options.md#width) or with
+[`colWidths`](@/api/options.md#colwidths).
+
+A long value next to the list-cell arrow used to wrap the arrow onto a second line. AutoColumnSize
+measured the text alone, so an autosized column was narrower than the value plus the arrow. The
+arrow is now out of flow, and its width is reserved as trailing padding on the cell. AutoColumnSize
+renders the real cell renderer off-DOM, so that padding is part of the measured width and the
+column grows.
+
+### Who is affected
+
+You are affected if you use the default AutoColumnSize plugin on an autocomplete, dropdown, or
+handsontable column. Those columns become wider on upgrade by the reserved arrow slot. A column
+you pin with `width` or `colWidths` keeps the width you set.
+
+### How to migrate
+
+Nothing to change if the extra width is acceptable.
+
+To keep the previous size on one column without turning AutoColumnSize off for the rest of the
+grid, set that column's `width`:
+
+**Before:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries },
+  { type: 'text' },
+],
+```
+
+**After:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries, width: 120 },
+  { type: 'text' },
+],
+```
+
+To pin every column, set `colWidths`. That option disables AutoColumnSize for the whole grid.
+
+## 16. The list cell types default to a single line
+
+This applies only to the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cell types, which render a dropdown arrow.
+
+In a narrow column, the value in one of these cells used to wrap onto several lines and tangle with the arrow. Each of these three cell types now defaults [`textEllipsis`](@/api/options.md#textellipsis) to `true`, so the value stays on a single line and truncates with an ellipsis, clear of the arrow (the arrow's own space is reserved -- see the previous section).
+
+This is a default, not a fixed rule -- [`textEllipsis`](@/api/options.md#textellipsis) and [`wordWrap`](@/api/options.md#wordwrap) still work, so you can turn wrapping back on. The default comes from the cell **type**, so it reaches a column that sets `type: 'autocomplete'` (or `'dropdown'` / `'handsontable'`); a column that only sets `renderer: 'autocomplete'` without the type keeps its previous wrapping.
+
+This also changes [`autoRowSize`](@/api/options.md#autorowsize). It measures each row by rendering the real cell, so on such a column a long value used to wrap and grow the row. That value now stays on one line, so those rows size to a single line instead of growing to fit the wrapped text.
+
+### Who is affected
+
+You are affected only if you use `type: 'autocomplete'`, `'dropdown'`, or `'handsontable'` and relied on the value wrapping onto multiple lines within the cell. A value that carries its own line breaks -- a `<br>` or block-level HTML in an [`allowHtml`](@/api/options.md#allowhtml) cell -- can still render on more than one line.
+
+### How to migrate
+
+To turn wrapping back on for such a column, set [`textEllipsis`](@/api/options.md#textellipsis) to `false`:
+
+**Before:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries },
+],
+```
+
+**After:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries, textEllipsis: false },
+],
+```
+
+Set it on the column, in [`cells`](@/api/options.md#cells), or with [`setCellMeta()`](@/api/core.md#setcellmeta) -- the layer that declares the `type`, or one below it. A grid-level `textEllipsis: false` does not reach a column that declares the type, because the type's own value shadows it.
+
+## 17. `height: 'auto'` no longer clips the grid
+
+`height: 'auto'` used to write `height: auto; overflow: clip;` on the grid's root element. The clip
+made the root the element the grid scrolled in, so every row rendered at once, and a dropdown editor
+on the last row was cut off at the grid's edge.
+
+`height: 'auto'` now writes `height: auto` and nothing else. The grid behaves like a plain block
+element: it grows to fit its rows, the nearest scrolling ancestor or the page scrolls it, and
+off-screen rows stay virtualized.
+
+### Who is affected
+
+Anyone using `height: 'auto'`, in particular with:
+
+- a fixed `width`, which now clips the horizontal axis only, so the grid scrolls its columns inside
+  that width while the page scrolls its rows
+- the [`EmptyDataState`](@/api/emptyDataState.md) or [`StretchColumns`](@/api/stretchColumns.md)
+  plugins, which read where the grid scrolls
+- code that reads `hot.view.isVerticallyScrollableByWindow()`, which now returns `true` for
+  `height: 'auto'`
+
+### How to migrate
+
+For the common case, nothing. The grid still grows to fit its rows and the page still scrolls it.
+
+To keep an internal vertical scrollbar, set a numeric `height`:
+
+```js
+// Before: the grid clipped itself and scrolled its rows inside.
+height: 'auto',
+
+// After: size the grid, and it scrolls its rows inside that box.
+height: 500,
+```
+
+Or place the grid inside a parent with a fixed height and `overflow: auto`. Inside such a parent, a
+grid with `height: 'auto'` fills the parent and scrolls inside it:
+
+```html
+<div style="height: 500px; overflow: auto;">
+  <div id="grid"></div>
+</div>
+```
+
+```js
+new Handsontable(document.querySelector('#grid'), {
+  height: 'auto',
+  // ...
+});
+```
+
+Three smaller changes ship with this one:
+
+- A `width` or `height` value the browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored
+  with a one-time console warning, and so are these CSS keywords. It used to be written to the root
+  element as it was.
+  - `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and `'normal'` do not
+    set a size.
+  - `'min-content'`, `'max-content'`, `'fit-content'`, and `fit-content()` size the grid to its full
+    content, so it cannot scroll inside its box and renders every row or column.
+  - `'stretch'`, `'-webkit-fill-available'`, and `'-moz-available'` fill the container but read as a
+    fixed size, so the grid would clip the columns past the container with no scrollbar.
+
+  If you used one of them, use `'auto'` or a length instead. For a grid that fills its container,
+  use `'100%'` or `'auto'`.
+- With a free height (`'auto'` or unset), a `width` that resolves against something outside the
+  grid, such as a `var()` (`'var(--grid-width)'`) or a container-query unit (`'50cqw'`), is no longer
+  clipped. It used to write `overflow-x: clip` like a fixed width, so the grid scrolled its columns
+  inside that width. It now leaves the horizontal overflow to the page, the way `'100%'` does, so the
+  page scrolls the columns. To keep the grid scrolling its own columns, give it a fixed width, such
+  as a number or a `px` or `em` length. A sized `height` still clips both axes, whatever the width.
+- `width: null` clears the inline width, the way `height: null` clears the height. It used to write
+  `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
+  `width` set through the option.
+
+## 18. `getCopyableData()` returns a string
+
+[`getCopyableData()`](@/api/core.md#getcopyabledata) was documented and typed as returning a string,
+but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an
+object. It now returns a string, as documented.
+
+A value that is not already a string is converted. Numbers and booleans become their text form,
+`null` and `undefined` become an empty string, and any other value goes through its `toString()`. A
+cell with [`copyable`](@/api/options.md#copyable) set to `false` still returns an empty string.
+
+The result can differ from the text copied to the clipboard for an object with its own `valueOf()`,
+such as an instance of a date library. The clipboard reads that object through `valueOf()`, while
+`getCopyableData()` uses `toString()`.
+
+Copying, cutting, and autofill are unaffected. The [`beforeCopy`](@/api/hooks.md#beforecopy),
+[`afterCopy`](@/api/hooks.md#aftercopy), [`beforeCut`](@/api/hooks.md#beforecut),
+[`afterCut`](@/api/hooks.md#aftercut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
+still receive the values as they are stored.
+
+[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before at run
+time. It still returns the source value as it is stored, nested objects included. Its TypeScript
+return type changes from `string` to `unknown`, which matches what it returns.
+
+### Who is affected
+
+- You compare the result of `getCopyableData()` with a value that is not a string, for example
+  `hot.getCopyableData(0, 0) === 1`.
+- You read a property or an item of the result, for example `hot.getCopyableData(0, 0).name` on a
+  cell that holds an object. You now read it from a string, so you get `undefined` or a single
+  character, and no error is thrown.
+- You call `getCopyableSourceData()` from TypeScript and use its result as a string without checking
+  its type first. That code no longer compiles.
+
+### How to migrate
+
+To keep reading the value as it is stored, call [`getDataAtCell()`](@/api/core.md#getdataatcell)
+instead. Unlike `getCopyableData()`, it does not check the `copyable` option, so check it yourself if
+your code relies on it.
+
+**Before:**
+
+```js
+if (hot.getCopyableData(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+**After:**
+
+```js
+if (hot.getCellMeta(0, 0).copyable && hot.getDataAtCell(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+In TypeScript, narrow the result of `getCopyableSourceData()` before you use it as a string:
+
+```ts
+const value = hot.getCopyableSourceData(0, 0);
+
+if (typeof value === 'string') {
+  hot.setDataAtCell(0, 1, value.trim());
+}
+```
+
+## 19. Dropdown editor lists are no longer confined to the grid
+
+The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md),
+[`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and
+[`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell types used to
+be positioned inside the grid's root element. Whenever a `height`
+was set, that root clipped its own content, so a list opened near the bottom row was cut off at the
+grid's edge. The editor tried to compensate by trimming the list to the rows that fit the space left
+inside the grid, which on a short grid left as few as two choices visible.
+
+Those lists are now positioned against the viewport. The grid's edge no longer cuts them, and they
+are no longer trimmed to fit inside it, so every choice that fits on screen is shown.
+
+### Who is affected
+
+Anyone rendering `autocomplete`, `dropdown`, `handsontable`, or `multiselect` cells, in particular:
+
+- a grid with a set `height` whose last rows carry one of those editors
+- a grid inside a parent with a fixed height and `overflow: auto` or `overflow: hidden`
+- code or tests that read the list's position, or that assert it opens above the edited cell when the
+  grid has no room below
+
+### How to migrate
+
+For the common case, nothing. The list opens in the same place and simply is not cut off.
+
+What changed in detail:
+
+- The list can now paint outside the grid's box. Whether it paints over what sits next to it
+  depends on the page: the list still belongs to the grid's stacking context, so a host page that
+  puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
+  specific area, size that area rather than the grid.
+- One ancestor property changes where the list is anchored, and the grid reads it for you. An
+  element with any of these becomes the box the list is laid out in, instead of the browser
+  window:
+
+  - `transform`, `translate`, `rotate`, or `scale`
+  - `perspective`
+  - `filter` or `backdrop-filter`
+  - `contain` set to `paint`, `layout`, `strict`, or `content`
+  - `will-change` naming any of the above
+
+  A centered modal written `transform: translate(-50%, -50%)` is the common case, but `scale: 0.9`
+  and `contain: content` do it too. The list is placed and bounded against that element, so it
+  cannot leave it, and a list taller than it is trimmed to fit and scrolls. Give such a container
+  room if you want the whole list visible.
+
+  A `container-type` does not do this, so a grid inside a container-query layout places its list
+  against the browser window like any other grid.
+- Whether the list opens above or below the cell is decided by the space left in the **viewport**,
+  not the space left inside the grid. A list that used to flip above the cell to fit inside a short
+  grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is
+  still decided by the grid's own width.
+- The list is no longer trimmed to the space inside the grid, so it can render more choices than
+  before. [`visibleRows`](@/api/options.md#visiblerows) still caps it.
+
+## 20. `spliceCol()` and `spliceRow()` are deprecated
+
+This applies only if you call [`spliceCol()`](@/api/core.md#splicecol) or
+[`spliceRow()`](@/api/core.md#splicerow) on the grid.
+
+Both methods are deprecated since 19.0.0, and each prints a one-time console warning when called.
+They still work exactly as before and will be removed in 20.0.0.
+
+Nothing else changes yet: the `spliceCol` and `spliceRow` change sources that
+[`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange)
+report are unaffected in 19.x. They go away with the methods in 20.0.0, so do not build new code
+on them.
+
+### Who is affected
+
+You are affected only if your code calls `hot.spliceCol(...)` or `hot.spliceRow(...)`.
+
+### How to migrate
+
+Change the data yourself and write it back with
+[`populateFromArray()`](@/api/core.md#populatefromarray), or use
+[`alter()`](@/api/core.md#alter) to add or remove whole rows and columns. Read the column, run
+`Array.prototype.splice()` on it, and write the shifted tail back from the same row.
+
+**Before:**
+
+```js
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+hot.spliceCol(1, 1, 1);
+```
+
+**After:**
+
+```js
+// Remove the cell in column 1 at row 1, shifting the cells below it up.
+const column = hot.getDataAtCol(1);
+const shifted = column.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, shifted.map(value => [value]));
+```
+
+`spliceRow()` is the same, along the row. Its `populateFromArray()` form takes a single inner array:
+
+**Before:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+hot.spliceRow(1, 1, 1);
+```
+
+**After:**
+
+```js
+// Remove the cell in row 1 at column 1, shifting the cells to its right left.
+const row = hot.getSourceDataAtRow(1);
+const shifted = row.slice(2);
+shifted.push(null);
+hot.populateFromArray(1, 1, [shifted]);
+```
+
+## 21. A `numeric` cell aligns itself by its type, not by its value
+
+This applies only to a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell
+that can hold a value other than a number -- `null`, `undefined`, or text.
+
+Such a cell used to look and align itself as a `numeric` cell only when its value actually parsed as a
+number. A `numeric` column cell holding `null`, `undefined`, or text stayed left-aligned and carried
+neither the `htRight` nor the `htNumeric` class name, even though
+[`getCellMeta()`](@/api/core.md#getcellmeta) reported `type: 'numeric'` for it. Once a cell picked up
+those classes -- for example while its value was briefly numeric during an edit -- they also never
+went away again, so the same cell could look `numeric` or not depending on what it happened to hold in
+the past rather than on its configured type.
+
+A `numeric` cell now aligns to the right and carries `htNumeric` and `dir="ltr"` because it is
+configured `numeric`, whatever value it holds. This also changes what
+[`ExportFile`](@/api/exportFile.md) writes for the XLSX format: such a cell now exports with
+right alignment too, matching what it now renders on screen.
+
+### Who is affected
+
+- You have a `numeric` column, or a cell set to `type: 'numeric'`, that can hold `null`,
+  `undefined`, or text -- for example while a row is still loading, or before a value passes
+  validation. Those cells are now right-aligned and carry `htNumeric` on screen, and export
+  right-aligned to XLSX.
+- You read the `className` cell meta or the cell's DOM class list to tell whether a `numeric` cell
+  currently holds a number. It no longer tells you that -- check the value itself instead, for example
+  with [`isNumeric()`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md).
+- You style `numeric` cells that hold non-numeric values with a custom rule that assumed they stayed
+  left-aligned. That rule may need updating to account for the new alignment.
+
+### How to migrate
+
+Nothing to change in most cases -- the new alignment matches the cell's configured type, and a cell
+that only ever holds numbers renders the same as before.
+
+If your own code or stylesheet relied on a `numeric` cell staying unstyled while it held a non-numeric
+value, account for the `htRight`/`htNumeric` classes and the right alignment now always being present
+on such a cell.

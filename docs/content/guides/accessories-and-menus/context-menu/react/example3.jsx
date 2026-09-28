@@ -1,6 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import { registerAllModules } from 'handsontable/registry';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
@@ -122,23 +122,25 @@ const contextMenuSettings = {
 
         return elem;
       },
-      disableSelection: true,
+      disableSelection: true, // Prevent mouseoever from highlighting the item for selection
       isCommand: false, // Prevent clicks from executing command and closing the menu
     },
   },
 };
 
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+  ['2017', 10, 11, 12, 13, 15, 16],
+  ['2018', 10, 11, 12, 13, 15, 16],
+  ['2019', 10, 11, 12, 13, 15, 16],
+  ['2020', 10, 11, 12, 13, 15, 16],
+  ['2021', 10, 11, 12, 13, 15, 16],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-        ['2020', 10, 11, 12, 13, 15, 16],
-        ['2021', 10, 11, 12, 13, 15, 16],
-      ]}
+      data={data}
       rowHeaders={true}
       colHeaders={true}
       autoWrapRow={true}

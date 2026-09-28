@@ -1,11 +1,17 @@
-import { test } from '../../../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../../../src/test-runner';
 import { helpers } from '../../../../src/helpers';
 import { selectCell, selectEditor, openEditor } from '../../../../src/page-helpers';
 
 /**
- * Checks whether Control+Shift+Z redoes the last action for multiline text.
+ * Checks whether Control+Shift+Z redoes the last action for multiline text: three line breaks are added and
+ * two undone, then redone one at a time. One capture per redo. Owned by DEV-2981.
  */
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
 
   const cell = await selectCell(1, 1);
 

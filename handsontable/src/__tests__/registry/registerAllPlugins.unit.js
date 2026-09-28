@@ -45,6 +45,7 @@ describe('`registerAllPlugins`', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ImportFile',
       'Filters',
       'Formulas',
       'AutoLink',

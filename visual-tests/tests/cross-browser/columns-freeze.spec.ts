@@ -1,11 +1,19 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import {
   selectColumnHeaderByNameAndOpenMenu,
   selectFromContextMenu,
 } from '../../src/page-helpers';
 
-test('Test freezing', async({ goto, tablePage }) => {
+/**
+ * Checks that a column frozen through the context menu stays pinned while the grid scrolls horizontally.
+ * Owned by DEV-2981.
+ */
+visualTest('Test freezing', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/cell-types-demo');
   await selectColumnHeaderByNameAndOpenMenu('Cost');
   await selectFromContextMenu('Freeze column');

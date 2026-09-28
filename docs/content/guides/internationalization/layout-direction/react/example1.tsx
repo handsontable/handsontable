@@ -34,13 +34,15 @@ function generateArabicData() {
   return arr;
 }
 
+const data = generateArabicData();
+
 const ExampleComponent = () => {
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={generateArabicData()}
+      data={data}
       colHeaders={true}
       rowHeaders={true}
       height="auto"

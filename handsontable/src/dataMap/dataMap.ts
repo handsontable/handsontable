@@ -954,9 +954,12 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
+   * The value is returned as it is stored, so it can be of any type. `Core#getCopyableData()`
+   * converts it to a string; the clipboard and Autofill consume it raw.
+   *
    * @param {number} row Visual row index.
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
-   * @returns {string}
+   * @returns {*}
    */
   getCopyable(row: number, prop: string | number | DataAccessorFn) {
     const colIndex = this.propToCol(prop);

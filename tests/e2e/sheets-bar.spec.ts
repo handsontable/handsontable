@@ -52,6 +52,25 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'A3');
   });
 
+  test('Ctrl+Z after a sheet round-trip does not undo the restored sort', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    });
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A3');
+
+    await bar.cell(1, 1).click();
+    await page.keyboard.press('ControlOrMeta+z');
+
+    await bar.expectCell(0, 0, 'A3');
+  });
+
   test('a cell edit survives a sheet round-trip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -68,6 +87,44 @@ test.describe('sheets bar', () => {
 
     await bar.clickTab(0);
     await bar.expectCell(0, 0, 'edited');
+  });
+
+  test('a read-only cell stays read-only when rows move under it', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.setCellMeta(0, 0, 'readOnly', true);
+      (window as never as { hot: any }).hot.render();
+    });
+
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+
+    await page.evaluate(() => (window as never as { hot: any }).hot.alter('insert_row_above', 0));
+
+    await bar.expectCell(1, 0, 'A1');
+    await expect(bar.cell(0, 0)).not.toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).toHaveClass(/htDimmed/);
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+
+    await expect(bar.cell(0, 0)).not.toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).toHaveClass(/htDimmed/);
+
+    await page.evaluate(() => (window as never as { hot: any }).hot.alter('remove_row', 0));
+
+    await bar.expectCell(0, 0, 'A1');
+    await bar.expectCell(1, 0, 'A3');
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).not.toHaveClass(/htDimmed/);
+
+    await bar.clickTab(1);
+    await bar.clickTab(0);
+
+    await expect(bar.cell(0, 0)).toHaveClass(/htDimmed/);
+    await expect(bar.cell(1, 0)).not.toHaveClass(/htDimmed/);
   });
 
   test('a sheet can be activated with the keyboard alone', async ({ page, theme, bundle }) => {
@@ -175,6 +232,30 @@ test.describe('sheets bar', () => {
     await bar.chevron(2).click();
 
     await expect(menu).toHaveCount(1);
+  });
+
+  test('double-clicking the menu trigger opens the menu without starting a rename', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    const menu = page.locator('.htSheetsBarMenu:visible');
+
+    await bar.chevron(0).dblclick();
+
+    await expect(menu).toHaveCount(1);
+    await expect(bar.renameInput).toHaveCount(0);
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+
+    await bar.chevron(2).dblclick();
+
+    await bar.expectActiveTab(2);
+    await expect(menu).toHaveCount(1);
+    await expect(bar.renameInput).toHaveCount(0);
   });
 
   test('only the active tab\'s menu trigger answers to hover', async ({ page, theme, bundle }) => {

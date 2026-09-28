@@ -16,7 +16,11 @@
  *   removed.
  * - At most `QUARANTINE_CAP` tests are quarantined at once; the next one fails
  *   the job until one is fixed, so quarantine cannot become the new normal.
- * - Playwright tier only. The frozen Jasmine suite migrates instead.
+ * - The Playwright tiers only. The functional suite applies it through the
+ *   helper and the reporter below; the visual suite applies the same limits to
+ *   captures through `visual-tests/visual-quarantine.json`, and
+ *   `visual-tests/lib/visual-quarantine.mjs` imports its checks from here, so
+ *   the two tiers cannot drift apart. The frozen Jasmine suite migrates instead.
  *
  * `tests/fixtures/quarantine.ts` is the spec-side helper, `tests/reporters/
  * quarantine.ts` the reporter that applies `evaluateRun()` to the finished run.

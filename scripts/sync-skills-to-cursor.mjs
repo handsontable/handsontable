@@ -38,7 +38,9 @@ const GLOB_MAP = {
   'angular-wrapper-dev': ['wrappers/angular-wrapper/**'],
   'writing-docs-pages': ['docs/content/**/*.md'],
   'creating-docs-examples': ['docs/content/**/javascript/**', 'docs/content/**/react/**', 'docs/content/**/angular/**'],
-  'creating-visual-test-examples': ['examples/**'],
+  // The visual suite serves `examples/next/visual-tests/<framework>/demo` only; the docs examples tree
+  // (`examples/next/docs/`) belongs to `creating-docs-examples`, so a wider glob attached the wrong skill.
+  'creating-visual-test-examples': ['examples/next/visual-tests/**'],
   'coordinate-systems': ['handsontable/src/translations/**', 'handsontable/src/plugins/**'],
   'i18n-translations': ['handsontable/src/i18n/**'],
   'handsontable-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],

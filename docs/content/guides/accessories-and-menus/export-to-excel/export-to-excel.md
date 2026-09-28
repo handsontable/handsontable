@@ -18,6 +18,7 @@ vue:
   metaTitle: Export to Excel - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
 Export your grid data to an Excel (`.xlsx`) file, preserving cell types, styling, formulas, merged cells, and more.
 
@@ -90,6 +91,30 @@ const hotSettings = ref({
 ```
 
 :::
+
+## Engines
+
+XLSX export goes through an engine you inject via the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs) is the only supported engine, and it writes every feature the plugin produces:
+
+| Feature | ExcelJS |
+|---|---|
+| Values, number formats, formulas | Yes |
+| Merged cells, column widths, row heights | Yes |
+| Hidden rows and columns, multiple sheets | Yes |
+| Cell styling, `headerStyle` | Yes |
+| Conditional formatting | Yes |
+| List validation (dropdown sources) | Yes |
+
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+
+Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
+
+```javascript
+await exportPlugin.downloadFileAsync('xlsx', {
+  filename: 'Q1-Sales-Report',
+  engine: ExcelJS,
+});
+```
 
 ## Example
 
@@ -235,13 +260,19 @@ Pass these options as the second argument to `downloadFileAsync('xlsx', options)
 | `rowHeaders` | `Boolean`, default `false` | Include row headers as a frozen first column in the exported file. |
 | `exportFormulas` | `Boolean`, default `false` | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. |
 | `sheets` | `Array`, default `[]` | Multi-sheet configuration. Each entry is an object with an `instance` (a Handsontable object), a `name` (the sheet tab label), and any per-sheet options such as `colHeaders` or `rowHeaders`. When provided, the top-level `instance` is ignored and each sheet is exported separately. |
-| `compression` | `Boolean` \| `Number` (1–9), default `false` | Enable DEFLATE compression. `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). |
+| `compression` | `Boolean` \| `Number` (1–9), default DEFLATE level 6 | DEFLATE compression. Unset or `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). `false` writes the workbook's entries stored, without compression. |
 | `conditionalFormatting` | `Array`, default `[]` | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indexes) and a `rules` array of [ExcelJS conditional formatting rule objects](https://github.com/exceljs/exceljs#conditional-formatting). |
 | `range` | `Array`, default `[]` | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). When omitted, the entire grid is exported. |
 
 ### Multi-sheet export
 
 Use the `sheets` option to export multiple Handsontable instances into a single workbook. Each entry specifies the `instance` to read from and a `name` for the sheet tab.
+
+::: tip Behavior note
+
+With `exportFormulas`, a formula reference that names another sheet, such as `=Rates!A1`, is written as typed. The referenced sheet is not shifted by the header row and row-header column the export prepends to it, so such a reference points one row up and one column left of the intended cell in the written file when that sheet is part of the same export and carries headers. Same-sheet references are shifted correctly. Cross-sheet formulas across exported sheets are a known limitation.
+
+:::
 
 ::: only-for javascript
 ::: example #example2 :hot-excel --html 1 --js 2 --ts 3
@@ -334,8 +365,8 @@ The following Handsontable cell types are recognized and written to the `.xlsx` 
 | Handsontable type            | Excel behavior |
 | ---------------------------- | -------------- |
 | `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. |
-| `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). |
-| `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. |
+| `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). The `dateFormat` option is translated to an Excel `numFmt` string, ordered and separated the way the cell's [`locale`](@/api/options.md#locale) renders it: `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is written as `mm/dd/yyyy` under `en-US` and `dd.mm.yyyy` under `de-DE`, and `{ weekday: 'long' }` is written as `dddd`. |
+| `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. The `timeFormat` option is translated the same way, so `{ hour: '2-digit', minute: '2-digit', hour12: false }` is written as `hh:mm`. A `timeFormat` that sets no `hour12` takes its clock from the cell's [`locale`](@/api/options.md#locale), just as the grid does, so the same options under `en-US` are written as `hh:mm AM/PM`. |
 | `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). |
 | `dropdown` / `autocomplete`  | Text cell. The validation list is not exported. |
 | All others                   | Text cell. |
@@ -348,6 +379,18 @@ Cell styling is read from the rendered DOM at export time. The following propert
 - **Borders**: configurations set via the [`CustomBorders`](@/api/customBorders.md) plugin. Border widths map to Excel styles: 1 px → `thin`, 2 px → `medium`, 3+ px → `thick`.
 
 Read-only cells (`readOnly: true`) receive a light-gray fill and gray font color in the exported file by default. Applying CSS classes to a read-only cell overrides these defaults.
+
+::: tip Behavior note
+
+A `timeFormat` or `dateTimeFormat` that sets no `hour12` is exported with the clock its [`locale`](@/api/options.md#locale) implies, because that is the clock the grid renders. Excel has no marker for an unspecified clock, so a file imported back always states `hour12`. Set `hour12` yourself to pin it across the round trip.
+
+:::
+
+::: tip Behavior note
+
+On a rendered cell, the exported font color is the cell's own computed color, compared against a baseline probe - a cell wearing the same alignment classes and nothing else, mounted inside the same grid wrapper - and exported only when it differs. A color a rule sets on the cell, whatever selector it uses, or a color a custom renderer writes, is exported. A text color the cell only inherits, such as one from a CSS variable scoped to the grid container, is not, because the baseline shows the same color. A cell outside the viewport has no rendered element, so its color comes from the class-only probe instead; a color that only a rule scoped beyond `.handsontable td.<class>` sets is exported for rendered cells only.
+
+:::
 
 ## Related API reference
 

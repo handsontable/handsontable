@@ -127,10 +127,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
+  importFile: { engines: { xlsx: {} } },
   fillHandle: true,
   filter: true,
   filteringCaseSensitive: true,
   filters: false,
+  filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
   fixedColumnsLeft: 123,
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
@@ -151,7 +153,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   hashLength: 8,
   hashRevealDelay: 1000,
   hashSymbol: '#',
-  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
+  height: oneOf(500, 'auto', '250', '250px', '50%', '75vh', 'calc(100% - 40px)', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -384,7 +386,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
+  width: oneOf(500, 'auto', '250', '250px', '50%', '75vw', 'calc(100% - 40px)', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object
@@ -455,7 +457,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
-  afterDetachChild: (parent, element) => {},
+  afterDetachChild: (parent, element, finalElementPosition, source) => {
+    const _source: string | undefined = source;
+  },
   afterDialogFocus: (focusSource) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
@@ -480,6 +484,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterImport: (result, format) => {},
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -628,6 +633,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return true;
   },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
+  beforeReadOnlyToggle: (stateBefore, ranges, readOnly) => {},
   beforeChange: (changes, source) => {
     if (changes?.[0] !== null) { changes[0][3] = 10; }
 
@@ -666,7 +672,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeDetachChild: (parent, element) => {},
+  beforeDetachChild: (parent, element, source) => {
+    const _source: string | undefined = source;
+  },
   beforeDialogHide: () => {},
   beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -705,6 +713,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return 10;
   },
+  beforeImport: (result, format) => {},
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},

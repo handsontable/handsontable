@@ -7,7 +7,10 @@ before touching `hiddenRows.ts` or anything in `contextMenuItem/`.
 `../hiddenColumns/AGENTS.md` — the hiding-vs-trimming distinction, the replayed `init` local hook, the
 `afterGetCellMeta` hygiene rules (`className` normalization, compare-before-assign, gating the write on
 finding the marker, token matching) and the
-`disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.**
+`disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.** The Show
+column adjacent-stretch trap in that file applies to `contextMenuItem/showRow.ts` as well (DEV-1040).
+Both Show items call `collectAdjacentHiddenPhysicalIndexes` from `../../../utils/hiddenIndexes.ts`
+— do not copy that helper into this plugin.
 
 What follows is only what differs.
 
@@ -57,10 +60,32 @@ twin, which is the same defect on the horizontal axis. Covered by
 `tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
 byte for byte against the 18.1.0 rules.
 
+## Hide row suppresses itself when no row is rendered
+
+`contextMenuItem/hideRow.ts` `hidden()` mirrors `../hiddenColumns/` `hideColumn.ts` (DEV-164): after the
+selection-type gate it returns `true` when `rowIndexMapper.getRenderableIndexesLength() === 0`, so a corner
+(select-all) right-click stops showing a dead "Hide rows" entry whenever no row is visible — every row
+hidden (the reported case), an empty grid, or a fully-trimmed grid (a filter matching nothing). All three
+are the same no-op (`hideRows([])`). Using *renderable* count rather than `getHiddenRows().length` keeps the
+answer consistent whether the rows are gone by hiding or by trimming. Full rationale in
+`../hiddenColumns/AGENTS.md`.
+
 ## Known concern
 
-`../../../.ai/CONCERNS.md` lists `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a
-stack-overflow risk with 10k+ elements. Use a `forEach` loop.
+`../../../.ai/CONCERNS.md` used to list `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a
+stack-overflow risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce
+`push(...array)` here.
+
+## Undo of a row removal restores hidden state (DEV-134)
+
+This plugin registers no `beforeRemoveRow`/`afterRemoveRow` hook of its own — row removal and its undo are
+handled entirely from the `undoRedo` plugin's side, because `IndexMapper#removeIndexes()`/`insertIndexes()`
+splice and re-insert every registered `HidingMap` unconditionally, with no memory of the prior flags.
+`RemoveRowAction` captures which visual rows were hidden before a removal and re-hides them on undo via the
+plugin's own public `hideRows()`, the same pattern it already uses for `MergeCells`. Redo needs no
+matching capture: `UndoRedo#redo()` pushes the same action object back onto the done stack rather than
+re-running the capture, so the originally-recorded hidden rows carry forward unchanged. Full mechanics:
+`../undoRedo/AGENTS.md`.
 
 ## Where to look next
 

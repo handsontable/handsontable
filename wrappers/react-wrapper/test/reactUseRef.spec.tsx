@@ -5,10 +5,10 @@ import {
   mockElementDimensions,
   mountComponent
 } from './_helpers';
-import { HotTableRef } from '../src/types'
+import { HotTableRef } from '../src/types';
 
 describe('Using useRef hooks within HotTable', () => {
-  it('should be possible the get Handsontable instance', async () => {
+  it('should be possible the get Handsontable instance', async() => {
     const refData = createSpreadsheetData(3, 3);
     let data!: string[][];
 
@@ -30,11 +30,11 @@ describe('Using useRef hooks within HotTable', () => {
           height={300}
           rowHeights={23}
           colWidths={50}
-          init={function () {
+          init={function() {
             mockElementDimensions(this.rootElement, 300, 300);
           }}
         ></HotTable>
-      )
+      );
     }
 
     mountComponent((

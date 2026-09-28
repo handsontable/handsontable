@@ -1,7 +1,7 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
 import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -70,6 +70,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -79,6 +80,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -365,12 +367,22 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
+  // that a second call is a no-op regardless of how the first one ended (see the `init` method).
+  let initialized = false;
   // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
   // instance instead of on every `updateSettings()` call that carries the options.
   let themeOverridesWarningShown = false;
   // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
   // the instance, because `destroy` nulls every instance property before it could be read there.
   let visibilityObserver: IntersectionObserver | null = null;
+  /**
+   * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
+   * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
+   * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
+   * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
+   */
+  let slotsResizeObserver: ResizeObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -1232,6 +1244,12 @@ export default function Core(
     this.runHooks('afterDeselect');
   });
 
+  // The hovered layer is read when the borders are drawn, so a view render repaints the handles.
+  // Not `instance.render()`: that forces a full draw, which a hover during a scroll must not pay.
+  this.selection.addLocalHook('afterSetHandlesHoveredLayer', () => {
+    instance.view.render();
+  });
+
   this.selection
     .addLocalHook('beforeHighlightSet', () => instance.runHooks('beforeSelectionHighlightSet'))
     .addLocalHook('beforeSetRangeStart',
@@ -1373,6 +1391,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Rows the group names above the first one or past the last one do not exist, so they
+                // are dropped from it rather than translated into rows the caller never named (DEV-117).
+                // The part that does exist is still removed - `normalizeIndexesGroup` above may have
+                // merged a valid group into one that starts above the table. An empty index keeps its
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`. The
+                // rule lives in `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countRows());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1468,6 +1502,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Columns the group names before the first one or past the last one do not exist, so
+                // they are dropped from it rather than translated into columns the caller never named
+                // (DEV-117). The part that does exist is still removed - `normalizeIndexesGroup` above
+                // may have merged a valid group into one that starts before the table. An empty index
+                // keeps its own meaning, "take the columns from the end". The rule lives in
+                // `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countCols());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
                 let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -2030,6 +2080,25 @@ export default function Core(
   }
 
   this.init = function() {
+    // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
+    // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
+    // Use `updateSettings()` to reconfigure a live instance.
+    if (initialized) {
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
+
+      return;
+    }
+
+    initialized = true;
+
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
@@ -2095,6 +2164,23 @@ export default function Core(
           width = instance.rootWrapperElement.offsetWidth;
         }
 
+        // The slot aligns with the TABLE (a narrow table gets a narrow bar), but never past the
+        // wrapper when the WINDOW owns the horizontal axis: the table can then be wider than its
+        // CSS-sized container, and a slot sized to the table ran out of that container – up to the
+        // full page width (DEV-2848). Only that mode is clamped: with a definite `width` option the
+        // root owns the axis and `getWorkspaceWidth()` is the grid's own box, which the slot keeps
+        // following even inside a narrower container (the user sized the grid explicitly).
+        // `clientWidth` is the wrapper's own box. In a block parent the slot's previous inline width
+        // cannot inflate it. In a shrink-to-fit parent (`inline-block`, a float, a widthless flex
+        // item) the wrapper sizes to its widest child, but the table is one of those children and
+        // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
+        // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
+        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+
+        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+          width = Math.min(width, wrapperWidth);
+        }
+
         // Only write when the value actually changes — avoids a reflow → dimension-refresh
         // → re-sync feedback loop, and needless layout writes during volatile renders.
         if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
@@ -2109,6 +2195,37 @@ export default function Core(
       };
 
       this.addHook('afterRender', syncEdgeSlotsWidth);
+
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      // Seeded with the current value: an observer delivers once on `observe()`, and that first
+      // delivery must not cost a render.
+      let lastSlotsHeight = measureSlotsHeight();
+
+      // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
+      // bar that mounts late or changes height would keep a stale reservation until an unrelated
+      // draw. The loop cannot feed itself: a render re-syncs the slot WIDTH, which can toggle the
+      // slot's horizontal scrollbar exactly once, and the next delivery then reads an unchanged
+      // height and stops here. `refreshDimensions()` is not enough – inside a scrollable ancestor the
+      // root's box does not change until the engine re-measures, so it would skip the render.
+      slotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return;
+        }
+
+        lastSlotsHeight = slotsHeight;
+
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        instance.render();
+      });
+      slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
 
     instance.runHooks('init');
@@ -2809,9 +2926,15 @@ export default function Core(
    * because that method reads the first row's keys.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   *
+   * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
+   * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
+   * infinite loop. If you need to update data from within a renderer, guard the call (for example, skip it when the
+   * new value already equals the current one), or, preferably, perform the update in a data-change hook such as
+   * {@link Hooks#afterChange} and keep the renderer display-only.
    *
    * @memberof Core#
    * @function setDataAtCell
@@ -2844,7 +2967,7 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on.
         //
         // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
         // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
@@ -2858,7 +2981,7 @@ export default function Core(
         if (instance.dataType !== 'array' && this.countCols() > 0) {
           deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
             'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
             'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
             'field the grid shows no column for.');
         }
@@ -3039,10 +3162,14 @@ export default function Core(
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_col` and
+   * `remove_col` to add or remove columns.
    * @param {number} column Index of the column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3050,14 +3177,23 @@ export default function Core(
    * @returns {Array} Returns removed portion of columns.
    */
   this.spliceCol = function(column: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceCol',
+      'The `spliceCol()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_col`/`remove_col`.');
+
     return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_row` and
+   * `remove_row` to add or remove rows.
    * @param {number} row Index of column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3065,6 +3201,11 @@ export default function Core(
    * @returns {Array} Returns removed portion of rows.
    */
   this.spliceRow = function(row: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceRow',
+      'The `spliceRow()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_row`/`remove_row`.');
+
     return datamap.spliceRow(row, index, amount, ...elements);
   };
 
@@ -3193,6 +3334,45 @@ export default function Core(
   };
 
   /**
+   * Collects "empty this cell" changes for a rectangular range of cells, skipping read-only ones.
+   * The passed coordinates are clamped to the grid, so header coordinates (negative values) and
+   * corners that reach past the last row or column are safe to pass.
+   *
+   * @param {Array[]} changes The array that the collected changes are pushed into.
+   * @param {number} startRow The visual row index the range starts at.
+   * @param {number} endRow The visual row index the range ends at.
+   * @param {number} startColumn The visual column index the range starts at.
+   * @param {number} endColumn The visual column index the range ends at.
+   * @returns {void}
+   */
+  const collectEmptyCellChanges = (
+    changes: Array<[number, number, unknown]>,
+    startRow: number,
+    endRow: number,
+    startColumn: number,
+    endColumn: number,
+  ) => {
+    const fromRow = Math.max(startRow, 0);
+    const toRow = Math.min(endRow, instance.countRows() - 1);
+    const fromColumn = Math.max(startColumn, 0);
+    const toColumn = Math.min(endColumn, instance.countCols() - 1);
+
+    if (fromRow > toRow || fromColumn > toColumn) {
+      return;
+    }
+
+    rangeEach(fromRow, toRow, (row) => {
+      rangeEach(fromColumn, toColumn, (column) => {
+        // The transient read keeps clearing a large range from permanently materializing
+        // one meta object per cell - only `readOnly` is read here.
+        if (!instance.getCellMetaTransient(row, column).readOnly) {
+          changes.push([row, column, null]);
+        }
+      });
+    });
+  };
+
+  /**
    * Erases content from cells that have been selected in the table.
    *
    * @memberof Core#
@@ -3216,26 +3396,8 @@ export default function Core(
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
-      const fromRow = Math.max(topStart.row!, 0);
-      const toRow = Math.min(bottomEnd.row!, this.countRows() - 1);
-      const fromColumn = Math.max(topStart.col!, 0);
-      const toColumn = Math.min(bottomEnd.col!, this.countCols() - 1);
 
-      if (fromRow > toRow || fromColumn > toColumn) {
-        return;
-      }
-
-      const collectEmptyCellChanges = (row: number) => {
-        rangeEach(fromColumn, toColumn, (column) => {
-          // The transient read keeps clearing a large selection from permanently materializing
-          // one meta object per cell - only `readOnly` is read here.
-          if (!this.getCellMetaTransient(row, column).readOnly) {
-            changes.push([row, column, null]);
-          }
-        });
-      };
-
-      rangeEach(fromRow, toRow, collectEmptyCellChanges);
+      collectEmptyCellChanges(changes, topStart.row!, bottomEnd.row!, topStart.col!, bottomEnd.col!);
     });
 
     if (changes.length > 0) {
@@ -3405,7 +3567,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markCellChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @example
@@ -3441,7 +3603,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markAllCellsChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @example
    * ```js
    * hot.markAllCellsChanged();
@@ -3457,6 +3619,8 @@ export default function Core(
    * table rendering process. After the execution of the operations, the table is
    * rendered once. As a result, it improves the performance of wrapped operations.
    * Without batching, a similar case could trigger multiple table render calls.
+   *
+   * Rendering resumes even when the callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batchRender
@@ -3481,11 +3645,11 @@ export default function Core(
   this.batchRender = function<T>(wrappedOperations: () => T): T {
     instance.suspendRender();
 
-    const result = wrappedOperations();
-
-    instance.resumeRender();
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeRender();
+    }
   };
 
   /**
@@ -3572,6 +3736,9 @@ export default function Core(
    * cache is recalculated once. As a result, it improves the performance of wrapped
    * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
+   * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
+   * is not applied on that path.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3595,11 +3762,19 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
-    const result = wrappedOperations();
+    let completed = false;
 
-    instance.resumeExecution(forceFlushChanges);
+    try {
+      const result = wrappedOperations();
 
-    return result;
+      completed = true;
+
+      return result;
+    } finally {
+      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+      // after a throw is a half-applied change, so the flag is honored only on the happy path.
+      instance.resumeExecution(completed && forceFlushChanges);
+    }
   };
 
   /**
@@ -3608,7 +3783,8 @@ export default function Core(
    * as well aggregates the table logic changes such as index changes into one call
    * after which the cache is updated. After the execution of the operations, the
    * table is rendered, and the cache is updated once. As a result, it improves the
-   * performance of wrapped operations.
+   * performance of wrapped operations. Rendering and execution resume even when the
+   * callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batch
@@ -3640,12 +3816,19 @@ export default function Core(
     instance.suspendRender();
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution();
-    instance.resumeRender();
-
-    return result;
+    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+    // instance suspended for the rest of its life, so it never painted again. The two resumes are
+    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+    // the flush) still lets `resumeRender` run.
+    try {
+      return wrappedOperations();
+    } finally {
+      try {
+        instance.resumeExecution();
+      } finally {
+        instance.resumeRender();
+      }
+    }
   };
 
   /**
@@ -3953,7 +4136,14 @@ export default function Core(
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index.
+   * Returns the data's copyable value at specified `row` and `column` index, as a string.
+   *
+   * A value that is not already a string is converted: numbers and booleans to their text form,
+   * `null` and `undefined` to an empty string, and everything else through its `toString()`.
+   * A cell with `copyable` disabled returns an empty string.
+   *
+   * The text copied to the clipboard can differ for an object with its own `valueOf()`, because the
+   * clipboard reads such an object through `valueOf()` first.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -3962,21 +4152,48 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return stringify(datamap.getCopyable(row, datamap.colToProp(column)));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index, without converting it
+   * to a string.
+   *
+   * The clipboard and Autofill need the value as it is stored. Autofill writes it back into the grid,
+   * the `beforeCopy`, `afterCopy`, `beforeCut`, `afterCut`, and `beforeAutofill` hooks hand it to
+   * consumers, and the clipboard text reads an object through `valueOf()` rather than `toString()`.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. The Autofill and CopyPaste plugins
+   * reach it through a local internal type. Do not add it to `HotInstance`.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getCopyableData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getCopyableData = function(row: number, column: number) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
    * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * The value is returned as it is stored, so it can be a nested object or an array. The CopyPaste
+   * plugin serializes those to JSON when copying with source data. A cell with `copyable` disabled
+   * returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableSourceData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
@@ -4068,6 +4285,14 @@ export default function Core(
         'As one is the alias of the other, only one of them can be used at a time. ' +
         '`rowHeights` will be used as the row height configuration.');
     }
+
+    // The stored `height` and `width` before this call. An unreadable value is ignored by
+    // `applyRootSize()` below, and the stored setting must stay on the size the grid uses. On init the
+    // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
+    const previousRootSize = {
+      height: init ? undefined : tableMeta.height,
+      width: init ? undefined : tableMeta.width,
+    };
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
@@ -4396,103 +4621,12 @@ export default function Core(
       runSourceDataValidators(instance, 'init');
     }
 
-    let currentHeight: string | number = instance.rootElement.style.height;
+    // The root's inline `height`, `width`, and `overflow*` have one writer: `core/rootSize.ts`.
+    const rootSize = applyRootSize(instance, settings, init);
 
-    if (currentHeight !== '') {
-      currentHeight = parseInt(instance.rootElement.style.height, 10);
-    }
-
-    if (init) {
-      const initialStyle = instance.rootElement.getAttribute('style');
-
-      if (initialStyle) {
-        instance.rootElement.dataset.initialstyle = instance.rootElement.getAttribute('style') ?? '';
-      }
-    }
-
-    let height = settings.height;
-
-    if (typeof settings.height !== 'undefined') {
-      if (isFunction(height)) {
-        height = (height as () => string | number)();
-      }
-
-      height = instance.runHooks('beforeHeightChange', height);
-
-      if (height === null) {
-        const initialStyle = instance.rootElement.dataset.initialstyle;
-
-        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-          instance.rootElement.setAttribute('style', initialStyle);
-
-        } else {
-          instance.rootElement.style.height = '';
-          instance.rootElement.style.overflow = '';
-        }
-
-      } else if (height !== undefined) {
-        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'clip';
-      }
-    }
-
-    if (typeof settings.width !== 'undefined') {
-      let width = settings.width;
-
-      if (isFunction(width)) {
-        width = (width as () => string | number)();
-      }
-
-      width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
-    }
-
-    // When height is absent the table uses window scroll, so the `overflow: clip` shorthand from the
-    // height block is not applied. Set overflowX: clip to prevent the inner table from visually
-    // overflowing a constrained width. Read the effective values from the DOM (after both height and
-    // width blocks ran) so partial updateSettings calls see the correct state.
-    // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
-    // overflowX untouched to avoid breaking that shorthand.
-    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
-    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
-    // with the window — matching the long-standing behavior where the page gains a horizontal
-    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
-    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
-    // establishes a fixed box the table must not visually overflow, so it is clipped.
-    if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
-      const effectiveHeight = instance.rootElement.style.height;
-      const effectiveWidth = instance.rootElement.style.width;
-      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
-      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
-      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
-      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
-      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
-      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
-      // `height: 'auto'` is a free height like an unset one: the grid's rows belong to the page. It
-      // still writes the `overflow: clip` shorthand above, so the longhand written here changes
-      // nothing readable today. It is the contract the engine's per-axis trimming reads (the root
-      // owns the horizontal axis, the window the vertical one), and it is what keeps every column
-      // reachable once `'auto'` stops writing the shorthand. Only an unset height may clear the
-      // longhand: for `'auto'` with a relative width the shorthand stays whole, so the clip is not
-      // silently reduced to the vertical axis.
-      const isFreeHeight = effectiveHeight === '' || effectiveHeight === 'auto';
-
-      if (isFreeHeight) {
-        const currentOverflowX = instance.rootElement.style.overflowX;
-
-        // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
-        // overflow (e.g. `overflow: hidden` restored from the initial style) so it is not stomped
-        // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
-        // programmatic scroll.
-        if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          if (isDefiniteWidth) {
-            instance.rootElement.style.overflowX = 'clip';
-          } else if (effectiveHeight === '') {
-            instance.rootElement.style.overflowX = '';
-          }
-        }
-      }
-    }
+    rootSize.ignoredAxes.forEach((axis) => {
+      globalMeta[axis] = previousRootSize[axis];
+    });
 
     if (!init) {
       if (instance.view) {
@@ -4519,8 +4653,7 @@ export default function Core(
       instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
-        currentHeight !== height) {
+    if (!init && instance.view && rootSize.scrollOwnerChanged) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
 
@@ -4598,12 +4731,32 @@ export default function Core(
   /**
    * Clears the data from the table (the table settings remain intact) and clears the current selection.
    *
+   * The method empties every cell of the data set. Neither the current selection nor the
+   * [`selectionMode`](@/api/options.md#selectionmode) option limits its range. Cells set as
+   * [`readOnly`](@/api/options.md#readonly) keep their values.
+   *
    * @memberof Core#
    * @function clear
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.clear = function(this: HotInstance & CoreInternals) {
-    this.selectAll();
-    this.emptySelectedCells();
+    const countRows = this.countRows();
+    const countCols = this.countCols();
+
+    // The whole data set is emptied directly instead of through a select-all. Routing it through
+    // the selection made the amount of cleared data depend on what the selection was allowed to
+    // cover, so `selectionMode: 'single'` left every cell but the highlighted one untouched.
+    if (countRows > 0 && countCols > 0) {
+      const changes: Array<[number, number, unknown]> = [];
+
+      collectEmptyCellChanges(changes, 0, countRows - 1, 0, countCols - 1);
+
+      if (changes.length > 0) {
+        this.setDataAtCell(changes);
+      }
+    }
+
     this.deselectCell();
   };
 
@@ -4647,6 +4800,10 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   *                                For `'remove_row'` and `'remove_col'`, rows and columns that do not exist are
+   *                                never removed. An index that points outside the table (a negative one, or one at
+   *                                or past the last row/column) removes nothing, and in the array format any part of
+   *                                a range that falls outside the table is ignored while the rest is still removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
@@ -6857,6 +7014,8 @@ export default function Core(
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
     visibilityObserver?.disconnect();
     visibilityObserver = null;
+    slotsResizeObserver?.disconnect();
+    slotsResizeObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

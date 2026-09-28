@@ -198,6 +198,14 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 `contextMenuItem/` holds `addEditComment`, `readOnlyComment` and `removeComment`, wired through
 `afterContextMenuDefaultOptions`. A new item goes there, not inline in `comments.ts`.
 
+`readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
+`getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
+comment `value`. The mark can be `'mixed'`, so the click sets **one** state for every comment in the
+active range – any read-only comment makes them all writable, otherwise they all become read-only –
+and never writes to a cell without a comment. It used to flip each cell on its own, which turned a
+mixed selection into the opposite mixed selection, and wrote value-less comment meta onto cells
+that had no comment.
+
 ## Where to look next
 
 - The menu the items land in: `../contextMenu/AGENTS.md`.

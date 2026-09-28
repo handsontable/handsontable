@@ -366,4 +366,77 @@ test.describe('overlay scrollbar clearance', () => {
     expect(snapshot.clipped).toContain('ht_clone_top');
     expect(snapshot.bandCoversTopOfBar).toBe(true);
   });
+
+  test('clears the holder\'s horizontal scrollbar in the reverse split', async ({ page }) => {
+    // The reverse split: an ancestor clips the vertical axis only, so an element owns the rows and the
+    // window owns the columns - yet the holder is the one that scrolls them, because it takes the
+    // vertical owner's pixel height and CSS turns its `overflow: visible` beside `auto` into `auto`
+    // (`Overlay#ownsWindowScroll()`). A gate keyed on the horizontal OWNER reads "the window's
+    // scrollbar" there and leaves the holder's scrollbar under the frozen bottom rows and columns.
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+
+      host.id = 'reverse-split-grid';
+      host.style.cssText = 'height: 300px; width: 500px; overflow-y: clip;';
+      host.className = document.querySelector('[data-testid="grid"]')!.className;
+      document.body.appendChild(host);
+
+      const data = Array.from({ length: 60 }, (_, r) =>
+        Array.from({ length: 25 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+      (window as unknown as { reverseSplitHot: unknown }).reverseSplitHot =
+        new (window as unknown as { Handsontable: new (...a: unknown[]) => unknown }).Handsontable(host, {
+          data,
+          colWidths: 90,
+          rowHeaders: true,
+          colHeaders: true,
+          fixedColumnsStart: 3,
+          fixedRowsBottom: 2,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+    });
+
+    await expect(page.locator('#reverse-split-grid .ht_clone_bottom')).toBeVisible();
+
+    // Scroll the horizontal axis only, and snapshot in the same page call (see the first test).
+    const snapshot = await page.evaluate(() => new Promise<{
+      gutterX: number, gutterY: number, windowOwnsColumns: boolean, holderScrolledColumns: boolean,
+      edges: string[], clipped: string[],
+    }>((resolve) => {
+      const root = document.querySelector('#reverse-split-grid')!;
+      const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const hot = (window as unknown as {
+        reverseSplitHot: { view: { isHorizontallyScrollableByWindow(): boolean } },
+      }).reverseSplitHot;
+
+      holder.addEventListener('scroll', () => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve({
+          gutterX: holder.offsetWidth - holder.clientWidth,
+          gutterY: holder.offsetHeight - holder.clientHeight,
+          windowOwnsColumns: hot.view.isHorizontallyScrollableByWindow(),
+          holderScrolledColumns: holder.scrollLeft > 0,
+          edges: [...root.querySelectorAll('.htScrollbarClearanceFiller')]
+            .map(el => el.getAttribute('data-ht-clearance-edge') || '?'),
+          clipped: [...root.querySelectorAll('[class*="ht_clone_"]')]
+            .filter(el => getComputedStyle(el).clipPath !== 'none')
+            .map(el => (el.className.match(/ht_clone_\w+/) || ['?'])[0]),
+        })));
+      }, { once: true });
+
+      holder.scrollLeft += 160;
+    }));
+
+    // The layout under test, or every assertion below describes another mode.
+    expect(snapshot.windowOwnsColumns).toBe(true);
+    expect(snapshot.holderScrolledColumns).toBe(true);
+
+    if (snapshot.gutterX > 0 || snapshot.gutterY > 0) {
+      return;
+    }
+
+    expect(snapshot.edges).toContain('bottom');
+    expect(snapshot.clipped).toEqual(expect.arrayContaining([
+      'ht_clone_bottom', 'ht_clone_inline_start', 'ht_clone_bottom_inline_start_corner',
+    ]));
+  });
 });

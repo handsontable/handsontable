@@ -163,6 +163,62 @@
       return borderMoveCount;
     };
 
+    let headerMoveCount = 0;
+
+    // Counts the mouse moves whose target sits inside one of the grid's headers. A hover test asserts
+    // this is above zero, so a pointer that stopped short of the header fails loudly instead of
+    // passing because nothing ever asked the grid to judge a header. Scoped to `rootElement`, the
+    // element the grid's own `mousemove` listener is bound to.
+    document.addEventListener('mousemove', (event) => {
+      if (hot && event.target instanceof Element && event.target.closest('th')
+        && hot.rootElement.contains(event.target)) {
+        headerMoveCount += 1;
+      }
+    }, true);
+
+    let lastMouseUpOffGrid = null;
+
+    // Records whether the latest `mouseup` landed outside `rootElement`, where the grid's own
+    // `mouseup` listener cannot see it.
+    document.addEventListener('mouseup', (event) => {
+      if (hot) {
+        lastMouseUpOffGrid = !(event.target instanceof Node && hot.rootElement.contains(event.target));
+      }
+    }, true);
+
+    /**
+     * Forgets the latest `mouseup`, so the next one is the only one recorded.
+     */
+    window.resetLastMouseUp = function() {
+      lastMouseUpOffGrid = null;
+
+      return true;
+    };
+
+    /**
+     * Returns whether the latest `mouseup` landed off the grid, or `null` when none has landed since
+     * the reset.
+     */
+    window.wasLastMouseUpOffGrid = function() {
+      return lastMouseUpOffGrid;
+    };
+
+    /**
+     * Resets the count of mouse moves that landed on a header.
+     */
+    window.resetHeaderMoveCount = function() {
+      headerMoveCount = 0;
+
+      return true;
+    };
+
+    /**
+     * Returns how many mouse moves have landed on a header since the last reset.
+     */
+    window.getHeaderMoveCount = function() {
+      return headerMoveCount;
+    };
+
     // Built on `load`, not during parsing. A container that still measures zero when Handsontable
     // is constructed sends it down the hidden-init path, where the first render waits on an
     // observer that never fires for an element that was visible all along — the grid then stays

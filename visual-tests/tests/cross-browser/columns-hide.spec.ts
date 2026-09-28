@@ -1,12 +1,21 @@
 import { helpers } from '../../src/helpers';
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   columnsCount,
   selectColumnHeaderByNameAndOpenMenu,
   selectFromContextMenu,
 } from '../../src/page-helpers';
 
-test('Test column hiding', async({ tablePage }) => {
+/**
+ * Checks that hiding two columns through the context menu, then showing them again, renders the
+ * hidden-column indicators and then the restored grid. The column counts are asserted; the two captures
+ * show the headers. Owned by DEV-2981.
+ */
+visualTest('Test column hiding', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await selectColumnHeaderByNameAndOpenMenu('Name');

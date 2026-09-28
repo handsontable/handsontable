@@ -11,6 +11,7 @@
  */
 import { isHTMLElement, hasClass, setAttribute } from '../../../../helpers/dom/element';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../../helpers/a11y';
+import { CLONE_BOTTOM, CLONE_INLINE_START, CLONE_TOP } from '../overlay/constants';
 import { defineGetter } from '../../../../helpers/object';
 import type { default as Table } from './baseTable';
 
@@ -132,7 +133,11 @@ const domScaffold = {
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
-      if (this.isMaster) {
+      // The scroll containers only: the master's holder, and the three clone holders the master's
+      // offset is mirrored onto (`src/styles/base/_base.scss`, the clone-holder rule). A scroll
+      // container with no focusable content becomes a keyboard tab stop of its own in Chrome 127+;
+      // the corner clones are not scroll containers and keep no tabindex.
+      if (this.isMaster || [CLONE_TOP, CLONE_BOTTOM, CLONE_INLINE_START].includes(this.name)) {
         setAttribute(holder, [
           A11Y_TABINDEX(-1),
         ]);

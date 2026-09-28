@@ -101,6 +101,18 @@
     };
 
     /**
+     * The runtime `enabled` flag `ResizeGesture#afterMouseDownTimeout()` reads through
+     * `owner.isActive()`. That is not `isEnabled()` (the settings answer), which stays true
+     * through the disable/enable cycle.
+     *
+     * @param {string} pluginName Either `manualRowResize` or `manualColumnResize`.
+     * @returns {boolean}
+     */
+    window.isResizePluginActive = function(pluginName) {
+      return window.grid.getPlugin(pluginName).enabled === true;
+    };
+
+    /**
      * The recorded resize hook calls.
      *
      * @returns {Array<{hook: string, newSize: number, index: number, isDoubleClick: boolean}>}

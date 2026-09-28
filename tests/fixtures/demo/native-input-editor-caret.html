@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - Home/End in native date/time input editors</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD); an
+    // unknown value THROWS rather than falling back, so a typo in the project config is one red
+    // leg instead of a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    DEV-3049: editors that extend `TextEditor` but render a native `<input type="date|time|
+    datetime-local">`. Those input types do not support the selection API, so the inherited Home/End
+    shortcuts must not call `setSelectionRange()` on them (Chrome throws `InvalidStateError`).
+    Column 0 is the configuration from the Sentry report: `type: 'date'` with an Intl `dateFormat`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    new Handsontable(container, {
+      data: [
+        ['2024-06-10', '14:30', '2024-06-10T14:30:45'],
+        ['2024-01-05', '09:00', '2024-01-05T09:00:30'],
+      ],
+      colHeaders: ['Date', 'Time', 'Datetime'],
+      rowHeaders: true,
+      columns: [
+        { type: 'date', dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' } },
+        { type: 'time' },
+        { type: 'intl-datetime', locale: 'en-US' },
+      ],
+      // Stamped from `afterRenderer` rather than a grid-level `renderer`, which each column's
+      // `type` would override.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

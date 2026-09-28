@@ -143,7 +143,7 @@ export interface HotInstance {
   getSourceDataAtRow(row: number): unknown;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
-  getCopyableSourceData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): unknown;
   setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(
@@ -199,7 +199,15 @@ export interface HotInstance {
 
   // Alter
   alter(action: string, index?: number | number[][], amount?: number, source?: string, keepEmptyRows?: boolean): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_col`/`remove_col`.
+   */
   spliceCol(column: number, index: number, amount: number, ...elements: unknown[]): void;
+  /**
+   * @deprecated Since 19.0.0. This method will be removed in 20.0.0. Change the data yourself and
+   * write it back with `populateFromArray()`, or use `alter()` with `insert_row`/`remove_row`.
+   */
   spliceRow(row: number, index: number, amount: number, ...elements: unknown[]): void;
 
   // Rendering

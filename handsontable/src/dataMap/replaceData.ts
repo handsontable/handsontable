@@ -9,6 +9,10 @@ import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
 import { runSourceDataValidators } from './sourceDataValidator';
 import { throwWithCause } from '../helpers/errors';
+import { isDefined } from '../helpers/mixed';
+import { warnOnce } from '../helpers/console';
+import { countFirstRowKeys } from '../helpers/data';
+
 /**
  * Configuration for the replaceData function.
  */
@@ -59,6 +63,69 @@ function buildNullData(
   }
 
   return data;
+}
+
+/**
+ * Warns, once per instance, when the loaded dataset resolves to rows with no columns and nothing in the
+ * configuration declares any.
+ *
+ * Without `columns` or `dataSchema`, the column count is read from the first data row alone. A first
+ * row that is empty or not a row at all (`[null]`, `[{}]`, `[[], [1, 2]]`) therefore leaves a grid
+ * that displays rows with no cells, and says nothing about it.
+ *
+ * The degenerate shape stays supported, so this only warns. Three cases stay silent:
+ * - An empty `data: []`. Any rows the grid has then come from `minRows` or `minSpareRows`, not from
+ * the user's data, and an empty dataset is how a grid is bootstrapped.
+ * - An array-of-arrays grid whose rows are all empty (`[[]]`), while `allowInsertColumn` is on:
+ * writing to it creates the columns (`applyChanges()` in `core.ts` is gated on that option).
+ * - Any grid that ends up with columns, including through `minCols` or `minSpareCols`.
+ *
+ * An object-rowed grid cannot gain a column, and a later row with values means data the grid does not
+ * display, so both are warned about.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {unknown[]} data The loaded dataset.
+ * @param {number} loadedRowsCount The number of rows in `data` as it was passed in, before
+ * `minRows` and `minSpareRows` added any.
+ */
+function warnAboutUndetectableColumns(hotInstance: HotInstance, data: unknown[], loadedRowsCount: number) {
+  const { columns, dataSchema, maxCols, allowInsertColumn } = hotInstance.getSettings();
+  // Mirrors what `Core#getInitialColumnCount()` counts as configured: only an array or a function
+  // `columns`, and a `dataSchema` other than `null`. Any other value still leaves the column count
+  // to the first data row, so it must not silence the warning.
+  const declaresColumns = Array.isArray(columns) || isFunction(columns);
+  const declaresSchema = isDefined(dataSchema) && dataSchema !== null;
+
+  if (
+    loadedRowsCount === 0 ||
+    hotInstance.countSourceRows() === 0 ||
+    hotInstance.columnIndexMapper.getNumberOfIndexes() > 0 ||
+    declaresColumns ||
+    declaresSchema ||
+    maxCols === 0
+  ) {
+    return;
+  }
+
+  // An index loop, not `data.some()`: `data` may be a duck-typed collection (`push` and `splice`
+  // are all `replaceData()` checks for), with no Array methods of its own.
+  let hidesValues = false;
+
+  for (let index = 1; index < data.length && !hidesValues; index++) {
+    hidesValues = countFirstRowKeys([data[index]]) > 0;
+  }
+
+  if (hotInstance.dataType === 'array' && !hidesValues && allowInsertColumn) {
+    return;
+  }
+
+  const hiddenFieldsNote = hidesValues ? ', while later rows have fields that no column displays' : '';
+
+  warnOnce(hotInstance, 'replaceData.undetectableColumns',
+    'Handsontable found no columns in the data source, so the grid displays rows with no cells. ' +
+    'Without the `columns` or `dataSchema` option, the number of columns is read from the first ' +
+    `row of \`data\`, and it has no fields${hiddenFieldsNote}. Define the columns with the ` +
+    '`columns` or `dataSchema` option, or start `data` with a row that contains every field.');
 }
 
 /**
@@ -148,8 +215,15 @@ function replaceData(
   dataSource.propToCol = (prop: unknown) => newDataMap.propToCol(prop as string | number);
   dataSource.countCachedColumns = newDataMap.countCachedColumns.bind(newDataMap);
 
+  // Read before the callback: `adjustRowsAndCols()` in it pushes `minRows` and `minSpareRows` rows
+  // into the same array.
+  const loadedRowsCount = (data as unknown[]).length;
+
   // Run the logic for reassuring that the table structure fits the new dataset.
   callbackFunction(newDataMap);
+
+  // After the callback, because `adjustRowsAndCols()` in it applies `minCols` and `minSpareCols`.
+  warnAboutUndetectableColumns(hotInstance, data as unknown[], loadedRowsCount);
 
   if (!firstRun) {
     runSourceDataValidators(hotInstance, internalSource);

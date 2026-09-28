@@ -39,6 +39,48 @@ export function normalizeExportOptions<T extends Record<string, unknown>>(option
 }
 
 /**
+ * One entry of a nested-header layer as `DataProvider#getNestedColumnHeaders()` returns it.
+ * `colspan` is the number of exported columns the label covers after hidden-column and range
+ * clamping. It is at least `1`: a span whose every column is excluded from the export produces no
+ * entry at all.
+ */
+export interface NestedHeaderLayerEntry {
+  label: string;
+  colspan: number;
+}
+
+/**
+ * Expands nested-header layers into plain header rows for a text format such as CSV.
+ *
+ * Each layer becomes one row. A group label is repeated once per column it spans, so a row has
+ * exactly as many cells as the exported data has columns. A CSV file has no merged cells, so the
+ * repeat is what keeps the grouping when a spreadsheet opens the file: every column carries its
+ * group label, whichever columns the reader keeps.
+ *
+ * The three nested-header outputs differ on purpose. The XLSX export writes a group as one merged
+ * cell. The `copyPaste` plugin, with `copyColumnGroupHeaders`, writes the label once and leaves the
+ * other spanned cells empty. The CSV export repeats the label.
+ *
+ * An empty label keeps its cell, so the column count stays aligned with the data rows.
+ *
+ * @param {Array} layers Layers from `DataProvider#getNestedColumnHeaders()`, top layer first.
+ * @returns {string[][]} One row of labels per layer.
+ */
+export function expandNestedHeaderLayers(layers: NestedHeaderLayerEntry[][]): string[][] {
+  return layers.map((layer) => {
+    const row: string[] = [];
+
+    layer.forEach(({ label, colspan }) => {
+      for (let i = 0; i < colspan; i++) {
+        row.push(label);
+      }
+    });
+
+    return row;
+  });
+}
+
+/**
  * Builds the dialog overlay DOM fragment for the export progress indicator.
  *
  * The title text is resolved at call-time so it reflects the active locale.

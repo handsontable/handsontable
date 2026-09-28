@@ -32,6 +32,12 @@ Rules that hold this together:
   actually produce (cell-level `valueFormatter`, then the renderer's static). See the `renderCell.ts`
   bullet in `../../../AGENTS.md`.
 - Cells covered by a merged cell carry `null` and are skipped — they contribute no sample.
+- **List-cell columns (autocomplete, dropdown, handsontable) include the reserved arrow
+  slot (DEV-348).** The real renderer adds `td.htAutocomplete`; the product CSS reserves the
+  arrow as `padding-inline-end`. GhostTable therefore measures value plus arrow, and an
+  autosized column grows on upgrade (a breaking change). A column `width` skips measurement
+  for that column only. `colWidths` still disables this plugin for the whole grid. Do not
+  strip the arrow from the sample — that reopens the wrap onto a second line.
 - **The ghost table must be restored even when a custom renderer throws.** A throwing renderer that leaves
   headers disabled, or the probe's columns still attached, corrupts every later full-scan measurement.
 
@@ -115,6 +121,20 @@ Three consequences:
 - **The synchronous sweep's samples are dropped on purpose.** It runs inside the `init` / `afterLoadData`
   hook cascade, *before* other plugins re-apply their cell meta (MergeCells' `spanned`/`hidden`), so what it
   collected cannot be trusted for later re-measures.
+
+## The `afterLoadData` sweep relies on the Formulas plugin running first (DEV-2905)
+
+This plugin has the lowest `PLUGIN_PRIORITY`, so at the default order its `afterLoadData` listener ran
+before every other plugin's — including the Formulas listener that feeds the new data to the engine. The
+sweep then measured formula columns against the *previous* dataset's results, and the engine's
+`valuesUpdated` batch queued every changed cell, which `#refreshQueuedColumnsWidth` turned into a second
+synchronous full rescan on the resume render: three measurements per column per `loadData()`. The Formulas
+plugin now registers that listener at `orderIndex` -1 (its own `AGENTS.md` says why it moved rather than
+this one), so the sweep sees fresh values and `recalculateAllColumnsWidth()` discards the queue.
+`tests/e2e/sheet-switch-autosize.spec.ts` pins the count at `countCols() * 2` (the load sweep plus the
+visible-columns walk). Keep this listener at the default order: AutoRowSize measures row heights against
+this plugin's widths in its own default-order `afterLoadData` listener, and host `afterLoadData` callbacks
+read `getColWidth()` — both expect the sweep to have run, which is what the plugin enable order gives them.
 
 ## The index map is `skipUnchangedWrites`
 

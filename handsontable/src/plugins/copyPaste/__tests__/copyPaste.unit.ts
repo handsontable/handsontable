@@ -173,7 +173,7 @@ describe('CopyPaste past the last column of an object data source', () => {
 
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain('Deprecated:');
-    expect(warnings[0]).toContain('19.0.0');
+    expect(warnings[0]).toContain('20.0.0');
     expect(warnings[0]).toContain('setDataAtRowProp()');
 
     hot.destroy();
@@ -186,7 +186,7 @@ describe('CopyPaste past the last column of an object data source', () => {
       at: [0, 1],
     });
 
-    // Dropping the value is the 19.0.0 behavior. Until then the write stands, so the deprecation
+    // Dropping the value is the 20.0.0 behavior. Until then the write stands, so the deprecation
     // is a warning rather than a silent behavior change.
     expect(data[0]).toEqual({ 2: 'Frank Honest', id: 1, name: '2', address: '' });
 

@@ -4,13 +4,15 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [null]];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [null]]}
+      data={data}
       colHeaders={['sum', 'min', 'max', 'count', 'average']}
       rowHeaders={true}
       columnSummary={[

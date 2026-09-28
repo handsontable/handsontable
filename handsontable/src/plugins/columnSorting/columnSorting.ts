@@ -951,6 +951,11 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
+    // Captured before `super` may flip the plugin from disabled to enabled: a fresh `enablePlugin()`
+    // already runs `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround), so re-running the
+    // settings sort below on that same pass would run the comparator twice for no reason (DEV-187).
+    const wasEnabled = this.enabled;
+
     super.onUpdateSettings(newSettings);
 
     if (this.columnMetaCache !== null) {
@@ -960,7 +965,7 @@ export class ColumnSorting extends BasePlugin {
 
     const pluginSettings = newSettings[this.pluginKey];
 
-    if (isDefined(pluginSettings)) {
+    if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
       this.sortBySettings(pluginSettings);
     }
   }

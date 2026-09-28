@@ -85,7 +85,7 @@
 
 **Spread Operator with Potentially Large Arrays:**
 - Problem: At least 28 instances of `array.push(...otherArray)` exist in production source code. With arrays of 10k+ elements, this causes stack overflow due to argument count limits.
-- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/plugins/hiddenRows/contextMenuItem/showRow.ts`, `handsontable/src/plugins/hiddenColumns/contextMenuItem/showColumn.ts`, `handsontable/src/core.ts`
+- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/core.ts`
 - Cause: `Function.prototype.apply` (which spread desugars to) has a maximum argument count (~65k in V8, lower in other engines).
 - Improvement path: Replace `arr.push(...largeArr)` with `for` or `forEach` loops in all code paths that may handle large datasets. Priority: `cellMeta.ts` handles per-cell metadata and scales with table size.
 

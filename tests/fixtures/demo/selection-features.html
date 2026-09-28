@@ -37,9 +37,17 @@
     const buildData = () => Array.from({ length: 10 }, (_, r) =>
       Array.from({ length: 10 }, (_, c) => `R${r + 1}C${c + 1}`));
 
+    // Counts renderer calls that paint a cell of the grid itself. The auto-size samplers run the
+    // renderer into detached ghost tables too, and those are measurements, not paints.
+    window.cellPaintCount = 0;
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
+
+      if (container.contains(td)) {
+        window.cellPaintCount += 1;
+      }
     };
 
     // (Re)creates the grid with the default selection-feature settings merged
@@ -50,6 +58,9 @@
     window.vetoBeforeMoveCells = false;
     window.vetoBeforeRowMove = false;
     window.vetoBeforeColumnMove = false;
+    // Records the public selection hooks, so a test can assert that a gesture which must not
+    // change the selection (hovering it, for one) fires none of them. Reset on every init.
+    window.selectionHookLog = [];
 
     window.initSelectionGrid = (overrides = {}) => {
       if (window.hot) {
@@ -62,6 +73,7 @@
       window.vetoBeforeMoveCells = false;
       window.vetoBeforeRowMove = false;
       window.vetoBeforeColumnMove = false;
+      window.selectionHookLog = [];
 
       window.hot = new Handsontable(container, Object.assign({
         beforeMoveCells: (source, target, isCopy) => {
@@ -106,6 +118,18 @@
         renderer: testIdRenderer,
         licenseKey: 'non-commercial-and-evaluation',
       }, overrides));
+
+      // Added after construction rather than through the settings, so an `overrides` object can
+      // never replace these listeners.
+      [
+        'beforeSetRangeEnd',
+        'afterSelection',
+        'afterSelectionByProp',
+        'afterSelectionEnd',
+        'afterSelectionEndByProp',
+      ].forEach((hookName) => {
+        window.hot.addHook(hookName, () => window.selectionHookLog.push(hookName));
+      });
 
       return true;
     };

@@ -257,6 +257,10 @@ columns: [{ filters: { filterFixedRows: false } }],
 TypeScript does not reject that, because a column's settings are typed from the grid's settings.
 Treat the table above as the contract rather than the type.
 
+To change the *order* of the values in a column's **Filter by value** list, use the
+[`filterValueComparator`](@/api/options.md#filtervaluecomparator) option, which does work inside
+`columns`. See [Change the order of values in the filter list](#change-the-order-of-values-in-the-filter-list).
+
 Turning a column off hides its filter controls; it does not clear a filter the column already has.
 A condition added through the API keeps filtering, and the menu can no longer show it, so clear it
 with [`clearConditions()`](@/api/filters.md#clearconditions) rather than from the menu.
@@ -545,6 +549,78 @@ operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows
 time input. Pick the value from the browser's picker or type it in your locale's format. When you
 set the condition through the API instead, pass the value as an ISO 8601 string
 (`YYYY-MM-DD` for dates, `HH:mm` for times).
+
+## Change the order of values in the filter list
+
+By default, the **Filter by value** list places blank cells first and then sorts the values: numbers
+by value, text by character code, and dates chronologically. To set your own order for a column, pass a
+comparator function to the [`filterValueComparator`](@/api/options.md#filtervaluecomparator) option.
+The function takes two cell values and returns a negative number, zero, or a positive number, the
+same way as the callback of `Array.prototype.sort()`.
+
+The option cascades like any other configuration option. Set it inside
+[`columns`](@/api/options.md#columns) to order one column, or at the grid level to order every
+column's list the same way. A column value overrides the grid value.
+
+In the example below, the Priority column lists values by severity and the Size column by garment
+size, instead of alphabetically:
+
+::: only-for javascript
+
+::: example #exampleFilterValueOrder --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterValueOrder :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleFilterValueOrder.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterValueOrder.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example16 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example16.ts)
+@[code](@/content/guides/columns/column-filter/angular/example16.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleFilterValueOrder :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterValueOrder.vue)
+
+:::
+
+:::
+
+Two details to keep in mind when you write the comparator:
+
+- A blank cell (`null`, `undefined`, or an empty string) reaches the function as an empty string
+  `''`. Decide where blanks go by handling `''` explicitly.
+- The comparator only orders the list. It cannot add, hide, or remove a value, so it never changes
+  which rows the filter keeps.
+
+A custom comparator also replaces the built-in order of `date`, `intl-date`, and `intl-datetime`
+columns. A value that is not a function is ignored, and the default order applies.
+
+To change what a value *looks like* in the list rather than where it sits, use the
+[`modifyFiltersMultiSelectValue`](@/api/hooks.md#modifyfiltersmultiselectvalue) hook instead.
 
 ## Filter data on initialization
 

@@ -131,6 +131,47 @@ export class ExactRowHeightsPage {
     });
   }
 
+  /**
+   * Geometry of an autocomplete cell's clipping wrapper and its arrow, read in one evaluation.
+   * Exact-height rows zero the TD padding and clip through `div.htCellClip` (`position: absolute`),
+   * so that wrapper — not the TD — is the arrow's containing block. The reserved trailing edge is
+   * therefore the wrapper's content-box (DEV-348).
+   */
+  async autocompleteArrowClipMetrics(row: number, column: number): Promise<{
+    arrow: { left: number, right: number, top: number, bottom: number } | null,
+    clipContentBoxRight: number,
+    clipContentBoxLeft: number,
+    clipPaddingBoxRight: number,
+  }> {
+    return this.cell(row, column).evaluate((td) => {
+      const clip = td.querySelector('.htCellClip');
+
+      if (!clip) {
+        throw new Error('Cell has no .htCellClip wrapper');
+      }
+
+      const arrowEl = clip.querySelector('.htAutocompleteArrow');
+      const cs = getComputedStyle(clip);
+      const rect = clip.getBoundingClientRect();
+      const paddingLeft = parseFloat(cs.paddingLeft);
+      const paddingRight = parseFloat(cs.paddingRight);
+      const borderRight = parseFloat(cs.borderRightWidth);
+      const arrowRect = arrowEl?.getBoundingClientRect();
+
+      return {
+        arrow: arrowRect
+          ? {
+            left: arrowRect.left, right: arrowRect.right,
+            top: arrowRect.top, bottom: arrowRect.bottom,
+          }
+          : null,
+        clipContentBoxRight: rect.right - borderRight - paddingRight,
+        clipContentBoxLeft: rect.left + parseFloat(cs.borderLeftWidth) + paddingLeft,
+        clipPaddingBoxRight: rect.right - borderRight,
+      };
+    });
+  }
+
   /** The master's scrollable holder. */
   holder(): Locator {
     return this.master.locator('.wtHolder');

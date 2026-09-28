@@ -4,6 +4,13 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
 const ExampleComponent = () => {
   const manufacturerData = [
     { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
@@ -20,12 +27,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['Tesla', 2017, 'black', 'black'],
-        ['Nissan', 2018, 'blue', 'blue'],
-        ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'white', 'gray'],
-      ]}
+      data={data}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       columns={[
         {

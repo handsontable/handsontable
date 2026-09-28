@@ -7,9 +7,14 @@
  * js and stayed green. Pure: `scripts/seed-report.mjs` reads `.reg/out.json` and the environment.
  *
  * The seed's summary also carries the attribution a pull request cannot give itself. The `pr` tier
- * renders js × {main, main-dark} only, so a merge that changed the classic render, a horizon theme,
- * Firefox, WebKit or a wrapper copy passed its own visual check without showing it; the seed is the first
- * build that renders those variants, and it reconciles them straight into the baseline. The
+ * renders js × {main, main-dark}, plus a wrapper when `VISUAL_WRAPPERS` names one — so a merge that
+ * changed the classic render, a horizon theme, Firefox or WebKit passed its own visual check without
+ * showing it, and so did a wrapper copy UNLESS that pull request changed that wrapper's own tree. The
+ * split here cannot tell those apart: it is computed from the raw `VISUAL_TIERS.pr` row, which lists no
+ * wrapper, while `resolveTier` appends whatever `VISUAL_WRAPPERS` carried. So a wrapper item in
+ * `outsidePrItems` MAY be one the merged pull request rendered and its author already reviewed, and
+ * nothing downstream may tell them it could not have been shown. The seed is the first build that
+ * renders the rest of those variants, and it reconciles them straight into the baseline. The
  * out-of-tier differences are therefore turned into a comment on the merged pull request, so the author
  * sees them minutes after the merge rather than in a run summary nobody opens — and so the nightly,
  * which compares against that same seed, is not expected to catch them (it cannot: they are the baseline
@@ -18,6 +23,7 @@
  */
 
 import { VISUAL_TIERS } from '../src/config.mjs';
+import { quarantineLines } from './visual-quarantine.mjs';
 import { isInTier, tierPrefixes } from './visual-tiers.mjs';
 
 /**
@@ -84,11 +90,16 @@ function itemsOf(report, bucket) {
  * @param {string} [options.runUrl] The workflow run URL, when known.
  * @param {string[]} [options.prPrefixes] The golden-path prefixes the `pr` tier renders; defaults to the
  * table's. Injectable for tests.
+ * @param {Array<{item: string, entry: object}>} [options.quarantined] For the nightly only: changed items a
+ * live quarantine entry covered, already removed from `report.failedItems`. Listed, never blocking. The seed
+ * is never given any – it never blocks on a difference, and its differences are the merge's own.
+ * @param {Array<{item: string, entry: object}>} [options.expired] For the nightly only: changed items under an
+ * entry that does not hold (expired, or never valid), still in `report.failedItems`.
  * @returns {BuildSummary} The summary.
  */
 export function summarizeBuild({
   report, tier, branch, sha, headCommitMessage = '', reportUrl = '', runUrl = '',
-  prPrefixes = tierPrefixes(VISUAL_TIERS.pr),
+  prPrefixes = tierPrefixes(VISUAL_TIERS.pr), quarantined = [], expired = [],
 }) {
   const nightly = tier === 'full';
   const kind = nightly ? 'nightly' : 'seed';
@@ -111,8 +122,9 @@ export function summarizeBuild({
 
   // The shape `visual-gate.mjs` blocks on too: reg-suit exits 0 having globbed nothing when the
   // config or the screenshots are missing, and that report reads as "everything matched" unless the
-  // counts are checked. A missing report is the comparison step having died.
-  if (failed.length + added.length + deleted.length + passed.length === 0) {
+  // counts are checked. A missing report is the comparison step having died. Quarantined items were
+  // compared and did differ, so they count here.
+  if (failed.length + quarantined.length + added.length + deleted.length + passed.length === 0) {
     return {
       verdict: 'error',
       blocking: true,
@@ -143,7 +155,8 @@ export function summarizeBuild({
   // The tag is not part of the path reg-suit keyed the item by.
   const outsidePrItems = changedItems
     .filter(item => !isInTier(item.replace(/ \((?:new|deleted)\)$/, ''), prPrefixes));
-  const counts = `${failed.length} changed, ${added.length} new, ${deleted.length} deleted, ${passed.length} passing`;
+  const counts = `${failed.length} changed, ${added.length} new, ${deleted.length} deleted, ${passed.length} passing`
+    + `${quarantined.length ? `, ${quarantined.length} quarantined` : ''}`;
   const markdown = [
     heading,
     '',
@@ -158,7 +171,10 @@ export function summarizeBuild({
   }
 
   if (verdict === 'clean') {
-    markdown.push(`All ${passed.length} screenshots match the golden records.`, '');
+    markdown.push(quarantined.length === 0
+      ? `All ${passed.length} screenshots match the golden records.`
+      : `${passed.length} screenshots match the golden records; the ${quarantined.length} quarantined one(s) `
+        + 'below differed and do not fail this run.', '');
   } else {
     markdown.push(
       ...itemList(changedItems),
@@ -179,6 +195,8 @@ export function summarizeBuild({
       );
     }
   }
+
+  markdown.push(...quarantineLines(quarantined, expired));
 
   return {
     verdict,

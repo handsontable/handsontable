@@ -304,6 +304,14 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
 | <kbd>**Shift + Tab**</kbd>                              | <kbd>**Shift + Tab**</kbd>                                 | Save and exit the current comment, move the selection to the previous cell | &cross; | &cross; |
 
+### Formulas keyboard shortcuts
+
+These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is enabled.
+
+| Windows                              | macOS                          | Action                                              |  Excel  | Sheets  |
+| ------------------------------------- | ------------------------------ | ---------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> | <kbd>⌃</kbd>+<kbd>**`**</kbd> | Toggle between showing formulas and showing values | &check; | &check; |
+
 
 ## API reference
 
