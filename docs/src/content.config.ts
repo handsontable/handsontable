@@ -53,6 +53,9 @@ export const collections = {
 
         /** Sidebar badge label (e.g. "Updated", "New"). */
         menuTag: z.string().optional(),
+
+        /** Handsontable version that introduced the documented feature, e.g. "17.0.0" (DEV-2877). */
+        addedIn: z.string().regex(/^\d+\.\d+\.\d+$/).optional(),
       }),
     }),
   }),

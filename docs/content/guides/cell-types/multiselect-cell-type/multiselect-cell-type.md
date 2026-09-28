@@ -14,6 +14,7 @@ vue:
 searchCategory: Guides
 category: Cell types
 menuTag: updated
+addedIn: "17.0.0"
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
