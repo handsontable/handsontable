@@ -27,8 +27,8 @@
  *               `gh pr view` for the current branch's body, so pre-push honors
  *               a waiver written after a push.
  *
- * The verdict is printed as GitHub-flavored Markdown so a workflow step can post
- * it as a sticky PR comment. Below the verdict the CLI prints ADVISORY warnings
+ * The verdict is printed as GitHub-flavored Markdown so a workflow step can tee
+ * it into the step summary. Below the verdict the CLI prints ADVISORY warnings
  * (lib/presence-warnings.mjs): frozen-suite growth, the empty red-spec field,
  * RTL correlation, Walkontable routing, visual-only coverage. They never touch
  * the exit code, in either mode. In GitHub Actions each is also emitted as a
