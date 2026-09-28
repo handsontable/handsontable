@@ -1525,6 +1525,8 @@ export default function Core(
                     .current()!
                     .setTo(lastSelection.to);
 
+                  // Before the refresh, which clamps against the grid every nested removal left.
+                  selection.flushHeldShifts();
                   selection.refresh();
 
                 } else {
@@ -1606,6 +1608,8 @@ export default function Core(
                     .current()!
                     .setTo(lastSelection.to);
 
+                  // The column half of the flush in the `remove_row` branch above.
+                  selection.flushHeldShifts();
                   selection.refresh();
 
                 } else {

@@ -54,6 +54,7 @@ interface HandsontableFixture {
     transformFocus(row: number, col: number): void;
     transformEnd(rowDelta: number, colDelta: number): void;
     isEntireColumnSelected(): boolean;
+    isSelectedByCorner(): boolean;
     getActiveSelectionLayerIndex(): number;
     highlight: {
       getAreas(): Array<{ isEmpty(): boolean; getCorners(): number[] }>;
@@ -83,7 +84,8 @@ interface HandsontableFixture {
   updateData(data: unknown[][]): void;
   runHooks(name: string): void;
   toPhysicalRow(row: number): number;
-  alter(action: string, index: number, amount?: number): void;
+  alter(action: string, index: number, amount?: number, source?: string): void;
+  getDataAtCell(row: number, column: number): unknown;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
 }
@@ -259,6 +261,16 @@ export class EditorTrimmedRowPage {
   async vetoRowCreation(): Promise<void> {
     await this.page.evaluate(() => {
       (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeCreateRow', () => false);
+    });
+  }
+
+  /**
+   * Vetoes every row removal from here on. `alter()` then returns before it reaches
+   * `selection.shiftRows()`, so the removal repairs nothing.
+   */
+  async vetoRowRemoval(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeRemoveRow', () => false);
     });
   }
 
@@ -475,6 +487,95 @@ export class EditorTrimmedRowPage {
       });
       hot.alter('remove_col', target as number, 1);
     }, [removeIndex, nestedIndex, nestedAmount] as [number, number, number]);
+  }
+
+  /**
+   * Selects a cell, removes its row with the `ContextMenu.removeRow` source, and from inside that
+   * removal's own cache update removes another row. That source repairs the selection by
+   * `refresh()` instead of by a shift, and `refresh()` clamps against the grid the nested call has
+   * already shortened. Returns the selection and the value under its highlight afterwards.
+   */
+  async contextMenuRemoveRowAlteringFromCacheUpdate(
+    selectedRow: number, nestedIndex: number): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, nestedTarget]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.selectCells([[target, 0]]);
+      hot.addHook('afterRowSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', nestedTarget, 1);
+      });
+      hot.alter('remove_row', target, 1, 'ContextMenu.removeRow');
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [selectedRow, nestedIndex] as [number, number]);
+  }
+
+  /**
+   * The column axis's version of `contextMenuRemoveRowAlteringFromCacheUpdate()`. The fixture has
+   * only two columns, which a removal and a nested removal would empty, so the data is replaced with
+   * four first (`C…` and `D…` added).
+   */
+  async contextMenuRemoveColumnAlteringFromCacheUpdate(
+    selectedColumn: number, nestedIndex: number): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, nestedTarget]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.updateData(Array.from({ length: 5 }, (unused, row) => ['A', 'B', 'C', 'D'].map(letter => `${letter}${row}`)));
+      hot.selectCells([[0, target]]);
+      hot.addHook('afterColumnSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_col', nestedTarget, 1);
+      });
+      hot.alter('remove_col', target, 1, 'ContextMenu.removeColumn');
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [selectedColumn, nestedIndex] as [number, number]);
+  }
+
+  /**
+   * Selects the whole grid, then runs one row `alter()` at index 0 and counts the
+   * `afterSelectionEnd` calls it caused. Also reports whether the selection was a corner selection
+   * when the `alter()` started, so a low count cannot come from a setup that never reached the
+   * corner path.
+   */
+  async countSelectionEndsForAlterAfterSelectAll(
+    action: 'insert_row_above' | 'remove_row'): Promise<{ selectedByCorner: boolean, count: number }> {
+    return this.page.evaluate((alterAction) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let count = 0;
+
+      hot.selectAll();
+
+      const selectedByCorner = hot.selection.isSelectedByCorner();
+
+      hot.addHook('afterSelectionEnd', () => {
+        count += 1;
+      });
+      hot.alter(alterAction, 0, 1);
+
+      return { selectedByCorner, count };
+    }, action);
   }
 
   /**

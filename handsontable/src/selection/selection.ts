@@ -1061,8 +1061,8 @@ class Selection {
   /**
    * Closes the innermost structural-change scope. Closing the OUTERMOST one writes any shift still
    * held back, so a change that never reached a shift of its own - a removal that emptied the grid,
-   * a `ContextMenu.removeRow` that repairs by `refresh()` instead, a cancelled action, a throwing
-   * hook - cannot leave an inner scope's repair for the next one to apply against a different grid.
+   * a cancelled action, a throwing hook - cannot leave an inner scope's repair for the next one to
+   * apply against a different grid.
    */
   resumeShifts() {
     this.#shiftScopes.pop();
@@ -1071,6 +1071,29 @@ class Selection {
       return;
     }
 
+    this.#flushShifts();
+  }
+
+  /**
+   * Writes the shifts held back for scopes nested inside the innermost one, for a scope that repairs
+   * the selection by `refresh()` rather than by a shift of its own (`ContextMenu.removeRow` and
+   * `ContextMenu.removeColumn`). `refresh()` clamps against the grid as it is AFTER every nested
+   * change, so a held shift written after it moves the selection one record too far.
+   *
+   * Holds off on the same rule as `shiftRows()`: while an enclosing scope still owes a repair.
+   */
+  flushHeldShifts() {
+    if (this.#hasPendingEnclosingChange()) {
+      return;
+    }
+
+    this.#flushShifts();
+  }
+
+  /**
+   * Writes every held shift on both axes.
+   */
+  #flushShifts() {
     // BOTH axes are taken and cleared before EITHER is written. `#applyRowShifts()` ends in
     // `setRangeEnd()`, whose `afterSelectionEnd` consumers can throw, and a column shift still
     // queued at that moment would otherwise be applied by the next `alter()` against a grid it was
@@ -1208,7 +1231,9 @@ class Selection {
    * @param {Array<Array<number>>} shifts The `[visualRowIndex, amount]` pairs to apply, in order.
    */
   #applyRowShifts(shifts: Array<[number, number]>) {
-    if (!this.isSelected()) {
+    // An empty flush must stay a no-op: the corner branch below re-selects everything and fires the
+    // selection hooks whether or not there is anything to shift.
+    if (shifts.length === 0 || !this.isSelected()) {
       return;
     }
 
@@ -1352,7 +1377,7 @@ class Selection {
    * @param {Array<Array<number>>} shifts The `[visualColumnIndex, amount]` pairs to apply, in order.
    */
   #applyColumnShifts(shifts: Array<[number, number]>) {
-    if (!this.isSelected()) {
+    if (shifts.length === 0 || !this.isSelected()) {
       return;
     }
 

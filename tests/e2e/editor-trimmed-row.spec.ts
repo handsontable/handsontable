@@ -1393,6 +1393,93 @@ test.describe('an index-map change nested inside a removal', () => {
 });
 
 /**
+ * The two sources that repair the selection by `refresh()` instead of by a shift. `refresh()` clamps
+ * against the grid as it is after every nested removal, so a nested shift held back until the scope
+ * closes lands on top of a clamp that already did its job - the DEV-2755 shape through another door.
+ *
+ * Removing the selected LAST record is the case that clamps: the highlight has to move onto the new
+ * last record, which the nested removal then moves up by one.
+ */
+test.describe('a nested alter inside a context-menu removal', () => {
+  test('keeps the selection on the record after the removed row', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A4'` through the context-menu source, and `'A0'` from inside that removal.
+    const result = await grid.contextMenuRemoveRowAlteringFromCacheUpdate(4, 0);
+
+    expect(await grid.sourceData()).toEqual([
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+    ]);
+    expect(result.selected).toEqual([[2, 0, 2, 0]]);
+    expect(result.value).toBe('A3');
+  });
+
+  test('keeps the selection on the column after the removed one', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'D'` through the context-menu source, and `'A'` from inside that removal.
+    const result = await grid.contextMenuRemoveColumnAlteringFromCacheUpdate(3, 0);
+
+    expect((await grid.sourceData())[0]).toEqual(['B0', 'C0']);
+    expect(result.selected).toEqual([[0, 1, 0, 1]]);
+    expect(result.value).toBe('C0');
+  });
+});
+
+/**
+ * A corner selection is re-selected in full on every shift, which fires the selection hooks. The
+ * outermost scope's close-time flush runs with nothing held in the ordinary case, and it must not
+ * re-select then - or every `alter()` after a select-all fires those hooks twice more.
+ */
+test.describe('a structural change after select all', () => {
+  test('re-selects the grid once for an insert', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('insert_row_above');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(1);
+    expect(await grid.sourceRowCount()).toBe(6);
+  });
+
+  // A vetoed insert still asks for a shift of zero rows, and that one re-select is not new.
+  test('re-selects the grid once for a vetoed insert', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.vetoRowCreation();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('insert_row_above');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(1);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+
+  // A vetoed removal returns before it asks for any shift, so only the close-time flush is left.
+  test('does not re-select the grid for a vetoed removal', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.vetoRowRemoval();
+
+    const result = await grid.countSelectionEndsForAlterAfterSelectAll('remove_row');
+
+    expect(result.selectedByCorner).toBe(true);
+    expect(result.count).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+});
+
+/**
  * `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
  * renumbers the physical space under it - so its completion callback carries the same
  * structural-change scope `alter()` does (DEV-2739 review).
