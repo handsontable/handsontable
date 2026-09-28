@@ -204,6 +204,23 @@ describe('ColumnSorting -> physical index remap sizing', () => {
     expectSequenceIsAPermutation();
   });
 
+  it.each([
+    ['the positions path', () => {}],
+    ['the tuple path', () => useCustomRootComparator()],
+  ])('leaves the sequence untouched when the sortable band is empty, on %s', (_label, selectPath) => {
+    // Every row pinned: the band is `[ROW_COUNT, ROW_COUNT)`, so `highestPhysicalIndex` stays `-1` and
+    // the remap table is `Int32Array(0)`. Every read then falls through, and each row keeps its index.
+    selectPath();
+    buildGrid({ columnSorting: true, fixedRowsTop: ROW_COUNT });
+
+    const scrambled = Array.from({ length: ROW_COUNT }, (_, index) => ROW_COUNT - 1 - index);
+
+    hot.rowIndexMapper.setIndexesSequence(scrambled);
+    hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+    expect(hot.rowIndexMapper.getIndexesSequence()).toEqual(scrambled);
+  });
+
   it('sorts a trimmed grid through `multiColumnSorting` as well', () => {
     // `MultiColumnSorting` inherits `sortByPresetSortStates()` untouched, so the remap has to hold
     // for a multi-column preset too.

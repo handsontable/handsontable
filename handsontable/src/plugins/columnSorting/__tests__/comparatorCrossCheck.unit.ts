@@ -52,6 +52,13 @@ const VALUE_POOL: unknown[] = [
   'alpha', 'Alpha', 'zeta', 'Delta', true, false, NaN, new Date(2020, 0, 1),
 ];
 
+// Strings whose lowercase form depends on the locale: under `tr-TR`, `I` lowercases to `ı` and `İ` to
+// `i`, so `'Istanbul'` ties with `'ıstanbul'` there and with `'istanbul'` everywhere else. A path that
+// drops the locale ties different rows and breaks the stable order the other paths keep.
+const TURKISH_POOL: unknown[] = [
+  'İstanbul', 'istanbul', 'Istanbul', 'ıstanbul', 'IZMIR', 'izmir', 'ızmır', 'Ankara', 'ankara', '', null,
+];
+
 const DATE_POOL: unknown[] = [
   '2020-01-15', '2019-12-31', '2020-01-15', '2021-06-01', '', null, undefined, 'not a date', '2018-03-09',
 ];
@@ -110,6 +117,7 @@ function sortThreeWays(columnValues: unknown[][], sortingOrders: string[], colum
 describe('columnSorting comparator cross-check', () => {
   it.each([
     ['the default compare function', VALUE_POOL, {}],
+    ['the default compare function under a locale that tailors lowercasing', TURKISH_POOL, { locale: 'tr-TR' }],
     ['a `numeric` column', VALUE_POOL, { type: 'numeric' }],
     ['a `date` column, whose compare function memoizes its parses', DATE_POOL, { type: 'date' }],
   ])('should answer identically on all three paths for %s', (_label, pool, typeMeta) => {

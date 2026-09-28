@@ -56,6 +56,12 @@ const DATE_POOL: unknown[] = [
   '2020-01-15', '2019-12-31', '2020-01-15', '2021-06-01', '', null, undefined, 'not a date',
 ];
 
+// Under `tr-TR`, `I` lowercases to `ı` and `İ` to `i`, so which strings tie depends on the locale. A
+// path that drops the locale ties different rows and hands a different set of them to the next column.
+const TURKISH_POOL: unknown[] = [
+  'İstanbul', 'istanbul', 'Istanbul', 'ıstanbul', 'IZMIR', 'izmir', 'ızmır', '', null,
+];
+
 const ROW_COUNT = 16;
 
 /**
@@ -154,6 +160,31 @@ describe('multiColumnSorting comparator cross-check', () => {
         collectMismatch(
           mismatches,
           `trial ${trial} k=${k} ${sortingOrders.join()}/sortEmptyCells=${sortEmptyCells}`,
+          columnValues,
+          sortThreeWays(columnValues, sortingOrders, columnMetas)
+        );
+      });
+    }
+
+    expect(mismatches).toEqual([]);
+  });
+
+  it('should answer identically when the first column sorts under a locale that tailors lowercasing', () => {
+    const random = createRandom(97531);
+    const mismatches: string[] = [];
+
+    for (let trial = 0; trial < 50; trial += 1) {
+      [true, false].forEach((sortEmptyCells) => {
+        const columnValues = [buildColumn(random, TURKISH_POOL), buildColumn(random, VALUE_POOL)];
+        const columnMetas: Record<string, unknown>[] = [
+          { locale: 'tr-TR', multiColumnSorting: { sortEmptyCells } },
+          { multiColumnSorting: { sortEmptyCells } },
+        ];
+        const sortingOrders = [random() < 0.5 ? 'asc' : 'desc', random() < 0.5 ? 'asc' : 'desc'];
+
+        collectMismatch(
+          mismatches,
+          `trial ${trial} tr-TR ${sortingOrders.join()}/sortEmptyCells=${sortEmptyCells}`,
           columnValues,
           sortThreeWays(columnValues, sortingOrders, columnMetas)
         );
