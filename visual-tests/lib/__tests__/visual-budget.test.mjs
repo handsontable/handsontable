@@ -276,6 +276,14 @@ test('a base that changed its budget during the run is told to merge, never to a
   assert.doesNotMatch(text, /raises the golden budget/, 'the pull request raised nothing');
   assert.doesNotMatch(text, /why the set has to grow/, 'no marker may be asked for');
   assert.ok(stale.comment.includes(stale.violations[0]), 'the comment must carry it, not just the log');
+  // The heading says what is wrong: nothing is over its number, the build is from before the change.
+  assert.equal(stale.stale, true);
+  assert.match(stale.comment, new RegExp('This build cannot be judged against the golden budget \\(full-tier '
+    + 'budget: \\d+\\): the base branch changed it while the build ran\\.'));
+  assert.doesNotMatch(stale.comment, /outside the golden budget/);
+  // And it does not claim the goldens were the new set: for about fifteen minutes after the merge the seed
+  // has not rewritten them yet.
+  assert.match(text, /may already be the new set/);
 
   // A marker does not make it pass: the comparison is stale whatever the description says.
   const marked = evaluateBudget({
@@ -311,9 +319,14 @@ test('growth is the pull request\'s own diff against the base it was built on', 
   assert.match(text, new RegExp(`changed its golden budget from ${TOTAL - 10} to ${TOTAL - 40}`));
 
   // Nothing moved and nothing raised.
-  assert.equal(evaluateBudget({
+  const fresh = evaluateBudget({
     report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: BUDGET, baseBudget: BUDGET,
-  }).pass, true);
+  });
+
+  assert.equal(fresh.pass, true);
+  assert.equal(fresh.stale, false);
+  // A raise on a base that did not move keeps the old heading.
+  assert.match(raised.comment, /This build is outside the golden budget/);
 });
 
 test('a base that moved between prefixes at the same total is still a moved base', () => {
@@ -661,6 +674,28 @@ test('the wrapper judges growth against the built-on file, and says so when it c
   assert.match(unreadable.comment, /base commit this run was built on could not be read/);
   // The fallback is the tip, so this is the pre-fix message: correct for a run whose base did not move.
   assert.match(unreadable.stdout, /raises the golden budget/);
+
+  // `git show … > file` creates the file before `git show` runs, so a budget missing at that commit
+  // leaves it empty; and a file of another shape must be reported, not crash the judgement.
+  const empty = join(dir, 'empty.json');
+  const shapeless = join(dir, 'shapeless.json');
+
+  writeFileSync(empty, '');
+  writeFileSync(shapeless, JSON.stringify({ comment: ['no prefixes here'] }));
+
+  [empty, shapeless].forEach((file) => {
+    const run = runBudgetCli({
+      report: reportWith(atBudget()),
+      comment: '## Visual tests\n',
+      env: { VISUAL_BUDGET_BASE_FILE: file, VISUAL_BUDGET_BUILT_ON_FILE: file },
+    });
+
+    assert.equal(run.status, 0, `${file}: an unreadable file is an advisory, never a crash:\n${run.stdout}`);
+    assert.doesNotMatch(run.stdout, /TypeError/);
+    assert.match(run.stdout, /No base-branch budget file on disk/);
+    assert.match(run.stdout, /No budget file for the base commit this run was built on/);
+    assert.match(run.comment, /the growth check did not run/);
+  });
 });
 
 test('the comment carries the violations, not just the summary line', () => {

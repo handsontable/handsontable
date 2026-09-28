@@ -201,8 +201,9 @@ export function samePrefixes(left, right) {
  * @param {object|null} [options.builtOnBudget] The budget file at the base commit this run's merge ref was
  * built on. Omitted, the growth question falls back to `baseBudget`, as before this parameter existed;
  * null, it could not be read, which is reported, and the fallback is the same.
- * @returns {{pass: boolean, violations: string[], notes: string[], comment: string, summary: string}}
- * The verdict, the reasons, and the section to prepend to the gate's comment.
+ * @returns {{pass: boolean, stale: boolean, violations: string[], notes: string[], comment: string,
+ * summary: string}} The verdict, whether the base moved during the run, the reasons, and the section to
+ * prepend to the gate's comment.
  */
 export function evaluateBudget({
   report, budget, body = '', isPullRequest = true, baseBudget = null, builtOnBudget,
@@ -272,6 +273,7 @@ export function evaluateBudget({
   // What this pull request changed is its file against the base its merge ref was built on. Against the
   // base tip, a base that moved during the run reads as this pull request's own change (question 5).
   const ownBase = builtOnBudget ?? baseBudget;
+  let stale = false;
 
   if (isPullRequest && ownBase === null) {
     // An advisory, deliberately NOT a note: `notes` means "a prefix rendered under its number", and the
@@ -297,11 +299,15 @@ export function evaluateBudget({
         ? `its per-prefix counts (a total of ${nowTotal} either way)`
         : `its golden budget from ${baseTotal} to ${nowTotal}`;
 
+      stale = true;
+      // "May": the tip's file changes the moment the merge lands, and the seed rewrites the golden records
+      // about fifteen minutes later. A Compare in between compared against the old goldens and is fresh in
+      // fact; it still fails, which costs one push, and the remedy is the same either way.
       violations.push(`The base branch changed ${change} after this run's merge ref was built. This build `
-        + 'rendered the specs as they were before that change and compared them against the golden '
-        + 'records after it, so the differences below include ones that are not this pull request\'s. '
-        + 'Merge the base branch into this branch and push. Re-running the job replays the same merge '
-        + 'ref and fails the same way, and no `[visual budget: …]` marker is needed for this.');
+        + 'rendered the specs as they were before that change, and the golden records it compared against '
+        + 'may already be the new set, so the differences below can include ones that are not this pull '
+        + 'request\'s. Merge the base branch into this branch and push. Re-running the job replays the same '
+        + 'merge ref and fails the same way, and no `[visual budget: …]` marker is needed for this.');
     }
 
     if (total > baseTotal) {
@@ -336,7 +342,8 @@ export function evaluateBudget({
     notes,
     advisories,
     summary,
-    comment: renderComment({ pass, violations, notes, advisories, items, total }),
+    stale,
+    comment: renderComment({ pass, violations, notes, advisories, items, total, stale }),
   };
 }
 
@@ -353,16 +360,22 @@ export function evaluateBudget({
  * @param {string[]} verdict.advisories Checks that could not run, which is not the same as passing.
  * @param {string[]} verdict.items Everything rendered.
  * @param {number} verdict.total The full-tier total the file describes.
+ * @param {boolean} verdict.stale Whether the base branch changed its budget during the run.
  * @returns {string} Markdown, ending in a blank line — the gate's own heading follows it directly, and
  * a heading without a blank line before it is not a heading.
  */
-function renderComment({ pass, violations, notes, advisories, items, total }) {
+function renderComment({ pass, violations, notes, advisories, items, total, stale = false }) {
   const lines = ['## Visual budget', ''];
 
   if (pass) {
     lines.push(`${items.length} record(s) rendered. The full-tier budget is ${total}.`, '');
   } else {
-    lines.push(`This build is outside the golden budget (full-tier budget: ${total}).`, '');
+    // A stale build is not over anything: "outside the golden budget" would send the reader to the
+    // numbers, when the problem is when this build was made.
+    lines.push(stale
+      ? `This build cannot be judged against the golden budget (full-tier budget: ${total}): the base `
+        + 'branch changed it while the build ran.'
+      : `This build is outside the golden budget (full-tier budget: ${total}).`, '');
     violations.forEach(violation => lines.push(`- ${violation}`));
 
     // The gate's own comment sits directly below this one and tells a reviewer to approve the pending

@@ -677,8 +677,9 @@ jobs:
             || echo "::warning::Could not read visual-budget.json on $BASE_REF; the growth check is skipped."
 
           built_on=$(git cat-file -p HEAD | awk '/^parent /{ n++; if (n == 1) first = $2 } END { if (n == 2) print first }')
-          built_on=${built_on:-$EVENT_BASE_SHA}
-          echo "This run's merge ref was built on $BASE_REF at $built_on."
+          source="the merge commit's first parent"
+          if [ -z "$built_on" ]; then built_on=$EVENT_BASE_SHA; source="the event payload's base sha"; fi
+          echo "This run's merge ref was built on $BASE_REF at $built_on ($source)."
 
           git fetch --depth=1 origin "$built_on" \
             && git show FETCH_HEAD:visual-tests/visual-budget.json > "$BUILT_ON_BUDGET_FILE" \

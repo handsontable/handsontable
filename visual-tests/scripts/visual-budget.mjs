@@ -63,14 +63,33 @@ if (process.env.VISUAL_PR_BODY_FILE) {
   }
 }
 
+/**
+ * A budget file another commit wrote, or null when it is absent, empty, not JSON, or has no `prefixes`.
+ * The workflow's `git show … > file` creates the file before `git show` runs, so a path missing at that
+ * commit leaves an empty file rather than none, and a shape this script does not know would otherwise
+ * crash the judgement instead of being reported.
+ *
+ * @param {string} file The path the workflow wrote.
+ * @returns {Promise<object|null>} The parsed file, or null.
+ */
+async function readBudgetFile(file) {
+  try {
+    const parsed = JSON.parse(await readFile(file, 'utf-8'));
+
+    return parsed && typeof parsed.prefixes === 'object' && parsed.prefixes !== null ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 // The base branch's budget file. Absent means the growth question cannot be answered, which the verdict
 // reports rather than passing over — see evaluateBudget().
 let baseBudget = null;
 
 if (process.env.VISUAL_BUDGET_BASE_FILE) {
-  try {
-    baseBudget = JSON.parse(await readFile(process.env.VISUAL_BUDGET_BASE_FILE, 'utf-8'));
-  } catch {
+  baseBudget = await readBudgetFile(process.env.VISUAL_BUDGET_BASE_FILE);
+
+  if (baseBudget === null) {
     console.log('No base-branch budget file on disk; the growth check will report that it did not run.');
   }
 }
@@ -80,10 +99,9 @@ if (process.env.VISUAL_BUDGET_BASE_FILE) {
 let builtOnBudget;
 
 if (process.env.VISUAL_BUDGET_BUILT_ON_FILE) {
-  try {
-    builtOnBudget = JSON.parse(await readFile(process.env.VISUAL_BUDGET_BUILT_ON_FILE, 'utf-8'));
-  } catch {
-    builtOnBudget = null;
+  builtOnBudget = await readBudgetFile(process.env.VISUAL_BUDGET_BUILT_ON_FILE);
+
+  if (builtOnBudget === null) {
     console.log('No budget file for the base commit this run was built on; the growth check compares '
       + 'against the base branch as it is now.');
   }

@@ -687,7 +687,10 @@ which of these run locally and which only in CI.
   no reason to add. Adding it would have re-allowed the 451 trimmed records. So the step reads the file
   twice. The built-on copy answers "did this pull request raise it". The tip answers "did the base change
   its budget during the run", which fails with "merge the base branch and push". A re-run cannot fix it,
-  because it replays the same merge ref. A base whose goldens changed without its budget changing (a
+  because it replays the same merge ref. The tip's file changes the moment such a merge lands, and the seed
+  rewrites the goldens about fifteen minutes later. A Compare in between compared against the old goldens,
+  so it was not stale, but it still fails: one extra push, the same remedy. Develop's previous check failed
+  in that window too, with the marker demand. A base whose goldens changed without its budget changing (a
   restyle) is stale the same way and not detected here: the file records counts, not pixels.
   The marker is comment-stripped, so the PR template's documented example cannot authorise a growth.
   Three things are worth knowing before changing it. The ceiling is **per prefix**, never on the total: a
