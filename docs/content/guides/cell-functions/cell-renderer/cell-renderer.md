@@ -445,6 +445,10 @@ In the below configuration:
 
 ## Render hyperlinks in cells
 
+::: tip Built-in option
+To link the URLs in cell values without a custom renderer, use the [`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option. It validates every URL against a fixed scheme allowlist for you.
+:::
+
 A common use of a custom renderer is to turn a cell value into a clickable hyperlink. The renderer reads the cell value, builds an anchor (`<a>`) element, and appends it to the cell's DOM node.
 
 ```js
@@ -564,6 +568,8 @@ For the full picture of when a render happens and what it covers, see [Understan
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
+
+When a renderer computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- compute it once and reuse it. Key that cache by the data record or by the cell coordinates, never by the `td` element: the grid reuses each `td` for a different record as you scroll, so a `td`-keyed cache misses on almost every call. The [Cache the output of an expensive cell renderer](@/recipes/performance/expensive-cell-renderer/expensive-cell-renderer.md) recipe walks through the pattern, including how to invalidate the cache when the data changes.
 
 ## Result
 

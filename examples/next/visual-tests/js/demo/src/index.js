@@ -29,6 +29,7 @@ import { init as initEmptyDataStateDemo } from './demos/emptyDataState';
 import { init as initNotificationDemo } from './demos/notification';
 import { init as initSelectionHandlesDemo } from './demos/selectionHandles';
 import { init as initMoveCellsDemo } from './demos/moveCells';
+import { init as initSheetsBarDemo } from './demos/sheetsBar';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -265,6 +266,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initPaginationDemo();
+      });
+    },
+    '/sheets-bar-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initSheetsBarDemo();
       });
     },
     '/dialog-demo': function () {

@@ -158,6 +158,8 @@ hot.render();
 
 If you need markup that no option covers, write a [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md). A renderer runs on every render, so what it writes is always reapplied. (Under [`renderMode: 'onChange'`](#skip-the-cells-that-did-not-change) it runs whenever the cell changed, which for markup written from the cell's value and meta is the same thing.)
 
+The same reuse rules out the `td` as a cache key: after a scroll it shows a different record, so a `WeakMap` of `td` to a computed value misses on almost every call. Key a renderer's cache by the data record or by the cell coordinates instead. The [Cache the output of an expensive cell renderer](@/recipes/performance/expensive-cell-renderer/expensive-cell-renderer.md) recipe shows the pattern.
+
 ### Observe renders
 
 Two hooks let you see the rendering cycle:
@@ -196,7 +198,9 @@ columns: [
 ],
 ```
 
-Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (the viewport scrolled), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
+Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (its row scrolled out of the rendered area and another row took the element), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
+
+A vertical scroll keeps the elements of the rows that stay rendered, so it paints only the rows that enter the rendered area. A renderer that caches per element (a framework component attached to the cell element, for example) keeps its cache across such a scroll as well. In a grid with merged cells, the cells of the merged blocks repaint on every scroll too, because a block's span is clamped to the rendered area; the other cells are skipped as usual. A horizontal scroll repaints the rendered cells, and so does any scroll in a grid that scrolls with the page instead of inside its own box.
 
 Some changes are invisible to the grid, because nothing in it sees them:
 
@@ -204,6 +208,7 @@ Some changes are invisible to the grid, because nothing in it sees them:
 - A value object mutated in place. The grid compares values by identity, so `row.checked = true` on an object the cell already showed does not count.
 - State outside the grid that a renderer reads, such as a theme flag or a store.
 - A renderer that reads the data of other cells. The built-in checkbox renderer does this when [`label.property`](@/api/options.md#label) points at another column: editing that column does not repaint the checkbox cell.
+- A renderer that reads where the rendered area starts or ends, through [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings. A vertical scroll keeps such a cell as it is, because the cell's own row and value did not change.
 
 A [`cells`](@/api/options.md#cells) function result is compared value by value. Return the same references for an unchanged result: a renderer function created on every call counts as a change on every render.
 

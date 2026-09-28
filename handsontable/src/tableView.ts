@@ -47,6 +47,7 @@ import {
   A11Y_TREEGRID
 } from './helpers/a11y';
 import { parsePixelSize } from './utils/pixelSize';
+import { describeValue } from './utils/describeValue';
 import { warnOnce } from './helpers/console';
 
 /**
@@ -59,32 +60,6 @@ import { warnOnce } from './helpers/console';
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
-}
-
-/**
- * Renders a rejected setting value for the warning message.
- *
- * Nothing here may throw. This runs inside a Walkontable settings getter during a draw, and only on
- * the path that is already falling back, so a throw would turn a soft fallback into a dead grid.
- *
- * `JSON.stringify` throws on a `BigInt` and on a circular object. `String()` is not safe either: it
- * throws on an object with no prototype (`Object.create(null)`) and on one whose `toString`,
- * `valueOf`, or `Symbol.toPrimitive` throws – and a framework can hand any of those to a setting.
- * `Object.prototype.toString` never calls user code, so it is the fallback.
- *
- * @param {*} value The value that could not be read.
- * @returns {string}
- */
-function describeValue(value: unknown): string {
-  if (typeof value === 'string') {
-    return `"${value}"`;
-  }
-
-  try {
-    return String(value);
-  } catch {
-    return Object.prototype.toString.call(value);
-  }
 }
 
 /**
@@ -252,15 +227,6 @@ class TableView {
    */
   #rowHeadersCount = 0;
   /**
-   * The flag determines if the `adjustElementsSize` method call was made during
-   * the render suspending. If true, the method has to be triggered once after render
-   * resuming.
-   *
-   * @private
-   * @type {boolean}
-   */
-  postponedAdjustElementsSize = false;
-  /**
    * The measurement-only probe of the rendered grid. Runs after each full master draw to record
    * content-driven row and column-header heights. It does not yet feed those values back into
    * rendering (see {@link RenderSizeProbe}).
@@ -319,6 +285,11 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
+   * `#getReservedSlotHeight`).
+   */
+  #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
   /**
    * The last mouse position of the mousedown event.
    *
@@ -381,15 +352,10 @@ class TableView {
       this.hot.runHooks('beforeRender', isFullRender);
 
       this.#discardSizesMeasuredWithoutStyles();
+      this.#reservedSlotHeight = null;
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
-
-      if (this.postponedAdjustElementsSize) {
-        this.postponedAdjustElementsSize = false;
-
-        this.adjustElementsSize(true);
-      }
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
@@ -397,20 +363,27 @@ class TableView {
   }
 
   /**
-   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
-   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
-   * will be executed immediately.
+   * Adjust overlays elements size and master table size.
    *
-   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
-   * size after render. It should be calculated and updated automatically in Walkontable.
+   * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
+   * it is about to write against the geometry it last wrote, and resizes itself on the draw where
+   * those differ (`Overlays#currentLayoutSignature`).
    *
-   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`, and still useful to an
+   * integrator who moved or resized the grid outside anything the engine observes and wants the new
+   * sizes in the same tick, before the next draw. Its contract has changed: it used to schedule a
+   * resize for the next render, and it now resizes straight away — but only if the geometry really
+   * differs, so calling it on a steady grid costs nothing. `flush` skips that check and resizes
+   * unconditionally.
+   *
+   * @param {boolean} [flush=false] If `true`, resize unconditionally instead of only when the
+   *                                geometry changed.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
     } else {
-      this.postponedAdjustElementsSize = true;
+      this._wt.wtOverlays.adjustElementsSizeIfNeeded();
     }
   }
 
@@ -1022,6 +995,10 @@ class TableView {
   initializeWalkontable() {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
+      // The instance's unique id. Walkontable stamps it into the `id` on each column header so a data
+      // cell can point at its header through `aria-describedby`; the id must be unique per grid so
+      // several grids on one page never cross-reference each other's headers.
+      guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
@@ -1033,6 +1010,8 @@ class TableView {
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
+      layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
+      heightFollowsContent: () => this.#isHeightContentDriven(),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -1145,8 +1124,9 @@ class TableView {
           !this.hot.hasHook('modifyColWidth');
       },
       shouldPaintCell: (
-        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
-      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string,
+        stableBand: string | null,
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band, stableBand),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
         this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
@@ -2766,6 +2746,52 @@ class TableView {
   }
 
   /**
+   * Tells whether the grid's height follows its content: `height: 'auto'`, which `core/rootSize.ts`
+   * writes on the root as inline `height: auto`. The engine reads it to keep the holder at `auto`
+   * inside an ancestor that clips or scrolls but has no height of its own, where sizing the holder
+   * to that ancestor collapses the grid to 0px (DEV-3062).
+   *
+   * @returns {boolean}
+   */
+  #isHeightContentDriven(): boolean {
+    return this.hot.rootElement.style.height === 'auto';
+  }
+
+  /**
+   * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
+   * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
+   * room for them – otherwise the holder takes the whole box and pushes the slot content past the
+   * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
+   * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
+   * option) contains no slot and reserves nothing here; core subtracts the slots from the pixel
+   * `height` it writes on the root instead. Non-root instances have no slots.
+   *
+   * Memoized per render: the engine asks several times per draw off the single-pass path (every
+   * `getWorkspaceHeight()` measures the live DOM there), and each ask is two layout-forcing
+   * `offsetHeight` reads. `render()` drops the memo before the draw; the slot `ResizeObserver` in
+   * core renders when a slot changes height, so a value cached across draws cannot go stale.
+   *
+   * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
+   * @returns {number}
+   */
+  #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
+    const cached = this.#reservedSlotHeight;
+
+    if (cached && cached.owner === trimmingContainer) {
+      return cached.height;
+    }
+
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const height = [rootSlotTopElement, rootSlotBottomElement]
+      .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
+      .reduce((sum, slot) => sum + slot.offsetHeight, 0);
+
+    this.#reservedSlotHeight = { owner: trimmingContainer, height };
+
+    return height;
+  }
+
+  /**
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
@@ -2773,7 +2799,7 @@ class TableView {
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
-    const rootElement = this.hot.rootElement;
+    const { rootElement, rootWrapperElement } = this.hot;
 
     if (this.hasVerticalScroll()) {
       addClass(rootElement, 'htHasScrollY');
@@ -2781,10 +2807,27 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
-    if (this.isVerticallyScrollableByWindow()) {
+    const isVerticallyScrollableByWindow = this.isVerticallyScrollableByWindow();
+
+    if (isVerticallyScrollableByWindow) {
       addClass(rootElement, 'htVerticallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      // The grid's height follows its content when the page scrolls the rows, and with
+      // `height: 'auto'` (core writes `overflow: clip` for it, so the root owns the axis, yet the
+      // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
+      // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
+      // row (DEV-2848).
+      const followsContent = isVerticallyScrollableByWindow || this.#isHeightContentDriven();
+
+      if (followsContent) {
+        addClass(rootWrapperElement, 'ht-grid-follows-content');
+      } else {
+        removeClass(rootWrapperElement, 'ht-grid-follows-content');
+      }
     }
 
     if (this.hasHorizontalScroll()) {

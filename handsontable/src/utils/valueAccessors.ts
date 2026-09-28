@@ -51,8 +51,13 @@ export function getValueSetterValue(value: unknown, cellMeta: Record<string, unk
   const { instance, visualRow, visualCol, valueSetter, emptyValue } = cellMeta;
   let newValue = value;
 
+  // `source` is forwarded as a fifth argument, optional so a consumer that reads the option back
+  // out and calls it with four still type-checks. A cell type whose stored shape differs from what
+  // the user writes needs it to honor the undo invariant stated below: the autocomplete setter
+  // resolves a bare label into its `source` entry, and doing that on an undo would restore a value
+  // the user never undid to.
   if (isFunction(valueSetter)) {
-    newValue = valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
+    newValue = valueSetter.call(instance, value, visualRow, visualCol, cellMeta, source);
   }
 
   // `emptyValue` spells out what an emptied cell stores. It runs after `valueSetter` so a cell that

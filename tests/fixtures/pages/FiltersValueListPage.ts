@@ -1,4 +1,17 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+
+/**
+ * Escapes a Filter-by-value, header, or condition label so it can be used
+ * in a `^…$` exact-match regexp. Password hashes are runs of `*`, which
+ * would otherwise throw `Nothing to repeat`.
+ *
+ * @param {string} label The visible list, header, or condition label.
+ * @returns {string} The label with regexp special characters escaped.
+ */
+export function escapeRegExp(label: string): string {
+  return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Page Object for the "filter by value" dropdown-menu fixture.
@@ -17,6 +30,9 @@ export class FiltersValueListPage {
   readonly valueList: Locator;
   readonly valueLabels: Locator;
   readonly searchInput: Locator;
+  readonly conditionsMenu: Locator;
+  readonly okButton: Locator;
+  readonly cancelButton: Locator;
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -25,17 +41,26 @@ export class FiltersValueListPage {
    * @param {string} theme The active theme.
    * @param {string} bundle The active bundle.
    * @param {string} fixture The fixture file to open. The locale variant seeds Turkish values on a
-   *   `tr-TR` grid; everything else about the two pages is the same, so they share this object.
+   *   `tr-TR` grid, the value-order variant configures `filterValueComparator`; everything else
+   *   about these pages is the same, so they share this object.
    */
   constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.fixture = fixture;
-    this.menu = page.locator('.htDropdownMenu');
+    // A submenu's container carries this class too (`Menu.createContainer()` adds the parent's class
+    // and `<class>Sub_<item>`), and a closed submenu stays in the DOM, hidden, until its parent
+    // closes. Leaving those containers out keeps `menu` one element while a submenu exists.
+    this.menu = page.locator('.htDropdownMenu:not([class*="htDropdownMenuSub_"])');
     this.valueList = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody tr');
     this.valueLabels = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody label');
     this.searchInput = this.menu.locator('.htUIMultipleSelectSearch input');
+    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container; only the
+    // opened one is rendered.
+    this.conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
+    this.okButton = this.menu.locator('.htUIButtonOK input');
+    this.cancelButton = this.menu.locator('.htUIButtonCancel input');
   }
 
   /**
@@ -57,6 +82,9 @@ export class FiltersValueListPage {
 
     await this.page.goto(
       `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+    // The bundle first: it is several megabytes and every worker pulls its own copy, so on a cold
+    // server the cell assertion alone times out before the grid has a chance to build.
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -102,7 +130,7 @@ export class FiltersValueListPage {
   async openMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -122,7 +150,7 @@ export class FiltersValueListPage {
   async openEmptyMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -161,7 +189,7 @@ export class FiltersValueListPage {
 
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
-    await this.menu.locator('.htUIButtonOK input').click();
+    await this.okButton.click();
     await expect(this.menu).toBeHidden();
   }
 
@@ -173,13 +201,11 @@ export class FiltersValueListPage {
   async selectCondition(conditionLabel: string): Promise<void> {
     await this.menu.locator('.htFiltersMenuCondition .htUISelect').first().click();
 
-    // Each of the two condition selects owns a `.htFiltersConditionsMenu` container;
-    // only the opened one is rendered.
-    const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
-
-    await expect(conditionsMenu).toBeVisible();
-    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${conditionLabel}$`) }).click();
-    await expect(conditionsMenu).toBeHidden();
+    await expect(this.conditionsMenu).toBeVisible();
+    await this.conditionsMenu.locator('td')
+      .filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) })
+      .click();
+    await expect(this.conditionsMenu).toBeHidden();
   }
 
   /**
@@ -240,16 +266,20 @@ export class FiltersValueListPage {
   /**
    * Check the "filter by value" item carrying the given label.
    *
-   * The value box is about 110px tall and virtualized, so it holds roughly four rows. Target a
-   * row in the first three: pressing one at or past the fold makes Playwright scroll the inner
-   * list first, the row moves out from under the pointer, and the press lands outside the menu
-   * and closes it — a flake that hits about two runs in three.
+   * The value box is about 110px tall and virtualized, so it holds roughly four rows. A row at or
+   * past that fold used to flake — Playwright scrolled the inner list first, the row moved out
+   * from under the pointer, and the press landed outside the menu and closed it. DEV-1159 (#13544)
+   * fixed that in the product: the mouse single-scroll strategy skips the whole move for a
+   * non-oversized last-partial click, which is what keeps a real click on a virtualized checkbox
+   * from moving the list. So a below-fold value is a legitimate target, and
+   * `filters-value-list.spec.ts` keeps clicking one on purpose as coverage of that skip. Do not
+   * dodge the fold with a different value or `force: true` — see the Filters plugin's AGENTS.md.
    *
    * @param {string} label The value's visible label.
    */
   async checkValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
@@ -298,16 +328,96 @@ export class FiltersValueListPage {
   /**
    * Uncheck the "filter by value" item carrying the given label.
    *
-   * Same fold hazard as `checkValue()` — target a row in the first three.
+   * Same virtualized fold as `checkValue()`, and the same answer: the product handles it since
+   * DEV-1159, so a below-fold value is a legitimate target.
    *
    * @param {string} label The value's visible label.
    */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
     await expect(checkbox).not.toBeChecked();
+  }
+
+  /**
+   * Add a filter condition to a column through the plugin API and apply it, the way the documented
+   * `filter()` recipe does. This is the API counterpart to the menu-driven `applyCondition()`.
+   *
+   * @param {number} column The visual column index.
+   * @param {string} name The condition short name (e.g. `eq`, `by_value`).
+   * @param {Array} args The condition arguments.
+   */
+  async addFilter(column: number, name: string, args: unknown[]): Promise<void> {
+    await this.page.evaluate(({ column: col, name: conditionName, args: conditionArgs }) => {
+      const plugin = window.hot.getPlugin('filters');
+
+      plugin.addCondition(col, conditionName, conditionArgs);
+      plugin.filter();
+    }, { column, name, args });
+  }
+
+  /**
+   * Replace the grid's source data while keeping the `filters` option in the payload, exactly as the
+   * React and Angular wrappers re-send their whole settings object on every update. Passing `filters`
+   * is what makes `updateSettings` run the Filters plugin's `updatePlugin` (disable + enable) cycle.
+   *
+   * @param {Array} data The new source data.
+   */
+  async replaceData(data: unknown[][]): Promise<void> {
+    await this.page.evaluate((newData) => {
+      window.hot.updateSettings({ data: newData, filters: true });
+    }, data);
+  }
+
+  /**
+   * Re-configure the grid with `updateSettings()`, the way a host application changes options at
+   * runtime. The payload crosses into the page, so it must be serializable, and any function it
+   * carries (a comparator, for example) is built inside the page from a source string.
+   *
+   * @param {string} settingsSource JavaScript source of an object literal, evaluated in the page.
+   */
+  async updateSettings(settingsSource: string): Promise<void> {
+    await this.page.evaluate((source) => {
+      // eslint-disable-next-line no-new-func
+      window.hot.updateSettings(new Function(`return (${source});`)());
+    }, settingsSource);
+  }
+
+  /**
+   * Append an empty row under the last one the grid shows, the way a toolbar "add row" button does.
+   *
+   * @returns {Promise<number>} The visual index of the row that was added.
+   */
+  async insertRowBelowLast(): Promise<number> {
+    const newIndex = await this.page.evaluate(() => {
+      window.hot.alter('insert_row_below', window.hot.countRows() - 1);
+
+      return window.hot.countRows() - 1;
+    });
+
+    await expect(this.cell(newIndex, 0)).toBeVisible();
+
+    return newIndex;
+  }
+
+  /**
+   * Write a value into a cell through the API, which fires `afterChange`.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} value The new value.
+   */
+  async setCellValue(row: number, col: number, value: string): Promise<void> {
+    await this.page.evaluate(({ row: r, col: c, value: v }) => {
+      window.hot.setDataAtCell(r, c, v);
+    }, { row, col, value });
+  }
+
+  /** The number of rows the grid currently shows (source rows minus the filtered-out ones). */
+  async visibleRowCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countRows());
   }
 }

@@ -54,7 +54,7 @@ function _getItem(name: string): CellTypeObject {
  * Register cell type under specified name.
  *
  * @param {string} name Cell type identification.
- * @param {object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
+ * @param {object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behavior of the cell.
  */
 function _register(name: string | CellTypeObject, type?: CellTypeObject): void {
   if (typeof name !== 'string') {

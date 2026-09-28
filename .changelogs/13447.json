@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the comment editor closed while the user was dragging its resize grip, and where it closed after the pointer left the editor and came straight back to it.",
+  "type": "fixed",
+  "issueOrPR": 13447,
+  "breaking": false,
+  "framework": "none"
+}

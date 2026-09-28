@@ -90,6 +90,55 @@ DOM write it replaced.
 
 `refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state.
 
+## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
+
+`reversedRowCoords: true` means the destination is counted from the **bottom** of the table, so
+`destinationRow: 0` is the last row and the summary must follow the bottom as rows are added or removed.
+`assignSetting()` resolves that once, at parse time, into an absolute physical index
+(`countAddressableRows() - destinationRow - 1`) and keeps **only** the boolean — so the original
+offset-from-the-bottom is otherwise lost. It is preserved on `endpoint.reversedRowOffset` for exactly this
+reason.
+
+The array-form `resetSetupAfterStructureAlteration()` shift is a gated shift: it moves an endpoint only
+when the alteration index sits **at or below** its destination. That is correct for a fixed (non-reversed)
+endpoint, and it happens to be correct for a reversed one when a row is inserted *above* the anchor. It is
+**wrong** for a row appended *below* the anchor — `2 >= 3` is false for an append past the last row — which
+left the summary parked on the old last row instead of moving down (DEV-144). So after the generic
+shift, every reversed **row** endpoint re-derives `destinationRow` from `countAddressableRows()` and its
+stored offset. The generic `resetAllEndpoints()` pass already ran first and cleared the old destination
+cell's **value** (its `alterRowOffset` is 0 for a below-anchor alteration, so it clears the pre-move
+position); the refresh afterwards writes the value onto the new anchor.
+
+`reversedRowOffset` is the caller's original offset-from-the-bottom, kept because `assignSetting()` resolves
+the reversed destination into an absolute index and would otherwise lose it. It is an **internal** field:
+it is deliberately *not* declared on the exported `EndpointConfig` interface (it rides the interface's
+`[key: string]: unknown` index signature) and `parseSettings()` never copies it, so a caller cannot set it.
+
+Three rules the re-derive follows, each with a reason:
+
+- **The vacated cell is fully de-summarized.** When the anchor moves, the old cell's value is cleared by
+  `resetAllEndpoints()` and its declarative `readOnly` + `columnSummaryResult` class are dropped with
+  `_setCellMetaDeclarative(...)` — otherwise it stays uneditable and `getCellValue` keeps treating it as a
+  summary result, so it never counts in any range. `readOnly` is reset to `false` (the schema default), not
+  to a column-level override the cell may carry; the cell had shadowed that override since the initial
+  parse, so this is not a new shadow, but it is an approximation rather than a true cascade restore.
+- **A removal never re-anchors onto occupied data.** On a removal the re-derived slot can be a row that
+  already holds user data; moving there would let the refresh overwrite it. So the move is gated on the
+  target cell being empty and the endpoint is otherwise left parked (non-destructive, matching pre-fix
+  behavior). An **insert** re-anchoring onto data *is* allowed — it mirrors the initial parse planting the
+  anchor on whatever the reversed slot holds. Residual: a parked endpoint sits at a stale offset until the
+  next alteration frees the slot.
+- **A below-zero re-derive warns and parks.** Enough removals drive `count - reversedRowOffset - 1`
+  negative; the re-derive raises the out-of-bounds warning and leaves the endpoint parked at its last
+  valid row rather than storing the negative index. Storing it would poison the all-or-nothing bounds
+  check in `resetAllEndpoints()` — one endpoint below zero would make later alterations skip clearing
+  every sibling. For the same reason the lower bound is handled here, not added to
+  `isEndpointOutOfBounds()` (which that shared gate calls).
+
+One related bug is tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also
+resolved once and does not grow on append. `reversedRowCoordsAlter.unit.js` pins the add, remove,
+data-safety, multi-endpoint, and out-of-bounds cases.
+
 ## The refresh pass caches every endpoint, not just the matched ones
 
 `cacheSummaryDestinations(endpoints)` is called with **all** endpoints even though only the matched ones are

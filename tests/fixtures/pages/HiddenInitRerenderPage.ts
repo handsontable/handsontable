@@ -1,4 +1,5 @@
 import { type Locator, type Page } from '@playwright/test';
+import { afterAnimationFrames } from '../frames';
 
 export type HiddenScenario = 'inline-root' | 'inline-parent' | 'stylesheet-root' | 'stylesheet-parent';
 
@@ -156,18 +157,7 @@ export class HiddenInitRerenderPage {
    * machinery delivered.
    */
   async afterAnimationFrames(count: number): Promise<void> {
-    await this.page.evaluate(frames => new Promise<void>(resolve => {
-      const step = (left: number) => {
-        if (left <= 0) {
-          resolve();
-
-          return;
-        }
-        requestAnimationFrame(() => step(left - 1));
-      };
-
-      step(frames);
-    }), count);
+    await afterAnimationFrames(this.page, count);
   }
 
   /**

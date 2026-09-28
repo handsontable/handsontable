@@ -317,15 +317,21 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
-      this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
-        if (!firstRun) {
-          this.hide();
-        }
-      });
     }
+
+    // Registered on every enable, not only when the editor is first built: tracked hooks are
+    // removed by disablePlugin() while the editor instance survives it, so a hook inside the
+    // first-create guard would be gone for good after one disable/enable round trip.
+    this.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+      if (!firstRun) {
+        this.hide();
+      }
+    });
 
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
+      this.#displaySwitch.addLocalHook('hide', () => this.hide());
+      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
     }
 
     this.addHook('afterContextMenuDefaultOptions',
@@ -338,9 +344,6 @@ export class Comments extends BasePlugin {
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
-
-    this.#displaySwitch?.addLocalHook('hide', () => this.hide());
-    this.#displaySwitch?.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
 
     this.registerShortcuts();
     this.registerListeners();
@@ -362,6 +365,20 @@ export class Comments extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    const manager = this.hot.getShortcutManager();
+
+    this.hide();
+
+    // The hold flag outlives a disable, because it is an instance field and `enablePlugin()` never
+    // touches it. A disable that lands between the editor's own "mousedown" and the document's
+    // "mouseup" - the event manager is torn down in between, so that release never arrives - would
+    // otherwise hand the re-enabled plugin a stuck `true`, with hover switching dead from the start.
+    this.#preventEditorAutoSwitch = false;
+
+    if (manager.getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
+      manager.setActiveContextName('grid');
+    }
+
     this.unregisterShortcuts();
     // The marker class is written on the element by `afterRenderer`, from the cell meta. Once the
     // hook is gone only a paint removes it, so under `renderMode: 'onChange'` every cell must paint.
@@ -377,7 +394,7 @@ export class Comments extends BasePlugin {
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const gridContext = manager.getContext('grid');
-    const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME);
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
 
     gridContext?.addShortcut({
       keys: [['Control', 'Alt', 'M']],
@@ -445,9 +462,14 @@ export class Comments extends BasePlugin {
    * @private
    */
   unregisterShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    const manager = this.hot.getShortcutManager();
+
+    manager.getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+
+    // The plugin's own context outlives a disable — the manager has no way to drop one — so its
+    // shortcuts are cleared here as well. Re-enabling reuses the context, and without this it
+    // would carry a second copy of every shortcut in it.
+    manager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -956,12 +978,28 @@ export class Comments extends BasePlugin {
   };
 
   /**
-   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   * Prevent recognizing clicking on the comment editor as clicking outside of table, and hold the
+   * editor open for the rest of the pointer gesture.
    *
    * @param {Event} event The `mousedown` event.
    */
   #onInputElementMouseDown = (event: Event) => {
     event.stopPropagation();
+
+    // Only the primary button starts a gesture the editor has to survive. The flag below is
+    // cleared by the document's "mouseup", and a secondary-button press is the shape most likely
+    // not to deliver one - a right press opens the platform's own menu - which would strand the
+    // flag and leave hover switching and the click-outside hide dead until the next click.
+    if ((event as MouseEvent).button !== 0) {
+      return;
+    }
+
+    // A resizer drag is one such gesture. The cancel in `#onMouseOver` closes the gap one event at
+    // a time; this closes it for the whole drag, so the editor cannot vanish between a stray event
+    // and the cancel that follows it. This handler is the only place the flag can be set: the
+    // document-level `#onMouseDown` never sees this event, because of the `stopPropagation()`.
+    this.#preventEditorAutoSwitch = true;
+    this.#displaySwitch?.keepVisible();
   };
 
   /**
@@ -970,12 +1008,33 @@ export class Comments extends BasePlugin {
    * @param {Event} event The `mouseover` event.
    */
   #onMouseOver = (event: Event) => {
-    const { rootDocument } = this.hot;
+    if (!this.#editor) {
+      return;
+    }
 
+    const { rootDocument } = this.hot;
     const target = eventTargetEl(event)!;
 
-    if (this.#preventEditorAutoSwitch || this.#editor?.isFocused() || hasClass(target, 'wtBorder')
-        || this.#cellBelowCursor === target || !this.#editor) {
+    // The pointer is over the editor, so a hide armed by an earlier event has to be called off.
+    // This has to run BEFORE the short circuits below, because the resizer drag reaches the
+    // `#cellBelowCursor === target` one: the drag lands an event on the element underneath the
+    // pointer (the browser hit-tests each "mousemove" against the textarea's pre-resize box) and
+    // `elementFromPoint` already resolves to the resized textarea, so the next event - the one
+    // over the textarea - matches and would return before canceling anything.
+    if (this.targetIsCommentTextArea(event)) {
+      this.#displaySwitch?.keepVisible();
+      // Returning early skips the `#cellBelowCursor` write below, so the field would keep naming
+      // the cell the pointer left the editor FOR. Moving back onto that same cell then matches the
+      // `=== target` short circuit, no hide is armed, and the editor stays open until some other
+      // cell is visited. Clearing it keeps the short circuit doing only its own job - dropping a
+      // repeated event for one cell - across a trip over the editor.
+      this.#cellBelowCursor = null;
+
+      return;
+    }
+
+    if (this.#preventEditorAutoSwitch || this.#editor.isFocused() || hasClass(target, 'wtBorder')
+        || this.#cellBelowCursor === target) {
       return;
     }
 
@@ -996,7 +1055,7 @@ export class Comments extends BasePlugin {
         this.#displaySwitch?.show(range);
       }
 
-    } else if (this.#isInRenderedTree(target) && !this.targetIsCommentTextArea(event)) {
+    } else if (this.#isInRenderedTree(target)) {
       this.#displaySwitch?.hide();
     }
   };

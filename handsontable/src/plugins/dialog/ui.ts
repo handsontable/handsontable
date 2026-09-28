@@ -277,9 +277,10 @@ export class DialogUI {
       showClass
     ].join(' ');
 
-    if (this.#template.TEMPLATE_NAME === 'base') {
-      setAttribute(dialogElement, [A11Y_TABINDEX(-1)]);
-    }
+    // Every template, not only `base`: `focusDialog()` (the public `Dialog#focus()`, which
+    // `../loading/` calls) is a silent no-op on a container that cannot hold the focus. A value of
+    // -1 adds no tab stop, so the tab order is the same as before.
+    setAttribute(dialogElement, [A11Y_TABINDEX(-1)]);
 
     // Dialog aria attributes
     setAttribute(dialogElement, [

@@ -12,7 +12,7 @@
     .colHeader.columnSorting.sortAction {
       box-sizing: border-box;
       flex-grow: 0;
-      // Centres the label; `htLeft`/`htRight` move the box instead, below.
+      // Centers the label; `htLeft`/`htRight` move the box instead, below.
       margin-inline: auto;
       // Never collapse in a narrow column, never grow past the header.
       min-width: min(calc(var(--ht-icon-size, 16px) + 8px), 100%);
@@ -31,7 +31,7 @@
     }
 
     // `text-align` used to place the text inside a full-width label. The label is now sized to its
-    // text, so the alignment has to move the box or every aligned header renders centred. Physical
+    // text, so the alignment has to move the box or every aligned header renders centered. Physical
     // margins, because `htLeft`/`htRight` are physical in either direction. Matched as an ancestor:
     // `headerClassName` puts the class on `.relative`, code that sets it by hand puts it on the
     // `th`.

@@ -2,7 +2,12 @@ import type { BaseRenderer } from '../../renderers/baseRenderer';
 import { formatCellValue, renderCell } from '../../renderers/renderCell';
 import type { CellProperties } from '../../settings';
 import type { HotInstance } from '../types';
-import { isSameCellPaint, readCellPaintStamp, writeCellPaintStamp } from './cellPaintStamps';
+import {
+  deleteCellPaintStamp,
+  isSameCellPaint,
+  readCellPaintStamp,
+  writeCellPaintStamp,
+} from './cellPaintStamps';
 import type { CellPaintStamp } from './cellPaintStamps';
 import { getCellRenderVersion, RENDER_MODE_ON_CHANGE } from './renderChangeTracker';
 import type { RenderChangeTracker } from './renderChangeTracker';
@@ -82,10 +87,19 @@ export class CellPainter {
    * @param {number} renderedRow The renderable row index.
    * @param {number} renderedColumn The renderable column index.
    * @param {HTMLTableCellElement} TD The cell element that holds the cell on this draw.
-   * @param {string} band The identity of the rendered band the element belongs to.
+   * @param {string} band The identity of the rendered band the element belongs to (the overlay with
+   *   its offsets and sizes).
+   * @param {string|null} [stableBand=null] The stable identity the engine offers (the overlay name
+   *   alone) where the rows keep their elements across a scroll, or `null` where they do not.
    * @returns {boolean}
    */
-  shouldPaint(renderedRow: number, renderedColumn: number, TD: HTMLTableCellElement, band: string): boolean {
+  shouldPaint(
+    renderedRow: number,
+    renderedColumn: number,
+    TD: HTMLTableCellElement,
+    band: string,
+    stableBand: string | null = null,
+  ): boolean {
     const resolved = this.#resolve(renderedRow, renderedColumn);
     const pending: PendingPaint = { renderedRow, renderedColumn, resolved, stamp: null };
 
@@ -100,7 +114,7 @@ export class CellPainter {
       renderedColumn,
       visualRow: resolved.visualRow,
       visualColumn: resolved.visualColumn,
-      band,
+      band: this.#bandIdentity(resolved.cellProperties, band, stableBand),
       epoch: this.#tracker.epoch,
       version: getCellRenderVersion(resolved.cellProperties),
       value: resolved.formattedValue,
@@ -137,7 +151,35 @@ export class CellPainter {
 
     if (pending?.stamp) {
       writeCellPaintStamp(TD, pending.stamp);
+    } else {
+      // The element now shows a cell painted outside `'onChange'`, or a direct paint that came with
+      // no decision. A stamp left from an earlier `'onChange'` paint would describe content the
+      // element no longer holds, and a row rotation can bring that cell back to this element: the
+      // stale stamp would match and the element would keep showing the other cell.
+      deleteCellPaintStamp(TD);
     }
+  }
+
+  /**
+   * Picks the band identity the stamp carries. The stable identity (the overlay name alone) lets a
+   * cell that kept its element across a scroll read as unchanged; a cell whose paint depends on where
+   * the band starts or ends cannot take it. That is a merged block's cell: MergeCells clamps the
+   * block's span to the rendered band and marks the origin's meta `spanned`, which the covered cells
+   * resolve to as well. The flag is the plugin's own meta key, read here through the meta's index
+   * signature: it is not a setting, so it stays off the published `CellMeta` and out of the options
+   * reference (`src/plugins/mergeCells/AGENTS.md` records that it is load-bearing).
+   *
+   * @param {CellProperties} cellProperties The resolved cell meta.
+   * @param {string} band The full identity of the rendered band.
+   * @param {string|null} stableBand The stable identity, or `null` where none is offered.
+   * @returns {string}
+   */
+  #bandIdentity(cellProperties: CellProperties, band: string, stableBand: string | null): string {
+    if (stableBand === null || cellProperties.spanned === true) {
+      return band;
+    }
+
+    return stableBand;
   }
 
   /**

@@ -123,6 +123,23 @@ export const PAGINATION_PREV_PAGE = `${PAGINATION_NAMESPACE}prevPage`;
 export const PAGINATION_NEXT_PAGE = `${PAGINATION_NAMESPACE}nextPage`;
 export const PAGINATION_LAST_PAGE = `${PAGINATION_NAMESPACE}lastPage`;
 
+export const SHEETS_BAR_NAMESPACE = 'SheetsBar:';
+export const SHEETS_BAR_SECTION = `${SHEETS_BAR_NAMESPACE}section.sheetsBar`;
+export const SHEETS_BAR_ADD_SHEET = `${SHEETS_BAR_NAMESPACE}addSheet`;
+export const SHEETS_BAR_ALL_SHEETS = `${SHEETS_BAR_NAMESPACE}allSheets`;
+export const SHEETS_BAR_SHEET_MENU = `${SHEETS_BAR_NAMESPACE}sheetMenu`;
+export const SHEETS_BAR_RENAME_SHEET = `${SHEETS_BAR_NAMESPACE}renameSheet`;
+export const SHEETS_BAR_ITEMS_DELETE = `${SHEETS_BAR_NAMESPACE}items.delete`;
+export const SHEETS_BAR_ITEMS_DUPLICATE = `${SHEETS_BAR_NAMESPACE}items.duplicate`;
+export const SHEETS_BAR_ITEMS_RENAME = `${SHEETS_BAR_NAMESPACE}items.rename`;
+export const SHEETS_BAR_ITEMS_MOVE_RIGHT = `${SHEETS_BAR_NAMESPACE}items.moveRight`;
+export const SHEETS_BAR_ITEMS_MOVE_LEFT = `${SHEETS_BAR_NAMESPACE}items.moveLeft`;
+export const SHEETS_BAR_PAGE_PREV = `${SHEETS_BAR_NAMESPACE}pagePrev`;
+export const SHEETS_BAR_PAGE_NEXT = `${SHEETS_BAR_NAMESPACE}pageNext`;
+export const SHEETS_BAR_SHEET_CHANGED = `${SHEETS_BAR_NAMESPACE}announcement.sheetChanged`;
+export const SHEETS_BAR_RENAME_REJECTED = `${SHEETS_BAR_NAMESPACE}announcement.renameRejected`;
+export const SHEETS_BAR_DEFAULT_SHEET_NAME = `${SHEETS_BAR_NAMESPACE}defaultSheetName`;
+
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;

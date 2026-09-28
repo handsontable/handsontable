@@ -16,6 +16,7 @@ import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
+import { canAccessCellContent } from '../../shortcuts/guards';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
@@ -100,6 +101,13 @@ export function checkboxRenderer(
       localeLowerCase(stringify(value), locale) ===
       localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
       input.checked = true;
+      // Reflect the checked state as the `checked` HTML attribute (via `defaultChecked`), not only as
+      // the IDL property. A custom renderer that chains this renderer and then rebuilds the cell with
+      // `TD.innerHTML += ...` re-serializes the cell; the IDL property is not serialized, so without the
+      // attribute the checkbox re-parses as unchecked on every render (handsontable/dev-handsontable#342).
+      // Only the checked branch sets it: `createInput()` returns a freshly cloned element on every
+      // render, so the attribute defaults to absent on the unchecked path with nothing to clear.
+      input.defaultChecked = true;
 
     } else if (value === cellProperties.uncheckedTemplate ||
       localeLowerCase(stringify(value), locale) ===
@@ -196,6 +204,8 @@ export function checkboxRenderer(
   function registerShortcuts() {
     const shortcutManager = hotInstance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
+    // Every entry below writes a cell value, and each carries the shared guard on its own `runOnlyIf`:
+    // a per-shortcut `runOnlyIf` REPLACES a group-level one rather than being ANDed with it.
     const config = {
       group: SHORTCUTS_GROUP,
       relativeToGroup: SHORTCUTS_GROUP_EDITOR,
@@ -209,7 +219,8 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
+        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -220,7 +231,7 @@ export function checkboxRenderer(
       runOnlyIf: (): boolean => {
         const range = hotInstance.getSelectedRangeActive();
 
-        return !!(hotInstance.getSettings().enterBeginsEditing &&
+        return canAccessCellContent(hotInstance) && !!(hotInstance.getSettings().enterBeginsEditing &&
           range?.highlight.isCell() &&
           !hotInstance.selection.isMultiple());
       },
@@ -231,7 +242,8 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
+        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }], config);
   }
 

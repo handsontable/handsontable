@@ -380,6 +380,54 @@ describe('MergeCells', () => {
       expect(merges[0].rowspan).toBe(1);
       expect(merges[0].colspan).toBe(3);
     });
+
+    it('should keep the visual-anchor value when merging after a column move', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        mergeCells: true,
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 2);
+      await render();
+
+      // Visual order is B, C, A, D. Merging visual 0–1 must keep B1, not the
+      // double-translated physical neighbor (C1).
+      getPlugin('mergeCells').merge(0, 0, 0, 1);
+
+      expect(getDataAtCell(0, 0)).toBe('B1');
+      expect(getDataAtCell(0, 1)).toBe(null);
+      expect(getSourceData()).toEqual([
+        ['A1', 'B1', null, 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+      ]);
+    });
+
+    it('should keep the visual-anchor value when merging after a column move with hidden columns', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        mergeCells: true,
+        manualColumnMove: true,
+        hiddenColumns: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 2);
+      getPlugin('hiddenColumns').hideColumn(1);
+      await render();
+
+      // Visual order is B, C (hidden), A, D. Merging visual 0–2 must keep B1,
+      // not the hidden neighbor C1 that a double-translated column would hit.
+      getPlugin('mergeCells').merge(0, 0, 0, 2);
+
+      expect(getDataAtCell(0, 0)).toBe('B1');
+      expect(getDataAtCell(0, 1)).toBe(null);
+      expect(getDataAtCell(0, 2)).toBe(null);
+      // Physical A (visual 2) is inside the merge, so it is cleared too.
+      expect(getSourceData()).toEqual([
+        [null, 'B1', null, 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+      ]);
+    });
   });
 
   describe('mergeCells updateSettings', () => {

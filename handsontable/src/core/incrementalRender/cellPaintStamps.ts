@@ -1,8 +1,10 @@
 /**
- * What a cell element showed after its last paint. The engine reuses TD elements by position, so
- * the stamp records which cell the element painted (renderable and visual indexes, the rendered
- * band), under which grid-wide epoch and cell meta version, with which formatted value and which
- * renderer. A draw repaints the element only when any of these differs.
+ * What a cell element showed after its last paint. The engine reuses TD elements by position and,
+ * on a scroll, rotates the rows so an element follows its row; the stamp records which cell the
+ * element painted (renderable and visual indexes, and the band identity the painter picked: the
+ * overlay alone for a cell that may keep its element across a scroll, the full band for a merged
+ * block's cell), under which grid-wide epoch and cell meta version, with which formatted value and
+ * which renderer. A draw repaints the element only when any of these differs.
  */
 export interface CellPaintStamp {
   renderedRow: number;
@@ -37,6 +39,17 @@ export function readCellPaintStamp(TD: HTMLTableCellElement): CellPaintStamp | u
  */
 export function writeCellPaintStamp(TD: HTMLTableCellElement, stamp: CellPaintStamp): void {
   stamps.set(TD, stamp);
+}
+
+/**
+ * Forgets the stamp of an element that a paint outside `'onChange'` just overwrote. The stamp
+ * described content the element no longer holds, and a row rotation can bring that cell back to
+ * this element later; a stale stamp would then match and the element would keep the other cell.
+ *
+ * @param {HTMLTableCellElement} TD The cell element that was painted.
+ */
+export function deleteCellPaintStamp(TD: HTMLTableCellElement): void {
+  stamps.delete(TD);
 }
 
 /**

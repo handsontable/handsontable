@@ -113,6 +113,19 @@ class Renderer {
   }
 
   /**
+   * Restricts the next render's cell and row-header repaint to the rows at and after
+   * `fromVisibleRow` (see `TableRenderer#setPaintWindow`).
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {Renderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.renderer.setPaintWindow(fromVisibleRow);
+
+    return this;
+  }
+
+  /**
    * Marks this draw as one where the column-header (THEAD) pass may be skipped when the column render
    * window is unchanged (a pure vertical scroll).
    *
@@ -121,6 +134,42 @@ class Renderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.renderer.setColumnHeadersRenderSkippable(skippable);
+
+    return this;
+  }
+
+  /**
+   * Sets whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   * @returns {Renderer}
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
+   * Records the host's render epoch this draw started from (see `TableRenderer#renderEpoch`).
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   * @returns {Renderer}
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderer.setRenderEpoch(epoch);
+
+    return this;
+  }
+
+  /**
+   * Sets whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   * @returns {Renderer}
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.renderer.setRowRecyclingAllowed(allowed);
 
     return this;
   }

@@ -110,7 +110,9 @@
   box-sizing: border-box;
 }
 
-/* `align-content` on the block box, not flex: the indicator renderers float their arrows. */
+/* `align-content` on the block box, not flex: `.ht-multi-select-arrow` and the select-editor
+   overlay's `.htAutocompleteArrow` still float. In-cell `.htAutocompleteArrow` is absolutely
+   positioned (DEV-348) and would survive flex, but the remaining floats would not. */
 .handsontable tr.htExactRow > td.htMiddle > .htCellClip {
   align-content: center;
 }
@@ -153,15 +155,14 @@
   border-top: 1px solid #ccc;
 }
 
-/*
-innerBorderTop - Property controlled by top overlay
-innerBorderBottom - Property controlled by bottom overlay
- */
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
+/* Row axis border ownership (DEV-2786), the twin of #6673 above: a head row's `th` keeps its
+   `border-bottom` at every scroll position, so a body row directly under one draws no `border-top`.
+   Per-table, because every overlay clone carries its own `thead` and only the ones rendering the head
+   row have a non-empty one — the bottom clones' first row keeps its border, which is the
+   bottom-freeze seam. `innerBorderTop` / `innerBorderBottom` / `emptyRows` drive no geometry. */
+.handsontable thead:not(:empty) + tbody > tr:first-child > th,
+.handsontable thead:not(:empty) + tbody > tr:first-child > td {
+  border-top-width: 0;
 }
 
 .handsontable th {
@@ -281,8 +282,27 @@ innerBorderBottom - Property controlled by bottom overlay
   visibility: hidden;
 }
 
+// Mirrors the clone-holder rule in `src/styles/base/_base.scss` (DEV-2937): each of the three
+// scroll-mirrored clone holders is a composited scroll container on the one axis the engine writes,
+// with no scrollbar of its own. Keep the two in sync.
 .ht_clone_top .wtHolder,
 .ht_clone_inline_start .wtHolder,
 .ht_clone_bottom .wtHolder {
-  overflow: hidden;
+  overflow-anchor: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.ht_clone_inline_start .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
+  overflow-x: auto;
+  overflow-y: hidden;
 }

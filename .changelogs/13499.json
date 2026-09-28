@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a grid not selecting a cell when the user tabbed into it inside a shadow root, and a grid dropping its keyboard handling when a web component rendered in a cell was clicked or tabbed through.",
+  "type": "fixed",
+  "issueOrPR": 13499,
+  "breaking": false,
+  "framework": "none"
+}

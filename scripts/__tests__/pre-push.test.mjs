@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
+  checkEntryFilenames,
   changedPlaywrightSpecs,
   changedUnitTests,
   unitTestPattern,
@@ -10,6 +14,21 @@ import {
   condenseTestOutput,
   TEST_RUN_MAX_BUFFER,
 } from '../pre-push.mjs';
+
+test('blocks malformed changelog JSON without hiding other filename violations', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'handsontable-pre-push-'));
+  const changelogs = path.join(root, '.changelogs');
+
+  mkdirSync(changelogs);
+  writeFileSync(path.join(changelogs, 'broken.json'), '{');
+  writeFileSync(path.join(changelogs, '13442-changed.json'), JSON.stringify({ issueOrPR: 13442 }));
+
+  try {
+    assert.equal(checkEntryFilenames(root), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('selects changed Playwright specs and maps them relative to tests/', () => {
   const changed = [

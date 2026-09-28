@@ -109,6 +109,17 @@ const configurationOptions = {
 hot.alter('insert_row_below', 2, 1, 'remotePeer');
 ```
 
+::: tip
+
+Removing rows or columns fires these hooks once per run of neighboring indexes, not once per
+removal. Selecting rows 0, 1, and 3 with Ctrl/Cmd held and removing them calls
+[`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) twice, and the second call describes the
+data source with the first run already gone. Send each call to your backend as it arrives, and
+read the rows from the `physicalRows` argument of that call. Collecting those arrays across one
+gesture and sending them as a single list names the wrong rows.
+
+:::
+
 ## Sync cell metadata, comments, merged cells, and borders
 
 Collaborators also share state that isn't part of the cell value. [`setCellMeta()`](@/api/core.md#setcellmeta) writes arbitrary metadata (for example, a `className` that flags a cell as locked by another user), but it doesn't repaint the grid on its own - call [`render()`](@/api/core.md#render) afterward.

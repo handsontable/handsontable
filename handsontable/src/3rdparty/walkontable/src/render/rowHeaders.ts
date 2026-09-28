@@ -1,6 +1,6 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
-import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import { setAttribute, removeAttribute, removeInlineStyle } from '../../../../helpers/dom/element';
 import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
@@ -64,8 +64,11 @@ export class RowHeadersRenderer extends BaseRenderer {
    */
   render() {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
+    // Same window as `CellsRenderer#render`, and it has to be: the two renderers share one order
+    // view size set per TR, so a row skipped by one must be skipped by the other.
+    const { paintFromRow } = this.table;
 
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+    for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
 
@@ -95,7 +98,7 @@ export class RowHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         clearAppliedSelection(TH);
-        TH.removeAttribute('style');
+        removeInlineStyle(TH);
 
         // Remove all accessibility-related attributes for the header to start fresh.
         removeAttribute(TH, [

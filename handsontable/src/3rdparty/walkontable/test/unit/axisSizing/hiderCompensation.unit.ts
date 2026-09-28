@@ -7,13 +7,22 @@ import { getHiderHeightCompensation, addContentHeightSlack } from '../../../src/
  * @param {boolean} options.externalRowCalculator Whether AutoRowSize supplies exact heights.
  * @param {string|undefined} options.borderBottomWidth The computed `border-bottom-width` of a `td`.
  * @param {boolean} options.noStylesHandler Report no styles handler at all.
+ * @param {number} options.columnHeaderLevels How many column-header rows the grid renders.
+ * @param {boolean} options.noColumnHeadersSetting Report no `columnHeaders` setting at all.
  * @returns {object} The settings double.
  */
-function settingsMock({ externalRowCalculator = false, borderBottomWidth = '1px', noStylesHandler = false } = {}) {
+function settingsMock({
+  externalRowCalculator = false, borderBottomWidth = '1px', noStylesHandler = false,
+  columnHeaderLevels = 0, noColumnHeadersSetting = false,
+} = {}) {
   return {
     getSetting(key: string) {
       if (key === 'externalRowCalculator') {
         return externalRowCalculator;
+      }
+
+      if (key === 'columnHeaders') {
+        return noColumnHeadersSetting ? undefined : new Array(columnHeaderLevels).fill(() => {});
       }
 
       if (key === 'stylesHandler') {
@@ -93,6 +102,41 @@ describe('getHiderHeightCompensation', () => {
     } as never;
 
     expect(getHiderHeightCompensation(partialHandler)).toBe(1);
+  });
+});
+
+// Since DEV-2786 the pixel the declared `1` stands for - the first rendered body row's own
+// `border-top` - does not exist on a grid that renders a column header: the last head row's `th`
+// carries that gridline at every scroll position instead. Two call sites read this and must agree to
+// the pixel (`SpreaderSize#adjustElementsSize`, which writes the hider height, and
+// `gatherLayoutInput`, which predicts the scrollbars from the same total before the DOM is written),
+// or the grid reserves a scrollbar it never grows.
+describe('getHiderHeightCompensation with column headers', () => {
+  it('should not compensate when the grid renders one column header row', () => {
+    expect(getHiderHeightCompensation(settingsMock({ columnHeaderLevels: 1 }))).toBe(0);
+  });
+
+  it('should not compensate when the grid renders several column header rows', () => {
+    expect(getHiderHeightCompensation(settingsMock({ columnHeaderLevels: 3 }))).toBe(0);
+  });
+
+  it('should not carry the sub-pixel inflation into the column-header case either', () => {
+    // The header's own fractional share is accounted separately, by
+    // `Viewport#getColumnHeaderHeightFraction()` at both call sites, so folding it in here too would
+    // count it twice.
+    expect(getHiderHeightCompensation(
+      settingsMock({ columnHeaderLevels: 1, borderBottomWidth: '1.11111px' })
+    )).toBe(0);
+  });
+
+  it('should still compensate on a grid that renders no column header', () => {
+    // The negative half: the fix narrows the compensation, it does not remove it.
+    expect(getHiderHeightCompensation(settingsMock({ columnHeaderLevels: 0 }))).toBe(1);
+  });
+
+  it('should compensate when the host declares no columnHeaders setting at all', () => {
+    // A bare Walkontable host need not declare the setting; that is not a rendered head row.
+    expect(getHiderHeightCompensation(settingsMock({ noColumnHeadersSetting: true }))).toBe(1);
   });
 });
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `autocomplete`, `dropdown`, `handsontable`, and `multiselect` editors' lists being cut off by the grid's edge or by a scrolling parent – the lists now open against the browser window, so every choice that fits on screen is shown. See the migration guide for the other placement changes.",
+  "type": "fixed",
+  "issueOrPR": 8688,
+  "breaking": true,
+  "framework": "none"
+}

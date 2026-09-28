@@ -1,7 +1,7 @@
 import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
-import CellMeta from './metaLayers/cellMeta';
+import CellMeta, { type CellMetaAtRowEntry } from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
@@ -378,6 +378,17 @@ export default class MetaManager {
    */
   getCellsMetaAtRow(physicalRow: number) {
     return this.cellMeta.getMetasAtRow(physicalRow);
+  }
+
+  /**
+   * Returns all materialized cell meta objects for a physical row together with their physical
+   * column keys.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {{physicalColumn: number, meta: object}[]}
+   */
+  getCellsMetaAtRowWithPhysicalColumns(physicalRow: number): CellMetaAtRowEntry[] {
+    return this.cellMeta.getMetasAtRowWithPhysicalColumns(physicalRow);
   }
 
   /**

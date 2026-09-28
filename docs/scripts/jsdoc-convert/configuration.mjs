@@ -59,6 +59,19 @@ export default {
         metaTitle: 'AutoColumnSize - Angular Data Grid | Handsontable',
       },
     },
+    'AutoLink.md': {
+      id: '883xgxul',
+      metaTitle: 'AutoLink - JavaScript Data Grid | Handsontable',
+      description: 'Use the AutoLink plugin with its API options and methods to render the URLs found in cell values as clickable links.',
+      react: {
+        id: '77y9d5vk',
+        metaTitle: 'AutoLink - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'p4s2h8nq',
+        metaTitle: 'AutoLink - Angular Data Grid | Handsontable',
+      },
+    },
     'AutoRowHeaderSize.md': {
       id: 'ty441i4v',
       metaTitle: 'AutoRowHeaderSize - JavaScript Data Grid | Handsontable',
@@ -291,6 +304,19 @@ export default {
       angular: {
         id: 'u9n0w8gh',
         metaTitle: 'HiddenColumns - Angular Data Grid | Handsontable',
+      },
+    },
+    'ImportFile.md': {
+      id: 'k7xq2m4d',
+      metaTitle: 'ImportFile - JavaScript Data Grid | Handsontable',
+      description: 'Use the ImportFile plugin with its API options, members, and methods to load an Excel workbook into your grid through an engine you provide.',
+      react: {
+        id: 'r3vn8p1s',
+        metaTitle: 'ImportFile - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'w9zt5c6b',
+        metaTitle: 'ImportFile - Angular Data Grid | Handsontable',
       },
     },
     'ManualColumnFreeze.md': {

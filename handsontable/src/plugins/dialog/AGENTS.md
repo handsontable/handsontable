@@ -97,6 +97,42 @@ Keep the stylesheet shipping in full so that inheritance keeps working without i
 The plugin owns a shortcut context (`SHORTCUTS_CONTEXT_NAME`) and a focus scope. `afterDialogFocus` is the
 hook `../loading/` listens on.
 
+### `onActivate` branches on the focus SOURCE, and `show()` arrives as `unknown`
+
+`show()` calls `activateScope(PLUGIN_KEY)` with no source, and `activateScopeById` defaults that to
+`'unknown'` — the same value a click-free activation carries. So `onActivate` sees four sources, and every
+one of them needs its own branch. The two Tab sources pick an end of `getFocusableElements()`; `'unknown'`
+picks the first element; `'click'` deliberately picks **nothing**.
+
+Never collapse the `'unknown'` branch into a bare `else`, which would also catch `'click'`. A click on a
+**non-focusable** part of the dialog — its title, say — sends no focus event of its own, so with the scope
+deactivated (the user clicked outside the open modal first) it reaches `onActivate` as `'click'`, and a
+bare `else` then moves the focus the user did not ask to move. A click on a focusable element never gets
+that far: its own focus event activates the scope first with `'unknown'`, and `activateScope` returns early
+on the second call. `methods/show.spec.js` pins the non-focusable case, which is the only one that
+separates the two shapes.
+
+DEV-47 is what the missing `'unknown'` branch cost: the outer `if (focusableElements.length > 0)` was
+entered, neither Tab branch matched, and the `else if` fallback below it is unreachable from there — so a
+`confirm` dialog opened with `showConfirm()` / `showAlert()` left the keyboard focus on the grid cell
+**behind** the open modal. The fallback only ever covers the "nothing focusable inside" case, so a template
+that reports focusable elements gets no help from it.
+
+The `'unknown'` branch is gated on `isListening()`, matching the fallback. A grid that was never clicked is
+not listening (`activeGuid` starts `null` in `core.ts`), and `methods/focus.spec.js` pins that such a grid
+does **not** take the focus when a dialog opens — a deliberate "don't steal focus from a page the user has
+not touched" rule that predates the focus-scope rewrite. It is also a WAI-ARIA APG deviation, since APG
+moves focus into a modal in all circumstances; re-deciding it is a product call, not a bug fix.
+
+### The container carries `tabindex="-1"` for EVERY template
+
+`ui.ts` used to set it only when `TEMPLATE_NAME === 'base'`. That made `focusDialog()` — the public
+`Dialog#focus()`, which `../loading/` calls from its `afterDialogFocus` listener — a **silent no-op** on a
+`confirm` dialog: `dialogElement.focus()` on an element with no tab stop does nothing and throws nothing.
+`-1` adds no tab stop, so setting it everywhere changes no Tab order. (`templates/confirm.ts` already put
+`tabindex="-1"` on its own `contentElement`, which is why a buttonless `confirm` was focusable inside while
+its container was not.)
+
 ## Where to look next
 
 - The plugin that reuses this one as its host: `../loading/AGENTS.md`.

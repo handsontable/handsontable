@@ -47,5 +47,22 @@ describe('Selection', () => {
 
       expect(selection().getSelectionSource()).toBe('unknown');
     });
+
+    it('should clear the Tab-navigation flag so a later command cannot inherit a stale Tab classification', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 4),
+        colHeaders: false,
+        rowHeaders: false,
+      });
+
+      selection().markTabNavigation();
+
+      expect(selection().isDuringTabNavigation()).toBe(true);
+
+      selection().markSource('keyboard');
+
+      expect(selection().isDuringTabNavigation()).toBe(false);
+      expect(selection().getSelectionSource()).toBe('keyboard');
+    });
   });
 });

@@ -80,7 +80,7 @@ More generally, [`allowInsertRow: false`](@/api/options.md#allowinsertrow) does 
 
 ## Spare rows with placeholder styling
 
-To hint what to enter in the spare row, add a custom cell renderer that displays greyed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
+To hint what to enter in the spare row, add a custom cell renderer that displays grayed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
 
 ::: only-for javascript
 
@@ -217,7 +217,7 @@ const hot = new Handsontable(container, {
 
 ## Result
 
-Your grid keeps one or more empty rows at the bottom. Depending on the approach, spare rows show greyed-out placeholder text or auto-fill all cells with template values when the user starts editing.
+Your grid keeps one or more empty rows at the bottom. Depending on the approach, spare rows show grayed-out placeholder text or auto-fill all cells with template values when the user starts editing.
 
 ## Related API reference
 

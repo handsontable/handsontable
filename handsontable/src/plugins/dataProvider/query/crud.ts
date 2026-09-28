@@ -31,7 +31,7 @@ type InternalRowUpdatePayload = Partial<RowUpdatePayload>;
  * @param {Core} hot Handsontable instance.
  * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
  * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
- * @returns {boolean|undefined} `false` when cancelled.
+ * @returns {boolean|undefined} `false` when canceled.
  */
 export function runBeforeRowsMutation(hot: HotInstance, operation: string, payload: object): false | undefined {
   if (hot.runHooks('beforeRowsMutation', operation, payload) === false) {

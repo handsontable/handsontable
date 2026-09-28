@@ -75,9 +75,14 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Compare against the golden records'],
   ['.github/workflows/visual.yml', 'name: Seed the golden records'],
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
+  ['.github/workflows/visual.yml', 'name: Record the approval on the pull request'],
+  ['.github/workflows/docs.yml', 'name: Record the docs approval on the pull request'],
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
-  ['.github/workflows/visual-cleanup.yml', '  reset-approval:'],
-  ['.github/workflows/visual-approval-rerun.yml', '  rerun-visual-gate:'],
+  // The docs visual suite (DEV-2860): the sticky comment in docs.yml, and the
+  // two R2 writes inside the composite action both entry points call.
+  ['.github/workflows/docs.yml', 'name: Comment the docs visual verdict on the pull request'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Publish the report'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {
@@ -111,18 +116,18 @@ test('every fork-hostile site carries both halves of the canonical guard', () =>
   }
 });
 
-test('the guarded-site list in AGENTS.md names every file that carries a guard', () => {
-  const agents = read('AGENTS.md');
+test('the guarded-site list in .ai/CI.md names every file that carries a guard', () => {
+  const agents = read('.ai/CI.md');
   const start = agents.indexOf('Do not guard a step just because it names a secret');
 
-  assert.notEqual(start, -1, 'AGENTS.md has no fork-guard bullet');
+  assert.notEqual(start, -1, '.ai/CI.md has no fork-guard bullet');
 
   const bullet = agents.slice(start, agents.indexOf('\n- ', start + 1));
 
   for (const file of new Set(GUARDED_SITES.map(([f]) => path.basename(f)))) {
     assert.ok(
       bullet.includes(file),
-      `AGENTS.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
+      `.ai/CI.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
     );
   }
 });

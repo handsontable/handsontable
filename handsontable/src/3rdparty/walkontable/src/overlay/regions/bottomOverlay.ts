@@ -9,7 +9,7 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -17,6 +17,7 @@ import {
   CLONE_BOTTOM,
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { setSpreaderOffset } from '../spreaderOffset';
 
 /**
  * @class BottomOverlay
@@ -71,7 +72,17 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
+   * @returns {'block'} This overlay follows the page up and down.
+   */
+  get railAxis(): 'block' {
+    return 'block';
+  }
+
+  /**
    * Updates the top overlay position.
+   *
+   * Reports no position change, for the same reason `TopOverlay#resetFixedPosition` does not:
+   * `innerBorderBottom` shifts no layout since DEV-2786, so the draw cycle has nothing to reconcile.
    *
    * @returns {boolean}
    */
@@ -81,37 +92,53 @@ export class BottomOverlay extends Overlay {
       return false;
     }
     const { rootWindow } = this.deps;
+    const wtTable = this.deps.getWtTable();
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const rail = this.getRail();
+    const restsOnWindow = this.trimmingContainer === rootWindow;
+
+    if (!restsOnWindow) {
+      // Before the insets below: releasing restores the clone's own top inset.
+      rail?.release();
+    }
 
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (restsOnWindow) {
       overlayPosition = this.getOverlayOffset();
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
-      // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
-      // so the overlay sits flush against the actual table content instead of the
+      // fractional CSS pixel past the holder's integer CSS height. The rail reaches that far
+      // instead, so the clone rests against the actual table content rather than the
       // CSS-integer hider boundary.
       const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+      const masterTableRect = geometryReader.getBoundingClientRect(wtTable.TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
-      overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
+      // Held at the viewport's bottom edge by the browser, never by this listener (DEV-126).
+      overlayRoot.style.bottom = '';
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight() + masterTableOverflow,
+        inline: false,
+        block: { pinned: true, edge: 'bottom' },
+      });
 
     } else {
       overlayPosition = this.getScrollPosition();
       this.repositionOverlay();
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
-    return positionChanged;
+    return false;
   }
 
   /**
@@ -270,16 +297,20 @@ export class BottomOverlay extends Overlay {
     // Width is a horizontal question: sized against the scrollport whenever an element owns the
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
-    // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
-    // VERTICAL scrollbar, so it asks this overlay's own (vertical) owner; the bottom strip clears the
-    // HORIZONTAL one, so it asks the inline-start overlay's. In split mode the two differ - the window
-    // owns the rows, the holder owns the columns - and one predicate taken from the vertical owner
-    // said "the window's scrollbar" for both, leaving the holder's horizontal scrollbar under the
-    // frozen bottom rows at the grid's end. Clip and band together, or not at all - see
-    // `TopOverlay#adjustRootElementSize`.
-    const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
-    const bottomClearanceApplies = holderOwnsScrollbars(
-      this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
+    // Each strip reads the axis it lies on. The inline-end strip clears the master's VERTICAL
+    // scrollbar, so it asks the vertical owner; the bottom strip clears the HORIZONTAL one, so it
+    // asks the element that scrolls the columns. In split mode the two differ - the window owns the
+    // rows, the holder owns the columns - and one predicate taken from the vertical owner said "the
+    // window's scrollbar" for both, leaving the holder's horizontal scrollbar under the frozen bottom
+    // rows at the grid's end. The horizontal question reads the scroller, not the owner: in the
+    // reverse split the window owns the columns while the holder scrolls them
+    // (`Overlay#ownsWindowScroll()`), and the owner's identity would leave that scrollbar covered.
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const verticalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
+    const horizontalClearanceApplies = holderOwnsAxisScrollbar(
+      this.wot.wtOverlays.inlineStartOverlay.mainTableScrollableElement === rootWindow,
+      rootWindow
     ) && this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
@@ -287,7 +318,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      inlineEndClearanceApplies && wtViewport.hasVerticalScroll(),
+      verticalClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
@@ -321,7 +352,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      bottomClearanceApplies && wtViewport.hasHorizontalScroll(),
+      horizontalClearanceApplies && wtViewport.hasHorizontalScroll(),
       'horizontal'
     );
 
@@ -366,14 +397,17 @@ export class BottomOverlay extends Overlay {
     const total = this.wtSettings.getSetting<number>('totalRows');
 
     const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+    // During a native scrollbar drag the sticky-scroll strategy positions the spreader itself;
+    // the offset is only recorded then, and the transform returns on release.
+    const suspended = this.deps.getWtOverlays().isStickyScrollActive();
 
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
+      setSpreaderOffset(this.spreader, 'y', rowsRenderCalculator.startPosition, suspended);
 
     } else if (total === 0 || rowsRenderCalculator === null) {
       // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
       // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
-      this.spreader.style.top = '0';
+      setSpreaderOffset(this.spreader, 'y', 0, suspended);
 
     } else {
       throwWithCause('Incorrect value of the rowsRenderCalculator');
@@ -394,17 +428,15 @@ export class BottomOverlay extends Overlay {
       return;
     }
 
-    const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
-
     const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+    const start = typeof columnsRenderCalculator?.startPosition === 'number'
+      ? columnsRenderCalculator.startPosition : 0;
 
-    if (typeof columnsRenderCalculator?.startPosition === 'number') {
-      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
+    // The clone is suspended only while the strategy positions the clones itself (element mode).
+    const suspended = this.deps.getWtOverlays().isStickyScrollOwningClones();
 
-    } else {
-      spreader.style[styleProperty] = '';
-    }
+    setSpreaderOffset(spreader, 'x', this.isRtl() ? -start : start, suspended);
   }
 
   /**
@@ -488,72 +520,29 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the header-border class before the cell render (single-pass gated path), so the
-   * post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is skipped. Element mode
-   * only — see `TopOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    if (!this.needFullRender || !this.shouldBeRendered() ||
-        !this.deps.getWtTable().holder.parentNode || !this.clone ||
-        this.trimmingContainer === this.deps.rootWindow) {
-      return;
-    }
-
-    this.adjustHeaderBordersPosition(this.getScrollPosition());
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   * Stamps the `innerBorderBottom` class on the master's root element.
+   *
+   * Kept for backward compatibility only: no stylesheet has read it since DEV-2786 handed the seam
+   * under the column header to the header's own `border-bottom` at every scroll position. See
+   * `TopOverlay#adjustHeaderBordersPosition`.
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
-    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
-    const state = this.#computeHeaderBordersState(position);
-
-    if (state.innerBorderBottom === 'add') {
-      addClass(masterParent, 'innerBorderBottom');
-    } else if (state.innerBorderBottom === 'remove') {
-      removeClass(masterParent, 'innerBorderBottom');
-    }
-
-    if (state.innerBorderBottom !== 'keep') {
-      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
-    }
-
-    return state.positionChanged;
-  }
-
-  /**
-   * Computes the bottom overlay's header-border state without mutating the DOM. Pure: reads settings
-   * and the current class state only. Splitting the decision from the write lets the single-pass draw
-   * resolve the `innerBorderBottom` toggle before rendering, instead of after.
-   *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {{ innerBorderBottom: string, positionChanged: boolean }}
-   */
-  #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
     const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
-    let innerBorderBottom = 'keep';
-    let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const previousState = hasClass(masterParent, 'innerBorderBottom');
-
       if (position || wtSettings.getSetting('totalRows') === 0) {
-        innerBorderBottom = 'add';
-        positionChanged = !previousState;
+        addClass(masterParent, 'innerBorderBottom');
       } else {
-        innerBorderBottom = 'remove';
-        positionChanged = previousState;
+        removeClass(masterParent, 'innerBorderBottom');
       }
-    }
 
-    return { innerBorderBottom, positionChanged };
+      this.cachedFixedRowsBottom = fixedRowsBottom;
+    }
   }
 }

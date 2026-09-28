@@ -15,6 +15,8 @@ import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -147,8 +149,8 @@ export interface GridSettings {
   density?: DensityType;
 
   // Dimensions
-  width?: number | string | (() => number | string);
-  height?: number | string | (() => number | string);
+  width?: number | 'auto' | (string & {}) | null | (() => number | string | null);
+  height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
@@ -216,7 +218,11 @@ export interface GridSettings {
     prop: string | number, value: CellValue, cellProperties: CellProperties) => HTMLTableCellElement | void);
   valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
-  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
+  // `source` is declared optional on purpose. Adding a required fifth parameter would raise the
+  // option's minimum call arity, so a consumer that reads the option back out and invokes it with
+  // four arguments would stop compiling - see `.ai/BREAKING-CHANGES.md`.
+  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties,
+    source?: ChangeSource) => CellValue;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;
@@ -256,6 +262,13 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  autoLink?: boolean | {
+    target?: '_blank' | '_self';
+    schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
+    inline?: boolean;
+    strict?: boolean;
+    className?: string;
+  };
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
   autoRowHeaderSize?: boolean | object;
@@ -272,7 +285,13 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
-  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
+  filterValueComparator?: (a: unknown, b: unknown) => number;
+  formulas?: boolean | {
+    engine: unknown;
+    sheetName?: string;
+    hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    [key: string]: unknown;
+  };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
@@ -286,6 +305,8 @@ export interface GridSettings {
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;
+  importFile?: boolean | ImportFileSettings;
+  sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
   // Checkbox
@@ -380,7 +401,8 @@ export interface GridSettings {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
     indexesChangeSource?: IndexesChangeSource;
   }) => void;
-  afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
+  afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[],
+    sortPossible: boolean) => void;
   afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
     => void;
@@ -395,7 +417,9 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
+  afterDetachChild?: (
+    parent: RowObject, element: RowObject, finalElementPosition: number | null, source?: string
+  ) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -419,6 +443,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
+  afterImport?: (result: ImportResult, format: string) => void;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -520,6 +545,13 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
+  afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
+  afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
+  afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
+  afterSheetTabRemove?: (sheetId: number, source: string) => void;
+  afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
+  afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -556,6 +588,8 @@ export interface GridSettings {
     event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
     type: string, alignmentClass: string) => void;
+  beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
+    readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -567,7 +601,7 @@ export interface GridSettings {
     movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
-    destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
+    destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isColumnFlipped: boolean) => void;
@@ -581,7 +615,7 @@ export interface GridSettings {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
-  beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+  beforeDetachChild?: (parent: RowObject, element: RowObject, source?: string) => void;
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
@@ -601,6 +635,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
+  beforeImport?: (result: ImportResult, format: string) => boolean | void;
   beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -675,6 +710,11 @@ export interface GridSettings {
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
+  beforeSheetTabAdd?: (name: string | null, source: string) => void | boolean;
+  beforeSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void | boolean;
+  beforeSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void | boolean;
+  beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;
+  beforeSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void | boolean;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],

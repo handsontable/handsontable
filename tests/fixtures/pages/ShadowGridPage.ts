@@ -15,6 +15,8 @@ export class ShadowGridPage {
   /** Clipboard-event delivery mode: `'normal'`, or `'lws-shape'` to stand in for LWS. */
   readonly delivery: string;
   readonly grid: Locator;
+  readonly beforeGrid: Locator;
+  readonly cellWidgetButton: Locator;
   readonly outsideTextarea: Locator;
   readonly outsideInput: Locator;
   readonly shadowSibling: Locator;
@@ -29,6 +31,10 @@ export class ShadowGridPage {
     this.bundle = bundle;
     this.delivery = delivery;
     this.grid = page.getByTestId('grid');
+    // Light-DOM elements around the host, used to Tab into the grid across the shadow boundary.
+    this.beforeGrid = page.getByTestId('before-grid');
+    // A button inside a web component rendered in cell C2 — one shadow boundary below the grid.
+    this.cellWidgetButton = page.getByTestId('cell-widget-button');
     this.outsideTextarea = page.getByTestId('outside-textarea');
     this.outsideInput = page.getByTestId('outside-input');
     this.shadowSibling = page.getByTestId('shadow-sibling');

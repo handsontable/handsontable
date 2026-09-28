@@ -631,6 +631,19 @@ export class Dialog extends BasePlugin {
 
             } else if (focusSource === 'tab_from_below') {
               focusableElements[focusableElements.length - 1]?.focus();
+
+            } else if (focusSource === 'unknown' && isListening) {
+              // `show()` activates the scope without a source, so it arrives as `unknown`. Without
+              // this branch a template that reports focusable elements (`confirm`) left the focus
+              // on the grid behind the open modal - the fallback below is unreachable here.
+              //
+              // Matched on `unknown` rather than written as a bare `else`, which would also catch
+              // `click`. A click on a NON-focusable part of the dialog (its title, say) sends no
+              // focus event of its own, so with the scope deactivated - the user clicked outside
+              // the open modal first - it reaches here as `click` and would move the focus the user
+              // did not ask to move. A click on a focusable element never gets this far: its own
+              // focus event activates the scope first, and `activateScope` then returns early.
+              focusableElements[0]?.focus();
             }
 
           } else if (

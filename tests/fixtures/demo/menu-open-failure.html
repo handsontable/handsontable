@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu open failure e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #spacer { height: 120px; } </style>
+</head>
+<body>
+  <!--
+    DEV-41 / DEV-2922. A dropdown menu and a context menu sharing one item whose `name()` misbehaves.
+
+    `name` as a function is a public menu-item feature, and the menu calls it while RENDERING the
+    items — that is, inside `hotMenu.init()`, while `Menu.open()` is still building the menu and
+    before it creates the navigator. `isOpened()` used to be `this.hotMenu !== null`, so it already
+    said `true` in that window. A throw there left the menu "open" for good: every later document
+    `mousedown` reached `close()` and died on the missing navigator, the menu could never be opened
+    again, and `destroy()` threw too, so the document listener leaked past an SPA page change.
+
+    The item's behavior is switchable at runtime (`htItemMode`). Throwing is one way into the window;
+    the other modes reach into it WITHOUT a throw — asking the menu about itself, closing it, or
+    opening it again — which is the rest of the bug class. Switchable also lets one test prove the
+    page RECOVERS: a fixture that could only ever throw would leave "no errors" and "nothing works
+    any more" indistinguishable.
+  -->
+  <div id="spacer"></div>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * What the menu item below does each time its menu paints it. Set by the page object.
+     *
+     * - `throw`  - throws: the DEV-41 trigger. The default, so the failed-open tests need no setup.
+     * - `none`   - paints normally.
+     * - `probe`  - records what the owning menu reports about itself at that moment.
+     * - `close`  - asks the owning plugin to close the menu, once.
+     * - `reopen` - asks the owning plugin to open the menu again, once.
+     * - `swap`   - replaces the plugin's settings, once, which destroys the menu being painted.
+     * - `destroy` - destroys the whole HOST grid, once, from inside the paint.
+     */
+    window.htItemMode = 'throw';
+
+    /**
+     * What the item's `hidden()` does. `hidden()` runs while the item list is still being filtered,
+     * before the menu shows its container - the earlier half of the same window `name()` reaches
+     * into. `swap` replaces the plugin's settings there, once.
+     */
+    window.htHiddenMode = 'none';
+
+    /** Which plugin's menu the page object opened, so the item knows which menu to reach into. */
+    window.htMenuPlugin = 'dropdownMenu';
+
+    /** One entry per `probe` paint: what `isOpened()` said, and whether the menu could be driven. */
+    window.htProbes = [];
+
+    /** Every public show/hide hook of the menu under test, with what `isOpened()` said inside it. */
+    window.htHookLog = [];
+
+    /** How many times the menu under test rebuilt its item list, through its public hook. */
+    window.htSetItemsCount = 0;
+
+    /** The message the item throws, asserted on so the rethrow is proven to survive the rollback. */
+    window.HT_MENU_ITEM_ERROR = 'DEV-41 fixture: menu item name() failed';
+
+    /** `throw` makes the sub-menu's only item throw as it paints, `none` paints it normally. */
+    window.htSubItemMode = 'none';
+
+    /** The message the sub-menu's item throws. */
+    window.HT_SUB_ITEM_ERROR = 'DEV-41 fixture: sub-menu item name() failed';
+
+    /** While true, the menu's public hide hook throws after it is logged. */
+    window.htThrowOnHide = false;
+
+    /** The message the hide hook throws. */
+    window.HT_HIDE_ERROR = 'DEV-41 fixture: after*Hide listener failed';
+
+    /** While true, the next sub-menu grid to be destroyed throws from `afterDestroy`. Once only. */
+    window.htThrowOnSubMenuTeardown = false;
+
+    /** The message the sub-menu teardown throws. */
+    window.HT_TEARDOWN_ERROR = 'DEV-41 fixture: sub-menu teardown failed';
+
+    /**
+     * Throws from `afterDestroy`, but only for a sub-menu's grid, and only once. `afterDestroy` runs
+     * after the grid has already emptied its DOM and dropped its listeners, so this models teardown
+     * that did its own work and then failed in application code - the case where every step of the
+     * menu's teardown that comes after it still has to run.
+     */
+    Handsontable.hooks.add('afterDestroy', function() {
+      if (window.htThrowOnSubMenuTeardown && this.rootContainer.className.includes('Sub_Parent')) {
+        window.htThrowOnSubMenuTeardown = false;
+        throw new Error(window.HT_TEARDOWN_ERROR);
+      }
+    });
+
+    /**
+     * The sub-menu item's `name()`.
+     *
+     * @returns {string}
+     */
+    function subItemName() {
+      if (window.htSubItemMode === 'throw') {
+        throw new Error(window.HT_SUB_ITEM_ERROR);
+      }
+
+      return 'Child item';
+    }
+
+    /**
+     * The item's `name()`. `name` as a function is a public menu-item feature, and the menu calls
+     * it while PAINTING the item - the first paint happens inside `open()`, while the menu grid is
+     * still being built, which is the window every mode here reaches into.
+     *
+     * @returns {string}
+     */
+    function itemName() {
+      const mode = window.htItemMode;
+      const plugin = window.hot.getPlugin(window.htMenuPlugin);
+
+      if (mode === 'throw') {
+        throw new Error(window.HT_MENU_ITEM_ERROR);
+      }
+
+      if (mode === 'probe') {
+        const menu = plugin.menu;
+
+        window.htProbes.push({
+          isOpened: menu.isOpened(),
+          canDrive: menu.getNavigator() !== null && menu.getKeyboardShortcutsCtrl() !== null,
+        });
+      }
+
+      if (mode === 'close') {
+        window.htItemMode = 'none';
+        plugin.close();
+      }
+
+      if (mode === 'reopen') {
+        window.htItemMode = 'none';
+        plugin.open({ top: 0, left: 0 });
+      }
+
+      if (mode === 'swap') {
+        window.htItemMode = 'none';
+        window.hot.updateSettings({ [window.htMenuPlugin]: menuItems() });
+      }
+
+      if (mode === 'destroy') {
+        window.htItemMode = 'none';
+        window.hot.destroy();
+      }
+
+      return 'Recovered item';
+    }
+
+    /**
+     * The item's `hidden()`. The menu calls it while filtering the item list, so this runs one step
+     * earlier than `name()` - before the menu shows its container or registers anything.
+     *
+     * @returns {boolean}
+     */
+    function itemHidden() {
+      if (window.htHiddenMode === 'swap') {
+        window.htHiddenMode = 'none';
+        window.hot.updateSettings({ [window.htMenuPlugin]: menuItems() });
+      }
+
+      return false;
+    }
+
+    /**
+     * Records one public show/hide hook, but only for the menu under test.
+     *
+     * @param {string} pluginName The plugin the hook belongs to.
+     * @param {string} event A short name for the hook.
+     */
+    function logHook(pluginName, event) {
+      if (pluginName !== window.htMenuPlugin) {
+        return;
+      }
+
+      const menu = window.hot.getPlugin(pluginName).menu;
+
+      window.htHookLog.push({ event, isOpened: menu ? menu.isOpened() : null });
+
+      if (event === 'afterHide' && window.htThrowOnHide) {
+        throw new Error(window.HT_HIDE_ERROR);
+      }
+    }
+
+    /**
+     * Counts one rebuild of the item list, but only for the menu under test. Kept out of the hook
+     * log on purpose: that log is what pins the public show/hide order.
+     *
+     * @param {string} pluginName The plugin the hook belongs to.
+     */
+    function countSetItems(pluginName) {
+      if (pluginName === window.htMenuPlugin) {
+        window.htSetItemsCount += 1;
+      }
+    }
+
+    /**
+     * A fresh item list per plugin - the two menus must not share item objects.
+     *
+     * @returns {object}
+     */
+    function menuItems() {
+      return {
+        items: {
+          safe_item: { name: 'Safe item' },
+          exploding_item: { name: itemName, hidden: itemHidden },
+          sub_item: {
+            // A plain name, so the sub-menu's container class is exactly `...Sub_Parent`.
+            name: 'Parent',
+            submenu: {
+              items: [{ key: 'sub_item:child', name: subItemName }],
+            },
+          },
+        },
+      };
+    }
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. The message is stamped on the container and the page object rethrows it,
+    // so a broken build reads as its own error instead of a cell that never appeared.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(5, 4),
+        renderer: testIdRenderer,
+        colHeaders: ['Alpha', 'Bravo', 'Charlie', 'Delta'],
+        rowHeaders: true,
+        // Pinned so the rendered window is the same on every theme - a taller header must not push
+        // the cell these tests address out of view.
+        width: 700,
+        height: 300,
+        afterGetColHeader(column, TH) {
+          if (column >= 0) {
+            TH.setAttribute('data-testid', `header-${column}`);
+          }
+        },
+        dropdownMenu: menuItems(),
+        contextMenu: menuItems(),
+        beforeDropdownMenuSetItems: () => countSetItems('dropdownMenu'),
+        beforeContextMenuSetItems: () => countSetItems('contextMenu'),
+        beforeDropdownMenuShow: () => logHook('dropdownMenu', 'beforeShow'),
+        afterDropdownMenuShow: () => logHook('dropdownMenu', 'afterShow'),
+        afterDropdownMenuHide: () => logHook('dropdownMenu', 'afterHide'),
+        beforeContextMenuShow: () => logHook('contextMenu', 'beforeShow'),
+        afterContextMenuShow: () => logHook('contextMenu', 'afterShow'),
+        afterContextMenuHide: () => logHook('contextMenu', 'afterHide'),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+
+    /**
+     * Stop the menu item from throwing, so a later open can succeed.
+     */
+    window.htStopThrowing = () => {
+      window.htItemMode = 'none';
+    };
+
+    /**
+     * Pick what the item does on its next paints, and which plugin's menu it reaches into.
+     *
+     * @param {string} mode One of the modes documented on `htItemMode`.
+     * @param {string} pluginName `dropdownMenu` or `contextMenu`.
+     */
+    window.htSetItemMode = (mode, pluginName) => {
+      window.htItemMode = mode;
+      window.htMenuPlugin = pluginName;
+    };
+
+    /**
+     * What the menu under test believes about itself. `isOpened()` is the exact invariant DEV-41
+     * broke, and it is not observable from the DOM alone: the stranded menu kept `hotMenu` set
+     * while its container was already hidden.
+     */
+    window.htMenuState = () => {
+      const menu = window.hot.getPlugin(window.htMenuPlugin).menu;
+
+      return {
+        isOpened: menu ? menu.isOpened() : null,
+        containerDisplay: menu ? menu.container.style.display : null,
+      };
+    };
+
+    /**
+     * Paint the open menu again. The default `renderMode` is `'always'`, so this calls every item's
+     * `name()` once more - with the menu fully open this time, which is the probe's positive control.
+     */
+    window.htRepaintMenu = () => {
+      window.hot.getPlugin(window.htMenuPlugin).menu.hotMenu.render();
+    };
+
+    /**
+     * Arm one of the fixture's failure switches.
+     *
+     * @param {string} name `subItemThrows`, `hideThrows` or `subMenuTeardownThrows`.
+     */
+    window.htArm = (name) => {
+      if (name === 'subItemThrows') {
+        window.htSubItemMode = 'throw';
+      } else if (name === 'hideThrows') {
+        window.htThrowOnHide = true;
+      } else if (name === 'subMenuTeardownThrows') {
+        window.htThrowOnSubMenuTeardown = true;
+      } else {
+        throw new Error('Unknown switch: ' + JSON.stringify(name));
+      }
+    };
+
+    /**
+     * How many sub-menu containers sit in the page. A sub-menu that failed to open, or whose menu
+     * failed to tear down, used to leave its container behind.
+     *
+     * @returns {number}
+     */
+    window.htSubMenuContainerCount = () => document.querySelectorAll('.htMenu[class*="Sub_Parent"]').length;
+
+    /**
+     * How many menu grids are alive in the page. A closed menu's grid empties its container, so
+     * after a close this is 0 - and a grid that teardown skipped is still counted.
+     *
+     * @returns {number}
+     */
+    window.htMenuGridCount = () => document.querySelectorAll('.htMenu .ht_master').length;
+
+    /**
+     * Tear the grid down the way an SPA route change does. Reported rather than thrown, because
+     * the point of the check is that `destroy()` COMPLETES — before the fix it threw here, which
+     * is what leaked the document listener onto the next page.
+     */
+    window.htDestroyGrid = () => {
+      try {
+        window.hot.destroy();
+
+        return 'ok';
+      } catch (error) {
+        return String(error && error.message);
+      }
+    };
+
+    /**
+     * Pick what the item's `hidden()` does on its next run, and which plugin's menu it reaches into.
+     *
+     * @param {string} mode One of the modes documented on `htHiddenMode`.
+     * @param {string} pluginName `dropdownMenu` or `contextMenu`.
+     */
+    window.htSetHiddenMode = (mode, pluginName) => {
+      window.htHiddenMode = mode;
+      window.htMenuPlugin = pluginName;
+    };
+
+    /**
+     * The HOST grid's `outsideClickDeselects`. The menu turns it off for as long as it is open and
+     * puts it back when it closes, so a menu that was abandoned mid-build leaves it off for good -
+     * clicking outside the grid then no longer clears the selection, for the life of the page.
+     *
+     * @returns {boolean|null}
+     */
+    window.htHostState = () => {
+      try {
+        return window.hot.getSettings().outsideClickDeselects;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    /**
+     * Remember the menu object itself, before something replaces it. A settings change swaps the
+     * plugin's menu for a fresh one, so afterwards only a reference taken beforehand can say what
+     * became of the one that was being built.
+     */
+    window.htCaptureMenu = () => {
+      window.htMenuRef = window.hot.getPlugin(window.htMenuPlugin).menu;
+    };
+
+    /**
+     * What the remembered menu ended up as. A build that ran on after its menu was destroyed
+     * finishes as a menu that reports itself open and still holds a grid, with nothing left that
+     * could ever close it.
+     *
+     * @returns {object}
+     */
+    window.htCapturedMenuState = () => ({
+      isOpened: window.htMenuRef.isOpened(),
+      hasGrid: window.htMenuRef.hotMenu !== null && window.htMenuRef.hotMenu !== undefined,
+    });
+
+    /**
+     * How many `afterSetTheme` hooks the host grid holds. Every menu adds one when it is built, so
+     * a menu that does not remove it on teardown leaves one behind per sub-menu ever opened. The
+     * listener counter cannot see these - they are grid hooks, not DOM listeners.
+     *
+     * @returns {number}
+     */
+    window.htThemeHookCount = () => {
+      const list = Handsontable.hooks.getBucket(window.hot).getList('afterSetTheme');
+      let count = 0;
+
+      // The bucket stores each hook as a linked list, so there is nothing to read a length from.
+      for (let entry = list ? list.head : null; entry !== null; entry = entry.next) {
+        count += 1;
+      }
+
+      return count;
+    };
+
+    /**
+     * How many listeners the grid's own EventManager currently holds. Handsontable exposes this
+     * counter for its memory-leak tests, and it is the only way to SEE a leaked listener from a
+     * test: a leaked `mousedown` handler early-returns once the menu reports itself closed, so
+     * "no error on the next click" is green whether or not the listener is still attached.
+     */
+    window.htListenerCount = () => Handsontable._getListenersCounter();
+  </script>
+</body>
+</html>

@@ -90,26 +90,27 @@ export async function readEnvironment(outputDir) {
 /**
  * The parts of a snapshot's provenance that redefine what its numbers mean.
  *
- * Deliberately not the whole environment: a different CPU changes how fast the same work runs, which
- * is noise the median already smooths; a different Chromium or harness changes what work is
- * measured, which no amount of smoothing recovers from.
+ * Deliberately not the whole environment: a different CPU or runner image changes how fast the same
+ * work runs, which is noise the median already smooths. A different OS or architecture, Chromium,
+ * or harness changes the measurement, which no amount of smoothing recovers from.
  *
  * @param {object | null | undefined} snapshot -- a golden snapshot, or the current run's metadata
- * @returns {{ chromium: string | null, harnessVersion: number | null }}
+ * @returns {{ chromium: string | null, platform: string | null, harnessVersion: number | null }}
  */
 export function baselineKey(snapshot) {
   return {
     chromium: snapshot?.environment?.chromium ?? null,
+    platform: snapshot?.environment?.platform ?? null,
     harnessVersion: typeof snapshot?.harnessVersion === 'number' ? snapshot.harnessVersion : null,
   };
 }
 
 /**
- * @param {{ chromium: string | null, harnessVersion: number | null }} key
+ * @param {{ chromium: string | null, platform: string | null, harnessVersion: number | null }} key
  * @returns {boolean} whether the key carries enough to be matched at all
  */
 export function isCompleteKey(key) {
-  return !!key && key.chromium != null && key.harnessVersion != null;
+  return !!key && key.chromium != null && key.platform != null && key.harnessVersion != null;
 }
 
 /**
@@ -120,7 +121,7 @@ export function isCompleteKey(key) {
  * field, with no cutoff date to maintain.
  *
  * @param {object} snapshot
- * @param {{ chromium: string | null, harnessVersion: number | null }} key
+ * @param {{ chromium: string | null, platform: string | null, harnessVersion: number | null }} key
  * @returns {boolean}
  */
 export function isCompatibleBaseline(snapshot, key) {
@@ -128,25 +129,27 @@ export function isCompatibleBaseline(snapshot, key) {
 
   return isCompleteKey(own) && isCompleteKey(key)
     && own.chromium === key.chromium
+    && own.platform === key.platform
     && own.harnessVersion === key.harnessVersion;
 }
 
 /**
- * @param {{ chromium: string | null, harnessVersion: number | null }} key
- * @returns {string} e.g. "Chromium 140.0.7339.16, harness 1"
+ * @param {{ chromium: string | null, platform: string | null, harnessVersion: number | null }} key
+ * @returns {string} e.g. "Chromium 140.0.7339.16 on linux x64, harness 1"
  */
 export function describeKey(key) {
   const chromium = key?.chromium ?? 'unknown Chromium';
+  const platform = key?.platform ?? 'unknown platform';
   const harness = key?.harnessVersion ?? 'unversioned';
 
-  return `Chromium ${chromium}, harness ${harness}`;
+  return `Chromium ${chromium} on ${platform}, harness ${harness}`;
 }
 
 /**
  * Explains, for the comment footer, why a baseline was refused.
  *
- * @param {{ chromium: string | null, harnessVersion: number | null }} current
- * @param {{ chromium: string | null, harnessVersion: number | null }} baseline
+ * @param {{ chromium: string | null, platform: string | null, harnessVersion: number | null }} current
+ * @param {{ chromium: string | null, platform: string | null, harnessVersion: number | null }} baseline
  * @returns {string}
  */
 export function describeKeyMismatch(current, baseline) {
@@ -154,6 +157,10 @@ export function describeKeyMismatch(current, baseline) {
 
   if (current.chromium !== baseline.chromium) {
     differs.push(`Chromium ${baseline.chromium ?? 'unknown'} -> ${current.chromium ?? 'unknown'}`);
+  }
+
+  if (current.platform !== baseline.platform) {
+    differs.push(`platform ${baseline.platform ?? 'unknown'} -> ${current.platform ?? 'unknown'}`);
   }
 
   if (current.harnessVersion !== baseline.harnessVersion) {
@@ -171,14 +178,18 @@ export function describeKeyMismatch(current, baseline) {
  * The key of the run being torn down, from the environment file and the runner constant.
  *
  * @param {object | null} environment -- as read by readEnvironment
- * @returns {{ chromium: string | null, harnessVersion: number }}
+ * @returns {{ chromium: string | null, platform: string | null, harnessVersion: number }}
  */
 export function currentKey(environment) {
-  return { chromium: environment?.chromium ?? null, harnessVersion: HARNESS_VERSION };
+  return {
+    chromium: environment?.chromium ?? null,
+    platform: environment?.platform ?? null,
+    harnessVersion: HARNESS_VERSION,
+  };
 }
 
 /**
- * Renders the environment for a footer: "Chromium 140.0.7339.16 · AMD EPYC 7763 ×4 · ubuntu24 20260901.1.0".
+ * Renders the environment for a footer: "Chromium 140.0.7339.16 · AMD EPYC 7763 ×4 · linux x64 · ubuntu24 20260901.1.0".
  *
  * @param {object | null | undefined} environment
  * @returns {string} empty when nothing is known
@@ -198,6 +209,10 @@ export function formatEnvironment(environment) {
     const cores = environment.cpuCount ? ` ×${environment.cpuCount}` : '';
 
     parts.push(`${environment.cpuModel}${cores}`);
+  }
+
+  if (environment.platform) {
+    parts.push(environment.platform);
   }
 
   if (environment.runnerImage) {

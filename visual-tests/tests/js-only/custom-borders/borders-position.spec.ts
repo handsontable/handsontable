@@ -1,13 +1,20 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   selectCell,
   makeSelectionFromCell,
 } from '../../../src/page-helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that the custom borders of the custom-borders demo stay in place under a selection dragged 200 px
+ * right and 200 px down from (10, 3), the top-left cell of a bordered range, so the selection crosses that
+ * range's edges. Owned by DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/custom-borders-demo')

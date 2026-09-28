@@ -28,6 +28,7 @@ import {
 import type { SelectionAttribute } from './appliedSelection';
 import { SelectionScanCache, buildBandKey } from './scanCache';
 import Border from './border/border';
+import { CLONE_TOP_INLINE_START_CORNER } from '../overlay/constants';
 import { ACTIVE_HEADER_TYPE, CUSTOM_SELECTION_TYPE } from './constants';
 
 /**
@@ -292,6 +293,7 @@ export class SelectionManager {
         this.#markFrozenColumnSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
+        this.#markColumnHeaderRowSeamHeader(corners, className as string, classNamesMap);
       }
 
       wot.getSetting('onBeforeDrawBorders', corners, selectionType);
@@ -343,7 +345,7 @@ export class SelectionManager {
         headerAttributesMap.set(element, attributes);
       }
 
-      // Tag the active-header neighbour classes in this same pass, so the scanned element set is
+      // Tag the active-header neighbor classes in this same pass, so the scanned element set is
       // walked once. Order into `classNamesMap` does not matter — it is applied after the loop.
       if (isActiveHeader) {
         this.#markActiveHeaderNeighbor(element, className as string, classNamesMap);
@@ -466,7 +468,7 @@ export class SelectionManager {
   }
 
   /**
-   * Tags the neighbours of a single active-header cell: the TH directly BEFORE an active header gets
+   * Tags the neighbors of a single active-header cell: the TH directly BEFORE an active header gets
    * `<className>-prev` (the theme colors its inline-end border, giving the active header its
    * inline-start accent), and every TH of the TBODY row directly ABOVE an active row header gets
    * `<className>-prev-row` (the theme colors its bottom border, giving the active row header its top
@@ -479,7 +481,7 @@ export class SelectionManager {
    * active-header element, from the class-applying pass in `render`.
    *
    * @param {HTMLElement} element A scanned active-header element.
-   * @param {string} activeHeaderClassName The active header class name (the neighbour classes derive from it).
+   * @param {string} activeHeaderClassName The active header class name (the neighbor classes derive from it).
    * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
    */
   #markActiveHeaderNeighbor(
@@ -505,7 +507,7 @@ export class SelectionManager {
    * half of {@link SelectionManager#markActiveHeaderNeighbor}.
    *
    * @param {HTMLElement} element The active row-header cell.
-   * @param {string} activeHeaderClassName The active header class name (the neighbour class derives from it).
+   * @param {string} activeHeaderClassName The active header class name (the neighbor class derives from it).
    * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
    */
   #markPreviousRowHeaders(
@@ -560,7 +562,7 @@ export class SelectionManager {
   /**
    * Tags the last frozen column header with a seam class when the first non-frozen column is the
    * active header. That header's inline-start edge lands on the frozen-pane seam, which is drawn by
-   * the frozen overlay (a separate table) and is therefore out of reach of the neighbour `:has()`
+   * the frozen overlay (a separate table) and is therefore out of reach of the neighbor `:has()`
    * rule that gives every other active header its inline-start accent. The class lets the theme color
    * that seam to match. No-op unless `fixedColumnsStart` is used and this is the frozen overlay.
    *
@@ -703,6 +705,72 @@ export class SelectionManager {
 
       // Overlays without row headers (e.g. the plain `bottom` overlay) return a TD here; only tag
       // actual row-header cells.
+      if (isHTMLElement(th) && th.nodeName === 'TH') {
+        this.#tagSeamClass(classNamesMap, th, seamClassName);
+      }
+    }
+  }
+
+  /**
+   * Tags the corner cells of the last head row with the top-freeze seam class when the row header
+   * directly below them is the active header.
+   *
+   * The third case of the same shape as the two above: the seam between the column header and the
+   * row below it belongs to the header's own `border-bottom` at every scroll position (DEV-2786), so
+   * an active row header in that row has no `border-top` of its own to accent, and the `-prev-row`
+   * rule cannot reach across to the head row. It is the harshest of the three, because the head row
+   * and the row header live in different overlay tables whenever there are no frozen top rows — the
+   * corner clone renders the head row and no body rows at all, so nothing this overlay scans can
+   * lead to the cells that need tagging. Hence the corners, like the frozen seams.
+   *
+   * No offset test: when the grid is scrolled the active row's top edge really is above the visible
+   * area, clipped by the header, and a 1px accent on the header's bottom border says "the active row
+   * continues above here" — exactly what the `-prev-row` accent says everywhere else.
+   *
+   * No-op unless this overlay is the top inline-start corner (the only one that renders both the head
+   * row and the row-header column), so it never runs on a grid without column headers or row headers.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the seam class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markColumnHeaderRowSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const { wtTable } = wot;
+
+    if (!wtTable.is(CLONE_TOP_INLINE_START_CORNER)) {
+      return;
+    }
+
+    const headRow = wtTable.THEAD?.lastElementChild;
+    const rowHeadersCount = wtTable.getRowHeadersCount();
+
+    if (!isHTMLElement(headRow) || rowHeadersCount === 0) {
+      return;
+    }
+
+    // The row whose top edge the head row's `border-bottom` draws. With frozen top rows this overlay
+    // renders them itself and the first of them abuts the header; without, the rows below the header
+    // are the master's, so its first rendered row is the one.
+    const rowsTable = wtTable.getFirstRenderedRow() < 0 ? wot.cloneSource!.wtTable : wtTable;
+    const seamRow = rowsTable.getFirstRenderedRow();
+
+    if (seamRow < 0 || Math.min(corners[0], corners[2]) !== seamRow) {
+      return;
+    }
+
+    // Shares `-row-seam-top` with the frozen-top seam above: both name a header cell whose BOTTOM
+    // border is the accent, and `_base.scss` colors them with one `tr:last-child` rule that already
+    // matches a head row.
+    const seamClassName = `${activeHeaderClassName}-row-seam-top`;
+
+    for (let level = 0; level < rowHeadersCount; level++) {
+      const th = headRow.children[level];
+
       if (isHTMLElement(th) && th.nodeName === 'TH') {
         this.#tagSeamClass(classNamesMap, th, seamClassName);
       }

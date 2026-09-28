@@ -154,6 +154,45 @@ describe('Loading', () => {
     expect(hot.getSelected()).toBeUndefined();
   });
 
+  it('should not pull the focus onto the dialog container when another dialog opens from a template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      loading: true,
+    });
+
+    await selectCell(0, 0);
+
+    getPlugin('dialog').showConfirm('Are you sure?');
+
+    expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+    expect(document.activeElement).not.toBe(getDialogContainerElement());
+  });
+
+  it('should move the focus onto the dialog container when the loading overlay is tabbed into', async() => {
+    const topInput = $('<input type="text" id="topInput">');
+
+    document.body.firstElementChild.before(topInput[0]);
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: { animation: false },
+      loading: true,
+    });
+
+    getPlugin('loading').show();
+
+    topInput[0].focus();
+
+    await keyDownUp('tab');
+
+    topInput.remove();
+
+    // The loading overlay renders through `content`, so it reports no focusable elements and nothing
+    // inside it can hold the focus. The plugin's `afterDialogFocus` listener is what puts the focus
+    // on the container so a screen reader announces the dialog.
+    expect(document.activeElement).toBe(getDialogContainerElement());
+  });
+
   describe('nested grid (non-root instance)', () => {
     it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
       handsontable({

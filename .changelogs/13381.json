@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `height: 'auto'` to no longer clip the grid, so the page or the nearest scrolling ancestor scrolls it and its rows stay virtualized. See the migration guide for the other `width` and `height` changes.",
+  "type": "changed",
+  "issueOrPR": 13381,
+  "breaking": true,
+  "framework": "none"
+}

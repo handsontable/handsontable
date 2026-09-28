@@ -321,9 +321,6 @@ export class HiddenColumns extends BasePlugin {
       this.#hiddenColumnsMap!.setValues(hidingMapValues);
     }
 
-    // @TODO Should call once per render cycle, currently fired separately in different plugins
-    this.hot.view.adjustElementsSize();
-
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
       isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
@@ -448,7 +445,6 @@ export class HiddenColumns extends BasePlugin {
     }
 
     if (this.getSetting('indicators') && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
-
       // Add additional space for hidden column indicator.
       if (typeof width === 'number' && this.hot.hasColHeaders()) {
         return width + 15;

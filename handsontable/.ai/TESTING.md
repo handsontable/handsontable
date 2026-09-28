@@ -24,7 +24,7 @@ npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
-cd tests && npm test               # Playwright functional + visual projects
+cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -60,6 +60,18 @@ npm run test:unit -- --coverage
 `run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` (env vars set by the `test-e2e.mjs` wrapper) and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`, up to 100 ports), so each concurrent run gets its own port. Any number of `npm run test:e2e --testPathPattern=<X>` invocations with distinct patterns (or themes) can run in parallel without further configuration -- the practical limit is machine resources, not the tooling.
 
 The helper that derives the hash lives in `handsontable/.config/helper/run-id.js` -- used by both the Rspack config and the Puppeteer script so they stay in lockstep.
+
+### What a red run leaves behind
+
+`run-puppeteer.mjs` receives every Jasmine result as data through the page bridge (`test/helpers/jasmine-bridge-reporter.js`), so a failure is reported by name rather than parsed out of the log. After a red run it:
+
+1. re-runs each failing spec file alone, up to `ISOLATION_PROBE_MAX_FILES` (5) of them, by reloading the runner page with a `specFile=` filter that selects only that file (`specFile`, not `spec`: Jasmine's own boot reads `spec` as a filter on spec *names*, so a file path there loads the file and runs none of its specs). A file that **passes alone** failed because of the specs that ran before it (shared state, a leaked timer, an unrestored global); one that **fails alone** is broken on its own. The probe drops `random` and `seed`, so the verdict describes the file in its natural order, not one shuffle of it. A probe that hits an uncaught page error, runs past five minutes, or matches no spec at all (the file filter selected nothing) is reported as "could not be probed";
+2. writes `test/e2e-results/failed-specs-<runId>.json` (gitignored). `e2e.yml` uploads it on failure as the `puppeteer-failed-specs-<bundle>-<theme>` artifact -- the input for the cross-run flake ledger (`.github/workflows/test-health.yml`, published at <https://handsontable.github.io/handsontable/test-health/>);
+3. on GitHub Actions, prints one `::error` annotation per failed spec, attached to the spec file, and appends a Markdown block to the step summary. GitHub shows at most 10 annotations per step, so from the tenth failure on a single line says how many more there are and points at the summary. `HOT_E2E_LEG` (set by `e2e.yml` from the bundle label) names the leg in all three outputs.
+
+The spec file is known because `test/e2e/index.js` records which `require.context` key added each top-level suite (`window.__hotSpecFiles`), and the bridge reporter stamps it on every result as `filePath`. A top-level `it()` outside any `describe`, and `MemoryLeakTest`, carry no file and are reported without a verdict. An uncaught page error still aborts the run as before; it now also gets its own annotation, and the specs that failed before it are still reported, without probing.
+
+To reproduce a verdict locally, re-run one file alone against the same dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (`--spec=<pattern>` also exists, but it has to match the spec names as well as the file path). With a `--testPathPattern` baked into the dump, either parameter narrows it rather than replacing it. The helpers behind the report are pure and unit-tested with `node:test` (`test/scripts/lib/failed-specs.mjs`, `test/scripts/__tests__/`), part of the root `npm run test:tooling`.
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
@@ -294,10 +306,13 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`): a change to `handsontable/src/**` or `wrappers/**` must ship a matching test change. Which kind:
 
 - **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
-- **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest `*.unit.js`**. Still mandatory — "not user-facing" is not a free pass.
+- **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, **in addition to, never instead of** the E2E above — a screenshot proves pixels only, and the presence gate counts it as coverage, so the reviewer holds this line. The rule is `visual-tests/AGENTS.md` → Decision rule.
+- **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest unit test** (`*.unit.js` or `*.unit.ts`). Still mandatory — "not user-facing" is not a free pass.
 - **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
+
+**The gate warns when only a screenshot covers a source change:** a source change draws the non-blocking `visual-only-coverage` advisory when every change the gate counts as *coverage* is a capture spec under `visual-tests/tests/`. It is not "the only test change" — a deleted `tests/e2e` spec or a new Jasmine `*.spec.js` is not coverage to the gate, so either can sit beside the capture spec and the advisory still fires. The criterion that decides whether such a spec keeps counting as coverage, and the recipe that tallies the warning, are in `.ai/LOCAL-ENFORCEMENT.md`.
 
 **The Jasmine suite is frozen — and migrates by attrition:**
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
@@ -529,18 +544,17 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Covers only `src/` directory
 
 **Coverage Goals:**
-- Aim for 100% coverage of new or modified code
-- Test all possible states including edge cases
+- Every new or modified line runs under a test. That is the floor, not the goal: what proves the change is an assertion that fails when the code is broken (the `test-writing-discipline` skill).
+- Cover the states the change can break, not every possible state.
 
 ## Test Types
 
-**Unit Tests (`*.unit.js`):**
+**Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
 - Location: `src/**/__tests__/`
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed
-- ~216 test files
 
 **E2E Tests (`*.spec.js`):**
 - Framework: Jasmine with Puppeteer (headless Chrome)
@@ -566,6 +580,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Location: `visual-tests/`
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
+- What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
 
 ## Plugin Testing Requirements
 

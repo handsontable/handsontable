@@ -1,8 +1,9 @@
 import { A11Y_HIDDEN } from '../a11y';
-import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
+import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
+import { OVERLAY_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/constants';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -44,11 +45,19 @@ export function getParent(element: HTMLElement | Node, level: number = 0): HTMLE
 export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLElement) {
   const closestHandsontableContainer = element.closest('.handsontable');
 
-  return !!closestHandsontableContainer &&
-    (
-      closestHandsontableContainer.parentNode === thisHotContainer ||
-      closestHandsontableContainer === thisHotContainer
-    );
+  if (!closestHandsontableContainer) {
+    return false;
+  }
+
+  let owner = closestHandsontableContainer.parentNode;
+
+  // An overlay clone pinned while the window scrolls the grid sideways sits one level deeper, inside
+  // its rail (`walkontable/src/overlay/overlayRail.ts`).
+  if (isHTMLElement(owner) && owner.classList.contains(OVERLAY_RAIL_CLASS_NAME)) {
+    owner = owner.parentNode;
+  }
+
+  return closestHandsontableContainer === thisHotContainer || owner === thisHotContainer;
 }
 
 /**
@@ -60,6 +69,40 @@ export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLEl
  */
 export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event): T | null {
   return event.target as T | null;
+}
+
+/**
+ * Gets the element the event was raised on, looking through the shadow boundaries the browser
+ * retargets across.
+ *
+ * An event raised inside a shadow root is retargeted for every listener bound above that root,
+ * so `event.target` reports the shadow host instead of the node that was focused or clicked.
+ * `composedPath()` still carries the real node - but a sandboxed host (e.g. Salesforce Lightning
+ * Web Security) collapses that path to the shadow host chain, so the composed node is trusted
+ * only when it is rendered within the retargeted target's own shadow tree. In every other case
+ * the retargeted `event.target` is returned unchanged.
+ *
+ * @param {Event} event The event.
+ * @returns {HTMLElement|null} The element the event was raised on, or null.
+ */
+export function getComposedEventTargetEl(event: Event): HTMLElement | null {
+  const target = eventTargetEl(event);
+
+  if (target === null || typeof event.composedPath !== 'function') {
+    return target;
+  }
+
+  const [composedTarget] = event.composedPath();
+
+  if (
+    !isHTMLElement(composedTarget) ||
+    composedTarget === target ||
+    !getShadowHostChain(composedTarget).includes(target)
+  ) {
+    return target;
+  }
+
+  return composedTarget;
 }
 
 /**
@@ -1098,9 +1141,174 @@ function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Windo
     return OVERFLOW_TRIMMING_VALUES.includes(axes[axis]);
   }
 
-  const inlineAxis = axis === 'x' ? el.style.overflowX : el.style.overflowY;
+  // No window to compute against, so only the inline style can be read - and the `overflow`
+  // shorthand has to be split the way `resolveOverflowAxes` splits it. Comparing the whole string
+  // matched nothing for a two-value shorthand (`overflow: clip visible`), which is exactly the
+  // shape the per-axis form exists to resolve.
+  const shorthand = el.style.overflow.split(/\s+/).filter(Boolean);
+  const [shorthandX = '', shorthandY = shorthandX] = shorthand;
+  const inlineAxis = axis === 'x'
+    ? el.style.overflowX || shorthandX
+    : el.style.overflowY || shorthandY;
 
-  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis || el.style.overflow);
+  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis);
+}
+
+/**
+ * The CSS properties whose presence on an element makes it the containing block for its
+ * `position: fixed` descendants, instead of the viewport.
+ *
+ * Every one of them is checked because any single one is enough: a grid inside a centred modal
+ * (`transform: translate(-50%, -50%)`) is the common case, and `filter`, `backdrop-filter`,
+ * `perspective`, `contain` and the matching `will-change` hints all do the same thing.
+ */
+const FIXED_CONTAINING_BLOCK_PROPS = [
+  'transform',
+  'translate',
+  'rotate',
+  'scale',
+  'perspective',
+  'filter',
+  'backdropFilter',
+] as const;
+
+/**
+ * The `contain` values that make an element the containing block for fixed descendants. `size` and
+ * `inline-size` alone do not.
+ */
+const FIXED_CONTAINING_BLOCK_CONTAIN = ['paint', 'layout', 'strict', 'content'];
+
+/**
+ * The `will-change` hints that make an element the containing block for fixed descendants, even
+ * while the property they name is still `none`: one per property checked above, plus `contain`.
+ * `container-type` is left out on purpose - a hint naming it does not.
+ */
+const FIXED_CONTAINING_BLOCK_WILL_CHANGE = [
+  'transform',
+  'translate',
+  'rotate',
+  'scale',
+  'perspective',
+  'filter',
+  'backdrop-filter',
+  'contain',
+];
+
+/**
+ * Tells whether an element is the containing block for its `position: fixed` descendants.
+ *
+ * @param {CSSStyleDeclaration} style The element's computed style.
+ * @returns {boolean}
+ */
+function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
+  const hasProp = FIXED_CONTAINING_BLOCK_PROPS.some((prop) => {
+    const value = (style as unknown as Record<string, string>)[prop];
+
+    return value !== undefined && value !== '' && value !== 'none';
+  });
+
+  if (hasProp) {
+    return true;
+  }
+
+  const containValue = style.contain ?? '';
+
+  if (FIXED_CONTAINING_BLOCK_CONTAIN.some(token => containValue.split(/\s+/).includes(token))) {
+    return true;
+  }
+
+  const willChange = style.willChange ?? '';
+
+  // `container-type` is deliberately NOT checked. It once implied layout containment, which does
+  // make an element the containing block, but the CSS working group dropped that: measured in
+  // Chromium 148 and 151, Firefox 153 and WebKit 26.5, no value of it (`size`, `inline-size`,
+  // `scroll-state`) anchors a fixed descendant. Checking it moved the list away from its cell by the
+  // container's offset in every container-query layout - measured 208px on the clip fixture.
+  return FIXED_CONTAINING_BLOCK_WILL_CHANGE.some(token => willChange.split(/[\s,]+/).includes(token));
+}
+
+/**
+ * Returns the box a `position: fixed` descendant of `base` is actually laid out in, in viewport
+ * coordinates.
+ *
+ * `position: fixed` resolves against the viewport only while no ancestor establishes a containing
+ * block for it. The moment one does - and `transform` is the everyday case, because a centred
+ * modal is written `transform: translate(-50%, -50%)` - `top` and `left` resolve against that
+ * ancestor's PADDING box instead, and coordinates read from `getBoundingClientRect()` land the
+ * element wherever that ancestor happens to sit. Measured on a centred modal, a list positioned
+ * from raw viewport coordinates drifted 313px down and 384px right of its cell.
+ *
+ * The returned box answers all three questions such a caller has: subtract `top`/`left` to turn a
+ * viewport coordinate into the value the element must be given, and use `width`/`height` as the
+ * bounds the element has to stay inside.
+ *
+ * Falls back to the viewport, so a caller can use the result unconditionally. The viewport's own
+ * size is read from `documentElement.clientWidth`/`clientHeight`, which is what a fixed box is
+ * laid out in - `innerWidth`/`innerHeight` include the classic scrollbar gutters and, on mobile,
+ * the area under collapsible browser chrome.
+ *
+ * @param {HTMLElement} base The `position: fixed` element, or any element in its subtree.
+ * @returns {{ top: number, left: number, width: number, height: number }}
+ */
+export function getFixedContainingBlockRect(
+  base: HTMLElement
+): { top: number, left: number, width: number, height: number } {
+  const rootDocument = base.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+  const viewport = {
+    top: 0,
+    left: 0,
+    width: rootDocument.documentElement.clientWidth,
+    height: rootDocument.documentElement.clientHeight,
+  };
+
+  if (!rootWindow) {
+    return viewport;
+  }
+
+  // Walked with `parentNode` plus an explicit hop over a shadow boundary, the way `getParent()`
+  // and `closest()` do. `parentElement` returns `null` at a `ShadowRoot` (it is not an Element),
+  // so a grid embedded in a web component - the case core stamps `ht-shadow-dom` for - would
+  // stop the walk inside its own shadow tree and never see the host page's transformed modal,
+  // which is exactly the misplacement this function exists to prevent.
+  let node: Node | null = base.parentNode;
+
+  while (node && node !== rootDocument.documentElement) {
+    if (isShadowRoot(node)) {
+      node = node.host;
+
+      continue;
+    }
+
+    if (!isHTMLElement(node)) {
+      node = node.parentNode;
+
+      continue;
+    }
+
+    const el = node;
+    const style = rootWindow.getComputedStyle(el);
+
+    if (establishesFixedContainingBlock(style)) {
+      const rect = el.getBoundingClientRect();
+      const borderTop = parseFloat(style.borderTopWidth) || 0;
+      const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+      const borderBottom = parseFloat(style.borderBottomWidth) || 0;
+      const borderRight = parseFloat(style.borderRightWidth) || 0;
+
+      // The containing block is the PADDING box, so the borders are not part of it.
+      return {
+        top: rect.top + borderTop,
+        left: rect.left + borderLeft,
+        width: Math.max(rect.width - borderLeft - borderRight, 0),
+        height: Math.max(rect.height - borderTop - borderBottom, 0),
+      };
+    }
+
+    node = el.parentNode;
+  }
+
+  return viewport;
 }
 
 /**
@@ -1351,6 +1559,10 @@ export function clearTextSelection(rootWindow: Window = window): void {
 /**
  * Sets caret position in text input.
  *
+ * For input types that do not support the selection API (for example, `date`, `time`,
+ * `datetime-local`, or `number`), the element is focused and the caret position is left untouched,
+ * because calling `setSelectionRange()` on them throws an `InvalidStateError`.
+ *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
  * @param {HTMLInputElement|HTMLTextAreaElement} element An element to process.
  * @param {number} pos The selection start position.
@@ -1365,6 +1577,11 @@ export function setCaretPosition(
 
   if (element.setSelectionRange) {
     element.focus();
+
+    // `selectionStart` is `null` for input types that do not support selection.
+    if (element.selectionStart === null) {
+      return;
+    }
 
     try {
       element.setSelectionRange(pos, endPos);
@@ -1462,7 +1679,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
   // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
   // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
-  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileOrIpadOS()) {
     return calculateScrollbarWidth(true);
   }
 
@@ -1804,4 +2021,24 @@ export function getChildEl<T extends HTMLElement = HTMLElement>(parent: ParentNo
   const node = parent.childNodes[index];
 
   return node ? (node as T) : null;
+}
+
+/**
+ * Removes the element's inline `style` attribute so that nothing of it remains. A bare
+ * `removeAttribute('style')` is not enough in Chromium: the attribute is synchronized lazily from the
+ * `element.style` declaration, and when the declaration was written and never read back, the removal
+ * lands before the synchronization and an empty `style=""` attribute is left behind. Reading the
+ * attribute first settles it, and the removal is then complete.
+ *
+ * The `hasAttribute` read IS the fix, not a shortcut: do not reduce the body to a bare
+ * `removeAttribute('style')`. jsdom does not reproduce the lazy synchronization, so no unit test can
+ * catch that; the `no-restricted-syntax` override for the Walkontable renderers in `.eslintrc.js`
+ * bans the bare call there instead.
+ *
+ * @param {HTMLElement} element The element to clear.
+ */
+export function removeInlineStyle(element: HTMLElement): void {
+  if (element.hasAttribute('style')) {
+    element.removeAttribute('style');
+  }
 }

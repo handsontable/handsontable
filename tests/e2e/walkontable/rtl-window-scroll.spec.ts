@@ -56,10 +56,24 @@ test.describe('walkontable RTL overlays with window scroll', { tag: '@walkontabl
 
     // The top clone renders the frozen first rows of the SAME columns the
     // master shows at the current scroll position — cell R1C30 lives only in
-    // the clone, R80C30 only in the master. Their x-positions must match, or
-    // the clone has drifted horizontally from the grid under it.
+    // the clone, and the master's own band holds the row to compare it with.
+    // Their x-positions must match, or the clone has drifted horizontally from
+    // the grid under it.
+    //
+    // The master row is read out of the DOM rather than written down: the band
+    // that reaches the document end depends on the theme's row height and on the
+    // grid's vertical accounting, so a fixed index resolves to nothing the moment
+    // either moves (it did, when DEV-2786 gave the column header the seam pixel
+    // and shifted the band by a row). Take the middle of the band so the pick is
+    // not at an edge either.
+    const renderedRows = await wt.masterRenderedRows();
+
+    expect(renderedRows.length, 'the master renders no rows at the document end').toBeGreaterThan(0);
+
+    const masterRow = renderedRows[Math.floor(renderedRows.length / 2)];
+
     const cloneCell = await wt.box(wt.topOverlay.getByTestId('cell-0-29'));
-    const masterCell = await wt.box(wt.master.getByTestId('cell-79-29'));
+    const masterCell = await wt.box(wt.master.getByTestId(`cell-${masterRow}-29`));
 
     expect(Math.abs(cloneCell.x - masterCell.x)).toBeLessThanOrEqual(EDGE_TOLERANCE);
     expect(Math.abs(cloneCell.width - masterCell.width)).toBeLessThanOrEqual(EDGE_TOLERANCE);

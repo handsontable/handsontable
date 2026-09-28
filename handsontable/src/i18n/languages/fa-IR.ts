@@ -123,6 +123,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'به صفحه بعدی بروید',
   [C.PAGINATION_LAST_PAGE]: 'به آخرین صفحه بروید',
 
+  [C.SHEETS_BAR_SECTION]: 'برگه‌ها',
+  [C.SHEETS_BAR_ADD_SHEET]: 'افزودن برگه',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'همه برگه‌ها',
+  [C.SHEETS_BAR_SHEET_MENU]: 'عملیات برگه: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'نام برگه',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'حذف',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'تکثیر',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'تغییر نام',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'انتقال به راست',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'انتقال به چپ',
+  [C.SHEETS_BAR_PAGE_PREV]: 'پیمایش برگه‌ها به عقب',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'پیمایش برگه‌ها به جلو',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'برگه [name] فعال شد',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'نام برگه تغییر نکرد: [name] قبلاً استفاده شده است',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'برگه',
+
   [C.CHECKBOX_CHECKED]: 'چک شده',
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 

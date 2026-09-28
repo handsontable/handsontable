@@ -141,6 +141,7 @@ The frozen suite's flakiness is timing debt. An edit must not add to it, and a b
 
 - **All:** `npm run test:e2e --prefix handsontable`
 - **Targeted:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex>` - the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **A pattern that matches nothing still reports green.** `test/e2e/index.js` tests the pattern (case-insensitive) against webpack context keys, which are relative to `handsontable/src/` or `handsontable/test/e2e/` — `./validators/dropdownValidator/__tests__/dropdownValidator.spec.js`, not `src/validators/...`. So `src/validators` matches no file, and the run still ends `5 specs, 0 failures` with exit 0 (measured on four no-match patterns in DEV-2911). Read the spec count before trusting a targeted run. Keep the pattern free of shell characters too: `scripts/run.mjs` passes it to `sh -c` unquoted, so `(a|b)` is a syntax error and `a\|b` reaches the regex as a literal `\|` that matches nothing. Run one plain pattern per command (`validat` covers every validator and validation spec).
 - **With theme:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex> --theme=horizon` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 

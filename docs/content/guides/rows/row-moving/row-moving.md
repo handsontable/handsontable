@@ -157,7 +157,7 @@ Return `false` from [`beforeRowMove`](@/api/hooks.md#beforerowmove) to cancel Ha
 
 In this model you also own the order's history. Reverting a move is your code's job, not the grid's.
 
-Cancelling the move changes what the grid does for you, so plan for these:
+Canceling the move changes what the grid does for you, so plan for these:
 
 - [`afterRowMove`](@/api/hooks.md#afterrowmove) never fires. The move stops at [`beforeRowMove`](@/api/hooks.md#beforerowmove), before that hook runs, so the snapshot recipe shown earlier on this page does not apply here. Persist the order from your own update instead.
 - The grid does not re-render or restore the selection, because both wait for a move that actually happened. After the drag, the highlighted row headers stay where they were, and those positions now hold different rows. Re-select the moved rows yourself if that matters.
@@ -319,7 +319,7 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 
 </span>
 
-The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be canceled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 

@@ -153,10 +153,10 @@ function medianScenario(entries) {
  * @param {Array<object>} snapshots -- already-parsed golden snapshot JSON objects, any order
  * @param {object} [options]
  * @param {number} [options.windowSize]
- * @param {{ key: { chromium: string | null, harnessVersion: number | null },
+ * @param {{ key: { chromium: string | null, platform: string | null, harnessVersion: number | null },
  *   scenarioVersions?: Record<string, number> } | null} [options.compatibleWith] -- the run the
  *   median is a baseline for. When given, only goldens with the same compatibility key (Chromium
- *   build and harness version, see lib/environment.mjs) enter the window, and within a scenario only
+ *   build, platform, and harness version, see lib/environment.mjs) enter the window, and within a scenario only
  *   entries with the same `measurementVersion` as the current run's (`scenarioVersions`, per
  *   scenario name; a scenario absent there is taken at the default). Omit it to median over
  *   everything marks-valid, which is what the replay does for goldens without provenance.
@@ -243,7 +243,7 @@ export function computeMedianSnapshot(
     environment: valid[0].environment ?? null,
     harnessVersion: valid[0].harnessVersion ?? null,
     // How many marks-valid goldens were passed over for a different key. Zero when no key was
-    // asked for. Lets the teardown say "20 goldens fetched, 18 on another Chromium".
+    // asked for. Lets the teardown say "20 goldens fetched, 18 on another platform or Chromium".
     excludedIncompatible: marksValid.length - compatible.length,
     scenarios,
   };

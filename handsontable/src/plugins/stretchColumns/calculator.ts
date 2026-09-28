@@ -40,6 +40,14 @@ export class StretchCalculator {
    * @type {'all' | 'last' | 'none'}
    */
   #activeStrategy = 'none';
+  /**
+   * Whether the viewport is being measured for the next calculation. While set, the plugin hides its
+   * own stretched widths from `modifyColWidth`, so the measurement sums the base widths — exactly what
+   * clearing the map before the measurement used to give it.
+   *
+   * @type {boolean}
+   */
+  #isMeasuringViewport = false;
 
   /**
    * Initializes the stretch columns calculator with the Handsontable instance and registers the stretch widths index map.
@@ -63,32 +71,26 @@ export class StretchCalculator {
 
   /**
    * Recalculates the column widths.
+   *
+   * The result is written to the widths map with a single `setValues()` call, and only when it
+   * differs from what the map already holds. Two consumers depend on that shape. The `change`
+   * hook of the map is what a caller of `observeMapChange` sees, so one write means one
+   * notification per real change and none in steady state. And the engine's column-width
+   * prefix-sum cache (`Viewport#columnWidthCache`) is keyed on the item COUNT only — a stretched
+   * width that moves keeps the count, so the cache has to be dropped explicitly, the way
+   * `ManualColumnResize` and `AutoColumnSize` drop it when their maps change. Left in place, the
+   * cache fed the layout snapshot the PREVIOUS total, the solver predicted scrollbars for a grid
+   * that had none, and the top overlay clipped the last header by the scrollbar width (DEV-2902).
    */
   refreshStretching() {
-    if (this.#activeStrategy === 'none') {
-      this.#widthsMap.clear();
+    const nextValues: Array<number | null> = new Array<number | null>(this.#widthsMap.getLength()).fill(null);
+    const stretchStrategy = this.#activeStrategy === 'none'
+      ? undefined
+      : this.#stretchStrategies.get(this.#activeStrategy);
 
-      return;
-    }
-
-    this.#hot.batchExecution(() => {
-      this.#widthsMap.clear();
-
-      const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
-
-      if (!stretchStrategy) {
-        return;
-      }
-
-      const view = this.#hot.view;
-      let viewportWidth = view.getViewportWidth();
-
-      if (this.#willVerticalScrollAppear()) {
-        viewportWidth -= getScrollbarWidth(this.#hot.rootDocument);
-      }
-
+    if (stretchStrategy) {
       stretchStrategy.prepare({
-        viewportWidth,
+        viewportWidth: this.#measureViewportWidth(),
       });
 
       for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
@@ -100,9 +102,34 @@ export class StretchCalculator {
       stretchStrategy.calculate();
 
       stretchStrategy.getWidths().forEach(([columnIndex, width]) => {
-        this.#widthsMap.setValueAtIndex(this.#hot.toPhysicalColumn(columnIndex), width);
+        nextValues[this.#hot.toPhysicalColumn(columnIndex)] = width;
       });
-    }, true);
+    }
+
+    this.#applyWidths(nextValues);
+  }
+
+  /**
+   * Writes the calculated widths to the map when they differ from the stored ones, and drops the
+   * engine's column-width cache in the same step so the draw that follows sums the new widths.
+   * The invalidation is bound to this single write path rather than to the map itself (the way
+   * ManualColumnResize and AutoColumnSize bind theirs through observeMapChange), so any future
+   * second writer of the map must call it too.
+   *
+   * @param {Array<number | null>} nextValues The stretched width per physical column, `null` where
+   *                                          the column is not stretched.
+   */
+  #applyWidths(nextValues: Array<number | null>): void {
+    const currentValues = this.#widthsMap.getValues();
+    const changed = currentValues.length !== nextValues.length ||
+      nextValues.some((value, index) => !Object.is(currentValues[index], value));
+
+    if (!changed) {
+      return;
+    }
+
+    this.#widthsMap.setValues(nextValues);
+    this.#hot.view.invalidateColumnWidthCache();
   }
 
   /**
@@ -112,7 +139,43 @@ export class StretchCalculator {
    * @returns {number | null}
    */
   getStretchedWidth(columnVisualIndex: number) {
+    if (this.#isMeasuringViewport) {
+      return null;
+    }
+
     return this.#widthsMap.getValueAtIndex(this.#hot.toPhysicalColumn(columnVisualIndex));
+  }
+
+  /**
+   * Measures the width the strategy stretches into, with the plugin's own stretched widths hidden.
+   *
+   * When the window owns the horizontal axis, `Viewport#measureWorkspaceWidth` sums the columns live
+   * through `modifyColWidth` to decide between the holder's width and the document's client width.
+   * With the previous stretched widths still answering that hook, a shrink sums to the OLD viewport,
+   * which is wider than the new holder, so the measurement falls through to the document width and
+   * the columns overshoot the root by the page's margins — and stay there, because the next refresh
+   * reads the same overshoot back. Clearing the map before measuring used to prevent that as a side
+   * effect; hiding the widths for the duration of the measurement keeps the behavior without a map
+   * write. The engine cannot build its column-width cache in between: with this plugin's hook
+   * registered the column widths are not uniform, so `getViewportWidth()` measures the DOM directly
+   * instead of resolving the layout snapshot.
+   *
+   * @returns {number} The viewport width in pixels, less the vertical scrollbar about to appear.
+   */
+  #measureViewportWidth(): number {
+    this.#isMeasuringViewport = true;
+
+    try {
+      let viewportWidth = this.#hot.view.getViewportWidth();
+
+      if (this.#willVerticalScrollAppear()) {
+        viewportWidth -= getScrollbarWidth(this.#hot.rootDocument);
+      }
+
+      return viewportWidth;
+    } finally {
+      this.#isMeasuringViewport = false;
+    }
   }
 
   /**

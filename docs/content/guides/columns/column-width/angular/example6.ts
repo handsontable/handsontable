@@ -15,11 +15,11 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 export class AppComponent {
 
   readonly hotData = [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
-    ['A4', 'B4', 'C4', 'D4'],
-    ['A5', 'B5', 'C5', 'D5'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', '215'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', '38'],
   ];
 
   readonly hotSettings: GridSettings = {

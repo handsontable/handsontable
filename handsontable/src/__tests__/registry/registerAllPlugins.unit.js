@@ -45,8 +45,10 @@ describe('`registerAllPlugins`', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ImportFile',
       'Filters',
       'Formulas',
+      'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',
@@ -58,6 +60,7 @@ describe('`registerAllPlugins`', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);

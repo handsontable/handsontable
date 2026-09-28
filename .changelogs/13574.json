@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Stopped rendering the cell selection, fill handle, and cell highlight on printouts, where they previously appeared as broken artifacts (an empty box and missing borders).",
+  "type": "fixed",
+  "issueOrPR": 13574,
+  "breaking": false,
+  "framework": "none"
+}

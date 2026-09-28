@@ -175,7 +175,7 @@
 - `CI Gate` (a job in `test.yml`, not a file) - the single status check to require in branch
   protection. It always runs and passes only when every module job reported `success` or `skipped`,
   so individual/matrix check names must stay unpinned
-- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`
+- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`, and no visual golden seed (that left for `visual-seed.yml` in DEV-2797)
 - `checks.yml` - scope router (which modules run) plus the changelog and test-presence gates
 - `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
 - `lint.yml` - core linters
@@ -184,12 +184,12 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix plus the reg-suit comparison and approval gate
-- `visual-cleanup.yml` - clears the `visual-approved` label on new commits (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual.yml` - visual regression render matrix and the reg-suit comparison, scoped by its `tier` input (`pr` | `seed` | `full`, the table in `visual-tests/src/config.mjs`), plus the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual-seed.yml` / `visual-nightly.yml` - writes `base/develop` on every develop push under a concurrency group that never cancels (develop.yml's cancellation kept the seed from landing; see that file's header) / the weekday full-matrix render that compares against that seed and never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - visual regression testing for docs
+- `docs-visual-tests.yml` (dispatch) / `docs-visual-seed.yml` (seeds `docs/base/<branch>` after a staging deploy) / the `docs-visual-run` action - docs visual regression against an R2 baseline, gated like `visual.yml`
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
-fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+fork-guard bullets in `.ai/CI.md` before touching any step that comments, pushes to a ref,
 or depends on a secret. Some paths degrade gracefully and must not be guarded.

@@ -5,6 +5,7 @@ import {
   isVisible,
 } from '../../../../../helpers/dom/element';
 import { resolveAxisOwner } from '../../overlay/axisOwner';
+import { subtractReservedHeight } from '../../viewport/layoutReservation';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -27,6 +28,15 @@ interface TrimmingContainerCache {
   trimmingHeight: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
+  /**
+   * The host's layout-slot height inside the owner (`layoutReservedHeight`) the holder height
+   * was computed with.
+   */
+  reservedHeight: number;
+  /**
+   * The `heightFollowsContent` setting the holder height was computed with.
+   */
+  heightFollowsContent: boolean;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -114,7 +124,13 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
   }
 
   if (isHTMLElement(ownerY) && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
-    const height = Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY));
+    // The owner's box is shared with the host's layout slots (`layoutReservedHeight`); the holder
+    // gets what is left, so a bar inside a scrollable ancestor is not pushed past its edge.
+    const reservedHeight = table.wtSettings.getSetting('layoutReservedHeight', ownerY);
+    const height = subtractReservedHeight(
+      Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY)),
+      reservedHeight,
+    );
 
     holderStyle.height = `${height}px`;
     table.hasTableHeight = height > 0;
@@ -186,7 +202,7 @@ class MasterTable extends Table {
     // throws; the brand check detects the pre-init call so the caching block
     // can be skipped. The non-caching branches (window-trimming overflow
     // reset and the trailing isVisible check) still run, matching the
-    // pre-DEV-1777 behaviour and the side effects callers depend on.
+    // pre-DEV-1777 behavior and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     // Each axis has its own owner (see `overlay/axisOwner.ts`). The overlays read the same two
@@ -204,14 +220,22 @@ class MasterTable extends Table {
       // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
       // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
       // would pin the holder to the old box while the page is supposed to size it. Clearing them is
-      // the whole of this mode's sizing.
-      this.holder.style.width = '';
-      this.holder.style.height = '';
+      // the whole of this mode's sizing. `measureWorkspaceWidth`'s window branch reads the holder
+      // width, so a stale one also kept the columns stretching to the old box.
+      const holderStyle = this.holder.style;
+
+      holderStyle.width = '';
+      holderStyle.height = '';
       this.hasTableWidth = true;
       this.hasTableHeight = true;
 
+      if (fieldsInitialized) {
+        // The measurement it holds was taken in another mode and must not be replayed on the way back.
+        this.#trimmingCache = null;
+      }
+
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        holderStyle.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
     } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {
@@ -265,6 +289,12 @@ class MasterTable extends Table {
       const trimmingHeight = geometryReader.getStyle(trimmingElement, 'height') ?? '';
       const hiderOffsetHeight = geometryReader.offsetHeight(this.hider);
       const hiderOffsetWidth = geometryReader.offsetWidth(this.hider);
+      // Part of the fingerprint: a bar that mounts into a slot after the first draw (or changes
+      // height) must re-measure, or the cached holder height keeps the whole owner box.
+      const reservedHeight = this.wtSettings.getSetting('layoutReservedHeight', trimmingElement);
+      // Part of the fingerprint: switching `height` between `'auto'` and unset moves no box, yet it
+      // decides whether a heightless owner gets `auto` or 0px.
+      const heightFollowsContent = this.wtSettings.getSetting('heightFollowsContent');
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -274,7 +304,9 @@ class MasterTable extends Table {
         && cache.trimmingOverflow === trimmingOverflow
         && cache.trimmingHeight === trimmingHeight
         && cache.hiderOffsetHeight === hiderOffsetHeight
-        && cache.hiderOffsetWidth === hiderOffsetWidth;
+        && cache.hiderOffsetWidth === hiderOffsetWidth
+        && cache.reservedHeight === reservedHeight
+        && cache.heightFollowsContent === heightFollowsContent;
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -337,10 +369,23 @@ class MasterTable extends Table {
                 (overflowY !== 'auto' && overflowY !== 'scroll')) {
               useAutoHeight = true;
             }
+
+            // The second case that switches to auto-height: the host sized the grid by its content
+            // (Handsontable's `height: 'auto'`, which leaves the root unclipped so the grid can
+            // scroll a sized ancestor). A heightless owner then has no box to scroll the rows in,
+            // and 0px would hide the whole grid inside it (DEV-3062). `auto` sizes the holder to its
+            // rows, as the root owning the axis did.
+            if (heightFollowsContent) {
+              useAutoHeight = true;
+            }
           }
         }
 
-        height = Math.min(height, trimmingScrollHeight);
+        // The owner's box is shared with the host's layout slots (`layoutReservedHeight`): the
+        // holder gets what is left, so a pagination or sheets bar inside a scrollable ancestor is
+        // not pushed past the owner's edge (DEV-2848). Subtracted after the scroll-height clamp,
+        // because the owner's scroll height includes the slots themselves.
+        height = subtractReservedHeight(Math.min(height, trimmingScrollHeight), reservedHeight);
         width = Math.min(width, trimmingScrollWidth);
 
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
@@ -370,6 +415,8 @@ class MasterTable extends Table {
             trimmingHeight,
             hiderOffsetHeight,
             hiderOffsetWidth,
+            reservedHeight,
+            heightFollowsContent,
             holderWidth,
             holderHeight,
             hasTableHeight,

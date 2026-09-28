@@ -17,7 +17,7 @@ vue:
   metaTitle: How to use icons in cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
-menuTag: new
+menuTag: updated
 ---
 
 Render an icon from the [icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md) inside a cell, and wire up an icon-only control so it stays accessible to screen reader users.
@@ -28,6 +28,7 @@ Render an icon from the [icon pack](@/guides/accessories-and-menus/icon-pack/ico
 
 - A grid with a [custom cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md).
 - The [`@handsontable/spreadsheet-icons`](https://github.com/handsontable/spreadsheet-icons) package, or any inline SVG icon of your own.
+- For the [third-party icon set](#use-a-third-party-icon-set) section, a [Lucide](https://lucide.dev) package.
 
 ## Steps
 
@@ -86,6 +87,85 @@ Render an icon from the [icon pack](@/guides/accessories-and-menus/icon-pack/ico
 :::
 
 Click a flag icon to toggle it. Each click updates both the underlying cell value (through `setDataAtCell()`) and the button's `aria-label`, so the accessible name always matches what the icon shows.
+
+## Use a third-party icon set
+
+An icon library reaches the cell in one of two ways, and which one you get depends on the framework:
+
+- **A DOM scan.** You write a placeholder element, and the library replaces it with an `<svg>`. [Lucide](https://lucide.dev)'s vanilla package uses `<i data-lucide="flag"></i>` plus a `createIcons()` call.
+- **A component.** The icon is a component you render directly, such as `<Flag />`. This needs a renderer that returns framework markup rather than DOM nodes.
+
+::: only-for javascript
+
+Install the vanilla package, then call `createIcons()` after you insert the placeholder:
+
+```bash
+npm install lucide
+```
+
+Pass `root` so the scan covers only the cell. Without it, Lucide walks the whole document once per rendered cell.
+
+::: example #example2 --html 1 --js 2 --ts 3
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/javascript/example2.html)
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/javascript/example2.ts)
+:::
+
+:::
+
+::: only-for react
+
+Install the React package, then pass a renderer component to the column:
+
+```bash
+npm install lucide-react
+```
+
+The component receives the cell's value and coordinates, so the icon goes in as JSX and no `createIcons()` scan runs at all.
+
+::: example #example2 :react --js 1 --ts 2
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/react/example2.jsx)
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/react/example2.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+Install the Angular package, then pass a renderer component to the column:
+
+```bash
+npm install @lucide/angular
+```
+
+The component extends [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and receives the cell's value and coordinates as inputs, so the icon goes in the template and no `createIcons()` scan runs at all. Each Lucide icon is its own standalone component applied as an attribute on an `<svg>` element, so import the icons you use and list them in the component's `imports`.
+
+::: example #example2 :angular --ts 1 --html 2
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/angular/example2.html)
+:::
+
+:::
+
+::: only-for vue
+
+Install the vanilla package, then call `createIcons()` after you insert the placeholder:
+
+```bash
+npm install lucide
+```
+
+The Vue wrapper renders cells through a renderer function rather than a component, so a Vue icon component such as `<Flag />` cannot render inside a cell. Use the DOM scan instead, and pass `root` so it covers only the cell -- without it, Lucide walks the whole document once per rendered cell.
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/use-icons-in-cells/vue/example2.vue)
+
+:::
+
+:::
+
+The accessibility rule does not change with the icon source: the `aria-label` stays on the button, never on the icon.
 
 ## Result
 

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an undo of a cell edit writing to the wrong row, adding a row, or stopping the undo history from recording, when a filter or row trimming hid the edited row after the edit.",
+  "title": "Fixed an undo of a cell edit writing to the wrong row, adding a row, or stopping the undo history from recording, when a filter or row trimming hid the edited row after the edit. Such an undo now writes the source data, so it fires `afterSetSourceDataAtCell` and `modifySourceData` instead of `beforeChange`, `afterChange`, and `modifyData`.",
   "type": "fixed",
   "issueOrPR": 13396,
   "breaking": false,

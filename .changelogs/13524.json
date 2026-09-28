@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Ctrl`/`Cmd`+`Enter` shortcut, so it now fills every selected cell across all selection layers, not only the layer that holds the focus. This applies both when an editor is open and when it is not, and a cell whose value is an object is left alone as it is on every other populate path. Plain `Enter` over such a selection no longer drops every layer but the focused one either - it moves the focus and keeps them all.",
+  "type": "fixed",
+  "issueOrPR": 13524,
+  "breaking": false,
+  "framework": "none"
+}

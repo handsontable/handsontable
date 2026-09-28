@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a numeric cell not right-aligning or getting the htNumeric class when it holds a non-numeric value.",
+  "type": "fixed",
+  "issueOrPR": 13615,
+  "breaking": true,
+  "framework": "none"
+}

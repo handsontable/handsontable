@@ -24,8 +24,8 @@ describe('Component-based renderers in fixed columns', () => {
   /**
    * Read the cell of the first column out of one of the rendered tables.
    *
-   * @param {String} tableSelector Selector of the table holder to read from.
-   * @param {Number} row Row index of the cell to read.
+   * @param {string} tableSelector Selector of the table holder to read from.
+   * @param {number} row Row index of the cell to read.
    * @returns {HTMLTableCellElement} The cell element.
    */
   function firstColumnCell(tableSelector: string, row: number): HTMLTableCellElement {
@@ -34,22 +34,22 @@ describe('Component-based renderers in fixed columns', () => {
     return rows[row].querySelectorAll('td')[0] as HTMLTableCellElement;
   }
 
-  it('should render the component into both the master table and the inline-start overlay', async () => {
+  it('should render the component into both the master table and the inline-start overlay', async() => {
     mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(5, 4)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                fixedColumnsStart={1}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <Cell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(5, 4)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        fixedColumnsStart={1}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <Cell {...props} />}
       />
     ), false);
 
@@ -67,22 +67,22 @@ describe('Component-based renderers in fixed columns', () => {
     expect(masterCell.firstElementChild).not.toBe(overlayCell.firstElementChild);
   });
 
-  it('should render the component into both the master table and the top overlay', async () => {
+  it('should render the component into both the master table and the top overlay', async() => {
     mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(5, 4)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                fixedRowsTop={1}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <Cell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(5, 4)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        fixedRowsTop={1}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <Cell {...props} />}
       />
     ), false);
 
@@ -94,22 +94,22 @@ describe('Component-based renderers in fixed columns', () => {
     expect(firstColumnCell('.ht_clone_top', 0).textContent).toBe(`${CELL_TEXT}:0-0`);
   });
 
-  it('should keep both copies of a fixed cell after a re-render', async () => {
+  it('should keep both copies of a fixed cell after a re-render', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(5, 4)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                fixedColumnsStart={1}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <Cell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(5, 4)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        fixedColumnsStart={1}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <Cell {...props} />}
       />
     ), false).hotInstance!;
 

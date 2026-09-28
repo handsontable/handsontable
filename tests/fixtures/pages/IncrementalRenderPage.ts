@@ -2,7 +2,18 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 export type IncrementalRenderScenario =
-  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments';
+  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments' |
+  'scroll' | 'frozen' | 'merge' | 'mapping';
+
+/**
+ * A merged block of the `merge` scenario, as the fixture declares it.
+ */
+export interface MergedBlock {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
 
 /**
  * Page Object for the `renderMode` fixture. Every probe reads the grid through the fixture's own
@@ -40,11 +51,51 @@ export class IncrementalRenderPage {
     await expect(this.page.getByTestId('cell-0-0').first()).toBeVisible();
 
     // Settle the rendered band. The init draw runs before the column header height is measured,
-    // so it renders one row more than the next draw; that next draw therefore repaints every
-    // master cell once (the band is part of a cell's paint stamp). The counts the specs assert
-    // start from the settled state.
+    // so it renders one row more than the next draw. Where the engine cannot keep stationary bands
+    // (merged cells), the band is part of a cell's paint stamp and that next draw repaints every
+    // master cell once. The counts the specs assert start from the settled state either way.
     await this.run('hot.render();');
     await this.resetPaints();
+  }
+
+  /**
+   * Returns the merged blocks the `merge` scenario declares.
+   */
+  async mergedBlocks(): Promise<MergedBlock[]> {
+    return this.page.evaluate(() => (window as unknown as { htMergedBlocks: MergedBlock[] }).htMergedBlocks);
+  }
+
+  /**
+   * Returns the first and last rendered rows of the master table.
+   */
+  async renderedBand(): Promise<[number, number]> {
+    return this.read<[number, number]>('[hot.getFirstRenderedVisibleRow(), hot.getLastRenderedVisibleRow()]');
+  }
+
+  /**
+   * Scrolls the viewport so that `row` is its first fully visible row, and waits for the draw the
+   * scroll event triggers (the fixture counts `afterScrollVertically`, which the engine fires after
+   * that draw). Nothing calls `render()` here, because the engine's own scroll-driven draw is the one
+   * under test: it is the draw that keeps a row's elements across the move, while an explicit
+   * `render()` rebuilds the band. A target whose rows already sit inside the rendered band resolves
+   * as a fast draw that paints nothing, so a spec that expects paints must scroll past the band (the
+   * `scroll` and `frozen` scenarios render 10 rows past the viewport on each side). A target the
+   * viewport already sits at scrolls nothing and fires no draw, so it fails here at once instead of
+   * waiting for a draw that never comes.
+   */
+  async scrollToRow(row: number): Promise<void> {
+    const drawsBefore = await this.read<number>('window.htScrollDraws');
+    const scrolled = await this.read<boolean>(`hot.scrollViewportTo({ row: ${row}, verticalSnap: 'top' })`);
+
+    if (!scrolled) {
+      throw new Error(`scrollToRow(${row}): the viewport did not move, so no scroll draw will follow`);
+    }
+
+    await this.page.waitForFunction(
+      (before: number) => (window as unknown as { htScrollDraws: number }).htScrollDraws > before,
+      drawsBefore,
+      { polling: 50 },
+    );
   }
 
   /**
@@ -82,6 +133,30 @@ export class IncrementalRenderPage {
    */
   async paintedCells(): Promise<string[]> {
     return this.page.evaluate(() => (window as unknown as { htPaintedCells: () => string[] }).htPaintedCells());
+  }
+
+  /**
+   * Asserts that every rendered master cell shows the value of its own coordinates: no element holds
+   * a row it was recorded for under an earlier row mapping. Narrower than `expectEqualToFullRepaint`
+   * on purpose, for a draw that follows a mapping change with no render in between: a plugin's own
+   * per-cell state (HiddenRows' marker class) is filled from the meta memo the last host render left,
+   * and that memo clears on a host render only, so it waits for the render the plugin documents.
+   */
+  async expectCellsMatchData(): Promise<void> {
+    const mismatches = await this.read<string[]>(`(() => {
+      const out = [];
+      for (let row = hot.getFirstRenderedVisibleRow(); row <= hot.getLastRenderedVisibleRow(); row++) {
+        for (let col = 0; col < hot.countCols(); col++) {
+          const td = hot.getCell(row, col, true);
+          if (td && td.textContent !== String(hot.getDataAtCell(row, col))) {
+            out.push(row + ',' + col + ': ' + td.textContent);
+          }
+        }
+      }
+      return out;
+    })()`);
+
+    expect(mismatches).toEqual([]);
   }
 
   /**

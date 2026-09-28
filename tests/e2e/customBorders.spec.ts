@@ -82,6 +82,40 @@ test.describe('CustomBorders with frozen rows and columns', () => {
   });
 });
 
+test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
+  test('does not paint a 1px edge when a side is configured with width 0', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 3, dataCols: 3,
+      customBorders: [
+        {
+          row: 0, col: 0,
+          top: { width: 0, color: 'red' },
+          start: { width: 2, color: 'green' },
+        },
+        { row: 0, col: 1, top: { width: 1, color: 'blue' } },
+      ],
+    });
+
+    // The plugin stores the authored 0; the renderer must honor it rather than substituting 1.
+    expect((await lab.cellBorders(0, 0))?.top).toEqual({ width: 0, color: 'red' });
+    expect((await lab.cellBorders(0, 0))?.start).toEqual({ width: 2, color: 'green' });
+
+    const zeroTop = await lab.edgeBoxSize('red');
+    const thickStart = await lab.edgeBoxSize('green');
+    const onePxControl = await lab.edgeBoxSize('blue');
+
+    // Painted box size (`getBoundingClientRect`), not the inline style string `createBorders`
+    // wrote. Horizontal thickness is `height`; vertical thickness is `width`. A truthy width
+    // lookup would paint the red top at 1px — the same size as the blue control.
+    expect(zeroTop).not.toBeNull();
+    expect(zeroTop!.height).toBe(0);
+    expect(thickStart!.width).toBe(2);
+    expect(onePxControl!.height).toBe(1);
+  });
+});
+
 test.describe('CustomBorders and UndoRedo', () => {
   test('restores a border removed together with its row when the removal is undone', async ({ page, theme, bundle }) => {
     const demo = await gotoDemo(page, theme, bundle);
@@ -1414,6 +1448,46 @@ test.describe('CustomBorders and vetoed cell-meta writes', () => {
     // The plugin's own RED_BORDER key is gone; what remains resolved at (2, 2) is the cascaded
     // column-level value, which is not plugin-owned and stays visible to `getCellMeta` by design.
     expect((await lab.cellBorders(2, 2))?.top).toEqual({ width: 1, color: 'blue' });
+  });
+});
+
+test.describe('CustomBorders cascaded and partial borders meta', () => {
+  test('keeps a column-cascaded side when setBorders merges another side onto the same cell', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    // DEV-2513: column-level `borders` is a partial record with no plugin
+    // bookkeeping (`id`/`row`/`col`). `setBorders` used to reject that shape as
+    // a merge base, so the cascaded start became `{ hide: true }` when a
+    // different side was set on the same cell.
+    await lab.createGrid({
+      dataRows: 10,
+      dataCols: 10,
+      customBorders: true,
+      columns: Array.from({ length: 10 }, (_, col) => (
+        col === 9 ? { borders: { start: { width: 1, color: 'green' } } } : {}
+      )),
+    });
+
+    const before = await lab.cellBorders(5, 9);
+
+    expect(before?.start).toEqual({ width: 1, color: 'green' });
+    expect(await lab.borderCoords()).toEqual([]);
+
+    await page.evaluate(() => {
+      (window as any).hot.getPlugin('customBorders')
+        .setBorders([[5, 9, 5, 9]], { top: { width: 3, color: 'blue' } });
+    });
+
+    const borders = await lab.cellBorders(5, 9);
+    const neighbor = await lab.cellBorders(4, 9);
+
+    expect(borders?.start).toEqual({ width: 1, color: 'green' });
+    expect(borders?.top).toEqual({ width: 3, color: 'blue' });
+    // The merge must clone the shared column record. A neighbor in the same
+    // column still resolves only the cascaded start, with no own `top`.
+    expect(neighbor).toEqual({ start: { width: 1, color: 'green' } });
+    expect(await lab.borderCoords()).toEqual([{ row: 5, col: 9 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(2);
   });
 });
 

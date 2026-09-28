@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, test, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   setColumnSorting,
@@ -10,9 +10,15 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that a two-column sort (Age descending, then Interest ascending) renders both sort indicators and
+ * their order numbers on the complex demo. Owned by DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/complex-demo')

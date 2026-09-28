@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed global and sticky RegExp validators returning inconsistent results across validateCells() runs.",
+  "type": "fixed",
+  "issueOrPR": 13549,
+  "breaking": false,
+  "framework": "none"
+}

@@ -52,6 +52,23 @@ than falling back to 8123 — the collision it exists to escape. This knob is th
 `visual-tests/src/config.mjs` plus two hardcoded `app.listen(8082)` demo servers,
 so it cannot be moved this way.
 
+### Rebuild BOTH bundles before an all-legs run
+
+`npm run build:umd` writes `dist/handsontable.js` only — the minified bundle the
+three `-min` legs load comes from the separate `build:umd.min`, so a partial
+build leaves the `-min` legs on your previous code. Use the full task, then
+check that both files actually moved:
+
+```bash
+npm --prefix handsontable run build
+ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js
+```
+
+And read a mixed result PER LEG before calling it a race — a split that falls
+exactly along the bundle axis is about the bundles, not about timing. Why that
+happens, how to tell a stale bundle from a genuine `full.min` difference, and
+what it cost: `tests/AGENTS.md`.
+
 ## Four rules (non-negotiable)
 
 1. **Page Object Model.** A spec expresses intent; selectors and interactions live in a page object under `tests/fixtures/pages/`. Never put raw selectors or multi-step flows in a spec — when the DOM shifts, one file changes.

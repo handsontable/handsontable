@@ -35,7 +35,7 @@ describe('DragToScroll mobile touch auto-scroll', () => {
   });
 
   beforeEach(() => {
-    // MultipleSelectionHandles is gated on isMobileBrowser(), which reads the user agent at plugin
+    // MultipleSelectionHandles is gated on isMobileOrIpadOS(), which reads the user agent at plugin
     // init time - so the agent has to be swapped before the instance is built.
     setBrowserMeta({ userAgent: MOBILE_USER_AGENT, vendor: '' });
 

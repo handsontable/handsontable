@@ -104,7 +104,8 @@ class EditorManager {
    * The suspension must not outlive the outermost scope: still suspended when a later trimming
    * change arrives, the discard is skipped and that change's own selection work commits through
    * the stranded coordinates and APPENDS records – `alter('remove_row', ...)` followed by
-   * `Filters#filter()` in the same task (DEV-2739).
+   * `Filters#filter()` in the same task (DEV-2739). "Outlive" means the rest of the CURRENT task,
+   * which is why the pairing has to be a `finally` and cannot be a timer (DEV-2831).
    *
    * A structural cache update fired with NO scope open (a caller core does not wrap) gets no
    * suspension: the next reconcile discards a stranded editor immediately, which loses the pending
@@ -228,16 +229,21 @@ class EditorManager {
    * coordinates.
    *
    * The scopes are depth-counted, so an `alter()` fired from a hook inside another `alter()`
-   * cannot lift the outer call's protection when its own scope ends. A scope is synchronous by
-   * contract; the zero-delay timeout heals a scope a thrown hook aborted before its
-   * `resumeStrandDiscards()` ran, bounding a leaked suspension to the current task.
+   * cannot lift the outer call's protection when its own scope ends.
+   *
+   * **Every caller must pair this with `resumeStrandDiscards()` in a `finally`.** A scope left
+   * open covers the rest of the task, and a trimming change that follows in it skips the discard
+   * and appends records – so the pairing has to survive every exit, not just the ordinary one.
+   * `alter()` alone has four: a `beforeAlter` veto, the `maxRows` guard, the switch's default
+   * `throwWithCause()` and its own tail (DEV-2831).
+   *
+   * There is deliberately NO self-healing timer behind that contract. A zero-delay timeout was
+   * tried and does not work: it runs in the NEXT task, while the `Filters#filter()` that reads
+   * the scope and appends runs in THIS one, so it healed nothing that mattered while retaining a
+   * timeout handle per call for the instance's life (`_registerTimeout` never prunes).
    */
   suspendStrandDiscards(): void {
     this.#strandDiscardsSuspended += 1;
-
-    this.hot._registerTimeout(() => {
-      this.#strandDiscardsSuspended = 0;
-    }, 0);
   }
 
   /**
@@ -385,7 +391,7 @@ class EditorManager {
    * Close editor, finish editing cell.
    *
    * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue = false, isCtrlPressed = false, callback?: Function) {
@@ -400,7 +406,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed?: boolean) {
     this.closeEditor(false, isCtrlPressed);
@@ -476,7 +482,15 @@ class EditorManager {
       enterMoves.col = -(enterMoves.col ?? 0);
     }
 
-    if (this.hot.selection.isMultiple()) {
+    // `transformStart()` lays a fresh selection, which drops every layer, so it is only right when
+    // there is nothing else selected to move within. `isMultiple()` reads the active layer alone, so
+    // a selection whose focused layer held a single cell took that branch and lost its other layers
+    // - visible since `Ctrl`/`Cmd`+`Enter` began filling them all (DEV-103), but wrong before that
+    // too, because a plain Enter discarded them just as silently.
+    const hasMoreThanOneCellSelected = this.hot.selection.isMultiple() ||
+      (this.hot.getSelectedRange()?.length ?? 0) > 1;
+
+    if (hasMoreThanOneCellSelected) {
       this.selection.transformFocus(enterMoves.row ?? 0, enterMoves.col ?? 0);
     } else {
       this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
@@ -597,10 +611,11 @@ class EditorManager {
    * For a pure trimming update, `Selection` separately snapshots every layer in physical coordinates
    * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
    * this manager prevents selection hooks from preparing an editor while the mapper is still
-   * unwinding. It lets editor-specific commit paths, including DropdownEditor and Ctrl+Enter, keep
+   * unwinding. It lets editor-specific commit paths, including DropdownEditor and `Ctrl+Enter`, keep
    * targeting a surviving record that moved because earlier records were trimmed. A range that loses
-   * only part of itself shrinks onto its surviving records instead of being dropped, so `Ctrl+Enter`
-   * keeps filling the layer holding the editor rather than one that merely inherited the active slot.
+   * only part of itself shrinks onto its surviving records instead of being dropped, so the
+   * `Ctrl+Enter` fill still reaches the records the user selected rather than only the layers that
+   * happened to survive the trim intact.
    *
    * A sequence permutation is deliberately outside that selection repair. Reordering can make the
    * records from one rectangular range non-contiguous, which `CellRange` cannot represent without
@@ -725,7 +740,7 @@ class EditorManager {
    * visual index space instead of preserving it, so `isHidden()` reads `false` for a trimmed row and
    * this method never fires for one.
    *
-   * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
+   * The edit is finished rather than canceled, which for most editors means it is COMMITTED - the
    * same outcome clicking the pager already produces, since that is an outside click and therefore
    * deselects. The final say still belongs to the editor: `DropdownEditor#finishEditing()` rewrites
    * the flag to a discard when the active range no longer contains the edited cell. On THIS path it

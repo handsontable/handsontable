@@ -65,6 +65,47 @@ describe('numericRenderer', () => {
         expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
+      it('should format integers near Number.MAX_SAFE_INTEGER without losing a digit', () => {
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+          locale: 'en-US',
+          numericFormat: {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }
+        };
+
+        // `9007199254740990` is exactly representable as a double, so formatting must not shift
+        // it to `...989`. The removed numbro dependency did, because it rounded through
+        // `value * 100`, which overflows the safe-integer range.
+        expect(numericRenderer.valueFormatter(9007199254740988, cellMeta)).toBe('9,007,199,254,740,988.00');
+        expect(numericRenderer.valueFormatter(9007199254740989, cellMeta)).toBe('9,007,199,254,740,989.00');
+        expect(numericRenderer.valueFormatter(9007199254740990, cellMeta)).toBe('9,007,199,254,740,990.00');
+        expect(numericRenderer.valueFormatter(9007199254740991, cellMeta)).toBe('9,007,199,254,740,991.00');
+      });
+
+      it('should format a numeric string literal above Number.MAX_SAFE_INTEGER exactly', () => {
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+          locale: 'en-US',
+          numericFormat: {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }
+        };
+
+        // `Intl.NumberFormat#format` reads a string operand as an exact decimal and never routes
+        // it through a double, so a literal kept by `preserveNumericLiteral` renders every digit.
+        // The same value as a number collapses to `...992` - hence `Number()` here rather than a
+        // literal, which `no-loss-of-precision` rejects.
+        const literal = '9007199254740993';
+
+        expect(numericRenderer.valueFormatter(literal, cellMeta)).toBe('9,007,199,254,740,993.00');
+        expect(numericRenderer.valueFormatter(Number(literal), cellMeta)).toBe('9,007,199,254,740,992.00');
+      });
+
       it('should emit an unsupported-format warning once per instance when numericFormat.pattern is present', () => {
         /* eslint-disable no-console */
         /* eslint-disable no-restricted-globals */
@@ -193,7 +234,7 @@ describe('numericRenderer', () => {
         expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
-      it('should add default class names only if value is numeric', () => {
+      it('should add default class names regardless of whether the value is numeric (DEV-135)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
         const cellMeta = {
@@ -206,8 +247,47 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td>A</td>');
-        expect(cellMeta.className).toBe(undefined);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">A</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should add default class names for `null`/`undefined` values (DEV-135)', () => {
+        for (const cellValue of [null, undefined]) {
+          const TD = document.createElement('td');
+          const instance = getInstance();
+          const cellMeta = { instance };
+          const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+          spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+          numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+          expect(TD.getAttribute('dir')).toBe('ltr');
+          expect(cellMeta.className).toBe('htRight htNumeric');
+        }
+      });
+
+      it('should not rewrite `className` into a joined string when both markers are already present ' +
+        '(gate the write on an actual change)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        // An array already carrying both markers — nothing for this render to add.
+        const existingClassName = ['htRight', 'htNumeric'];
+        const cellMeta = {
+          instance,
+          className: existingClassName,
+        };
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        // The renderer must not rewrite an unchanged array into a joined string — doing so
+        // unconditionally would replay a user-defined array `className` as a baked-in string the
+        // next time `updateSettings` reads it back (see `handsontable/AGENTS.md`, cell `className` rules).
+        expect(cellMeta.className).toBe(existingClassName);
       });
 
       it('should add default class names when `className` is an array', () => {
@@ -269,6 +349,52 @@ describe('numericRenderer', () => {
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1</td>', toMatchHTMLConfig);
         expect(cellMeta.className).toBe('htCenter htNumeric');
+      });
+
+      it('should keep `dir="ltr"` for RTL-script text in a numeric-typed cell (DEV-135, ' +
+        'documented trade-off - the cell is configured numeric, so it stays LTR whatever it holds)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+        };
+        const cellValue = 'مرحبا';
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(TD.getAttribute('dir')).toBe('ltr');
+        expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should keep `htRight htNumeric` and `dir="ltr"` on a cell whose value changes from numeric ' +
+        'to non-numeric across renders (DEV-135 - marking no longer depends on the value, so there is ' +
+        'nothing to remove on a later render)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+        };
+
+        spyOn(instance, 'getDataAtCell').and.returnValues(1, 'abc');
+
+        numericRenderer(
+          instance, TD, undefined, undefined, undefined,
+          numericRenderer.valueFormatter(1, cellMeta), cellMeta
+        );
+
+        expect(cellMeta.className).toBe('htRight htNumeric');
+        expect(TD.getAttribute('dir')).toBe('ltr');
+
+        numericRenderer(
+          instance, TD, undefined, undefined, undefined,
+          numericRenderer.valueFormatter('abc', cellMeta), cellMeta
+        );
+
+        expect(cellMeta.className).toBe('htRight htNumeric');
+        expect(TD.getAttribute('dir')).toBe('ltr');
       });
     });
   });

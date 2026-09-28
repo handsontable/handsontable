@@ -221,10 +221,101 @@ the configuration.
 
 ### Enable filtering for individual columns
 
-You have control over which columns are filterable and for which columns the column menu is enabled.
-In the following demo, only the **Brand** column is filterable, while the other columns are not.
-However, the **Model** column still has the column menu available in case you want to have some
-useful items in the menu such as **Clear column**.
+To turn filtering off for one column, set `filters` to `false` for that column in the
+[`columns`](@/api/options.md#columns) option:
+
+```js
+filters: true,
+dropdownMenu: true,
+columns: [
+  { data: 'brand' },
+  // no filter controls in this column's menu
+  { data: 'model', filters: false },
+],
+```
+
+The column's dropdown menu still opens, so items such as **Clear column** stay available -- only the
+filter controls are gone. Filtering that column through the API still works:
+[`addCondition()`](@/api/filters.md#addcondition) does not consult this option.
+
+`filters` takes different values at the two levels it works at:
+
+| Level | Accepted values | What it does |
+| ----- | --------------- | ------------ |
+| Grid | `true`, `false`, or an object | Switches the plugin on or off, and carries its settings |
+| Inside [`columns`](@/api/options.md#columns) | `false` | Hides the filter controls in that column's dropdown menu |
+
+Only `false` means anything at the column level. The sub-options -- `searchMode` and
+`filterFixedRows` -- are read once for the whole grid, so an object written inside `columns` is
+ignored and logs a warning:
+
+```js
+// WRONG -- ignored, and warns once
+columns: [{ filters: { filterFixedRows: false } }],
+```
+
+TypeScript does not reject that, because a column's settings are typed from the grid's settings.
+Treat the table above as the contract rather than the type.
+
+To change the *order* of the values in a column's **Filter by value** list, use the
+[`filterValueComparator`](@/api/options.md#filtervaluecomparator) option, which does work inside
+`columns`. See [Change the order of values in the filter list](#change-the-order-of-values-in-the-filter-list).
+
+Turning a column off hides its filter controls; it does not clear a filter the column already has.
+A condition added through the API keeps filtering, and the menu can no longer show it, so clear it
+with [`clearConditions()`](@/api/filters.md#clearconditions) rather than from the menu.
+
+In the following demo, every column is filterable except **Model**. Open that column's menu and the
+filter controls are gone, while the rest of the menu still works.
+
+::: only-for javascript
+
+::: example #exampleDisableFilterForColumn --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleDisableFilterForColumn :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleDisableFilterForColumn.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleDisableFilterForColumn.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example15 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example15.ts)
+@[code](@/content/guides/columns/column-filter/angular/example15.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleDisableFilterForColumn :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleDisableFilterForColumn.vue)
+
+:::
+
+:::
+
+For finer control, you can hide individual menu items instead. In the following demo, only the
+**Brand** column is filterable, while the other columns are not. However, the **Model** column still
+has the column menu available in case you want to have some useful items in the menu such as
+**Clear column**.
 
 ::: only-for javascript
 
@@ -458,6 +549,78 @@ operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows
 time input. Pick the value from the browser's picker or type it in your locale's format. When you
 set the condition through the API instead, pass the value as an ISO 8601 string
 (`YYYY-MM-DD` for dates, `HH:mm` for times).
+
+## Change the order of values in the filter list
+
+By default, the **Filter by value** list places blank cells first and then sorts the values: numbers
+by value, text by character code, and dates chronologically. To set your own order for a column, pass a
+comparator function to the [`filterValueComparator`](@/api/options.md#filtervaluecomparator) option.
+The function takes two cell values and returns a negative number, zero, or a positive number, the
+same way as the callback of `Array.prototype.sort()`.
+
+The option cascades like any other configuration option. Set it inside
+[`columns`](@/api/options.md#columns) to order one column, or at the grid level to order every
+column's list the same way. A column value overrides the grid value.
+
+In the example below, the Priority column lists values by severity and the Size column by garment
+size, instead of alphabetically:
+
+::: only-for javascript
+
+::: example #exampleFilterValueOrder --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterValueOrder.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterValueOrder :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleFilterValueOrder.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterValueOrder.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example16 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example16.ts)
+@[code](@/content/guides/columns/column-filter/angular/example16.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleFilterValueOrder :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterValueOrder.vue)
+
+:::
+
+:::
+
+Two details to keep in mind when you write the comparator:
+
+- A blank cell (`null`, `undefined`, or an empty string) reaches the function as an empty string
+  `''`. Decide where blanks go by handling `''` explicitly.
+- The comparator only orders the list. It cannot add, hide, or remove a value, so it never changes
+  which rows the filter keeps.
+
+A custom comparator also replaces the built-in order of `date`, `intl-date`, and `intl-datetime`
+columns. A value that is not a function is ignored, and the default order applies.
+
+To change what a value *looks like* in the list rather than where it sits, use the
+[`modifyFiltersMultiSelectValue`](@/api/hooks.md#modifyfiltersmultiselectvalue) hook instead.
 
 ## Filter data on initialization
 
@@ -809,10 +972,31 @@ value that can never match again.
 
 ## Exclude rows from filtering
 
-You can exclude any number of top or bottom rows from filtering.
+[Frozen rows](@/guides/rows/row-freezing/row-freezing.md) often hold totals or headings rather than
+data. To keep them out of filtering, set the `filterFixedRows` option to `false`:
 
-In the following demo, the first and the last row are [frozen](@/guides/rows/row-freezing/row-freezing.md), and
-filtering doesn't affect them.
+```js
+fixedRowsTop: 1,
+fixedRowsBottom: 1,
+filters: {
+  // the frozen rows take no part in filtering
+  filterFixedRows: false,
+},
+```
+
+Those rows are then never hidden by a filter, and their values are not offered in the **Filter by
+value** list. This works for any number of rows frozen at either end.
+
+`filterFixedRows` is `true` by default, which means frozen rows are filtered like any other row. It
+is a grid-level option, because [`fixedRowsTop`](@/api/options.md#fixedrowstop) and
+[`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) freeze rows for the whole table.
+
+Which rows are exempt follows the rows on screen, so it keeps up as the grid changes: adding or
+removing a row at either end, moving rows, and sorting all re-apply the filter with the new frozen
+rows. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
+because filtering then happens on the server, which knows nothing about frozen rows.
+
+In the following demo, the first and the last row are frozen, and filtering doesn't affect them.
 
 ::: only-for javascript
 

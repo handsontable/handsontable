@@ -4,6 +4,7 @@ import type Settings from '../../settings';
 import {
   getScrollableElement,
   getTrimmingContainer,
+  isHTMLElement,
   setAttribute,
 } from '../../../../../helpers/dom/element';
 import { defineGetter } from '../../../../../helpers/object';
@@ -24,6 +25,8 @@ import {
 } from '../scrollbarClearance';
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { getSpreaderOffset } from '../spreaderOffset';
+import { OverlayRail, railCarriesAxis } from '../overlayRail';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -182,7 +185,7 @@ export abstract class Overlay {
    * viewport predicates (`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()`),
    * never through this field. The corner overlays, which have no axis of their own, hold the
    * single-answer trimming container of `getTrimmingContainer()` resolved at construction only – it
-   * is never refreshed – and position themselves from their two neighbours' owners, which
+   * is never refreshed – and position themselves from their two neighbors' owners, which
    * `Overlays#beforeDraw` re-resolves on every full draw.
    *
    * @type {HTMLElement | Window}
@@ -213,6 +216,11 @@ export abstract class Overlay {
    * appears or fades without recomputing anything (#10370).
    */
   #clearanceStrips: OverlayScrollbarClearanceStrips | null = null;
+
+  /**
+   * The rail that pins this overlay's clone to the viewport's inline-start edge, once asked for.
+   */
+  #rail: OverlayRail | null = null;
 
   /**
    * @param {OverlayDeps} deps The overlay module dependencies.
@@ -289,6 +297,9 @@ export abstract class Overlay {
    * `overflow` against `'hidden'`/`'clip'`, and a root that clips one axis only computes to
    * `"clip visible"`, which matches neither — the case this whole per-axis resolution exists for.
    *
+   * A window-owned axis resolves to the window only while the holder cannot scroll that axis
+   * itself, and for the horizontal axis that is not always true — see `#ownsWindowScroll()`.
+   *
    * The corners have no axis; they keep the single-answer form (the parent's `overflow` shorthand,
    * then the scrollable ancestor). `preventOverflow` has no say there: it names one axis, and a
    * corner belongs to both.
@@ -312,7 +323,7 @@ export abstract class Overlay {
       return getScrollableElement(wtTable.TABLE);
     }
 
-    if (this.trimmingContainer === rootWindow) {
+    if (this.trimmingContainer === rootWindow && this.#ownsWindowScroll()) {
       return rootWindow;
     }
 
@@ -321,6 +332,41 @@ export abstract class Overlay {
     }
 
     return getScrollableElement(wtTable.TABLE);
+  }
+
+  /**
+   * Tells whether the window really scrolls this overlay's axis, given that it owns it.
+   *
+   * It always does on the vertical axis: `alignHolderWithSplitOwners` leaves a window-owned axis to
+   * the DOM, which vertically means `height: auto` — a holder whose content is its own height and
+   * which therefore has nothing to scroll.
+   *
+   * Horizontally the same rule leaves a block-fill width, and the holder's stylesheet
+   * `overflow: auto` then does scroll it whenever the table is wider. That is the reverse split
+   * (`preventOverflow: 'vertical'`, or an ancestor clipping the vertical axis only): the holder
+   * takes the vertical owner's pixel height, so it is a real scroll port, and CSS cannot scroll one
+   * axis while letting the perpendicular one overflow visibly — `overflow: visible` beside an `auto`
+   * axis computes to `auto`. So the columns scroll inside the holder there whatever the owner says.
+   * In window mode the holder is unsized on both axes and `MasterTable` clears its overflow, so
+   * nothing scrolls inside it and the window is the answer for both axes.
+   *
+   * Narrowed with `isHTMLElement()`, never `instanceof HTMLElement`: the latter is bound to this
+   * module's realm, so for a grid rendered into an iframe it reports `false` for a real element
+   * owner, the window shortcut is taken, and the horizontal listener binds to the window while the
+   * holder scrolls the columns — the exact failure this method exists to stop.
+   *
+   * @returns {boolean}
+   */
+  #ownsWindowScroll(): boolean {
+    if (this.#axis === 'y') {
+      return true;
+    }
+
+    const verticalOwner = resolveAxisOwner(
+      this.wtRootElement, 'y', this.wtSettings.getSetting('preventOverflow')
+    );
+
+    return !isHTMLElement(verticalOwner);
   }
 
   abstract resetFixedPosition(): boolean;
@@ -336,11 +382,52 @@ export abstract class Overlay {
   abstract scrollTo(sourceIndex: number, snapToEdge: boolean): boolean;
 
   /**
-   * Pre-applies the overlay's header-border class before the cell render (single-pass gated
-   * path). Overridden by the top, bottom, and inline-start overlays, which own an `innerBorder*`
-   * toggle; a no-op on overlays that have none (e.g. the corner overlays).
+   * The rail that holds this overlay's clone at the viewport's edge while the window scrolls the grid
+   * (`overlay/overlayRail.ts`). Used by every overlay that follows the page: the inline-start one and
+   * both corners sideways, the top and bottom ones and both corners up and down.
+   *
+   * @returns {OverlayRail | null} `null` when the overlay has no clone.
    */
-  prepareHeaderBorders(): void {}
+  getRail(): OverlayRail | null {
+    if (!this.clone) {
+      return null;
+    }
+
+    if (this.#rail === null) {
+      this.#rail = new OverlayRail(
+        this.clone.wtTable.holder.parentNode as HTMLElement,
+        this.#deps.rootDocument
+      );
+    }
+
+    return this.#rail;
+  }
+
+  /**
+   * The axis this overlay follows while the window owns it, which decides whether a rail already
+   * carries its offset. The corners follow both, so they name none and keep the default: there is no
+   * single axis to answer for, and {@link Overlay#getOverlayTransformOffset} then reports the whole
+   * offset rather than the answer for the other axis.
+   *
+   * @returns {'inline' | 'block' | null}
+   */
+  get railAxis(): 'inline' | 'block' | null {
+    return null;
+  }
+
+  /**
+   * The part of {@link Overlay#getOverlayOffset} that the layout does not already carry.
+   *
+   * A reader that places something from a clone element's document position (`offsetLeft`, the
+   * `offset()` helper) has to add the overlay offset only when the clone is moved by something that
+   * position cannot see – a transform. A clone pinned by its rail is shifted by `position: sticky`,
+   * which IS in the layout, so adding the offset again would count the scroll twice.
+   *
+   * @returns {number}
+   */
+  getOverlayTransformOffset(): number {
+    return railCarriesAxis(this.#rail, this.railAxis) ? 0 : this.getOverlayOffset();
+  }
 
   /**
    * Checks if the overlay rendering state has changed.
@@ -372,7 +459,7 @@ export abstract class Overlay {
    * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
    *
    * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
-   * clipped behind it is a grey strip painted over live cells, and it swallows presses there.
+   * clipped behind it is a gray strip painted over live cells, and it swallows presses there.
    *
    * The strips are the single source of truth here, and an overlay publishes one only while its clone
    * is rendered - so this asks nothing else. Two gates for one decision is how this feature drifted: a
@@ -460,8 +547,14 @@ export abstract class Overlay {
 
   /**
    * Update the main scrollable element.
+   *
+   * The owner is re-resolved first, so the answer never rests on one a previous draw left behind.
+   * A draw refreshes the owners on its way in, but this is also reached from
+   * `updateSettings` — through `ScrollSync#updateMainScrollableElements()` — and a suspended render
+   * has drawn nothing in between.
    */
   updateMainScrollableElement() {
+    this.updateTrimmingContainer();
     this.mainTableScrollableElement = this.#computeMainScrollableElement();
   }
 
@@ -485,12 +578,14 @@ export abstract class Overlay {
     const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowBottom = rowIndex >=
       this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
-    const spreader = this.clone.wtTable.spreader;
-
     const { geometryReader } = this.#deps;
+    // The spreader is placed with a transform (`overlay/spreaderOffset.ts`), which the offset chain
+    // does not see, so read the recorded offset. `x` is negative in RTL and the math below wants the
+    // distance from the inline start, hence the magnitude.
+    const { x: spreaderX, y: spreaderY } = getSpreaderOffset(this.clone.wtTable.spreader);
     const spreaderOffset = {
-      start: this.getRelativeStartPosition(spreader),
-      top: geometryReader.offsetTop(spreader)
+      start: Math.abs(spreaderX),
+      top: spreaderY,
     };
     const elementOffset = {
       start: this.getRelativeStartPosition(element),
@@ -721,6 +816,10 @@ export abstract class Overlay {
     if (!this.clone) {
       return;
     }
+
+    // Back out of the rail too: a clone in normal flow with its width cleared would stretch to the
+    // rail's full width, where an absolutely positioned one shrinks to its empty table.
+    this.#rail?.release();
 
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
