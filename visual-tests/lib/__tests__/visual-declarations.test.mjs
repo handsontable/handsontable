@@ -34,8 +34,7 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 // were read from the live baseline on 2026-09-18:
 // `curl -H 'Cache-Control: no-cache' 'https://visual.handsontable.com/base/develop/out.json?cb=1'`,
 // 1676 records, all passing. Every trim since lowers the file in the pull request that deletes the
-// records (1225 after the filters consolidation, #13647), so the file, not a baseline read, is what
-// the sweep compares against.
+// records, so the file, not a baseline read, is what the sweep compares against.
 //
 // Reading them here rather than repeating them is the point. The numbers are true of three different
 // things — what the specs DECLARE, what a build RENDERS, and what the budget ALLOWS — and a copy per
@@ -50,10 +49,11 @@ const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
 // How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
 // them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
-// js-only ones, which leaves 106 files, one of them parked, so 105 live. Adding or deleting a spec
+// js-only ones, and the submenu-placement trim deleted four scrolled-viewport menu specs, which
+// leaves 102 files, one of them parked, so 101 live. Adding or deleting a spec
 // moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a description
 // cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 105;
+const LIVE_SPEC_COUNT = 101;
 
 // How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
 // consolidation retired that family's nine) still carry the shared unaudited reason.
@@ -952,6 +952,10 @@ test('every spec declares a shape its own directory can host', () => {
     'js-only': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] },
       { ...DEFAULT_DECLARATION },
+      // A look check whose pixels carry no theme signal of their own: the behavior is asserted in
+      // tests/e2e, and the theme tokens it shows are photographed on every variant elsewhere. The
+      // first user is the menu-position family, whose placement tests/e2e/submenu-position.spec.ts asserts.
+      { themes: ['main'], browsers: ['chromium'], wrappers: [] },
     ],
     'multi-frameworks': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: WRAPPERS, wrappersReason: 'any' },
@@ -962,8 +966,9 @@ test('every spec declares a shape its own directory can host', () => {
     ],
   };
   const remedies = {
-    'js-only': 'A js-only spec renders the five js variants (what the codemod wrote) or the documented '
-      + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }.',
+    'js-only': 'A js-only spec renders the five js variants (what the codemod wrote), the documented '
+      + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }, or '
+      + '[\'main\'] alone for a look check whose behavior tests/e2e asserts.',
     'multi-frameworks': 'Every spec here declares all three wrappers, because the seed copies the whole '
       + 'js/chromium/multi-frameworks directory into the three wrapper baselines (scripts/run-tests.mjs). '
       + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '

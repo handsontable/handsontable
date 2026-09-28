@@ -21,7 +21,9 @@ describe('ContextMenu (RTL mode)', () => {
       $('html').attr('dir', htmlDir);
     });
 
-    // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
+    // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts (every
+    // corner, both layout directions, and a scrolled grid); ./visual-tests/tests/js-only/context-menu/
+    // keeps a look check of the menu.
 
     it('should show tick from "Read only" element at proper place', async() => {
       handsontable({

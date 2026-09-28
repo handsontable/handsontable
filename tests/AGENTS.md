@@ -76,6 +76,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   or the other. Leave "which side, and does it leave the grid" to a spec whose
   grid is deliberately shaped to force that outcome on all three themes, and
   run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
+  `e2e/submenu-position.spec.ts` is that shape for menus: its fixture's menus
+  put "Alignment" first, so the anchor row sits at the same height on every
+  theme and each viewport corner forces one placement. With the full default
+  item list, the same corner leaves room below on `main` and none on `horizon`.
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator

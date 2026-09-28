@@ -115,8 +115,8 @@ visualTest(__filename, {
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
   per-prefix totals against `visual-budget.json`, printing the implied total. The file held the live
-  baseline's 1676 records on 2026-09-18 and comes down with every trim (1225 after the filters
-  consolidation, #13647). A trim or a new spec moves a number there, which is the review a description
+  baseline's 1676 records on 2026-09-18 and comes down with every trim, so it, not this page, holds
+  today's numbers. A trim or a new spec moves a number there, which is the review a description
   cannot give.
 - **`npx playwright test --list --reporter=json` reports every declaration** as a `visual-variants`
   annotation, including on a spec the current variant skips. That is the only form a reader outside the
@@ -165,16 +165,16 @@ requests: a build rendered 1646 golden records and the visual stage added a mean
 request run. The golden set is 1676 records on 2026-09-18 (`base/develop/out.json`, read cache-busted as
 described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox /
 webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
-The filters consolidation (#13647, 2026-09-25) brought the set to 1225: 187 per js variant, 30 per
-wrapper, the same cross-browser counts, and a `pr`-tier render of 374.
+The consolidation lowers these family by family, and each trim lowers `visual-budget.json` in the same
+pull request, so that file has today's counts; the ones here stay the dated reference.
 Every js-only spec renders five times today (the bare chromium run — the "classic" delivery path,
 where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration), and a new spec renders two themes by default,
 so "every js variant renders the same count" stops holding with the first spec that takes the default. The
-bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18, 187 since the
-filters consolidation) — it is a delivery-path
+bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
+delivery-path
 parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
 every real change hit all themes or all browsers. So a pull request renders the two default themes on js;
@@ -253,7 +253,7 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
   chromium with two themes, no wrapper installs. Set the same `VISUAL_TIER=pr` on `npm run compare` so the
   prune matches what was rendered; a feature branch otherwise resolves to `full`, and a `pr`-tier render
   compared as `full` reports every record outside its two prefixes as deleted (1196 of the 2026-09-18
-  set, 851 since the filters consolidation). A bare `npm run test` on a feature branch
+  set). A bare `npm run test` on a feature branch
   renders everything, as before.
 - **Bootstrap seeds the tier's subset, not the branch's full set.** A `pr`-tier pull request that seeds a
   new base branch (`VISUAL_BOOTSTRAP=true`) promotes its 480 records and nothing else; the branch's own
@@ -607,6 +607,15 @@ does for you):
   family's 186 wrapper renders matched their copied classic goldens byte for byte, and the menu is core
   code the wrappers only hand their `dropdownMenu` and `filters` settings to, so that hand-off now has
   no check in this suite or in `tests/e2e`.
+- **Where a popup opens is geometry a DOM probe can express, so it is an assertion, not a capture.** A
+  capture shows where the popup was drawn; it cannot say that was the right place for that corner, and
+  a regression approved once becomes the golden. #11505 deleted the Jasmine submenu-placement tests and
+  left eight menu-position specs (120 goldens) as their only guard. `tests/e2e/submenu-position.spec.ts`
+  now asserts the placement from DOM rects (the submenu edge to edge with its parent, its first or
+  last row level with the row it belongs to, inside the viewport) for the context and dropdown menus,
+  in both directions and with the grid scrolled, on all six theme and bundle legs. What stays under
+  `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is six captures on `main`, a check
+  of how the menus look.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
