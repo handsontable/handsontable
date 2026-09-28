@@ -69,7 +69,7 @@
       // reach them and a user's own `td` override still does. See `.ht-multi-select-chip`.
       font-size: inherit;
       font-weight: inherit;
-      line-height: var(--ht-line-height, 40px);
+      line-height: inherit;
       letter-spacing: inherit;
       padding: 0 var(--ht-chip-gap);
     }

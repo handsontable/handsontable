@@ -59,6 +59,42 @@ test.describe('host-page span styles do not leak into grid UI spans', () => {
     }
   });
 
+  // The chips use `inherit`, not the theme token, so a user's own `td` rule must reach the chip text
+  // too. A span pinned to the token would keep the old metrics while the cell and chip box change.
+  test('multiselect chips follow a user override of the cell text metrics', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+    const override: TextMetrics = {
+      'font-size': '17px',
+      'line-height': '37px',
+      'font-weight': '600',
+      'letter-spacing': '2px',
+    };
+
+    await fixture.goto();
+
+    const before = await fixture.textMetrics(fixture.multiselectCell);
+
+    for (const property of TEXT_PROPERTIES) {
+      expect(override[property], `${property} override coincides with the cell value`).not.toBe(before[property]);
+      expect(override[property], `${property} override coincides with the host value`)
+        .not.toBe(HOST_SPAN_STYLES[property]);
+    }
+
+    await page.addStyleTag({
+      content: `.handsontable td { ${TEXT_PROPERTIES.map(property => `${property}: ${override[property]};`).join(' ')} }`,
+    });
+
+    for (const property of TEXT_PROPERTIES) {
+      await expect(fixture.multiselectCell).toHaveCSS(property, override[property]);
+    }
+
+    for (const span of [fixture.chip, fixture.chipLabel, fixture.chipRemove, fixture.overflow]) {
+      for (const property of TEXT_PROPERTIES) {
+        await expect(span).toHaveCSS(property, override[property]);
+      }
+    }
+  });
+
   // Regression pin for #11306: header spans were the first instance of this bug and guard
   // font-size and line-height only (font-weight is left to `th` so a user's `.handsontable th`
   // bolding still applies). Asserting it here keeps all three guarded span families in one spec.
