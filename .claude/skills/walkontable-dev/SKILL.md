@@ -114,6 +114,7 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 - **Run tests**: `npm run test:walkontable --prefix handsontable`
 - **Test location**: `src/3rdparty/walkontable/test/`
 - Always test with frozen rows and columns enabled to cover overlay edge cases.
+- **Where a geometry change gets its spec.** A change to viewport calculation, overlay positioning, row or column sizing, or scroll sync gets an engine-tier spec, not a core-tier one. The existing Jasmine specs under `src/3rdparty/walkontable/test/` may be edited; new coverage goes to `tests/e2e/walkontable/*.spec.ts` with a page object in `tests/fixtures/pages/walkontable/` (tier reference: `frozen-column-row-heights.spec.ts` + `FrozenTallCellPage.ts`). A page-object method that scrolls ends on a render-state probe (the first rendered row, a draw counter), never on `scrollTop` — the redraw is rAF-batched and lands after the scroll position settles. Copy that shape from `OverlaysPage.scrollToEnd()`, which ends on the last cell being rendered. `FrozenTallCellPage.scrollVerticallyTo()` is the counter-example: it ends on `scrollTop`, so its spec polls `masterFirstRenderedRow()` itself after every scroll. Rules: `handsontable-playwright-e2e`, `references/determinism.md`.
 
 ## Key source files
 
@@ -146,6 +147,8 @@ For **layout-forcing DOM reads** this is not a preference but a hard, lint-enfor
 - Running Walkontable tests through the main E2E pipeline instead of the dedicated runner.
 - Not testing with frozen rows and columns, which misses overlay edge cases.
 - Forgetting `requestAnimationFrame` for scroll-related changes, causing layout thrashing.
+- Calling a `#method` of `MasterTable` from a path the base `Table` constructor reaches. `Table`'s constructor calls `alignOverlaysWithTrimmingContainer()` before `MasterTable`'s own fields exist, so a `#method` call there throws `Receiver must be an instance of class MasterTable` — the brand check fails exactly like a `#field` read does. Guard field reads with the existing `fieldsInitialized` check (`#trimmingCache in this`), and put the logic that must run on that path in a module-level function that takes the table (`alignHolderWithSplitOwners(table, …)` in `table/regions/masterTable.ts` is the pattern).
+- Reading `this.trimmingContainer` on an overlay to decide something about the *other* axis. Each region overlay holds the owner of its own axis only (top/bottom → vertical, inline-start → horizontal), and the two can differ; ask `wtViewport.isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` instead. Rules and the split mode: the "Per-axis trimming containers" section of `handsontable/src/3rdparty/walkontable/AGENTS.md`.
 
 For deeper context, see `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` and `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` (DAO layer, overlay fragility).
 

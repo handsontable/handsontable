@@ -200,7 +200,7 @@ function stripExampleContainers(content) {
  *   </div>
  *
  * Output:
- *   <div class="ht-card-grid">
+ *   <div class="ht-card-grid ht-card-grid--cols-3">
  *   <div class="ht-link-card"><a href="url"><span class="title">Link Text</span></a><span class="arrow" aria-hidden="true">→</span></div>
  *   </div>
  */
@@ -271,7 +271,9 @@ function convertBoxesListToCardGrid(content) {
         return `<div class="ht-link-card"><a href="${href}">${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
       }).join('\n');
 
-      return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
+      const gridClass = cards.length >= 3 ? 'ht-card-grid ht-card-grid--cols-3' : 'ht-card-grid';
+
+      return `<div class="${gridClass}">\n${cardHtml}\n</div>`;
     }
   );
 }

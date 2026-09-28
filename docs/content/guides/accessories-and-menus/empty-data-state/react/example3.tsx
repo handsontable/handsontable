@@ -5,13 +5,15 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [];
+
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
 
   return (
     <HotTable
       ref={hotTableRef}
-      data={[]} // Empty data to trigger empty state
+      data={data} // Empty data to trigger empty state
       height="auto"
       colHeaders={['First Name', 'Last Name', 'Email']}
       rowHeaders={true}

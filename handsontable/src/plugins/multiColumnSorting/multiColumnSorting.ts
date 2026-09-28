@@ -45,6 +45,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table (by default)
  *   indicator: true, // true = shows indicator for all columns (by default), false = don't show indicator for columns
  *   headerAction: true, // true = allow to click on the headers to sort (by default), false = turn off possibility to click on the headers to sort
+ *   sortFixedRows: false, // false = rows pinned by `fixedRowsTop` and `fixedRowsBottom` keep their place (by default), true = the whole dataset is sorted, pinned rows included
  *   compareFunctionFactory: function(sortOrder, columnMeta) {
  *     return function(value, nextValue) {
  *       // Some value comparisons which will return -1, 0 or 1...

@@ -32,7 +32,20 @@ const minimalConfig: DataProviderConfig = {
   },
   onRowsUpdate: async() => {},
   onRowsRemove: async() => {},
+  refetchAfterCreate: false,
 };
+
+const configWithDefaultRefetch: DataProviderConfig = {
+  rowId: 'id',
+  fetchRows: minimalConfig.fetchRows,
+};
+
+void configWithDefaultRefetch.refetchAfterCreate;
+
+// @ts-expect-error `refetchAfterCreate` accepts only a boolean.
+const configWithWrongRefetchType: DataProviderConfig = { rowId: 'id', refetchAfterCreate: 'no' };
+
+void configWithWrongRefetchType;
 
 const hot = new Handsontable(document.createElement('div'), {
   dataProvider: minimalConfig,

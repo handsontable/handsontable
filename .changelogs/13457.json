@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed removing a nested parent row leaving its deeper descendants behind as blank rows.",
+  "type": "fixed",
+  "issueOrPR": 13457,
+  "breaking": false,
+  "framework": "none"
+}

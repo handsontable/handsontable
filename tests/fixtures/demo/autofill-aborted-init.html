@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Autofill aborted-init e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2874. The Autofill plugin registers its `documentElement` listeners from `enablePlugin()`,
+    which runs on `afterPluginsInitialized` - fired while `runHooks('beforeInit')` executes, i.e.
+    BEFORE the grid's `TableView` is constructed and `hot.table` is assigned. An init that aborts
+    between those two points therefore leaves live global listeners behind on an instance whose
+    `hot.table` is permanently `undefined`, and the constructor threw, so the caller holds no
+    reference and can never `destroy()` it.
+
+    `#onMouseMove` used to measure the table on EVERY document `mousemove` - the
+    `getIfMouseWasDraggedOutside()` call sat outside the `mouseDownOnCellCorner` guard - so from
+    then on every pointer move anywhere on the page threw
+    `Cannot read properties of undefined (reading 'ownerDocument')` out of the `offset()` helper,
+    once per leaked instance, for the lifetime of the document (Sentry DEMOS-6J).
+
+    `abortGridInit()` uses the deprecated `rows` setting because that is the shallowest guaranteed
+    abort inside the window: an unconditional `throwWithCause` at the top of `updateSettings()`,
+    with no cell-type or meta-manager resolution in the way. Production hit the same window through
+    an unresolvable string cell type while a demo was being live-typed, one abort per keystroke.
+
+    None of this is observable in the frozen Jasmine suite: the leaked listener cannot be cleaned
+    up, so it would keep firing into every later spec sharing the page.
+  -->
+  <h2>Autofill aborted init</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * Stamps every cell with a stable test id so the specs hook by `data-testid` rather than by
+     * structural CSS.
+     *
+     * @param {object} instance The Handsontable instance.
+     * @param {HTMLTableCellElement} td The cell element.
+     * @param {number} row The visual row index.
+     * @param {number} col The visual column index.
+     */
+    function testIdRenderer(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    }
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 8 }, (_, row) => [`A${row + 1}`, null, null, null]),
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: testIdRenderer,
+      fillHandle: true,
+      width: 500,
+      height: 300,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    /**
+     * Builds a second grid whose init aborts inside `updateSettings()`, in its own throwaway
+     * container, and reports the message it threw with.
+     *
+     * The caller gets the message back so a test can prove the abort really happened before it
+     * asserts on the absence of a page error - without that positive control the assertion would
+     * pass on a fixture that quietly stopped aborting.
+     *
+     * @returns {string|null} The thrown message, or `null` when the init unexpectedly succeeded.
+     */
+    window.abortGridInit = function() {
+      const doomed = document.createElement('div');
+
+      document.body.appendChild(doomed);
+
+      try {
+        // `rows` was removed years ago and `updateSettings()` throws on it unconditionally, after
+        // `beforeInit` has already enabled every plugin.
+        new Handsontable(doomed, {
+          data: [['a', 'b']],
+          rows: 5,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+      } catch (error) {
+        return error.message;
+      }
+
+      return null;
+    };
+
+    // Initialised here, not inside the instrumentation, so the counter is a number from the moment
+    // the fixture loads - the page-object type declares it as one.
+    window.dragOutsideCheckCount = 0;
+
+    /**
+     * Counts the calls the healthy grid's Autofill plugin makes to `getIfMouseWasDraggedOutside()`,
+     * the method that reads `hot.table`. This is the invariant the fix establishes: the measurement
+     * belongs to a live corner gesture, so a pointer move with nothing pressed must not take it.
+     *
+     * @returns {boolean}
+     */
+    window.instrumentDragOutsideCheck = function() {
+      const plugin = window.hot.getPlugin('autofill');
+      const original = plugin.getIfMouseWasDraggedOutside.bind(plugin);
+
+
+      plugin.getIfMouseWasDraggedOutside = function(event) {
+        window.dragOutsideCheckCount += 1;
+
+        return original(event);
+      };
+
+      return true;
+    };
+  </script>
+</body>
+</html>

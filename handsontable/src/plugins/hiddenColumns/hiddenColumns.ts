@@ -321,9 +321,6 @@ export class HiddenColumns extends BasePlugin {
       this.#hiddenColumnsMap!.setValues(hidingMapValues);
     }
 
-    // @TODO Should call once per render cycle, currently fired separately in different plugins
-    this.hot.view.adjustElementsSize();
-
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
       isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
@@ -448,7 +445,6 @@ export class HiddenColumns extends BasePlugin {
     }
 
     if (this.getSetting('indicators') && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
-
       // Add additional space for hidden column indicator.
       if (typeof width === 'number' && this.hot.hasColHeaders()) {
         return width + 15;
@@ -503,14 +499,17 @@ export class HiddenColumns extends BasePlugin {
       const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
+      // Gated on the marker: this hook runs on every cell meta read, and rewriting a cell we never
+      // marked would replace a user's array with an own string that shadows the cascade. See
+      // `AGENTS.md` in this directory.
       if (containAfterHiddenColumn > -1) {
         classArr.splice(containAfterHiddenColumn, 1);
-      }
 
-      const className = classArr.join(' ');
+        const className = classArr.join(' ');
 
-      if (cellProperties.className !== className) {
-        cellProperties.className = className;
+        if (cellProperties.className !== className) {
+          cellProperties.className = className;
+        }
       }
     }
   };

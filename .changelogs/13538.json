@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the pagination and sheets bars covering a data row, being clipped inside a scrollable ancestor, or growing wider than their container when the grid had no `height` option and was sized in CSS.",
+  "type": "fixed",
+  "issueOrPR": 13538,
+  "breaking": false,
+  "framework": "none"
+}

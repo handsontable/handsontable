@@ -1,15 +1,17 @@
 # ManualColumnResize plugin — dragging a header edge to set a width
 
 The `manualColumnResize` plugin stores widths the user set by dragging the header's right edge. Read this
-before touching `manualColumnResize.ts` or `utils.ts`.
+before touching `manualColumnResize.ts`.
 
-The file opens with a standing instruction:
+**The drag itself is not in this plugin.** The handle, the guide, the press and double-click state and the
+resize hooks live in `../../utils/manualResize/resizeGesture.ts`, shared with `../manualRowResize/`, and the column
+specifics the gesture needs live in `COLUMN_RESIZE_AXIS` in `../../utils/manualResize/axis.ts`. Read
+`../../utils/manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
+is where the DEV-2719 teardown traps are.
 
-> **Developer note! Whenever you make a change in this file, make an analogous change in
-> manualRowResize.js**
-
-Take it literally. `../manualRowResize/` is the mirror plugin, and the shared helpers live in
-`../manualResize/utils.ts`.
+What this plugin owns: the column widths map, every public size accessor, `SETTING_KEYS` and `updatePlugin()`,
+the `#onMapInit` replay, and the `modifyColWidth`, `beforeStretchingColumnWidth` and `beforeColumnResize`
+hooks.
 
 ## `SETTING_KEYS` includes a foreign option
 
@@ -19,7 +21,7 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS]; }   // 
 
 That is what makes `updateSettings({ colWidths })` reach this plugin at all (issue
 [#4371](https://github.com/handsontable/handsontable/issues/4371)) — and it changes what `updatePlugin()`
-must assume, in three ways. **The rules are in `../manualResize/AGENTS.md`**; the short version, all visible
+must assume, in three ways. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version, all visible
 in `updatePlugin()`:
 
 1. **Restore the plugin option from the merged settings.** `BasePlugin#onUpdateSettings` feeds
@@ -44,30 +46,24 @@ plugin re-enable), before the local hook could attach. Same replay as `../hidden
 - **An out-of-range visual index resolves to `null`**, which would write an entry under the string `"null"`
   and invalidate the width cache for nothing. Bail instead.
 
-## Read `fixedColumnsStart` through Walkontable, not through the settings
+The gesture writes every width through the public `setManualSize()`, so the 20px floor has one home.
 
-In the Walkontable context the fixed-column count is **reduced by the number of hidden columns** by the
-`TableView` module. Reading the raw setting resolves the handle against the wrong overlay.
+## Where the column axis differs from the row axis
 
-And when the `TH` is not a child of the top-left overlay, recalculate using the **top** overlay — that is
-where the rest of the headers live.
+These live in `COLUMN_RESIZE_AXIS` (`../../utils/manualResize/axis.ts`), and `../../utils/manualResize/AGENTS.md` explains each:
 
-## Multi-column resize
+- **`fixedColumnsStart` is read through Walkontable, not the settings** - `TableView` reduces it by the number
+  of hidden columns. A header outside the top-left corner overlay resolves against the **top** overlay.
+- **A header spanning more than one column shows no handle** - nested headers have no single column to resize.
+- **The resize hooks report the stored width** - unlike rows, a width is final.
+- **The pointer delta is multiplied by `getDirectionFactor()`**, because the inline axis runs the other way
+  under RTL.
 
-A drag on a header inside the current selection resizes **every selected column**. A drag on a header
-outside the selection (or with no selection) resizes just that one.
+## `afterMouseDownTimeout()` is a forward, and must stay
 
-## Two event workarounds
-
-- **#6926** — when `event.target` is temporarily detached, skip the callback and wait for the next
-  `mouseover`.
-- A `mouseover` fires right after `contextmenu` and must be ignored (this is documented in the row plugin;
-  keep the two in step).
-
-`../manualResize/AGENTS.md` also covers the scale-aware pointer math — `getElementScaleFactor()` and
-`normalizeVisualDelta()`, including the load-bearing one-pixel tolerance — and
-`shouldSkipResizeHandlePositioning()` / `shouldRefreshHandleAfterAutoResize()`, which encode the
-double-click-to-autofit behavior.
+Every other gesture method moved into `ResizeGesture`. This one stays on the plugin as a one-line forward,
+because the frozen `../autoRowSize/__tests__/autoRowSize.spec.js` calls
+`manualColumnResizePlugin.afterMouseDownTimeout()` directly between simulated clicks.
 
 ## Double-click autofit needs AutoColumnSize's listener
 
@@ -76,7 +72,7 @@ so this plugin's double-click autofit keeps working. Do not "clean that up" ther
 
 ## Where to look next
 
-- Shared helpers and the full `SETTING_KEYS` rules: `../manualResize/AGENTS.md`.
+- The drag, the teardown traps and the along/across model: `../../utils/manualResize/AGENTS.md`.
 - The row mirror: `../manualRowResize/AGENTS.md`.
 - Computing widths instead of storing them: `../autoColumnSize/AGENTS.md`.
 - Growing columns to fill the width, which must respect these as minimums:
@@ -89,3 +85,6 @@ so this plugin's double-click autofit keeps working. Do not "clean that up" ther
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualColumnResize'`
 
 `__tests__/rtl/` matters here — the handle sits on the opposite edge under RTL.
+`../nestedHeaders/__tests__/resizingColumns.spec.js` resizes a column in a grid that has spanning headers, but
+it does not assert that a spanning header itself refuses the handle - that rule is pinned by
+`../../utils/manualResize/__tests__/axis.unit.js`.

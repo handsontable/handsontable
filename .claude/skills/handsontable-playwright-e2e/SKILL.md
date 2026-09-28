@@ -52,11 +52,28 @@ than falling back to 8123 — the collision it exists to escape. This knob is th
 `visual-tests/src/config.mjs` plus two hardcoded `app.listen(8082)` demo servers,
 so it cannot be moved this way.
 
+### Rebuild BOTH bundles before an all-legs run
+
+`npm run build:umd` writes `dist/handsontable.js` only — the minified bundle the
+three `-min` legs load comes from the separate `build:umd.min`, so a partial
+build leaves the `-min` legs on your previous code. Use the full task, then
+check that both files actually moved:
+
+```bash
+npm --prefix handsontable run build
+ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js
+```
+
+And read a mixed result PER LEG before calling it a race — a split that falls
+exactly along the bundle axis is about the bundles, not about timing. Why that
+happens, how to tell a stale bundle from a genuine `full.min` difference, and
+what it cost: `tests/AGENTS.md`.
+
 ## Four rules (non-negotiable)
 
 1. **Page Object Model.** A spec expresses intent; selectors and interactions live in a page object under `tests/fixtures/pages/`. Never put raw selectors or multi-step flows in a spec — when the DOM shifts, one file changes.
 2. **Hook by `data-testid`, not structural CSS.** Stamp ids in the fixture (or add them to the component when it removes ambiguity). Fall back to role/text locators before ever reaching into grid internals.
-3. **Web-first waits only.** `await expect(locator).toBeVisible()` — never `sleep`/`waitForTimeout`/`networkidle` or a custom ready flag. Await *every* assertion (a missing await is the sneakiest flake).
+3. **Web-first waits only.** `await expect(locator).toBeVisible()` — never `sleep`/`waitForTimeout`/`networkidle` or a custom ready flag. Await *every* assertion (a missing await is the sneakiest flake). Inside a page object the same rule has six shapes lint cannot see — `setTimeout` in `page.evaluate()`, a `waitForFunction` without `{ polling }`, a scroll method that ends on `scrollTop`, `.at(-1)` on a separately read log, a fixture build that fails silently, a negative settle with no positive control — each measured on a migration and spelled out in `references/determinism.md`.
 4. **Isolation, no flake.** One instance per test; `page.route()` / `page.clock()` for network/time. `failOnFlakyTests` is on in CI — pass-on-retry is a hard failure.
 5. **Thread the bundle axis.** Import `test` from `tests/fixtures/test.ts`, destructure `{ page, theme, bundle }`, and pass both to the page object. A new fixture copies the fail-loud `?theme=`/`?bundle=` allowlist block from `demo/grid.html` — never a hardcoded bundle `<script src=…>`. Formulas specs load HyperFormula as an external script in the fixture (the `umd` legs' base bundle ships none). The never-get-wrong list: `tests/AGENTS.md`.
 

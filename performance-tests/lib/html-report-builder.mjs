@@ -4,17 +4,24 @@
 
 import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
-  REGRESSION_CALLOUT_THRESHOLD_HEAP,
   CV_WARNING_THRESHOLD,
+  INCOMPARABLE_LABELS,
+  TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   calcCv,
   classifyChange,
+  heapThresholdFor,
   pctChange,
+  relativeToShift,
+  runShift,
   sumActive,
   comparability,
+  traceMismatches,
   NO_BASELINE_VERDICT,
   formatTitle,
 } from './thresholds.mjs';
+import { formatEnvironment } from './environment.mjs';
+import { escapeHtml } from './html-utils.mjs';
 
 /**
  * @param {Record<string, object>} scenarioResults -- keyed by scenario name
@@ -63,20 +70,6 @@ function serializePayload(payload) {
   return JSON.stringify(payload).replace(/</g, '\\u003c');
 }
 
-/**
- * Escapes a value interpolated into markup rather than into the JSON payload.
- *
- * @param {string} value
- * @returns {string}
- */
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 // --- data payload ---
 
 /**
@@ -101,7 +94,7 @@ function categoryMetric(key, gCats, cCats, verdict) {
 
 function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenSnapshots) {
   const scenarios = [];
-  const crossWindow = new Set(meta.crossWindowScenarios || []);
+  const mismatches = traceMismatches(meta);
 
   for (const [name, current] of Object.entries(scenarioResults)) {
     const golden = goldenScenarios[name] || null;
@@ -110,20 +103,23 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     const currentTotal = sumActive(cCats);
     const goldenTotal = golden ? sumActive(gCats) : null;
     // A baseline that missed a category the current run recorded cannot be divided into, and a
-    // baseline measured through a different trace window is not the same quantity at all. Either
-    // way the total delta is withheld rather than published.
-    const isCrossWindow = crossWindow.has(name);
+    // baseline measured through a different trace window, or under a different definition of the
+    // scenario, is not the same quantity at all. Either way the total delta is withheld.
+    const mismatch = mismatches[name] ?? false;
+    const isCrossWindow = !!mismatch;
     // Only ask the question when there is something to compare against. Running the check against
     // an absent baseline reports every category as uncaptured, which the markdown path avoids by
     // returning early -- so the two reports disagreed on a scenario that is simply new.
-    const verdict = golden ? comparability(gCats, cCats, isCrossWindow) : NO_BASELINE_VERDICT;
+    const verdict = golden ? comparability(gCats, cCats, mismatch) : NO_BASELINE_VERDICT;
     const baselineIncomplete = !!golden && !verdict.comparable;
     const totalChange = baselineIncomplete ? null : pctChange(goldenTotal, currentTotal);
     // Heap is derived from the same trace window, so a window mismatch invalidates it too. It is
     // unaffected by a missed timing category, which is measured independently.
     const heap = buildHeapChartData(current, golden, isCrossWindow);
+    // Per scenario: the horizontal-scroll scenarios carry a wider heap band (thresholds.mjs).
+    const heapThreshold = heapThresholdFor(name);
     const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD_TIMING;
-    const heapRegressed = heap?.change != null && heap.change > REGRESSION_CALLOUT_THRESHOLD_HEAP;
+    const heapRegressed = heap?.change != null && heap.change > heapThreshold;
     const isRegression = timingRegressed || heapRegressed;
     let { status } = classifyChange(totalChange);
 
@@ -147,6 +143,9 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       // `cv`, which is the spread across this run's own iterations.
       baselineSpread: golden?.spread ?? null,
       totalChange,
+      // Filled in below, once every row's delta is known: the shift is a median over all of them.
+      totalChangeVsShift: null,
+      heapThreshold,
       badgeChange,
       badgeIsHeap,
       isRegression,
@@ -177,6 +176,17 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     });
   }
 
+  // The common factor this run differs from the baseline by -- the CI runner's speed, which every
+  // scenario shares. Reported, never gated on: see runShift(). Not on a self-comparison, where every
+  // delta is 0 and a 0.0% shift would read as a measurement of the runner.
+  const shift = hasGolden && !goldenSnapshots?.isSelfCompare
+    ? runShift(scenarios.map(s => s.totalChange))
+    : null;
+
+  for (const scenario of scenarios) {
+    scenario.totalChangeVsShift = relativeToShift(scenario.totalChange, shift);
+  }
+
   const regressions = scenarios.filter(s => s.isRegression).length;
   const improvements = scenarios.filter(s => s.status === 'improvement').length;
   // Counted separately, never folded into Neutral. A scenario whose baseline could not be compared
@@ -197,9 +207,15 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       commit: meta.commit || null,
       runId: meta.runId || null,
       generatedAt: new Date().toISOString(),
+      // The browser and machine this run executed on, pre-rendered so the client does not restate
+      // the format the markdown comment uses.
+      environment: formatEnvironment(meta.environment) || null,
+      // Why there is no baseline at all, when the teardown knows (a golden run after a Chromium or
+      // harness change). Compare mode carries the same text under baseline.unavailableReason.
+      baselineUnavailable: hasGolden ? null : (meta.baselineUnavailable || null),
     },
     // Where the baseline came from, so the report can say whether a delta was measured against one
-    // develop run or a median of several.
+    // develop run or a median of several, and on which browser.
     baseline: hasGolden && goldenSnapshots
       ? {
         timestamp: goldenSnapshots.timestamp ?? null,
@@ -207,13 +223,18 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
         isSelfCompare: !!goldenSnapshots.isSelfCompare,
         medianWindowSize: goldenSnapshots.medianWindowSize ?? null,
         medianSourceTimestamps: goldenSnapshots.medianSourceTimestamps ?? [],
+        chromium: goldenSnapshots.environment?.chromium ?? null,
+        // Why a self-comparison had nothing else to compare against, when the teardown knows.
+        unavailableReason: goldenSnapshots.isSelfCompare ? (meta.baselineUnavailable || null) : null,
       }
       : null,
+    runShift: shift,
     // Serialized rather than restated in the client script, so the colour bands and the callout
-    // thresholds cannot drift apart.
+    // thresholds cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
+    // on each scenario below), and a shared number here would be reached for and get the wrong
+    // band on the two scroll scenarios that carry a wider one.
     thresholds: {
       timing: REGRESSION_CALLOUT_THRESHOLD_TIMING,
-      heap: REGRESSION_CALLOUT_THRESHOLD_HEAP,
       cvWarning: CV_WARNING_THRESHOLD,
     },
     summary: {
@@ -244,9 +265,9 @@ function buildDetailedMetrics(current, golden, verdict) {
   const baselineIncomplete = !!golden && !verdict.comparable;
   const { incompleteCategories } = verdict;
   // Only the active categories participate in the comparability verdict. The others (loading,
-  // other, experience, idle) are reported but never summed into a total, so a window mismatch is
-  // the only thing that invalidates them.
-  const isCrossWindow = verdict.reason === 'window-mismatch';
+  // other, experience, idle) are reported but never summed into a total, so a trace-level mismatch
+  // (window or scenario version) is the only thing that invalidates them.
+  const isCrossWindow = TRACE_MISMATCH_REASONS.includes(verdict.reason);
 
   for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
     const c = cCats[key];
@@ -303,12 +324,28 @@ function buildDetailedMetrics(current, golden, verdict) {
     change: pctChange(golden?.rangeEnd, current.rangeEnd),
     cv: calcCv(current._iterationValues?.rangeEnd),
     neutral: true,
-    // Deliberately still printed on a window mismatch, and the one percentage that is: this row is
+    // Deliberately still printed on a trace mismatch, and the one percentage that is: this row is
     // the size of the two windows, so it explains the mismatch the other rows are withheld for.
-    note: isCrossWindow ? 'harness wall clock; the windows differ' : 'harness wall clock',
+    note: traceWindowNote(verdict.reason),
   });
 
   return rows;
+}
+
+/**
+ * @param {string | null} reason -- the verdict's reason
+ * @returns {string}
+ */
+function traceWindowNote(reason) {
+  if (reason === 'window-mismatch') {
+    return 'harness wall clock; the windows differ';
+  }
+
+  if (reason === 'version-mismatch') {
+    return 'harness wall clock; the scenario was redefined';
+  }
+
+  return 'harness wall clock';
 }
 
 /**
@@ -329,18 +366,24 @@ function buildMemoryMetrics(current, golden, isCrossWindow = false) {
     return [];
   }
 
+  // [label, display key, numeric key, informational]. An informational row states its delta without
+  // a verdict on it: no threshold has been derived for the live set yet, and colouring it on the
+  // heap band would paint a 7% move red beside a flat jsHeapMaxBytes.
   const pairs = [
-    ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
-    ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
-    ['Min Nodes', 'nodesMin', 'nodesMin'],
-    ['Max Nodes', 'nodesMax', 'nodesMax'],
-    ['Min Listeners', 'listenersMin', 'listenersMin'],
-    ['Max Listeners', 'listenersMax', 'listenersMax'],
+    ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes', false],
+    ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes', false],
+    // The live set after a forced GC (lib/heap-after-gc.mjs). Informational until enough goldens
+    // carry it to derive a threshold; the row is skipped for runs recorded before it existed.
+    ['JS heap after GC', 'jsHeapAfterGcLabel', 'jsHeapAfterGcBytes', true],
+    ['Min Nodes', 'nodesMin', 'nodesMin', false],
+    ['Max Nodes', 'nodesMax', 'nodesMax', false],
+    ['Min Listeners', 'listenersMin', 'listenersMin', false],
+    ['Max Listeners', 'listenersMax', 'listenersMax', false],
   ];
 
   const rows = [];
 
-  for (const [label, displayKey, numKey] of pairs) {
+  for (const [label, displayKey, numKey, neutral] of pairs) {
     const cDisplay = cUc[displayKey];
     const gDisplay = gUc?.[displayKey];
 
@@ -348,12 +391,22 @@ function buildMemoryMetrics(current, golden, isCrossWindow = false) {
       continue;
     }
 
+    // The baseline carries the metric and this run does not: a capture that failed, which must not
+    // look like a metric nobody measured. Named for the side that missed it, like the timing rows.
+    const currentMissing = cDisplay == null && gDisplay != null;
+    const incomplete = isCrossWindow || currentMissing;
+
     rows.push({
       label,
       currentDisplay: cDisplay != null ? String(cDisplay) : '--',
       baselineDisplay: gDisplay != null ? String(gDisplay) : '--',
-      change: isCrossWindow ? null : pctChange(gUc?.[numKey], cUc[numKey]),
-      incomplete: isCrossWindow,
+      change: incomplete ? null : pctChange(gUc?.[numKey], cUc[numKey]),
+      incomplete,
+      // The row's own label when the row, not the scenario, is what is incomplete.
+      incompleteLabel: currentMissing && !isCrossWindow
+        ? INCOMPARABLE_LABELS['current-incomplete']
+        : null,
+      neutral,
     });
   }
 
@@ -754,13 +807,27 @@ function buildScript() {
     if (data.meta.runId) parts.push('run ' + data.meta.runId);
     header.appendChild(elText('div', parts.join(' \\u00B7 '), 'meta'));
 
+    // The browser and machine the run executed on: the Chromium build is what the baseline was
+    // selected on, and the CPU model is what a later replay will test the runner lottery against.
+    if (data.meta.environment) {
+      header.appendChild(elText('div', 'Environment: ' + data.meta.environment, 'meta'));
+    }
+
+    // No baseline and a known reason: say it, or the page reads as if comparing silently stopped.
+    if (!data.baseline && data.meta.baselineUnavailable) {
+      header.appendChild(elText('div', 'No comparable develop baseline: ' + data.meta.baselineUnavailable, 'meta'));
+    }
+
     // States what every delta below was measured against. Without it the report reads identically
     // whether the baseline was a five-run median or one fluke develop push.
     const baseline = data.baseline;
     if (baseline) {
       let text;
       if (baseline.isSelfCompare) {
-        text = 'Baseline: this run compared against itself, no develop baseline was available'
+        const why = baseline.unavailableReason
+          ? ': ' + baseline.unavailableReason
+          : ', no develop baseline was available';
+        text = 'Baseline: this run compared against itself' + why
           + ' (every delta below is 0% by construction)';
       } else if (baseline.isMedian) {
         const sources = baseline.medianSourceTimestamps || [];
@@ -773,7 +840,22 @@ function buildScript() {
       } else {
         text = 'Baseline: unknown';
       }
+      if (!baseline.isSelfCompare && baseline.chromium) {
+        text += ', Chromium ' + baseline.chromium;
+      }
       header.appendChild(elText('div', text, 'meta'));
+    }
+
+    // How far the whole run sits from the baseline. Named so a reader can tell a row that moved
+    // with the runner from one that moved on its own; the callouts still fire on the raw delta.
+    if (data.runShift != null) {
+      header.appendChild(elText(
+        'div',
+        'Run shift: ' + fmtPct(data.runShift) + ' \\u2014 the median delta across scenarios, i.e. how much'
+          + ' faster or slower this runner ran than the baseline\\'s. "vs shift" figures remove it;'
+          + ' callouts use the raw delta.',
+        'meta'
+      ));
     }
 
     return header;
@@ -953,6 +1035,15 @@ function buildScript() {
       );
       if (scenario.baselineSpread > data.thresholds.cvWarning) spread.classList.add('cv-warn');
       right.appendChild(spread);
+    }
+
+    // The delta with the run's common shift removed, beside the raw one the badge carries. Neutral
+    // styling on purpose: it informs the reading of the badge, it does not compete with it. Shown
+    // for every row that has one, heap-only regressions included, as the markdown table does.
+    if (data.hasBaseline && scenario.totalChangeVsShift != null) {
+      const vsShift = elText('span', 'vs shift ' + fmtPct(scenario.totalChangeVsShift), 'baseline-spread');
+      vsShift.title = 'Total delta relative to this run\\'s shift of ' + fmtPct(data.runShift);
+      right.appendChild(vsShift);
     }
 
     const badge = elText('span', badgeText, 'badge ' + scenario.status);
@@ -1227,13 +1318,17 @@ function buildScript() {
         tr.appendChild(elText('td', row.baselineDisplay, 'num'));
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
         const changeTd = elText(
-          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
+          'td',
+          row.incomplete ? (row.incompleteLabel || scenario.incompleteLabel) : fmtPct(row.change),
+          'num'
         );
-        // Memory is banded on the heap threshold, which is an order of magnitude tighter than the
-        // timing one because heap barely moves run to run.
-        changeTd.style.color = row.incomplete
+        // Memory is banded on the scenario's heap threshold, which is an order of magnitude tighter
+        // than the timing one because heap barely moves run to run -- except on the scenarios whose
+        // peak heap depends on GC timing, which carry a wider band (heapThresholdFor). An
+        // informational row (the live heap, no threshold derived yet) states its delta unbanded.
+        changeTd.style.color = row.incomplete || row.neutral
           ? statusColor('neutral')
-          : statusColor(classifyChangeCss(row.change, data.thresholds.heap));
+          : statusColor(classifyChangeCss(row.change, scenario.heapThreshold));
         tr.appendChild(changeTd);
       } else {
         tr.appendChild(elText('td', row.currentDisplay, 'num'));

@@ -15,6 +15,7 @@ vue:
   metaTitle: Performance - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
@@ -25,6 +26,56 @@ Boost your grid's performance by setting a constant column size, suspending rend
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
 The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
+
+## Measure render performance in the console
+
+To check how many times the grid renders and how long each render takes, log it from the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks instead of reading a generic browser profiler. This logs one line per render cycle directly in your browser console, scoped to Handsontable. Note that these hooks don't fire on scroll, since scrolling doesn't trigger a full render.
+
+::: only-for react
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+:::
+
+::: only-for angular
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+:::
+
+```js
+let renderCount = 0;
+let renderStart = 0;
+
+hot.addHook('beforeRender', () => {
+  renderStart = performance.now();
+});
+
+hot.addHook('afterRender', () => {
+  renderCount += 1;
+  console.log(`Render #${renderCount} took ${(performance.now() - renderStart).toFixed(2)} ms`);
+});
+```
+
+For per-cell timing, pair the [`beforeRenderer`](@/api/hooks.md#beforerenderer) and [`afterRenderer`](@/api/hooks.md#afterrenderer) hooks instead - they run once for every rendered cell.
 
 ## Set constant row and column sizes
 

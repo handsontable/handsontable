@@ -20,10 +20,16 @@
         }
       }
 
+      // Mirrors `_hidden-columns.scss`: the glyph paints where it has since #11144, and only the
+      // end-side box stops at the header's outer edge, with its mask moved back down by 1px. A
+      // `height: 'auto'` grid is flush with its rows, so a box past that edge is scrollable
+      // content, and the grid grew a vertical scrollbar (#13500).
       &.beforeHiddenRow::after {
         @include mixins.pseudo;
 
-        bottom: -2px;
+        bottom: -1px;
+        mask-position: 0 1px;
+        mask-repeat: no-repeat;
       }
 
       &.afterHiddenRow::before {

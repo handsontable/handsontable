@@ -4370,8 +4370,7 @@ describe('Formulas general', () => {
         const $other = $('<div id="otherGrid"></div>').appendTo('body');
 
         // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets`
-        // renders it from inside the span `#internalOperationPending` is open across, and that
-        // span has no `try`/`finally` of its own.
+        // renders it from inside the span `#internalOperationPending` is open across.
         const otherHot = new Handsontable($other[0], {
           data: [['=Sheet1!A1']],
           licenseKey: 'non-commercial-and-evaluation',
@@ -4392,6 +4391,8 @@ describe('Formulas general', () => {
 
         shouldThrow.current = true;
 
+        const writes = spyOn(engine, 'setSheetContent').and.callThrough();
+
         // Changing the content is what gives `renderDependentSheets` something to render.
         let thrown = null;
 
@@ -4405,13 +4406,16 @@ describe('Formulas general', () => {
 
         shouldThrow.current = false;
 
-        // The throw escaped the span that `#internalOperationPending` is open across, so the read
-        // hooks early-return and the formula cell reports its own raw text.
-        expect(getDataAtCell(1, 0)).toBe('=A1+1');
+        // The write itself landed before the dependent render threw, and the resync releases
+        // `#internalOperationPending` on its way out (DEV-3006), so the read hooks keep serving
+        // the engine and the formula cell reports the value computed from the new data - from
+        // that one write, not from a retry.
+        expect(writes).toHaveBeenCalledTimes(1);
+        expect(getDataAtCell(1, 0)).toBe(10);
+        expect(writes).toHaveBeenCalledTimes(1);
 
-        // The next structural operation has to bring it back. Several paths clear the flag today -
-        // the handlers below set and clear it themselves - so this pins the recovery contract
-        // rather than any single mechanism.
+        // The next structural operation must work as well: nothing about the failed render may
+        // leave the plugin refusing a later load.
 
         await loadData([['5'], ['=A1+1']]);
 
@@ -4581,9 +4585,11 @@ describe('Formulas general', () => {
       ]);
       expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([123456]);
 
-      // Detaching the child moves it below its former parent's block, so it becomes physical row 3
-      // – the preserved text cell. The `cell` markings stay with their physical coordinates, they do
-      // not follow the moved row.
+      // Detaching the child shifts every row below it up by one, and since DEV-2626 the cell meta
+      // moves with them: the marking follows `parent2` from physical row 3 to row 2, so its value
+      // stays escaped. The detached child is appended last and lands on physical row 3, but it was
+      // never marked and now gets fresh meta there, so it is NOT escaped – before DEV-2626 it
+      // inherited the marking left behind on the index it happened to land on.
       getPlugin('nestedRows').dataManager.detachFromParent(
         getPlugin('nestedRows').dataManager.getDataObject(1)
       );
@@ -4592,7 +4598,7 @@ describe('Formulas general', () => {
         ['parent1'],
         ['child2'],
         ['\'parent2'],
-        ['\'0123456'],
+        ['0123456'],
       ]);
     });
 

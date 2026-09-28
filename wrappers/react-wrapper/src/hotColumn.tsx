@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+import Handsontable from 'handsontable/base';
 import { HotTableProps, HotColumnProps, HotEditorHooks } from './types';
 import {
   createEditorPortal,
@@ -13,9 +14,8 @@ import {
   resolveEditorSetting
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
-import Handsontable from 'handsontable/base';
-import { useHotTableContext } from './hotTableContext'
-import { useHotColumnContext } from './hotColumnContext'
+import { useHotTableContext } from './hotTableContext';
+import { useHotColumnContext } from './hotColumnContext';
 import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
 const isHotColumn = (childNode: any): childNode is ReactElement => childNode.type === HotColumn;
@@ -24,7 +24,7 @@ const internalProps = ['_columnIndex', '_getOwnerDocument', 'children'];
 
 const HotColumn: FC<HotColumnProps> = (props) => {
   const { componentRendererColumns, emitColumnSettings, getRendererWrapper } = useHotTableContext();
-  const { columnIndex, getOwnerDocument } = useHotColumnContext();
+  const { columnIndex, getOwnerDocument, getEditorPortalHost } = useHotColumnContext();
 
   /**
    * Reference to component-based editor overridden hooks object.
@@ -44,19 +44,22 @@ const HotColumn: FC<HotColumnProps> = (props) => {
     /**
      * Filter out all the internal properties and return an object with just the Handsontable-related props.
      *
-     * @returns {Object}
+     * @returns {object}
      */
     const getSettingsProps = (): HotTableProps => {
       return Object.keys(props)
         .filter(key => !internalProps.includes(key))
         .reduce<HotTableProps>((obj, key) => {
           (obj as any)[key] = props[key];
+
           return obj;
         }, {});
     };
 
     /**
      * Create the column settings based on the data provided to the `HotColumn` component and its child components.
+     *
+     * @returns {object} The column settings object.
      */
     const createColumnSettings = (): Handsontable.ColumnSettings => {
       const columnSettings = SettingsMapper.getSettings(getSettingsProps()) as unknown as Handsontable.ColumnSettings;
@@ -82,10 +85,11 @@ const HotColumn: FC<HotColumnProps> = (props) => {
         }
       }
 
-      return columnSettings
+      return columnSettings;
     };
 
     const columnSettings = createColumnSettings();
+
     emitColumnSettings(columnSettings, columnIndex);
 
     if (!displayObsoleteRenderersEditorsWarning(props.children)) {
@@ -93,7 +97,7 @@ const HotColumn: FC<HotColumnProps> = (props) => {
     }
   });
 
-  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);
+  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor, getEditorPortalHost());
 
   /**
    * Render the portals of the editors, if there are any.
@@ -102,10 +106,10 @@ const HotColumn: FC<HotColumnProps> = (props) => {
    */
   return (
     <EditorContextProvider hooksRef={localEditorHooksRef}
-                           hotCustomEditorInstanceRef={localEditorClassInstance}>
+      hotCustomEditorInstanceRef={localEditorClassInstance}>
       {editorPortal}
     </EditorContextProvider>
-  )
-}
+  );
+};
 
 export { HotColumn, isHotColumn };

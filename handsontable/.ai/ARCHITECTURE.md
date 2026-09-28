@@ -32,17 +32,10 @@
 **Walkontable Rendering Engine:**
 - Purpose: Low-level table rendering, viewport calculation, scroll synchronization, overlays for frozen rows/columns
 - Location: `handsontable/src/3rdparty/walkontable/src/`
-- Contains: Table renderers (`renderer/`), overlay managers (`overlay/`), viewport calculators (`calculator/`), cell/range coordinate primitives (`cell/`), scroll logic (`scroll.ts`), selection rendering (`selection/`)
+- Contains: renderers (`render/`), overlays (`overlay/`), viewport calculators (`calculator/`), cell/range coordinate primitives (`cell/`), scroll logic (`scroll/`), selection rendering (`selection/`)
 - Depends on: Settings object provided by TableView, DOM APIs
 - Used by: TableView exclusively (via Facade pattern in `facade/core.ts`)
-- Key submodules:
-  - `core/_base.ts`, `core/core.ts`, `core/clone.ts` - Walkontable core and clone instances
-  - `table/master.ts` - Master table, `table/top.ts`, `table/bottom.ts`, etc. - Overlay tables
-  - `overlay/` - 6 overlay types (top, bottom, inlineStart, topInlineStartCorner, bottomInlineStartCorner, plus base)
-  - `calculator/` - Viewport row/column calculators
-  - `renderer/` - Low-level cell/row/colgroup/header renderers
-  - `scroll.ts` - Scroll position management
-  - `viewport.ts` - Viewport state
+- Key submodules: the table in `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` ("Key Submodules") is the one maintained map.
 
 **Data Layer (DataMap + DataSource):**
 - Purpose: Manages source data, data transformations, and the mapping between data and grid cells
@@ -121,7 +114,7 @@
 
 **Shortcut System:**
 - Purpose: Keyboard shortcut management with context-based scoping
-- Location: `handsontable/src/shortcuts/` (manager, recorder, context), `handsontable/src/shortcutContexts/` (predefined contexts)
+- Location: `handsontable/src/shortcuts/` (manager, recorder, context), `handsontable/src/shortcuts/contexts/` (predefined contexts)
 - Used by: Core, plugins
 
 **Focus Management:**

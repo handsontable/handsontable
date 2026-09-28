@@ -18,17 +18,16 @@ const initialReduxStoreState = {
 
 const appReducer = (state = initialReduxStoreState, action: AnyAction) => {
   switch (action.type) {
-    case 'updateColor':
+    case 'updateColor': {
       const newColor = action.hexColor;
 
-      return Object.assign({}, state, {
-        hexColor: newColor
-      });
+      return { ...state, hexColor: newColor };
+    }
     default:
       return state;
   }
 };
-const actionReducers = combineReducers({appReducer});
+const actionReducers = combineReducers({ appReducer });
 const reduxStore = createStore(actionReducers);
 
 beforeEach(() => {
@@ -39,35 +38,35 @@ beforeEach(() => {
 });
 
 describe('Using Redux store within HotTable renderers and editors', () => {
-  it('should be possible to use redux-enabled components as renderers', async () => {
-    const ReduxEnabledRenderer = connect(function (state: any) {
-        return {
-          bgColor: state.appReducer.hexColor
-        }
-      }, () => {
-        return {};
-      })(RendererComponent);
+  it('should be possible to use redux-enabled components as renderers', async() => {
+    const ReduxEnabledRenderer = connect((state: any) => {
+      return {
+        bgColor: state.appReducer.hexColor
+      };
+    }, () => {
+      return {};
+    })(RendererComponent);
 
     const rendererInstances = new Map();
 
     mountComponent((
       <Provider store={reduxStore}>
         <HotTable licenseKey="non-commercial-and-evaluation"
-                  id="test-hot"
-                  data={createSpreadsheetData(3, 3)}
-                  width={300}
-                  height={300}
-                  rowHeights={23}
-                  colWidths={50}
-                  autoRowSize={false}
-                  autoColumnSize={false}
-                  init={function () {
-                    mockElementDimensions(this.rootElement, 300, 300);
-                  }}
-                  renderer={(props) => <ReduxEnabledRenderer {...props} tap={(props) =>  {
-                    rendererInstances.set(`${props.row}-${props.col}`, props);
-                  }
-                  } />} />
+          id="test-hot"
+          data={createSpreadsheetData(3, 3)}
+          width={300}
+          height={300}
+          rowHeights={23}
+          colWidths={50}
+          autoRowSize={false}
+          autoColumnSize={false}
+          init={function() {
+            mockElementDimensions(this.rootElement, 300, 300);
+          }}
+          renderer={props => <ReduxEnabledRenderer {...props} tap={(tappedProps) => {
+            rendererInstances.set(`${tappedProps.row}-${tappedProps.col}`, tappedProps);
+          }
+          } />} />
       </Provider>
     ));
 
@@ -77,7 +76,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       expect(props.bgColor).toEqual('#fff');
     });
 
-    await act(async () => {
+    await act(async() => {
       reduxStore.dispatch({
         type: 'updateColor',
         hexColor: '#B57267'
@@ -89,37 +88,37 @@ describe('Using Redux store within HotTable renderers and editors', () => {
     });
   });
 
-  it('should be possible to use redux-enabled components as editors', async () => {
-    const ReduxEnabledEditor = connect(function (state: any) {
-        return {
-          bgColor: state.appReducer.hexColor
-        }
-      }, () => {
-        return {};
-      },
-      null,
-      {
-        forwardRef: true
-      })(EditorComponent);
+  it('should be possible to use redux-enabled components as editors', async() => {
+    const ReduxEnabledEditor = connect((state: any) => {
+      return {
+        bgColor: state.appReducer.hexColor
+      };
+    }, () => {
+      return {};
+    },
+    null,
+    {
+      forwardRef: true
+    })(EditorComponent);
 
     let editorProps: any;
 
     mountComponent((
       <Provider store={reduxStore}>
         <HotTable licenseKey="non-commercial-and-evaluation"
-                  id="test-hot"
-                  data={createSpreadsheetData(3, 3)}
-                  width={300}
-                  height={300}
-                  rowHeights={23}
-                  colWidths={50}
-                  init={function () {
-                    mockElementDimensions(this.rootElement, 300, 300);
-                  }}
-                  editor={() => <ReduxEnabledEditor tap={(props) => {
-                    editorProps = props
-                  }
-                  } />} />
+          id="test-hot"
+          data={createSpreadsheetData(3, 3)}
+          width={300}
+          height={300}
+          rowHeights={23}
+          colWidths={50}
+          init={function() {
+            mockElementDimensions(this.rootElement, 300, 300);
+          }}
+          editor={() => <ReduxEnabledEditor tap={(props) => {
+            editorProps = props;
+          }
+          } />} />
       </Provider>
     ));
 
@@ -127,7 +126,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     expect(editorProps.bgColor).toEqual('#fff');
 
-    await act(async () => {
+    await act(async() => {
       reduxStore.dispatch({
         type: 'updateColor',
         hexColor: '#B57267'

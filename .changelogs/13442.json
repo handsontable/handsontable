@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the overlays not being resized when the grid's total size changed but the rendered rows did not, for example after hiding columns or filtering rows. `hot.view.adjustElementsSize()` now resizes the overlays right away instead of scheduling the resize for the next render, and nothing needs to call it any more, because the grid detects the change on its own.",
+  "type": "fixed",
+  "issueOrPR": 13442,
+  "breaking": false,
+  "framework": "none"
+}

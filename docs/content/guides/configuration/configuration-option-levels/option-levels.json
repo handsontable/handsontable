@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 170,
+  "total": 175,
   "counts": {
-    "grid": 106,
-    "grid columns cells cell": 59,
-    "grid columns": 4,
+    "grid": 107,
+    "grid columns cells cell": 61,
+    "grid columns": 6,
     "columns": 1
   },
   "options": [
@@ -114,12 +114,24 @@
       "note": null
     },
     {
+      "name": "autoLink",
+      "category": "AutoLink",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
+      "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells."
+    },
+    {
       "name": "autoRowHeaderSize",
       "category": "AutoRowHeaderSize",
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -253,7 +265,7 @@
         "columns"
       ],
       "since": null,
-      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "columnSummary",
@@ -599,10 +611,11 @@
       "name": "filters",
       "category": "Filters",
       "levels": [
-        "grid"
+        "grid",
+        "columns"
       ],
       "since": null,
-      "note": null
+      "note": "Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it hides the filter controls in that column's dropdown menu, and the API still filters the column. The sub-options `searchMode` and `filterFixedRows` are grid-level only."
     },
     {
       "name": "filterSelectedItems",
@@ -615,6 +628,16 @@
       ],
       "since": null,
       "note": null
+    },
+    {
+      "name": "filterValueComparator",
+      "category": "Filters",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
+      "note": "Orders a column's \"Filter by value\" list, which is built once per column. The comparator is read from the first listed row's cell meta, so a `cells` or `cell` value is not a reliable way to set it. Set it at the grid level or inside `columns`."
     },
     {
       "name": "fixedColumnsLeft",
@@ -750,6 +773,15 @@
         "grid"
       ],
       "since": "14.0.0",
+      "note": null
+    },
+    {
+      "name": "importFile",
+      "category": "ImportFile",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1015,7 +1047,7 @@
         "columns"
       ],
       "since": null,
-      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "navigableHeaders",
@@ -1228,6 +1260,18 @@
       "note": null
     },
     {
+      "name": "renderMode",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "rowHeaders",
       "category": "Core",
       "levels": [
@@ -1315,6 +1359,15 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "sheetsBar",
+      "category": "SheetsBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1485,7 +1538,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {

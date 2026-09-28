@@ -6,11 +6,26 @@ import * as jasmineHelpers from './helpers/jasmine-helpers';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
 beforeAll(() => {
+  // A `@jest-environment node` spec file (e.g. one round-tripping xlsx zip buffers) has neither
+  // `window` nor `Element`; every hook below is a no-op there instead of a crash.
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   window.IntersectionObserver = window.IntersectionObserver ?? IntersectionObserverMock;
   window.ResizeObserver = window.ResizeObserver ?? ResizeObserverMock;
+  // jsdom implements no `scrollIntoView`. The window-scroll strategies call it on the target cell
+  // once `scrollViewportTo` decides the page must move, and they reach that decision in jsdom now
+  // that `getScrollTop(window)` returns a number there (it used to return `undefined`, which made
+  // every comparison false and kept this path dead). A no-op, like the observers above.
+  Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => {});
 });
 
 beforeEach(() => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   if (document.activeElement && document.activeElement !== document.body) {
     document.activeElement.blur();
 
@@ -20,6 +35,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   /* eslint-disable no-unused-expressions */
   (window.scrollTo || window.scrollTo(0, 0));
 });

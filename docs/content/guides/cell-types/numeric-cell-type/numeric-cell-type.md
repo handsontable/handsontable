@@ -382,6 +382,38 @@ numericFormat: {
 
 For a complete reference, see the [`numericFormat` API documentation](@/api/options.md#numericformat) or [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
 
+### Numbers beyond the safe-integer limit
+
+JavaScript holds every number as a double, so an integer above `Number.MAX_SAFE_INTEGER`
+(`9007199254740991`) is rounded before Handsontable ever sees it. Written as a number,
+`9007199254740993` is already `9007199254740992` in your data.
+
+To display such a value exactly, provide it as a string:
+
+```js
+data: [['9007199254740993']],
+columns: [
+  {
+    type: 'numeric',
+    preserveNumericLiteral: true, // keeps the value exact after editing, too
+    numericFormat: {
+      style: 'decimal',
+      useGrouping: true,
+    },
+  }
+],
+```
+
+The cell renders `9,007,199,254,740,993`. Your
+[`numericFormat`](@/api/options.md#numericformat) still applies, and no digit is lost, because
+`Intl.NumberFormat` reads a string as an exact decimal instead of converting it to a number. The
+same value written as a number renders as `9,007,199,254,740,992`.
+
+A string in the source data renders exactly on its own. Set
+[`preserveNumericLiteral`](@/api/options.md#preservenumericliteral) to `true` as well, so the value
+is still a string after someone edits the cell -- without it, editing converts the entry to a
+number and the precision is lost at that point. See [Editor behavior](#editor-behavior).
+
 ### Editor behavior
 
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
@@ -403,7 +435,8 @@ you edit a numeric cell:
   [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral) option to `true`. Then, only
   when converting your entry to a JavaScript number would lose information -- a trailing decimal
   zero such as `9.0`, or a value whose magnitude exceeds the safe-integer limit
-  (`9007199254740991`) -- Handsontable keeps the literal you typed, so the editor shows it exactly.
+  (`9007199254740991`) -- Handsontable keeps the literal you typed, so both the editor and the cell
+  show it exactly. See [Numbers beyond the safe-integer limit](#numbers-beyond-the-safe-integer-limit).
   Values that convert without loss (such as `9.5`) are still stored as numbers, so sorting,
   filtering, and formulas are unaffected. A preserved literal still behaves like a number in those
   features: sorting and filter conditions compare it numerically, and the formulas engine parses it

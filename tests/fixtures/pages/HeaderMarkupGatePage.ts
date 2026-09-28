@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the header markup gate fixture.
@@ -30,10 +31,7 @@ export class HeaderMarkupGatePage {
     const query = new URLSearchParams({ theme: this.theme, bundle: this.bundle, ...params });
 
     await this.page.goto(`/tests/fixtures/demo/header-markup-gate.html?${query}`);
-    // Wait for the bundle on its own budget before asserting on anything the fixture rendered.
-    // `expect` is the wrong tool for that wait: every worker pulls its own ~6 MB copy of
-    // `dist/handsontable.js`, so a cold server outlasts the 10s timeout.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.columnHeader()).toBeVisible();
   }
 

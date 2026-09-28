@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Made a vertical scroll keep the row elements of the rows that stay rendered, so a `tr` moves with its row instead of being repainted in place and a renderer that caches per element keeps its cache across the scroll.",
+  "type": "changed",
+  "issueOrPR": 13467,
+  "breaking": false,
+  "framework": "none"
+}

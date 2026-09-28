@@ -16,6 +16,7 @@ import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { updateCaretPosition } from './caretPositioner';
+import { selectionFillsOtherCells } from '../../selection/fillSelection';
 import {
   A11Y_TABINDEX,
 } from '../../helpers/a11y';
@@ -87,6 +88,15 @@ export class TextEditor extends BaseEditor {
    * @type {string}
    */
   declare layerClass: string;
+  /**
+   * Tracks whether the editor was transiently hidden because its edited cell scrolled out of the
+   * rendered range (as opposed to the edit ending). Set from the return value of
+   * {@link TextEditor#hideForScroll}, read in {@link TextEditor#refreshDimensions} to re-show a
+   * layered editor's UI once the cell scrolls back into view.
+   *
+   * @type {boolean}
+   */
+  #hiddenByScroll = false;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -124,6 +134,7 @@ export class TextEditor extends BaseEditor {
    */
   open(): void {
     this._opened = true;
+    this.#hiddenByScroll = false;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -135,6 +146,7 @@ export class TextEditor extends BaseEditor {
    */
   close(): void {
     this._opened = false;
+    this.#hiddenByScroll = false;
     this.autoResize.unObserve();
 
     if (isInternalElement(getDeepActiveElement(this.hot.rootDocument) as HTMLElement, this.hot.rootElement)) {
@@ -327,6 +339,30 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
+   * Hides the editor because its edited cell scrolled out of the rendered range. This is a transient,
+   * reversible hide, not the end of the edit. The base editor has no persistent layer of its own, so
+   * it delegates to the destructive {@link TextEditor#close} to preserve the historic inline-editor
+   * behavior, and reports that the hide was not transient. Layered editors (Handsontable, autocomplete,
+   * dropdown) override this to hide only their UI while keeping the edit alive, and return `true`.
+   *
+   * @private
+   * @returns {boolean} `true` when the hide is transient and the layer must be re-shown on scroll-back.
+   */
+  hideForScroll(): boolean {
+    this.close();
+
+    return false;
+  }
+
+  /**
+   * Re-shows the editor's layer after its edited cell scrolled back into the rendered range. No-op for
+   * the base editor, which has no persistent layer. Layered editors override this to restore their UI.
+   *
+   * @private
+   */
+  showAfterScroll(): void {}
+
+  /**
    * Refreshes editor's size and position.
    *
    * @private
@@ -341,7 +377,9 @@ export class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close(); // TODO shouldn't it be this.finishEditing() ?
+        // Hide the editor for now; the edit stays alive. A layered editor keeps its list state so it
+        // can be re-shown, still populated, once the cell scrolls back (see the tail of this method).
+        this.#hiddenByScroll = this.hideForScroll();
       }
 
       return;
@@ -372,6 +410,21 @@ export class TextEditor extends BaseEditor {
       maxWidth,
       maxHeight,
     }, true);
+
+    // The cell scrolled back into the rendered range after a transient scroll-hide. The textarea has
+    // just been restored above; restore `_opened` and let a layered editor restore and re-anchor its
+    // UI too. Restoring `_opened` here is required: `hideForScroll()` cleared it, and while it is false
+    // `Core#applyChanges()` treats the live edit as closed - the next data change runs `prepareEditor()`,
+    // which resets the editor to `VIRGIN` and blanks the value the user typed. It must be set on the way
+    // back, not inside the overrides, because `AutocompleteEditor#showAfterScroll()` does not call
+    // `super`. `open()` clears `#hiddenByScroll` up front, so its own `refreshDimensions()` cannot
+    // trigger this; the `!force` gate covers `prepare()`, which calls `refreshDimensions(true)` before
+    // any scroll-hide can occur.
+    if (!force && this.#hiddenByScroll) {
+      this.#hiddenByScroll = false;
+      this._opened = true;
+      this.showAfterScroll();
+    }
   }
 
   /**
@@ -432,6 +485,13 @@ export class TextEditor extends BaseEditor {
       this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
+    // The newline is for a selection the editor's own save would not spread the value across. That
+    // has to be the same question `finishEditing()` asks, or the two disagree and the keystroke both
+    // inserts a line break and populates - `isMultiple()` alone reads the active layer only, so it
+    // missed every other layer (DEV-103).
+    const populatesOtherCells = () =>
+      selectionFillsOtherCells(this.hot, this.getValue(), this.row, this.col);
+
     editorContext!.addShortcuts([{
       keys: [['Control', 'Enter']],
       callback: () => {
@@ -439,7 +499,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: (event?: KeyboardEvent) => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
+      runOnlyIf: (event?: KeyboardEvent) => !populatesOtherCells() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event?.altKey,
     }, {
@@ -449,7 +509,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
+      runOnlyIf: () => !populatesOtherCells(), // We trigger a data population for multiple selection.
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {

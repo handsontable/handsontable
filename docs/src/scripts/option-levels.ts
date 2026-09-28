@@ -109,7 +109,7 @@ function mount(): void {
 
     const qs = next.toString();
     // Keep the fragment. Rebuilding the URL from the path alone drops it, and because
-    // this runs on mount too, that cancelled the browser's jump to a section link.
+    // this runs on mount too, that canceled the browser's jump to a section link.
     const { pathname, hash } = window.location;
     const url = `${pathname}${qs ? `?${qs}` : ''}${hash}`;
 

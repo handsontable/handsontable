@@ -9,6 +9,7 @@ import {
 } from './menu';
 import type { MenuAnchorRectProvider } from './menu';
 import { getDocumentOffsetByElement } from './utils';
+import type { MenuItemCheckedState } from './utils';
 import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -39,6 +40,12 @@ export interface MenuItemConfig {
   name: string | (() => string);
   hidden?: boolean | (() => boolean);
   disabled?: boolean | (() => boolean);
+  /**
+   * Whether the item is marked as checked. `true` draws a check mark, `false` draws none, and
+   * `'mixed'` draws a dash for a state that applies to only part of the selection. The value also
+   * sets the item's `aria-checked` attribute.
+   */
+  checked?: MenuItemCheckedState | (() => MenuItemCheckedState);
   callback?: (key: string, selection: unknown[], clickEvent: MouseEvent) => void;
   renderer?: (
     hot: unknown, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: string
@@ -330,7 +337,9 @@ export class ContextMenu extends BasePlugin {
     },
     anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
-    if (this.menu?.isOpened()) {
+    // `isClosed()`, not `isOpened()`: a menu still being built is not open yet, and a nested `open()`
+    // from one of its item callbacks must not announce and position a second one (DEV-41).
+    if (this.menu && !this.menu.isClosed()) {
       return;
     }
 
@@ -354,7 +363,13 @@ export class ContextMenu extends BasePlugin {
    */
   close(): void {
     this.menu?.close();
-    this.itemsFactory = null;
+
+    // Only once the menu really closed. `Menu#close()` does nothing while the menu is still opening,
+    // and dropping the factory anyway makes the next command rebuild the items - firing the public
+    // `beforeContextMenuSetItems` hook again - under a menu that is on screen.
+    if (!this.menu || this.menu.isClosed()) {
+      this.itemsFactory = null;
+    }
   }
 
   /**

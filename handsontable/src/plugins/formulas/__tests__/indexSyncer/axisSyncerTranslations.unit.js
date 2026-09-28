@@ -167,11 +167,27 @@ describe('AxisSyncer index translations', () => {
       expect(axisSyncer.getRemovedHfIndexes()).toEqual([1, 3]);
     });
 
-    it('should translate removed physical indexes to -1 when they are trimmed', () => {
+    it('should translate trimmed removed physical indexes to their HF indexes', () => {
+      // The engine holds trimmed rows too. NestedRows removes a trimmed descendant with its parent, and a
+      // `-1` there made `engine.removeRows()` throw.
       const indexMapper = createMockIndexMapper([0, 1, 2, 3, 4], [0, 2, 4]);
       const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer());
 
-      expect(axisSyncer.setRemovedHfIndexes([1, 2])).toEqual([-1, 2]);
+      expect(axisSyncer.setRemovedHfIndexes([1, 2])).toEqual([1, 2]);
+    });
+
+    it('should translate removed physical indexes through a reordered sequence', () => {
+      const indexMapper = createMockIndexMapper([2, 0, 1, 3, 4], [2, 0, 3, 4]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer());
+
+      expect(axisSyncer.setRemovedHfIndexes([0, 1])).toEqual([1, 2]);
+    });
+
+    it('should translate a physical index outside the dataset to -1', () => {
+      const indexMapper = createMockIndexMapper([0, 1, 2]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer());
+
+      expect(axisSyncer.setRemovedHfIndexes([5])).toEqual([-1]);
     });
   });
 });

@@ -11,12 +11,58 @@ every `updateSettings()` call whatever the payload.
 
 ```
 cellAlignment  columnMove  columnSort  createColumn  createRow  dataChange
-filters  fixedCounts  mergeCells  moveCells  removeColumn  removeRow
-rowMove  unmergeCells
+filters  fixedCounts  mergeCells  moveCells  nestedRowsDetach  readOnlyToggle
+removeColumn  removeRow  rowMove  unmergeCells
 ```
 
 Adding an action means a new file plus a registration in `actions/index.ts`. Do not add a branch to
 `undoRedo.ts`.
+
+## `RemoveColumnAction` records the CLAMPED removed count, not the requested one
+
+`beforeRemoveCol` reports the requested `amount` (which `alter()` does not clamp — `remove_col` past
+the last column is cut short but `amount` stays the request) plus the columns actually removed in its
+`logicColumns` 3rd argument. The capture in `actions/removeColumn.ts` derives `indexes` / `headers` /
+`lastColumnIndex` / stored `amount` / the merged-cell scan from `removedAmount = logicColumns.length`,
+**not** from `amount` — otherwise a partial removal records out-of-range physical indexes and undo
+restores `undefined` (DEV-2936). `removeRow` needs no such clamp: `dataMap.removeRow` passes the already
+clamped `removedPhysicalIndexes.length` as `beforeRemoveRow`'s `amount`.
+
+This is correct only because `dataMap.removeCol` splices from a **pre-hook** `.slice(0)` snapshot and no
+`beforeRemoveCol` listener mutates its 3rd argument — unlike `removeRow`, which re-reads the array
+`.length` *after* the hook precisely because a listener (NestedRows) may grow it. A future column plugin
+that mutates the `beforeRemoveCol` column list the way NestedRows mutates the row list would over-record
+here. Keep the visual walk `toPhysicalColumn(columnIndex + i)` — its order must match the `data` column
+order that `undo()`'s `ascendingIndexes` / `sortByIndexes` pairing depends on; do not substitute
+`logicColumns` directly.
+
+## `RemoveRowAction` restores `hiddenRows` state, the same shape as `MergeCells` (DEV-134)
+
+`IndexMapper#removeIndexes()` unconditionally splices a plugin's `HidingMap` values for the removed
+physical rows (`translations/maps/booleanMap.ts` `remove()`), and `insertIndexes()` inserts **default**
+(not-hidden) values back on undo's `insert_row_above` — there is no memory of the prior flag. `hiddenRows`
+itself registers no `beforeRemoveRow`/`afterRemoveRow` hook, so without help every row hidden before a
+removal comes back visible on undo, and header selection can misbehave alongside it (the ticket's second
+symptom, resolved as a side effect of restoring the hiding state).
+
+The fix mirrors `MergeCells`'s pattern exactly: `collectHiddenRowsForRemoval(hot, index, amount)`
+(`utils.ts`) runs in the `beforeRemoveRow` closure — **before** the removal — and records every hidden
+**visual** row in the removed range as an absolute index, the same convention `collectAffectedMergedCells`
+uses. `restoreHiddenRows(hot, this.removedHiddenRows)` runs in `undo()` right after
+`restoreMergedCells()`, once `hot.alter('insert_row_above', ...)` has put the visual layout back exactly
+where it was — it calls the plugin's own public `hideRows()`, so `beforeHideRows`/`afterHideRows` fire
+normally.
+
+**Scoped to the non-nested-rows path**, gated by `hasNestedRowsSnapshot` the same way `removedMergedCells`
+is for that branch — DEV-134 is not about `nestedRows`, and combining hidden rows with a nested-row
+removal/restore would need its own physical-index-keyed capture, not built here. **No redo-side change was
+needed, but not for the reason "redo re-captures" would suggest.** `UndoRedo#redo()` sets
+`ignoreNewActions = true` before calling `action.redo()`, and that flag makes `done()` bail out before
+`wrappedAction()` ever runs (`isBlockedByDefault` on the `'UndoRedo.redo'` source would refuse it too) — so
+`RemoveRowAction#redo()`'s own `hot.alter('remove_row', ...)` does **not** create a fresh action or
+re-capture anything. `UndoRedo#redo()` instead pushes the *same* action object (popped off the undone
+stack) back onto the done stack, carrying the `removedHiddenRows` it captured on the **original** removal
+forward unchanged — which is exactly what the next undo needs, so nothing further was required.
 
 ## A throwing action resets the flag and is discarded
 
@@ -32,8 +78,111 @@ So the failure mode is "one action is lost", never "the stack dies". Keep it tha
 ## The redo settle protocol
 
 Most actions settle the redo by calling back with **no argument**. An action that can legitimately fail to
-redo — **currently only `MoveCellsAction`** — reports `{ wasRedone: false }`, which pushes the action back
-onto the **undone** stack instead of the done stack.
+redo reports `{ wasRedone: false }`, which pushes the action back onto the **undone** stack instead of the
+done stack. `MoveCellsAction` decides that itself; `RemoveRowAction` and `RemoveColumnAction` report it
+through `settleOnRemoveHook()` (below).
+
+**Refuse early, before the hooks that step HyperFormula.** Formulas calls `engine.undo()` in `beforeUndo`
+and normally replays redo history in `beforeRedo`; structural redos defer that replay until `afterRedo` so a
+later `beforeRedo` listener can veto safely. An undo or a non-structural redo that turns out not to apply
+must still be refused **before** those hooks, or the engine moves one step while Handsontable stays put.
+That is what `canUndo(hot)` and `canRedo(hot)` are for: `UndoRedo.undo()` asks `canUndo()` before
+`beforeUndo`, `UndoRedo.redo()` asks `canRedo()` before `beforeRedo`, and a `false` leaves the action where
+it is with no hook fired. Actions that answer:
+
+- `canUndo()` - `RemoveRowAction` with a nested snapshot, `CreateRowAction`, `CreateColumnAction`.
+- `canRedo()` - `RemoveRowAction`, `RemoveColumnAction`.
+
+Anything a check can see coming belongs in it. A late `{ wasUndone: false }` still puts the action back on
+the done stack and must **not** emit `afterUndo`, but by then `beforeUndo` has already run - so treat the
+late result as the fallback for what cannot be predicted, not as the way to refuse.
+
+`NestedRowsDetachAction` is the exception for an unavoidable late `beforeRemoveRow` veto on undo: Formulas
+defers its multi-step HyperFormula replay until `afterUndo` and releases its index-sync guard from
+`afterRedoStackChange` when a rejected undo skips that hook. All structural redos, including detach, replay
+in `afterRedo`. Do not split the detach back into independent remove/create actions, or the two histories
+desynchronize (DEV-138).
+
+A detached root can be trimmed after the move. Its path resolves in physical space, so `canUndo()` must not
+reject a `null` visual index. `removeDetachedRows()` temporarily clears every trimming flag that owns that
+root only to get the visual coordinate `alter('remove_row', ...)` requires, restoring the flags if a remove
+hook vetoes it. Never pass the physical row to `alter()`.
+
+Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
+mutate the settings object by reference, and a refused nested undo would otherwise leave the
+frozen-row counts of a state that never came back. Nested cell-meta restore must reopen the origin
+that filed each key (`startCellOptionMetaRecording`, a plain `setCellMeta`, or
+`disableUserDefinedMetaRecording`); a bare write files everything as user-defined and #5661
+returns. The merge snapshot type is `import type { PhysicalRowMergeSnapshot }` from MergeCells —
+type-only, so registering UndoRedo still does not pull that plugin into the bundle.
+
+The action finds its subtree by **tree path**, which is a position, not an identity. Stack order keeps the
+tree in the captured shape, so the path is right unless the tree changed outside the stack (`updateData`
+keeps the history). `resolveSubtree()` therefore also requires the resolved row to own exactly `amount`
+rows, and `canUndo()` / `canRedo()` refuse on a mismatch. A refused action stays on its stack, which is the
+same stuck state as any other refusal; that beats removing or re-detaching another subtree. Do not replace
+the size check with an object-identity check: a later remove-and-undo of the detached row restores a
+**clone** from its snapshot, so a stored reference stops matching and the detach could never be undone.
+
+`detachedRowPath` is predicted on `beforeRemoveRow`, then overwritten on `afterDetachChild` with the path
+the row actually landed on, so a listener that reshapes the tree mid-detach cannot leave a wrong path. The
+prediction is kept as the fallback for a detach that throws before `afterDetachChild`. The pending action
+is cleared on every `afterDetachChild`: a no-op detach fires that hook without `beforeRemoveRow`.
+
+The detach redo settles right after `detachFromParent()` returns, never on `afterViewRender`. Inside
+`suspendRender()` no render runs, so a render-bound settle leaves `ignoreNewActions` on and every later
+action is dropped from the stack.
+
+## `redo()` pops the undone stack only after `beforeRedo` accepts
+
+`UndoRedo#redo()` reads the top action, runs `beforeRedo`, and only then fires the redo stack-change hooks
+and pops it (DEV-138). A vetoed redo keeps the action on the undone stack and fires no stack-change hook.
+Before, the action was popped first and a veto dropped it for good. This applies to every action type.
+`undo()` still pops before `beforeUndo`, deliberately: Formulas steps HyperFormula inside `beforeUndo` for
+non-detach actions, so keeping a vetoed undo on the stack would let a retry undo the engine twice. Making
+`undo()` symmetric needs the same deferral on the Formulas side first.
+
+## A removal that removes nothing must still settle
+
+`CreateRowAction` / `CreateColumnAction` (undo) and `RemoveRowAction` / `RemoveColumnAction` (redo) settle
+on `afterRemoveRow` / `afterRemoveCol`, and a removal that removes nothing fires **neither**. With the settle
+callback armed straight on the hook, it never runs: `ignoreNewActions` stays on and **the stack dies for the
+rest of the session** - the failure mode this file forbids. There are three ways a removal removes nothing,
+and they are handled in two places.
+
+**Predictable - refused by `canUndo()` / `canRedo()` before any hook.** Both read `clipRemovalRange()` from
+`src/utils/removalRange.ts`, the same function `Core#alter()` uses to skip an out-of-range removal, so the
+stack and `alter()` cannot disagree about whether a removal changes the grid. Never copy that rule here.
+
+- **The recorded index names no row or column any more.** Since DEV-117, `alter()` skips an index past the
+  end instead of wrapping it round to the start. An index recorded before the grid changed shape outside
+  the stack - `updateData`, a trim - is therefore a genuine no-op. Before, it silently removed the wrong
+  record.
+- **`RemoveRowAction`'s recorded row is trimmed.** It stores a *physical* index and replays it through
+  `toVisualRow()`, which returns `null` for a trimmed row (the method is typed `number`, but it is not).
+  `alter()` reads any index that is not an integer as "take the rows from the end", so the redo used to
+  **delete a row it never recorded** - the last one. Pre-existing. `canRedo()` tests `Number.isInteger()`,
+  the same condition `alter()` routes on, rather than `=== null`.
+
+**Unpredictable - settled late by `settleOnRemoveHook()` in `utils.ts`.** A `beforeRemoveRow` /
+`beforeRemoveCol` listener that vetoes the removal is found only while the removal runs. The helper arms the
+hook, runs the removal, and when the hook did not fire, disarms it and settles with `{ wasUndone: false }` /
+`{ wasRedone: false }`, so the action stays on the stack it came from. Pre-existing.
+
+**Known gap, deliberately left:** a vetoed undo or non-structural redo has already passed `beforeUndo` /
+`beforeRedo`, so with Formulas enabled it can still step HyperFormula. Structural redos defer their replay to
+`afterRedo`, avoiding this path. `canUndo()` / `canRedo()` cannot see a late removal veto coming. A complete
+fix needs the veto answered before the stack commits to the operation.
+
+Three things to keep in `settleOnRemoveHook()`:
+
+- **Disarm the listener, even when the removal throws.** The `finally` does it. `UndoRedo#undo()` /
+  `#redo()` catch the throw and discard the action; a listener left armed would settle that discarded action
+  on the next real removal and push it onto the other stack.
+- **Settle with no argument when the hook does fire**, never by forwarding the hook's own arguments: those
+  are the removed index and amount, and a preceding listener's return value can be folded into the first of
+  them (see the hook-argument hazards below).
+- **Use the helper** for any new action that settles on a remove hook, rather than `addHookOnce` directly.
 
 ## `MoveCellsAction` is the asymmetric one, in three ways
 
@@ -71,12 +220,130 @@ It is registered to run **after** other `beforeChange` hooks (including the user
 entries and records **only effective changes** — a listener setting `changes[i] = null` must not leave a
 phantom entry on the stack.
 
+## `DataChangeAction` addresses rows PHYSICALLY, and that shaped three things (DEV-2665)
+
+The action records a `physicalRows` array alongside `changes`, and the replay routes each change by it.
+A visible row is written through `setDataAtCell` at its **current** visual index; a trimmed one has no
+visual index at all and is written with `setSourceDataAtCell`. Do not "simplify" this back to replaying
+the recorded visual row — that row index only describes the grid state the edit happened in, and a filter
+applied since puts another record there (it grew a phantom row, or silently did nothing).
+
+Three traps come with it, and each one has a measured defect behind it.
+
+1. **`beforeChange` runs before the rows exist.** A write past the last row is recorded while
+   `applyChanges()` has not created its rows yet, so `toPhysicalRow()` returns `null` for it. `null` is
+   therefore *meaningful*: it is what makes the replay address the grid visually, which is what re-creates
+   the row. Do not coerce it to a number, and do not treat it as "no row".
+2. **The settle callback rides on `afterChange`, which a source-only replay never fires.** So `#replay()`
+   settles itself when the grid-write list comes out empty, and the source writes go **first** so the
+   `afterChange` settle still runs after the whole replay landed. An armed hook left behind is not a
+   cosmetic leak: `ignoreNewActions` stays on until it fires, so **every action the user performs in
+   between is silently dropped from the stack**, and the action then settles on an unrelated change. The
+   grid list therefore has to stay **one** `setDataAtCell` call — split it in two and the settle runs on
+   the first one's `afterChange`, while the second is still to come.
+3. **The rows the change created are named INDIVIDUALLY, and measured in source rows.** Two separate
+   mistakes are already burned in here. Measuring against `countRows()` is wrong because it counts only
+   what a filter or a trim leaves visible, so a trim *lifted* since the edit reads as rows to delete —
+   and gating the guard on "some change was past the end" instead does not work either, because
+   `minSpareRows` tops the spares up when an edit fills the last spare row and grows the dataset with no
+   change addressing a new row at all (`UndoRedo.spec.js`'s minSpareRows case pins that). And passing an
+   **amount** to `alter('remove_row', undefined, n)` is wrong even with the right number, because
+   `alter()` counts an amount back from the last **visible** row: with anything trimmed that is a
+   different record, so it deleted a row the change never touched, and with everything trimmed it handed
+   listeners a `beforeRemoveRow(NaN, 0, [])` round. Hence `#collectCreatedRows()` — one
+   `[visualRow, 1]` group per trailing source row, trimmed ones skipped because they have no visual
+   index. `countRows` is still recorded, because it is part of the payload `beforeUndo`/`afterUndo` hand
+   to listeners.
+
+Formulas needs no change for the source path: it already ignores `UndoRedo.*` sources on
+`afterSetSourceDataAtCell` and resolves a trimmed row's engine index physically — see `../formulas/AGENTS.md`.
+
+Four gaps stay open, deliberately. Each one is a known defect, not an oversight — say so rather than
+rediscovering them.
+
+- **`physicalRows` is a position, not an identity.** A row removal that is not on the undo stack shifts
+  every entry below it, and the replay then lands one row off. Same class of gap the visual index had,
+  one step further out: LIFO puts a recorded removal's own undo first, so it bites only a removal
+  performed with a blocked source. Do not read the field as an ID, and do not write "a removed row's
+  value is discarded" anywhere — that only holds for a removal at the very **end** of the dataset.
+- **The data is restored physically, the selection and the merge geometry still visually.** After a
+  reorder this action did not record, the values land on the right records while
+  `selectCells(this.selected)` highlights whatever now sits at the recorded visual coordinates.
+  `remergeCellsGeometryOnly` carries the same issue and one of its own: it runs *after*
+  `#collectCreatedRows()` has removed rows, so a paste that destroyed a merge, appended rows and was
+  followed by a reorder can re-merge at shifted coordinates. Both need a physical form for a *range*,
+  which `CellRange` cannot describe.
+- **`allowInvalid: false` can still strand the stack.** When a validator rejects every grid change,
+  `validateChanges` splices them all out, `applyChanges` fires no `afterChange`, and the settle never
+  runs — so `ignoreNewActions` stays on for the rest of the session. Pre-existing, and the `try/catch` in
+  `#replay()` does **not** cover it (nothing throws). The action is at least no longer *half*-applied:
+  the source writes are held inside the settle path, behind that same `afterChange`, so a rejected grid
+  write leaves nothing written. Do not hoist them back ahead of `setDataAtCell()`. A real fix for the
+  stranding needs a completion signal from Core that survives an all-rejected validation round.
+- **A row that never existed is replayed at its recorded visual index, and that index can drift.**
+  There is nothing to re-derive — the row had no physical index when `beforeChange` recorded it. The
+  index is trusted only while it still names a row this change appended, or no row at all; a trim
+  lifted since then can slide it onto a record that existed all along, and `#collectWrites()` drops the
+  change rather than blanking that record. Dropping it means a past-the-end edit is not reverted in
+  that case, which is the lesser of the two.
+- **The column half of the guard still counts visible columns.** `countCols()` is
+  `min(maxCols, notTrimmedColumns)`, so a `maxCols` raised since the edit reads as columns this change
+  added. It is the same defect the row half above fixed, left alone because the column axis is outside
+  DEV-2665 and `countSourceCols()` reads the first row's keys, which is not a reliable count.
+
 ## `CellAlignmentAction` restores an ABSENT value as absent
 
 Falling back to a horizontal alignment when nothing was recorded used to leave the cell aligned left after
 undoing a *vertical* alignment, and made the class name grow on every undo/redo cycle. Restore exactly what
 was recorded, including "nothing". Header coordinates are skipped — alignment classes are collected within
 cell ranges only.
+
+## `ReadOnlyToggleAction` is `CellAlignmentAction`'s pattern applied to a plain boolean (DEV-136)
+
+`Core#setCellMeta` fires exactly one `beforeSetCellMeta`/`afterSetCellMeta` pair **per cell**, with no bulk
+variant, and the context-menu/column-menu "Read only" item (`contextMenu/predefinedItems/readOnly.ts`)
+calls it once per selected cell in a loop. A naive action listening to `afterSetCellMeta` directly would
+therefore push one undo entry per cell instead of one per click. The fix is the same shape
+`CellAlignmentAction` already uses for its own `setCellMeta('className', …)` writes: the menu item captures
+a per-cell `stateBefore` snapshot (`getReadOnlyStates()` in `contextMenu/utils.ts`, the `readOnly` twin of
+`getAlignmentClasses()`) and fires a bespoke `beforeReadOnlyToggle` hook **once**, before the mutation loop;
+this action's `startRegisteringEvents()` is the only listener and turns that one firing into one `done()`
+call.
+
+**The snapshot pass is asymmetric, on purpose, and it costs the DEV-124 short-circuit in one direction
+only.** `checkSelectionConsistency()` decides "at least one cell is read-only" and stops at the FIRST
+match — the optimization `checkedMenuItems.unit.js` pins so a click on a 100k-cell already-read-only column
+does not pay 100k reads before any write starts. Making the selection READ-ONLY (no match found) gets its
+`stateBefore` for free: no match means the check already walked every cell to prove it, so every one of
+them was `false`, and passing an EMPTY snapshot restores that correctly on undo (`stateBefore[row]?.[col]`
+reads as `false` via `Boolean(undefined)`) with no second pass. Making the selection WRITABLE (a match
+found, so the check stopped early) cannot get this for free: undoing a MIXED selection needs to know every
+cell's actual prior state, and the short-circuit that decided the toggle deliberately never looked at the
+rest. So exactly this direction pays a second, full `getReadOnlyStates()` pass — the one case DEV-136 could
+not avoid without breaking correctness for a mixed selection. `readOnly.ts`'s `callback()` branches on
+`atLeastOneReadOnly` for exactly this reason; do not "simplify" it back to one unconditional call.
+
+No IGNORE-flag plumbing was needed at all, and not because
+`ignoreNewActions` is suppressing anything here: `undo()`/`redo()` write through `hot.setCellMeta()`, which
+fires `beforeSetCellMeta`/`afterSetCellMeta` — hooks this action does not listen to. The only hook this
+action's `startRegisteringEvents()` listens to is `beforeReadOnlyToggle`, and nothing in `undo()`/`redo()`
+fires that hook, so there is no path back into `done()` at all during replay; the flag is simply not
+load-bearing for this action. Unlike alignment (which recomputes the new class via `align()` on redo,
+because the alignment axis is per-cell), a read-only toggle applies one uniform boolean to every affected
+cell, so `redo()` just replays the recorded `readOnly` value — only `undo()` needs the per-cell
+`stateBefore` map, to put a mixed-state selection back exactly as it was rather than to a single value.
+
+A future `setCellMeta`-driven action should default to this pattern (bespoke `before*` hook fired once by
+the caller, capturing a snapshot before the mutation) unless the caller already has some other natural
+per-operation boundary to hook.
+
+**Known gap, shared with `CellAlignmentAction`:** the menu item fires its `before*` hook unconditionally,
+before the mutation loop runs — so a selection whose every `setCellMeta` write gets vetoed by a
+`beforeSetCellMeta` listener still stacks an undo entry for a change that never actually happened, and
+(per `done()`'s no-op contract) still clears the redo stack. Neither action's `wrappedAction` can see the
+veto coming, because `beforeSetCellMeta` fires per cell, inside the loop, after the snapshot/hook already
+ran. A real fix needs the menu item to know whether at least one write actually landed before firing the
+hook — deliberately not built here, to keep this fix scoped to DEV-136.
 
 ## Undo/redo bypasses the Formulas plugin's change listeners
 
@@ -101,7 +368,8 @@ fix makes a green spec go red, suspect the spec.
 
 - The plugin whose change listeners this one bypasses: `../formulas/AGENTS.md`.
 - Actions whose snapshots this plugin takes: `../moveCells/AGENTS.md`, `../mergeCells/AGENTS.md`,
-  `../filters/AGENTS.md`, `../columnSorting/AGENTS.md`, `../customBorders/AGENTS.md`.
+  `../filters/AGENTS.md`, `../columnSorting/AGENTS.md`, `../customBorders/AGENTS.md`,
+  `../hiddenRows/AGENTS.md`.
 - Hook dispatch and the global bucket: `../../../.ai/HOOKS.md`, `../../core/hooks/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
@@ -110,6 +378,10 @@ fix makes a green spec go red, suspect the spec.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='undoRedo'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='undoRedo'`
 
-`__tests__/actions/` holds a spec per action — put a new action's coverage there, not in the 2.5k-line
-`UndoRedo.spec.js`. There are also dedicated `hooks`, `keyboardShortcuts`, `scroll` and `selection` specs,
-plus `../mergeCells/__tests__/undoRedo.spec.js` for that interaction.
+`__tests__/actions/` holds a legacy Jasmine spec per EXISTING action — extend one there, not the 2.5k-line
+`UndoRedo.spec.js`, when the action already has a file. The legacy Jasmine `*.spec.js` suite is frozen
+monorepo-wide (`.ai/TESTING.md`): a **new** action gets its coverage as a **Playwright** spec under
+`tests/e2e/*.spec.ts` instead — do not add a new file under `__tests__/actions/`, however tempting the
+existing per-action-file convention looks (DEV-136 got this wrong on the first pass). There are also
+dedicated `hooks`, `keyboardShortcuts`, `scroll` and `selection` specs, plus
+`../mergeCells/__tests__/undoRedo.spec.js` for that interaction.

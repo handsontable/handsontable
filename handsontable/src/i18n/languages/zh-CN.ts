@@ -121,6 +121,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: '转到下一页',
   [C.PAGINATION_LAST_PAGE]: '转到最后一页',
 
+  [C.SHEETS_BAR_SECTION]: '工作表',
+  [C.SHEETS_BAR_ADD_SHEET]: '添加工作表',
+  [C.SHEETS_BAR_ALL_SHEETS]: '所有工作表',
+  [C.SHEETS_BAR_SHEET_MENU]: '工作表操作：[name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: '工作表名称',
+  [C.SHEETS_BAR_ITEMS_DELETE]: '删除',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: '复制',
+  [C.SHEETS_BAR_ITEMS_RENAME]: '重命名',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: '右移',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: '左移',
+  [C.SHEETS_BAR_PAGE_PREV]: '向后滚动工作表',
+  [C.SHEETS_BAR_PAGE_NEXT]: '向前滚动工作表',
+  [C.SHEETS_BAR_SHEET_CHANGED]: '工作表 [name] 已激活',
+  [C.SHEETS_BAR_RENAME_REJECTED]: '工作表名称未更改：[name] 已被使用',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
+
   [C.LOADING_TITLE]: '加载中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',
 

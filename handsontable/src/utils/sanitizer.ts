@@ -65,7 +65,7 @@ export function getSanitizer(hot: HotInstance, warnWhenMissing = true): boolean 
 export function sanitizeHTML(
   hot: HotInstance, html: string, context: SanitizerContext, warnWhenMissing = true
 ): string | TrustedHTMLLike {
-  // An absent clipboard flavour reads as `''`. There is nothing to sanitize and nothing to warn
+  // An absent clipboard flavor reads as `''`. There is nothing to sanitize and nothing to warn
   // about, and calling the sanitizer would add a spurious entry to an auditing one on every paste.
   if (!html) {
     return html;

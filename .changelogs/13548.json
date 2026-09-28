@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the multiselect dropdown opening off-screen when there was not enough space on the right.",
+  "type": "fixed",
+  "issueOrPR": 13548,
+  "breaking": false,
+  "framework": "none"
+}

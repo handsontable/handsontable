@@ -141,6 +141,12 @@ class Viewport {
    */
   declare columnHeaderHeight: number;
   /**
+   * The sub-pixel part `columnHeaderHeight` rounds away. Always 0 at 100% zoom.
+   *
+   * @type {number}
+   */
+  declare columnHeaderHeightFraction: number;
+  /**
    * @type {number}
    */
   declare rowHeaderWidth: number;

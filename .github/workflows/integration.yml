@@ -221,7 +221,7 @@ jobs:
         # GITHUB_TOKEN, so the API call 403s and takes CI Gate down with it; the
         # job summary above carries the same content instead. The event half is
         # redundant here (the job's own `if:` is already pull_request-only) but is
-        # kept so all seven guarded sites share one shape. AGENTS.md, "fork and
+        # kept so all seven guarded sites share one shape. .ai/CI.md, "fork and
         # Dependabot pull requests".
         if: github.event_name != 'pull_request'
           || (github.event.pull_request.head.repo.full_name == github.repository

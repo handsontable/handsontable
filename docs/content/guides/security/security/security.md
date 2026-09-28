@@ -13,6 +13,7 @@ vue:
   metaTitle: Security - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Security
+menuTag: updated
 ---
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 
@@ -122,11 +123,29 @@ new Handsontable(container, {
 });
 ```
 
+### Upgrading from v18.0 to v18.1
+
+If your sanitizer branches on its second argument, two `source` values changed in v18.1:
+
+- `'innerHTML'` is no longer passed by any part of the grid. The offscreen pass that measures [`nestedHeaders`](@/api/options.md#nestedheaders) widths now reports `'header'`, the same value as the rendered header, so one label no longer reaches your sanitizer under two different names.
+- `'dialog'` is now passed for [dialog](@/api/dialog.md) content. In v18.0, that content arrived with `source` set to `undefined`, so it moves out of whatever branch handled `undefined` -- usually the default one -- and into a `'dialog'` branch you may not have written.
+
+A sanitizer that ignores its second argument needs no changes.
+
+v18.1 also added sanitization to two surfaces that were previously written without consulting the sanitizer:
+
+- `'password'` -- content rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
+- `'CopyPaste.paste.sourceData'` -- Handsontable's own clipboard payload, used when copying and pasting between two grid instances. See [the note on this source](#what-the-sanitizer-does-not-cover) before deciding how to treat it.
+
+Additionally, as of v18.1, pasted markup is read through `DOMParser`, which builds a document with no browsing context -- HTML pasted from the clipboard cannot load resources or run scripts while it is parsed, regardless of the `sanitizer` configuration.
+
+For step-by-step instructions and code examples, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1.md).
+
 ### Trusted Types and CSP
 
 The [Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) enforces that values reaching a DOM sink came from a policy you wrote. It is not a sanitizer, and it does not replace one. It can require that a sanitizer exists; it cannot be one. A policy such as `createHTML: (input) => input` satisfies the browser and provides no protection at all. What sanitizes is the function you call inside the policy.
 
-Handsontable builds its own interface as DOM nodes rather than as HTML strings, so it needs no Trusted Types policy of its own and no entry in your `trusted-types` directive. One surface has not been converted yet: the context menu writes its own markup when it marks an item as selected, which happens for the "Read only" item on a selection that is already read-only. Opening the menu in that state needs a `sanitizer` that returns a `TrustedHTML`, as below.
+Handsontable builds its own interface as DOM nodes rather than as HTML strings, so it needs no Trusted Types policy of its own and no entry in your `trusted-types` directive.
 
 That covers the grid's own markup. It does not cover **column and row headers**, which is the one case to know before you enable enforcement. Handsontable writes a header as HTML whenever its text contains a `<`, or an `&` followed later by a `;`, so a header reading `Smith & Sons, Ltd.; est. 1920` takes that path even though it carries no markup at all. Under `require-trusted-types-for 'script'` the browser rejects a plain string there, and the write is not recoverable: the error propagates out of the constructor, so the grid does not render at all. A `sanitizer` that returns a `TrustedHTML`, as below, renders both that header and one carrying real markup correctly.
 

@@ -41,3 +41,53 @@ export async function dragResizeHandle(
   await page.mouse.move(startX + deltaX, startY + deltaY);
   await page.mouse.up();
 }
+
+/**
+ * Double-clicks a resize handle and leaves the button down on the second press.
+ *
+ * A `locator.dblclick()` always releases, which is the path `#onMouseUp` already hides the guide
+ * on. DEV-1038 is the hold: autosize runs from `afterMouseDownTimeout()` while `#pressed` is still
+ * true, so the guide used to stay `active` until mouseup. The caller reveals the handle first.
+ *
+ * @param {Page} page The page the handle lives on.
+ * @param {Locator} handle The resize handle to press.
+ */
+export async function dblclickHoldResizeHandle(page: Page, handle: Locator): Promise<void> {
+  const box = await handle.boundingBox();
+
+  if (!box) {
+    throw new Error('The resize handle has no layout box.');
+  }
+
+  const x = box.x + (box.width / 2);
+  const y = box.y + (box.height / 2);
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.mouse.down();
+}
+
+/**
+ * Drags the autofill fill handle onto a target cell and releases, the way a user drag-fills. The
+ * caller selects the range first (that is what draws the handle) and passes both elements in,
+ * because how a grid is addressed differs per fixture while the gesture does not.
+ *
+ * @param {Page} page The page the handle lives on.
+ * @param {Locator} handle The fill handle to drag.
+ * @param {Locator} target The cell to drag onto.
+ */
+export async function dragFillHandle(page: Page, handle: Locator, target: Locator): Promise<void> {
+  const handleBox = await handle.boundingBox();
+  const targetBox = await target.boundingBox();
+
+  if (!handleBox || !targetBox) {
+    throw new Error('The fill handle or the target cell is not rendered.');
+  }
+
+  await page.mouse.move(handleBox.x + (handleBox.width / 2), handleBox.y + (handleBox.height / 2));
+  await page.mouse.down();
+  // Several moves, because the plugin counts drag steps through `mousemove` and `beforeOnCellMouseOver`.
+  await page.mouse.move(targetBox.x + (targetBox.width / 2), targetBox.y + (targetBox.height / 2), { steps: 8 });
+  await page.mouse.up();
+}

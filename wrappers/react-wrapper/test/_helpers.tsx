@@ -4,8 +4,8 @@ import Handsontable from 'handsontable';
 import { BaseRenderer } from 'handsontable/renderers';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
-import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types'
-import { useHotEditor } from "../src/hotEditor";
+import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types';
+import { useHotEditor } from '../src/hotEditor';
 
 interface Spec {
   container: HTMLElement
@@ -46,7 +46,7 @@ export function mountComponentWithRef<T>(Component: React.ReactElement, strictMo
     return (
       <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
     );
-  }
+  };
 
   act(() => {
     SPEC.root.render(
@@ -57,12 +57,16 @@ export function mountComponentWithRef<T>(Component: React.ReactElement, strictMo
   return hotTableComponent!.current!;
 }
 
-export function renderHotTableWithProps(props: HotTableProps, strictMode = true, hotTableRef: React.RefObject<HotTableRef> = React.createRef()): React.RefObject<HotTableRef> {
+export function renderHotTableWithProps(
+  props: HotTableProps,
+  strictMode = true,
+  hotTableRef: React.RefObject<HotTableRef> = React.createRef()
+): React.RefObject<HotTableRef> {
   act(() => {
     SPEC.root.render(
       strictMode
-          ? <React.StrictMode><HotTable {...props} ref={hotTableRef} /></React.StrictMode>
-          : <HotTable {...props} ref={hotTableRef} />
+        ? <React.StrictMode><HotTable {...props} ref={hotTableRef} /></React.StrictMode>
+        : <HotTable {...props} ref={hotTableRef} />
     );
   });
 
@@ -74,7 +78,7 @@ export function mountComponent(Component: React.ReactElement): void {
     return (
       <Component.type {...Component.props}></Component.type>
     );
-  }
+  };
 
   act(() => {
     SPEC.root.render(<React.StrictMode><App/></React.StrictMode>);
@@ -105,7 +109,7 @@ export function spreadsheetColumnLabel(index: number): string {
   while (dividend > 0) {
     modulo = (dividend - 1) % 26;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = Math.floor((dividend - modulo) / 26)
+    dividend = Math.floor((dividend - modulo) / 26);
   }
 
   return columnLabel;
@@ -165,17 +169,17 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
 
   // Chromium Hack
   Object.defineProperty(newEvent, 'keyCode', {
-    get: function () {
+    get() {
       return this.keyCodeVal;
     }
   });
   Object.defineProperty(newEvent, 'which', {
-    get: function () {
+    get() {
       return this.keyCodeVal;
     }
   });
   Object.defineProperty(newEvent, 'key', {
-    get: function () {
+    get() {
       return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(this.keyCodeVal).toLowerCase();
     }
   });
@@ -193,12 +197,39 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
 
 export function simulateMouseEvent(element: Element | null, type: string): void {
   const event = document.createEvent('Events');
+
   event.initEvent(type, true, false);
 
   element!.dispatchEvent(event);
 }
 
-export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
+/**
+ * Dispatch a full pointer sequence on a focusable control.
+ *
+ * A synthetic `click` alone does not reproduce the 18.1 document-mouseup
+ * deselect path that closes a body-mounted React editor before `setValue`.
+ * @param element
+ */
+export function simulatePointerActivation(element: Element | null): void {
+  if (!element || !(element instanceof HTMLElement)) {
+    return;
+  }
+
+  element.focus();
+
+  (['mousedown', 'mouseup', 'click'] as const).forEach((type) => {
+    element.dispatchEvent(new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      buttons: type === 'mousedown' ? 1 : 0,
+    }));
+  });
+}
+
+export const RendererComponent: React.FC<
+  HotRendererProps & { tap?: (props: HotRendererProps) => void }
+> = ({ tap, ...props }) => {
   tap?.(props);
 
   return (
@@ -206,12 +237,15 @@ export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotR
       value: {props.value}
     </>
   );
-}
+};
 
-export const customNativeRenderer: BaseRenderer = function (this: BaseRenderer, instance, td, row, col, prop, value, cellProperties) {
+export const customNativeRenderer: BaseRenderer = function(
+  this: BaseRenderer, instance, td, row, col, prop, value, cellProperties
+) {
   Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, `value: ${value}`, cellProperties]);
+
   return td;
-}
+};
 
 interface EditorComponentProps {
   className?: string
@@ -220,7 +254,7 @@ interface EditorComponentProps {
 }
 
 export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props }) => {
-  const mainElementRef = React.useRef<HTMLDivElement>(null)
+  const mainElementRef = React.useRef<HTMLDivElement>(null);
   const containerStyle = {
     display: 'none'
   };
@@ -253,9 +287,75 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props 
   );
 };
 
+/**
+ * Official-demo-style editor: `mousedown` stopPropagation plus a commit button.
+ * Used to reproduce GH-13374 when the portal is still mounted on `document.body`.
+ */
+export const PointerCommitEditor: React.FC = () => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null);
+  const { setValue, finishEditing } = useHotEditor({
+    onOpen() {
+      mainElementRef.current!.style.display = 'block';
+    },
+    onClose() {
+      mainElementRef.current!.style.display = 'none';
+    }
+  });
+
+  const setNewValue = React.useCallback(() => {
+    setValue('new-value');
+    finishEditing();
+  }, [setValue, finishEditing]);
+
+  return (
+    <div
+      id="pointerCommitEditor"
+      ref={mainElementRef}
+      style={{ display: 'none' }}
+      onMouseDown={event => event.stopPropagation()}
+    >
+      <button type="button" onClick={setNewValue}>commit</button>
+    </div>
+  );
+};
+
+export const ImmediateValueEditor: React.FC = () => {
+  const { value, setValue } = useHotEditor<string>();
+
+  return (
+    <div id="immediateValueEditor">
+      <span id="immediateValueDisplay">{value}</span>
+      <button type="button" id="immediateValueSet" onClick={() => setValue('typed')}>set</button>
+    </div>
+  );
+};
+
+/**
+ * Editor whose focusable control is a plain `<input>`, the shape the reported case uses
+ * (DEV-2787). The `<button>` the editors above carry is not an `isInput()` element, so none of
+ * them reaches the `isOutsideInput` branch of the document `mouseup` verdict in `tableView`.
+ */
+export const TextInputEditor: React.FC = () => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null);
+  const { value, setValue } = useHotEditor<string>({
+    onOpen() {
+      mainElementRef.current!.style.display = 'block';
+    },
+    onClose() {
+      mainElementRef.current!.style.display = 'none';
+    }
+  });
+
+  return (
+    <div id="textInputEditor" ref={mainElementRef} style={{ display: 'none' }}>
+      <input id="textInputEditorField" value={value ?? ''} onChange={event => setValue(event.target.value)} />
+    </div>
+  );
+};
+
 export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
-  declare TEXTAREA: HTMLTextAreaElement
-  declare TEXTAREA_PARENT: HTMLElement
+  declare TEXTAREA: HTMLTextAreaElement;
+  declare TEXTAREA_PARENT: HTMLElement;
 
   init() {
     this.TEXTAREA = document.createElement('textarea');

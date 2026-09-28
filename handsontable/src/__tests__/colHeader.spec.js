@@ -34,9 +34,10 @@ describe('ColHeader', () => {
       height: 'auto',
     });
 
-    // THs content height + 1px border on top
+    // TH content height + 1px border on top (the grid's frame) + the header's own 1px
+    // border-bottom, which it carries at every scroll position since DEV-2786.
     expect(spec().$container.find('.handsontable.ht_clone_top').height())
-      .toEqual(layout.defaultDataRowHeight);
+      .toEqual(layout.defaultDataRowHeight + layout.cellBorderWidth);
   });
 
   it('should properly calculate colHeaders\' overlay width', async() => {
@@ -532,7 +533,7 @@ describe('ColHeader', () => {
 
     await render();
 
-    expect(spec().$container.find('th').eq(0).height()).toEqual(39);
+    expect(spec().$container.find('th').eq(0).height()).toEqual(38); // border-box 40px minus the row's 1px top frame and its own 1px border-bottom
   });
 
   it('should not let the `modifyColumnHeaderHeight` hook override an explicit `columnHeaderHeight` option', async() => {
@@ -549,7 +550,7 @@ describe('ColHeader', () => {
 
     await render();
 
-    expect(spec().$container.find('th').eq(0).height()).toEqual(39);
+    expect(spec().$container.find('th').eq(0).height()).toEqual(38); // border-box 40px minus the row's 1px top frame and its own 1px border-bottom
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
@@ -582,7 +583,8 @@ describe('ColHeader', () => {
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
       .toEqual(43);
 
-    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
+    // The last head row: border-box 65px minus its own 1px border-bottom (DEV-2786).
+    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(64);
   });
 
   it('should display auto-generated headers (the `colHeaders` is set to `true`) in the original order even when columns have been moved', async() => {

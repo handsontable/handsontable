@@ -28,6 +28,7 @@ const config: Handsontable.GridSettings = {
   comments: true,
   manualColumnMove: true,
   manualRowMove: true,
+  moveCells: true,
   licenseKey: 'non-commercial-and-evaluation',
 };
 

@@ -59,6 +59,14 @@ The merge base describes **this** cell regardless of the bookkeeping fields the 
 can be stale when the meta is a detached snapshot — UndoRedo restoring borders captured at pre-shift
 coordinates is the case that matters.
 
+**Any record is a merge base, not only a plugin-shaped `BorderObject`.** Cascaded or partial
+`borders` from column or cell meta carry no `id`/`row`/`col`. Requiring those fields
+(`isBorderObject`) dropped the sides the user authored: `setBorders` then wrote hidden
+defaults over them (DEV-2513). `#mergeBaseFromExisting` starts from `createEmptyBorders` and
+layers `normalizeBorder` of the existing record, matching the `afterSetCellMeta` path.
+Viewport-driven seeding of cascaded borders that `setBorders` never touched is a separate
+follow-up (#13166).
+
 A progressive load keeps **one** first-touch tracking `Set` across all its batches, so overlapping ranges
 split across batches still merge correctly. A plain synchronous call owns and clears its own.
 
@@ -83,6 +91,11 @@ user-authored one such as `{ top: { width: 2 } }`. So it must not be required to
 `id`/`row`/`col` bookkeeping. It is routed through `prepareBorderFromCustomAdded` as a descriptor for the
 write's coordinates; the canonical (complete, denormalized) object is written back to the meta, an
 all-hidden result clears the cell, and the model entry is upserted — so meta and model cannot diverge.
+
+## `width: 0` is a real value
+
+Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`
+("Custom border `width: 0` is a real value").
 
 ## `left`/`right` vs `start`/`end`
 

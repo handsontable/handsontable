@@ -14,7 +14,7 @@ on:
 jobs:
   run:
     name: run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     permissions:
       contents: write
@@ -22,6 +22,14 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # `clean: true` is already the checkout default; it is pinned here to
+          # document intent, not to fix a broken default, because the persistent
+          # runner keeps ignored output and dependency directories between jobs and a
+          # future default change must not stop removing them. Requires Git on the
+          # runner; the composite's Verify Git checkout step fails loudly when it is
+          # missing.
+          clean: true
       - uses: ./.github/actions/performance-run
         with:
           hot-prebuilt: ${{ inputs.hot-prebuilt }}

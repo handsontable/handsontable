@@ -36,7 +36,7 @@ export class RowMoveAction extends BaseAction {
    * attached later still, so this is always the first instance listener on the hook. `Hooks.run` threads
    * a listener's return value into the next listener's first argument, so every veto is raised after this
    * listener has already run: the old `rows === false` guard caught no plugin or settings veto at all, and
-   * a cancelled move always reached the stack. `afterRowMove` never fires for a vetoed move, and its
+   * a canceled move always reached the stack. `afterRowMove` never fires for a vetoed move, and its
    * `orderChanged` argument is `false` when the move was impossible or left the order intact, so gating on
    * it also keeps no-op moves off the stack.
    */

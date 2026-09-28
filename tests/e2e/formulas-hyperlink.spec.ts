@@ -179,6 +179,68 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.link(0, 4)).toHaveCount(0);
   });
 
+  test('enablePlugin() marks every cell changed, so a bare re-enable repaints links under renderMode: "onChange"',
+    async({ page, theme, bundle }) => {
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await expect(grid.link(0, 0)).toHaveCount(1);
+
+      await grid.setRenderMode('onChange');
+      await grid.disableFormulasPluginWithoutRender();
+      await grid.render();
+
+      // Disabling already unwraps eagerly, without needing a render - confirms the starting point
+      // before the render-epoch assertion below.
+      await expect(grid.link(0, 0)).toHaveCount(0);
+
+      // Without `enablePlugin()` marking every cell changed, this render would skip every cell under
+      // `renderMode: 'onChange'` and the anchor would never come back.
+      await grid.enableFormulasPluginWithRender();
+
+      await expect(grid.link(0, 0)).toHaveCount(1);
+    });
+
+  test('deprecates registerShortcuts()/unregisterShortcuts() as two separate no-op shims, each ' +
+    'warning once through deprecatedWarnOnce, and Alt+Enter still works',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.recordWindowOpen();
+
+      // Rejects (and fails the test) if either deprecated method throws.
+      await grid.callDeprecatedShortcutMethods();
+
+      const deprecationWarnings = () => warnings.filter(text => text.includes('Deprecated'));
+
+      // `deprecatedWarnOnce` keys each method separately, so calling both prints two warnings, not
+      // one shared warning - the "Deprecated: " prefix and per-method key are what `deprecatedWarnOnce`
+      // adds over the old shared `warnOnce` call.
+      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(2);
+      expect(deprecationWarnings().some(text => text.includes('registerShortcuts') &&
+        !text.includes('unregisterShortcuts'))).toBe(true);
+      expect(deprecationWarnings().some(text => text.includes('unregisterShortcuts'))).toBe(true);
+
+      // Calling both a second time must not print any further warning - each key is a "once".
+      await grid.callDeprecatedShortcutMethods();
+      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(2);
+
+      // The chord itself is a core grid shortcut, unaffected by the deprecated shims.
+      await grid.selectCell(0, 0);
+      await grid.pressOpenLinkShortcut();
+
+      await expect(grid.openedUrls()).resolves.toEqual(['https://example.com/one']);
+    });
+
   test('survives a renderer that wraps the anchor it produced', async({ page, theme, bundle }) => {
     const pageErrors: string[] = [];
 
@@ -290,4 +352,173 @@ test.describe('formulas: HYPERLINK rendering', () => {
 
     await expect(grid.openedUrls()).resolves.toEqual([]);
   });
+
+  test('carries the shared `ht-link` class next to `ht-hyperlink`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.cell(0, 0).locator('a')).toHaveClass('ht-link ht-hyperlink');
+  });
+
+  test('opens in the current tab when `hyperlinks.target` is `_self`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setHyperlinks({ target: '_self' });
+
+    await expect(grid.link(0, 0)).toHaveAttribute('target', '_self');
+    await expect(grid.link(0, 0)).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  test('treats an array as "not the object form", unlike a plain object', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.setHyperlinks([] as unknown as boolean);
+    await expect(grid.link(0, 0)).toHaveCount(0);
+    await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+    await grid.setHyperlinks({});
+    await expect(grid.link(0, 0)).toHaveCount(1);
+  });
+
+  test('refuses a scheme left out of `hyperlinks.schemes`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setHyperlinks({ schemes: ['mailto', 'tel'] });
+
+    await expect(grid.link(0, 0)).toHaveCount(0);
+    await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+    await grid.setHyperlinks({ schemes: ['https'] });
+
+    await expect(grid.link(0, 0)).toHaveCount(1);
+  });
+
+  test('does not warn when `hyperlinks.schemes` narrows out an otherwise-linkable URL', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // The fixture's own grid already spent its one-shot `warnOnce` budget on the `javascript:` row
+    // during `goto()` (see the "warns once" test above), so reusing it here could never show a SECOND
+    // warning either way - a false negative that would hide a real regression. A scratch grid, built
+    // only after the console listener attaches, makes the schemes-narrowing refusal below the FIRST
+    // refusal this `Formulas` instance ever sees, which is what actually exercises the fix.
+    const warnings: string[] = [];
+
+    page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    await page.evaluate(() => {
+      const container = document.createElement('div');
+
+      container.setAttribute('data-testid', 'scratch-grid');
+      document.body.appendChild(container);
+
+      (window as any).__scratchHot = new (window as any).Handsontable(container, {
+        data: [['=HYPERLINK("https://example.com/one","Example one")']],
+        formulas: {
+          engine: (window as any).HyperFormula,
+          sheetName: 'ScratchSheet',
+          // Excludes `https`, so the engine's own URL is refused only under this narrowing - it would
+          // resolve fine under the plugin's full default allowlist.
+          hyperlinks: { schemes: ['mailto', 'tel'] },
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    await expect(page.getByTestId('scratch-grid').getByText('Example one')).toBeVisible();
+
+    await page.evaluate(() => (window as any).__scratchHot.destroy());
+
+    // Console delivery is asynchronous, so reading the refusal count right after `destroy()` could
+    // miss a late warning and go green wrongly. One more awaited round-trip to the page gives the
+    // console a chance to flush, and `expect.poll` re-filters the live `warnings` array on every
+    // tick so the wait still asserts the negative deterministically.
+    await page.evaluate(() => true);
+
+    const countRefusals = () => warnings.filter(text => text.includes('refuses to link to')).length;
+
+    await expect.poll(countRefusals, { timeout: 1000 }).toBe(0);
+  });
+
+  test('falls back to the full allowlist when `hyperlinks.schemes` has no recognized entry, and warns ' +
+    'that the default is used',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.setHyperlinks({ schemes: ['htps'] });
+
+      // A `schemes` array whose every entry is unknown must not fail closed: the fix falls back to
+      // the full allowlist, so the `https` link keeps rendering.
+      await expect(grid.link(0, 0)).toHaveCount(1);
+      await expect(grid.link(0, 0)).toHaveAttribute('href', 'https://example.com/one');
+
+      const settingsWarnings = () => warnings.filter(text => text.includes('formulas.hyperlinks'));
+
+      await expect.poll(() => settingsWarnings().length, { timeout: 1000 }).toBe(1);
+      expect(settingsWarnings()[0]).toContain('default is used instead');
+
+      // An EXPLICIT empty array is the author's own request for no links - it stays empty and must
+      // not warn again.
+      await grid.setHyperlinks({ schemes: [] });
+
+      await expect(grid.link(0, 0)).toHaveCount(0);
+      await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+      // Console delivery is asynchronous, so a settled poll after the empty-array call proves no
+      // second warning arrived rather than merely that none has arrived yet.
+      await page.evaluate(() => true);
+      await expect.poll(() => settingsWarnings().length, { timeout: 1000 }).toBe(1);
+
+      // Recovering with a valid, non-empty `schemes` renders the link again.
+      await grid.setHyperlinks({ schemes: ['https'] });
+
+      await expect(grid.link(0, 0)).toHaveCount(1);
+    });
+
+  test('warns once on an invalid `hyperlinks` object-form setting, and not again once fixed',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.setHyperlinks({ target: 'top', schemes: ['https', 'ftp'] } as unknown as boolean);
+
+      const countSettingsWarnings = () => warnings.filter(text => text.includes('formulas.hyperlinks')).length;
+
+      await expect.poll(countSettingsWarnings, { timeout: 1000 }).toBe(1);
+
+      await grid.setHyperlinks({ target: '_self' });
+
+      // Console delivery is asynchronous, so a settled poll after a valid call proves no second
+      // warning arrived rather than merely that none has arrived yet.
+      await page.evaluate(() => true);
+      await expect.poll(countSettingsWarnings, { timeout: 1000 }).toBe(1);
+    });
 });

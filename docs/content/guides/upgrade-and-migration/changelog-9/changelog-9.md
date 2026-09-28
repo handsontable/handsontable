@@ -84,7 +84,7 @@ For more information on this release, see:
 
 - Fixed an issue where the validator function was called twice when the `Formulas` plugin was
   enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
-- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour.
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behavior.
   ([#8196](https://github.com/handsontable/handsontable/issues/8196))
 
 ## 9.0.0

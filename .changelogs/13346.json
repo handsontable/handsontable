@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the row and column resize handles staying in the container after the manual resize plugins were disabled, where they swallowed clicks on the header underneath.",
+  "type": "fixed",
+  "issueOrPR": 13346,
+  "breaking": false,
+  "framework": "none"
+}

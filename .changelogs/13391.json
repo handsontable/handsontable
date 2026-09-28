@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle staying in a drag state when the `fillHandle` option was disabled through `updateSettings()` in the middle of a drag, which made the fill border follow the pointer after the mouse button was released.",
+  "type": "fixed",
+  "issueOrPR": 13391,
+  "breaking": false,
+  "framework": "none"
+}

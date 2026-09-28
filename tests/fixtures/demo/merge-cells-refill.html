@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — row-band refill with merged cells (DEV-2908)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+</head>
+<body>
+  <!--
+    DEV-2908. Same shape as column-autosize-viewport-refill.html (column C starts 40px wide, rows
+    1-7 get a long sentence AFTER construction so a second draw settles them tall and shrinks the
+    rendered band), plus a merged block in column D spanning rows 1-3, inside the tall band (column
+    D, because the wide themes push later columns out of the rendered column band once C is 320px
+    wide). It has
+    to sit inside: MergeCells extends the rendered band to cover a merged block whole, so a block
+    reaching past the band would defeat the short-band precondition — and the full-repaint gate only
+    matters when the block is already rendered when the refill starts. Widening C or shortening the
+    texts collapses the rows and the band is refilled within the draw.
+    A grid that renders a merged cell must take the FULL repaint on every refill pass (MergeCells
+    writes neighbor cell heights from pre-measure row heights), and the merged block must come out
+    intact: full rowspan on the anchor, covered cells hidden, the neighbor cell as tall as its row.
+    Cells carry data-testid="cell-<row>-<col>".
+  -->
+  <div id="toolbar">
+    <button data-testid="shorten-texts" type="button">Shorten texts</button>
+  </div>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const LONG_TEXT = 'This is a really long sentence that will hopefully wrap in the cell. Isnt it amazing how long it is?';
+    const data = Handsontable.helper.createSpreadsheetData(100, 10);
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const hot = new Handsontable(container, {
+      data,
+      colHeaders: true,
+      width: 800,
+      height: 320,
+      manualColumnResize: [undefined, undefined, 40],
+      mergeCells: [{ row: 1, col: 3, rowspan: 3, colspan: 1 }],
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    window.drawCount = 0;
+    window.cell00Paints = 0;
+    hot.addHook('afterViewRender', () => {
+      window.drawCount += 1;
+    });
+    hot.addHook('afterRenderer', (TD, row, col) => {
+      if (row === 0 && col === 0) {
+        window.cell00Paints += 1;
+      }
+    });
+
+    for (let row = 1; row <= 7; row++) {
+      hot.setDataAtCell(row, 2, LONG_TEXT);
+    }
+
+    document.querySelector('[data-testid="shorten-texts"]').addEventListener('click', () => {
+      hot.setDataAtCell([1, 2, 3, 4, 5, 6, 7].map(row => [row, 2, 'short']));
+    });
+  </script>
+</body>
+</html>

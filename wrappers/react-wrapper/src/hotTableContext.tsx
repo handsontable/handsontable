@@ -10,9 +10,9 @@ import React, {
   useMemo,
   useContext,
 } from 'react';
-import { ScopeIdentifier, HotRendererProps } from './types'
-import { createPortal } from './helpers'
-import { RenderersPortalManagerRef } from './renderersPortalManager'
+import { ScopeIdentifier, HotRendererProps } from './types';
+import { createPortal } from './helpers';
+import { RenderersPortalManagerRef } from './renderersPortalManager';
 
 export interface HotTableContextImpl {
   /**
@@ -30,7 +30,7 @@ export interface HotTableContextImpl {
    * Sets the column settings based on information received from HotColumn.
    *
    * @param {HotTableProps} columnSettings Column settings object.
-   * @param {Number} columnIndex Column index.
+   * @param {number} columnIndex Column index.
    */
   readonly emitColumnSettings: (columnSettings: Handsontable.ColumnSettings, columnIndex: number) => void;
 
@@ -38,7 +38,7 @@ export interface HotTableContextImpl {
    * Trim the column settings array to the given length. Used to drop slots
    * left over from HotColumn children that have unmounted.
    *
-   * @param {Number} length Target length for the column settings array.
+   * @param {number} length Target length for the column settings array.
    */
   readonly trimColumnSettings: (length: number) => void;
 
@@ -48,7 +48,8 @@ export interface HotTableContextImpl {
    * @param {ComponentType<HotRendererProps>} Renderer React renderer component.
    * @returns {Handsontable.renderers.BaseRenderer} The Handsontable rendering function.
    */
-  readonly getRendererWrapper: (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
+  readonly getRendererWrapper:
+    (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
   /**
    * Clears portals cache.
@@ -89,11 +90,11 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const setHotColumnSettings = useCallback((columnSettings: Handsontable.ColumnSettings, columnIndex: number) => {
     columnsSettings.current[columnIndex] = columnSettings;
-  }, [])
+  }, []);
 
   const trimColumnSettings = useCallback((length: number) => {
     columnsSettings.current.length = length;
-  }, [])
+  }, []);
 
   const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
   const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
@@ -121,7 +122,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
    * overlay tables get separate portal containers for the same cell.
    *
    * @param {HTMLTableCellElement} TD The cell being rendered.
-   * @returns {Number} The id of the table the cell belongs to.
+   * @returns {number} The id of the table the cell belongs to.
    */
   const getTableId = useCallback((TD: HTMLTableCellElement): number => {
     // TD -> TR -> TBODY. The section belongs to exactly one table, and the
@@ -144,7 +145,9 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     return id;
   }, []);
 
-  const getRendererWrapper = useCallback((Renderer: ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
+  const getRendererWrapper = useCallback((
+    Renderer: ComponentType<HotRendererProps>
+  ): typeof Handsontable.renderers.BaseRenderer => {
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
@@ -171,12 +174,12 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
         const rendererElement = (
           <Renderer instance={instance}
-                    TD={TD}
-                    row={row}
-                    col={col}
-                    prop={prop}
-                    value={value}
-                    cellProperties={cellProperties}/>
+            TD={TD}
+            row={row}
+            col={col}
+            prop={prop}
+            value={value}
+            cellProperties={cellProperties}/>
         );
 
         const { portal, portalContainer } = createPortal(
@@ -196,6 +199,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
       }
 
       renderedCellCache.current.set(key, TD);
+
       return TD;
     };
   }, [getTableId]);
@@ -235,7 +239,15 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
-  }), [setHotColumnSettings, trimColumnSettings, getRendererWrapper, clearRenderedCellCache, getPortalContainerCacheSize, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
+  }), [
+    setHotColumnSettings,
+    trimColumnSettings,
+    getRendererWrapper,
+    clearRenderedCellCache,
+    getPortalContainerCacheSize,
+    setRenderersPortalManagerRef,
+    pushCellPortalsIntoPortalManager,
+  ]);
 
   return (
     <HotTableContext.Provider value={contextImpl}>{children}</HotTableContext.Provider>
@@ -245,7 +257,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 /**
  * Exposes the table context object to components
  *
- * @returns HotTableContext
+ * @returns {HotTableContextImpl} HotTableContext
  */
 function useHotTableContext(): HotTableContextImpl {
   return useContext(HotTableContext)!;

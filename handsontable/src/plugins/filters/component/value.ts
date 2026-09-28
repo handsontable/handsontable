@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, createArrayAssertion } from '../utils';
+import { unifyColumnValues, intersectValues, createArrayAssertion, isBlankFilterListValue } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -62,12 +62,6 @@ export class ValueComponent extends BaseComponent {
    * @type {string}
    */
   searchMode: unknown;
-  /**
-   * Callback that returns `true` when this menu item should be hidden.
-   *
-   * @type {function(): boolean | undefined}
-   */
-  hiddenWhen: (() => boolean) | undefined;
 
   /**
    * Initializes the value component with the given ID, display name, search mode, and optional visibility predicate.
@@ -78,17 +72,11 @@ export class ValueComponent extends BaseComponent {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
     this.searchMode = options.searchMode;
-    /**
-     * When set by the parent (Filters plugin), a callback that returns `true` when this menu item should be hidden
-     * (e.g. server-side filtering active). Used only in the menu descriptor so the item is hidden when the dropdown is shown.
-     *
-     * @type {function(): boolean | undefined}
-     */
-    this.hiddenWhen = options.hiddenWhen;
     this.elements.push(new MultipleSelectUI(hotInstance, {
       searchMode: this.searchMode
     }));
@@ -107,7 +95,8 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
     this.hot?.addHook('modifyFiltersMultiSelectValue',
-      (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
+      (value: string, meta: Record<string, unknown>, itemValue?: unknown) =>
+        this.#onModifyDisplayedValue(value, meta, itemValue));
   }
 
   /**
@@ -132,7 +121,7 @@ export class ValueComponent extends BaseComponent {
    * @param {object} value The component value.
    */
   setState(value?: {
-    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
+    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[];
   }) {
     if (value && value.command.key === CONDITION_BY_VALUE) {
       // The snapshot replaces the list, so only the surrounding UI is reset - rebuilding the list
@@ -148,7 +137,11 @@ export class ValueComponent extends BaseComponent {
       // `reset()` runs for a column carrying no condition, where an empty list means the opposite
       // and must not turn a column the user never filtered into one that hides every row.
       select.setCleared(Array.isArray(value.args[0]) && (value.args[0] as unknown[]).length === 0);
-      select.setLocale(value.locale);
+      // Read from the column, never from the restored state. `saveState()` REPLACES the entry
+      // `updateState()` wrote, so a locale carried in the state would have to be re-supplied by
+      // `getState()`, whose only source is the select this line just set - a loop that pins the
+      // column to whatever locale it had when the filter was first confirmed (DEV-2666).
+      this.#applyColumnLocale();
 
       return;
     }
@@ -176,6 +169,24 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
+   * Points the value list at the locale of the column whose menu is open, which is the only column
+   * this component ever displays.
+   *
+   * The list lowercases the search term and every listed value with it, so it has to track the
+   * column's current `locale` rather than one recorded earlier - `updateSettings({ locale })` does
+   * not reach the plugin (`locale` is not one of its `SETTING_KEYS`), so nothing would refresh a
+   * stored copy.
+   */
+  #applyColumnLocale() {
+    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
+
+    if (selectedColumn !== null) {
+      this.getMultipleSelectElement()
+        .setLocale(this.hot?.getCellMetaTransient(0, selectedColumn.visualIndex).locale as string);
+    }
+  }
+
+  /**
    * Update state of component.
    *
    * @param {object} stateInfo Information about state containing stack of edited column,
@@ -198,12 +209,6 @@ export class ValueComponent extends BaseComponent {
         const selectedArgs = firstByValueCondition.args[0] as unknown[];
         const { itemsSnapshot } = this.#buildItemsSnapshot(filteredRows, selectedArgs);
 
-        // Read from the column being refreshed, not from the edited one - this runs for the
-        // dependent column too. `getCellMetaTransient` takes VISUAL coordinates, while every column
-        // index in this file is physical.
-        const visualColumn = this.hot?.toVisualColumn(physicalColumn) ?? physicalColumn;
-
-        state.locale = this.hot?.getCellMetaTransient(0, visualColumn).locale;
         // The whole selection, minus the values that have left the column altogether, and copied so
         // the component state, `options.value` and the condition collection stop sharing one array.
         // `itemsSnapshot` already carries the checked flags for the visible values; the rest has to
@@ -335,7 +340,7 @@ export class ValueComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
                  prop: string | number, value: string) => {
         if (isHTMLElement(wrapper.parentNode)) {
@@ -386,13 +391,7 @@ export class ValueComponent extends BaseComponent {
     this.getMultipleSelectElement().setItems(items);
     super.reset();
     this.getMultipleSelectElement().setValue(values);
-
-    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-
-    if (selectedColumn !== null) {
-      this.getMultipleSelectElement()
-        .setLocale(this.hot?.getCellMetaTransient(0, selectedColumn.visualIndex).locale as string);
-    }
+    this.#applyColumnLocale();
   }
 
   /**
@@ -418,24 +417,43 @@ export class ValueComponent extends BaseComponent {
   /**
    * Trigger the `modifyFiltersMultiSelectValue` hook.
    *
+   * Passes the list item's source `value` as a third argument so
+   * `#onModifyDisplayedValue` can skip formatters on the empty bucket.
+   * App handlers that declare two parameters ignore it.
+   *
    * @param {object} item Item from the multiple select list.
    * @param {Map|null} metaMap Map of row meta objects, or `null` when the hook is not registered.
    */
   #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown> | null) {
     if (metaMap && this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
-        this.hot?.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
+        this.hot?.runHooks(
+          'modifyFiltersMultiSelectValue',
+          item.visualValue,
+          metaMap.get(item.value),
+          item.value
+        );
     }
   }
 
   /**
    * Modify the value displayed in the multiple select list.
    *
-   * @param {*} value Cell value.
+   * Returns early when `item.value === ''`. `toVisualValue` already replaced
+   * that bucket with the translated `(Blank cells)` label; running a
+   * `valueFormatter` would hash it (password) or turn it into `#bad-value#`
+   * (date/time).
+   *
+   * @param {*} value The list label (`visualValue`).
    * @param {object} meta The cell meta object.
+   * @param {*} [itemValue] The list item's source `value` (not `visualValue`).
    * @returns {*} Returns the modified value.
    */
-  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>) {
+  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>, itemValue?: unknown) {
+    if (isBlankFilterListValue(itemValue)) {
+      return value;
+    }
+
     if (meta.valueFormatter) {
       return (meta.valueFormatter as (value: unknown, meta: Record<string, unknown>) => unknown)(value, meta);
     }

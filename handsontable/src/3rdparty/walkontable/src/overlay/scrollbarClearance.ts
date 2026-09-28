@@ -145,11 +145,11 @@ export function canGrabScrollbar(rootWindow: Window): boolean {
 }
 
 /**
- * Whether this overlay's grid owns the scrollbars a clearance strip would be kept clear for.
+ * Whether the holder owns the scrollbar a clearance strip would be kept clear for.
  *
- * Two conditions, and both are about the grid rather than the axis: the holder has to be the scrollport
- * (under window trimming the scrollbars belong to the window, nowhere near these overlays), and some
- * pointer has to be able to reach a thumb (see `canGrabScrollbar`).
+ * Two conditions: the holder has to scroll the axis that scrollbar belongs to (when the window owns
+ * the axis its scrollbar sits outside the grid's box, nowhere near these overlays), and some pointer
+ * has to be able to reach a thumb (see `canGrabScrollbar`).
  *
  * One function because all four overlays have to answer it the same way. They did not: the frozen
  * bottom rows required the holder to be the scrollport, the frozen top rows and columns accepted any
@@ -157,15 +157,23 @@ export function canGrabScrollbar(rootWindow: Window): boolean {
  * half-covered - the corner clipped out of a strip the frozen rows beside it still painted into, which
  * reads as a notch along the bottom edge (#10370).
  *
- * @param {HTMLElement | Window} trimmingContainer The overlay's trimming container.
+ * **Ask about the axis the strip lies on, not about the overlay asking.** The two axes have separate
+ * owners, so a grid can own one and leave the other to the page. Pass
+ * `isVerticallyScrollableByWindow()` for a strip along the inline-end edge (where the vertical
+ * scrollbar is painted) and `isHorizontallyScrollableByWindow()` for one along the bottom edge. The
+ * bottom strip was gated on the vertical owner at first, which re-created the #10370 notch in the
+ * split mode: the frozen columns clipped a bottom strip while the frozen bottom rows and the corner
+ * beside them published none.
+ *
+ * @param {boolean} axisOwnedByWindow Whether the window owns the axis the strip lies on.
  * @param {Window} rootWindow The window the grid lives in.
  * @returns {boolean}
  */
-export function holderOwnsScrollbars(
-  trimmingContainer: HTMLElement | Window,
+export function holderOwnsAxisScrollbar(
+  axisOwnedByWindow: boolean,
   rootWindow: Window
 ): boolean {
-  return trimmingContainer !== rootWindow && canGrabScrollbar(rootWindow);
+  return !axisOwnedByWindow && canGrabScrollbar(rootWindow);
 }
 
 /**

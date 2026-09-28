@@ -310,6 +310,30 @@ describe('AutoRowHeaderSize', () => {
 
       hot.destroy();
     });
+
+    it('should keep the sampling settings when an update does not mention this plugin', () => {
+      const { hot, labelSpy } = buildRepeatedLabelGrid({
+        autoRowHeaderSize: { allowSampleDuplicates: true, samplingRatio: 5 },
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      // A payload with no `autoRowHeaderSize` key. `SETTING_KEYS` is `true`, so it still reaches
+      // `updatePlugin()` - and `BasePlugin` has by then fed the missing key in as `undefined`,
+      // wiping the stored settings. Without the restore, the re-enable reads the defaults, so
+      // duplicates stop being sampled and this measures 1 label instead of 5.
+      hot.updateSettings({ colHeaders: true });
+
+      expect(plugin.getSetting('allowSampleDuplicates')).toBe(true);
+      expect(plugin.getSetting('samplingRatio')).toBe(5);
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      expect(renderedCount(labelSpy as never, 20)).toBe(5);
+
+      hot.destroy();
+    });
   });
   describe('multiple row header levels', () => {
     /**

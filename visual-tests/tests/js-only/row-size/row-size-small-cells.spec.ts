@@ -1,9 +1,15 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that the rows of the row-size demo keep their heights, with small cells, after the grid is
+ * scrolled 500 px down with the mouse wheel. Owned by DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/row-size-demo')
@@ -26,6 +32,7 @@ test(__filename, async({ goto, tablePage }) => {
 
   await tablePage.mouse.wheel(0, 500);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(500);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });

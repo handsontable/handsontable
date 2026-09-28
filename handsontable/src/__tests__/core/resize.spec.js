@@ -72,7 +72,7 @@ describe('Core resize', () => {
 
     expect(getInlineStartClone().height()).toBe(200);
     expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
 
@@ -80,7 +80,7 @@ describe('Core resize', () => {
 
     expect(getMaster().height()).toBe(200);
     expect(getInlineStartClone().height()).toBe(200);
-    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
   });

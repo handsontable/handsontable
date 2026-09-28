@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Column autosize refill</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const LONG_TEXT = 'This is a really long sentence that will hopefully wrap in the cell. Isnt it amazing how long it is?';
+    const data = Handsontable.helper.createSpreadsheetData(2000, 200);
+
+    for (let row = 1; row <= 40; row++) {
+      data[row][2] = LONG_TEXT;
+    }
+
+    const hot = new Handsontable(document.getElementById('hot'), {
+      data,
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1800,
+      height: 600,
+      colWidths: 25,
+      manualColumnResize: true,
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.__hot = hot;
+  </script>
+</body>
+</html>

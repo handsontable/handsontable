@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the "hiding plugins receive an array `className`" fixture
@@ -50,6 +51,13 @@ export class HidingArrayClassNamePage {
     await this.page.goto(
       `/tests/fixtures/demo/hiding-array-classname.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+
+    // Wait for the bundle before reading anything the page script produced. `dist/handsontable.js`
+    // is ~6 MB and every worker pulls its own copy, so under load `goto()` resolves while
+    // `Handsontable` is still undefined - and `data-init-error` would then read as "no error"
+    // simply because the script had not run. `expect` is the wrong tool here: its 10s timeout is
+    // shorter than a cold server takes, while `waitForFunction` polls against the test budget.
+    await awaitBundle(this.page);
 
     const gridIds = HidingArrayClassNamePage.ALL_GRIDS;
 

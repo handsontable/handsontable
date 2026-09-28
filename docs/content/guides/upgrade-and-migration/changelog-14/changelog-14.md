@@ -62,7 +62,7 @@ For more information about this release see:
 
 #### Added
 - Fix aria-label, aria-checked and menuitemcheckbox roles for the readOnly and alignment contextMenu items [#11091](https://github.com/handsontable/handsontable/pull/11091)
-- Extended the `beforeFilter` hook with a second argument to allow correct Undo/Redo functionality. [#11170](https://github.com/handsontable/handsontable/pull/11170)
+- Extended the [`beforeFilter`](@/api/hooks.md#beforefilter) hook with a second argument to allow correct Undo/Redo functionality. [#11170](https://github.com/handsontable/handsontable/pull/11170)
 - Added even and odd class names to the TR elements. [#11183](https://github.com/handsontable/handsontable/pull/11183)
 - Added new API to retrieve visible, partially visible and rendered row and columns indexes. [#11189](https://github.com/handsontable/handsontable/pull/11189)
 
@@ -105,7 +105,7 @@ For more information about this release see:
 - Added support for other keyboard layouts besides QWERTY (e.g. AZERTY). [#11027](https://github.com/handsontable/handsontable/pull/11027)
 - Added missing "this" typing for the ColumnSummary plugin. [#11036](https://github.com/handsontable/handsontable/pull/11036)
 - Added Undo/Redo logic for the ColumnSorting/ManualColumnSorting plugins. [#11037](https://github.com/handsontable/handsontable/pull/11037)
-- Added new option `headerClassName`, which allows adding custom CSS classes to the column headers. [#11076](https://github.com/handsontable/handsontable/pull/11076)
+- Added new option [`headerClassName`](@/api/options.md#headerclassname), which allows adding custom CSS classes to the column headers. [#11076](https://github.com/handsontable/handsontable/pull/11076)
 
 #### Changed
 - Improved the precision of calculating the height and width of columns and rows. [#11049](https://github.com/handsontable/handsontable/pull/11049)
@@ -138,9 +138,9 @@ For more information on this release, see:
 </div>
 
 #### Added
-- Extended the `manualRowResize` plugin with a method to retrieve the row height value from the last manual adjustment attempt. [#10941](https://github.com/handsontable/handsontable/pull/10941)
+- Extended the [`ManualRowResize`](@/api/manualRowResize.md) plugin with a method to retrieve the row height value from the last manual adjustment attempt. [#10941](https://github.com/handsontable/handsontable/pull/10941)
 - Added an option to change the order of hook callbacks. [#10970](https://github.com/handsontable/handsontable/pull/10970)
-- Added new `dataDotNotation` option which, when set as `false` allows using object keys with dots. [#10973](https://github.com/handsontable/handsontable/pull/10973)
+- Added new [`dataDotNotation`](@/api/options.md#datadotnotation) option which, when set as `false` allows using object keys with dots. [#10973](https://github.com/handsontable/handsontable/pull/10973)
 
 #### Changed
 - Improved editor behavior after dataset alterations. [#10963](https://github.com/handsontable/handsontable/pull/10963)

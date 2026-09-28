@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed frozen columns painting under the scrollable table after a CSS rotate transform.",
+  "type": "fixed",
+  "issueOrPR": 13369,
+  "breaking": false,
+  "framework": "none"
+}

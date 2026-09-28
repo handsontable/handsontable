@@ -89,13 +89,26 @@ export function isCoverage({ status, path }) {
 }
 
 /**
+ * Is this path a spec of the frozen Jasmine suite (`*.spec.js` under a Jasmine
+ * tree), whatever its git status? Status-independent so the advisory warnings
+ * (lib/presence-warnings.mjs) can reason about *modified* frozen specs, which
+ * the gate itself accepts as coverage.
+ *
+ * @param {string} p Repo-relative path.
+ * @returns {boolean} True for a `*.spec.js` inside one of the frozen trees.
+ */
+export function isFrozenJasmineSpec(p) {
+  return JASMINE_SPEC.test(p) && JASMINE_TREE.some(r => r.test(p));
+}
+
+/**
  * Is this a newly added Jasmine spec — the frozen-set violation?
  *
  * @param {{status: string, path: string}} change A parsed diff entry.
  * @returns {boolean} True for an added `*.spec.js` under a Jasmine tree.
  */
 export function isNewJasmineSpec({ status, path }) {
-  return status === 'A' && JASMINE_SPEC.test(path) && JASMINE_TREE.some(r => r.test(path));
+  return status === 'A' && isFrozenJasmineSpec(path);
 }
 
 /**
