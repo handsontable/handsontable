@@ -20,6 +20,7 @@ import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -162,6 +163,17 @@ class DataMap {
     } else {
       this.recursiveDuckColumns(schema);
     }
+  }
+
+  /**
+   * Checks whether a `null` property names no column. `null` is a real property only for a column
+   * declared `{ data: null }`, which reads and writes through a `"null"` key as it always has.
+   *
+   * @param {*} prop The column property.
+   * @returns {boolean}
+   */
+  #namesNoColumn(prop: unknown): boolean {
+    return prop === null && !this.propToColCache!.has(null as unknown as string);
   }
 
   /**
@@ -899,8 +911,9 @@ class DataMap {
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
-    if (dataRow && prop !== null && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      value = dataRow[prop];
+    if (dataRow && !this.#namesNoColumn(prop) && typeof prop !== 'function' &&
+        hasOwnProperty(dataRow, prop as string | number)) {
+      value = dataRow[prop as string | number];
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -998,7 +1011,7 @@ class DataMap {
    */
   set(row: number, prop: string | number | DataAccessorFn | null, value: unknown) {
     // No column, nothing to write. Falling through would add a literal `"null"` key to the row.
-    if (prop === null) {
+    if (this.#namesNoColumn(prop)) {
       return;
     }
 
@@ -1024,8 +1037,8 @@ class DataMap {
     const { dataDotNotation } = this.hot!.getSettings();
 
     // try to set value under property `prop` (includes dot)
-    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      dataRow[prop] = newValue;
+    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop as string | number)) {
+      dataRow[prop as string | number] = newValue;
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -1061,7 +1074,8 @@ class DataMap {
         return;
       }
 
-      dataRow[prop] = newValue;
+      // An unbound column (`{ data: null }`) stores its value under a `"null"` key.
+      dataRow[prop as string | number] = newValue;
     }
   }
 
@@ -1216,7 +1230,8 @@ class DataMap {
         if (physicalRow === null) {
           break;
         }
-        row.push(getFn.call(this, r, this.colToProp(c)));
+        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
       }
       if (physicalRow !== null) {
         output.push(row);

@@ -53,7 +53,8 @@ function collectAccessorColumns(hot: HotInstance): Array<[number, DataAccessorFn
   for (let visualColumn = 0; visualColumn < hot.countCols(); visualColumn++) {
     // `colToProp` is declared as `string | number | null` but hands back the `columns[].data`
     // accessor as-is, so read it as `unknown` and narrow it here. The loop is bounded by
-    // `countCols()`, so every index resolves and the `null` case cannot arise.
+    // `countCols()`, so `null` only comes back for an unbound column (`{ data: null }`), which is
+    // not an accessor and is skipped.
     const prop: unknown = hot.colToProp(visualColumn);
 
     if (isDataAccessorFn(prop)) {

@@ -362,7 +362,9 @@ export function filterChangesForBatchedServerUpdate(
   }
 
   return real.filter((c) => {
-    const col = hot.propToCol(c[1]);
+    // A write past the last column still lands locally (deprecated, skipped from 20.0.0 on), so it
+    // keeps its index and reaches the server too, as it did before `propToCol()` could answer `null`.
+    const col = hot.propToCol(c[1]) ?? (typeof c[1] === 'number' ? c[1] : null);
 
     if (col === null || col === undefined || col < 0) {
       return false;

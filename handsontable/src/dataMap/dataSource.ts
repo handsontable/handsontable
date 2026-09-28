@@ -10,6 +10,7 @@ import { cloneRow, countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /**
  * A `columns[].data` accessor: called with the row object only to read, and with the row object
@@ -69,6 +70,14 @@ class DataSource {
    * Returns the number of columns derived from the data source cache; injected externally when object-based data is used.
    */
   countCachedColumns?: () => number;
+  /**
+   * Resolves a column through this source's own `colToProp` for `colToPropOrIndex()`, so the
+   * injected translator stays the one in use. Built once, as it runs for every cell of a range.
+   */
+  #columnResolver = {
+    colToProp: (column: number) => this.colToProp(column) as string | number | DataAccessorFn | null,
+    toPhysicalColumn: (column: number) => this.hot!.toPhysicalColumn(column),
+  };
 
   /**
    * Initializes the data source with a reference to the Handsontable instance and the raw data array.
@@ -195,14 +204,12 @@ class DataSource {
         const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
-          const prop = this.colToProp(column);
-          // Only a column with a real property name is read. `null` means the index names no
-          // column — the `columns` option filtered it out — and used to arrive here as the index
-          // itself, which the integer test below rejected. Dropping the `null` check would start
-          // including exactly the columns this branch exists to skip.
-          const hasNamedProperty = prop !== null && !Number.isInteger(prop);
+          // An index that names no column comes back as the index, which the integer test below
+          // rejects. An unbound column (`{ data: null }`) keeps its `null` property, so it keeps its
+          // slot and the columns after it stay in place.
+          const prop = colToPropOrIndex(this.#columnResolver, column);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && hasNamedProperty) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {
@@ -361,19 +368,11 @@ class DataSource {
    */
   getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
-    let prop: unknown = columnOrProp;
-
-    if (typeof columnOrProp !== 'function') {
-      prop = this.colToProp(columnOrProp);
-
-      // An index that names no column falls back to the index, so a source read past
-      // `countCols()` reaches the stored value as it did before, and `modifySourceData` keeps
-      // receiving a column address rather than `null`. A column that exists but is unbound
-      // (`{ data: null }`) keeps its `null` property — the index would name a neighbour's field.
-      if (prop === null && this.hot!.toPhysicalColumn(columnOrProp as number) === null) {
-        prop = columnOrProp;
-      }
-    }
+    // An index that names no column falls back to the index, so a source read past `countCols()`
+    // reaches the stored value as it did before, and `modifySourceData` keeps receiving a column
+    // address rather than `null`.
+    const prop = typeof columnOrProp === 'function' ?
+      columnOrProp : colToPropOrIndex(this.#columnResolver, columnOrProp as number);
 
     return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }

@@ -3267,9 +3267,12 @@ export class Formulas extends BasePlugin {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
         }
-        const visualColumn = this.hot.propToCol(prop);
+        // This hook runs before the change is applied, so a write past the last column on array
+        // data addresses a column that does not exist yet. Its index is kept, as in `dataChange.ts`,
+        // so the value still reaches the engine through the out-of-bounds path below.
+        const visualColumn = this.hot.propToCol(prop) ?? (typeof prop === 'number' ? prop : null);
 
-        // A change addressed at no existing column has no engine address to sync.
+        // A property that names no column has no engine address to sync.
         if (visualColumn === null) {
           return;
         }
