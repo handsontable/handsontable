@@ -193,12 +193,15 @@ export class DataChangeAction extends BaseAction {
    * `setDataAtCell()` rejects by throwing. Replayed through the grid, the first fires no `afterChange`,
    * so the action never settles and the stack stops recording. `colToProp()` cannot stand in for the
    * recorded prop: after the `columns` option narrowed, it hands back the index itself, and the write
-   * would then add the positional key #5409 is about. An action with no recorded prop drops the change.
+   * would then add the positional key #5409 is about. The same holds for a trimmed row, which is
+   * written to the source data too. A row that no longer exists cannot be written there, so such a
+   * change is replayed by prop through `setDataAtRowProp()` instead, which re-creates it. An action
+   * with no recorded prop drops the change.
    *
    * @param {Core} hot The Handsontable instance.
    * @param {number} valueIndex Index of the value to replay within a change entry - `2` for the old
    *   value (undo), `3` for the new one (redo).
-   * @returns {{gridChanges: Array, sourceChanges: Array}}
+   * @returns {{gridChanges: Array, sourceChanges: Array, propChanges: Array}}
    */
   #collectWrites(hot: HotInstance, valueIndex: number) {
     // Cloned for the reason the whole change set used to be: a replayed object value has to be a
@@ -206,6 +209,7 @@ export class DataChangeAction extends BaseAction {
     const data = deepClone(this.changes) as unknown[][];
     const gridChanges: unknown[][] = [];
     const sourceChanges: unknown[][] = [];
+    const propChanges: unknown[][] = [];
     const isAddressable = (visualColumn: unknown) => Number.isInteger(visualColumn) &&
       !isSkippedPastLastColumn(hot.dataType, hot.countCols(), visualColumn as number);
     // `dataSource.setAtCell()` reads a number as a column index and drops it past the first row's
@@ -241,6 +245,9 @@ export class DataChangeAction extends BaseAction {
 
           } else if (targetRow !== null) {
             writeToSource(targetRow, index, value);
+
+          } else if (this.props?.[index] !== undefined) {
+            propChanges.push([change[0], this.props[index], value]);
           }
         }
 
@@ -250,7 +257,12 @@ export class DataChangeAction extends BaseAction {
       const visualRow = hot.toVisualRow(physicalRow) as number | null;
 
       if (visualRow === null) {
-        sourceChanges.push([physicalRow, hot.colToProp(visualColumn), value]);
+        if (this.props?.[index] === undefined) {
+          sourceChanges.push([physicalRow, hot.colToProp(visualColumn), value]);
+
+        } else {
+          writeToSource(physicalRow, index, value);
+        }
 
         return;
       }
@@ -263,7 +275,7 @@ export class DataChangeAction extends BaseAction {
       }
     });
 
-    return { gridChanges, sourceChanges };
+    return { gridChanges, sourceChanges, propChanges };
   }
 
   /**
@@ -318,17 +330,32 @@ export class DataChangeAction extends BaseAction {
    * @param {Core} hot The Handsontable instance.
    * @param {Array} gridChanges Changes to write through the grid, as `[visualRow, visualColumn, value]`.
    * @param {Array} sourceChanges Changes to write to the source data, as `[physicalRow, prop, value]`.
+   * @param {Array} propChanges Changes to write by prop to rows that do not exist, as `[visualRow, prop, value]`.
    * @param {string} source The source string the writes carry.
    * @param {function(): void} settle Runs once the replay has landed.
    */
   #replay(
-    hot: HotInstance, gridChanges: unknown[][], sourceChanges: unknown[][], source: string, settle: () => void
+    hot: HotInstance, gridChanges: unknown[][], sourceChanges: unknown[][], propChanges: unknown[][],
+    source: string, settle: () => void
   ) {
+    let isFinished = false;
     const finish = () => {
+      // `setDataAtRowProp()` below fires `afterChange` while this listener is still armed - a hook
+      // added once is removed only after it runs - so the nested call must find it spent.
+      if (isFinished) {
+        return;
+      }
+
+      isFinished = true;
+
       // Before `settle()`, never after: the undo's tail removes the rows this change appended, and
       // these writes address rows by a physical index taken before that removal.
       if (sourceChanges.length > 0) {
         hot.setSourceDataAtCell(sourceChanges, undefined, undefined, source);
+      }
+
+      if (propChanges.length > 0) {
+        hot.setDataAtRowProp(propChanges as [number, string, unknown][], source);
       }
 
       settle();
@@ -358,9 +385,9 @@ export class DataChangeAction extends BaseAction {
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
   undo(hot: HotInstance, undoneCallback: HookCallback) {
-    const { gridChanges, sourceChanges } = this.#collectWrites(hot, 2);
+    const { gridChanges, sourceChanges, propChanges } = this.#collectWrites(hot, 2);
 
-    this.#replay(hot, gridChanges, sourceChanges, 'UndoRedo.undo', () => {
+    this.#replay(hot, gridChanges, sourceChanges, propChanges, 'UndoRedo.undo', () => {
       // Rows the change grew the dataset by - a write past the last row creates the rows it needs,
       // and filling the last spare row makes `minSpareRows` top them up again. They are the trailing
       // *source* rows, not a count of visible ones: `countRows()` counts only what a filter or a trim
@@ -400,9 +427,9 @@ export class DataChangeAction extends BaseAction {
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
   redo(hot: HotInstance, redoneCallback: HookCallback) {
-    const { gridChanges, sourceChanges } = this.#collectWrites(hot, 3);
+    const { gridChanges, sourceChanges, propChanges } = this.#collectWrites(hot, 3);
 
-    this.#replay(hot, gridChanges, sourceChanges, 'UndoRedo.redo', () => {
+    this.#replay(hot, gridChanges, sourceChanges, propChanges, 'UndoRedo.redo', () => {
       // The redo write carries the `UndoRedo.redo` source, so the MergeCells plugin's own paste
       // path does not run - the merges it dropped have to be dropped again from here.
       unmergeCellsGeometryOnly(hot, this.mergedCells);

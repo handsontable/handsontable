@@ -484,5 +484,77 @@ describe('UndoRedo -> DataChange action', () => {
 
       expect(data[0].name).toBe('Ted Right');
     });
+
+    it('should redo a write past the last row and column, re-creating its rows', () => {
+      const data = [{ id: 1, name: 'Ted Right' }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataSchema: { id: null, name: null },
+        undo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      hot.setDataAtRowProp(2, 5, 'x');
+      undoRedo.undo();
+      undoRedo.redo();
+
+      // The undo removed the rows, so the redo has no physical row to write the source data at.
+      expect(hot.countSourceRows()).toBe(3);
+      expect(data[2][5]).toBe('x');
+
+      undoRedo.undo();
+
+      expect(hot.countSourceRows()).toBe(1);
+    });
+
+    it('should redo a change set that writes both through the grid and by prop exactly once', () => {
+      const data = [{ id: 1, name: 'Ted Right' }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataSchema: { id: null, name: null },
+        undo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+      const afterChange = jest.fn();
+
+      hot.setDataAtRowProp([[0, 'name', 'Frank Honest'], [2, 5, 'x']]);
+      undoRedo.undo();
+      hot.addHook('afterChange', afterChange);
+      undoRedo.redo();
+
+      // The by-prop write runs inside the settle callback, which the grid write's `afterChange`
+      // fires. Its own `afterChange` must not run the settle callback a second time.
+      expect(afterChange).toHaveBeenCalledTimes(2);
+      expect(data[0].name).toBe('Frank Honest');
+      expect(data[2][5]).toBe('x');
+    });
+
+    it('should restore a trimmed row by its recorded field after the `columns` option narrowed', () => {
+      const data = [
+        { id: 1, name: 'Ted Right', address: 'Main St' },
+        { id: 2, name: 'Frank Honest', address: 'Elm St' },
+      ];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        trimRows: true,
+        undo: true,
+      });
+
+      hot.setDataAtCell(1, 2, 'Oak St');
+      hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
+      hot.getPlugin('trimRows').trimRows([1]);
+      hot.getPlugin('undoRedo').undo();
+
+      // A trimmed row is written to the source data. `colToProp(2)` now answers `2` there too.
+      expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
+    });
   });
 });

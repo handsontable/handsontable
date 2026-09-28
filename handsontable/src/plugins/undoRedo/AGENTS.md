@@ -305,7 +305,14 @@ sends both to `setSourceDataAtCell()` instead. Two rules come with it.
   `props` array beside `physicalRows`, read before `changes` has its props turned into columns. After the
   `columns` option narrowed, `colToProp(2)` answers `2`, and a write keyed on it adds the positional key
   #5409 is about. A numeric prop goes as a string, because `dataSource.setAtCell()` reads a number as a
-  column index and drops it past the first row's keys. An action with no recorded prop drops the change.
+  column index and drops it past the first row's keys. The trimmed-row path writes by it too. An action
+  with no recorded prop drops the change.
+- **A row that no longer exists goes by prop through `setDataAtRowProp()`,** because the source data
+  cannot create a row and a grid write can. That call runs inside the settle callback, which is armed
+  with `addHookOnce('afterChange')` - and a once-hook is removed only **after** it runs, so the nested
+  call's own `afterChange` reaches the same callback. `#replay()` therefore guards it with `isFinished`.
+  Without the guard, a redo that writes both through the grid and by prop recurses until the stack
+  overflows (pinned in `dataChange.unit.js`).
 
 ## `CellAlignmentAction` restores an ABSENT value as absent
 
