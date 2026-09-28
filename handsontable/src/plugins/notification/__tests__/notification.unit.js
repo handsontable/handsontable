@@ -1,12 +1,12 @@
 import { Notification } from '../notification';
 import { NotificationUI } from '../ui';
 import { NOTIFICATION_CLASS_NAME } from '../constants';
-import { createIcon } from '../../../themes/engine/icons';
+import { syncIcon } from '../../../themes/engine/icons';
 
-// No `themeManager` on the stub `hot` - `createIcon()` falls back to plain glyph classes, exactly
+// No `themeManager` on the stub `hot` - `syncIcon()` falls back to plain glyph classes, exactly
 // like a grid built without a `theme` config object (the common case).
-const stubCreateIcon = (name, options) =>
-  createIcon({ rootDocument: document, themeManager: undefined }, name, options);
+const stubSyncIcon = (container, slotClass, name, options) =>
+  syncIcon({ rootDocument: document, themeManager: undefined }, container, slotClass, name, options);
 
 describe('NotificationUI.setSequentialFocusWithinHost', () => {
   it('should toggle tabIndex on toast buttons', () => {
@@ -75,7 +75,7 @@ describe('NotificationUI icon rendering', () => {
     sanitizer: false,
     warnScope: document.createElement('div'),
     isRtl: false,
-    createIcon: stubCreateIcon,
+    syncIcon: stubSyncIcon,
   });
 
   afterEach(() => {

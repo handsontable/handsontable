@@ -105,6 +105,36 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(icon).toHaveCSS('z-index', '1');
     });
 
+    // In 18.1 a label-less input was the cell's only child, so it matched both `:first-child` and
+    // `:last-child` and got a gap on each side. With the icon after it, neither old rule matched,
+    // and every plain checkbox moved toward the start of its cell by `--ht-gap-size` (PR #13639
+    // review).
+    test('a checkbox without a label keeps its 18.1 gap on both sides', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const geometry = await page.locator('.ht_master td').first().evaluate((td) => {
+        const input = td.querySelector('input.htCheckboxRendererInput')!;
+        const icon = td.querySelector('.ht-icon.ht-icon-checkbox')!;
+        const inputStyle = getComputedStyle(input);
+        const tdStyle = getComputedStyle(td);
+        const contentLeft = td.getBoundingClientRect().left + parseFloat(tdStyle.borderLeftWidth) +
+          parseFloat(tdStyle.paddingLeft);
+
+        return {
+          gap: parseFloat(inputStyle.getPropertyValue('--ht-gap-size')),
+          // `margin-top: -2px` does not affect the horizontal offset read here.
+          startOffset: input.getBoundingClientRect().left - contentLeft,
+          iconEndMargin: parseFloat(getComputedStyle(icon).marginRight),
+        };
+      });
+
+      expect(geometry.gap).toBeGreaterThan(0);
+      expect(geometry.startOffset).toBeCloseTo(geometry.gap, 0);
+      expect(geometry.iconEndMargin).toBeCloseTo(geometry.gap, 0);
+    });
+
     test('a click on the checkbox without a label toggles the underlying value', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -633,6 +663,45 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(secondRadio).toBeChecked();
     });
 
+    // The dot used to be pulled back onto the ring by a negative margin of its own width plus
+    // `--ht-gap-size`, so it landed on the ring only while the row's `gap` was that variable. A radio
+    // cell built from the 18.1 recipe (`gap: 8px`) put the dot off the ring (PR #13639 review).
+    test('the radio dot stays centred on its ring whatever gap the row uses', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const menu = await openFiltersMenu(page);
+
+      await menu.locator('.htFiltersMenuCondition .htUISelectCaption').first().click();
+
+      const conditionsMenu = page.locator('.htFiltersConditionsMenu:visible');
+
+      await conditionsMenu.locator('td', { hasText: /^Is equal to$/ }).click();
+      await expect(conditionsMenu).toBeHidden();
+
+      const row = menu.locator('.htFiltersMenuOperators .htUIRadio').first();
+
+      await expect(row.locator('input[type="radio"]')).toBeVisible();
+
+      for (const gap of ['', '8px', '20px']) {
+        const offset = await row.evaluate((element, rowGap) => {
+          (element as HTMLElement).style.gap = rowGap;
+
+          const input = element.querySelector('input[type="radio"]')!.getBoundingClientRect();
+          const dot = element.querySelector('.ht-icon.ht-icon-radio')!.getBoundingClientRect();
+
+          return {
+            x: (dot.left + dot.width / 2) - (input.left + input.width / 2),
+            y: (dot.top + dot.height / 2) - (input.top + input.height / 2),
+          };
+        }, gap);
+
+        expect(Math.abs(offset.x), `horizontal offset with gap "${gap}"`).toBeLessThan(1);
+        expect(Math.abs(offset.y), `vertical offset with gap "${gap}"`).toBeLessThan(1);
+      }
+    });
+
     test('the "Filter by value" list shows one checkbox icon per row and stays clickable', async({
       page, theme, bundle,
     }) => {
@@ -669,6 +738,39 @@ test.describe('Icon elements (DEV-3003)', () => {
       await rows.first().locator('label.htCheckboxRendererLabel').click();
 
       await expect(firstInput).toBeChecked({ checked: !wasChecked });
+    });
+
+    // The list is a nested Handsontable instance, and only a root instance gets a ThemeManager, so
+    // its ticks used to ignore the grid's class-list mapping and take the plain-glyph fallback
+    // (PR #13639 review). It draws its icons with the root's theme now.
+    test('the "Filter by value" ticks follow a class-list mapping of the grid\'s theme', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler' });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler')
+          .params({ icons: { checkbox: 'ti ti-check' } });
+      });
+
+      const menu = await openFiltersMenu(page);
+
+      await menu.locator('.htFiltersMenuLabel', { hasText: 'Filter by value' }).click();
+
+      const ticks = menu.locator('.htUIMultipleSelectHot .htCore tbody tr .ht-icon.ht-icon-checkbox');
+
+      await expect(ticks.first()).toBeVisible();
+
+      const tickCount = await ticks.count();
+
+      expect(tickCount).toBeGreaterThan(0);
+
+      for (let i = 0; i < tickCount; i++) {
+        await expect(ticks.nth(i)).toHaveClass(/ht-icon--external/);
+        await expect(ticks.nth(i)).toHaveClass(/ti-check/);
+      }
     });
   });
 
@@ -956,6 +1058,72 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(grid.icon('menu-list', allButton)).toHaveCount(1);
       await expect(grid.icon('select-arrow', activeChevron)).toHaveCount(1);
     });
+
+    // `afterSetTheme` also fires for a color-scheme or density switch. The bar used to answer it
+    // with a full tab-strip `render()`, which cancels an open rename, so a user typing a sheet name
+    // lost it when the app toggled dark mode (PR #13639 review).
+    test('a color-scheme switch keeps an open tab rename and the text typed into it', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      // The Tabler branch is the one that builds a ThemeManager, and only a ThemeManager fires
+      // `afterSetTheme` for a `colorScheme` change.
+      await grid.goto({ icons: 'tabler', sheetsBar: true });
+
+      const renameInput = page.locator('.ht-sheets-bar__tab-rename');
+
+      await page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-label').dblclick();
+      await renameInput.fill('Draft');
+
+      const afterSetThemeCalls = await page.evaluate(() => {
+        const hot = (window as unknown as { hot: any }).hot;
+        let calls = 0;
+
+        hot.addHook('afterSetTheme', () => {
+          calls += 1;
+        });
+        hot.updateSettings({ colorScheme: 'dark' });
+
+        return calls;
+      });
+
+      // Precondition: the hook the bar listens to really ran, or this test proves nothing.
+      expect(afterSetThemeCalls).toBeGreaterThan(0);
+      await expect(renameInput).toBeVisible();
+      await expect(renameInput).toHaveJSProperty('value', 'Draft');
+
+      await renameInput.press('Enter');
+
+      await expect(page.locator('.ht-sheets-bar__tab-label', { hasText: 'Draft' })).toHaveCount(1);
+    });
+
+    test('a runtime icons remap reaches the bar buttons and the tab chevrons in place', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', sheetsBar: true });
+
+      const addIcon = page.locator('.ht-sheets-bar__add .ht-icon');
+      const chevronIcon = page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron .ht-icon');
+
+      // Mark the elements, so the assertions below can tell a refresh in place from a rebuild.
+      await addIcon.evaluate((el) => { el.dataset.marker = 'kept'; });
+      await chevronIcon.evaluate((el) => { el.dataset.marker = 'kept'; });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler')
+          .params({ icons: { plus: 'ti ti-plus', selectArrow: 'ti ti-chevron-down' } });
+      });
+
+      await expect(addIcon).toHaveCount(1);
+      await expect(addIcon).toHaveClass(/ti-plus/);
+      await expect(addIcon).toHaveAttribute('data-marker', 'kept');
+      await expect(chevronIcon).toHaveCount(1);
+      await expect(chevronIcon).toHaveClass(/ti-chevron-down/);
+      await expect(chevronIcon).toHaveAttribute('data-marker', 'kept');
+    });
   });
 
   test.describe('collapsible nested-header indicator', () => {
@@ -1012,7 +1180,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       await grid.goto({ nestedHeaders: true });
 
       // `#onAfterGetColHeader` fires per header, per draw - forcing several renders proves the
-      // append-after-`fastInnerText` pattern never stacks a second icon (DEV-3003).
+      // indicator never stacks a second icon (DEV-3003).
       await page.evaluate(() => {
         const hot = (window as unknown as { hot: any }).hot;
 
@@ -1022,6 +1190,35 @@ test.describe('Icon elements (DEV-3003)', () => {
       });
 
       await expect(masterIndicator(page).locator('.ht-icon')).toHaveCount(1);
+      await expect(grid.icon('collapse-off', masterIndicator(page))).toHaveCount(1);
+    });
+
+    // The indicator used to be emptied and rebuilt on every draw - a new text node, a new `<i>`,
+    // and a fresh run of any icon renderer callback, for every collapsible header on every scroll
+    // frame (PR #13639 review). A draw with no state change must keep both nodes.
+    test('a draw with no state change keeps the indicator\'s icon and text nodes', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ nestedHeaders: true });
+
+      const kept = await page.evaluate(() => {
+        const hot = (window as unknown as { hot: any }).hot;
+        const indicator = document.querySelector('.ht_master .collapsibleIndicator')!;
+        const icon = indicator.querySelector('.ht-icon');
+        const text = indicator.firstChild;
+
+        for (let i = 0; i < 3; i++) {
+          hot.render();
+        }
+
+        return {
+          sameIcon: indicator.querySelector('.ht-icon') === icon,
+          sameText: indicator.firstChild === text,
+          text: indicator.firstChild?.textContent,
+        };
+      });
+
+      expect(kept).toEqual({ sameIcon: true, sameText: true, text: '-' });
       await expect(grid.icon('collapse-off', masterIndicator(page))).toHaveCount(1);
     });
 
@@ -1195,6 +1392,35 @@ test.describe('Icon elements (DEV-3003)', () => {
           .length);
 
       expect(oversized).toBe(0);
+    });
+
+    // The bottom-row gate exists for NestedHeaders, which strips the markers from upper levels.
+    // Without it nothing strips them, and in 18.1 `th.beforeHiddenColumn::after` painted on every
+    // header row - so a multi-row header built through `afterGetColumnHeaderRenderers` must keep
+    // its carets on every row (PR #13639 review).
+    test('without nested headers, every header row carries its caret', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ hiddenColumns: true });
+
+      await page.evaluate(() => {
+        const hot = (window as unknown as { hot: any }).hot;
+
+        // A second header row drawn by the built-in renderer, which runs `afterGetColHeader` for it.
+        hot.addHook('afterGetColumnHeaderRenderers', (renderers: unknown[]) => {
+          renderers.push(renderers[0]);
+        });
+        hot.render();
+      });
+
+      const rows = page.locator('.ht_master thead tr');
+
+      await expect(rows).toHaveCount(2);
+
+      for (const row of [rows.first(), rows.last()]) {
+        await expect(row.locator('th.beforeHiddenColumn .ht-hidden-indicator-end')).toHaveCount(1);
+        await expect(row.locator('th.afterHiddenColumn .ht-hidden-indicator-start')).toHaveCount(1);
+      }
     });
 
     test('the header before the gap and the header after it each carry one caret, with the correct glyph', async({
@@ -2543,6 +2769,40 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       expect(backgroundColor).toBe('rgba(0, 0, 0, 0)');
       expect(maskImage).toBe('none');
+    });
+
+    // The `.ht-icon-<name>` glyph rules are unscoped, but the `--ht-icon-*` variables they read are
+    // scoped to a theme. So on a page where one grid loads a theme with icons and another grid a
+    // `-no-icons` bundle, the second grid's icons match the first theme's rules with the variable
+    // undeclared. `mask-image` then used to compute to `none`, and `background-color:
+    // currentColor` painted a solid square (PR #13639 review).
+    test('an icon outside every icon-carrying theme scope paints nothing on a page that loads glyph rules', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const style = await page.evaluate(() => {
+        // Stands in for the icon of a grid themed by a `-no-icons` bundle: it matches the glyph
+        // rule, and no theme scope around it declares the variable.
+        const orphan = document.createElement('i');
+
+        orphan.className = 'ht-icon ht-icon-menu';
+        document.body.appendChild(orphan);
+
+        const computed = getComputedStyle(orphan);
+
+        return {
+          variable: computed.getPropertyValue('--ht-icon-menu').trim(),
+          maskImage: computed.getPropertyValue('mask-image') || computed.getPropertyValue('-webkit-mask-image'),
+        };
+      });
+
+      // Preconditions: the rule matched (a mask is set), and the variable really is undeclared here.
+      expect(style.variable).toBe('');
+      expect(style.maskImage).not.toBe('none');
+      expect(style.maskImage).toContain('linear-gradient');
     });
   });
 });

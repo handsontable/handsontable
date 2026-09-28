@@ -9,7 +9,15 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 import type { IconKey } from '../../themes/types';
-import type { IconOptions } from '../../themes/engine/icons';
+import type { IconSlotSync } from '../../themes/engine/icons';
+
+/**
+ * The `syncIcon()` slot class of the one icon inside each navigation button and inside the
+ * page-size select's wrapper.
+ *
+ * @type {string}
+ */
+const ICON_SLOT_CLASS = 'ht-page-icon';
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -128,12 +136,12 @@ export class PaginationUI {
    */
   readonly #a11yAnnouncer: (message: unknown) => void;
   /**
-   * Creates an icon element for a given icon name. Injected so the UI stays decoupled from
-   * the theme engine.
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
    *
-   * @type {function(IconKey, IconOptions=): HTMLElement}
+   * @type {Function}
    */
-  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  readonly #syncIcon: IconSlotSync;
 
   /**
    * Initializes the pagination UI by creating DOM elements, applying layout settings, and registering event listeners.
@@ -145,7 +153,7 @@ export class PaginationUI {
     themeName,
     phraseTranslator,
     a11yAnnouncer,
-    createIcon,
+    syncIcon,
   }: Record<string, unknown>) {
     this.#rootElement = rootElement as HTMLElement;
     this.#uiContainer = uiContainer as HTMLElement | null;
@@ -153,7 +161,7 @@ export class PaginationUI {
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
-    this.#createIcon = createIcon as (name: IconKey, options?: IconOptions) => HTMLElement;
+    this.#syncIcon = syncIcon as IconSlotSync;
 
     this.install();
   }
@@ -227,7 +235,9 @@ export class PaginationUI {
   }
 
   /**
-   * Rebuilds the icons after a theme change (a class-list or renderer mapping may differ).
+   * Brings the icons in step with the theme after a theme change. An icon whose mapping did not
+   * move is left alone (`syncIcon()` checks the theme's icons revision), so a color-scheme or
+   * density switch rebuilds nothing.
    */
   refreshIcons() {
     if (this.#refs) {
@@ -236,9 +246,9 @@ export class PaginationUI {
   }
 
   /**
-   * Installs the icon elements into the navigation buttons and the page-size select's caret.
-   * Removes any existing `.ht-icon` first, so the method is safe to call repeatedly (e.g. after
-   * a theme change).
+   * Installs the icon elements into the navigation buttons and the page-size select's caret, or
+   * re-applies the theme's mapping to the ones already there. Safe to call repeatedly:
+   * `syncIcon()` keeps exactly one icon per slot.
    */
   #installIcons() {
     const refs = this.#refs!;
@@ -250,14 +260,10 @@ export class PaginationUI {
     ];
 
     map.forEach(([button, name]) => {
-      button.querySelector('.ht-icon')?.remove();
-      button.appendChild(this.#createIcon(name, { flipInRtl: true }));
+      this.#syncIcon(button, ICON_SLOT_CLASS, name, { flipInRtl: true });
     });
 
-    const selectWrapper = refs.pageSizeSelect.parentElement!;
-
-    selectWrapper.querySelector('.ht-icon')?.remove();
-    selectWrapper.appendChild(this.#createIcon('arrowDown'));
+    this.#syncIcon(refs.pageSizeSelect.parentElement!, ICON_SLOT_CLASS, 'arrowDown');
   }
 
   /**

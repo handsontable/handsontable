@@ -387,8 +387,8 @@
 }
 
 .ht-icon-arrow-right {
-  -webkit-mask-image: var(--ht-icon-arrow-right);
-  mask-image: var(--ht-icon-arrow-right);
+  -webkit-mask-image: var(--ht-icon-arrow-right, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-right, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -399,8 +399,8 @@
 }
 
 .ht-icon-arrow-right-with-bar {
-  -webkit-mask-image: var(--ht-icon-arrow-right-with-bar);
-  mask-image: var(--ht-icon-arrow-right-with-bar);
+  -webkit-mask-image: var(--ht-icon-arrow-right-with-bar, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-right-with-bar, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -411,8 +411,8 @@
 }
 
 .ht-icon-arrow-left {
-  -webkit-mask-image: var(--ht-icon-arrow-left);
-  mask-image: var(--ht-icon-arrow-left);
+  -webkit-mask-image: var(--ht-icon-arrow-left, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-left, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -423,8 +423,8 @@
 }
 
 .ht-icon-arrow-left-with-bar {
-  -webkit-mask-image: var(--ht-icon-arrow-left-with-bar);
-  mask-image: var(--ht-icon-arrow-left-with-bar);
+  -webkit-mask-image: var(--ht-icon-arrow-left-with-bar, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-left-with-bar, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -435,8 +435,8 @@
 }
 
 .ht-icon-arrow-down {
-  -webkit-mask-image: var(--ht-icon-arrow-down);
-  mask-image: var(--ht-icon-arrow-down);
+  -webkit-mask-image: var(--ht-icon-arrow-down, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-down, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -447,8 +447,8 @@
 }
 
 .ht-icon-menu {
-  -webkit-mask-image: var(--ht-icon-menu);
-  mask-image: var(--ht-icon-menu);
+  -webkit-mask-image: var(--ht-icon-menu, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-menu, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -459,8 +459,8 @@
 }
 
 .ht-icon-select-arrow {
-  -webkit-mask-image: var(--ht-icon-select-arrow);
-  mask-image: var(--ht-icon-select-arrow);
+  -webkit-mask-image: var(--ht-icon-select-arrow, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-select-arrow, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -471,8 +471,8 @@
 }
 
 .ht-icon-arrow-narrow-up {
-  -webkit-mask-image: var(--ht-icon-arrow-narrow-up);
-  mask-image: var(--ht-icon-arrow-narrow-up);
+  -webkit-mask-image: var(--ht-icon-arrow-narrow-up, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-narrow-up, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -483,8 +483,8 @@
 }
 
 .ht-icon-arrow-narrow-down {
-  -webkit-mask-image: var(--ht-icon-arrow-narrow-down);
-  mask-image: var(--ht-icon-arrow-narrow-down);
+  -webkit-mask-image: var(--ht-icon-arrow-narrow-down, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-arrow-narrow-down, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -495,8 +495,8 @@
 }
 
 .ht-icon-check {
-  -webkit-mask-image: var(--ht-icon-check);
-  mask-image: var(--ht-icon-check);
+  -webkit-mask-image: var(--ht-icon-check, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-check, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -507,8 +507,8 @@
 }
 
 .ht-icon-checkbox {
-  -webkit-mask-image: var(--ht-icon-checkbox);
-  mask-image: var(--ht-icon-checkbox);
+  -webkit-mask-image: var(--ht-icon-checkbox, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-checkbox, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -519,8 +519,8 @@
 }
 
 .ht-icon-caret-hidden-left {
-  -webkit-mask-image: var(--ht-icon-caret-hidden-left);
-  mask-image: var(--ht-icon-caret-hidden-left);
+  -webkit-mask-image: var(--ht-icon-caret-hidden-left, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-caret-hidden-left, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -531,8 +531,8 @@
 }
 
 .ht-icon-caret-hidden-right {
-  -webkit-mask-image: var(--ht-icon-caret-hidden-right);
-  mask-image: var(--ht-icon-caret-hidden-right);
+  -webkit-mask-image: var(--ht-icon-caret-hidden-right, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-caret-hidden-right, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -543,8 +543,8 @@
 }
 
 .ht-icon-caret-hidden-up {
-  -webkit-mask-image: var(--ht-icon-caret-hidden-up);
-  mask-image: var(--ht-icon-caret-hidden-up);
+  -webkit-mask-image: var(--ht-icon-caret-hidden-up, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-caret-hidden-up, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -555,8 +555,8 @@
 }
 
 .ht-icon-caret-hidden-down {
-  -webkit-mask-image: var(--ht-icon-caret-hidden-down);
-  mask-image: var(--ht-icon-caret-hidden-down);
+  -webkit-mask-image: var(--ht-icon-caret-hidden-down, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-caret-hidden-down, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -567,8 +567,8 @@
 }
 
 .ht-icon-collapse-off {
-  -webkit-mask-image: var(--ht-icon-collapse-off);
-  mask-image: var(--ht-icon-collapse-off);
+  -webkit-mask-image: var(--ht-icon-collapse-off, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-collapse-off, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -579,8 +579,8 @@
 }
 
 .ht-icon-collapse-on {
-  -webkit-mask-image: var(--ht-icon-collapse-on);
-  mask-image: var(--ht-icon-collapse-on);
+  -webkit-mask-image: var(--ht-icon-collapse-on, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-collapse-on, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -591,8 +591,8 @@
 }
 
 .ht-icon-radio {
-  -webkit-mask-image: var(--ht-icon-radio);
-  mask-image: var(--ht-icon-radio);
+  -webkit-mask-image: var(--ht-icon-radio, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-radio, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -603,8 +603,8 @@
 }
 
 .ht-icon-chip-close {
-  -webkit-mask-image: var(--ht-icon-chip-close);
-  mask-image: var(--ht-icon-chip-close);
+  -webkit-mask-image: var(--ht-icon-chip-close, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-chip-close, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -615,8 +615,8 @@
 }
 
 .ht-icon-search {
-  -webkit-mask-image: var(--ht-icon-search);
-  mask-image: var(--ht-icon-search);
+  -webkit-mask-image: var(--ht-icon-search, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-search, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -627,8 +627,8 @@
 }
 
 .ht-icon-plus {
-  -webkit-mask-image: var(--ht-icon-plus);
-  mask-image: var(--ht-icon-plus);
+  -webkit-mask-image: var(--ht-icon-plus, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-plus, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -639,8 +639,8 @@
 }
 
 .ht-icon-menu-list {
-  -webkit-mask-image: var(--ht-icon-menu-list);
-  mask-image: var(--ht-icon-menu-list);
+  -webkit-mask-image: var(--ht-icon-menu-list, linear-gradient(transparent, transparent));
+  mask-image: var(--ht-icon-menu-list, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;

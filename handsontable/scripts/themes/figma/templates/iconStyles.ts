@@ -6,12 +6,17 @@
 
 const kebab = (name: string): string => name.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
 
+// The fallback is a fully transparent mask, so a `.ht-icon-<name>` element whose variable is not
+// declared paints nothing. The rule is unscoped (menus and the notification host mount outside
+// the grid root), so on a page where one grid loads a theme with icons and another a
+// `-no-icons` bundle, the second grid's icons match it too; `mask-image: none` would then let
+// `background-color: currentColor` paint a solid square.
 const glyphRule = (name: string): string => {
   const variable = `--ht-icon-${kebab(name)}`;
 
   return `.ht-icon-${kebab(name)} {
-  -webkit-mask-image: var(${variable});
-  mask-image: var(${variable});
+  -webkit-mask-image: var(${variable}, linear-gradient(transparent, transparent));
+  mask-image: var(${variable}, linear-gradient(transparent, transparent));
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;

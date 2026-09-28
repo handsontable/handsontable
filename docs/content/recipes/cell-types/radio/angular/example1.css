@@ -14,10 +14,7 @@
 .htRadioCell .htUIRadio {
   display: inline-flex;
   align-items: center;
-  /* Must equal the theme's own --ht-gap-size: the built-in .ht-icon-radio dot is
-     pulled back by that same variable to land on the input, so a different gap
-     here would offset the dot from the ring. */
-  gap: var(--ht-gap-size);
+  gap: 8px;
   font-size: 13px;
   color: var(--ht-foreground-color, #1f2937);
   padding: 2px 6px !important;

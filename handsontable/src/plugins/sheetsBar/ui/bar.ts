@@ -7,7 +7,14 @@ import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
 import { DISABLED_CLASS } from './overflow';
 import type { IconKey } from '../../../themes/types';
-import type { IconOptions } from '../../../themes/engine/icons';
+import type { IconOptions, IconSlotSync } from '../../../themes/engine/icons';
+
+/**
+ * The `syncIcon()` slot class of the one icon inside each of the bar's buttons.
+ *
+ * @type {string}
+ */
+const BUTTON_ICON_SLOT_CLASS = 'ht-sheets-bar__button-icon';
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -125,18 +132,18 @@ export class SheetsBarUI {
    */
   readonly #ariaTags: boolean;
   /**
-   * Creates an icon element for a given icon name. Injected so the UI stays decoupled from
-   * the theme engine.
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
    *
-   * @type {function(IconKey, IconOptions=): HTMLElement}
+   * @type {Function}
    */
-  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  readonly #syncIcon: IconSlotSync;
 
   /**
    * Creates the UI and installs it (into `uiContainer` when provided; otherwise the
    * container stays detached for the layout slot to place).
    */
-  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags, createIcon }:
+  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags, syncIcon }:
     Record<string, unknown>) {
     this.#rootDocument = rootDocument as Document;
     this.#uiContainer = uiContainer as HTMLElement | null;
@@ -145,7 +152,7 @@ export class SheetsBarUI {
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
-    this.#createIcon = createIcon as (name: IconKey, options?: IconOptions) => HTMLElement;
+    this.#syncIcon = syncIcon as IconSlotSync;
 
     this.#install();
   }
@@ -221,8 +228,9 @@ export class SheetsBarUI {
   }
 
   /**
-   * Rebuilds the add, all-sheets and paging-arrow icons after a theme change (a class-list
-   * or renderer mapping may differ).
+   * Brings the add, all-sheets and paging-arrow icons in step with the theme after a theme
+   * change. An icon whose mapping did not move is left alone (`syncIcon()` checks the theme's
+   * icons revision), so a color-scheme or density switch rebuilds nothing.
    */
   refreshIcons(): void {
     if (this.#refs) {
@@ -299,9 +307,9 @@ export class SheetsBarUI {
   }
 
   /**
-   * Installs the icon elements into the add, all-sheets and paging buttons. Removes any
-   * existing `.ht-icon` first, so the method is safe to call repeatedly (e.g. after a theme
-   * change).
+   * Installs the icon elements into the add, all-sheets and paging buttons, or re-applies the
+   * theme's mapping to the ones already there. Safe to call repeatedly: `syncIcon()` keeps
+   * exactly one icon per button.
    */
   #installIcons(): void {
     const { addButton, allButton, pagePrev, pageNext } = this.#refs as SheetsBarRefs;
@@ -313,8 +321,7 @@ export class SheetsBarUI {
     ];
 
     map.forEach(([button, name, options]) => {
-      button.querySelector('.ht-icon')?.remove();
-      button.appendChild(this.#createIcon(name, options));
+      this.#syncIcon(button, BUTTON_ICON_SLOT_CLASS, name, options);
     });
   }
 }

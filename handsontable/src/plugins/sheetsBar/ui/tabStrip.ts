@@ -15,8 +15,14 @@ import type EventManager from '../../../eventManager';
 import { TabDrag } from './tabDrag';
 import { truncateSheetName } from '../sheetModel';
 import type { SheetDescriptor } from '../sheetModel';
-import type { IconKey } from '../../../themes/types';
-import type { IconOptions } from '../../../themes/engine/icons';
+import type { IconSlotSync } from '../../../themes/engine/icons';
+
+/**
+ * The `syncIcon()` slot class of the icon inside a tab's menu chevron.
+ *
+ * @type {string}
+ */
+const CHEVRON_ICON_SLOT_CLASS = 'ht-sheets-bar__tab-chevron-icon';
 
 /**
  * What the strip needs from the plugin to render.
@@ -47,10 +53,10 @@ export interface TabStripOptions {
    */
   isRtl: boolean;
   /**
-   * Creates an icon element for a given icon name. Injected so the strip stays decoupled from
-   * the theme engine.
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the strip stays decoupled from the theme engine.
    */
-  createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  syncIcon: IconSlotSync;
 }
 
 /**
@@ -100,12 +106,12 @@ export class TabStrip {
    */
   readonly #isRtl: boolean;
   /**
-   * Creates an icon element for a given icon name. Injected so the strip stays decoupled from
-   * the theme engine.
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the strip stays decoupled from the theme engine.
    *
-   * @type {function(IconKey, IconOptions=): HTMLElement}
+   * @type {Function}
    */
-  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  readonly #syncIcon: IconSlotSync;
   /**
    * Drags tabs along the strip and reports where they land.
    */
@@ -138,7 +144,7 @@ export class TabStrip {
     this.#translate = options.translate;
     this.#ariaTags = options.ariaTags;
     this.#isRtl = options.isRtl;
-    this.#createIcon = options.createIcon;
+    this.#syncIcon = options.syncIcon;
     this.#drag = new TabDrag(
       { host: options.host, dragRoot: options.dragRoot, eventManager: options.eventManager },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
@@ -204,7 +210,7 @@ export class TabStrip {
     label.dir = 'auto';
 
     chevron.className = 'ht-sheets-bar__tab-chevron';
-    chevron.appendChild(this.#createIcon('selectArrow'));
+    this.#syncIcon(chevron, CHEVRON_ICON_SLOT_CLASS, 'selectArrow');
 
     // Pointer-only: the keyboard route to the same menu is the second activation of the tab,
     // so the glyph is decoration to a screen reader rather than a control it should offer.
@@ -360,6 +366,18 @@ export class TabStrip {
     }
 
     return active;
+  }
+
+  /**
+   * Brings every tab's chevron icon in step with the theme after a theme change, in place. Unlike
+   * `render()`, it neither rebuilds the tabs nor aborts a drag or an open rename: `afterSetTheme`
+   * also fires for a color-scheme or density switch, which must not cost the user what they were
+   * typing. `syncIcon()` leaves an icon whose mapping did not move untouched.
+   */
+  refreshIcons(): void {
+    this.#host.querySelectorAll<HTMLElement>('.ht-sheets-bar__tab-chevron').forEach((chevron) => {
+      this.#syncIcon(chevron, CHEVRON_ICON_SLOT_CLASS, 'selectArrow');
+    });
   }
 
   /**

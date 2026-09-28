@@ -2,10 +2,16 @@ import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
 import { resolveButtonType } from '../../helpers/uiButton';
 import type { SanitizerFn } from '../../utils/sanitizer';
-import type { IconKey } from '../../themes/types';
-import type { IconOptions } from '../../themes/engine/icons';
+import type { IconSlotSync } from '../../themes/engine/icons';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
 import type { NotificationNormalizedOptions, NotificationAction } from './notification';
+
+/**
+ * The `syncIcon()` slot class of the icon inside a toast's close button.
+ *
+ * @type {string}
+ */
+const CLOSE_ICON_SLOT_CLASS = `${NOTIFICATION_CLASS_NAME}__close-icon`;
 
 /**
  * Renders toast containers and individual notification elements. Used only by the Notification plugin.
@@ -45,12 +51,12 @@ export class NotificationUI {
   #stacks: Map<string, HTMLElement> = new Map();
 
   /**
-   * Creates an icon element for a given icon name. Injected so the UI stays decoupled from the
-   * theme engine.
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
    *
-   * @type {function(IconKey, IconOptions=): HTMLElement}
+   * @type {Function}
    */
-  readonly #createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+  readonly #syncIcon: IconSlotSync;
 
   /**
    * @param {object} params Constructor parameters.
@@ -58,20 +64,20 @@ export class NotificationUI {
    * @param {boolean|function(string, string): string} params.sanitizer Sanitizer for HTML strings.
    * @param {HTMLElement} params.warnScope Element the missing-sanitizer warning is deduplicated against.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
-   * @param {function(IconKey, IconOptions=): HTMLElement} params.createIcon Icon element factory.
+   * @param {Function} params.syncIcon Keeps one icon slot of a container in step with the theme.
    */
-  constructor({ overlayElement, sanitizer, warnScope, isRtl, createIcon }: {
+  constructor({ overlayElement, sanitizer, warnScope, isRtl, syncIcon }: {
     overlayElement: HTMLElement;
     sanitizer: boolean | SanitizerFn;
     warnScope: HTMLElement;
     isRtl: boolean;
-    createIcon: (name: IconKey, options?: IconOptions) => HTMLElement;
+    syncIcon: IconSlotSync;
   }) {
     this.#overlayElement = overlayElement;
     this.#sanitizer = sanitizer;
     this.#warnScope = warnScope;
     this.#isRtl = isRtl;
-    this.#createIcon = createIcon;
+    this.#syncIcon = syncIcon;
   }
 
   /**
@@ -144,7 +150,8 @@ export class NotificationUI {
    * Rebuilds the close icon of every currently-open toast after a theme change. A toast is built
    * once, on `showMessage`, and not re-rendered afterward - so unlike a persistent UI (pagination,
    * sheets bar), nothing else would ever pick up a class-list or renderer icon change for a toast
-   * already on screen. Safe to call repeatedly: it always removes the existing `.ht-icon` first.
+   * already on screen. Safe to call repeatedly: `syncIcon()` keeps exactly one icon per button and
+   * leaves one whose mapping did not move untouched.
    */
   refreshIcons(): void {
     if (!this.#host) {
@@ -152,8 +159,7 @@ export class NotificationUI {
     }
 
     this.#host.querySelectorAll<HTMLElement>(`.${NOTIFICATION_CLASS_NAME}__close`).forEach((closeBtn) => {
-      closeBtn.querySelector('.ht-icon')?.remove();
-      closeBtn.appendChild(this.#createIcon('chipClose'));
+      this.#syncIcon(closeBtn, CLOSE_ICON_SLOT_CLASS, 'chipClose');
     });
   }
 
@@ -247,7 +253,7 @@ export class NotificationUI {
       closeBtn.type = 'button';
       closeBtn.className = `${NOTIFICATION_CLASS_NAME}__close`;
       closeBtn.setAttribute('aria-label', closeLabel);
-      closeBtn.appendChild(this.#createIcon('chipClose'));
+      this.#syncIcon(closeBtn, CLOSE_ICON_SLOT_CLASS, 'chipClose');
       inner.appendChild(closeBtn);
     }
 

@@ -15,9 +15,19 @@ test('emits one variable and one glyph rule per icon, scoped to the given select
   // eslint-disable-next-line max-len -- exact expected CSS shape, kept on one line for readability.
   assert.match(css, /^\[class\*=ht-theme-main\] \{\n {2}--ht-icon-arrow-right: url\("data:a"\);\n {2}--ht-icon-caret-hidden-up: url\("data:b"\);\n\}\n/);
   // eslint-disable-next-line max-len -- exact expected CSS shape, kept on one line for readability.
-  assert.match(css, /\.ht-icon-arrow-right \{\n {2}-webkit-mask-image: var\(--ht-icon-arrow-right\);\n {2}mask-image: var\(--ht-icon-arrow-right\);/);
+  assert.match(css, /\.ht-icon-arrow-right \{\n {2}-webkit-mask-image: var\(--ht-icon-arrow-right, linear-gradient\(transparent, transparent\)\);\n {2}mask-image: var\(--ht-icon-arrow-right, linear-gradient\(transparent, transparent\)\);/);
   assert.match(css, /background-color: currentColor;\n\}/);
   assert.equal((css.match(/\.ht-icon-[a-z-]+ \{/g) || []).length, 2);
+});
+
+// The glyph rules are unscoped, so a grid on a `-no-icons` bundle matches another grid's rules
+// on the same page; an undeclared variable must leave a transparent mask, never `none`, which
+// would let `background-color: currentColor` paint a solid square (PR #13639 review).
+test('falls back to a transparent mask when the icon variable is not declared', () => {
+  const css = runtimeIconStyles({ arrowRight: 'data:a' }, ':root');
+
+  assert.match(css, /-webkit-mask-image: var\(--ht-icon-arrow-right, linear-gradient\(transparent, transparent\)\);/);
+  assert.match(css, / mask-image: var\(--ht-icon-arrow-right, linear-gradient\(transparent, transparent\)\);/);
 });
 
 test('escapes double quotes inside a glyph URL', () => {

@@ -37,30 +37,57 @@ export function getIconCssVariable(name: string): string {
 }
 
 /**
- * Tells whether a string icon value is a glyph (SVG markup, `data:` URI, `url(...)`, or an
- * `.svg` path) rather than a class list.
+ * Image file extensions a bare path or URL is recognized by, optionally followed by a query
+ * string or a fragment (`/icons/check.svg?v=2`, `check.png#dark`).
+ */
+const IMAGE_PATH_PATTERN = /\.(svg|png|gif|jpe?g|webp|avif|bmp|ico)([?#].*)?$/i;
+
+/**
+ * Prefixes that only a URL or a path can start with. A class list cannot: none of them is a
+ * valid start of a class token a stylesheet would write without escaping.
+ */
+const URL_PREFIXES = ['data:', 'url(', 'http://', 'https://', 'blob:', '//', '/', './', '../'];
+
+/**
+ * Tells whether a string icon value is a glyph rather than a class list. A glyph is:
+ * - markup: anything starting with `<` (`<svg ...>`, `<?xml ...?><svg ...>`);
+ * - a URL or a path: a `data:`, `blob:`, `http(s):`, protocol-relative, absolute or relative
+ *   (`./`, `../`) value, or `url(...)`;
+ * - a single token (no whitespace) naming an image file, with an optional query or fragment
+ *   (`icons/check.svg`, `arrow.png?v=2`).
+ *
+ * In 18.1 every string was wrapped in `url(...)`; since 19.0 a string that is none of the above is
+ * a class list. The rules above cover the URL shapes an 18.1 config holds in practice; an
+ * extension-less relative path (`icons/check`) is the one form that now reads as a class.
  */
 export function isGlyphValue(value: string): boolean {
   const trimmed = value.trim();
 
-  return trimmed.startsWith('<svg')
-    || trimmed.startsWith('data:')
-    || trimmed.startsWith('url(')
-    || trimmed.endsWith('.svg');
+  if (trimmed.startsWith('<')) {
+    return true;
+  }
+
+  const lower = trimmed.toLowerCase();
+
+  if (URL_PREFIXES.some(prefix => lower.startsWith(prefix))) {
+    return true;
+  }
+
+  return !/\s/.test(trimmed) && IMAGE_PATH_PATTERN.test(trimmed);
 }
 
 /**
- * Normalizes a glyph value to a bare URL (no `url()` wrapper). SVG markup is encoded into a
- * `data:` URI.
+ * Normalizes a glyph value to a bare URL (no `url()` wrapper). Markup (SVG, with or without an
+ * XML prolog) is encoded into a `data:` URI.
  */
 export function toGlyphUrl(value: string): string {
   const trimmed = value.trim();
 
-  if (trimmed.startsWith('<svg')) {
+  if (trimmed.startsWith('<')) {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`;
   }
 
-  if (trimmed.startsWith('url(')) {
+  if (trimmed.toLowerCase().startsWith('url(')) {
     // Tolerate a missing closing paren instead of silently dropping the URL's last character.
     const inner = trimmed.endsWith(')') ? trimmed.slice(4, -1) : trimmed.slice(4);
 

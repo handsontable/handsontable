@@ -1,4 +1,4 @@
-import { createIcon, syncIcon } from '../icons';
+import { createIcon, createTrackedIconSync, linkIconSource, syncIcon } from '../icons';
 import { createThemeManager } from '../manager';
 import { createTheme } from '../builder';
 import mainIcons from '../../static/variables/icons/main';
@@ -41,6 +41,25 @@ describe('createIcon / syncIcon', () => {
 
     expect(syncIcon(hot, container, 'slot', null)).toBeNull();
     expect(container.querySelector('.slot')).toBeNull();
+  });
+
+  it('createTrackedIconSync skips the query when clearing a slot it never filled, and still ' +
+    'clears one it did (PR #13639 review)', () => {
+    const hot = { rootDocument: document, themeManager: null };
+    const sync = createTrackedIconSync();
+    const untouched = document.createElement('div');
+    const querySpy = jest.spyOn(untouched, 'querySelector');
+
+    expect(sync(hot, untouched, 'slot', null)).toBeNull();
+    expect(querySpy).not.toHaveBeenCalled();
+
+    const filled = document.createElement('div');
+
+    sync(hot, filled, 'slot', 'caretHiddenLeft');
+
+    expect(filled.querySelectorAll('.slot').length).toBe(1);
+    expect(sync(hot, filled, 'slot', null)).toBeNull();
+    expect(filled.querySelector('.slot')).toBeNull();
   });
 
   describe('keep-path revision guard (DEV-3003)', () => {
@@ -205,6 +224,41 @@ describe('createIcon / syncIcon', () => {
 
       expect(kept).toBe(icon);
       expect(kept.className).toBe('ht-icon ht-icon-menu slot ht-icon--external b-menu');
+    });
+
+    it('draws a linked nested instance\'s icons with its source\'s mapping, and follows a ' +
+      'later change on the source (PR #13639 review)', () => {
+      // A nested grid (the Filters by-value list) never gets a ThemeManager of its own.
+      const root = createMockHot();
+
+      root.themeManager = createThemeManager({
+        hot: root,
+        themeObject: createTheme(createValidThemeConfig({ icons: { ...mainIcons, checkbox: 'ti ti-check' } })),
+      });
+
+      const nested = { rootDocument: document, themeManager: null };
+
+      expect(createIcon(nested, 'checkbox').className).toBe('ht-icon ht-icon-checkbox');
+
+      linkIconSource(nested, root);
+
+      expect(createIcon(nested, 'checkbox').className)
+        .toBe('ht-icon ht-icon-checkbox ht-icon--external ti ti-check');
+
+      const container = document.createElement('div');
+      const icon = syncIcon(nested, container, 'slot', 'checkbox');
+
+      root.themeManager.destroy();
+      root.themeManager = createThemeManager({
+        hot: root,
+        themeObject: createTheme(createValidThemeConfig({
+          name: 'other',
+          icons: { ...mainIcons, checkbox: 'ti ti-x' },
+        })),
+      });
+
+      expect(syncIcon(nested, container, 'slot', 'checkbox')).toBe(icon);
+      expect(icon.className).toBe('ht-icon ht-icon-checkbox slot ht-icon--external ti ti-x');
     });
 
     it('keeps exactly one slot icon when a renderer callback assigns `className` ' +

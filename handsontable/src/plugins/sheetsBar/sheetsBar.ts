@@ -18,7 +18,7 @@ import { isRootInstance } from '../../utils/rootInstance';
 import { isPlainObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
@@ -466,8 +466,12 @@ export class SheetsBar extends BasePlugin {
 
     // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
     // shared here rather than declared per call site.
-    const createIconForHot = (name: Parameters<typeof createIcon>[1], options?: Parameters<typeof createIcon>[2]) =>
-      createIcon(this.hot, name, options);
+    const syncIconForHot = (
+      container: HTMLElement,
+      slotClass: string,
+      name: Parameters<typeof syncIcon>[3],
+      options?: Parameters<typeof syncIcon>[4],
+    ) => syncIcon(this.hot, container, slotClass, name, options);
 
     if (!this.#ui) {
       this.#ui = new SheetsBarUI({
@@ -478,7 +482,7 @@ export class SheetsBar extends BasePlugin {
         phraseTranslator: (key: string, args?: unknown) => this.hot.getTranslatedPhrase(key, args),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         ariaTags: this.hot.getSettings().ariaTags,
-        createIcon: createIconForHot,
+        syncIcon: syncIconForHot,
       });
       this.#ui.setControlsVisible(this.getSetting<boolean>('controls') !== false);
       this.#ui
@@ -501,7 +505,7 @@ export class SheetsBar extends BasePlugin {
         translate: (key: string, args?: unknown) => this.#ui!.translate(key, args),
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
-        createIcon: createIconForHot,
+        syncIcon: syncIconForHot,
       });
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
@@ -1910,13 +1914,13 @@ export class SheetsBar extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    // The icons are refreshed in place, never through `#refreshUI()`: `TabStrip#render()` aborts
+    // a tab drag and cancels an open rename, and this hook also fires for a color-scheme or
+    // density switch (a ThemeBuilder `params()` or `setColorScheme()` included), so a user typing
+    // a sheet name would lose it when the app toggled dark mode. `syncIcon()` re-applies a
+    // class-list or renderer mapping only when the theme's icons revision moved.
     this.#ui?.refreshIcons();
-    // The tab chevrons are rebuilt through the same `render()` pass every other repaint goes
-    // through, rather than a dedicated `refreshIcons()` on the strip: a theme's icon config can
-    // swap between a mask-image glyph and an external class-list icon (e.g. a webfont), which
-    // changes what `createIcon()` returns, not just a CSS variable an existing element would
-    // pick up on its own.
-    this.#refreshUI();
+    this.#tabStrip?.refreshIcons();
   };
 
   /**

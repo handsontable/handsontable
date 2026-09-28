@@ -4,7 +4,7 @@ import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 import { NotificationUI } from './ui';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -229,8 +229,12 @@ export class Notification extends BasePlugin {
         sanitizer: getSanitizer(this.hot),
         warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
-        createIcon: (name: Parameters<typeof createIcon>[1], options: Parameters<typeof createIcon>[2]) =>
-          createIcon(this.hot, name, options),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
     }
 

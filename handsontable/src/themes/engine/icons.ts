@@ -16,6 +16,51 @@ export interface IconOptions {
   className?: string;
 }
 
+type IconHost = Pick<HotInstance, 'rootDocument' | 'themeManager'>;
+
+/**
+ * Nested Handsontable instances that draw their icons with another instance's theme, keyed by
+ * the nested instance. Only a root instance gets a `ThemeManager` (`core.ts`), so a nested grid
+ * such as the Filters by-value list would otherwise always take the plain-glyph fallback and
+ * ignore the root's class-list or renderer mapping. Weak, so the link never keeps a destroyed
+ * instance alive.
+ */
+const iconSources = new WeakMap<object, Pick<HotInstance, 'themeManager'>>();
+
+/**
+ * Makes a nested Handsontable instance draw its icons with another instance's theme mapping.
+ * The source's `themeManager` is read on every call, so a later theme switch on the source is
+ * followed. The nested instance's own `themeManager` still wins when it has one.
+ *
+ * @param {object} hot The nested instance.
+ * @param {object} source The instance whose theme the nested one follows (usually the root).
+ */
+export function linkIconSource(hot: object, source: Pick<HotInstance, 'themeManager'>): void {
+  iconSources.set(hot, source);
+}
+
+/**
+ * Returns the theme manager an instance draws its icons with: its own, or the one of the
+ * instance it was linked to through `linkIconSource()`.
+ *
+ * @param {object} hot The Handsontable instance.
+ * @returns {object|null}
+ */
+function resolveThemeManager(hot: IconHost): HotInstance['themeManager'] {
+  return hot.themeManager ?? iconSources.get(hot)?.themeManager ?? null;
+}
+
+/**
+ * `syncIcon()` bound to one Handsontable instance. Injected into a plugin's UI classes, so they
+ * keep their icon slots in step with the theme without depending on the theme engine.
+ */
+export type IconSlotSync = (
+  container: HTMLElement,
+  slotClass: string,
+  name: IconKey | null,
+  options?: IconOptions,
+) => HTMLElement | null;
+
 /**
  * Creates the `<i>` element for an icon slot. Delegates to the instance's `ThemeManager` so
  * class-list and renderer icons apply; falls back to plain glyph classes when the instance
@@ -27,12 +72,14 @@ export interface IconOptions {
  * @returns {HTMLElement}
  */
 export function createIcon(
-  hot: Pick<HotInstance, 'rootDocument' | 'themeManager'>,
+  hot: IconHost,
   name: IconKey,
   options: IconOptions = {}
 ): HTMLElement {
-  if (hot.themeManager) {
-    return hot.themeManager.createIcon(name, options);
+  const themeManager = resolveThemeManager(hot);
+
+  if (themeManager) {
+    return themeManager.createIcon(name, options);
   }
 
   const element = hot.rootDocument.createElement('i');
@@ -65,7 +112,7 @@ export function createIcon(
  * @returns {HTMLElement|null} The icon element, or `null` when the slot is empty.
  */
 export function syncIcon(
-  hot: Pick<HotInstance, 'rootDocument' | 'themeManager'>,
+  hot: IconHost,
   container: HTMLElement,
   slotClass: string,
   name: IconKey | null,
@@ -85,10 +132,11 @@ export function syncIcon(
     // config change or theme switch. Re-applying on every draw would turn this cheap class check
     // into a full className rewrite per icon per draw (this runs on every header draw), so the
     // revision stamp lets a kept element skip the reapply until the mapping actually moved.
-    const revision = hot.themeManager?.getIconsRevision();
+    const themeManager = resolveThemeManager(hot);
+    const revision = themeManager?.getIconsRevision();
 
     if (revision !== undefined && existing.dataset.htIconsRevision !== String(revision)) {
-      hot.themeManager?.applyIcon(existing, name, {
+      themeManager?.applyIcon(existing, name, {
         ...options,
         className: [options.className, slotClass].filter(Boolean).join(' '),
       });
@@ -103,8 +151,10 @@ export function syncIcon(
     className: [options.className, slotClass].filter(Boolean).join(' '),
   });
 
-  if (hot.themeManager) {
-    icon.dataset.htIconsRevision = String(hot.themeManager.getIconsRevision());
+  const themeManager = resolveThemeManager(hot);
+
+  if (themeManager) {
+    icon.dataset.htIconsRevision = String(themeManager.getIconsRevision());
   }
 
   if (existing) {
@@ -114,4 +164,32 @@ export function syncIcon(
   }
 
   return icon;
+}
+
+/**
+ * Returns a `syncIcon()` variant that remembers which containers it ever put an icon into, so a
+ * call that clears a slot (`name` is `null`) on a container it never filled returns at once,
+ * without a subtree query. Meant for a header hook that runs for every header on every draw and
+ * clears its slot on most of them: the hidden-columns and hidden-rows carets (a default grid has
+ * `indicators` off) and the sort arrow on unsorted columns.
+ *
+ * A container is only ever forgotten with the tracker itself, so an element that lost its icon
+ * some other way still takes the query, which is safe.
+ *
+ * @returns {Function} A function with the `syncIcon()` signature.
+ */
+export function createTrackedIconSync(): typeof syncIcon {
+  const filledContainers = new WeakSet<HTMLElement>();
+
+  return (hot, container, slotClass, name, options = {}) => {
+    if (name === null && !filledContainers.has(container)) {
+      return null;
+    }
+
+    if (name !== null) {
+      filledContainers.add(container);
+    }
+
+    return syncIcon(hot, container, slotClass, name, options);
+  };
 }

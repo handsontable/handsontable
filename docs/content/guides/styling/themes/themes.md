@@ -1066,7 +1066,7 @@ A class list or a callback adds the `ht-icon--external` class to the element, wh
 
 The Theme API mapping only works when the grid receives its theme as a configuration object through the `theme` option, as in the example above. If you apply a theme by putting a class such as `ht-theme-main` directly on the container element, Handsontable never creates a theme manager for that instance, so a class-list or callback icon mapping does nothing, silently. Built-in glyphs and CSS variable overrides still work in that setup, because they come from the stylesheet, not from JavaScript.
 
-With a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- reaches every icon the grid renders, including the ones a plugin builds once and keeps around. Pagination, the sheets bar, and notifications rebuild their icons on the change. The dropdown menu button refreshes its icon on the next header render, the Filters plugin's condition-select arrow and radio dot on the next menu open, and the select editor's arrow on the next editor open.
+With a theme object, a runtime theme change -- switching `icons` at runtime, or switching to a different registered theme -- reaches every icon the grid renders, including the ones a plugin builds once and keeps around. Pagination, the sheets bar, and notifications update their icons in place on the change, so an open sheet rename or a tab drag is not interrupted. The dropdown menu button refreshes its icon on the next header render, the Filters plugin's condition-select arrow and radio dot on the next menu open, and the select editor's arrow on the next editor open.
 
 :::
 
@@ -1074,22 +1074,19 @@ Loading a built-in theme over a `<script>` tag and then deriving a custom theme 
 
 #### How a string value is read
 
-A string value is treated as a glyph (an SVG, a `data:` URI, or a `url(...)` reference) when it starts with `<svg`, `data:`, or `url(`, or ends with `.svg`. Any other string is treated as a class list.
+A string value is treated as a glyph when it is one of the following:
 
-This means a glyph path that carries a query string or a fragment, such as `icons/check.svg?v=2`, does not match the `.svg` suffix test and is read as a class list instead:
+- Markup: any value that starts with `<`, such as `<svg ...>` or an SVG with an XML prolog (`<?xml ...?><svg ...>`).
+- A URL or a path: a value that starts with `data:`, `blob:`, `http://`, `https://`, `//`, `/`, `./`, `../`, or `url(`.
+- A single token that names an image file (`.svg`, `.png`, `.gif`, `.jpg`, `.jpeg`, `.webp`, `.avif`, `.bmp`, or `.ico`), with an optional query string or fragment, such as `icons/check.svg?v=2`.
 
-```js
-// Read as a class list -- the query string breaks the `.svg` suffix check.
-icons: {
-  check: 'icons/check.svg?v=2',
-}
-```
+Any other string is treated as a class list.
 
-Wrap such a path in `url(...)`, or use a `data:` URI, so it is recognized as a glyph:
+In version 18.1, every string value was a glyph. The one form that changes meaning in 19.0 is a relative path with no file extension, such as `icons/check`, which is now read as a class list. Wrap such a path in `url(...)`, or start it with `./`, so it is recognized as a glyph:
 
 ```js
 icons: {
-  check: 'url(icons/check.svg?v=2)',
+  check: './icons/check',
 }
 ```
 

@@ -8,13 +8,12 @@ import {
   eventTargetEl,
   hasClass,
   removeClass,
-  fastInnerText,
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { throwWithCause } from '../../helpers/errors';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   A11Y_EXPANDED,
@@ -27,6 +26,12 @@ export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
 const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
+/**
+ * The `syncIcon()` slot class of the collapse/expand icon inside the indicator.
+ *
+ * @type {string}
+ */
+const INDICATOR_ICON_SLOT_CLASS = 'collapsibleIndicator__icon';
 // Name of the hiding map that holds columns hidden by the per-child `visibleWhen` rules (issue
 // #10243). Kept separate from the main collapsed-columns map so `getCollapsedColumns()` and the
 // collapse hooks never report a column that is merely hidden in the expanded state.
@@ -831,6 +836,34 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * Brings an indicator's content in line with its state: the '+'/'-' text, kept as a no-CSS
+   * fallback (`text-indent` and `font-size: 0` hide it visually), followed by one icon.
+   *
+   * This runs for every collapsible header on every draw, so it touches only what changed. The
+   * text node is updated in place and the icon goes through `syncIcon()`, which keeps the same
+   * element (and does not re-run a renderer callback) until the state or the theme's icon mapping
+   * changes. Emptying the indicator on each draw, which `fastInnerText()` does once the text has
+   * a sibling, rebuilt both nodes per header per scroll frame.
+   *
+   * @param {HTMLElement} indicator The `.collapsibleIndicator` element.
+   * @param {string} text The fallback text.
+   * @param {string} iconName The icon to show.
+   */
+  #syncIndicatorContent(indicator: HTMLElement, text: string, iconName: 'collapseOn' | 'collapseOff') {
+    const first = indicator.firstChild;
+
+    if (first && first.nodeType === 3) {
+      if (first.textContent !== text) {
+        first.textContent = text;
+      }
+    } else {
+      indicator.insertBefore(this.hot.rootDocument.createTextNode(text), first);
+    }
+
+    syncIcon(this.hot, indicator, INDICATOR_ICON_SLOT_CLASS, iconName);
+  }
+
+  /**
    * Adds the indicator to the headers.
    *
    * @param {number} column Column index.
@@ -865,15 +898,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(el, 'collapsed');
-
-        // `fastInnerText` replaces every child of `el`, so the icon is appended AFTER it - appending
-        // before would have it wiped out on the very next line. Since this runs unconditionally on
-        // every draw, the icon is always freshly created onto an element `fastInnerText` just
-        // emptied, so exactly one icon is ever present - no `syncIcon` slot bookkeeping is needed
-        // here (DEV-3003). The '+'/'-' text stays as a no-CSS fallback: `text-indent: -100px` and
-        // `font-size: 0` above already hide it visually, same as before this change.
-        fastInnerText(el, '+');
-        el.appendChild(createIcon(this.hot, 'collapseOn'));
+        this.#syncIndicatorContent(el, '+', 'collapseOn');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -882,9 +907,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       } else {
         addClass(el, 'expanded');
-
-        fastInnerText(el, '-');
-        el.appendChild(createIcon(this.hot, 'collapseOff'));
+        this.#syncIndicatorContent(el, '-', 'collapseOff');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {

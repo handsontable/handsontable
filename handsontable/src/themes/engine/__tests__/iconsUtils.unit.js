@@ -25,6 +25,36 @@ describe('icon utils', () => {
     expect(isGlyphValue('material-symbols-outlined')).toBe(false);
   });
 
+  // In 18.1 every string icon value was wrapped in `url(...)`. Each of these worked there and
+  // must still be a glyph, not a class list that paints nothing (PR #13639 review).
+  it('classifies every URL shape an 18.1 icons config held as a glyph', () => {
+    expect(isGlyphValue('https://cdn.example.com/search.png')).toBe(true);
+    expect(isGlyphValue('http://cdn.example.com/icons/search')).toBe(true);
+    expect(isGlyphValue('//cdn.example.com/search.svg')).toBe(true);
+    expect(isGlyphValue('/icons/check.svg?v=2')).toBe(true);
+    expect(isGlyphValue('./icons/check.svg#dark')).toBe(true);
+    expect(isGlyphValue('../icons/check')).toBe(true);
+    expect(isGlyphValue('icons/check.png')).toBe(true);
+    expect(isGlyphValue('arrow.webp?v=3')).toBe(true);
+    expect(isGlyphValue('blob:https://example.com/0f1e')).toBe(true);
+    expect(isGlyphValue('URL("/a.svg")')).toBe(true);
+    expect(isGlyphValue('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>')).toBe(true);
+  });
+
+  it('keeps class lists that only look like paths as class lists', () => {
+    // A Tailwind-style fraction and an icon-font class are not URLs.
+    expect(isGlyphValue('size-4 w-1/2')).toBe(false);
+    expect(isGlyphValue('fa-solid fa-image')).toBe(false);
+    expect(isGlyphValue('i-mdi:check')).toBe(false);
+  });
+
+  it('encodes markup with an XML prolog as an SVG data URI', () => {
+    const markup = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>';
+
+    expect(toGlyphUrl(markup)).toBe(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`);
+    expect(toGlyphUrl('/icons/check.svg?v=2')).toBe('/icons/check.svg?v=2');
+  });
+
   it('normalizes glyph values to a bare URL', () => {
     expect(toGlyphUrl('data:image/svg+xml,%3Csvg%3E')).toBe('data:image/svg+xml,%3Csvg%3E');
     expect(toGlyphUrl('url("/a.svg")')).toBe('/a.svg');

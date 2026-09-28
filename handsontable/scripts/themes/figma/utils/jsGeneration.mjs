@@ -265,6 +265,12 @@ function writeJsThemeFiles(themeVariables) {
 
   writeFileSync(`${helpersPath}/iconStyles.ts`, iconStylesTemplate);
   console.log(`Generated: ${helpersPath}/iconStyles.ts`);
+
+  // The deprecated `iconsMap` shim keeps its published import path working until 20.0.0.
+  const iconsMapTemplate = readFileSync(resolve(__dirname, '..', 'templates', 'iconsMap.ts'), 'utf8');
+
+  writeFileSync(`${helpersPath}/iconsMap.ts`, iconsMapTemplate);
+  console.log(`Generated: ${helpersPath}/iconsMap.ts`);
 }
 
 export { writeJsThemeFiles };

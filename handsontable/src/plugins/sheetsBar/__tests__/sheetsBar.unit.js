@@ -4,6 +4,7 @@ import { registerLanguageDictionary } from '../../../i18n/registry';
 import plPL from '../../../i18n/languages/pl-PL';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { syncIcon } from '../../../themes/engine/icons';
 import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
@@ -24,6 +25,11 @@ import { SheetsBarUI } from '../ui/bar';
 import { TabStrip } from '../ui/tabStrip';
 import { TabDrag } from '../ui/tabDrag';
 import EventManager from '../../../eventManager';
+
+// No `themeManager` on the stub `hot` - `syncIcon()` falls back to plain glyph classes, exactly
+// like a grid built without a `theme` config object (the common case).
+const stubSyncIcon = (container, slotClass, name, options) =>
+  syncIcon({ rootDocument: document, themeManager: null }, container, slotClass, name, options);
 
 /**
  * Intercepts the tab menu's `SheetsBarMenus#openTabMenu` call for the given sheet and returns
@@ -85,7 +91,7 @@ function buildTabStrip(sheets) {
     translate: key => key,
     ariaTags: true,
     isRtl: false,
-    createIcon: () => document.createElement('i'),
+    syncIcon: stubSyncIcon,
   });
 
   strip.render(sheets);
@@ -3945,7 +3951,7 @@ describe('SheetsBar plugin', () => {
       themeName: undefined,
       phraseTranslator: () => '',
       a11yAnnouncer: () => {},
-      createIcon: () => document.createElement('i'),
+      syncIcon: stubSyncIcon,
     });
 
     ui.destroy();

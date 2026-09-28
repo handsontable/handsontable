@@ -228,6 +228,17 @@ whose marker anything strips still disappears exactly as the old pseudo-element 
 nested headers, only the header row that touches the cells carries carets" in
 `tests/e2e/icon-elements.spec.ts`.
 
+The gate applies **only while NestedHeaders is enabled** (`hot.getPlugin('nestedHeaders')?.enabled`).
+A multi-row header built without it (`afterGetColumnHeaderRenderers`) has nothing that strips the
+classes, and 18.1 painted the caret on every row there; gating it on `isBottomMostColumnHeader()`
+unconditionally dropped the carets from the upper rows (PR #13639 review). Pinned by "without nested
+headers, every header row carries its caret".
+
+Both the caret hooks and ColumnSorting's arrow clear their slot on every header they do not mark, which
+with `indicators` off (the default) is every header on every draw. They go through
+`createTrackedIconSync()` (`themes/engine/icons.ts`), so a header that never held an icon skips the
+subtree query. Call `this.#syncIcon`, never the bare `syncIcon`, from those hooks.
+
 ## `disablePlugin()` resets cell meta
 
 `resetCellsMeta()` runs after `super.disablePlugin()`, because the meta this plugin wrote (the paste marker

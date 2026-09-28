@@ -1,10 +1,10 @@
 import { PaginationUI } from '../ui';
-import { createIcon } from '../../../themes/engine/icons';
+import { syncIcon } from '../../../themes/engine/icons';
 
-// No `themeManager` on the stub `hot` - `createIcon()` falls back to plain glyph classes,
-// exactly like a grid built without a `theme` config object (the common case).
-const stubCreateIcon = (name, options) =>
-  createIcon({ rootDocument: document, themeManager: undefined }, name, options);
+// No `themeManager` on the stub `hot` - `syncIcon()` falls back to plain glyph classes, exactly
+// like a grid built without a `theme` config object (the common case).
+const stubSyncIcon = (container, slotClass, name, options) =>
+  syncIcon({ rootDocument: document, themeManager: undefined }, container, slotClass, name, options);
 
 describe('PaginationUI', () => {
   let rootElement;
@@ -24,7 +24,7 @@ describe('PaginationUI', () => {
       themeName: 'ht-theme-main',
       phraseTranslator: key => String(key),
       a11yAnnouncer: () => {},
-      createIcon: stubCreateIcon,
+      syncIcon: stubSyncIcon,
     });
   });
 
@@ -77,16 +77,17 @@ describe('PaginationUI', () => {
       'ht-page-navigation-section__button ht-page-last',
     ]);
 
-    // Each button carries exactly one directional icon, and it mirrors under RTL.
+    // Each button carries exactly one directional icon, and it mirrors under RTL. `ht-page-icon`
+    // is the `syncIcon()` slot class a theme refresh finds the icon by.
     expect(buttons.map((button) => {
       const icon = button.querySelector('.ht-icon');
 
       return icon ? Array.from(icon.classList).sort().join(' ') : null;
     })).toEqual([
-      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left-with-bar',
-      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left',
-      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right',
-      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right-with-bar',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left-with-bar ht-page-icon',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-left ht-page-icon',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right ht-page-icon',
+      'ht-icon ht-icon--flip-rtl ht-icon-arrow-right-with-bar ht-page-icon',
     ]);
   });
 

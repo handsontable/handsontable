@@ -15,7 +15,7 @@ import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
-import { syncIcon } from '../../themes/engine/icons';
+import { createTrackedIconSync } from '../../themes/engine/icons';
 import {
   HEADER_SPAN_CLASS,
   ASC_SORT_STATE,
@@ -197,6 +197,14 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
+   * `syncIcon()` for the sort arrow, remembering which headers ever got one. The header hook clears
+   * the slot on every unsorted column, so a header that never held an arrow skips the subtree
+   * query.
+   *
+   * @type {Function}
+   */
+  #syncIcon = createTrackedIconSync();
+  /**
    * Main settings key designed for the plugin.
    *
    * @private
@@ -302,7 +310,7 @@ export class ColumnSorting extends BasePlugin {
       const container = headerSpanElement.parentElement;
 
       if (container) {
-        syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
       }
     };
 
@@ -906,7 +914,7 @@ export class ColumnSorting extends BasePlugin {
         iconName = 'arrowNarrowDown';
       }
 
-      syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, iconName);
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, iconName);
     }
 
     if (this.hot.getSettings().ariaTags) {

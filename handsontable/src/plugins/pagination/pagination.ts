@@ -3,7 +3,7 @@ import { clamp } from '../../helpers/number';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
-import { createIcon } from '../../themes/engine/icons';
+import { syncIcon } from '../../themes/engine/icons';
 import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -296,8 +296,12 @@ export class Pagination extends BasePlugin {
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
-        createIcon: (name: Parameters<typeof createIcon>[1], options: Parameters<typeof createIcon>[2]) =>
-          createIcon(this.hot, name, options),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
 
       this.#updateSectionsVisibilityState();

@@ -84,6 +84,19 @@
         margin-inline-end: var(--ht-gap-size);
       }
 
+      // No label: the content root holds only the input and its icon. In 18.1 the input was the
+      // only child there, so it matched both `:first-child` and `:last-child` and got a gap on
+      // each side. Neither rule above matches this arrangement any more (the input is first, the
+      // icon is last), so it is restated here: first child with exactly one sibling after it is
+      // this case and no other, which `:has()` would otherwise be needed to tell apart.
+      &:first-child:nth-last-child(2) {
+        margin-inline-start: var(--ht-gap-size);
+
+        & + .ht-icon {
+          margin-inline-end: var(--ht-gap-size);
+        }
+      }
+
       &:checked {
         // Box
         &::before {

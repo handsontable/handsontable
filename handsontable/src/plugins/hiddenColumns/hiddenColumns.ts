@@ -4,7 +4,7 @@ import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { Hooks } from '../../core/hooks';
-import { syncIcon } from '../../themes/engine/icons';
+import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import type { HidingMap } from '../../translations';
@@ -236,6 +236,15 @@ export class HiddenColumns extends BasePlugin {
   #hiddenColumnsMap: HidingMap | null = null;
 
   /**
+   * `syncIcon()` for the carets, remembering which headers ever got one. The header hook clears
+   * both slots on every header it does not mark, which with `indicators` off (the default) is
+   * every header, so a header that never held a caret skips the subtree query.
+   *
+   * @type {Function}
+   */
+  #syncIcon = createTrackedIconSync();
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link HiddenColumns#enablePlugin} method is called.
    *
@@ -293,8 +302,8 @@ export class HiddenColumns extends BasePlugin {
     // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
     // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
     const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
-      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
-      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
     };
 
     this.hot.addHook('afterGetColHeader', clearColHeader);
@@ -601,8 +610,8 @@ export class HiddenColumns extends BasePlugin {
     if (!this.getSetting('indicators') || column < 0) {
       // The indicator setting can be toggled off, or this can be the corner header - either way,
       // any caret left over from a previous render must be cleared here, since we return early.
-      syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
-      syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
 
       return;
     }
@@ -632,11 +641,13 @@ export class HiddenColumns extends BasePlugin {
     // strip alone would leave an orphaned `<i>` on the upper level, rendered at the base 16px icon
     // size. Gate creation on the same "reaches the cells" test - the classes keep their old
     // behavior, only the element is withheld where NestedHeaders would discard its marker anyway.
-    const reachesCells = isBottomMostColumnHeader(TH);
+    // Without NestedHeaders nothing strips the classes, so every header row keeps its caret, as in
+    // 18.1 - a multi-row header built through `afterGetColumnHeaderRenderers` included.
+    const reachesCells = !this.hot.getPlugin('nestedHeaders')?.enabled || isBottomMostColumnHeader(TH);
 
-    syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS,
+    this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS,
       reachesCells && classList.includes('afterHiddenColumn') ? 'caretHiddenRight' : null);
-    syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
+    this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
       reachesCells && classList.includes('beforeHiddenColumn') ? 'caretHiddenLeft' : null);
   };
 
