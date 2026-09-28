@@ -804,7 +804,7 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
-        // Six classes of expected errors are dropped:
+        // Seven classes of expected errors are dropped:
         //
         //   1. Failed requests from server-side data recipe examples.
         //      The docs site runs no backend for those examples, so every request from
@@ -863,14 +863,28 @@ export default defineConfig({
         //      anything about our code.
         //
         //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
-        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
-        //      repeats them for its own mount. Neither can reach these events: they
+        //      failures the example runner catches. It cannot reach these events: they
         //      arrive through `onunhandledrejection` from Astro's own island hydration,
-        //      outside any try/catch of ours. Keep the three lists in step.
+        //      outside any try/catch of ours. Keep the two lists in step.
         //
         //      Tradeoff: this also hides a deployment that ships HTML referencing a
         //      chunk that was never uploaded. Deploy-time asset verification, not error
         //      volume from readers, is the right detector for that.
+        //
+        //   6. Errors raised entirely inside Google Tag Manager: every stack frame is
+        //      `gtm.js`, `gtag/js`, or the `<anonymous>` code a Custom HTML tag injects.
+        //      Those tags reference globals the docs never load (`jQuery`, `$`, `_cio`,
+        //      `ym`, `FundraiseUp`, ... - Sentry HANDSONTABLE-DOCS-24E, -24D, -25A, -24J,
+        //      -251 and ~30 more), so the fix belongs in the GTM container, not here. At
+        //      least one frame must be a real `gtm.js`/`gtag/js` frame: an all-`<anonymous>`
+        //      stack has no provable owner and stays visible. One frame from our own
+        //      bundles keeps the event, so a GTM call into our code that breaks it stays
+        //      visible too.
+        //
+        //   7. `Script error.`. The browser strips every detail - message, file, and stack -
+        //      from an error thrown by a cross-origin script loaded without CORS, leaving at
+        //      most a frame pointing at the page itself, so there is nothing to attribute
+        //      or fix (Sentry HANDSONTABLE-DOCS-24A, -245, -247).
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
@@ -932,6 +946,52 @@ export default defineConfig({
         });
 
         if (isChunkLoadError) {
+          return null;
+        }
+
+        // Drop errors whose every frame belongs to Google Tag Manager or the anonymous
+        // code its Custom HTML tags inject, as long as one frame is a real GTM frame.
+        // A single frame from our bundles keeps it.
+        var frames = [];
+
+        values.forEach(function (value) {
+          var valueFrames = value && value.stacktrace && value.stacktrace.frames;
+
+          if (valueFrames && valueFrames.length) {
+            frames = frames.concat(valueFrames);
+          }
+        });
+
+        var frameFile = function (frame) {
+          return (frame && (frame.abs_path || frame.filename)) || '';
+        };
+        var isTagManagerFrame = function (frame) {
+          var file = frameFile(frame);
+
+          return /googletagmanager\\.com\\/(gtm\\.js|gtag\\/js)/.test(file) ||
+            file === '/gtm.js' || file === '/gtag/js';
+        };
+        var isTagManagerOrInjectedFrame = function (frame) {
+          return isTagManagerFrame(frame) || frameFile(frame) === '<anonymous>';
+        };
+
+        if (frames.some(isTagManagerFrame) && frames.every(isTagManagerOrInjectedFrame)) {
+          return null;
+        }
+
+        // Drop cross-origin "Script error." reports - the browser strips all detail.
+        // The SDK words it either as the bare message or as
+        // "Event 'ErrorEvent' captured as exception with message 'Script error.'" (quoted
+        // with backticks in the real message).
+        var isOpaqueScriptError = function (message) {
+          return typeof message === 'string' &&
+            (/^Script error\\.?$/.test(message) || (message.indexOf('captured as exception with message') !== -1 &&
+              message.indexOf('Script error.') !== -1));
+        };
+
+        if (isOpaqueScriptError(event.message) || values.some(function (value) {
+          return value && isOpaqueScriptError(value.value);
+        })) {
           return null;
         }
 
