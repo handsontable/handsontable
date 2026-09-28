@@ -19,7 +19,7 @@
 **Run Commands:**
 ```bash
 # From handsontable/ directory:
-npm run test:unit                  # Run all Jest unit tests (~431 files, Walkontable's test/unit/ included)
+npm run test:unit                  # Run all Jest unit tests (~446 files, Walkontable's test/unit/ included)
 npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~946 spec files)
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only

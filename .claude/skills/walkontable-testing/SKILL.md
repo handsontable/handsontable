@@ -18,7 +18,7 @@ Walkontable's specs have their own dedicated test runner. Do NOT run them throug
 The directory contains two sub-pipelines:
 
 - `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap). Only `test:walkontable` runs them.
-- `test/unit/` -- Unit-style tests for calculators, filters, renderers, and utilities (47 `*.unit.ts`/`*.unit.js` files). These are Jest tests: the core `jest.config.js` picks them up, so the main `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
+- `test/unit/` -- Unit-style tests for calculators, filters, renderers, and utilities (48 `*.unit.ts`/`*.unit.js` files). These are Jest tests: the core `jest.config.js` picks them up, so the main `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
 
 ## Writing Tests
 
