@@ -92,6 +92,11 @@ user-authored one such as `{ top: { width: 2 } }`. So it must not be required to
 write's coordinates; the canonical (complete, denormalized) object is written back to the meta, an
 all-hidden result clears the cell, and the model entry is upserted — so meta and model cannot diverge.
 
+## `width: 0` is a real value
+
+Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`
+("Custom border `width: 0` is a real value").
+
 ## `left`/`right` vs `start`/`end`
 
 `normalizeBorder()` translates the legacy `left`/`right` into the logical `start`/`end` that Walkontable's

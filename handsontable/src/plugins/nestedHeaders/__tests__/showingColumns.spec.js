@@ -207,7 +207,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should keep the headers in sync with a dataset after updateSettings call', async() => {
+    it('should keep the headers in sync with a dataset after updateSettings call (custom hiding map)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -1285,7 +1285,7 @@ describe('NestedHeaders', () => {
     });
 
     describe('with cooperation with the HidingColumns plugin', () => {
-      it('should keep the headers in sync with a dataset after updateSettings call', async() => {
+      it('should keep the headers in sync with a dataset after updateSettings call (HiddenColumns plugin)', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,

@@ -82,6 +82,40 @@ test.describe('CustomBorders with frozen rows and columns', () => {
   });
 });
 
+test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
+  test('does not paint a 1px edge when a side is configured with width 0', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 3, dataCols: 3,
+      customBorders: [
+        {
+          row: 0, col: 0,
+          top: { width: 0, color: 'red' },
+          start: { width: 2, color: 'green' },
+        },
+        { row: 0, col: 1, top: { width: 1, color: 'blue' } },
+      ],
+    });
+
+    // The plugin stores the authored 0; the renderer must honor it rather than substituting 1.
+    expect((await lab.cellBorders(0, 0))?.top).toEqual({ width: 0, color: 'red' });
+    expect((await lab.cellBorders(0, 0))?.start).toEqual({ width: 2, color: 'green' });
+
+    const zeroTop = await lab.edgeBoxSize('red');
+    const thickStart = await lab.edgeBoxSize('green');
+    const onePxControl = await lab.edgeBoxSize('blue');
+
+    // Painted box size (`getBoundingClientRect`), not the inline style string `createBorders`
+    // wrote. Horizontal thickness is `height`; vertical thickness is `width`. A truthy width
+    // lookup would paint the red top at 1px — the same size as the blue control.
+    expect(zeroTop).not.toBeNull();
+    expect(zeroTop!.height).toBe(0);
+    expect(thickStart!.width).toBe(2);
+    expect(onePxControl!.height).toBe(1);
+  });
+});
+
 test.describe('CustomBorders and UndoRedo', () => {
   test('restores a border removed together with its row when the removal is undone', async ({ page, theme, bundle }) => {
     const demo = await gotoDemo(page, theme, bundle);

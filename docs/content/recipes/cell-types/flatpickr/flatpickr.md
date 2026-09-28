@@ -84,7 +84,7 @@ npm install flatpickr date-fns
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { format, isDate } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import { editorFactory } from 'handsontable/editors';
@@ -97,7 +97,7 @@ registerAllModules();
 - Lightweight, modular date formatting
 - Better than native `toLocaleDateString()` for consistency
 - Can be replaced with other libraries (moment, dayjs, etc.)
-- `isDate` is imported for validation
+- `parseISO` parses the `yyyy-MM-dd` values the recipe stores, and `isValid` guards validation and rendering against invalid dates
 
 **Why `editorFactory` and `rendererFactory`?**
 - `editorFactory` creates a custom editor with lifecycle hooks (`init`, `beforeOpen`, `afterOpen`, `afterClose`, `getValue`, `setValue`, etc.)
@@ -122,13 +122,17 @@ The renderer displays the date in a human-readable format.
 
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
-  td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
+  const date = parseISO(value);
+
+  td.innerText = value && isValid(date) ? format(date, cellProperties.renderFormat) : value || '';
 })
 ```
 
 **What's happening:**
 - `value` is the raw date value (e.g., ISO string "2025-03-15")
-- Empty or invalid values are shown as an empty string
+- Empty values are shown as an empty string
+- `parseISO()` parses the ISO string; unlike `new Date()`, it rejects impossible dates such as "2025-02-30" instead of rolling them over to March
+- `isValid()` guards `format()`, which throws `RangeError: Invalid time value` for an invalid date; an unparseable value is shown as-is
 - `cellProperties.renderFormat` is a custom property we'll set per column
 - `format()` from date-fns converts to desired format
 - Display the formatted date
@@ -137,19 +141,23 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 - Allows different columns to display dates differently
 - One cell definition, multiple configurations
 
-**Optional error handling for production:**
+**Optional error highlighting for production:**
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
+    td.style.color = '';
     return;
   }
-  try {
-    td.innerText = format(new Date(value), cellProperties.renderFormat || 'MM/dd/yyyy');
-  } catch (e) {
+  const date = parseISO(value);
+
+  if (!isValid(date)) {
     td.innerText = 'Invalid date';
     td.style.color = 'red';
+    return;
   }
+  td.innerText = format(date, cellProperties.renderFormat || 'MM/dd/yyyy');
+  td.style.color = '';
 })
 ```
 
@@ -157,14 +165,16 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 
 ```typescript
 validator: (value, callback) => {
-  callback(isDate(new Date(value)));
+  callback(!value || isValid(parseISO(value)));
 }
 ```
 
 **What's happening:**
-- Uses `isDate` from date-fns to validate the date
-- `isDate` checks if the value is a valid Date object
-- Returns `true` for valid dates, `false` for invalid ones
+- Uses `parseISO` and `isValid` from date-fns to validate the date
+- `parseISO(value)` always returns a `Date` object, so checking its type (`isDate`) accepts any input; `isValid` also rejects an Invalid Date
+- `parseISO` rejects impossible dates such as "2025-02-30", which `new Date()` silently rolls over to "2025-03-02"
+- Empty values pass, so users can clear a cell
+- Returns `true` for valid dates and empty values, `false` for invalid ones
 
 **Alternative validation approaches:**
 ```typescript
@@ -172,9 +182,11 @@ validator: (value, callback) => {
 validator: (value, callback) => {
   const date = new Date(value);
 
-  callback(!isNaN(date.getTime()));
+  callback(!value || !isNaN(date.getTime()));
 }
 ```
+
+The native version also allows empty values, but `new Date()` rolls impossible dates such as "2025-02-30" over instead of rejecting them.
 
 ## Step 5: Editor - Initialize (`init`)
 
@@ -399,10 +411,12 @@ Put it all together:
 ```typescript
 const cellDefinition = {
   validator: (value, callback) => {
-    callback(isDate(new Date(value)));
+    callback(!value || isValid(parseISO(value)));
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
-    td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
+    const date = parseISO(value);
+
+    td.innerText = value && isValid(date) ? format(date, cellProperties.renderFormat) : value || '';
   }),
   editor: editorFactory<FlatpickrEditorInstance>({
     init(editor) {
@@ -451,8 +465,8 @@ const cellDefinition = {
 ```
 
 **What's happening:**
-- **validator**: Ensures date is valid using `isDate` from date-fns
-- **renderer**: Displays formatted date using `cellProperties.renderFormat` (empty string for missing values)
+- **validator**: Ensures date is valid using `parseISO` and `isValid` from date-fns
+- **renderer**: Displays formatted date using `cellProperties.renderFormat` (empty string for missing values, the raw value for invalid dates)
 - **editor**: Uses `editorFactory` helper with:
   - `init`: Creates input, initializes Flatpickr with `onClose` calling `finishEditing()`, sets `preventCloseElement` so calendar clicks don't close the editor, prepares dark theme link
   - `afterClose`: Closes the Flatpickr calendar when the editor is closed by Escape or clicking outside
@@ -522,13 +536,13 @@ const hot = new Handsontable(container, hotOptions);
 
 ## How It Works - Complete Flow
 
-1. **Initial Load**: Cell displays formatted date ("15/03/2025" EU or "03/15/2025" US), or empty string when there is no value
+1. **Initial Load**: Cell displays formatted date ("15/03/2025" EU or "03/15/2025" US), empty string when there is no value, or the raw value when it isn't a valid date
 2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
 3. **Before Open**: `beforeOpen` applies per-column Flatpickr settings (e.g., first day of week)
 4. **After Open**: `afterOpen` toggles dark theme if needed and calls `editor.flatpickr.open()` to show the calendar
 5. **Calendar Opens**: Flatpickr displays the calendar with column-specific settings
 6. **User Selects Date or Closes Calendar**: `onClose` handler fires, calls `finishEditing()`
-7. **Validation**: Validator checks date is valid using `isDate`
+7. **Validation**: Validator checks date is valid using `parseISO` and `isValid`
 8. **Save**: Value saved in ISO format ("2025-03-15")
 9. **Editor Closes**: `afterClose` runs and closes the Flatpickr calendar (important when the user closed via Escape or clicking outside). Container hidden, cell renderer displays the new formatted date
 

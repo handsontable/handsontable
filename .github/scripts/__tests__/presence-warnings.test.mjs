@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
-import { classify } from '../lib/presence-gate.mjs';
+import { classify, isCoverage } from '../lib/presence-gate.mjs';
 import {
   parseUnifiedDiff,
   countNewTestBlocks,
@@ -12,6 +12,8 @@ import {
   redSpecFieldMissing,
   rtlCorrelation,
   walkontableRouting,
+  visualOnlyCoverage,
+  VISUAL_SPEC_RE,
   collectWarnings,
   renderWarnings,
   isAdvisoryPath,
@@ -370,6 +372,188 @@ test('Walkontable routing ignores changes outside the engine source, including i
   assert.equal(walkontableRouting([]), null);
 });
 
+// --- visualOnlyCoverage ---
+// The #12086 shape — the one commit in 1251 first-parent commits since
+// 2026-03-01 that would have fired: a scroll fix in the engine proven by a new
+// visual spec, with a demo edit and a changelog entry (both 'neither' to the
+// gate) beside it.
+const VISUAL_SRC = { status: 'M', path: 'handsontable/src/3rdparty/walkontable/src/overlays.js' };
+const VISUAL_SPEC = { status: 'A', path: 'visual-tests/tests/js-only/wrapper/wrapper-preventOverflow.spec.ts' };
+const VISUAL_ONLY_PR = [
+  VISUAL_SRC,
+  VISUAL_SPEC,
+  { status: 'M', path: 'examples/next/visual-tests/js/demo/src/demos/wrapper/index.js' },
+  { status: 'A', path: '.changelogs/12086.json' },
+];
+
+test('a source change whose only coverage is a new visual spec warns and names both sides', () => {
+  // Prevents: the detector staying silent on the exact shape it exists for, or
+  // a demo or changelog file — 'neither' to the gate — masking the finding.
+  const finding = visualOnlyCoverage(VISUAL_ONLY_PR);
+
+  assert.ok(finding, 'expected a finding');
+  assert.deepEqual(finding.sourceFiles, [VISUAL_SRC.path]);
+  assert.deepEqual(finding.visualSpecs, [`${VISUAL_SPEC.path} (A)`]);
+});
+
+test('visual-only coverage is silent when any non-visual coverage accompanies the visual spec', () => {
+  // Prevents: a false positive on a pull request that did pair the source
+  // change with a behavioral test — the shape that gets a hook disabled.
+  for (const coverage of [
+    { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/x.unit.js' },
+    { status: 'A', path: 'tests/e2e/filters.spec.ts' },
+    { status: 'M', path: FROZEN_SPEC }, // a MODIFIED Jasmine spec is coverage to the gate
+    { status: 'A', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' },
+    { status: 'A', path: 'handsontable/src/__tests__/core/x.types.ts' },
+  ]) {
+    assert.equal(isCoverage(coverage), true, `${coverage.path} is coverage to the gate`);
+    assert.equal(visualOnlyCoverage([...VISUAL_ONLY_PR, coverage]), null, `${coverage.path} pairs the source change`);
+  }
+});
+
+test('visual-only coverage is silent with no source change — a visual spec alone, a helper, a demo, or the codemod shape', () => {
+  // Prevents: firing on pull requests confined to the visual package. The
+  // codemod pull requests (the visualTest() rename, the disable lines, the
+  // docblocks) touch `visual-tests/src/test-runner.ts` and every spec under
+  // `visual-tests/tests/` and nothing else — that change set is the pinned
+  // silent example.
+  const helper = { status: 'M', path: 'visual-tests/src/page-helpers.ts' };
+  const demo = { status: 'M', path: 'examples/next/visual-tests/js/demo/src/main.ts' };
+
+  assert.equal(visualOnlyCoverage([VISUAL_SPEC]), null, 'a visual spec alone');
+  assert.equal(visualOnlyCoverage([helper, VISUAL_SPEC]), null, 'a visual helper is neither source nor coverage');
+  assert.equal(visualOnlyCoverage([demo, VISUAL_SPEC]), null, 'a visual demo is neither source nor coverage');
+
+  const codemod = [
+    { status: 'M', path: 'visual-tests/src/test-runner.ts' },
+    { status: 'M', path: 'visual-tests/tests/js-only/wrapper/wrapper-size.spec.ts' },
+    { status: 'M', path: 'visual-tests/tests/multi-frameworks/change-rows-order.spec.ts' },
+    { status: 'M', path: 'visual-tests/tests/cross-browser/alignment.spec.ts' },
+  ];
+
+  assert.equal(classify('visual-tests/src/test-runner.ts'), 'neither', 'the runner is not source to the gate');
+  assert.equal(visualOnlyCoverage(codemod), null, 'the codemod shape: runner plus specs, no source');
+});
+
+test('visual-only coverage fires on a modified or renamed visual spec and ignores a deleted one', () => {
+  // Prevents: exempting M — a one-line edit to an existing capture spec is the
+  // cheapest gate-pass of all — and listing a deleted spec that no longer exists.
+  const modified = visualOnlyCoverage([VISUAL_SRC, { ...VISUAL_SPEC, status: 'M' }]);
+  const renamed = visualOnlyCoverage([VISUAL_SRC, { ...VISUAL_SPEC, status: 'R' }]);
+
+  assert.deepEqual(modified?.visualSpecs, [`${VISUAL_SPEC.path} (M)`],
+    'a modified visual spec as the only coverage fires');
+  assert.deepEqual(renamed?.visualSpecs, [`${VISUAL_SPEC.path} (R)`],
+    'a renamed visual spec as the only coverage fires');
+
+  const deletedSpec = { ...VISUAL_SPEC, status: 'D' };
+
+  // The gate quirk, documented next to the detector's choice: a deleted spec
+  // still satisfies the gate (COVERAGE_ANY_STATUS is status-independent), yet
+  // the detector does not count it — the message must never name a file that
+  // is gone. Fixing the gate itself changes verdicts and is not this detector's job.
+  assert.equal(isCoverage(deletedSpec), true, 'the gate accepts a deleted visual spec as coverage');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'the detector does not');
+  assert.equal(visualOnlyCoverage([{ ...VISUAL_SRC, status: 'D' }, VISUAL_SPEC]), null,
+    'a deleted source file needs no coverage');
+});
+
+test('a unit test under visual-tests/ is behavioral coverage, not a capture, so it pairs the source change', () => {
+  // Prevents: VISUAL_SPEC_RE regressing to a bare package prefix, which reported
+  // a `*.unit.js` for the visual package's own lib as "a visual spec" and drew
+  // the screenshot message on a change set that carried a real assertion. No
+  // such file exists yet; the G3 and G5 guardrails add lib code under
+  // visual-tests/lib/, and someone will test it beside a core change.
+  const visualUnit = { status: 'A', path: 'visual-tests/lib/__tests__/manifest.unit.js' };
+
+  assert.equal(isCoverage(visualUnit), true, 'a unit test under visual-tests/ is coverage to the gate');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, visualUnit]), null,
+    'as the only coverage: a unit test, not a capture');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, visualUnit, VISUAL_SPEC]), null,
+    'beside a capture spec: it pairs the change');
+});
+
+test('visual-only coverage is silent when the gate itself is red, and fires beside a new Jasmine spec', () => {
+  // Prevents: a warning that repeats the `missing-coverage` verdict printed
+  // above it. A NEW `*.spec.js` is not coverage (the gate blocks it), so the
+  // visual spec is the only coverage and the warning prints below the red
+  // `new-jasmine-spec` verdict — the established behavior for every advisory.
+  assert.equal(visualOnlyCoverage([VISUAL_SRC]), null, 'no coverage at all: the verdict already says it');
+  assert.equal(visualOnlyCoverage([]), null);
+
+  const newJasmine = { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/new.spec.js' };
+
+  assert.equal(isCoverage(newJasmine), false, 'a new Jasmine spec is not coverage to the gate');
+  assert.ok(visualOnlyCoverage([VISUAL_SRC, newJasmine, VISUAL_SPEC]), 'so the visual spec is the only coverage');
+});
+
+test('VISUAL_SPEC_RE matches a capture spec under visual-tests/tests/ and nothing else', () => {
+  // Prevents: the matcher drifting to admit `tests/e2e` or `docs/tests` specs
+  // (a paired change would become a finding) or the visual demos — and, as a
+  // bare package prefix, the visual package's own unit tests or a spec outside
+  // its Playwright `testDir`.
+  assert.equal(VISUAL_SPEC_RE.test('visual-tests/tests/cross-browser/alignment.spec.ts'), true);
+  assert.equal(VISUAL_SPEC_RE.test('tests/e2e/x.spec.ts'), false);
+  assert.equal(VISUAL_SPEC_RE.test('docs/tests/visualDocs.spec.ts'), false);
+  assert.equal(VISUAL_SPEC_RE.test('examples/next/visual-tests/js/demo/src/main.ts'), false);
+  assert.equal(VISUAL_SPEC_RE.test('visual-tests/lib/__tests__/manifest.unit.js'), false, 'a unit test in the package');
+  assert.equal(VISUAL_SPEC_RE.test('visual-tests/src/page-helpers.spec.ts'), false, 'a spec outside the testDir');
+});
+
+test('VISUAL_SPEC_RE matches every capture spec that actually exists', () => {
+  // Prevents the one silent failure this detector cannot survive: the population moving out from under
+  // the matcher. `tests/playwright.config.ts` already reserves `tests/visual/` as a later home for these
+  // specs, and the day they move, the regex stops matching, the detector goes quiet for good, and the
+  // month-later tally reads that silence as "nobody shipped a screenshot alone" — a false zero that
+  // decides a policy question. Every other input to that tally is pinned for the same reason (the
+  // annotation title, the check-run name, `headRefOid`, the PR-only `if:`); this is the last one, and it
+  // is pinned against the real tree rather than against a fixture, because a fixture would move with the
+  // regex and prove nothing.
+  const root = repoRoot();
+  const walk = (dir) => readdirSync(path.join(root, dir), { withFileTypes: true })
+    .flatMap(entry => (entry.isDirectory()
+      ? walk(path.join(dir, entry.name))
+      : [path.join(dir, entry.name)]));
+  const specs = walk('visual-tests/tests').filter(file => file.endsWith('.spec.ts'));
+
+  assert.ok(specs.length >= 100,
+    `only ${specs.length} capture specs found under visual-tests/tests — the tree moved, and this pin `
+    + 'is now checking almost nothing');
+
+  const missed = specs.filter(file => !VISUAL_SPEC_RE.test(file));
+
+  assert.deepEqual(missed, [],
+    'VISUAL_SPEC_RE no longer matches every capture spec in the tree, so visual-only-coverage would go '
+    + 'silent for the ones it misses and the month-later tally would read a false zero');
+});
+
+test('the visual-only-coverage message says a screenshot proves pixels, not behavior, and points at the decision rule', () => {
+  // Prevents: the message losing its pointer (visual-tests/AGENTS.md → Decision
+  // rule), its remedy (tests/e2e), or gaining markdown that the CLI's
+  // annotation() strips before the text reaches the check run.
+  const warnings = collectWarnings({ changes: VISUAL_ONLY_PR });
+  const warning = warnings.find(w => w.type === 'visual-only-coverage');
+
+  assert.ok(warning, 'the composed run carries the warning');
+  assert.match(warning.message, /screenshot proves pixels, not behavior/);
+  assert.match(warning.message, /tests\/e2e/);
+  assert.match(warning.message, /visual-tests\/AGENTS\.md/);
+  assert.match(warning.message, /Decision rule/);
+  assert.doesNotMatch(warning.message, /[`*\n]/, 'one line, no backticks or asterisks');
+  assert.deepEqual(warning.files, [VISUAL_SRC.path, `${VISUAL_SPEC.path} (A)`],
+    'source first, then the spec with its status');
+
+  const lines = renderWarnings([warning]);
+
+  assert.match(lines[0], /non-blocking/);
+  assert.ok(lines.some(l => l.includes('⚠️ **visual-only-coverage**')));
+  assert.ok(lines.some(l => l.includes(`\`${VISUAL_SPEC.path} (A)\``)));
+});
+
+// The prose enumerations of the detectors and the month-later tally recipe are
+// pinned in visual-only-coverage-pins.test.mjs (doc pins live in their own file,
+// region-sliced so a deleted enumeration cannot hide behind another mention).
+
 // --- collectWarnings / renderWarnings ---
 test('collectWarnings composes every detector and stays silent on a clean change', () => {
   const warnings = collectWarnings({
@@ -402,6 +586,14 @@ test('collectWarnings composes every detector and stays silent on a clean change
   });
 
   assert.deepEqual(clean, []);
+
+  // A second composed call whose only coverage is a visual spec: the fifth
+  // detector joins the routing one (#12086 touched the engine, too). Kept as a
+  // separate call so the four-type assertion above keeps pinning that a
+  // modified Jasmine spec beside the source change silences it.
+  const visualOnly = collectWarnings({ changes: VISUAL_ONLY_PR, diff: '', prBody: undefined });
+
+  assert.deepEqual(visualOnly.map(w => w.type).sort(), ['visual-only-coverage', 'walkontable-routing']);
 });
 
 test('collectWarnings skips the body-dependent check when no body is available (local runs)', () => {

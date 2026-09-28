@@ -162,14 +162,16 @@ class AxisSyncer {
   /**
    * Sets removed HF indexes (it should be done right before performing move on HOT).
    *
+   * The indexes are translated physically. A removal can include trimmed rows – NestedRows removes every
+   * descendant of a removed or detached parent, including one trimmed by another plugin – and the engine holds
+   * trimmed rows too. A trimmed row has no visual index, so a visual translation would report it as `-1`.
+   *
    * @param {Array<number>} removedIndexes List of removed physical indexes.
-   * @returns {Array<number>} List of removed visual indexes.
+   * @returns {Array<number>} List of removed HF indexes.
    */
   setRemovedHfIndexes(removedIndexes: number[]) {
     this.#removedIndexes = removedIndexes.map((physicalIndex: number) => {
-      const visualIndex = this.#indexMapper.getVisualFromPhysicalIndex(physicalIndex);
-
-      return this.getHfIndexFromVisualIndex(visualIndex ?? -1);
+      return this.getHfIndexFromPhysicalIndex(physicalIndex);
     });
 
     return this.#removedIndexes;

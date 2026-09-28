@@ -127,6 +127,26 @@ const configurationOptions = {
 
 Read more about where the bar renders in the [layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md) guide.
 
+::: only-for react
+
+### Keep sheet data stable
+
+Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. When a sheet's `data` is a new array, the plugin reads it as a new workbook and rebuilds it. The rebuild discards the user's edits, sort and filter state, and any sheets added at runtime.
+
+```jsx
+// Rebuilds the workbook on every render
+<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: [['Rent', 1200]] }] }} />
+
+// Keeps the workbook
+const budgetData = [['Rent', 1200]];
+
+<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
+```
+
+A fresh `settings` object on each render is fine. The plugin compares `settings` by content and `data` by reference.
+
+:::
+
 ## Managing sheets programmatically
 
 Get the plugin instance with [`getPlugin()`](@/api/core.md#getplugin) and call its API methods.
@@ -326,7 +346,7 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 - Passing a changed `sheets` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when each sheet's `settings` are structurally equal and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it. A rebuild keeps the active sheet selected by name when the new workbook still contains it and the `activeSheet` option did not change. Changing only the bar's UI options (`controls`, `paging`, `position`) never rebuilds the workbook.
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 - Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
-- Give the grid an explicit [`height`](@/api/options.md#height) when the container scrolls or is sized in CSS only. Without one, the table renders at its full content height and the bar sits below the last row - inside a scrollable container it can end up clipped out of reach. The [`Pagination`](@/api/pagination.md) bar behaves the same way; a shared fix is tracked as a follow-up.
+- The bar shares its container with the grid. When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the bar follows the last row, so on a long sheet you scroll past the data to reach it. To keep the bar in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`. The [`Pagination`](@/api/pagination.md) bar behaves the same way.
 
 ## Related keyboard shortcuts
 

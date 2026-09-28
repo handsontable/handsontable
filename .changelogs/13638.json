@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the CSV export writing only the bottom header row when the `nestedHeaders` option is set. Every header layer is now exported, so a CSV file with nested headers starts with one header line per layer instead of one: code that skips a single header line when reading the file must skip one line per layer. Both the CSV and Excel exports now pass nested header labels through the `modifyColumnHeaderValue` hook, as the grid does, which changes the Excel header text when the hook is set. Also fixed the Excel export mishandling nested headers when a column inside a header group is hidden, or when the `NestedHeaders` plugin is disabled at runtime.",
+  "type": "fixed",
+  "issueOrPR": 13638,
+  "breaking": false,
+  "framework": "none"
+}

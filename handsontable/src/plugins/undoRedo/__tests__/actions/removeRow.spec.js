@@ -49,6 +49,7 @@ describe('UndoRedo -> RemoveRow action', () => {
         [2, 4, jasmine.objectContaining({ visualRow: 2, visualCol: 4, row: 2, col: 4, prop: 4 })],
       ],
       removedMergedCells: [],
+      removedHiddenRows: [],
     });
   });
 
@@ -175,6 +176,141 @@ describe('UndoRedo -> RemoveRow action', () => {
       expect(changedProps).toContain('artist');
       expect(changedProps).toContain('category');
       expect(changedProps).toContain('label');
+    });
+  });
+
+  describe('DEV-134: undo restores rows hidden by the `hiddenRows` plugin', () => {
+    it('should re-hide a hidden row after undoing its removal', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+      expect(getPlugin('hiddenRows').isHidden(1)).toBe(true);
+      expect(getPlugin('hiddenRows').isHidden(3)).toBe(true);
+    });
+
+    it('should restore the full pre-removal hiding config for the exact reported repro ' +
+      '(hide rows, remove them via the context menu, undo)', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+        contextMenu: true,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([2, 3]);
+      await render();
+
+      await selectRows(2, 3);
+      getPlugin('contextMenu').executeCommand('remove_row');
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([2, 3]);
+
+      // The ticket's second reported symptom (header selection misbehaving) traced back to the
+      // same corrupted hiding-map state: with rows 2 and 3 wrongly counted as rendered, the
+      // renderable row count - which row-header selection is built on - was wrong too. Pin it
+      // directly: 6 rows total, 2 of them hidden, 4 must remain rendered.
+      expect(countRenderedRows()).toBe(4);
+
+      // Clicking the corner (select-all) must resolve to the DOM row headers actually rendered,
+      // not the stale/wrong count the unfixed bug left behind.
+      const corner = getCell(-1, -1);
+
+      await simulateClick(corner, 'LMB');
+
+      expect($('.ht_clone_inline_start .htCore tbody tr').length).toBe(4);
+    });
+
+    it('should not re-hide a row that was not hidden before the removal', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      // Rows 1 and 3 are hidden, row 2 is not - all three are removed together so the removed
+      // range actually overlaps both a hidden and a non-hidden row. Without that overlap this
+      // test would pass even with the fix reverted, since nothing in [2, 2] was ever hidden.
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 1, 3);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+      expect(getPlugin('hiddenRows').isHidden(2)).toBe(false);
+    });
+
+    it('should leave hiding state untouched when the `hiddenRows` plugin is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+      });
+
+      await alter('remove_row', 1, 1);
+
+      expect(() => {
+        getPlugin('undoRedo').undo();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
+
+      // The row data itself must still come back on this no-hiddenRows path.
+      expect(getDataAtCell(1, 0)).toBe('A2');
+    });
+
+    it('should keep restoring the hidden row across an undo -> redo -> undo cycle', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+
+      // Redo re-removes row 3 - the RemoveRowAction pushed back onto the done stack is the same
+      // object undo just used, not a freshly captured one, so this must not disturb what it holds.
+      getPlugin('undoRedo').redo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('hiddenRows').getHiddenRows()).toEqual([1, 3]);
+      expect(getPlugin('hiddenRows').isHidden(3)).toBe(true);
+    });
+
+    it('should not throw when `hiddenRows` is disabled between the removal and the undo', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 3),
+        hiddenRows: true,
+      });
+
+      getPlugin('hiddenRows').hideRows([1, 3]);
+      await render();
+
+      await alter('remove_row', 3, 1);
+
+      await updateSettings({ hiddenRows: false });
+
+      expect(() => {
+        getPlugin('undoRedo').undo();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
+
+      // The row data itself must still come back even though there is no hiddenRows plugin left
+      // to restore hiding state into.
+      expect(getDataAtCell(3, 0)).toBe('A4');
     });
   });
 });

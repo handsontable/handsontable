@@ -1,9 +1,16 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
-import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
+import {
+  getCellMetas,
+  collectAffectedMergedCells,
+  restoreMergedCells,
+  settleOnRemoveHook,
+  type SettleCallback,
+} from '../utils';
 import { rangeEach } from '../../../helpers/number';
 import { arrayMap, arrayEach } from '../../../helpers/array';
+import { clipRemovalRange } from '../../../utils/removalRange';
 
 /**
  * Action that tracks changes in column removal.
@@ -100,9 +107,15 @@ export class RemoveColumnAction extends BaseAction {
           return null;
         }
 
+        // `beforeRemoveCol`'s `amount` stays the requested count, while `logicColumns` lists the
+        // columns actually removed. A partial removal (more columns requested than exist) must record
+        // the clamped count, or the recorded indexes/headers run out of range and `undo()` restores
+        // `undefined`. `removeRow` needs no equivalent - `dataMap.removeRow` passes the clamped
+        // `removedPhysicalIndexes.length` as `beforeRemoveRow`'s `amount`.
+        const removedAmount = logicColumns.length;
         const originalData = hot.getSourceDataArray();
         const columnIndex = (hot.countCols() + index) % hot.countCols();
-        const lastColumnIndex = columnIndex + amount - 1;
+        const lastColumnIndex = columnIndex + removedAmount - 1;
         const removedData: unknown[][] = [];
         const headers: unknown[] = [];
         const indexes: number[] = [];
@@ -121,14 +134,14 @@ export class RemoveColumnAction extends BaseAction {
           removedData.push(collectColumnData(originalData[i], columnIndex, lastColumnIndex));
         });
 
-        rangeEach(amount - 1, (i: number) => {
+        rangeEach(removedAmount - 1, (i: number) => {
           indexes.push(hot.toPhysicalColumn(columnIndex + i));
         });
 
         if (Array.isArray(hot.getSettings().colHeaders)) {
           const colHeadersArr = hot.getSettings().colHeaders as string[];
 
-          rangeEach(amount - 1, (i: number) => {
+          rangeEach(removedAmount - 1, (i: number) => {
             headers.push(colHeadersArr[hot.toPhysicalColumn(columnIndex + i)] || null);
           });
         }
@@ -137,13 +150,13 @@ export class RemoveColumnAction extends BaseAction {
           index: columnIndex,
           indexes,
           data: removedData,
-          amount,
+          amount: removedAmount,
           headers,
           columnPositions: hot.columnIndexMapper.getIndexesSequence(),
           rowPositions: hot.rowIndexMapper.getIndexesSequence(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart ?? 0,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
-          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, amount),
+          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, removedAmount),
         });
       };
 
@@ -225,11 +238,26 @@ export class RemoveColumnAction extends BaseAction {
   }
 
   /**
+   * Reports whether redoing the removal would remove any column.
+   *
+   * UndoRedo must call this before `beforeRedo`. Formulas always calls `engine.redo()` in `beforeRedo`,
+   * so a redo whose removal names no column any more - the grid changed shape outside the stack since the
+   * columns were removed - would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when redo can proceed.
+   */
+  canRedo(hot: HotInstance): boolean {
+    return clipRemovalRange(this.index, this.amount, hot.countCols()) !== null;
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
-  redo(hot: HotInstance, redoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveCol', redoneCallback);
-    hot.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
+  redo(hot: HotInstance, redoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveCol', redoneCallback, { wasRedone: false }, () => {
+      hot.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
+    });
   }
 }

@@ -99,6 +99,11 @@ export function parseWrappers(value) {
  * copied, and `cross-browser/<browser>/` for the cross-browser leg. Every golden record sits under
  * exactly one of these, which is what makes a tier an exact subset of the golden set.
  *
+ * This is the tier's side of the mapping — what a build launches. `declaredPrefixes()` in
+ * `visual-declarations.mjs` is the per-spec side — what a spec says it renders on — and the two are
+ * pinned against each other in `__tests__/visual-declarations.test.mjs`, so neither can drift into
+ * naming a variant the other has no place for.
+ *
  * @param {object} tier A tier, resolved or straight from `VISUAL_TIERS`.
  * @param {string[]} tier.frameworks The frameworks rendered.
  * @param {boolean} tier.classic Whether the bare js render runs.

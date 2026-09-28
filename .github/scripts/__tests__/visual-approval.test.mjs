@@ -141,7 +141,11 @@ test('nothing lets the verdict go missing while compare stays green', () => {
   const verdictStep = fromVerdict.slice(0, fromVerdict.indexOf('- name:', 10));
 
   assert.ok(verdictStep.includes('id: gate'), 'the verdict step was not found where expected');
-  assert.doesNotMatch(verdictStep, /continue-on-error/,
+
+  // As a YAML KEY, not as the word. The slice runs to the next step's `- name:`, so it carries the
+  // comment block above that step — and a comment explaining why a DIFFERENT step tolerates errors
+  // would otherwise fail this, which is a false red on prose.
+  assert.doesNotMatch(verdictStep, /^\s*continue-on-error:/m,
     'a continue-on-error on the verdict step decouples "verdict unset" from "compare red", which is '
       + 'what makes a skipped approve safe');
 
@@ -154,6 +158,17 @@ test('nothing lets the verdict go missing while compare stays green', () => {
   assert.ok(writesOutput > -1 && setsExitCode > -1, 'the wrapper no longer has both halves');
   assert.ok(writesOutput < setsExitCode,
     'the verdict output must be written before the exit-code branch, or a blocked run exports no verdict');
+
+  // The budget step can fail the compare job, and it runs AFTER the verdict, so the verdict output is
+  // already written when it does. Reversed, a budget violation would abort the job before the gate ever
+  // exported `verdict`, and `approve` keys on that output — differences would then pass with nothing
+  // reviewed, which is failure mode 1 arriving through a new door. A budget violation reds the compare
+  // job, and a red compare cannot be approved away: `approve` carries `!failure()`.
+  const budgetStep = compare.indexOf('- name: Visual budget');
+
+  assert.ok(budgetStep > compare.indexOf('- name: Visual verdict'),
+    'the Visual budget step must run after the verdict, or a budget violation aborts the job before the '
+      + 'gate exports `verdict` and the approve job is skipped with differences unreviewed');
 });
 
 test('the approve job requests the permission its API call needs', () => {

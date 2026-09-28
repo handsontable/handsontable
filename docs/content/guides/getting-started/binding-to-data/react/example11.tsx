@@ -14,9 +14,11 @@ const data: Array<Array<string | number>> = [
   ['2021', 10, 11, 12, 13, 15, 16],
 ];
 
+const clonedData = structuredClone(data);
+
 const ExampleComponent: FC = () => (
   <HotTable
-    data={structuredClone(data)}
+    data={clonedData}
     height="auto"
     autoWrapRow={true}
     autoWrapCol={true}

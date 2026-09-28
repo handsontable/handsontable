@@ -133,6 +133,14 @@ export class CustomBordersLabPage {
     return this.page.evaluate(c => (window as any).borderUtils.zIndexOfColor(c), color);
   }
 
+  /**
+   * Painted box size of the first custom-border edge of `color`, including a 0-size edge.
+   * Hidden sides (`display: none`) have no client rects and are skipped.
+   */
+  async edgeBoxSize(color: string): Promise<{ width: number, height: number } | null> {
+    return this.page.evaluate(c => (window as any).borderUtils.edgeBoxSize(c), color);
+  }
+
   /** Right-most outer edge of `color` border edges touching the cell's box. */
   async outerRightNear(row: number, col: number, color: string, wantHorizontal: boolean): Promise<number> {
     return this.page.evaluate(

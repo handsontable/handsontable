@@ -1,7 +1,16 @@
-import { test } from '../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
-test(__filename, async({ tablePage }) => {
+/**
+ * Checks that scrolling the grid 270 px down and back up with the mouse wheel renders the scrolled viewport
+ * and then the restored one. Owned by DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const table = tablePage.locator(helpers.selectors.mainTable);
 
   await table.waitFor();

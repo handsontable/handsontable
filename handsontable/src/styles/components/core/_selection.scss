@@ -236,6 +236,47 @@
         }
       }
     }
+
+    // Print: hide the transient selection UI so a printout shows a clean grid (DEV-133). Browsers
+    // drop `background-color` when printing (to save ink) but keep real CSS `border`s, so the fill
+    // handle (`.wtBorder.corner` - an inline `border` from `Border#createBorders` plus a
+    // `background-color`) printed as an empty bordered square (the "pit"), while the background-only
+    // outline divs (`.current`/`.area`/`.fill`) vanished. Hiding the whole set removes the mismatch.
+    // Scoping: NEVER use a bare `.wtBorder`. A user's custom border renders through the same element
+    // with NO layer class - `createBorders` (border.ts) sets `wtBorder ${settings.className || ''}`
+    // and the custom-border highlight (`customSelection.ts`, CUSTOM_SELECTION_TYPE) passes none - so
+    // a bare rule cannot exclude it; opt the selection layers IN by `current`/`area`/`fill` instead.
+    // Those three are selection-only. `.corner` is NOT: `createBorders` appends it to the fifth div
+    // of EVERY Border, so this matches a custom
+    // border's corner too - which is intended, because a corner is the same border+background box and
+    // prints as the same "pit" whoever owns it. The handle classes are listed explicitly (not a
+    // `[class*="SelectionHandle"]` substring) so a custom cell renderer whose own class merely
+    // contains "SelectionHandle" is never hidden on print.
+    @media print {
+      .wtBorder.current,
+      .wtBorder.area,
+      .wtBorder.fill,
+      .wtBorder.corner,
+      .wtSelectionHandle,
+      .topSelectionHandle,
+      .bottomSelectionHandle,
+      .topSelectionHandle-HitArea,
+      .bottomSelectionHandle-HitArea,
+      .wtMoveZone {
+        display: none !important;
+      }
+
+      // The area cell highlight is a `background` pseudo-element (a browser drops it on print
+      // anyway); hide it explicitly so the "hide selection on print" intent is complete. The
+      // selected cells' interior border keeps its (color-mixed) screen value on print, exactly as
+      // it did before this change - a real CSS border prints regardless. Do NOT normalize it here:
+      // a `td.area` border-color override beats the grid's own outer-frame rules (e.g.
+      // `tr:first-child > td` in _base.scss) on an edge selection such as select-all, repainting
+      // the frame in the inner cell-border token, which is transparent in some themes.
+      td.area::before {
+        display: none !important;
+      }
+    }
   }
 
   @keyframes ht-selection-handle-fade-in {

@@ -395,7 +395,7 @@ export default (): Record<string, unknown> => {
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
      * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -639,7 +639,7 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {boolean|object}
      * @default false
-     * @since 18.2.0
+     * @since 19.0.0
      * @category AutoLink
      * @configScope grid columns cells cell
      *
@@ -1222,7 +1222,7 @@ export default (): Record<string, unknown> => {
      *
      * The height is the header's **border-box** height, so it includes the header's own top and
      * bottom borders. A column header carries a 1px border on each side, which makes
-     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 18.2 the
+     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 19.0 the
      * bottom border was dropped while the grid sat at the top of its scroll range and added back as
      * soon as it scrolled, so the same setting produced a 39px content box unscrolled and 38px
      * scrolled. The header keeps that border at every scroll position now, so the option resolves to
@@ -1812,6 +1812,9 @@ export default (): Record<string, unknown> => {
      * The `currentColClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected columns.
      *
+     * With nested or grouped column headers (the `nestedHeaders` plugin), the class name reaches
+     * every header level above the selected column, not only the leaf level.
+     *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -1878,6 +1881,9 @@ export default (): Record<string, unknown> => {
     /**
      * The `currentRowClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected rows.
+     *
+     * With multiple row-header columns (added through the `afterGetRowHeaderRenderers` hook), the
+     * class name reaches every row-header column, not only the first one.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)
@@ -2075,6 +2081,14 @@ export default (): Record<string, unknown> => {
      *
      * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
      *
+     * Unless you set the [`columns`](#columns) or [`dataSchema`](#dataSchema) option, Handsontable reads the number
+     * of columns from the first row of `data`. If that row has no fields (for example, `[{}]`, `[null]`, or
+     * `[[], [1, 2]]`), the grid displays rows with no cells, and values in later rows are not displayed. For such data,
+     * Handsontable logs a console warning. Two cases log no warning: an empty `data: []`, and an array of empty arrays
+     * (`[[]]`) while [`allowInsertColumn`](#allowInsertColumn) is on, because writing to it creates the columns. The check
+     * runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later
+     * update (for example, from a column component rendered after the grid) can come too late to stop the warning.
+     *
      * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
      * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.
      * In this context, `data` is not the full dataset but a column accessor string.
@@ -2127,6 +2141,10 @@ export default (): Record<string, unknown> => {
      * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
      * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * The optional **`refetchAfterCreate`** key (default `true`) controls whether a successful **`onRowsCreate`** is followed by a
+     * `fetchRows` refetch of the current query. Set it to `false` when your `onRowsCreate` applies the server response to the
+     * grid itself, for example to keep a new row on the current page while the grid is sorted. With **`pagination`** enabled,
+     * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -2160,6 +2178,8 @@ export default (): Record<string, unknown> => {
      *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
      *   onRowsUpdate: async (rows) => { ... },
      *   onRowsRemove: async (rowIds) => { ... },
+     *   // Optional: set to `false` to skip the automatic refetch after a successful create (default `true`).
+     *   // refetchAfterCreate: false,
      * },
      * ```
      */
@@ -2497,6 +2517,14 @@ export default (): Record<string, unknown> => {
      * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * The current-row and current-column indicators
+     * ([`currentRowClassName`](#currentRowClassName) and [`currentColClassName`](#currentColClassName))
+     * are selection feedback rather than header selection, so `'header'` does not remove them. They are
+     * hidden only when every selection type is off – `true`, or an array holding all of `'current'`,
+     * `'area'`, and `'header'`. The classes also mark the current row's and column's header cell, as
+     * they do with `false`, so `'header'` still leaves your `currentRowClassName` and
+     * `currentColClassName` on those header cells.
      *
      * When set to any non-`false` value, the second-click deselect behavior
      * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
@@ -3152,6 +3180,48 @@ export default (): Record<string, unknown> => {
     exportFile: undefined,
 
     /**
+     * The `importFile` option configures the [`ImportFile`](@/api/importFile.md) plugin.
+     *
+     * You can set the `importFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `true`      | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `false`     | Disable the [`ImportFile`](@/api/importFile.md) plugin                                     |
+     * | An object   | Enable the [`ImportFile`](@/api/importFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `importFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     *
+     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     *
+     * Read more:
+     * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [Plugins: `ImportFile`](@/api/importFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 19.0.0
+     * @category ImportFile
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * importFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    importFile: undefined,
+
+    /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
      *
      * You can set the `fillHandle` option to one the following:
@@ -3259,6 +3329,64 @@ export default (): Record<string, unknown> => {
     filter: true,
 
     /**
+     * The `filterValueComparator` option sets the order of the values in the **Filter by value**
+     * list of the [`Filters`](@/api/filters.md) dropdown.
+     *
+     * By default the list places blank cells first and then sorts the values with a built-in
+     * comparator: numbers by value, text by character code, and `date`, `intl-date`, and
+     * `intl-datetime` cells chronologically. Set `filterValueComparator` to a function to replace
+     * that order. The function takes two cell values and returns a negative number, zero, or a
+     * positive number, like the callback of `Array.prototype.sort()`.
+     *
+     * The option cascades: set it at the grid level to order every column's list the same way,
+     * or inside [`columns`](#columns) to order one column. A column value overrides the grid value.
+     * A custom comparator also overrides the cell type's own comparator.
+     *
+     * Two details to know when you write the function:
+     * - A blank cell (`null`, `undefined`, or `''`) reaches the comparator as an empty string `''`.
+     * - The comparator only orders the list. It cannot add, hide, or remove a value, so it never
+     *   changes which rows the filter keeps.
+     *
+     * A value that is not a function is ignored, and the built-in order applies.
+     *
+     * The list is built once per column, and the comparator is read from the cell meta of the
+     * first row the list is built from. A per-cell value set through [`cells`](#cells) or
+     * [`cell`](#cell) is therefore not a reliable way to configure it. Set it at the grid level or
+     * inside `columns`.
+     *
+     * Read more:
+     * - [Column filter: Change the order of values in the filter list](@/guides/columns/column-filter/column-filter.md#change-the-order-of-values-in-the-filter-list)
+     * - [Plugins: `Filters`](@/api/filters.md)
+     * - [`filters`](#filters)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Filters
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * // order the "Priority" column by severity rather than alphabetically
+     * const priority = ['Critical', 'High', 'Medium', 'Low'];
+     *
+     * filters: true,
+     * columns: [
+     *   {
+     *     data: 'priority',
+     *     filterValueComparator: (a, b) => priority.indexOf(a) - priority.indexOf(b),
+     *   },
+     * ],
+     *
+     * // order every column's list with a locale-aware text comparison
+     * filters: true,
+     * filterValueComparator: (a, b) => String(a).localeCompare(String(b), 'de'),
+     * ```
+     */
+    filterValueComparator: undefined,
+
+    /**
      * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells'
      * search inputs are case-sensitive.
      *
@@ -3361,6 +3489,7 @@ export default (): Record<string, unknown> => {
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
+     * - [`filterValueComparator`](#filtervaluecomparator) – order the values in the **Filter by value** list
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3845,19 +3974,35 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `height` option to one of the following:
      *
-     * | Setting                                                                    | Example                    |
-     * | -------------------------------------------------------------------------- | -------------------------- |
-     * | A number of pixels                                                         | `height: 500`              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`           |
-     * | `'auto'`                                                                   | `height: 'auto'`           |
-     * | A function that returns a valid number or string                           | `height() { return 500; }` |
+     * | Setting                                                                    | Example                              |
+     * | -------------------------------------------------------------------------- | ------------------------------------ |
+     * | A number of pixels                                                         | `height: 500`                        |
+     * | A string with a number of pixels                                           | `height: '500'`, `height: '500px'`   |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '50%'`, `height: '75vh'`    |
+     * | `'auto'`                                                                   | `height: 'auto'`                     |
+     * | A function that returns a valid number or string                           | `height() { return 500; }`           |
+     *
+     * Any other value the browser can read as a CSS length or expression (`'20em'`,
+     * `'calc(100% - 40px)'`, `'var(--grid-height)'`) is passed through as written. A value the
+     * browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored, and so are these CSS
+     * keywords: `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and
+     * `'normal'`, which do not set a size; `'min-content'`, `'max-content'`, and `'fit-content'`,
+     * which size the grid to its full content, so it cannot scroll inside its box; and `'stretch'`,
+     * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
+     * fixed size. An ignored value leaves the grid's height as it was, and a warning is printed once
+     * per grid and value.
+     *
+     * A number or a CSS length sizes the grid's box. Handsontable writes
+     * `height: <value>; overflow: clip;` as inline styles on the root element, and the grid
+     * scrolls its rows inside that box. An `overflow-x` or `overflow-y` you set yourself on the
+     * root element is left alone, on that axis, and clips the grid in its place.
      *
      * #### How `'auto'` differs from leaving `height` unset
      *
-     * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
-     * as inline styles on the root element. The grid then grows to match its content height.
-     * No internal vertical scrollbar is created, so the page itself scrolls when the grid
-     * exceeds the viewport.
+     * When you set `height: 'auto'`, Handsontable writes `height: auto` as an inline style on the
+     * root element, and nothing else. The grid behaves like a plain block element: it grows to fit
+     * its rows, the nearest scrolling ancestor or the page scrolls it, and off-screen rows stay
+     * virtualized. The inline value overrides a `height` a stylesheet sets on the root element.
      *
      * When you leave `height` unset, Handsontable does not touch the root element's inline
      * styles. Sizing is governed by your CSS, and the nearest ancestor with `overflow: auto`
@@ -3865,10 +4010,13 @@ export default (): Record<string, unknown> => {
      * scrolls. See the [Grid size](@/guides/getting-started/grid-size/grid-size.md) guide for
      * details.
      *
+     * Passing `null` through [`updateSettings()`](@/api/core.md#updatesettings) restores the root
+     * element's initial inline height and the overflow that came with it. A `width` set through
+     * the option is left in place.
+     *
      * ::: tip
-     * With `height: 'auto'`, every row is laid out in the DOM at once. Row-level
-     * virtualization is effectively disabled. Avoid `'auto'` for large datasets and set a
-     * numeric `height` instead, so Handsontable can virtualize off-screen rows.
+     * Inside a parent with a fixed height and `overflow: auto`, a grid with `height: 'auto'` fills
+     * the parent and scrolls inside it rather than growing past it.
      * :::
      *
      * Read more:
@@ -5914,7 +6062,7 @@ export default (): Record<string, unknown> => {
      * @default 'always'
      * @category Core
      * @configScope grid columns cells cell
-     * @since 18.2.0
+     * @since 19.0.0
      *
      * @example
      * ```js
@@ -6345,7 +6493,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
@@ -6640,7 +6788,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
@@ -7151,6 +7299,13 @@ export default (): Record<string, unknown> => {
      * | ----------------- | --------------------------------------------- |
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
+     * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
+     * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
+     * `setCellMeta`). This changed in 19.0.0.
+     * :::
      *
      * @since 16.0.0
      * @memberof Options#
@@ -8258,23 +8413,38 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `width` option to one of the following:
      *
-     * | Setting                                                                    | Example                   |
-     * | -------------------------------------------------------------------------- | ------------------------- |
-     * | A number of pixels                                                         | `width: 500`              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
-     * | `'auto'`                                                                   | `width: 'auto'`           |
-     * | A function that returns a valid number or string                           | `width() { return 500; }` |
+     * | Setting                                                                    | Example                            |
+     * | -------------------------------------------------------------------------- | ---------------------------------- |
+     * | A number of pixels                                                         | `width: 500`                       |
+     * | A string with a number of pixels                                           | `width: '500'`, `width: '500px'`   |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '50%'`, `width: '75vw'`    |
+     * | `'auto'`                                                                   | `width: 'auto'`                    |
+     * | A function that returns a valid number or string                           | `width() { return 500; }`          |
+     *
+     * Any other value the browser can read as a CSS length or expression (`'20em'`,
+     * `'calc(100% - 40px)'`, `'var(--grid-width)'`) is passed through as written. A value the
+     * browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored, and so are these CSS
+     * keywords: `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and
+     * `'normal'`, which do not set a size; `'min-content'`, `'max-content'`, and `'fit-content'`,
+     * which size the grid to its full content, so it cannot scroll inside its box; and `'stretch'`,
+     * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
+     * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
+     * per grid and value.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
-     * element. The grid then follows the width of its parent container. Use this value when
-     * you want the grid to stay flexible horizontally while still setting an explicit
-     * [`height`](#height).
+     * element. The grid then follows the width of its parent container, like a plain block
+     * element. Use this value when you want the grid to stay flexible horizontally while still
+     * setting an explicit [`height`](#height).
+     *
+     * Passing `null` through [`updateSettings()`](@/api/core.md#updatesettings) restores the root
+     * element's initial inline width. A `height` set through the option is left in place.
      *
      * ::: tip
-     * A `width` given in pixels (a number, `'500'`, `'500px'`) clips the grid horizontally and the grid
+     * A definite `width` (a number, `'500'`, `'500px'`, `'20em'`) clips the grid horizontally and the grid
      * scrolls its columns inside that width on its own, with or without a [`height`](#height). A relative
-     * width (`'100%'`, `'80vw'`) leaves the horizontal overflow to the page. Setting the height via inline
-     * CSS on the container element is not supported - use the `height` configuration option instead.
+     * width (`'100%'`, `'80vw'`, `'var(--grid-width)'`) leaves the horizontal overflow to the page. Setting
+     * the height via inline CSS on the container element is not supported - use the `height` configuration
+     * option instead.
      * :::
      *
      * Read more:
@@ -8321,6 +8491,13 @@ export default (): Record<string, unknown> => {
      * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
      * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
      * regardless of this setting.
+     * :::
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default
+     * [`textEllipsis`](#textellipsis) to `true`, and its styling also keeps the value on a single line,
+     * so `wordWrap` has no visible effect on them until you set `textEllipsis: false` on the column that
+     * declares the type (or in `cells` / `setCellMeta`). This changed in 19.0.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
@@ -8497,7 +8674,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined

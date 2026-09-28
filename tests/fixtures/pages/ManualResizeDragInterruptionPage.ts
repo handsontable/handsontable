@@ -99,6 +99,20 @@ export class ManualResizeDragInterruptionPage extends ManualResizePage {
   }
 
   /**
+   * The runtime `enabled` flag `afterMouseDownTimeout()` reads through `owner.isActive()`.
+   *
+   * @param {'manualRowResize'|'manualColumnResize'} pluginName The plugin to query.
+   * @returns {Promise<boolean>}
+   */
+  async isResizePluginActive(
+    pluginName: 'manualRowResize' | 'manualColumnResize'
+  ): Promise<boolean> {
+    return this.page.evaluate(name => (window as unknown as {
+      isResizePluginActive: (n: string) => boolean
+    }).isResizePluginActive(name), pluginName);
+  }
+
+  /**
    * Updates a setting belonging to neither resize plugin, so neither re-initializes.
    */
   async updateUnrelatedOption(): Promise<void> {

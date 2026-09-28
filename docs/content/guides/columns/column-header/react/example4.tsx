@@ -4,14 +4,16 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+  ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+  ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
-        ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
-        ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
-      ]}
+      data={data}
       colHeaders={true}
       rowHeaders={true}
       autoWrapRow={true}

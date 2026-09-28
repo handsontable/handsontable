@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { dragResizeHandle } from '../gestures';
+import { dblclickHoldResizeHandle, dragResizeHandle } from '../gestures';
 
 /**
  * Base Page Object for the manual resize fixtures.
@@ -134,6 +134,27 @@ export abstract class ManualResizePage {
   async dragColumnHandle(column: number, deltaX: number): Promise<void> {
     await this.hoverColumnHeader(column);
     await dragResizeHandle(this.page, this.columnHandle, { x: deltaX });
+  }
+
+  /**
+   * Double-clicks a row resize handle and leaves the button down. That is the DEV-1038 gesture:
+   * autosize runs from the 500ms window while the guide is still shown from the second press.
+   *
+   * @param {number} row The visual row index.
+   */
+  async dblclickHoldRowHandle(row: number): Promise<void> {
+    await this.hoverRowHeader(row);
+    await dblclickHoldResizeHandle(this.page, this.rowHandle);
+  }
+
+  /**
+   * Double-clicks a column resize handle and leaves the button down.
+   *
+   * @param {number} column The visual column index.
+   */
+  async dblclickHoldColumnHandle(column: number): Promise<void> {
+    await this.hoverColumnHeader(column);
+    await dblclickHoldResizeHandle(this.page, this.columnHandle);
   }
 
   /**

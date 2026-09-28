@@ -106,8 +106,17 @@ const separator: MenuItemConfig = ContextMenu.SEPARATOR;
 const checkedItem: MenuItemConfig = { name: 'toggle', checked: true };
 const uncheckedItem: MenuItemConfig = { name: 'toggle', checked: false };
 const checkedItemFn: MenuItemConfig = { name: 'toggle', checked: () => true };
+// DEV-124: the third state, for an item whose selection is only partly on.
+const mixedItem: MenuItemConfig = { name: 'toggle', checked: 'mixed' };
+const mixedItemFn: MenuItemConfig = { name: 'toggle', checked: () => 'mixed' };
+const tristateItemFn: MenuItemConfig = {
+  name: 'toggle',
+  checked(): boolean | 'mixed' {
+    return Math.random() > 0.5 ? 'mixed' : true;
+  },
+};
 
-// @ts-expect-error `checked` takes a boolean or a function returning one. The explicit declaration
+// @ts-expect-error `checked` takes a boolean, `'mixed'`, or a function returning one. The explicit declaration
 // wins over the index signature, which is what makes this an error - and it is the type-level half
 // of the renderer testing `checked` by type rather than by presence, so an unrelated property of
 // that name does not turn somebody's item into a checkbox.

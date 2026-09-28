@@ -15,7 +15,8 @@ We run visual tests automatically by using the following tools:
 
 When you push changes to a GitHub pull request:
 1. The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of each visual test.
+   checks the code of each visual test: no fixed delays, an asserted state before every capture that
+   follows a click or a key press, and a docblock on every test that names the ticket owning it.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
@@ -74,7 +75,7 @@ every base branch except `lts/*`, which has no push trigger (see the exception a
 
 ## Tiers
 
-A full render is 1646 screenshots and adds about 15 minutes to a pull request run, and in 82 measured pull
+A full render is 1676 screenshots (the develop golden set on 2026-09-18) and adds about 15 minutes to a pull request run, and in 82 measured pull
 requests no real regression was confined to one theme, one browser, or one wrapper. So a pull request
 renders the variants that catch regressions, and the rest are rendered by the seed right after the merge
 and reported back to the merged pull request. The tiers are `VISUAL_TIERS` in `visual-tests/src/config.mjs`;
@@ -92,7 +93,8 @@ themes, and the cross-browser tests minutes after each merge, and when the merge
 so a horizon-only, Firefox-only, or WebKit-only change is attributed to its author the same afternoon,
 and those renders are now the golden records. The nightly is the only build that renders the wrappers for
 real (the seed copies the vanilla JS render into their golden records), and it turns red on any
-difference from the seed: a wrapper that no longer renders like vanilla JS, a flaky or poisoned golden
+difference from the seed outside the visual quarantine (`visual-quarantine.json`, which lists a known-flaky
+capture instead of failing on it): a wrapper that no longer renders like vanilla JS, a flaky or poisoned golden
 record, or a commit whose seed never landed. A theme-only regression cannot red the nightly, because the
 seed has already made it the baseline; the seed's comment is where it shows. `visual-tests/AGENTS.md`
 has the diagnostic for a red nightly.
@@ -132,7 +134,7 @@ flowchart TD
     FORK --> OUT
 
     OUT -->|"pull request"| GATE{"visual-gate.mjs<br/>any differences?"}
-    OUT -->|"base branch or nightly"| REPORT["seed-report.mjs writes the run summary;<br/>the nightly goes red on any difference"]
+    OUT -->|"base branch or nightly"| REPORT["seed-report.mjs writes the run summary;<br/>the nightly goes red on any difference<br/>outside the quarantine"]
     GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
     GATE -->|"none"| PASS["Check passes, PR mergeable"]
     GATE -->|"differences found"| WAIT["approve job waits on the<br/>visual-approval environment"]
@@ -173,18 +175,23 @@ Visual tests are divided into:
 
    There is a separate Playwright config for cross-browser tests: `playwright-cross-browser.config.ts`
 
+The directory decides which Playwright config runs a spec and therefore which leg it belongs to. Inside
+that leg, the variants a spec renders on are its own declaration: every spec registers through
+`visualTest(title, { themes, browsers, wrappers, wrappersReason }, fn)`, and a variant it does not declare
+skips at file scope for nothing. A new spec renders two themes on Chromium with no wrapper unless it says
+otherwise. See `AGENTS.md`, *Variant declaration*, for the axes and the invariants.
+
 ## Visual tests demos
 
 All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`
 
-There main demo available for all frameworks is served on `/`. There are additional demos available only for vanilla JS (to be used with cross-browser tests):
-
-- `/cell-types-demo`,
-- `/arabic-rtl-demo`,
-- `/custom-style-demo`,
-- `/merged-cells-demo`,
-- `/nested-headers-demo`,
-- `/nested-rows-demo`,
+The main demo, served for every framework on `/`, is the shared multi-feature grid that the `multi-frameworks`
+specs photograph; the react and angular demos also serve `/scenario-grid` (the vue3 demo has no router and
+serves `/` only). The vanilla JS demo adds one `/<name>-demo`
+route per feature (27 on 2026-09-18 — the list is the Navigo router in
+`examples/next/visual-tests/js/demo/src/index.js`), used by the `js-only` and `cross-browser` specs. A new
+feature gets its own route there, never a change to `/`: the rule and its trade-off for wrapper coverage are
+in `AGENTS.md` → Decision rule.
 
 ## Run visual tests through GitHub Actions
 
@@ -244,14 +251,14 @@ To add a new visual test:
    Give your file a descriptive name. This name is later used in test logs and screenshot names.
       - ✅ Good: `open-dropdown-menu.spec.ts`.
       - ❌ Bad: `my-test-1.spec.ts`.
-2. Copy the template code from `./visual-tests/tests/.empty-test-template.ts` into your file.
+2. Copy the template code from `./visual-tests/tests/multi-frameworks/.empty-test-template.ts` into your file.
 3. Write your test. For more information, see:
       - [Playwright's docs](https://playwright.dev/docs/writing-tests)
       - [Helpers](#helpers)
       - [Take screenshots](#take-screenshots)
 4. Push your changes to a pull request.<br>
    The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of your test.
+   checks the code of your test, including the assertion before each capture and the test's docblock.
 
 ### Take screenshots
 
@@ -262,22 +269,28 @@ add this line anywhere in your test:
 await page.screenshot({ path: helpers.screenshotPath() });
 ```
 
-Capture one screenshot per distinct visual state, and assert that state first (`await expect(locator).toBeFocused()`, `.toBeVisible()`, …) — a capture straight after an action photographs whichever half of the transition the runner reached. The determinism rules are in `AGENTS.md`. For example:
+Capture one screenshot per distinct visual state, and assert that state first (`await expect(locator).toBeFocused()`, `.toBeVisible()`, …) — a capture straight after an action photographs whichever half of the transition the runner reached. What earns a capture at all, and why a visual spec is in addition to, never instead of a Playwright assertion, is `AGENTS.md` → Decision rule; the determinism rules are in `AGENTS.md` → Determinism. For example:
 
 ```js
 await cell.click();
+await expect(cell).toHaveClass(/current/);
 await page.screenshot({ path: helpers.screenshotPath() });
+
 await anotherCell.click();
+await expect(anotherCell).toHaveClass(/current/);
 await page.screenshot({ path: helpers.screenshotPath() });
 ```
 
-To take a screenshot of a specific element of Handsontable,
-use Playwright's [`locator()`](https://playwright.dev/docs/locators#locate-by-css-or-xpath) method. For example:
+To capture one element of Handsontable, clip the page capture to the element's box. Playwright's
+[`locator()`](https://playwright.dev/docs/locators#locate-by-css-or-xpath) finds it; `locator.screenshot()`
+is a lint error here because it bypasses the settle wait and the selection clear the fixture runs before every
+capture. For example:
 
 ```js
 const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
-await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
+await expect(dropdownMenu).toBeVisible();
+await page.screenshot({ path: helpers.screenshotPath(), clip: await dropdownMenu.boundingBox() });
 ```
 
 For cross-browser tests we are using

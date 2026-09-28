@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed autocomplete, dropdown, and handsontable arrows wrapping onto a second line next to a long value. The `autoColumnSize` plugin now measures the arrow into the column width, so existing columns of those types can grow on upgrade. Pin a column with `width`, or the grid with `colWidths`, to keep the previous size.",
+  "type": "fixed",
+  "issueOrPR": 13532,
+  "breaking": true,
+  "framework": "none"
+}

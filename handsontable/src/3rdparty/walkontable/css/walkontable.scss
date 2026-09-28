@@ -110,7 +110,9 @@
   box-sizing: border-box;
 }
 
-/* `align-content` on the block box, not flex: the indicator renderers float their arrows. */
+/* `align-content` on the block box, not flex: `.ht-multi-select-arrow` and the select-editor
+   overlay's `.htAutocompleteArrow` still float. In-cell `.htAutocompleteArrow` is absolutely
+   positioned (DEV-348) and would survive flex, but the remaining floats would not. */
 .handsontable tr.htExactRow > td.htMiddle > .htCellClip {
   align-content: center;
 }
@@ -280,8 +282,27 @@
   visibility: hidden;
 }
 
+// Mirrors the clone-holder rule in `src/styles/base/_base.scss` (DEV-2937): each of the three
+// scroll-mirrored clone holders is a composited scroll container on the one axis the engine writes,
+// with no scrollbar of its own. Keep the two in sync.
 .ht_clone_top .wtHolder,
 .ht_clone_inline_start .wtHolder,
 .ht_clone_bottom .wtHolder {
-  overflow: hidden;
+  overflow-anchor: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.ht_clone_inline_start .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
+  overflow-x: auto;
+  overflow-y: hidden;
 }

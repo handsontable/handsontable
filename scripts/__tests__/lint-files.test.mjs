@@ -9,6 +9,8 @@ test('lintable keeps files inside a CI lint scope', () => {
       'handsontable/test/e2e/x.spec.js',
       'handsontable/scripts/run.mjs',
       'wrappers/vue3/src/HotTable.vue',
+      'wrappers/react-wrapper/src/hotTable.tsx',
+      'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
@@ -20,6 +22,8 @@ test('lintable keeps files inside a CI lint scope', () => {
       'handsontable/test/e2e/x.spec.js',
       'handsontable/scripts/run.mjs',
       'wrappers/vue3/src/HotTable.vue',
+      'wrappers/react-wrapper/src/hotTable.tsx',
+      'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
@@ -29,10 +33,10 @@ test('lintable keeps files inside a CI lint scope', () => {
   );
 });
 
-test('lintable drops files outside every CI lint scope (react/angular/docs, package roots)', () => {
+test('lintable drops files outside every CI lint scope (package roots, angular/docs)', () => {
   assert.deepEqual(
     lintable([
-      'wrappers/react-wrapper/src/hotTable.tsx', // no plain-eslint script
+      'wrappers/react-wrapper/scripts/clean.mjs', // react-wrapper's lint script only covers src/test
       'wrappers/angular-wrapper/projects/hot-table/src/lib/x.ts', // ng lint, not eslint CLI
       'docs/src/x.js', // no lint script
       'handsontable/hot.config.js', // package root — not in src/test/scripts

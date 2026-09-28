@@ -1,6 +1,5 @@
 import { isDefined, stringify } from '../../../helpers/mixed';
 import { isKeyValueObject } from '../../../helpers/object';
-import { throwWithCause } from '../../../helpers/errors';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
@@ -8,7 +7,6 @@ import {
   buildSummaryFormula,
   normalizeFormula,
   isFormulaValue,
-  colIndexToLetter,
 } from './xlsx/formula-utils';
 import {
   getCssStyleFromElement,
@@ -27,74 +25,141 @@ import {
   parseIsoStringToSerial,
   parseTimeStringToSerial,
   parseIsoDateTimeStringToSerial,
-  getDateNumFmt,
-  getTimeNumFmt,
-  getDateTimeNumFmt,
+  intlDateFmtToExcelNumFmt,
+  intlTimeFmtToExcelNumFmt,
+  intlDateTimeFmtToExcelNumFmt,
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
+import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
+import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
+import { colIndexToLetter, toRangeRef } from '../../../utils/xlsxEngine/cellRef';
+import {
+  PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT,
+  POINTS_PER_PIXEL as PIXELS_TO_POINTS_RATIO,
+} from '../../../utils/xlsxEngine/units';
+import {
+  createWorkbookSnapshot,
+  type CellFormula,
+  type CellSnapshot,
+  type CellStyleSnapshot,
+  type CellValidationSnapshot,
+  type CellValue,
+  type SheetSnapshot,
+  type WorkbookSnapshot,
+} from '../../../utils/xlsxEngine/model';
 import type { HotInstance } from '../../../core/types';
 
 /**
- * A cell value that ExcelJS accepts: a primitive, a formula object, or null.
+ * The longest worksheet name the XLSX format accepts. A longer one is truncated by Excel itself,
+ * and by ExcelJS with a console warning.
  */
-type ExcelCellValue =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | { formula: string; result?: string | number | boolean | null }
-  | { sharedFormula: string; result?: string | number | boolean | null };
+const SHEET_NAME_MAX_LENGTH = 31;
 
-interface ExcelJsCell {
-  value: ExcelCellValue;
-  numFmt: string;
-  alignment: object;
-  border: object;
-  font: object;
-  fill: object;
-  protection: { locked: boolean };
-  dataValidation: object;
-  note: string;
+/**
+ * The characters a worksheet name may not contain: `* ? : / \ [ ]`.
+ */
+const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/g;
+
+/**
+ * The name used when sanitization leaves nothing behind (a sheet named `"[*]"`, say).
+ */
+const FALLBACK_SHEET_NAME = 'Sheet';
+
+/**
+ * The name the XLSX format reserves for a workbook's change history.
+ */
+const RESERVED_SHEET_NAME = 'History';
+
+/**
+ * The base name of the very hidden helper sheet carrying the dropdown source lists.
+ */
+const VALIDATION_SHEET_NAME = '_HotValidation';
+
+/**
+ * Turns a user-supplied sheet name into one the format accepts: illegal characters removed, leading
+ * and trailing single quotes stripped, the reserved `History` renamed, and an empty result replaced.
+ * The reserved name is matched in any case: ExcelJS rejects the exact `History` only, but Excel
+ * reserves the name case-insensitively, the same way it compares names for duplicates.
+ *
+ * This is the only place the export enforces the rules, and it has to: ExcelJS answers each of them
+ * with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales` — used to
+ * abandon the whole export rather than exporting under a slightly different name.
+ */
+function sanitizeSheetName(baseName: string): string {
+  // Trim on BOTH sides of the quote strip. ExcelJS tests the name it is handed, so `" 'Q1' "` with
+  // the trim last still reaches it as `"'Q1'"` — quotes at the ends, and rejected.
+  const stripped = baseName
+    .replace(ILLEGAL_SHEET_NAME_CHARS, '')
+    .trim()
+    .replace(/^'+/, '')
+    .replace(/'+$/, '')
+    .trim();
+
+  if (stripped === '') {
+    return FALLBACK_SHEET_NAME;
+  }
+
+  return stripped.toLowerCase() === RESERVED_SHEET_NAME.toLowerCase() ? `${stripped}_` : stripped;
 }
 
-interface ExcelJsRow {
-  getCell(colNumber: number): ExcelJsCell;
-  height: number;
-  hidden: boolean;
-  commit(): void;
+/**
+ * Cuts a sanitized sheet name down to `maxLength`, dropping any single quote the cut left at the
+ * end. An interior quote is legal, a trailing one is not — and ExcelJS checks for it before its own
+ * truncation, so it would reject a name only this cut had made end in one.
+ */
+function truncateSheetName(name: string, maxLength: number): string {
+  const sliced = name.slice(0, maxLength).replace(/'+$/, '');
+
+  return sliced === '' ? FALLBACK_SHEET_NAME : sliced;
 }
 
-interface ExcelJsColumn {
-  width: number;
-  hidden: boolean;
+/**
+ * Narrows a pre-calculated display value to the primitives a cached formula result may carry.
+ *
+ * ExcelJS throws `I could not understand type of value` for anything else, so an object or an array
+ * left in a cell by a custom renderer would abandon the export from inside the summary branch.
+ */
+function toPrimitiveResult(value: unknown): CellValue {
+  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+
+  return null;
 }
 
-interface ExcelJsView {
-  rightToLeft?: boolean;
-  state?: string;
-  xSplit?: number;
-  ySplit?: number;
+/**
+ * Resolves the Excel number format a cell's meta describes, independently of the value the cell
+ * holds. A formula cell resolves the same format a value cell of that type would, so a column of
+ * live formulas keeps the column's own format instead of reaching the file unformatted — which the
+ * import then reads back as `text`.
+ */
+function resolveMetaNumFmt(meta: CellMeta): string | null {
+  switch (meta.type) {
+    case 'intl-datetime':
+      return intlDateTimeFmtToExcelNumFmt(meta.dateTimeFormat, meta.locale);
+    case 'date':
+    case 'intl-date':
+      return intlDateFmtToExcelNumFmt(meta.dateFormat, meta.locale);
+    case 'time':
+    case 'intl-time':
+      return intlTimeFmtToExcelNumFmt(meta.timeFormat, meta.locale);
+    case 'numeric':
+      return intlNumFormatToExcelNumFmt(meta.numericFormat, meta.locale);
+    default:
+      return null;
+  }
 }
 
-interface ExcelJsWorksheet {
-  getRow(rowNumber: number): ExcelJsRow;
-  getColumn(colNumber: number): ExcelJsColumn;
-  getCell(rowNumber: number, colNumber: number): ExcelJsCell;
-  mergeCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
-  addConditionalFormatting(descriptor: { ref: string; rules: unknown[] }): void;
-  protect(password: string, options?: Record<string, boolean>): void;
-  state: string;
-  views: ExcelJsView[];
-}
+/**
+ * The fill shape a header cell carries in the neutral cell model.
+ */
+type HeaderFill = NonNullable<NonNullable<CellSnapshot['style']>['fill']>;
 
-interface ExcelJsWorkbook {
-  addWorksheet(name: string): ExcelJsWorksheet;
-  worksheets: Array<{ name: string }>;
-  xlsx: {
-    writeBuffer(options?: object): Promise<Uint8Array>;
-  };
-}
+/**
+ * The border shape a header cell carries in the neutral cell model.
+ */
+type HeaderBorder = NonNullable<NonNullable<CellSnapshot['style']>['border']>;
 
 /**
  * Descriptor for a merge cell, in data-array coordinate space.
@@ -149,8 +214,8 @@ interface SheetContext {
   summaryMap: Map<string, ColumnSummaryDescriptor>;
   sourceData: unknown[][] | null;
   hasRowHeaders: boolean;
-  headerFill: object | null;
-  headerBorder: object | null;
+  headerFill: HeaderFill | null;
+  headerBorder: HeaderBorder | null;
   hasReadOnlyCells: boolean;
   rootDocument: Document;
   rootWindow: Window;
@@ -161,25 +226,11 @@ interface SheetContext {
   rowsHeights: number[];
 }
 
-interface XlsxEngine {
-  Workbook: new () => ExcelJsWorkbook;
-}
-
 interface XlsxSheetConfig {
   instance: HotInstance;
   name?: string;
   [key: string]: unknown;
 }
-
-// Approximate number of pixels occupied by one Excel column-width unit (character width
-// of the "Normal" style font at the default font size). Used to convert pixel widths
-// from Handsontable into the unitless width values expected by ExcelJS.
-const PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT = 7;
-
-// Conversion factor from CSS pixels to typographic points (1 pt = 1/72 in; 1 px = 1/96 in,
-// so 1 px = 72/96 = 0.75 pt). Used to convert Handsontable row heights (pixels) to the
-// point-based row heights expected by ExcelJS.
-const PIXELS_TO_POINTS_RATIO = 0.75;
 
 // Default width (in Excel column-width units) assigned to the frozen row-header column
 // when row headers are exported. Chosen to comfortably fit typical row-index numbers.
@@ -223,7 +274,7 @@ class Xlsx extends BaseType {
     mimeType: string;
     fileExtension: string;
     bom: boolean;
-    engine: XlsxEngine | null;
+    engine: object | null;
     compression: boolean | number | null;
     conditionalFormatting: ConditionalFormattingDescriptor[];
     exportFormulas: boolean;
@@ -234,7 +285,9 @@ class Xlsx extends BaseType {
       fileExtension: 'xlsx',
       bom: false,
       engine: null,
-      // DEFLATE compression: true = level 6, number 1–9 = that level, falsy = no compression.
+      // DEFLATE compression: null (the default) and true = level 6, a number 1–9 = that level,
+      // false = stored. The default has always been DEFLATE: before the option was mapped
+      // explicitly, an absent `zip` option left JSZip on its own DEFLATE default.
       compression: null,
       // Array of { rows?, cols?, rules } conditional formatting descriptors.
       conditionalFormatting: [],
@@ -258,14 +311,7 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
-    const engine = this.options.engine as unknown as XlsxEngine | null;
-
-    if (!engine || typeof engine.Workbook !== 'function') {
-      throwWithCause(
-        'Missing or invalid ExcelJS engine. Pass the ExcelJS module via the `engines` option ' +
-        'in the exportFile plugin settings: `exportFile: { engines: { xlsx: ExcelJS } }`.'
-      );
-    }
+    const detected = detectXlsxEngine(this.options.engine, 'exportFile');
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
@@ -277,12 +323,17 @@ class Xlsx extends BaseType {
 
     docsToClear.forEach(doc => clearStyleCaches(doc as Document));
 
-    const workbook = new engine.Workbook();
+    const workbook = createWorkbookSnapshot();
+
+    workbook.compression = this.#getCompressionLevel();
+
+    // Every name the workbook takes, lower-cased: ExcelJS compares names case-insensitively and
+    // throws on a duplicate. The `_HotValidation` helper sheets share the set, so a data sheet
+    // carrying that name can never collide with one.
+    const usedSheetNames = new Set<string>();
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
-      const usedSheetNames = new Set();
-
       sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
         // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
@@ -291,49 +342,75 @@ class Xlsx extends BaseType {
 
         dp.setOptions(sheetOptions);
 
-        const baseName = sheetConfig.name || 'Sheet';
-        let name = baseName;
-        let suffix = 1;
+        const name = this.#uniqueSheetName(sheetConfig.name || 'Sheet', usedSheetNames);
 
-        while (usedSheetNames.has(name)) {
-          name = `${baseName}${suffix}`;
-          suffix += 1;
-        }
-
-        usedSheetNames.add(name);
-
-        const worksheet = workbook.addWorksheet(name);
-
-        this.#populateWorksheet(workbook, worksheet, dp, sheetOptions);
+        this.#populateWorksheet(workbook, name, dp, sheetOptions, usedSheetNames);
       });
     } else {
       // single-sheet mode
-      const worksheet = workbook.addWorksheet('Sheet1');
+      const name = this.#uniqueSheetName('Sheet1', usedSheetNames);
 
-      this.#populateWorksheet(workbook, worksheet, this.dataProvider, this.options);
+      this.#populateWorksheet(workbook, name, this.dataProvider, this.options, usedSheetNames);
     }
 
-    return workbook.xlsx.writeBuffer(this.#getWriteOptions());
+    const dropped = new DroppedFeatures();
+    const bytes = await detected.adapter.write(workbook, detected.module, dropped);
+
+    dropped.warn(detected.kind);
+
+    return bytes;
   }
 
   /**
-   * Populates a single ExcelJS worksheet from the given DataProvider.
+   * Returns a sheet name the XLSX format accepts and the workbook does not already use, and records
+   * it as used.
+   *
+   * The name is sanitized first, then truncated, then de-duplicated — in that order. Truncating
+   * last would let two distinct 35-character names that differ only past character 31 collide
+   * *after* the de-duplication had already passed them, which ExcelJS answers by throwing. The
+   * counter is made room for inside the 31 characters for the same reason. Comparison is
+   * case-insensitive because ExcelJS's own duplicate check is.
+   */
+  #uniqueSheetName(baseName: string, usedSheetNames: Set<string>): string {
+    const sanitized = sanitizeSheetName(baseName);
+    let name = truncateSheetName(sanitized, SHEET_NAME_MAX_LENGTH);
+    let suffix = 1;
+
+    while (usedSheetNames.has(name.toLowerCase())) {
+      const counter = String(suffix);
+
+      name = `${truncateSheetName(sanitized, SHEET_NAME_MAX_LENGTH - counter.length)}${counter}`;
+      suffix += 1;
+    }
+
+    usedSheetNames.add(name.toLowerCase());
+
+    return name;
+  }
+
+  /**
+   * Populates a single worksheet snapshot from the given DataProvider and pushes it into
+   * the workbook snapshot, followed by its dropdown-source helper sheet.
    *
    * Extracts the data writing logic shared between single-sheet and multi-sheet exports.
    *
-   * @param {object} workbook The ExcelJS workbook.
-   * @param {object} worksheet The ExcelJS worksheet to populate.
+   * `usedSheetNames` is the workbook-wide set of lower-cased names already taken; it is passed
+   * through so the dropdown-source helper sheet is named from the same set as the data sheets.
+   *
+   * @param {object} workbook The neutral workbook snapshot.
+   * @param {string} name The worksheet name.
    * @param {DataProvider} dataProvider DataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
    * @returns {number} Number of data rows written.
    */
   #populateWorksheet(
-    workbook: ExcelJsWorkbook, worksheet: ExcelJsWorksheet, dataProvider: DataProvider,
-    options: XlsxOptions
+    workbook: WorkbookSnapshot, name: string, dataProvider: DataProvider,
+    options: XlsxOptions, usedSheetNames: Set<string>
   ): number {
+    const sheet = new SheetBuilder(name);
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
-    const validationMap = this.#buildValidationSheet(workbook, cellsMeta);
+    const { validationMap, sheet: validationSheet } = this.#buildValidationSheet(usedSheetNames, cellsMeta);
     const cellElements = dataProvider.getCellElements();
     const columnHeaders = dataProvider.getColumnHeaders();
     const columnHeadersClassNames = dataProvider.getColumnHeadersClassNames();
@@ -384,28 +461,28 @@ class Xlsx extends BaseType {
 
     const { rootDocument, rootWindow } = dataProvider.hot;
 
-    this.#applyColumnWidths(worksheet, columnsWidths, hasRowHeaders);
+    this.#applyColumnWidths(sheet, columnsWidths, hasRowHeaders);
 
     if (hiddenColIndices.length > 0) {
-      this.#applyHiddenColumns(worksheet, hiddenColIndices, hasRowHeaders);
+      this.#applyHiddenColumns(sheet, hiddenColIndices, hasRowHeaders);
     }
-    this.#applyWorksheetViews(worksheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
+    this.#applyWorksheetViews(sheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
 
     const headerFill = this.#buildHeaderFill(options.headerStyle);
     const headerBorder = this.#buildHeaderBorder(options.headerStyle);
 
     if (useNestedHeaders) {
       this.#writeNestedColumnHeaders(
-        worksheet, nestedColumnHeaders, hasRowHeaders, dataColOffset, headerFill, headerBorder
+        sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset, headerFill, headerBorder
       );
-      this.#applyNestedHeaderMerges(worksheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
+      this.#applyNestedHeaderMerges(sheet, nestedColumnHeaders, hasRowHeaders, dataColOffset);
     } else if (hasColumnHeaders) {
       this.#writeColumnHeaders(
-        worksheet, columnHeaders, columnHeadersClassNames, hasRowHeaders, dataColOffset, headerFill, headerBorder
+        sheet, columnHeaders, columnHeadersClassNames, hasRowHeaders, dataColOffset, headerFill, headerBorder
       );
     }
 
-    // Pre-scan: only write cell.protection when the sheet actually contains cells
+    // Pre-scan: only write cell protection when the sheet actually contains cells
     // that should be locked in Excel. Two reasons to skip it entirely:
     //
     // 1. When ColumnSummary is active, its destination cells (and any adjacent label
@@ -443,10 +520,10 @@ class Xlsx extends BaseType {
       rowsHeights,
     };
 
-    this.#writeDataRows(worksheet, data, context);
+    this.#writeDataRows(sheet, data, context);
 
     if (hiddenRowIndices.length > 0) {
-      this.#applyHiddenRows(worksheet, hiddenRowIndices, dataRowOffset);
+      this.#applyHiddenRows(sheet, hiddenRowIndices, dataRowOffset);
     }
 
     if (hasReadOnlyCells) {
@@ -454,7 +531,7 @@ class Xlsx extends BaseType {
       // No password is set — users can unprotect at any time.
       // The permissive options keep non-editing actions (select, sort, filter,
       // resize) available so the spreadsheet remains usable.
-      worksheet.protect('', {
+      sheet.protect('', {
         selectLockedCells: true,
         selectUnlockedCells: true,
         formatColumns: true,
@@ -467,17 +544,15 @@ class Xlsx extends BaseType {
     mergeCells.forEach((merge: MergeDescriptor) => {
       const startRow = merge.row + dataRowOffset;
       const startCol = merge.col + dataColOffset;
-      const endRow = startRow + merge.rowspan - 1;
-      const endCol = startCol + merge.colspan - 1;
 
-      worksheet.mergeCells(startRow, startCol, endRow, endCol);
+      sheet.merge(startRow, startCol, startRow + merge.rowspan - 1, startCol + merge.colspan - 1);
     });
 
     const { conditionalFormatting } = options;
 
     if (conditionalFormatting && conditionalFormatting.length > 0) {
       this.#applyConditionalFormatting(
-        worksheet,
+        sheet,
         conditionalFormatting,
         dataRowOffset,
         dataColOffset,
@@ -486,74 +561,71 @@ class Xlsx extends BaseType {
       );
     }
 
+    workbook.sheets.push(sheet.toSnapshot());
+
+    if (validationSheet) {
+      workbook.sheets.push(validationSheet);
+    }
+
     return data.length;
   }
 
   /**
-   * Iterates the exported data rows and writes each to the worksheet.
+   * Iterates the exported data rows and writes each to the sheet.
    *
    * Handles row heights, row-header cells, and per-cell content and styling.
    * Delegates per-cell writing to {@link Xlsx##writeRowCells}.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {Array[]} data 2D data array from DataProvider.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeDataRows(worksheet: ExcelJsWorksheet, data: unknown[][], context: SheetContext): void {
+  #writeDataRows(sheet: SheetBuilder, data: unknown[][], context: SheetContext): void {
     for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
       const rowData = data[rowIndex];
       const excelRowNumber = rowIndex + context.dataRowOffset;
-      const row = worksheet.getRow(excelRowNumber);
 
       if (isDefined(context.rowsHeights[rowIndex])) {
-        row.height = context.rowsHeights[rowIndex] * PIXELS_TO_POINTS_RATIO;
+        sheet.setRowHeight(excelRowNumber, context.rowsHeights[rowIndex] * PIXELS_TO_POINTS_RATIO);
       }
 
       if (context.hasRowHeaders) {
-        const rowHeaderCell = row.getCell(1);
+        const rowHeaderCell = sheet.cell(excelRowNumber, 1);
 
         rowHeaderCell.value = context.rowHeaders[rowIndex] ?? null;
-
-        if (context.headerFill) {
-          rowHeaderCell.fill = context.headerFill;
-        }
-
-        if (context.headerBorder) {
-          rowHeaderCell.border = context.headerBorder;
-        }
+        this.#applyHeaderStyle(rowHeaderCell, null, context.headerFill, context.headerBorder);
       }
 
-      this.#writeRowCells(row, rowData, rowIndex, context);
-
-      row.commit();
+      this.#writeRowCells(sheet, excelRowNumber, rowData, rowIndex, context);
     }
   }
 
   /**
-   * Writes all data cells in a single row to the worksheet.
+   * Writes all data cells in a single row to the sheet, at the 1-based Excel row number the
+   * caller resolved for it.
    *
    * Resolves each cell's value and number format, then applies styling via
    * {@link Xlsx##writeCellStyling}.
    *
-   * @param {object} row The ExcelJS row object.
+   * @param {object} sheet The sheet builder.
    * @param {Array} rowData Cell values for this row.
    * @param {number} rowIndex 0-based data-array row index.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeRowCells(row: ExcelJsRow, rowData: unknown[], rowIndex: number, context: SheetContext): void {
+  #writeRowCells(
+    sheet: SheetBuilder, excelRowNumber: number, rowData: unknown[], rowIndex: number, context: SheetContext
+  ): void {
     for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
       const cellValue = rowData[colIndex];
-      const cell = row.getCell(colIndex + context.dataColOffset);
+      const cell = sheet.cell(excelRowNumber, colIndex + context.dataColOffset);
       const meta = context.cellsMeta[rowIndex][colIndex];
       const summary = context.summaryMap.get(`${rowIndex}:${colIndex}`);
       const sourceValue = context.sourceData?.[rowIndex][colIndex];
-      const { value, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, context);
+      const { value, formula, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, context);
 
       cell.value = value;
-
-      if (numFmt) {
-        cell.numFmt = numFmt;
-      }
+      cell.formula = formula;
+      cell.numFmt = numFmt;
 
       const cssStyle = getCssStyleFromElement(
         context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
@@ -562,18 +634,18 @@ class Xlsx extends BaseType {
       this.#writeCellStyling(cell, meta, cssStyle, context);
 
       if (context.hasReadOnlyCells) {
-        cell.protection = { locked: meta.readOnly === true };
+        cell.locked = meta.readOnly === true;
       }
     }
   }
 
   /**
-   * Applies all visual style properties from cell meta and computed CSS to an ExcelJS cell.
+   * Applies all visual style properties from cell meta and computed CSS to a model cell.
    *
    * Handles alignment, borders, font, fill, dropdown validation, and cell comments.
    * Protection is handled by the caller because it depends on a sheet-level flag.
    *
-   * @param {object} cell The ExcelJS cell object.
+   * @param {object} cell The model cell snapshot.
    * @param {object|undefined} meta Cell meta object.
    * @param {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
    *           fontColor: string|null, backgroundColor: string|null }|null} cssStyle
@@ -581,30 +653,15 @@ class Xlsx extends BaseType {
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
   #writeCellStyling(
-    cell: ExcelJsCell, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
+    cell: CellSnapshot, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
   ): void {
     const alignment = getAlignmentFromMeta(meta);
-
-    if (alignment) {
-      cell.alignment = alignment;
-    }
-
     const border = getBorderFromMeta(meta);
-
-    if (border) {
-      cell.border = border;
-    }
-
     const font = getFontFromMeta(meta, cssStyle);
-
-    if (font) {
-      cell.font = font;
-    }
-
     const fill = getFillFromMeta(meta, cssStyle);
 
-    if (fill) {
-      cell.fill = fill;
+    if (alignment || border || font || fill) {
+      cell.style = { alignment, border, font, fill };
     }
 
     const rangeRef = Array.isArray(meta.source)
@@ -613,20 +670,22 @@ class Xlsx extends BaseType {
     const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
     if (dropdownValidation) {
-      cell.dataValidation = dropdownValidation;
+      cell.validation = dropdownValidation;
     }
 
     if (meta.comment?.value) {
-      cell.note = String(meta.comment.value);
+      cell.comment = String(meta.comment.value);
     }
   }
 
   /**
-   * Resolves the final ExcelJS cell value and optional number format for a data cell.
+   * Resolves the final model cell value, formula and optional number format for a data cell.
    *
    * Handles (in priority order):
    * 1. ColumnSummary formula destinations (when `exportFormulas` is `true`).
-   * 2. HyperFormula formula cells (when `exportFormulas` is `true`).
+   * 2. HyperFormula formula cells (when `exportFormulas` is `true`) — written with the number
+   *    format their column's meta describes and with the pre-calculated value cached as the
+   *    formula's `result`.
    * 3. Date cells (ISO 8601 string → serial number).
    * 4. Time cells (time string → fractional day serial).
    * 5. Checkbox cells (boolean from `checkedTemplate` comparison).
@@ -638,7 +697,7 @@ class Xlsx extends BaseType {
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
-   * @returns {{ value: *, numFmt: string|null }}
+   * @returns {{ value: *, formula: object|null, numFmt: string|null }}
    */
   #resolveCellValue(
     cellValue: unknown,
@@ -646,7 +705,7 @@ class Xlsx extends BaseType {
     sourceValue: unknown,
     summary: ColumnSummaryDescriptor | undefined,
     context: SheetContext
-  ): { value: ExcelCellValue; numFmt: string | null } {
+  ): { value: CellValue; formula: CellFormula | null; numFmt: string | null } {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
@@ -656,21 +715,22 @@ class Xlsx extends BaseType {
       const formula = buildSummaryFormula(summary, dataRowOffset, dataColOffset);
       const fallback = this.#getCellValue(cellValue, meta);
 
-      return {
-        value: formula ? { ...formula, result: cellValue as string | number | boolean | null } : fallback,
-        numFmt: null,
-      };
+      return formula
+        ? { value: null, formula: { text: formula.formula, result: toPrimitiveResult(cellValue) }, numFmt: null }
+        : { value: fallback, formula: null, numFmt: null };
     }
 
     if (exportFormulas && isFormulaValue(sourceValue)) {
       return {
-        value: {
-          formula: normalizeFormula(
+        value: null,
+        formula: {
+          text: normalizeFormula(
             sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
             excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
           ),
+          result: toPrimitiveResult(cellValue),
         },
-        numFmt: null,
+        numFmt: resolveMetaNumFmt(meta),
       };
     }
 
@@ -678,7 +738,7 @@ class Xlsx extends BaseType {
       const serial = parseIsoDateTimeStringToSerial(cellValue);
 
       if (serial !== null) {
-        return { value: serial, numFmt: getDateTimeNumFmt() };
+        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
       }
     }
 
@@ -686,7 +746,7 @@ class Xlsx extends BaseType {
       const serial = parseIsoStringToSerial(cellValue);
 
       if (serial !== null) {
-        return { value: serial, numFmt: getDateNumFmt() };
+        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
       }
     }
 
@@ -694,30 +754,27 @@ class Xlsx extends BaseType {
       const serial = parseTimeStringToSerial(cellValue);
 
       if (serial !== null) {
-        return { value: serial, numFmt: getTimeNumFmt() };
+        return { value: serial, formula: null, numFmt: resolveMetaNumFmt(meta) };
       }
     }
 
     if (meta.type === 'checkbox') {
-      return { value: this.#getCheckboxValue(cellValue, meta), numFmt: null };
+      return { value: this.#getCheckboxValue(cellValue, meta), formula: null, numFmt: null };
     }
 
     if (meta.type === 'multiselect') {
-      return { value: this.#getMultiSelectExportValue(cellValue), numFmt: null };
+      return { value: this.#getMultiSelectExportValue(cellValue), formula: null, numFmt: null };
     }
 
     if (meta.type === 'numeric') {
-      return {
-        value: this.#getCellValue(cellValue, meta),
-        numFmt: intlNumFormatToExcelNumFmt(meta.numericFormat, meta.locale),
-      };
+      return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: resolveMetaNumFmt(meta) };
     }
 
-    return { value: this.#getCellValue(cellValue, meta), numFmt: null };
+    return { value: this.#getCellValue(cellValue, meta), formula: null, numFmt: null };
   }
 
   /**
-   * Converts a raw cell value to an ExcelJS-compatible value.
+   * Converts a raw cell value to a neutral model `CellValue`.
    *
    * @param {*} value Raw cell value.
    * @param {object} meta Cell meta object.
@@ -777,17 +834,17 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Builds an ExcelJS solid fill object from a `headerStyle` option value.
+   * Builds a solid fill object from a `headerStyle` option value.
    *
    * Returns `null` when `headerStyle` is `null` / has no `backgroundColor`, so
-   * callers can skip applying a fill entirely (no default ExcelJS fill sentinel is set).
+   * callers can skip applying a fill entirely (no default engine fill sentinel is set).
    *
    * @param {object|null|undefined} headerStyle The `headerStyle` option value.
    * @returns {object|null}
    */
   #buildHeaderFill(
     headerStyle: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null | undefined
-  ): object | null {
+  ): HeaderFill | null {
     if (!headerStyle?.backgroundColor) {
       return null;
     }
@@ -800,7 +857,7 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Builds an ExcelJS border object (all four sides) from a `headerStyle` option value.
+   * Builds a border object (all four sides) from a `headerStyle` option value.
    *
    * Returns `null` when `headerStyle` is `null` or has no `border` sub-option.
    *
@@ -809,7 +866,7 @@ class Xlsx extends BaseType {
    */
   #buildHeaderBorder(
     headerStyle: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null | undefined
-  ): object | null {
+  ): HeaderBorder | null {
     if (!headerStyle?.border) {
       return null;
     }
@@ -821,46 +878,48 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Builds the options object passed to `workbook.xlsx.writeBuffer()`.
-   *
-   * The `compression` option enables DEFLATE compression: `true` uses the default
-   * level 6; a number 1–9 sets the JSZip `compressionOptions.level` (1 = fastest,
-   * 9 = smallest). Falsy or omitted leaves ExcelJS to use no compression.
-   *
-   * @returns {object}
+   * Applies the header fill, border and optional alignment to a header cell.
    */
-  #getWriteOptions(): object {
-    const { compression } = this.options;
-
-    let level = null;
-
-    if (compression === true) {
-      level = 6;
-    } else if (typeof compression === 'number' && compression >= 1 && compression <= 9) {
-      level = compression;
+  #applyHeaderStyle(
+    cell: CellSnapshot, alignment: CellStyleSnapshot['alignment'],
+    fill: HeaderFill | null, border: HeaderBorder | null
+  ): void {
+    if (!alignment && !fill && !border) {
+      return;
     }
 
-    if (level === null) {
-      return {};
-    }
-
-    return {
-      zip: {
-        compression: 'DEFLATE',
-        compressionOptions: { level },
-      },
-    };
+    cell.style = { alignment: alignment ?? null, font: null, fill, border };
   }
 
   /**
-   * Applies conditional formatting rules to the worksheet.
+   * Maps the `compression` option to the neutral level: `false` = stored, a number 1–9 = that
+   * DEFLATE level, anything else (`true`, `null`, `undefined`) = DEFLATE level 6. Only an explicit
+   * `false` turns compression off: the default has been DEFLATE since the option existed, and an
+   * unset option must keep producing the same file size.
+   */
+  #getCompressionLevel(): false | number {
+    const { compression } = this.options;
+
+    if (compression === false) {
+      return false;
+    }
+
+    if (typeof compression === 'number' && compression >= 1 && compression <= 9) {
+      return compression;
+    }
+
+    return 6;
+  }
+
+  /**
+   * Applies conditional formatting rules to the sheet.
    *
    * Each descriptor in `cfRules` may specify a `rows` and/or `cols` range
    * (0-based, relative to the exported data — the same coordinate space as
    * `getDataAtCell`). Both are optional and default to the full data range.
-   * The `rules` array is passed directly to ExcelJS's `addConditionalFormatting`.
+   * The `rules` array is carried through to the engine unchanged.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {Array} cfRules Array of `{ rows?, cols?, rules }` descriptors.
    * @param {number} dataRowOffset 1-based Excel row where data starts.
    * @param {number} dataColOffset 1-based Excel column where data starts.
@@ -868,7 +927,7 @@ class Xlsx extends BaseType {
    * @param {number} dataCols Total number of exported data columns.
    */
   #applyConditionalFormatting(
-    worksheet: ExcelJsWorksheet, cfRules: ConditionalFormattingDescriptor[],
+    sheet: SheetBuilder, cfRules: ConditionalFormattingDescriptor[],
     dataRowOffset: number, dataColOffset: number, dataRows: number, dataCols: number
   ): void {
     if (dataRows === 0 || dataCols === 0) {
@@ -885,80 +944,62 @@ class Xlsx extends BaseType {
       const startCol = (cols ? cols[0] : 0) + dataColOffset;
       const endCol = (cols ? cols[1] : dataCols - 1) + dataColOffset;
 
-      worksheet.addConditionalFormatting({
-        ref: this.#buildRangeRef(startRow, startCol, endRow, endCol),
-        rules,
-      });
+      sheet.addConditionalFormatting(toRangeRef(startRow, startCol, endRow, endCol), rules);
     });
   }
 
   /**
-   * Builds an Excel cell-range reference string (e.g. `'B2:E7'`) from 1-based
-   * row and column indices.
-   *
-   * @param {number} startRow 1-based start row.
-   * @param {number} startCol 1-based start column.
-   * @param {number} endRow 1-based end row.
-   * @param {number} endCol 1-based end column.
-   * @returns {string}
-   */
-  #buildRangeRef(startRow: number, startCol: number, endRow: number, endCol: number): string {
-    return `${colIndexToLetter(startCol)}${startRow}:${colIndexToLetter(endCol)}${endRow}`;
-  }
-
-  /**
-   * Sets column widths on the worksheet, converting pixel values to Excel
+   * Sets column widths on the sheet, converting pixel values to Excel
    * character-width units.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {number[]} widths Column widths in pixels, in data-column order.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    */
-  #applyColumnWidths(worksheet: ExcelJsWorksheet, widths: number[], hasRowHeaders: boolean): void {
+  #applyColumnWidths(sheet: SheetBuilder, widths: number[], hasRowHeaders: boolean): void {
     if (hasRowHeaders) {
-      worksheet.getColumn(1).width = ROW_HEADER_DEFAULT_WIDTH;
+      sheet.setColWidth(1, ROW_HEADER_DEFAULT_WIDTH);
     }
 
     const offset = hasRowHeaders ? 1 : 0;
 
     for (let index = 0; index < widths.length; index++) {
-      worksheet.getColumn(index + 1 + offset).width =
-        Math.max(widths[index] / PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, 1);
+      sheet.setColWidth(index + 1 + offset, Math.max(widths[index] / PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, 1));
     }
   }
 
   /**
    * Marks the specified Excel columns as hidden.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {number[]} hiddenColIndices 0-based data-column indices to hide.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    */
-  #applyHiddenColumns(worksheet: ExcelJsWorksheet, hiddenColIndices: number[], hasRowHeaders: boolean): void {
+  #applyHiddenColumns(sheet: SheetBuilder, hiddenColIndices: number[], hasRowHeaders: boolean): void {
     const offset = hasRowHeaders ? 1 : 0;
 
     hiddenColIndices.forEach((dataColIndex) => {
-      worksheet.getColumn(dataColIndex + 1 + offset).hidden = true;
+      sheet.hideCol(dataColIndex + 1 + offset);
     });
   }
 
   /**
    * Marks the specified Excel rows as hidden.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {number[]} hiddenRowIndices 0-based data-row indices to hide.
    * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
    */
-  #applyHiddenRows(worksheet: ExcelJsWorksheet, hiddenRowIndices: number[], dataRowOffset: number): void {
+  #applyHiddenRows(sheet: SheetBuilder, hiddenRowIndices: number[], dataRowOffset: number): void {
     hiddenRowIndices.forEach((dataRowIndex) => {
-      worksheet.getRow(dataRowIndex + dataRowOffset).hidden = true;
+      sheet.hideRow(dataRowIndex + dataRowOffset);
     });
   }
 
   /**
-   * Configures the worksheet view, combining frozen panes and RTL direction settings.
+   * Configures the sheet view, combining frozen panes and RTL direction settings.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {number} frozenRows Number of frozen data rows.
    * @param {number} frozenColumns Number of frozen data columns.
    * @param {number} headerRowCount Number of header rows prepended before data rows.
@@ -966,161 +1007,107 @@ class Xlsx extends BaseType {
    * @param {boolean} isRtl Whether the table layout direction is right-to-left.
    */
   #applyWorksheetViews(
-    worksheet: ExcelJsWorksheet, frozenRows: number, frozenColumns: number,
+    sheet: SheetBuilder, frozenRows: number, frozenColumns: number,
     headerRowCount: number, hasRowHeaders: boolean, isRtl: boolean
   ): void {
-    const hasFrozenPanes = frozenRows > 0 || frozenColumns > 0;
+    sheet.setRtl(isRtl);
 
-    if (!hasFrozenPanes && !isRtl) {
-      return;
+    if (frozenRows > 0 || frozenColumns > 0) {
+      sheet.freeze(frozenColumns + (hasRowHeaders ? 1 : 0), frozenRows + headerRowCount);
     }
-
-    const view: ExcelJsView = {};
-
-    if (isRtl) {
-      view.rightToLeft = true;
-    }
-
-    if (hasFrozenPanes) {
-      view.state = 'frozen';
-      view.xSplit = frozenColumns + (hasRowHeaders ? 1 : 0);
-      view.ySplit = frozenRows + headerRowCount;
-    }
-
-    worksheet.views = [view];
   }
 
   /**
-   * Writes the column-header row to the worksheet, applying alignment derived from
+   * Writes the column-header row to the sheet, applying alignment derived from
    * each header's `className` where configured, and optional background fill and border.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {Array} columnHeaders Header values.
    * @param {string[]} classNames Per-header className strings (same order as `columnHeaders`).
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended (leaves cell A1 empty).
    * @param {number} dataColOffset 1-based column number where data columns begin.
-   * @param {object|null} headerFill ExcelJS fill object for header cells, or `null` for no fill.
-   * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
+   * @param {object|null} headerFill Fill object for header cells, or `null` for no fill.
+   * @param {object|null} headerBorder Border object for header cells, or `null` for no border.
    */
   #writeColumnHeaders(
-    worksheet: ExcelJsWorksheet, columnHeaders: Array<string | number | null>,
+    sheet: SheetBuilder, columnHeaders: Array<string | number | null>,
     classNames: string[], hasRowHeaders: boolean,
-    dataColOffset: number, headerFill: object | null, headerBorder: object | null
+    dataColOffset: number, headerFill: HeaderFill | null, headerBorder: HeaderBorder | null
   ): void {
-    const headerRow = worksheet.getRow(1);
-
     if (hasRowHeaders) {
-      const cornerCell = headerRow.getCell(1);
+      const cornerCell = sheet.cell(1, 1);
 
       cornerCell.value = '';
-
-      if (headerFill) {
-        cornerCell.fill = headerFill;
-      }
-
-      if (headerBorder) {
-        cornerCell.border = headerBorder;
-      }
+      this.#applyHeaderStyle(cornerCell, null, headerFill, headerBorder);
     }
 
     for (let index = 0; index < columnHeaders.length; index++) {
-      const cell = headerRow.getCell(index + dataColOffset);
+      const cell = sheet.cell(1, index + dataColOffset);
 
       cell.value = columnHeaders[index] ?? null;
-
-      const alignment = getAlignmentFromClassName(classNames[index]);
-
-      if (alignment) {
-        cell.alignment = alignment;
-      }
-
-      if (headerFill) {
-        cell.fill = headerFill;
-      }
-
-      if (headerBorder) {
-        cell.border = headerBorder;
-      }
+      this.#applyHeaderStyle(
+        cell, getAlignmentFromClassName(classNames[index]),
+        headerFill, headerBorder
+      );
     }
-
-    headerRow.commit();
   }
 
   /**
-   * Writes multi-row nested column headers to the worksheet, applying alignment derived
+   * Writes multi-row nested column headers to the sheet, applying alignment derived
    * from each header's `className` where configured, and optional background fill and border.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {number} dataColOffset 1-based column number where data columns begin.
-   * @param {object|null} headerFill ExcelJS fill object for header cells, or `null` for no fill.
-   * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
+   * @param {object|null} headerFill Fill object for header cells, or `null` for no fill.
+   * @param {object|null} headerBorder Border object for header cells, or `null` for no border.
    */
   #writeNestedColumnHeaders(
-    worksheet: ExcelJsWorksheet, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
-    dataColOffset: number, headerFill: object | null, headerBorder: object | null
+    sheet: SheetBuilder, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
+    dataColOffset: number, headerFill: HeaderFill | null, headerBorder: HeaderBorder | null
   ): void {
     for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
       const layerHeaders = nestedColumnHeaders[layerIndex];
-      const row = worksheet.getRow(layerIndex + 1);
+      const rowNumber = layerIndex + 1;
 
       if (hasRowHeaders && layerIndex === 0) {
-        const cornerCell = row.getCell(1);
+        const cornerCell = sheet.cell(rowNumber, 1);
 
         cornerCell.value = '';
-
-        if (headerFill) {
-          cornerCell.fill = headerFill;
-        }
-
-        if (headerBorder) {
-          cornerCell.border = headerBorder;
-        }
+        this.#applyHeaderStyle(cornerCell, null, headerFill, headerBorder);
       }
 
       let colPos = dataColOffset;
 
       layerHeaders.forEach((header) => {
-        const cell = row.getCell(colPos);
+        const cell = sheet.cell(rowNumber, colPos);
 
         cell.value = header.label ?? null;
-
-        const alignment = getAlignmentFromClassName(header.className);
-
-        if (alignment) {
-          cell.alignment = alignment;
-        }
-
-        if (headerFill) {
-          cell.fill = headerFill;
-        }
-
-        if (headerBorder) {
-          cell.border = headerBorder;
-        }
+        this.#applyHeaderStyle(
+          cell, getAlignmentFromClassName(header.className),
+          headerFill, headerBorder
+        );
 
         colPos += header.colspan;
       });
-
-      row.commit();
     }
   }
 
   /**
    * Merges spanning cells in nested header rows.
    *
-   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {object} sheet The sheet builder.
    * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {number} dataColOffset 1-based column number where data columns begin.
    */
   #applyNestedHeaderMerges(
-    worksheet: ExcelJsWorksheet, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
+    sheet: SheetBuilder, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
     dataColOffset: number
   ): void {
     if (hasRowHeaders && nestedColumnHeaders.length > 1) {
-      worksheet.mergeCells(1, 1, nestedColumnHeaders.length, 1);
+      sheet.merge(1, 1, nestedColumnHeaders.length, 1);
     }
 
     for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
@@ -1130,7 +1117,7 @@ class Xlsx extends BaseType {
 
       layerHeaders.forEach((header) => {
         if (header.colspan > 1) {
-          worksheet.mergeCells(excelRow, colPos, excelRow, colPos + header.colspan - 1);
+          sheet.merge(excelRow, colPos, excelRow, colPos + header.colspan - 1);
         }
 
         colPos += header.colspan;
@@ -1139,19 +1126,26 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Creates a `veryHidden` worksheet containing all unique dropdown/autocomplete
-   * source arrays as columns. Returns a map from `JSON.stringify(source)` to an
-   * Excel range-reference string pointing at that column.
+   * Creates a `veryHidden` sheet containing all unique dropdown/autocomplete source arrays found
+   * in `cellsMeta`, the 2D cell-meta array of the sheet being exported, one array per column.
+   * Returns a map from `JSON.stringify(source)` to an Excel range-reference string pointing at
+   * that column, together with the sheet snapshot the caller pushes into the workbook after the
+   * data sheet.
+   *
+   * The helper sheet's name goes through `#uniqueSheetName` against the same `usedSheetNames` set
+   * every data sheet is named from, so a grid exported under the name `_HotValidation` can never
+   * end up sharing its name with its own helper sheet — and two helper sheets in a multi-sheet
+   * export cannot collide either. The data sheet is already recorded in that set by the time this
+   * runs, even though it is pushed into the workbook only afterwards.
    *
    * If no dropdown or autocomplete cells with array sources are found, returns an
-   * empty map and does not add any worksheet to the workbook.
+   * empty map and a `null` sheet.
    *
    * @private
-   * @param {object} workbook The ExcelJS workbook.
-   * @param {Array[]} cellsMeta 2D meta array from DataProvider.
-   * @returns {Map<string, string>} Map from source JSON key to range reference.
    */
-  #buildValidationSheet(workbook: ExcelJsWorkbook, cellsMeta: CellMeta[][]): Map<string, string> {
+  #buildValidationSheet(
+    usedSheetNames: Set<string>, cellsMeta: CellMeta[][]
+  ): { validationMap: Map<string, string>; sheet: SheetSnapshot | null } {
     const sourceMap = new Map<string, unknown[]>();
 
     for (let rowIndex = 0; rowIndex < cellsMeta.length; rowIndex++) {
@@ -1170,21 +1164,13 @@ class Xlsx extends BaseType {
     }
 
     if (sourceMap.size === 0) {
-      return new Map();
+      return { validationMap: new Map(), sheet: null };
     }
 
-    const existingNames = new Set(workbook.worksheets.map((ws: { name: string }) => ws.name));
-    let sheetName = '_HotValidation';
-    let suffix = 1;
+    const sheetName = this.#uniqueSheetName(VALIDATION_SHEET_NAME, usedSheetNames);
+    const builder = new SheetBuilder(sheetName);
 
-    while (existingNames.has(sheetName)) {
-      sheetName = `_HotValidation${suffix}`;
-      suffix += 1;
-    }
-
-    const validationSheet = workbook.addWorksheet(sheetName);
-
-    validationSheet.state = 'veryHidden';
+    builder.setState('veryHidden');
 
     const validationMap = new Map<string, string>();
     let colNumber = 1;
@@ -1193,7 +1179,7 @@ class Xlsx extends BaseType {
       for (let rowNumber = 0; rowNumber < source.length; rowNumber++) {
         const item = source[rowNumber];
 
-        validationSheet.getCell(rowNumber + 1, colNumber).value = isKeyValueObject(item)
+        builder.cell(rowNumber + 1, colNumber).value = isKeyValueObject(item)
           ? String((item as { value: unknown }).value)
           : String(item);
       }
@@ -1206,7 +1192,7 @@ class Xlsx extends BaseType {
       colNumber += 1;
     });
 
-    return validationMap;
+    return { validationMap, sheet: builder.toSnapshot() };
   }
 }
 

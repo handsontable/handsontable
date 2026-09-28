@@ -485,6 +485,16 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   *
+   * @event Hooks#afterImport
+   * @since 19.0.0
+   * @param {object} result The applied {@link ImportFile} result.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   */
+  'afterImport',
+
+  /**
    * Fired after the Handsontable instance is initiated.
    *
    * @event Hooks#afterInit
@@ -760,9 +770,16 @@ export const REGISTERED_HOOKS = [
    * `physicalColumns` of a later call already account for the columns that the earlier calls
    * removed.
    *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_col')` on a grid with no columns, where `physicalColumns` is
+   * empty). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op removal
+   * does not stack an undo action, so do not treat "`afterRemoveCol` fired" as proof that an undo
+   * entry now exists.
+   *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
-   * @param {number} amount An amount of removed columns.
+   * @param {number} amount The number of columns the call requested to remove, which may exceed the
+   *                        number actually removed - read `physicalColumns.length` for the removed count.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
@@ -790,6 +807,12 @@ export const REGISTERED_HOOKS = [
    * ascending nor contiguous even for a single run. Every call also describes the data source
    * as it stands at that moment, so the `index` and `physicalRows` of a later call already
    * account for the rows that the earlier calls removed.
+   *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_row')` on a grid with no rows, where `physicalRows` is empty and
+   * `amount` is `0`). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op
+   * removal does not stack an undo action, so do not treat "`afterRemoveRow` fired" as proof that
+   * an undo entry now exists.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
@@ -1481,6 +1504,19 @@ export const REGISTERED_HOOKS = [
   'beforeCellAlignment',
 
   /**
+   * Fired before toggling the read-only state of the selected cells, from the context menu or column
+   * menu "Read only" item.
+   *
+   * @event Hooks#beforeReadOnlyToggle
+   * @since 19.0.0
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of booleans (the previous `readOnly` state) indexed by visual column.
+   * @param {CellRange[]} ranges An array of `CellRange` coordinates where the read-only state will be applied.
+   * @param {boolean} readOnly The new read-only state being applied to every affected cell.
+   */
+  'beforeReadOnlyToggle',
+
+  /**
    * Fired before one or more cells are changed.
    *
    * Use this hook to silently alter the user's changes before Handsontable re-renders.
@@ -1665,6 +1701,18 @@ export const REGISTERED_HOOKS = [
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCellMeta',
+
+  /**
+   * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
+   * result is applied to the grid. Mutating `result` changes what gets applied.
+   *
+   * @event Hooks#beforeImport
+   * @since 19.0.0
+   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
+   */
+  'beforeImport',
 
   /**
    * Fired before the Handsontable instance is initiated.
@@ -3181,7 +3229,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.
    * @param {number} newSheetId The id of the sheet being activated.
@@ -3194,7 +3242,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.
    * @param {number} newSheetId The id of the sheet being activated.
@@ -3206,7 +3254,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
    * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
    * @param {string} source String that identifies source of hook call.
@@ -3218,7 +3266,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabAdd
    * @param {number} sheetId The id of the added sheet.
    * @param {string} name The name of the added sheet.
@@ -3230,7 +3278,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabRemove
    * @param {number} sheetId The id of the sheet to be removed.
    * @param {string} source String that identifies source of hook call.
@@ -3242,7 +3290,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabRemove
    * @param {number} sheetId The id of the removed sheet.
    * @param {string} source String that identifies source of hook call.
@@ -3253,7 +3301,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabRename
    * @param {number} sheetId The id of the sheet being renamed.
    * @param {string} oldName The current name of the sheet.
@@ -3267,7 +3315,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabRename
    * @param {number} sheetId The id of the renamed sheet.
    * @param {string} oldName The previous name of the sheet.
@@ -3280,7 +3328,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabMove
    * @param {number} sheetId The id of the sheet being moved.
    * @param {number} finalIndex The requested tab index.
@@ -3293,7 +3341,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabMove
    * @param {number} sheetId The id of the moved sheet.
    * @param {number} finalIndex The tab index the sheet was moved to.
@@ -3305,7 +3353,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
    * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
    * @param {object} viewState The captured view state.
@@ -3317,7 +3365,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
    * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.
    * @param {object} viewState The restored view state.
@@ -3842,6 +3890,9 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeDetachChild
    * @param {object} parent An object representing the parent from which the element is to be detached.
    * @param {object} element The detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeDetachChild',
 
@@ -3853,6 +3904,9 @@ export const REGISTERED_HOOKS = [
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementPosition The final row index of the detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterDetachChild',
 

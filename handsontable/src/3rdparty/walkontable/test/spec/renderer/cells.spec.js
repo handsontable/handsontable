@@ -28,6 +28,18 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     isAriaEnabled() {
       return true;
     }
+
+    hasColumnHeaders() {
+      return false;
+    }
+
+    ownsAriaColumnHeaderId() {
+      return false;
+    }
+
+    getAriaColumnHeaderIdPrefix() {
+      return '';
+    }
   }
 
   function createRenderer() {

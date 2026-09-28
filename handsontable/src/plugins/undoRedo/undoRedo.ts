@@ -336,21 +336,35 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const undoneActionsCopy = this.undoneActions.slice();
+    type RedoableAction = {
+      canRedo?: (hot: HotInstance) => boolean
+    };
+    const pendingAction = this.undoneActions[this.undoneActions.length - 1] as RedoableAction;
 
-    this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+    // A redo whose removal would name no row or column changes nothing. Formulas always calls
+    // `engine.redo()` in `beforeRedo`, so that check has to win first - same as `canUndo()` in `undo()`.
+    if (pendingAction.canRedo?.(this.hot) === false) {
+      return;
+    }
 
-    const action = this.undoneActions.pop();
-
-    this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
-
+    const action = this.undoneActions[this.undoneActions.length - 1];
     const actionClone = deepClone(action);
 
+    // Do not mutate the stack until every `beforeRedo` listener accepts the action. A canceled
+    // redo must remain available to retry once the condition that vetoed it no longer applies.
     const continueAction = this.hot.runHooks('beforeRedo', actionClone);
 
     if (continueAction === false) {
       return;
     }
+
+    const undoneActionsCopy = this.undoneActions.slice();
+
+    this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+
+    this.undoneActions.pop();
+
+    this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
     this.ignoreNewActions = true;
 

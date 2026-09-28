@@ -132,6 +132,10 @@ module.exports = {
           'configScope',
           'package',
           'template',
+          // Jest's own per-file docblock pragma (https://jestjs.io/docs/configuration#testenvironment-string),
+          // used to switch a single spec file to the `node` environment (e.g. one round-tripping
+          // xlsx zip buffers through Node streams) without changing the project-wide jsdom default.
+          'jest-environment',
         ]
       }
     ],
