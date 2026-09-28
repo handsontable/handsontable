@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-28T21:02:13.912Z",
+  "generatedAt": "2026-09-28T21:20:25.070Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1617
+    "entries": 1618
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 3,
-      "count30": 17,
-      "countAll": 17,
+      "count7": 4,
+      "count30": 18,
+      "countAll": 18,
       "runs30": 10,
       "flakyRuns30": 10,
       "branches30": 9,
@@ -41,8 +41,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-28T21:01:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36480443736",
+        "seenAt": "2026-09-28T21:19:33Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36480443736/attempts/2",
         "branch": "feature/DEV-3045_SheetsBar-merge-restore",
         "leg": "e2e-classic-min",
         "status": "flaky",
