@@ -110,7 +110,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (130k on a validated 5,000-row sheet: +42% switch time, +126 MB over ten switches). The
   serve hook runs on the hottest read path: keep the `size === 0` bail-out first and only
   write differing values. `valid` is not tracked at all (`UNTRACKED_META_KEYS`) — the next
-  validation recomputes it, and it is what made the map balloon. Entries are stored with
+  validation recomputes it, and it is what made the map balloon. Neither are MergeCells' `hidden`
+  and `spanned`: the switch restores merges itself, and MergeCells removes those keys from a
+  trimmed row without `afterRemoveCellMeta`, so a tracked copy came back after an unmerge (DEV-3135). Entries are stored with
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
   `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the

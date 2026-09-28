@@ -86,8 +86,13 @@ function applyEngineRewritesToSheetData(data: unknown[][], serialized: unknown[]
  * recomputes them from the data, so replaying a captured value after a switch would restore a
  * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
  * tracking balloon to six figures on large sheets.
+ *
+ * `hidden` and `spanned` are MergeCells' own bookkeeping, not options: the plugin writes them when it
+ * merges and removes them when it unmerges, and the switch restores the merges itself. Tracked, they
+ * came back on every read after MergeCells removed them from a row that was trimmed at the time,
+ * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
  */
-const UNTRACKED_META_KEYS = new Set(['valid']);
+const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are

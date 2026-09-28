@@ -85,19 +85,38 @@ then drops the merges whose anchor is now empty itself and forbids `shiftCollect
 rest. The decision cannot be left to the shift: it reads the merge's *visual* coordinates, which for a
 merge purged while all of its rows were trimmed are stale, frozen at the moment it was purged.
 
-**Resetting a dropped merge's cell meta goes through the anchor, never through `row`/`rowspan`.**
-`#resetMergedCellMeta` runs for every merge in the list when `clearCollections()` runs (every
-`updateSettings({ mergeCells })`, and disabling the plugin), including merges purged because all of their
-rows are trimmed. Their visual coordinates are stale: with every row filtered out they address no row, so
-`removeCellMeta` threw `Expecting an unsigned number` (DEV-3135, a regression from #12798 in 18.1.0); with
-some rows filtered out they address whatever record the trim slid into place, and wiped that record's own
-`copyable: false`. So the reset walks `anchor.physicalRows` × the merge's visual columns, and removes all
-five keys (`hidden`, `copyable`, `spanned`, `rowspan`, `colspan`) from every covered cell — `afterGetCellMeta`
-writes the span keys on whichever cell is the *visible* top-left when it runs, which after a re-anchor is
-not the original one. A trimmed row has no visual index, so its meta is removed through
+**Resetting a dropped merge's cell meta reads the anchor AND the drawn block, never `row`/`rowspan`
+alone.** `#resetMergedCellMeta` runs for every merge `clearCollections()` drops (every
+`updateSettings({ mergeCells })`, disabling the plugin, and SheetsBar's merge restore on a sheet switch)
+and for every merge `unmergeRange()` drops (the context menu, `Ctrl`+`M`, `unmerge()`, UndoRedo). A merge
+purged because all of its rows are trimmed keeps stale visual coordinates: with every row filtered out they
+address no row, so `removeCellMeta` threw `Expecting an unsigned number` (DEV-3135, a regression from
+#12798 in 18.1.0); with some rows filtered out they address whatever record the trim slid into place, and
+wiped that record's own `copyable: false`. The anchor alone is not enough either: after a sort, the block a
+merge draws covers other records' rows, and `afterGetCellMeta` stores `hidden`/`copyable` on those too. So
+the rows are `anchor.physicalRows` plus, while the merge is not purged, the rows under its drawn block. The
+span keys (`spanned`, `rowspan`, `colspan`) go only on the left column — `afterGetCellMeta` writes them on
+whichever cell is the visible top-left when it runs, which after a re-anchor is not the original one, but
+is always in that column. A trimmed row has no visual index, so its meta is removed through
 `_getMetaManager().removeCellMeta()` by physical index, and the `before`/`afterRemoveCellMeta` hooks do not
-fire for it. A merge with no anchor falls back to its visual rows, skipping any that address no row.
-Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
+fire for it. SheetsBar therefore does not track `hidden`/`spanned` at all (its `UNTRACKED_META_KEYS`): a
+tracked copy would come back after that hookless removal. Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
+
+**While rows are trimmed, `updatePlugin()` keeps the merge of every area the new settings still declare.**
+Settings describe visual positions, so reading them against a trimmed row space moves a merge onto the
+records a filter slid into place (and the clearing pass then nulls their values), or drops it with an
+out-of-bounds warning when every row is trimmed — and the React and Angular wrappers re-send unchanged
+settings on every commit, so any re-render of a filtered grid did that. `#mergeAreaKeys` records the area
+each merge was created from; `#takeKeptMerges` takes the merges whose area was applied before and is still
+declared out of the list **before** `disablePlugin()`, so their meta is not reset and nothing is written to
+their cells; `#restoreKeptMerges` puts the same objects back (`MergedCellsCollection#restoreMerges`, list
+only), flags them purged and re-anchors them **before** `generateFromSettings()` applies the other areas, so
+those areas' overlap checks see them and the identity-blind matrix removal cannot hit anyone else's entry.
+The kept areas are skipped by the validation and the population. Three limits, all deliberate: with no row
+trimmed the settings are applied as before; a merge a row or column move replaced is a new object with no
+recorded area, so it goes back through the settings; and a kept merge whose rows are all trimmed stays out
+of the lookup matrix, so an area declared over its rows in the same call is not rejected as overlapping —
+the same hazard as any merge created during an active filter.
 
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**

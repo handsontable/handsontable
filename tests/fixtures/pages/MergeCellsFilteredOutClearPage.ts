@@ -5,13 +5,14 @@ import './windowTypes';
 
 interface FixtureWindow extends Window {
   htClearMerges(): void;
+  htResendMerges(): void;
   htClearFilters(): void;
 }
 
 /**
  * Page Object for the DEV-3135 fixture: a grid with one merge over the first two rows of the first
- * column, filtered through the dropdown menu, whose merges the host application then drops with
- * `updateSettings({ mergeCells: [] })`.
+ * column, filtered through the dropdown menu, whose merges the host application then drops or sends
+ * again through `updateSettings({ mergeCells })`.
  *
  * The dropdown menu is driven through `FiltersValueListPage`, which owns the plugin's class hooks,
  * so no filter-menu selector is spelled out here or in the spec.
@@ -91,6 +92,22 @@ export class MergeCellsFilteredOutClearPage {
    */
   async clearMerges(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as FixtureWindow).htClearMerges());
+  }
+
+  /**
+   * Sends the same merges again through `updateSettings()`, the way the React and Angular wrappers
+   * do on every commit. A throw rejects this call.
+   */
+  async resendMerges(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htResendMerges());
+  }
+
+  /**
+   * Asserts that a merge covers the given cell: the cell is rendered, but not displayed.
+   */
+  async expectCoveredByMerge(row: number, col: number): Promise<void> {
+    await expect(this.cell(row, col)).toBeAttached();
+    await expect(this.cell(row, col)).toHaveCSS('display', 'none');
   }
 
   /**

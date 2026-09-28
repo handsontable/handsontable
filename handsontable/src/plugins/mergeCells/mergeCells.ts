@@ -32,9 +32,13 @@ export const PLUGIN_PRIORITY = 150;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
- * The cell meta keys a merge writes on the cells it covers.
+ * The cell meta keys a merge writes on every cell it covers.
  */
-const MERGE_META_KEYS = ['hidden', 'copyable', 'spanned', 'rowspan', 'colspan'];
+const COVERED_CELL_META_KEYS = ['hidden', 'copyable'];
+/**
+ * The cell meta keys a merge writes on the cells it covers, including its top-left one.
+ */
+const MERGE_META_KEYS = [...COVERED_CELL_META_KEYS, 'spanned', 'rowspan', 'colspan'];
 
 /**
  * The physical description of a merged cell: every physical row it covers, and its physical left
@@ -291,6 +295,16 @@ export class MergeCells extends BasePlugin {
   #purgedMerges: WeakSet<MergedCellCoords> = new WeakSet();
 
   /**
+   * The settings area each merge was created from, in the {@link toMergeAreaKey} form. It lets
+   * `updatePlugin()` keep the merge of an area the new settings still declare while rows are trimmed
+   * (see {@link MergeCells#takeKeptMerges}). A merge a row or column move replaced is a new object
+   * with no entry here, so it goes back through the settings like any other area.
+   *
+   * @type {WeakMap<MergedCellCoords, string>}
+   */
+  #mergeAreaKeys: WeakMap<MergedCellCoords, string> = new WeakMap();
+
+  /**
    * Whether the clipboard block of the paste currently being processed is a single cell. A single
    * pasted value carries no structure, so it leaves the merge it lands on intact and only writes
    * the merge's top-left cell; a multi-cell block cannot fit inside a merge, so the merge is
@@ -435,11 +449,14 @@ export class MergeCells extends BasePlugin {
     // Copy before `disablePlugin()` clears the field, so `generateFromSettings()` can tell a
     // re-applied area from a newly declared one.
     const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
+    // Taken out of the list before `disablePlugin()`, so their meta is not reset and nothing is
+    // written to their cells.
+    const keptMerges = this.#takeKeptMerges(alreadyAppliedMerges);
 
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings(alreadyAppliedMerges);
+    this.generateFromSettings(alreadyAppliedMerges, this.#restoreKeptMerges(keptMerges));
     this.#initialized = true;
     this.#captureMergeAnchors();
 
@@ -552,10 +569,13 @@ export class MergeCells extends BasePlugin {
    * `disablePlugin()` cleared it. Those areas keep their merge but skip the data population, because
    * their cells were cleared when they were first applied. Defaults to an empty set, so a first
    * application populates every area.
+   * @param {Set<string>} [keptMergeKeys] Keys of the areas whose merges `updatePlugin()` kept as they
+   * were, so they are neither validated nor applied again.
    */
-  generateFromSettings(alreadyAppliedMerges: Set<string> = new Set()) {
+  generateFromSettings(alreadyAppliedMerges: Set<string> = new Set(), keptMergeKeys: Set<string> = new Set()) {
     const validSettings = this.getSetting<{ row: number, col: number, rowspan: number, colspan: number }[]>('cells')
-      .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
+      .filter(mergeCellInfo => !keptMergeKeys.has(toMergeAreaKey(mergeCellInfo)) &&
+        this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
 
@@ -567,11 +587,17 @@ export class MergeCells extends BasePlugin {
       const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
       const mergeRange = this.hot._createCellRange(from, from, to);
 
+      const mergeCountBefore = this.mergedCellsCollection.mergedCells.length;
+      const mergeAreaKey = toMergeAreaKey(mergeCellInfo);
+
       // Merging without data population. Runs for every area, re-applied or not — `updatePlugin()`
       // clears the collection first, so skipping this would drop the merge entirely.
       this.mergeRange(mergeRange, true, true);
 
-      const mergeAreaKey = toMergeAreaKey(mergeCellInfo);
+      // `MergedCellsCollection#add` appends, so a merge created here is the last one in the list.
+      if (this.mergedCellsCollection.mergedCells.length > mergeCountBefore) {
+        this.#mergeAreaKeys.set(this.mergedCellsCollection.mergedCells.at(-1)!, mergeAreaKey);
+      }
       // A first application clears the whole area, exactly as before. A re-applied one clears only
       // the cells that still hold a value: writing `null` over a cell that is already empty changes
       // no data, but still emits `beforeChange`/`afterChange`, and that is what loops an integration
@@ -601,6 +627,62 @@ export class MergeCells extends BasePlugin {
 
     // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
     this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName ?? undefined);
+  }
+
+  /**
+   * Takes out of the list the merges `updatePlugin()` keeps as they are: while rows are trimmed, the
+   * merge of every area that was applied before and that the new settings still declare. Settings
+   * describe visual positions, and while rows are trimmed those point at other records, or at none
+   * when every row is trimmed (DEV-3135). Applying the area again from them would move the merge onto
+   * other records, or drop it; the merge's physical anchor still describes the rows it covers. With
+   * no row trimmed the settings are applied as before.
+   */
+  #takeKeptMerges(alreadyAppliedMerges: Set<string>): MergedCellCoords[] {
+    if (alreadyAppliedMerges.size === 0 || !this.#isRowTrimmingActive()) {
+      return [];
+    }
+
+    const declaredKeys = new Set(
+      this.getSetting<MergeAreaGeometry[]>('cells').map(mergeCellInfo => toMergeAreaKey(mergeCellInfo))
+    );
+    const keptMerges = this.mergedCellsCollection.mergedCells.filter((merge) => {
+      const mergeAreaKey = this.#mergeAreaKeys.get(merge);
+
+      return mergeAreaKey !== undefined && alreadyAppliedMerges.has(mergeAreaKey) &&
+        declaredKeys.has(mergeAreaKey) && this.#mergeAnchors.has(merge);
+    });
+
+    this.mergedCellsCollection.dropMerges(keptMerges);
+
+    return keptMerges;
+  }
+
+  /**
+   * Puts the merges {@link MergeCells#takeKeptMerges} took out back into the list, and places them
+   * from their anchors before any other area is applied, so the overlap checks of those areas see
+   * them. Each one is flagged as purged, which makes the re-anchor add it to the lookup matrix even
+   * when it lands where it was, or keep it out while all of its rows are trimmed.
+   */
+  #restoreKeptMerges(keptMerges: MergedCellCoords[]): Set<string> {
+    const keptMergeKeys = new Set<string>();
+
+    if (keptMerges.length === 0) {
+      return keptMergeKeys;
+    }
+
+    this.mergedCellsCollection.restoreMerges(keptMerges);
+
+    keptMerges.forEach((merge) => {
+      const mergeAreaKey = this.#mergeAreaKeys.get(merge)!;
+
+      this.#purgedMerges.add(merge);
+      this.#appliedMergeKeys.add(mergeAreaKey);
+      keptMergeKeys.add(mergeAreaKey);
+    });
+
+    this.#reanchorMergesToVisibleRows();
+
+    return keptMergeKeys;
   }
 
   /**
@@ -791,41 +873,57 @@ export class MergeCells extends BasePlugin {
    * the cached meta and leak into consumers that read it directly (e.g. `toHTML`) when the
    * following render is suspended/batched and never actually runs.
    *
-   * The cells are found through the merge's anchor, not its visual coordinates. While rows are
-   * trimmed those coordinates describe only the visible part, and a merge with every row trimmed
-   * keeps the ones it had before the trim: they then address no row at all, or another record
-   * the trim slid into place (DEV-3135). Every key is removed from every covered cell, because
-   * `afterGetCellMeta` writes the span keys on whichever cell was the visible top-left when it ran.
+   * The rows are the ones the merge owns — its anchor — plus the ones it draws over while it is in
+   * the lookup matrix. Its visual coordinates alone are not enough: while rows are trimmed they
+   * describe only the visible part, and a merge with every row trimmed keeps the ones it had before
+   * the trim, which then address no row at all, or another record the trim slid into place
+   * (DEV-3135). The anchor alone is not enough either: after a sort, the block a merge draws can
+   * cover other records' rows, and `afterGetCellMeta` stores `hidden`/`copyable` on those too.
+   *
+   * The span keys go only on the left column, because `afterGetCellMeta` writes them on whichever
+   * cell is the visible top-left when it runs, and after a re-anchor that is not the original one.
    *
    * @param {MergedCellCoords} mergedCell The merged cell whose meta should be reset.
    */
   #resetMergedCellMeta(mergedCell: MergedCellCoords) {
     const anchor = this.#mergeAnchors.get(mergedCell);
-    const anchorColumn = anchor ? this.hot.toVisualColumn(anchor.physicalColumn) : null;
-    const visualColumn = anchorColumn ?? mergedCell.col;
-    const physicalRows = anchor && anchor.physicalRows.length > 0
-      ? anchor.physicalRows
-      : this.#getVisiblePhysicalRows(mergedCell);
+    const leftColumn = (anchor && this.hot.toVisualColumn(anchor.physicalColumn)) ?? mergedCell.col;
+    const physicalRows = new Set(anchor?.physicalRows);
+
+    if (!this.#purgedMerges.has(mergedCell)) {
+      this.#getDrawnPhysicalRows(mergedCell).forEach(physicalRow => physicalRows.add(physicalRow));
+    }
+
+    const columns: { visual: number, physical: number }[] = [];
+
+    rangeEach(leftColumn, leftColumn + mergedCell.colspan - 1, (visual) => {
+      const physical = this.hot.toPhysicalColumn(visual);
+
+      if (physical !== null) {
+        columns.push({ visual, physical });
+      }
+    });
 
     physicalRows.forEach((physicalRow) => {
-      rangeEach(0, mergedCell.colspan - 1, (j) => {
-        this.#removeMergeMetaAt(physicalRow, visualColumn + j);
+      const removeCellMeta = this.#getCellMetaRemover(physicalRow);
+
+      columns.forEach(({ visual, physical }) => {
+        const keys = visual === leftColumn ? MERGE_META_KEYS : COVERED_CELL_META_KEYS;
+
+        keys.forEach(key => removeCellMeta(visual, physical, key));
       });
     });
   }
 
   /**
-   * Returns the physical rows under the merge's visual coordinates, skipping the ones that
-   * address no row.
-   *
-   * @param {MergedCellCoords} mergedCell The merged cell.
-   * @returns {number[]}
+   * Returns the physical rows under the merge's visual coordinates, skipping the ones that address
+   * no row.
    */
-  #getVisiblePhysicalRows(mergedCell: MergedCellCoords): number[] {
+  #getDrawnPhysicalRows(mergedCell: MergedCellCoords): number[] {
     const physicalRows: number[] = [];
 
-    rangeEach(0, mergedCell.rowspan - 1, (i) => {
-      const physicalRow = this.hot.toPhysicalRow(mergedCell.row + i);
+    rangeEach(mergedCell.row, mergedCell.row + mergedCell.rowspan - 1, (visualRow) => {
+      const physicalRow = this.hot.toPhysicalRow(visualRow);
 
       if (physicalRow !== null) {
         physicalRows.push(physicalRow);
@@ -836,28 +934,20 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Removes the merge-related meta keys from one cell. A trimmed row has no visual index to hand
-   * the `beforeRemoveCellMeta`/`afterRemoveCellMeta` hooks, so its meta is removed through the
-   * meta manager, without the hooks.
-   *
-   * @param {number} physicalRow The physical row index.
-   * @param {number} visualColumn The visual column index.
+   * Returns the function that removes one meta key from a cell of the given physical row. A trimmed
+   * row has no visual index to hand the `beforeRemoveCellMeta`/`afterRemoveCellMeta` hooks, so its
+   * meta is removed through the meta manager, by physical index and without the hooks.
    */
-  #removeMergeMetaAt(physicalRow: number, visualColumn: number) {
+  #getCellMetaRemover(physicalRow: number): (visualColumn: number, physicalColumn: number, key: string) => void {
     const visualRow = this.hot.toVisualRow(physicalRow);
-    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-    if (physicalColumn === null) {
-      return;
+    if (visualRow === null) {
+      const metaManager = this.hot._getMetaManager();
+
+      return (_visualColumn, physicalColumn, key) => metaManager.removeCellMeta(physicalRow, physicalColumn, key);
     }
 
-    MERGE_META_KEYS.forEach((key) => {
-      if (visualRow === null) {
-        this.hot._getMetaManager().removeCellMeta(physicalRow, physicalColumn, key);
-      } else {
-        this.hot.removeCellMeta(visualRow, visualColumn, key);
-      }
-    });
+    return (visualColumn, _physicalColumn, key) => this.hot.removeCellMeta(visualRow, visualColumn, key);
   }
 
   /**
@@ -1138,15 +1228,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const physicalRows: number[] = [];
-
-    for (let offset = 0; offset < merge.rowspan; offset++) {
-      const physicalRow = this.hot.toPhysicalRow(merge.row + offset);
-
-      if (physicalRow !== null) {
-        physicalRows.push(physicalRow);
-      }
-    }
+    const physicalRows = this.#getDrawnPhysicalRows(merge);
 
     if (physicalRows.length > 0) {
       this.#mergeAnchors.set(merge, { physicalRows, physicalColumn });

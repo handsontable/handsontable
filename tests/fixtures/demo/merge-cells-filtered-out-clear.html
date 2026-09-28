@@ -79,6 +79,14 @@
     };
 
     /**
+     * Sends the same merges again, the way the React and Angular wrappers re-send unchanged
+     * settings on every commit. A throw is left to propagate, like in `htClearMerges()`.
+     */
+    window.htResendMerges = () => {
+      window.hot.updateSettings({ mergeCells: settings.mergeCells });
+    };
+
+    /**
      * Removes every filter condition and re-filters, so all rows are visible again.
      */
     window.htClearFilters = () => {

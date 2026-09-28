@@ -913,6 +913,16 @@ class MergedCellsCollection {
   }
 
   /**
+   * Puts existing merges back into the `mergedCells` list, keeping each object (and so everything the
+   * plugin keys on it). The lookup matrix is left untouched: the caller places the merges there
+   * itself, from their physical anchors.
+   */
+  restoreMerges(merges: MergedCellCoords[]) {
+    merges.forEach(mergedCell => this.mergedCells.push(mergedCell));
+    this.hot?.markAllCellsChanged();
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.
