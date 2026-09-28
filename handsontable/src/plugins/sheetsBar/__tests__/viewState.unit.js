@@ -265,6 +265,75 @@ describe('SheetsBar view state', () => {
     expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
   });
 
+  it('restores a whole row selected from its header', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(4);
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[4, -1, 4, 1]]);
+    expect(hot.selection.isSelectedByRowHeader()).toBe(true);
+  });
+
+  it('restores every layer of a selection made from several row headers', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(2);
+
+    const firstLayer = hot.selection.exportSelection();
+
+    hot.selectRows(6);
+
+    const secondLayer = hot.selection.exportSelection();
+
+    hot.selection.importSelection({
+      ...secondLayer,
+      ranges: [firstLayer.ranges[0], secondLayer.ranges[0]],
+      selectedByRowHeader: [0, 1],
+      activeSelectionLayer: 1,
+    });
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
+  });
+
+  it('drops a header-anchored selection the arriving sheet no longer covers', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(15);
+
+    const state = captureViewState(hot, []);
+
+    hot.loadData(Array.from({ length: 5 }, (_, row) => [`s${row + 1}`, row]));
+    hot.selectCell(1, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+  });
+
   it('keeps the page of each sheet across a sheet switch', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

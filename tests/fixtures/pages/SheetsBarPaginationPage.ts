@@ -66,7 +66,22 @@ export class SheetsBarPaginationPage {
     await this.sheetsBar.expectActiveTab(index);
   }
 
+  /**
+   * The row header in the frozen start column that shows the given one-based row label.
+   */
+  rowHeader(label: number): Locator {
+    return this.page.locator('.ht_clone_inline_start th').filter({ hasText: new RegExp(`^${label}$`) }).first();
+  }
+
   selectedLast(): Promise<number[] | undefined> {
     return this.page.evaluate(() => window.hot.getSelectedLast());
+  }
+
+  selected(): Promise<number[][] | undefined> {
+    return this.page.evaluate(() => window.hot.getSelected());
+  }
+
+  isSelectedByRowHeader(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.selection.isSelectedByRowHeader());
   }
 }

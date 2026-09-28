@@ -32,6 +32,34 @@ test.describe('SheetsBar keeps the pagination state of each sheet', () => {
     await expect.poll(() => grid.selectedLast()).toEqual([64, 0, 64, 0]);
   });
 
+  test('a whole row selected from its header survives a round-trip through a shorter sheet', async () => {
+    await grid.goToPage(7, 20);
+    await grid.rowHeader(65).click();
+    await expect.poll(() => grid.selected()).toEqual([[64, -1, 64, 0]]);
+
+    await grid.switchToSheet(1);
+    await grid.switchToSheet(0);
+
+    await grid.expectPage(7, 20);
+    await expect.poll(() => grid.selected()).toEqual([[64, -1, 64, 0]]);
+    await expect.poll(() => grid.isSelectedByRowHeader()).toBe(true);
+    await expect(grid.rowHeader(65)).toHaveClass(/\bht__active_highlight\b/);
+    await expect(grid.cell(64, 0)).toHaveClass(/\bcurrent\b/);
+  });
+
+  test('several rows selected from their headers all come back', async () => {
+    await grid.goToPage(7, 20);
+    await grid.rowHeader(62).click();
+    await grid.rowHeader(65).click({ modifiers: ['ControlOrMeta'] });
+    await expect.poll(() => grid.selected()).toEqual([[61, -1, 61, 0], [64, -1, 64, 0]]);
+
+    await grid.switchToSheet(1);
+    await grid.switchToSheet(0);
+
+    await grid.expectPage(7, 20);
+    await expect.poll(() => grid.selected()).toEqual([[61, -1, 61, 0], [64, -1, 64, 0]]);
+  });
+
   test('each sheet comes back on its own page', async () => {
     await grid.goToPage(7, 20);
     await grid.switchToSheet(1);

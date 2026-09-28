@@ -22,7 +22,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Pagination page and page size back first (`setPageSize()` then `setPage()`, skipped when
   unchanged): Pagination holds one page for the whole grid and clamps it on every load, so a
   switch through a shorter sheet moves it, and a selection or scroll aimed at a row on another
-  page lands on a hidden row and does nothing. A stored order whose length no
+  page lands on a hidden row and does nothing. The selection goes back through `selectCells()`
+  first (so a cell selection still runs the selection hooks), but `selectCells()` rejects any
+  range touching a header unless `navigableHeaders` is on, and a whole-row, whole-column, or
+  select-all selection carries header coordinates. So the view state also keeps the
+  `Selection#exportSelection()` snapshot (`selectionState`), and a rejected `selectCells()` falls
+  back to `importSelection()` — after checking every range against the arriving sheet's counts,
+  since the import validates nothing. A stored order whose length no
   longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
   read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
   count — are dropped one by one before `trimRows()`, which rejects the whole list when any

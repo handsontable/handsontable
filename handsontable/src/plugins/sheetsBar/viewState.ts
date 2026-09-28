@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { SelectionState } from '../../selection/types';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
@@ -36,6 +37,7 @@ export interface ViewState {
   cellMeta: TrackedCellMeta[];
   pagination: PaginationState | null;
   selection: number[][] | undefined;
+  selectionState: SelectionState | null;
   scroll: { row: number, col: number };
 }
 
@@ -308,6 +310,55 @@ function applyPagination(hot: HotInstance, state: PaginationState) {
 }
 
 /**
+ * Captures every selection layer together with its header and grid-span flags, or `null` when
+ * nothing is selected. `getSelected()` alone cannot describe a selection anchored in a header — a
+ * whole row, a whole column, select-all — because `selectCells()` rejects header coordinates
+ * unless `navigableHeaders` is on.
+ */
+function captureSelectionState(hot: HotInstance): SelectionState | null {
+  const state = hot.selection.exportSelection();
+
+  return state.ranges.length > 0 && state.activeRange ? state : null;
+}
+
+/**
+ * Puts a header-anchored selection back through the selection's own import, the way `dialog` and
+ * `emptyDataState` restore one. Skipped when a range no longer fits the grid, since the import
+ * does not validate what it is handed.
+ */
+function importSelectionState(hot: HotInstance, state: SelectionState): void {
+  const tableParams = {
+    countRows: hot.countRows(),
+    countCols: hot.countCols(),
+    countRowHeaders: hot.countRowHeaders(),
+    countColHeaders: hot.countColHeaders(),
+  };
+
+  if (!state.activeRange || !state.ranges.every(range => range.isValid(tableParams))) {
+    return;
+  }
+
+  hot.selection.importSelection({ ...state, activeRange: state.activeRange });
+}
+
+/**
+ * Restores the selection. A plain cell selection goes through `selectCells()`, which runs the
+ * selection hooks as before; a selection `selectCells()` rejects — one anchored in a header —
+ * is imported from the captured selection state instead.
+ */
+function restoreSelection(hot: HotInstance, state: ViewState): void {
+  if (!state.selection) {
+    return;
+  }
+
+  const selected = hot.selectCells(state.selection, false, false);
+
+  if (!selected && state.selectionState) {
+    importSelectionState(hot, state.selectionState);
+  }
+}
+
+/**
  * Captures the current runtime view state of the grid.
  */
 export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellMeta[]): ViewState {
@@ -326,6 +377,7 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
     cellMeta: trackedCellMeta.slice(),
     pagination: capturePagination(hot),
     selection: hot.getSelected(),
+    selectionState: captureSelectionState(hot),
     scroll: { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() },
   };
 }
@@ -576,9 +628,7 @@ export function restoreViewport(hot: HotInstance, state: ViewState): void {
     applyPagination(hot, state.pagination);
   }
 
-  if (state.selection) {
-    hot.selectCells(state.selection, false, false);
-  }
+  restoreSelection(hot, state);
 
   hot.scrollViewportTo({ row: state.scroll.row, col: state.scroll.col, verticalSnap: 'top', horizontalSnap: 'start' });
 }
@@ -607,6 +657,7 @@ function createNeutralViewState(): ViewState {
     cellMeta: [],
     pagination: null,
     selection: undefined,
+    selectionState: null,
     scroll: { row: 0, col: 0 },
   };
 }
