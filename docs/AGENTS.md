@@ -418,6 +418,7 @@ react:
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
+addedIn: "17.0.0"         # Optional; version that introduced the feature -- see rule below
 ---
 ```
 
@@ -426,6 +427,7 @@ menuTag: new | updated    # Optional; sidebar badge -- see rule below
 - `description` is used in SEO meta and link previews -- make it specific and accurate.
 - `tags` must be lowercase kebab-case.
 - `menuTag` controls the sidebar badge. Set `menuTag: new` when you add a new page, and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes -- typos, snippet/link corrections -- and for changelog and migration-guide pages. Existing tags are refreshed by hand for releases (for example, the RELEASE-631 batch), so leave any existing tag in place.
+- `addedIn` names the Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string. It renders an "Added in Handsontable X.Y.Z" badge next to the title and writes the same sentence under the H1 of the page's Markdown and llms outputs, so readers and LLMs can tell whether their version has the feature. Set it when the page documents a feature introduced in 14.0.0 or later (the changelog's "Added" entry or the option's `@since` tag is the source); a page without it documents a feature available in every version this site serves. Do not set it on recipes, on pages that are new but describe an old feature, or for a feature that is one section of an older page. `npm run build` runs `docs:validate-added-in`, which rejects unquoted values (YAML reads `17.0` as the number 17) and versions that were never released.
 
 ---
 
@@ -559,6 +561,7 @@ Copy and complete this checklist in your PR description:
 - [ ] How-tos have a "Result" section
 - [ ] New page registered in `content/guides/sidebar.js`
 - [ ] `menuTag: new` set on new pages / `menuTag: updated` set on substantively changed pages (omit for trivial fixes, changelogs, and migration guides)
+- [ ] `addedIn: "X.Y.Z"` set when the page documents a feature introduced in 14.0.0 or later (see 2.6)
 - [ ] Microsoft trademark disclaimer added where "Excel" is mentioned
 - [ ] TypeScript example exists; JS generated via `npm run docs:code-examples:generate-js`
 - [ ] `[skip changelog]` in PR body (docs changes don't need changelog entries)
