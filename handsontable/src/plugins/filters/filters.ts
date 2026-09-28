@@ -295,28 +295,29 @@ export class Filters extends BasePlugin {
    */
   #pinnedRowsCache: Set<number> | null | undefined;
   /**
-   * Whether a `filter()` pass is running, which is the only scope `#pinnedRowsCache` is valid in.
+   * Whether a trimming pass is running, which is the only scope `#pinnedRowsCache` is valid in.
    *
    * @type {boolean}
    */
   #isFilterPassActive = false;
   /**
-   * Guards `#refilterForPinnedRows()` against re-entering itself.
-   *
-   * @type {boolean}
-   */
-  #isRefilteringForPinnedRows = false;
-  /**
-   * The pinned rows the trimming map currently reflects: the set the last filtering pass exempted,
+   * The pinned rows the trimming map currently reflects: the set the last trimming pass exempted,
    * `null` when it exempted nothing, or `undefined` when that is unknown.
    *
-   * Lets a sort or a row move skip the re-filter when it left the same physical rows pinned. It
+   * Lets a sort or a row move skip the re-apply when it left the same physical rows pinned. It
    * names PHYSICAL rows, so anything that renumbers them (an insert, a remove, a data reload) sets
    * it back to `undefined`.
    *
    * @type {Set<number>|null|undefined}
    */
   #appliedPinnedRows: Set<number> | null | undefined;
+  /**
+   * Whether the rows may have moved since the exemption was last applied, so the next full render
+   * has to check it. See `#onBeforeRender`.
+   *
+   * @type {boolean}
+   */
+  #isPinnedRowCheckPending = false;
 
   /**
    * Initializes the plugin and registers the column header hook needed to inject the filter UI.
@@ -401,7 +402,7 @@ export class Filters extends BasePlugin {
    * ones that are. This plugin's own trim is excluded because it is the thing being recomputed;
    * counting it would let the pinned set drift with each pass.
    *
-   * Memoized for the duration of one `filter()` call, where every column read asks again.
+   * Memoized for the duration of one trimming pass, where every column read asks again.
    *
    * @private
    */
@@ -410,20 +411,9 @@ export class Filters extends BasePlugin {
       return this.#pinnedRowsCache;
     }
 
-    const { top, bottom } = this.#getPinnedRowCounts();
-    let pinnedRows: Set<number> | null = null;
+    const pinnedRows = this.#resolvePinnedRows();
 
-    if (top > 0 || bottom > 0) {
-      // Visual order, so the two overlays freeze the rows the user actually sees. `getIndexesSequence()`
-      // carries the sort permutation, and the rows another plugin trims are dropped from it here.
-      const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
-      const visibleRows = rowOrder.filter(physicalRow => !this.#isTrimmedByAnotherPlugin(physicalRow));
-      const resolved = getPinnedPhysicalRows(visibleRows, top, bottom);
-
-      pinnedRows = resolved.size > 0 ? resolved : null;
-    }
-
-    // Stored ONLY while `filter()` is running. Every other caller - the value list, which is built
+    // Stored ONLY while a trimming pass is running. Every other caller - the value list, which is built
     // on each menu opening - must resolve afresh: nothing clears the memo between those calls, and
     // with no condition applied there is no `filter()` to clear it, so a later `fixedRows*` change
     // or row move would keep being answered from the set this call resolved.
@@ -432,6 +422,25 @@ export class Filters extends BasePlugin {
     }
 
     return pinnedRows;
+  }
+
+  /**
+   * Resolves the pinned rows from the current row order and `fixedRows*` counts, bypassing the memo.
+   */
+  #resolvePinnedRows(): Set<number> | null {
+    const { top, bottom } = this.#getPinnedRowCounts();
+
+    if (top === 0 && bottom === 0) {
+      return null;
+    }
+
+    // Visual order, so the two overlays freeze the rows the user actually sees. `getIndexesSequence()`
+    // carries the sort permutation, and the rows another plugin trims are dropped from it here.
+    const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
+    const visibleRows = rowOrder.filter(physicalRow => !this.#isTrimmedByAnotherPlugin(physicalRow));
+    const resolved = getPinnedPhysicalRows(visibleRows, top, bottom);
+
+    return resolved.size > 0 ? resolved : null;
   }
 
   /**
@@ -446,51 +455,121 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Runs the pinned rows through `filter()` again after the set of pinned rows may have changed.
+   * Marks the exemption as possibly stale, for the next full render to check.
    *
-   * The exemption is applied while filtering, so nothing re-applies it on its own when the rows
-   * move underneath: changing `fixedRows*`, inserting or removing a row at either end, moving rows
-   * or sorting all change WHICH rows are pinned, and the trimming map still holds the answer from
-   * the previous pass. Left alone, a frozen pane ends up showing a row the filter should have
-   * hidden, and the record that is really pinned stays trimmed.
+   * The exemption is applied while trimming, so nothing re-applies it on its own when the rows move
+   * underneath: changing `fixedRows*`, inserting or removing a row at either end, moving rows or
+   * sorting all can change WHICH rows are pinned, and the trimming map still holds the answer from
+   * the previous pass. Only marking here, and checking once the operation has finished, is what
+   * keeps the check correct: `alter()` lowers `fixedRows*` only after `afterRemoveRow`, the index
+   * mapper fires the sequence hook before it updates the trimming maps, and a sort fires it on an
+   * intermediate order. A pass run at any of those points works from a state that is about to change.
    *
-   * Only grids that opted in and are actually filtering pay for this.
-   *
-   * @private
-   * @param {boolean} [onlyIfPinnedRowsChanged=false] Skip the pass when the rows pinned now are the
-   * ones the last pass exempted. Only sound for a change that keeps the physical row numbers.
+   * Pass `true` for a change that renumbers the physical rows (an insert, a remove, a reload). The
+   * last pass's set then names other rows, so it cannot be compared: after `insert_row_above` at 0
+   * it reads `{0}` before and after, while the row behind it changed.
    */
-  #refilterForPinnedRows(onlyIfPinnedRowsChanged = false) {
+  #markPinnedRowsStale(isRenumbered: boolean) {
+    if (isRenumbered) {
+      this.#appliedPinnedRows = undefined;
+    }
+
+    this.#isPinnedRowCheckPending = true;
+  }
+
+  /**
+   * Re-applies the exemption when the pinned rows are no longer the ones the last pass exempted.
+   *
+   * A quiet pass: it rewrites the trimming map from the current conditions and nothing else. It
+   * fires no `beforeFilter`/`afterFilter` (so UndoRedo records nothing and DataProvider fetches
+   * nothing) and does not move the selection - the conditions did not change, only which rows are
+   * frozen. Only grids that opted in and are actually filtering pay for the comparison.
+   */
+  #reapplyPinnedRowExemption() {
+    // Cleared first, so a render started from inside this pass (by a hook the trim's cache update
+    // reaches) finds nothing to do instead of re-entering.
+    this.#isPinnedRowCheckPending = false;
+
     // The OPTION, not the current counts: clearing the last `fixedRows*` count makes the counts
     // zero, and gating on them would read that as "this grid never opted in" and skip the pass
     // that puts the no-longer-pinned rows back under the conditions.
-    if (this.#isRefilteringForPinnedRows ||
-        !this.#isFixedRowExemptionActive() ||
+    if (!this.#isFixedRowExemptionActive() ||
         !this.conditionCollection ||
-        this.conditionCollection.isEmpty()) {
+        this.conditionCollection.isEmpty() ||
+        this.#arePinnedRowsApplied()) {
       return;
     }
 
-    // Checked after the gates above, because resolving the pinned rows walks the whole row
-    // sequence - a grid that is not filtering must not pay for it on every sort.
-    if (onlyIfPinnedRowsChanged && this.#arePinnedRowsApplied()) {
-      return;
-    }
+    this.#runTrimmingPass(() => this.#writeTrimmedRows());
+  }
 
-    // Writing `filtersRowsMap` does not fire `afterRowSequenceChange` - only a change to the index
-    // SEQUENCE does, and a trimming map is not the sequence - so `filter()` cannot re-enter here on
-    // its own. The flag stops a consumer that sorts or moves rows from `beforeFilter`/`afterFilter`.
-    this.#isRefilteringForPinnedRows = true;
+  /**
+   * Runs a trimming pass inside the pinned-rows memo scope, restoring the outer scope afterwards.
+   *
+   * Restored rather than reset, because `filter()` renders while its own pass is still open, and a
+   * quiet pass started from that render must not close the outer one. Released in a `finally`,
+   * because the hooks `filter()` fires are host code and may throw, and a memo surviving the call
+   * would answer the next read from this pass's row order.
+   */
+  #runTrimmingPass<T>(pass: () => T): T {
+    const outerCache = this.#pinnedRowsCache;
+    const wasFilterPassActive = this.#isFilterPassActive;
+
+    this.#pinnedRowsCache = undefined;
+    this.#isFilterPassActive = true;
 
     try {
-      this.filter();
+      return pass();
     } finally {
-      this.#isRefilteringForPinnedRows = false;
+      this.#isFilterPassActive = wasFilterPassActive;
+      this.#pinnedRowsCache = outerCache;
     }
   }
 
   /**
-   * Whether the rows pinned now are exactly the physical rows the last filtering pass exempted.
+   * Writes the trimming map from the current conditions, with the pinned rows exempt, records the
+   * exempted set, and answers whether any row is left visible. Must run inside `#runTrimmingPass()`.
+   */
+  #writeTrimmedRows(): boolean {
+    const dataFilter = this._createDataFilter();
+    const rowIndexesToShow = arrayMap(dataFilter.filter(),
+      rowData => (rowData as { row: number }).row);
+    const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
+    const countSourceRows = this.hot.countSourceRows();
+    // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
+    // from `rowIndexesToShow` and would be trimmed here as "did not match". Put them back.
+    const pinnedRows = this.#getPinnedRows();
+    // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
+    // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
+    // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
+    // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
+    const trimmedRowsState = new Array(countSourceRows);
+
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
+    }
+
+    pinnedRows?.forEach((physicalRow) => {
+      trimmedRowsState[physicalRow] = false;
+    });
+
+    this.hot.batchExecution(() => {
+      this.filtersRowsMap?.setValues(trimmedRowsState);
+    }, true);
+
+    this.#appliedPinnedRows = pinnedRows;
+
+    // The visible rows are the matches plus the pinned rows, so an empty match list no longer
+    // means an empty grid.
+    return rowIndexesToShow.length > 0 || pinnedRows !== null;
+  }
+
+  /**
+   * Whether the rows pinned now are exactly the physical rows the last trimming pass exempted.
+   *
+   * Resolved afresh, never through the memo: `filter()` renders while its pass is open, and the
+   * memo there is the very set recorded as applied, so a move made from `afterFilter` would
+   * compare equal to itself.
    */
   #arePinnedRowsApplied(): boolean {
     const appliedRows = this.#appliedPinnedRows;
@@ -499,7 +578,7 @@ export class Filters extends BasePlugin {
       return false;
     }
 
-    const pinnedRows = this.#getPinnedRows();
+    const pinnedRows = this.#resolvePinnedRows();
 
     if (appliedRows === null || pinnedRows === null) {
       return appliedRows === pinnedRows;
@@ -690,14 +769,12 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuHide', this.#onAfterDropdownMenuHide);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
-    // Option A for the stale exemption: re-run the filter whenever the rows the overlays freeze may
-    // have moved. `afterUpdateSettings` covers the `fixedRows*` options themselves, the row sequence
-    // hook covers a move and a sort, and the row count hooks cover an insert and a remove. All are
-    // cheap no-ops unless the grid opted in AND is actually filtering - see `#refilterForPinnedRows()`.
+    // The stale exemption: the two change hooks only MARK it (`#markPinnedRowsStale()`), and the
+    // next full render re-applies it when the frozen rows differ. The check is a cheap no-op unless
+    // the grid opted in AND is actually filtering - see `#reapplyPinnedRowExemption()`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterRowSequenceChange', this.#onAfterRowSequenceChange);
-    this.addHook('afterCreateRow', this.#onAfterRowCountChange);
-    this.addHook('afterRemoveRow', this.#onAfterRowCountChange);
+    this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
@@ -805,6 +882,7 @@ export class Filters extends BasePlugin {
       // a fresh one. Same stale-reference family as the collection/observer above (DEV-2889).
       this.#menuFocusNavigator = undefined;
       this.#appliedPinnedRows = undefined;
+      this.#isPinnedRowCheckPending = false;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 
@@ -1339,20 +1417,13 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
-    // Resolved once per pass and reused by every column read below. Both the flag and the memo are
-    // released in the `finally` rather than at the end of the body: `beforeFilter` and
-    // `afterFilter` are host code and may throw, and a memo surviving the call would answer the
-    // next read from this pass's row order.
-    this.#pinnedRowsCache = undefined;
+    // This pass applies the exemption from scratch, so a check queued before it is answered by it.
+    // One queued DURING it - a row move made from `afterFilter` - stays pending for the render at
+    // the end of the pass.
     this.#appliedPinnedRows = undefined;
-    this.#isFilterPassActive = true;
+    this.#isPinnedRowCheckPending = false;
 
-    try {
-      this.#filterInternal(navigableHeaders, needToFilter, conditions);
-    } finally {
-      this.#isFilterPassActive = false;
-      this.#pinnedRowsCache = undefined;
-    }
+    this.#runTrimmingPass(() => this.#filterInternal(navigableHeaders, needToFilter, conditions));
   }
 
   /**
@@ -1385,37 +1456,9 @@ export class Filters extends BasePlugin {
     let isSelectionDropped = false;
 
     if (allowFiltering !== false && needToFilter) {
-      const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(),
-        rowData => (rowData as { row: number }).row);
-      const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
-      const countSourceRows = this.hot.countSourceRows();
-      // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
-      // from `rowIndexesToShow` and would be trimmed here as "did not match". Put them back.
-      const pinnedRows = this.#getPinnedRows();
-      // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
-      // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
-      // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
-      // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
-      const trimmedRowsState = new Array(countSourceRows);
-
-      for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
-        trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
-      }
-
-      pinnedRows?.forEach((physicalRow) => {
-        trimmedRowsState[physicalRow] = false;
-      });
-
-      this.hot.batchExecution(() => {
-        this.filtersRowsMap?.setValues(trimmedRowsState);
-      }, true);
-
-      this.#appliedPinnedRows = pinnedRows;
-
-      // The visible rows are the matches plus the pinned rows, so an empty match list no longer
-      // means an empty grid - deselecting on it would drop the selection while rows are on screen.
-      const hasVisibleRows = rowIndexesToShow.length > 0 || pinnedRows !== null;
+      // Deselecting on an empty MATCH list would drop the selection while pinned rows are on screen,
+      // so this asks whether any row is left at all.
+      const hasVisibleRows = this.#writeTrimmedRows();
 
       if (!navigableHeaders && !hasVisibleRows) {
         this.hot.deselectCell();
@@ -1629,11 +1672,6 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    // `updateData()` resizes the index mappers through `fitToLength()`, which fires `'insert'` or
-    // `'remove'` but no `afterCreateRow`/`afterRemoveRow`. That cleared `#appliedPinnedRows`, so
-    // a resize re-filters here; a same-size update leaves the pinned rows alone and skips.
-    this.#refilterForPinnedRows(true);
-
     const filteredColumns = this.conditionCollection?.getFilteredColumns() ?? [];
 
     if (filteredColumns.length === 0) {
@@ -1659,52 +1697,39 @@ export class Filters extends BasePlugin {
       this.#warnAboutPerColumnSettingsObjects();
     }
 
+    // A settings change never renumbers the physical rows, so an unchanged value - which the
+    // wrappers re-send on every update - compares equal and costs nothing.
     if (hasOwnProperty(settings, 'fixedRowsTop') || hasOwnProperty(settings, 'fixedRowsBottom')) {
-      this.#refilterForPinnedRows();
+      this.#markPinnedRowsStale(false);
     }
   };
 
   /**
    * `afterRowSequenceChange` listener.
    *
-   * An insert, a remove, a move or a sort all can change which rows sit at the two ends of the grid,
-   * and the trimming map still holds the previous pass's answer. The source decides what to do:
-   *
-   * - `'move'` and `'update'` (a sort) only reorder rows, so the physical row numbers still mean
-   *   what they meant in the last pass. The re-filter is skipped when the same physical rows are
-   *   pinned - under the default `sortFixedRows` a sort never moves them, and a sort fires this
-   *   hook twice.
-   * - `'insert'` and `'remove'` renumber the physical rows, so the last pass's set cannot be
-   *   compared at all: after `insert_row_above` at 0 it reads `{0}` before and after, while the row
-   *   behind it changed. They also arrive too early to re-filter here - the index mapper fires this
-   *   before it updates the trimming maps, and `DataMap` before it splices the data - so a pass run
-   *   now is shifted by the rows being added or removed. `#onAfterRowCountChange` re-filters.
-   * - `'init'` resets every trimming map right after this hook, so a pass run now is discarded.
-   *
-   * @param {string} source The change source reported by the row index mapper. Typed from the mapper,
-   * not from the hook's `ChangeSource` declaration, which lists cell-change sources and none of these.
+   * `'move'` and `'update'` (a sort) only reorder rows, so the physical row numbers still mean what
+   * they meant in the last pass and the check may skip an unchanged set. Every other source - an
+   * insert, a remove (`alter()`, `updateData()`, a NestedRows resize), a reload - renumbers them.
+   * Typed from the mapper, not from the hook's `ChangeSource` declaration, which lists cell-change
+   * sources and none of these.
    */
   #onAfterRowSequenceChange = (source: IndexesChangeSource | undefined) => {
-    if (source === 'move' || source === 'update') {
-      this.#refilterForPinnedRows(true);
-
-      return;
-    }
-
-    this.#appliedPinnedRows = undefined;
-
-    if (source !== 'insert' && source !== 'remove' && source !== 'init') {
-      this.#refilterForPinnedRows();
-    }
+    this.#markPinnedRowsStale(source !== 'move' && source !== 'update');
   };
 
   /**
-   * `afterCreateRow` and `afterRemoveRow` listener: re-applies the exemption once the data and the
-   * trimming maps reflect the new row count. See `#onAfterRowSequenceChange` for why it cannot run
-   * any earlier.
+   * `beforeRender` listener: runs the check that `#markPinnedRowsStale()` queued.
+   *
+   * The render that ends an operation is where every piece the check reads has settled -
+   * `alter()`, a sort, `updateData()` and `updateSettings()` all end with one, and it is a full
+   * render because every index change sets `forceFullRender`. A fast render leaves the check
+   * pending: `TableView#render()` reads `forceFullRender` before this hook, so a trim written during
+   * a fast draw would not be drawn. Inside a `batch()` the check waits for the render that ends it.
    */
-  #onAfterRowCountChange = () => {
-    this.#refilterForPinnedRows();
+  #onBeforeRender = (isFullRender: boolean) => {
+    if (isFullRender && this.#isPinnedRowCheckPending) {
+      this.#reapplyPinnedRowExemption();
+    }
   };
 
   /**

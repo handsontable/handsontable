@@ -162,10 +162,12 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
     });
 
-    it('should re-apply the exemption after a row is removed from the end', () => {
-      // The row order matters here: removing the pinned footer must promote a row that the filter
-      // had ALREADY trimmed. Promoting a row that matched anyway leaves the same rows on screen
-      // either way, and the test could not tell a re-filter from a stale trimming map.
+    it('should re-apply the exemption after the frozen footer is removed', () => {
+      // Removing the frozen footer makes `alter()` lower `fixedRowsBottom` to 0, AFTER
+      // `afterRemoveRow` has run. So `Date` (Green, already trimmed) is not promoted into the frozen
+      // pane - it stays trimmed, and the exemption must use the lowered count. A pass run inside
+      // `afterRemoveRow` saw the old count, kept `Date` on screen, and skewed Core's own
+      // bookkeeping so that `fixedRowsBottom` stayed 1.
       const filters = buildGrid({
         data: [
           ['Header', 25, 'Gold'],
@@ -185,8 +187,8 @@ describe('Filters -> filterFixedRows', () => {
       // there is no visual row 4 to remove.
       hot.alter('remove_row', 3);
 
-      // `Date` is the last row now, so it is pinned and comes back despite being Green.
-      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Date']);
+      expect(hot.getSettings().fixedRowsBottom).toBe(0);
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry']);
     });
 
     it('should re-apply the exemption after a sort moves other rows to the ends', () => {
@@ -229,43 +231,55 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry']);
     });
 
-    it('should not re-filter when the option is off', () => {
-      // The re-filter is gated so a grid that never opted in pays nothing. With the default, an
+    it('should not re-apply the exemption when the option is off', () => {
+      // The re-apply is gated so a grid that never opted in pays nothing. With the default, an
       // `updateSettings` carrying `fixedRows*` must leave the filtered result exactly as it was.
       const filters = buildGrid().getPlugin('filters');
-      const filterSpy = jest.spyOn(filters, 'filter');
 
       filters.addCondition(2, 'eq', ['Red']);
       filters.filter();
-      filterSpy.mockClear();
+
+      const writeSpy = jest.spyOn(filters.filtersRowsMap, 'setValues');
 
       hot.updateSettings({ fixedRowsBottom: 0 });
 
-      expect(filterSpy).not.toHaveBeenCalled();
+      expect(writeSpy).not.toHaveBeenCalled();
       expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry']);
 
-      filterSpy.mockRestore();
+      writeSpy.mockRestore();
     });
 
-    it('should not re-filter when the option is on but nothing is filtered', () => {
+    it('should not re-apply the exemption when the option is on but nothing is filtered', () => {
       const filters = buildGrid({ filters: { filterFixedRows: false } }).getPlugin('filters');
-      const filterSpy = jest.spyOn(filters, 'filter');
+      const writeSpy = jest.spyOn(filters.filtersRowsMap, 'setValues');
 
       hot.updateSettings({ fixedRowsBottom: 0 });
 
-      expect(filterSpy).not.toHaveBeenCalled();
+      expect(writeSpy).not.toHaveBeenCalled();
 
-      filterSpy.mockRestore();
+      writeSpy.mockRestore();
     });
 
-    // DEV-2941: a reorder skips the pass when it left the same physical rows pinned. Each test
-    // asserts the pass count AND the rows, so a skip that should not happen shows up as a stale row.
-    describe('re-filtering only when the pinned rows changed', () => {
+    // DEV-2941: a change only MARKS the exemption as possibly stale; the next full render re-applies
+    // it once, quietly, and only when the frozen rows differ from the ones the last pass exempted.
+    // Each test counts the trimming-map writes AND checks the rows, so a skip that should not happen
+    // shows up as a stale row, and a write that should not happen shows up in the count.
+    describe('re-applying the exemption after the rows change', () => {
+      let writeSpy;
+      let afterFilterSpy;
+
+      afterEach(() => {
+        writeSpy?.mockRestore();
+        writeSpy = null;
+        afterFilterSpy = null;
+      });
+
       /**
-       * Builds an opted-in grid filtered to the `Red` rows, and spies on `filter()` from then on.
+       * Builds an opted-in grid filtered to the `Red` rows, then starts counting trimming-map writes
+       * and `afterFilter` calls.
        *
        * @param {object} [overrides] Settings merged over the defaults.
-       * @returns {jest.SpyInstance} The spy on `filter()`.
+       * @returns {object} The Filters plugin.
        */
       function buildFilteredGrid(overrides = {}) {
         const filters = buildGrid({ filters: { filterFixedRows: false }, ...overrides }).getPlugin('filters');
@@ -273,95 +287,185 @@ describe('Filters -> filterFixedRows', () => {
         filters.addCondition(2, 'eq', ['Red']);
         filters.filter();
 
-        return jest.spyOn(filters, 'filter');
+        writeSpy = jest.spyOn(filters.filtersRowsMap, 'setValues');
+        afterFilterSpy = jest.fn();
+        hot.addHook('afterFilter', afterFilterSpy);
+
+        return filters;
       }
 
-      it('should not re-filter on a sort that leaves the frozen rows in place', () => {
-        // Under the default `sortFixedRows` the sorting plugin holds the frozen rows in place, so the
-        // rows the last pass exempted are still the pinned ones. A sort fires
-        // `afterRowSequenceChange` twice, and each firing used to cost a full filter pass.
-        const filterSpy = buildFilteredGrid({ columnSorting: true });
+      it('should not re-apply on a sort that leaves the frozen rows in place', () => {
+        // Under the default `sortFixedRows` the sorting plugin holds the frozen rows in place. A sort
+        // fires `afterRowSequenceChange` twice, and each firing used to cost a full filter pass.
+        buildFilteredGrid({ columnSorting: true });
 
         hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
-        expect(filterSpy).not.toHaveBeenCalled();
+        expect(writeSpy).not.toHaveBeenCalled();
         expect(hot.getDataAtCol(0)).toEqual(['Header', 'Cherry', 'Apple', 'Total']);
       });
 
-      it('should re-filter once on a sort that changes the pinned rows', () => {
-        // Descending by Fruit puts `Total` first and `Apple` last. The first firing re-filters; the
-        // second finds the rows it has just exempted and skips.
-        const filterSpy = buildFilteredGrid({ columnSorting: { sortFixedRows: true } });
+      it('should re-apply once, quietly, on a sort that changes the frozen rows', () => {
+        buildFilteredGrid({ columnSorting: { sortFixedRows: true } });
 
+        // Descending by Fruit puts `Total` first and `Apple` last, so `Header` (Gold) stops being
+        // exempt and the `Red` condition reaches it.
         hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
-        expect(filterSpy).toHaveBeenCalledTimes(1);
-        // `Header` is Gold and no longer pinned, so the `Red` condition reaches it.
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(afterFilterSpy).not.toHaveBeenCalled();
         expect(hot.getDataAtCol(0)).toEqual(['Total', 'Cherry', 'Apple']);
       });
 
-      it('should not re-filter on a row move that stays outside the frozen rows', () => {
-        const filterSpy = buildFilteredGrid();
+      it('should re-apply once when re-sorting an already sorted grid', () => {
+        // A re-sort first restores the unsorted order and then applies the new one, which fires the
+        // sequence hook on an intermediate order. Only the final order may be applied.
+        buildFilteredGrid({ columnSorting: { sortFixedRows: true } });
 
-        // Visual rows are `Header, Apple, Cherry, Total`; this swaps the two middle ones.
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        writeSpy.mockClear();
+
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        // The sort orders only the rows the filter shows; trimmed rows keep their unsorted slots.
+        // The row order is the identity again, so `Header` (physical 0) is the top frozen row.
+        expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
+        expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+      });
+
+      it('should not re-apply on a row move that stays outside the frozen rows', () => {
+        buildFilteredGrid();
+
+        // Visual rows are `Header, Apple, Cherry, Total`; this swaps the two middle ones. A move
+        // through the index mapper does not render by itself, which is when the check runs.
         hot.rowIndexMapper.moveIndexes([2], 1);
+        hot.render();
 
-        expect(filterSpy).not.toHaveBeenCalled();
+        expect(writeSpy).not.toHaveBeenCalled();
         expect(hot.getDataAtCol(0)).toEqual(['Header', 'Cherry', 'Apple', 'Total']);
       });
 
-      it('should re-filter on a row move into the frozen rows', () => {
-        const filterSpy = buildFilteredGrid();
+      it('should re-apply on a row move into the frozen rows', () => {
+        buildFilteredGrid();
 
         // `Apple` becomes the top frozen row, so `Header` (Gold) stops being exempt.
         hot.rowIndexMapper.moveIndexes([1], 0);
+        hot.render();
 
-        expect(filterSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
         expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry', 'Total']);
       });
 
-      it('should re-filter on an insert even when the pinned row NUMBERS did not change', () => {
+      it('should re-apply after a move made from an afterFilter listener', () => {
+        // `filter()` renders while its own pass is still open, and the pass memoizes the pinned rows
+        // in the very set it records as applied. Comparing through that memo reads "unchanged" for
+        // any move made from `afterFilter`, so the check must resolve the rows afresh.
+        const filters = buildFilteredGrid();
+        let hasMoved = false;
+
+        hot.addHook('afterFilter', () => {
+          if (!hasMoved) {
+            hasMoved = true;
+            hot.rowIndexMapper.moveIndexes([1], 0);
+          }
+        });
+
+        filters.filter();
+
+        expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry', 'Total']);
+      });
+
+      it('should re-apply on an insert even when the pinned row NUMBERS did not change', () => {
         // With only a top frozen row, the pinned set is `{0}` before AND after `insert_row_above`
         // at 0 - but physical row 0 is now the new row, and `Header` has moved to physical 1. A
         // set comparison would call that unchanged and leave `Header` on screen.
-        const filterSpy = buildFilteredGrid({ fixedRowsBottom: 0 });
+        buildFilteredGrid({ fixedRowsBottom: 0 });
 
         expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry']);
 
         hot.alter('insert_row_above', 0);
 
-        expect(filterSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(afterFilterSpy).not.toHaveBeenCalled();
         expect(hot.getDataAtCol(0)).toEqual([null, 'Apple', 'Cherry']);
       });
 
-      it('should re-filter after removing the top frozen row, once the maps have caught up', () => {
-        // The sequence hook fires before the trimming maps drop the removed row, so a pass run
-        // there is shifted by one. `Banana` (Green) becomes the top frozen row and must come back.
-        const filterSpy = buildFilteredGrid({ fixedRowsBottom: 0 });
+      it('should re-apply inside a batch once the batch renders', () => {
+        buildFilteredGrid({ fixedRowsBottom: 0 });
+
+        hot.batch(() => {
+          hot.alter('insert_row_above', 0);
+        });
+
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(hot.getDataAtCol(0)).toEqual([null, 'Apple', 'Cherry']);
+      });
+
+      it('should keep the selection where it was when an insert re-applies the exemption', () => {
+        // A background pass used to go through `filter()`, which re-selects the first row of the
+        // selected column - so an insert anywhere moved the user's selection to the top.
+        buildFilteredGrid();
+        hot.selectCell(2, 1);
+
+        // Visual rows are `Header, Apple, Cherry, Total`; the new row lands above `Total`.
+        hot.alter('insert_row_above', 3);
+
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(hot.getSelectedLast()).toEqual([2, 1, 2, 1]);
+        expect(hot.getDataAtCell(2, 0)).toBe('Cherry');
+      });
+
+      it('should drop the selection when the quiet pass trims the selected row', () => {
+        // The pass runs from inside a render and trims `Header`, which is selected. The Core drops a
+        // stranded selection rather than sliding it onto a neighbor (see `handsontable/AGENTS.md`).
+        buildFilteredGrid({ fixedRowsBottom: 0 });
+        hot.selectCell(0, 0);
+
+        expect(() => hot.alter('insert_row_above', 0)).not.toThrow();
+        expect(hot.getDataAtCol(0)).toEqual([null, 'Apple', 'Cherry']);
+        expect(hot.getSelectedLast()).toBeUndefined();
+      });
+
+      it('should follow the lowered fixedRowsTop after the top frozen row is removed', () => {
+        // `alter()` lowers `fixedRowsTop` to 0 after `afterRemoveRow`, so nothing is frozen any more
+        // and `Banana` (Green) must stay trimmed.
+        buildFilteredGrid({ fixedRowsBottom: 0 });
 
         hot.alter('remove_row', 0);
 
-        expect(filterSpy).toHaveBeenCalledTimes(1);
-        expect(hot.getDataAtCol(0)).toEqual(['Banana', 'Apple', 'Cherry']);
+        expect(hot.getSettings().fixedRowsTop).toBe(0);
+        expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry']);
       });
 
-      it('should re-filter after updateData() shrinks the data', () => {
-        // `updateData()` resizes through `fitToLength()`, which raises no `afterRemoveRow`. `Date`
-        // (Green) was trimmed and becomes the bottom frozen row, so it must come back.
-        const filterSpy = buildFilteredGrid();
+      it('should re-apply after updateData() shrinks the data', () => {
+        // `updateData()` resizes through `fitToLength()`, which raises no `afterRemoveRow` - the same
+        // path a NestedRows resize takes. `Date` (Green) becomes the bottom frozen row.
+        buildFilteredGrid();
 
         hot.updateData(DATA.slice(0, 4).map(row => row.slice()));
 
-        expect(filterSpy).toHaveBeenCalledTimes(1);
+        expect(writeSpy).toHaveBeenCalledTimes(1);
         expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Date']);
       });
 
-      it('should not re-filter after a same-size updateData()', () => {
-        const filterSpy = buildFilteredGrid();
+      it('should not re-apply after a same-size updateData()', () => {
+        buildFilteredGrid();
 
         hot.updateData(DATA.map(row => row.slice()));
 
-        expect(filterSpy).not.toHaveBeenCalled();
+        expect(writeSpy).not.toHaveBeenCalled();
+        expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+      });
+
+      it('should not re-apply when fixedRows* is restated with the same value', () => {
+        // Wrappers re-send unchanged settings on every update.
+        buildFilteredGrid();
+
+        hot.updateSettings({ fixedRowsTop: 1, fixedRowsBottom: 1 });
+
+        expect(writeSpy).not.toHaveBeenCalled();
+        expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
       });
     });
 

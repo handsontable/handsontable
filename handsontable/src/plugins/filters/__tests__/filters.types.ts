@@ -88,6 +88,14 @@ Handsontable(document.createElement('div'), {
   ],
 });
 
+// Reading is wider than writing: cell meta inherits the grid-level object through the prototype
+// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean.
+const cellFilters = hot.getCellMeta(0, 0).filters;
+
+if (typeof cellFilters === 'object') {
+  const cellSearchMode: 'show' | 'apply' | undefined = cellFilters.searchMode;
+}
+
 // `filterValueComparator` orders the "Filter by value" list. It cascades like any other option:
 // set once for every column at the grid level, or per column inside `columns`.
 Handsontable(document.createElement('div'), {

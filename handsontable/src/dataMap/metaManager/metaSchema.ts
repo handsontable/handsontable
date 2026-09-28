@@ -3458,13 +3458,16 @@ export default (): Record<string, unknown> => {
      * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
      * active: filtering then happens on the server, which knows nothing about frozen rows.
      *
-     * With `filterFixedRows: false` and a filter applied, the filter re-runs when the rows in the
-     * frozen panes change. Inserting or removing a row always re-runs it. Moving a row or sorting
-     * re-runs it only when a different row ends up frozen, so a sort that keeps the frozen rows in
-     * place (the [`columnSorting`](#columnsorting) default) does not. The
+     * With `filterFixedRows: false` and a filter applied, the grid works out again which rows are
+     * exempt when the rows change, on the next render. Inserting or removing a row (including through
+     * [`updateData()`](@/api/core.md#updatedata)) always does it. Moving a row, sorting, or changing
+     * `fixedRowsTop` or `fixedRowsBottom` does it only when a different row ends up frozen, so a sort
+     * that keeps the frozen rows in place (the [`columnSorting`](#columnsorting) default) costs
+     * nothing. This is not a new filter: the conditions stay the same, the
      * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
-     * hooks fire on those re-runs as well. Read them as "the filter ran", not as "the user changed
-     * a filter".
+     * hooks do not fire, the selection does not move, and no undo step is recorded. Inside a
+     * [`batch()`](@/api/core.md#batch), data read before the batch ends still reflects the previous
+     * frozen rows.
      *
      * **Inside `columns`:**
      *

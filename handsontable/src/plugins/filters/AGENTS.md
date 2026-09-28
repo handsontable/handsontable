@@ -60,59 +60,75 @@ captured when the plugin is enabled.
   rows as its `physicalRows` argument: subset reads intentionally bypass the memo, so that would
   re-scan the column on every condition (the DEV-2088 55 s freeze). A caller that already passes
   `physicalRows` has chosen its rows and is left alone.
-- **Resolving the set is memoized for one `filter()` call, and ONLY inside it.** Every filtered
+- **Resolving the set is memoized for one trimming pass, and ONLY inside it.** Every filtered
   column asks again, plus the trimmed-state pass, so the memo earns its place there. It is written
   only while `#isFilterPassActive`, because nothing clears it otherwise: the value list resolves the
   same set on each menu opening, and with no condition applied there is no `filter()` to run — so a
   memo written from a list read would answer every later opening from the row order of the first
-  one, across `fixedRows*` changes and row moves. `filter()` clears it on the way in AND in a
-  `finally`, since the hooks it fires are host code that can throw.
+  one, across `fixedRows*` changes and row moves. `#runTrimmingPass()` opens the scope and
+  RESTORES the outer one in a `finally` (not resets it): `filter()` renders while its own pass is
+  open, and a quiet pass started from that render must not close it. The hooks `filter()` fires are
+  host code that can throw, hence the `finally`.
 - **"Is the exemption on" and "how many rows are pinned right now" are different questions.** The
   counts are zero both when the grid never opted in and when the last overlay was just cleared, so
-  `#refilterForPinnedRows()` gates on `#isFixedRowExemptionActive()` (the option, and not under a
+  `#reapplyPinnedRowExemption()` gates on `#isFixedRowExemptionActive()` (the option, and not under a
   data provider) rather than on the counts. Gating on the counts skips the pass that puts the
   no-longer-pinned rows back under the conditions, so setting `fixedRowsTop: 0` leaves a row on
   screen that nothing pins any more.
 - **The exclusion means `filter()` has to put the pinned rows back.** They never reached the
   conditions, so they are absent from `rowIndexesToShow` and the trimmed-state pass marks them as
   "did not match". `filter()` forces them to `false` before `setValues()`.
-- **The exemption goes stale on its own, so it is re-applied by hook.** It is written while
-  filtering, and nothing re-runs that when the rows move underneath: `fixedRows*` changing, an insert
-  or remove at either end, a row move, a sort. Left alone a frozen pane shows a row the filter should
-  have hidden while the record that is really pinned stays trimmed. `#onAfterUpdateSettings` covers
-  the options, `#onAfterRowSequenceChange` covers a move and a sort, `#onAfterRowCountChange`
-  (`afterCreateRow`/`afterRemoveRow`) covers an insert and a remove, and `#refilterForPinnedRows()`
-  returns early unless the grid opted in AND is actually filtering — so a grid that never set the
-  option pays nothing. Its re-entrancy flag is for a consumer that sorts or moves rows from
-  `beforeFilter`/`afterFilter`: writing `filtersRowsMap` does NOT fire `afterRowSequenceChange`
-  (`indexMapper.ts` raises `indexesSequenceChange` from `indexesSequence`'s own `change` handler
-  alone), so `filter()` cannot re-enter this path by itself. Source cannot tell a change this plugin
-  caused either: a sort reports `'update'`, the same value ordinary changes carry.
-- **A reorder re-filters only when it changed the pinned PHYSICAL rows (DEV-2941).** A sort fires
-  `afterRowSequenceChange` twice, and each firing used to cost a full `filter()`. `filter()` now
-  records the set it exempted (`#appliedPinnedRows`), and on `'move'`/`'update'` the pass is skipped
-  when `#getPinnedRows()` still returns that set. Three rules keep that sound. (1) **Compare against
-  what the last pass APPLIED, not against the set at the previous hook** — a `trimRows` change fires
-  no sequence hook, and only the applied set notices it on the next sort. (2) **Never compare across
-  an insert or a remove.** They renumber the physical rows: after `insert_row_above` at 0 with only
-  a top frozen row the set reads `{0}` before and after, while the row behind it changed. Any
-  source other than a reorder therefore resets the record to `undefined`, which forces the next
-  pass. (3) **The comparison runs after the cheap gates**, because resolving the set walks the whole
-  row sequence. One observable consequence: on an opted-in grid a sort used to re-apply the
-  conditions to rows edited since the last `filter()`; a sort that leaves the pinned rows alone no
-  longer does, which is what every grid without the option has always done.
-- **An insert or remove must NOT re-filter from `afterRowSequenceChange` — it arrives too early.**
-  `insertIndexes()` fires the sequence hook from inside `indexesSequence.insert()`, before
-  `trimmingMapsCollection.insertToEvery()`; `removeIndexes()` has the same order; and
-  `DataMap#createRow` calls `insertIndexes()` before it splices the data. A pass run there writes a
-  new-length state into a map that then shifts it by the rows being added or removed, so the row
-  that just stopped being pinned stays on screen. That shipped with DEV-2524 and passed its only
-  test by luck (it removed the LAST row). `afterCreateRow`/`afterRemoveRow` fire once both have
-  caught up — `DataMap` and all three `NestedRows` insert paths raise them. `updateData()` is the
-  one resize that raises neither: it goes through `fitToLength()`, so `#onAfterUpdateData` calls
-  `#refilterForPinnedRows(true)` — the resize already cleared `#appliedPinnedRows`, so it re-filters,
-  while a same-size update skips. `'init'` does not re-filter at all: `initToLength()` resets every
-  trimming map right after the hook, so the pass was always thrown away.
+- **The exemption goes stale on its own, so it is marked by hook and re-applied at render
+  (DEV-2941).** It is written while trimming, and nothing re-runs that when the rows move
+  underneath: `fixedRows*` changing, an insert or remove at either end, a row move, a sort. Left
+  alone a frozen pane shows a row the filter should have hidden while the record that is really
+  pinned stays trimmed. The two change hooks (`afterRowSequenceChange`, and `afterUpdateSettings`
+  for `fixedRows*`) only call `#markPinnedRowsStale()`; `#onBeforeRender` runs the check once, on the
+  next FULL render. **Never re-apply from the change hooks themselves — every one of them fires too
+  early.** `insertIndexes()`/`removeIndexes()` fire the sequence hook before they update the
+  trimming maps, and `DataMap#createRow` before it splices the data, so a pass there writes a result
+  the map then shifts by the rows being added. `alter()` lowers `fixedRowsTop`/`fixedRowsBottom`
+  only AFTER `afterRemoveRow`, so a pass there exempts rows by the old count — and, by rewriting the
+  trimming map between Core's `totalRowsBefore` and `totalRows` reads, it even stopped Core from
+  lowering `fixedRowsBottom` (DEV-2551's count). A re-sort fires the sequence hook on the restored
+  unsorted order before the new one. The render that ends each of those operations is where all of
+  it has settled, and it is always a full render because every index change sets
+  `forceFullRender`. Only a full render may act: `TableView#render()` reads the flag before
+  `beforeRender`, so a trim written during a fast draw is not drawn — the check stays pending.
+  Consequences: a direct `rowIndexMapper.moveIndexes()` (no render of its own) is re-applied only
+  when something renders, and inside `batch()` a read sees the previous frozen rows until the batch
+  renders. `updateData()` and a `NestedRows` resize go through `fitToLength()` and raise no row
+  hooks, which is why the row-count hooks were the wrong anchor and the render is the right one.
+- **The re-apply is a QUIET pass, not `filter()`.** `#reapplyPinnedRowExemption()` rewrites the
+  trimming map from the current conditions through `#writeTrimmedRows()` and nothing else: no
+  `beforeFilter`/`afterFilter` (so UndoRedo records no `FiltersAction` and DataProvider does not
+  fetch), and no `selectCell()` (which `filter()` does, and which made every insert jump the
+  selection to row 0). Running `filter()` from `beforeRender` would also nest a render, since
+  `filter()` renders at its end. The pending flag is cleared FIRST, so a render started from inside
+  the pass finds nothing to do. A trim that strands the selected record is handled by the Core,
+  which drops the selection.
+- **The check skips an unchanged set of pinned PHYSICAL rows, and must compare the right things.**
+  A sort fires `afterRowSequenceChange` twice, and each firing used to cost a full `filter()`. Every
+  trimming pass records the set it exempted (`#appliedPinnedRows`), and the check skips when
+  `#resolvePinnedRows()` still returns it. Four rules keep that sound. (1) **Compare against what
+  the last pass APPLIED, not against the set at the previous hook** — a `trimRows` change fires no
+  sequence hook, and only the applied set notices it on the next check. (2) **Never compare across an
+  insert, a remove, or a reload.** They renumber the physical rows: after `insert_row_above` at 0
+  with only a top frozen row the set reads `{0}` before and after, while the row behind it changed.
+  Any source other than `'move'`/`'update'` resets the record to `undefined`, which forces the
+  pass. A `fixedRows*` change never renumbers, so an unchanged value (which the wrappers re-send)
+  compares equal. (3) **Resolve afresh, never through the memo** — `filter()` renders while its pass
+  is open, and the memo there IS the applied set, so a move made from `afterFilter` compared equal to
+  itself. (4) **The comparison runs after the cheap gates**, because resolving the set walks the whole
+  row sequence. `filter()` clears the pending flag on entry (its pass answers it) and leaves one
+  queued DURING it, such as that `afterFilter` move, for the render at its end. Observable
+  consequence: on an opted-in grid a sort used to re-apply the conditions to rows edited since the
+  last `filter()`; now only a change of frozen rows re-evaluates them, which is still more than a
+  grid without the option ever does.
+- **`columnSorting` sorts only the rows the filter shows; trimmed rows keep their UNSORTED slots.**
+  So after a re-sort the row order can put a trimmed row at either end, and that row becomes the
+  frozen one — `Header` is frozen again after desc then asc, because the order returns to the
+  identity. A test that expects a full sort of every row there is wrong, not the code.
 - **The exemption is POSITIONAL — the visual span, not the rows that get painted.** It covers visual
   rows `[0, fixedRowsTop-1]` and the last `fixedRowsBottom`, which is exactly the span
   `countNotHiddenFixedRowsTop()` measures; that span never stretches to make up for a hidden row
@@ -137,7 +153,12 @@ captured when the plugin is enabled.
 - **The option's types are closed since 19.0 (DEV-2941), and that is a breaking type change.** The
   grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`; public as
   `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is `boolean`. Before,
-  both were `boolean | object`, so no sub-option was ever type-checked. A new grid-level sub-option
+  both were `boolean | object`, so no sub-option was ever type-checked. **Writing and reading differ:**
+  `CellMeta` (and so `CellProperties` and `getCellMeta()`) re-declares `filters` with the GRID type,
+  because cell meta inherits the grid-level object through the prototype chain — narrowing it there
+  made `typeof meta.filters === 'object'` narrow to `never`. It is built on
+  `Omit<RemoveIndexSignature<ColumnSettings>, 'filters'>`, since an extending interface cannot widen
+  a property. A new grid-level sub-option
   must be added to `FiltersSettings` as well as to `DEFAULT_SETTINGS` and `SETTINGS_VALIDATORS`, or
   TypeScript users cannot write it. `filters.types.ts` pins each rule with `@ts-expect-error`, which
   fails the run by itself when the error it expects goes away.
