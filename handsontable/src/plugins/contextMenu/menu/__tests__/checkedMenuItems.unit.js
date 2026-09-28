@@ -378,6 +378,16 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
       expect(hot.runHooks.mock.calls[0][1]).toEqual({ 0: [true, true] });
     });
 
+    it('should record no undo step when run over locked cells only', () => {
+      // `executeCommand()` gates on `disabled`, not `hidden`, so the click is still reachable.
+      const hot = createSummaryHotStub({ readOnly: true }, { readOnly: true }, [0, 1]);
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.runHooks).not.toHaveBeenCalled();
+      expect(hot.setCellMeta).not.toHaveBeenCalled();
+    });
+
     it('should hide the item only when every selected cell is locked', () => {
       expect(readOnlyItem().hidden.call(createSummaryHotStub({ readOnly: true }, { readOnly: true }, [0, 1])))
         .toBe(true);

@@ -75,6 +75,15 @@ export default function readOnlyItem() {
         Boolean(this.getCellMetaTransient(row, col).readOnly);
       const atLeastOneReadOnly = checkSelectionConsistency(ranges, isReadOnlyCell);
       const readOnly = !atLeastOneReadOnly;
+
+      // Reached through `executeCommand()`, which gates on `disabled` and not on `hidden`: with
+      // nothing toggleable, do not record an undo step that changes nothing.
+      const isToggleable = (row: number, col: number) => !isLocked(row, col);
+
+      if (!atLeastOneReadOnly && !checkSelectionConsistency(ranges, isToggleable)) {
+        return;
+      }
+
       // Making the selection read-only: `checkSelectionConsistency()` above found no match, which
       // means it already walked every cell to confirm that - so every affected cell's prior state
       // is `false`, and an empty snapshot restores that correctly on undo (a cell with no explicit
@@ -99,8 +108,8 @@ export default function readOnlyItem() {
 
       this.render();
     },
-    // Hidden, not disabled, when nothing in the selection can be toggled - a selection made only of
-    // read-only summary cells (DEV-148). A wider selection keeps the item and toggles the rest.
+    // Hidden, not disabled, when nothing in the selection can be toggled, that is a selection made
+    // only of read-only summary cells (DEV-148). A wider selection keeps the item and toggles the rest.
     hidden(this: HotInstance) {
       const isLocked = getLockedCellCheck(this);
       let hasLockedCell = false;

@@ -217,10 +217,9 @@ class Endpoints {
         this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
       }
 
-      const column = endpoint.destinationColumn!;
-
-      // Two endpoints sharing one destination is a misconfiguration. Lock the cell if either is read-only.
-      columns.set(column, columns.get(column) === true || Boolean(endpoint.readOnly));
+      // Two endpoints sharing one destination is a misconfiguration. The last one wins, as it does
+      // when `setEndpointValue` writes the cell's `readOnly`, so the lock always matches the meta.
+      columns.set(endpoint.destinationColumn!, Boolean(endpoint.readOnly));
     });
   }
 

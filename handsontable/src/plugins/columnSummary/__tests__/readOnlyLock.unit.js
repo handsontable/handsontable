@@ -7,8 +7,9 @@ registerPlugin(ColumnSummary);
 
 /**
  * DEV-148: the plugin owns the `readOnly` state of a read-only summary cell. A `setCellMeta` that
- * would make one writable is vetoed - the path the "Read only" menu item, its undo, and its redo all
- * write through. A summary configured `readOnly: false` is not locked.
+ * would make one writable is vetoed, and so is a `removeCellMeta` of its `readOnly` key. That is the
+ * path the "Read only" menu item, its undo, and its redo all write through. A summary configured
+ * `readOnly: false` is not locked.
  */
 describe('ColumnSummary read-only lock', () => {
   let container;
@@ -77,13 +78,77 @@ describe('ColumnSummary read-only lock', () => {
     expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
     expect(afterSetCellMeta).not.toHaveBeenCalled();
 
-    // Any other key still goes through, and so does a write that keeps the cell read-only.
+    // Any other key still goes through, a falsy one included, and so does a write that keeps the
+    // cell read-only.
     hot.setCellMeta(2, 0, 'placeholder', 'total');
+    hot.setCellMeta(2, 0, 'placeholder', '');
     hot.setCellMeta(2, 0, 'readOnly', true);
 
-    expect(hot.getCellMeta(2, 0).placeholder).toBe('total');
+    expect(hot.getCellMeta(2, 0).placeholder).toBe('');
     expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
-    expect(afterSetCellMeta).toHaveBeenCalledTimes(2);
+    expect(afterSetCellMeta).toHaveBeenCalledTimes(3);
+  });
+
+  it('vetoes a `removeCellMeta` of the `readOnly` key on a read-only summary cell', () => {
+    hot = buildGrid();
+
+    hot.removeCellMeta(2, 0, 'readOnly');
+
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+
+    // Control: removing another key of the summary cell, and `readOnly` of a plain cell, still works.
+    hot.setCellMeta(2, 0, 'placeholder', 'total');
+    hot.removeCellMeta(2, 0, 'placeholder');
+    hot.setCellMeta(0, 0, 'readOnly', true);
+    hot.removeCellMeta(0, 0, 'readOnly');
+
+    expect(hot.getCellMeta(2, 0).placeholder).toBeUndefined();
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
+  });
+
+  it('locks the destination of a summary configured through a function', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10, 1], [20, 2], [null, null]],
+      columnSummary() {
+        return [
+          { destinationColumn: 0, destinationRow: 2, ranges: [[0, 1]], type: 'sum' },
+          { destinationColumn: 1, destinationRow: 2, ranges: [[0, 1]], type: 'sum', readOnly: false },
+        ];
+      },
+    });
+
+    const plugin = hot.getPlugin('columnSummary');
+
+    expect(plugin.isLockedSummaryCell(2, 0)).toBe(true);
+    expect(plugin.isLockedSummaryCell(2, 1)).toBe(false);
+
+    hot.setCellMeta(2, 0, 'readOnly', false);
+
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+  });
+
+  it('agrees with the cell meta when two endpoints share a destination', () => {
+    const build = columnSummary => new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10, 1], [20, 2], [null, null]],
+      columnSummary,
+    });
+    const readOnlyEndpoint = { destinationColumn: 0, destinationRow: 2, ranges: [[0, 1]], type: 'sum' };
+    const writableEndpoint = { ...readOnlyEndpoint, type: 'max', readOnly: false };
+
+    // A misconfiguration, but the lock must still describe the cell: the endpoints write their
+    // `readOnly` in order, so the last one decides both.
+    hot = build([readOnlyEndpoint, writableEndpoint]);
+
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(false);
+    expect(hot.getPlugin('columnSummary').isLockedSummaryCell(2, 0)).toBe(false);
+
+    hot.destroy();
+    hot = build([writableEndpoint, readOnlyEndpoint]);
+
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+    expect(hot.getPlugin('columnSummary').isLockedSummaryCell(2, 0)).toBe(true);
   });
 
   it('leaves a `readOnly: false` summary and a plain cell toggleable', () => {

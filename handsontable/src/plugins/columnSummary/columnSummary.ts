@@ -239,6 +239,7 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterRowMove', this.#onAfterRowMove);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeSetCellMeta', this.#onBeforeSetCellMeta);
+    this.addHook('beforeRemoveCellMeta', this.#onBeforeRemoveCellMeta);
 
     super.enablePlugin();
   }
@@ -549,8 +550,8 @@ export class ColumnSummary extends BasePlugin {
    * Checks whether a cell is the destination of a summary configured as `readOnly` (the default).
    *
    * The plugin owns the `readOnly` state of such a cell: it writes it on every recalculation, and
-   * nothing else may clear it. The "Read only" menu item leaves these cells out, and a
-   * `setCellMeta` that would make one writable is vetoed.
+   * nothing else may clear it. The "Read only" menu item leaves these cells out, and a `setCellMeta`
+   * that would make one writable, or a `removeCellMeta` of its `readOnly` key, is vetoed.
    *
    * @private
    * @param {number} row Visual row index.
@@ -571,7 +572,7 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * `beforeSetCellMeta` hook callback. Vetoes a write that would make a read-only summary cell
-   * writable - from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
+   * writable: from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
    *
    * The plugin's own writes go through `_setCellMetaDeclarative`, which fires no hooks, so they are
    * never vetoed here.
@@ -584,6 +585,21 @@ export class ColumnSummary extends BasePlugin {
    */
   #onBeforeSetCellMeta = (row: number, column: number, key: string, value: unknown) => {
     if (key === 'readOnly' && !value && this.isLockedSummaryCell(row, column)) {
+      return false;
+    }
+  };
+
+  /**
+   * `beforeRemoveCellMeta` hook callback. Vetoes removing the `readOnly` key of a read-only summary
+   * cell, which would make it writable the same way a `setCellMeta` to `false` would.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The cell meta key.
+   * @returns {boolean|undefined} `false` to veto the removal.
+   */
+  #onBeforeRemoveCellMeta = (row: number, column: number, key: string) => {
+    if (key === 'readOnly' && this.isLockedSummaryCell(row, column)) {
       return false;
     }
   };

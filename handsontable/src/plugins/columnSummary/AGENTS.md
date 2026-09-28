@@ -94,7 +94,8 @@ DOM write it replaced.
 
 The plugin owns the `readOnly` state of a destination whose endpoint is `readOnly` (the default), and
 nothing else may clear it. `#onBeforeSetCellMeta` vetoes every `setCellMeta(row, col, 'readOnly', falsy)`
-on such a cell. `isLockedSummaryCell(visualRow, visualColumn)` is the predicate, backed by
+on such a cell, and `#onBeforeRemoveCellMeta` vetoes `removeCellMeta(row, col, 'readOnly')`, which unlocks
+it just the same. `isLockedSummaryCell(visualRow, visualColumn)` is the predicate, backed by
 `Endpoints#isReadOnlyDestination()`, which reads the same per-pass `#summaryDestinations` cache as
 `isSummaryDestination()`. The cache now maps each destination column to its endpoint's `readOnly` flag.
 
@@ -105,8 +106,15 @@ unlocked the cell. The other three:
   the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled cell
   was writable), so undo wrote `false` onto the summary.
 - **Redo** writes the toggle's value over the whole range.
-- **A direct `setCellMeta` call.** It held only until the next recalculation re-applied `readOnly`,
-  which is the "comes back after a reload" symptom in the ticket.
+- **A direct `setCellMeta` or `removeCellMeta` call.** It held until that endpoint was next
+  recalculated (a change in its source column), which re-applied `readOnly`. That is the "comes back
+  after a reload" symptom in the ticket, and it can last indefinitely.
+
+Known limit, inherited rather than introduced: under `manualColumnMove` the lock and the meta it
+protects can land on different cells until the endpoint's next refresh. There is no `afterColumnMove`
+refresh, the declarative meta moves with its physical column, and `destinationColumn` is read as a
+visual index by the meta writers but as a physical one by `resetEndpointValue`. Fixing that belongs to
+column-move support for the plugin as a whole, not to the lock.
 
 Three rules the lock follows:
 

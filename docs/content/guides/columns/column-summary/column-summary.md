@@ -628,9 +628,9 @@ If you need to style the summary row, use the class name assigned automatically 
 
 ::: tip
 
-By default, a summary cell is [read-only](@/api/options.md#readonly), and the [`ColumnSummary`](@/api/columnSummary.md) plugin keeps it that way. The **Read only** item of the context menu and the column menu doesn't appear for a summary cell, and it leaves summary cells unchanged when you toggle a whole column. Calling [`setCellMeta()`](@/api/core.md#setcellmeta) to make a summary cell editable has no effect either.
+By default, a summary cell is [read-only](@/api/options.md#readonly), and the [`ColumnSummary`](@/api/columnSummary.md) plugin keeps it that way. The **Read only** item of the context menu and the column menu doesn't appear for a summary cell, and it leaves summary cells unchanged when you toggle a whole column. Calling [`setCellMeta()`](@/api/core.md#setcellmeta) or [`removeCellMeta()`](@/api/core.md#removecellmeta) to make a summary cell editable has no effect either.
 
-To make a summary cell editable, set its `readOnly` option to `false`.
+To make a summary cell editable, set the `readOnly` option of its column summary object (in the [`columnSummary`](@/api/options.md#columnsummary) configuration) to `false`.
 
 :::
 
