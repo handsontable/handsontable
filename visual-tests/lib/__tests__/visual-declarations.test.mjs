@@ -1031,7 +1031,7 @@ test('a single-theme spec names the functional test that asserts its behavior', 
   });
 
   assert.ok(singleTheme.length > 0, 'No spec declares themes: [\'main\'] alone, yet '
-    + 'js-only/context-menu/menus-position.spec.ts did when this pin landed. If the shape has no user '
+    + 'js-only/dropdown-menu/menus-position.spec.ts did when this pin landed. If the shape has no user '
     + 'left, remove it from allowedShapes in the previous test; otherwise the declaration reader broke.');
 
   singleTheme.forEach((relativePath) => {

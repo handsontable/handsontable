@@ -1,24 +1,21 @@
-import { visualTest, expect } from '../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   clickRelativeToViewport,
   selectFromContextMenu,
-  closeTheMenu,
 } from '../../../src/page-helpers';
 
 /**
- * The look of the context menu with its Alignment submenu open, in the two placements that differ
- * most: from the top-left corner (submenu to the right, opening down) and from the bottom-right
- * corner (submenu flipped to the left, opening up). Where the submenu opens is asserted from DOM
- * rects in `tests/e2e/submenu-position.spec.ts`, on all six theme and bundle legs; these captures
- * are a check of how it looks. `main` only: `Positioner` has no theme-specific branch, and the e2e
- * spec asserts its result on all three themes. The context menu itself is photographed on all five
- * js variants by `js-only/complex-demo/open-dropdown-and-context-menu` and its RTL twin, but with
- * no submenu open, so an open submenu, the expanded row it belongs to, and a hovered menu row are
- * photographed on `main` only. Owned by DEV-3136.
+ * The look of the context menu with its Alignment submenu open, from the top-left corner: the submenu
+ * to the right of the menu, opening down, the row it belongs to expanded, and an option highlighted.
+ * It is the one capture of an open submenu on every js variant, so it guards the seam and border
+ * between a menu and its submenu on each theme; the dropdown menu's submenus share those rules
+ * (`_dropdown-menu.scss`). Where the submenu opens, for every corner and both of its flips, is
+ * asserted from DOM rects in `tests/e2e/submenu-position.spec.ts` on all six theme and bundle legs,
+ * so the flipped placements are not captured. Owned by DEV-3136.
  */
 visualTest(__filename, {
-  themes: ['main'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -37,15 +34,5 @@ visualTest(__filename, {
   await expect(highlighted).toHaveText('Left');
 
   // the submenu to the right of the menu, opening down, with "Left" highlighted
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await closeTheMenu();
-
-  await clickRelativeToViewport(-80, -80, 'right'); // bottom-right
-  await selectFromContextMenu('Alignment');
-  await tablePage.keyboard.press('ArrowUp'); // highlights "Bottom", the last option
-  await expect(highlighted).toHaveText('Bottom');
-
-  // the submenu flipped to the left of the menu, opening up, with "Bottom" highlighted
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

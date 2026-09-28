@@ -41,7 +41,8 @@ export interface SubmenuGeometry {
 
 /**
  * Where a submenu opened, in words a failure message can carry: which side of its parent menu it
- * sits on, which of its rows lines up with the row it belongs to, and whether it is on screen.
+ * sits on, which of its rows lines up with the row it belongs to, and whether it and its parent menu
+ * are both on screen.
  */
 export interface SubmenuPlacement {
   side: string;
@@ -103,8 +104,9 @@ export function placementOf(geometry: SubmenuGeometry): SubmenuPlacement {
       + `anchor row ${round(anchor.top)}–${round(anchor.bottom)}`;
   }
 
-  const inViewport = submenu.left >= 0 && submenu.top >= 0
-    && submenu.right <= viewport.width && submenu.bottom <= viewport.height;
+  // The parent menu too: a scrolled grid must not push either menu off screen.
+  const inViewport = [submenu, parent].every(({ left, top, right, bottom }) => left >= 0 && top >= 0
+    && right <= viewport.width && bottom <= viewport.height);
 
   return { side, rows, inViewport };
 }
@@ -116,8 +118,9 @@ export function placementOf(geometry: SubmenuGeometry): SubmenuPlacement {
  *
  * A submenu container carries its parent menu's class as well (`Menu.createContainer()` adds the menu
  * class and `<class>Sub_<item>`), so every parent-menu locator here leaves the submenu containers out.
- * Geometry is read inside one `page.evaluate()` per question, on containers the menu never recycles,
- * so a re-render between two round trips cannot mix two frames into one measurement.
+ * Geometry is read inside one `page.evaluate()` per question, so a re-render cannot land between two
+ * reads and mix two frames into one measurement: `Menu.createContainer()` reuses a submenu's
+ * container, and a menu's rows re-render like any grid's.
  */
 export class SubmenuPositionPage {
   readonly page: Page;
@@ -242,12 +245,17 @@ export class SubmenuPositionPage {
    * @returns {Promise<string>} `below`, `above`, or the measured edges when it is neither.
    */
   async contextMenuRows(point: { x: number; y: number }): Promise<string> {
-    // The menu's container is never recycled, so two round trips cannot mix two frames here.
-    const { top, bottom } = await this.menu('context').evaluate((element) => {
-      const box = element.getBoundingClientRect();
+    const { top, bottom } = await this.page.evaluate((name) => {
+      const menu = document.querySelector(`.${name}:not([class*="${name}Sub_"])`);
+
+      if (!menu) {
+        throw new Error('The context menu is not in the DOM');
+      }
+
+      const box = menu.getBoundingClientRect();
 
       return { top: box.top, bottom: box.bottom };
-    });
+    }, MENU_CLASS.context);
 
     if (Math.abs(top - (point.y + 1)) <= ROW_TOLERANCE_PX) {
       return 'below';

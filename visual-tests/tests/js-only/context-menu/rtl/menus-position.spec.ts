@@ -7,7 +7,9 @@ import { clickRelativeToViewport } from '../../../../src/page-helpers';
  * corner, where there is no room on the inline end side and the submenu flips to the right. Where the
  * submenu opens is asserted from DOM rects in `tests/e2e/submenu-position.spec.ts`, in both grid
  * directions and both document directions; this capture is a check of how the mirrored menu looks.
- * `main` only, for the reason `../menus-position.spec.ts` gives. Owned by DEV-3136.
+ * `main` only: `Positioner` has no theme-specific branch, the e2e spec asserts its result on all
+ * three themes, and `../menus-position.spec.ts` photographs an open submenu on every js variant. Owned
+ * by DEV-3136.
  */
 visualTest(__filename, {
   themes: ['main'],

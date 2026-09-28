@@ -180,8 +180,9 @@ core inlines the main theme stylesheet — plus the four themes), every multi-fr
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
-the menu-position look checks render on `main` alone, so the js variants no longer render the same count
-(`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement trim). The
+three of the menu-position look checks render on `main` alone, so the js variants no longer render the
+same count (`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement
+trim). The
 bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
 delivery-path parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
@@ -625,9 +626,10 @@ does for you):
   last row level with the row it belongs to, inside the viewport) for the context and dropdown menus,
   in both grid directions and both document directions, with the grid's holder scrolled and, for the
   context menu, with the window scrolled, on all six theme and bundle legs. What stays under
-  `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is six captures on `main`, a check
-  of how the menus look, in the single-theme shape [Variant declaration](#variant-declaration)
-  describes.
+  `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is a check of how the menus look:
+  one capture of an open submenu on every js variant, which guards the seam and border between a menu
+  and its submenu on each theme, and four on `main` in the single-theme shape
+  [Variant declaration](#variant-declaration) describes.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
