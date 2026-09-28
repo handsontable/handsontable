@@ -384,14 +384,31 @@ describe('Core', () => {
 
 describe('Core.setDataAtCell past the last column', () => {
   let container;
+  let warnSpy;
 
   beforeEach(() => {
     container = document.createElement('div');
+    // The removal warning is recorded module-globally, so without this the warn-once assertion
+    // would depend on the order the specs run in.
+    _resetDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
+    warnSpy.mockRestore();
     container.remove();
   });
+
+  /**
+   * Collects every console warning printed so far that reports the removed write.
+   *
+   * @returns {Array} The matching `console.warn` messages.
+   */
+  function removalWarnings() {
+    return warnSpy.mock.calls
+      .map(args => String(args[0]))
+      .filter(message => message.includes('past the last column of an object data source'));
+  }
 
   /**
    * Builds and initializes a grid.
@@ -416,6 +433,49 @@ describe('Core.setDataAtCell past the last column', () => {
     // The value would land on a literal `2` key beside the declared ones, which no column can
     // display and every consumer serializing the row would then see (#5409).
     expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
+
+    core.destroy();
+  });
+
+  it('should warn once that the write was removed', () => {
+    const core = build({ data: [{ id: 1, name: 'Ted Right' }], dataSchema: { id: null, name: null } });
+
+    core.setDataAtCell(0, 2, 'x');
+    core.setDataAtCell(0, 3, 'y');
+
+    const warnings = removalWarnings();
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('removed in Handsontable 20.0.0');
+    expect(warnings[0]).toContain('setDataAtRowProp()');
+
+    core.destroy();
+  });
+
+  it('should still fire afterSetDataAtCell, with an empty array, when every change is skipped', () => {
+    const afterSetDataAtCell = jest.fn();
+    const core = build({
+      data: [{ id: 1, name: 'Ted Right' }],
+      dataSchema: { id: null, name: null },
+      afterSetDataAtCell,
+    });
+
+    core.setDataAtCell(0, 2, 'x', 'custom');
+
+    expect(afterSetDataAtCell).toHaveBeenCalledTimes(1);
+    expect(afterSetDataAtCell).toHaveBeenCalledWith([], 'custom');
+
+    core.destroy();
+  });
+
+  it('should drop an existing value that a `shift_right` paste pushes past the last column', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({ data, dataSchema: { id: null, name: null } });
+
+    core.populateFromArray(0, 0, [['Frank Honest']], undefined, undefined, 'populateFromArray', 'shift_right');
+
+    // `name` shifts onto the column past the last one, which an object data source cannot gain.
+    expect(data[0]).toEqual({ id: 'Frank Honest', name: 1 });
 
     core.destroy();
   });

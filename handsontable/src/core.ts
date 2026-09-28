@@ -63,6 +63,7 @@ import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
+import { isSkippedPastLastColumn } from './utils/pastLastColumn';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -2925,10 +2926,11 @@ export default function Core(
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
    * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
    * there, so it would only add a property the schema never declared. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. To write a field the grid shows
-   * no column for, address it by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
-   * A grid that declares no columns at all is exempt – there every index is past the last column, and writing is how
-   * an empty dataset gets bootstrapped.
+   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
+   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
+   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
+   * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
    * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
    * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
@@ -2967,19 +2969,14 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on - the way a `maxCols` cap
-        // that blocks the column already does.
-        //
-        // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
-        // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
-        // (`replaceData.ts`) and is just as object-rowed and just as unable to gain a column, so
-        // naming only `'object'` would leave it writing the key.
-        //
-        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
-        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
-        // there every index is "past the last column". Writing to such a grid is how an empty
-        // dataset gets bootstrapped, so it is left exactly as it was.
-        if (instance.dataType !== 'array' && this.countCols() > 0) {
+        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
+        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
+          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
+            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
+            'write a field the grid shows no column for.');
+
           continue;
         }
 
@@ -3005,7 +3002,10 @@ export default function Core(
     // Falling through would run `processChanges([])`, which cancels the active editor - discarding
     // a value the user is still typing in an unrelated cell - and then render for no work. An
     // empty `input` keeps its previous path, so `setDataAtCell([])` behaves as it always has.
+    // `afterSetDataAtCell` still fires, because it is documented to fire for every call.
     if (input.length > 0 && changes.length === 0) {
+      instance.runHooks('afterSetDataAtCell', [], changeSource);
+
       return;
     }
 

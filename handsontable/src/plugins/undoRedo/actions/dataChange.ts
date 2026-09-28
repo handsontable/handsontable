@@ -8,6 +8,7 @@ import {
   unmergeCellsGeometryOnly,
 } from '../utils';
 import type { MergeAreaGeometry } from '../../../utils/mergeAreas';
+import { isSkippedPastLastColumn } from '../../../utils/pastLastColumn';
 
 /**
  * Minimal interface for the UndoRedo plugin used by action classes.
@@ -59,15 +60,22 @@ export class DataChangeAction extends BaseAction {
    *   past the last row needs.
    */
   declare physicalRows: (number | null)[];
+  /**
+   * @param {Array} props The property every entry in `changes` wrote, in the same order, read when the
+   *   change was recorded - before `changes` has its props turned into visual columns. The replay needs
+   *   it for a change the grid can no longer address by column, see `#collectWrites()`.
+   */
+  declare props: unknown[];
 
   /**
    * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
    */
   constructor({
-    changes, selected, countCols, countRows, countSourceRows, mergedCells = [], physicalRows = []
+    changes, selected, countCols, countRows, countSourceRows, mergedCells = [], physicalRows = [], props = []
   }: {
     changes: unknown[][], selected: unknown[], countCols: number, countRows: number,
-    countSourceRows?: number, mergedCells?: MergeAreaGeometry[], physicalRows?: (number | null)[]
+    countSourceRows?: number, mergedCells?: MergeAreaGeometry[], physicalRows?: (number | null)[],
+    props?: unknown[]
   }) {
     super('change');
     this.changes = changes;
@@ -77,6 +85,7 @@ export class DataChangeAction extends BaseAction {
     this.countSourceRows = countSourceRows;
     this.mergedCells = mergedCells;
     this.physicalRows = physicalRows;
+    this.props = props;
   }
 
   /**
@@ -123,6 +132,10 @@ export class DataChangeAction extends BaseAction {
           (change: unknown[]) => hot.toPhysicalRow(change[0] as number) as number | null
         );
 
+        // Read before the props below become visual columns: a column index is only valid for the
+        // column layout of this moment, and the replay may meet a narrower one.
+        const props = clonedChanges.map((change: unknown[]) => change[1]);
+
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
         });
@@ -134,6 +147,7 @@ export class DataChangeAction extends BaseAction {
         return new DataChangeAction({
           changes: clonedChanges,
           physicalRows,
+          props,
           selected,
           countCols: hot.countCols(),
           countRows: hot.countRows(),
@@ -173,6 +187,14 @@ export class DataChangeAction extends BaseAction {
    * The same shift is why `dataSource.setAtCell()` dropping a write past the last source row cannot be
    * read as "a removed row's value is discarded" - that only holds for a removal at the very end.
    *
+   * A change whose column the grid cannot address is written to the source data by the prop it was
+   * recorded with. That is a column past the last one of an object data source, which
+   * `setDataAtCell()` skips (`utils/pastLastColumn.ts`), or a prop with no column at all, which
+   * `setDataAtCell()` rejects by throwing. Replayed through the grid, the first fires no `afterChange`,
+   * so the action never settles and the stack stops recording. `colToProp()` cannot stand in for the
+   * recorded prop: after the `columns` option narrowed, it hands back the index itself, and the write
+   * would then add the positional key #5409 is about. An action with no recorded prop drops the change.
+   *
    * @param {Core} hot The Handsontable instance.
    * @param {number} valueIndex Index of the value to replay within a change entry - `2` for the old
    *   value (undo), `3` for the new one (redo).
@@ -184,6 +206,17 @@ export class DataChangeAction extends BaseAction {
     const data = deepClone(this.changes) as unknown[][];
     const gridChanges: unknown[][] = [];
     const sourceChanges: unknown[][] = [];
+    const isAddressable = (visualColumn: unknown) => Number.isInteger(visualColumn) &&
+      !isSkippedPastLastColumn(hot.dataType, hot.countCols(), visualColumn as number);
+    // `dataSource.setAtCell()` reads a number as a column index and drops it past the first row's
+    // keys, so a numeric prop goes as the key it names.
+    const writeToSource = (physicalRow: number, index: number, value: unknown) => {
+      const prop = this.props?.[index];
+
+      if (prop !== undefined) {
+        sourceChanges.push([physicalRow, typeof prop === 'number' ? String(prop) : prop, value]);
+      }
+    };
 
     data.forEach((change: unknown[], index: number) => {
       const visualColumn = change[1] as number;
@@ -203,7 +236,12 @@ export class DataChangeAction extends BaseAction {
 
         if (targetRow === null || !Number.isInteger(this.countSourceRows) ||
             targetRow >= this.countSourceRows!) {
-          gridChanges.push([change[0], visualColumn, value]);
+          if (isAddressable(visualColumn)) {
+            gridChanges.push([change[0], visualColumn, value]);
+
+          } else if (targetRow !== null) {
+            writeToSource(targetRow, index, value);
+          }
         }
 
         return;
@@ -217,7 +255,12 @@ export class DataChangeAction extends BaseAction {
         return;
       }
 
-      gridChanges.push([visualRow, visualColumn, value]);
+      if (isAddressable(visualColumn)) {
+        gridChanges.push([visualRow, visualColumn, value]);
+
+      } else {
+        writeToSource(physicalRow, index, value);
+      }
     });
 
     return { gridChanges, sourceChanges };

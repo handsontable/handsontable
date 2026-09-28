@@ -291,6 +291,22 @@ rediscovering them.
   added. It is the same defect the row half above fixed, left alone because the column axis is outside
   DEV-2665 and `countSourceCols()` reads the first row's keys, which is not a reliable count.
 
+## `DataChangeAction` routes a column the grid cannot address to the source data (#5409)
+
+`setDataAtCell()` skips a change past the last column of an object data source, and a skipped change
+fires no `afterChange`. The replay settles on that hook, so a change routed through the grid there never
+settles: `ignoreNewActions` stays on and the stack stops recording. A prop with no column at all (a
+declared field the `columns` option hides) is worse - `setDataAtCell()` throws on it. So `#collectWrites()`
+sends both to `setSourceDataAtCell()` instead. Two rules come with it.
+
+- **The skip rule is shared, not copied.** `isSkippedPastLastColumn()` in `src/utils/pastLastColumn.ts`
+  is read by `Core#setDataAtCell()` and by the replay, the same way `clipRemovalRange()` is shared above.
+- **Write by the prop recorded at edit time, never by `colToProp()` at replay time.** The action keeps a
+  `props` array beside `physicalRows`, read before `changes` has its props turned into columns. After the
+  `columns` option narrowed, `colToProp(2)` answers `2`, and a write keyed on it adds the positional key
+  #5409 is about. A numeric prop goes as a string, because `dataSource.setAtCell()` reads a number as a
+  column index and drops it past the first row's keys. An action with no recorded prop drops the change.
+
 ## `CellAlignmentAction` restores an ABSENT value as absent
 
 Falling back to a horizontal alignment when nothing was recorded used to leave the cell aligned left after

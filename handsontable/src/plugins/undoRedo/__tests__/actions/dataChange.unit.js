@@ -389,4 +389,100 @@ describe('UndoRedo -> DataChange action', () => {
     expect(hot.countSourceRows()).toBe(3);
     expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
   });
+
+  // `setDataAtCell()` skips a column past the last one of an object data source and fires no
+  // `afterChange` for it (#5409). The replay settles on that hook, so a change routed through the
+  // grid there would leave `ignoreNewActions` on and every later edit unrecorded.
+  describe('columns the grid cannot address (#5409)', () => {
+    it('should undo a numeric prop past the last column and keep recording', () => {
+      const data = [{ id: 1, name: 'Ted Right' }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataSchema: { id: null, name: null },
+        undo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      hot.setDataAtRowProp(0, 5, 'x');
+      undoRedo.undo();
+
+      expect(data[0][5]).toBeUndefined();
+
+      undoRedo.redo();
+
+      expect(data[0][5]).toBe('x');
+
+      hot.setDataAtCell(0, 1, 'Frank Honest');
+      undoRedo.undo();
+
+      // The edit after the replay was recorded, so it is what this undo reverts.
+      expect(data[0].name).toBe('Ted Right');
+      expect(data[0][5]).toBe('x');
+    });
+
+    it('should restore the recorded field after the `columns` option narrowed', () => {
+      const data = [{ id: 1, name: 'Ted Right', address: 'Main St' }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        undo: true,
+      });
+
+      hot.setDataAtCell(0, 2, 'Oak St');
+      hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
+      hot.getPlugin('undoRedo').undo();
+
+      // `colToProp(2)` now answers `2`, so replaying by column would have written a `2` key.
+      expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Main St' });
+    });
+
+    it('should undo a write to a declared field that has no column', () => {
+      const data = [{ id: 1, name: 'Ted Right', city: null }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataSchema: { id: null, name: null, city: null },
+        columns: [{ data: 'id' }, { data: 'name' }],
+        undo: true,
+      });
+
+      hot.setDataAtRowProp(0, 'city', 'Boston');
+
+      // `propToCol('city')` has no column to return, so it records the prop itself, which
+      // `setDataAtCell()` rejects by throwing.
+      expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+      expect(data[0].city).toBeNull();
+    });
+
+    it('should remove the rows a write past the last row and column created', () => {
+      const data = [{ id: 1, name: 'Ted Right' }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataSchema: { id: null, name: null },
+        undo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      hot.setDataAtRowProp(2, 5, 'x');
+
+      expect(hot.countSourceRows()).toBe(3);
+
+      undoRedo.undo();
+
+      expect(hot.countSourceRows()).toBe(1);
+
+      hot.setDataAtCell(0, 1, 'Frank Honest');
+      undoRedo.undo();
+
+      expect(data[0].name).toBe('Ted Right');
+    });
+  });
 });

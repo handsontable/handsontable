@@ -53,8 +53,11 @@ rows[0]; // { id: 1, name: 'Ted Right' }
 This affects every write that can run past the last column: a
 [paste](@/guides/cell-features/clipboard/clipboard.md),
 [`populateFromArray()`](@/api/core.md#populatefromarray), and
-[`setDataAtCell()`](@/api/core.md#setdataatcell) itself. It was deprecated in 19.0.0, with a
-one-time console warning.
+[`setDataAtCell()`](@/api/core.md#setdataatcell) itself. A paste with the
+[`copyPaste`](@/api/options.md#copypaste) option's `pasteMode` set to `'shift_right'` also drops the
+existing values it pushes past the last column, not only the pasted ones. It was deprecated in
+19.0.0, with a one-time console warning. From 20.0.0 on, a one-time console warning reports the
+skipped write instead.
 
 ### Why this changed
 
@@ -62,17 +65,26 @@ An object data source cannot gain columns - its column count comes from the firs
 [`dataSchema`](@/api/options.md#dataschema), and
 [`alter()`](@/api/core.md#alter) refuses to add one. The value therefore had nowhere to be
 displayed, and landed on a property your schema never declared. No column rendered it, yet
-[`getSourceData()`](@/api/core.md#getsourcedata) returned it and
-[`countSourceCols()`](@/api/core.md#countsourcecols) counted it, so it reached anything that
-serialized the row - a save, a request payload, a schema validator.
+[`getSourceData()`](@/api/core.md#getsourcedata) returned it, so it reached anything that serialized
+the row - a save, a request payload, a schema validator.
+[`countSourceCols()`](@/api/core.md#countsourcecols) counted it too when the write landed on the
+first row, because that method reads the first row's keys.
 
 ### What to change
 
 The remedy depends on which path was writing the property.
 
-**For a `setDataAtCell()` call of your own**, address the field by name instead:
+**For a `setDataAtCell()` call of your own**, declare the field in your data schema and address it
+by name instead. The grid can keep showing no column for it:
 
 ```js
+const hot = new Handsontable(container, {
+  data: rows,
+  dataSchema: { id: null, name: null, city: null },
+  columns: [{ data: 'id' }, { data: 'name' }],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
 // Before 20.0 - the property was named after the column index
 hot.setDataAtCell(0, 2, 'Boston');
 hot.getSourceData()[0][2]; // 'Boston'

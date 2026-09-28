@@ -333,16 +333,24 @@ A paste that runs past the last column adds the columns it needs when the
 [`columns`](@/api/options.md#columns) option, and
 [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is left on.
 
-In every other configuration the column count is fixed. With an array data source the values that
-reach past the last column are still written, to the matching array index, so
-[`getSourceData()`](@/api/core.md#getsourcedata) returns them while the grid never displays them.
+In every other configuration the column count is fixed, and the values that reach past the last
+column never become a column:
 
-An object data source takes its columns from the first row or from
-[`dataSchema`](@/api/options.md#dataschema), and cannot grow. From Handsontable 20.0 on, the
-values that reach past the last column are dropped instead of written, and no
-[`afterChange`](@/api/hooks.md#afterchange) entry is reported for them. This keeps the paste from
-adding properties your data schema does not declare, which no column could then display. Writing
-those values was deprecated in 19.0. To write a field the grid shows no column for, use
+- With [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) set to `false`, the paste drops
+  them, whatever the data source.
+- With an array data source and a `columns` option, they are still written, to the matching array
+  index, so [`getSourceData()`](@/api/core.md#getsourcedata) returns them while the grid never
+  displays them.
+- An object data source takes its columns from the first row or from
+  [`dataSchema`](@/api/options.md#dataschema), and cannot grow. From Handsontable 20.0 on, the
+  paste drops them instead of writing them, and reports no
+  [`afterChange`](@/api/hooks.md#afterchange) entry for them. This keeps the paste from adding
+  properties your data schema does not declare, which no column could then display. Writing those
+  values was deprecated in 19.0.
+
+On an object data source, this also applies to existing values that a paste with the
+[`copyPaste`](@/api/options.md#copypaste) option's `pasteMode` set to `'shift_right'` pushes past the
+last column: they are dropped, not only the pasted values. To write a field the grid shows no column for, use
 [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
 
 ### Extending paste behavior
