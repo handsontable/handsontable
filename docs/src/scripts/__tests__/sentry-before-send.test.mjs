@@ -145,3 +145,67 @@ test('drops errors thrown by Handsontable throwWithCause()', () => {
 
   assert.equal(beforeSend(event, hint), null);
 });
+
+/**
+ * An error event whose single exception carries the given stack frames.
+ */
+function eventWithFrames(message, files) {
+  return {
+    request: { url: 'https://handsontable.com/docs/javascript-data-grid/changelog/' },
+    exception: {
+      values: [{ value: message, stacktrace: { frames: files.map((file) => ({ abs_path: file, filename: file })) } }],
+    },
+  };
+}
+
+test('drops errors raised entirely inside Google Tag Manager tags', () => {
+  // Sentry HANDSONTABLE-DOCS-24E, -25A: GTM Custom HTML tags reference globals the docs
+  // never load. Every frame is gtm.js, gtag/js, or the anonymous code the tag injects.
+  const event = eventWithFrames('jQuery is not defined', [
+    'https://www.googletagmanager.com/gtm.js?id=GTM-XXXX',
+    'https://www.googletagmanager.com/gtag/js?id=G-XXXX',
+    '/gtm.js',
+    '<anonymous>',
+  ]);
+
+  assert.equal(beforeSend(event, {}), null);
+});
+
+test('keeps a GTM-triggered error that runs through our own bundle', () => {
+  // A single first-party frame means our code broke, whoever called it.
+  const event = eventWithFrames("Cannot read properties of undefined (reading 'default')", [
+    'https://www.googletagmanager.com/gtm.js?id=GTM-XXXX',
+    '<anonymous>',
+    'https://handsontable.com/docs/_astro/Head.astro_astro_type_script_index_1_lang.tTmdsO3H.js',
+  ]);
+
+  assert.equal(beforeSend(event, {}), event);
+});
+
+test('keeps an error that has no stack frames at all', () => {
+  // The GTM rule needs at least one frame to judge by.
+  const event = errorEvent('https://handsontable.com/docs/javascript-data-grid/', 'jQuery is not defined');
+
+  assert.equal(beforeSend(event, {}), event);
+});
+
+test('drops cross-origin "Script error." reports', () => {
+  // Sentry HANDSONTABLE-DOCS-24A, -245, -247: the only frame left is the page URL itself.
+  const url = 'https://handsontable.com/docs/javascript-data-grid/';
+
+  for (const message of [
+    'Script error.',
+    'Event `ErrorEvent` captured as exception with message `Script error.`',
+  ]) {
+    assert.equal(beforeSend(errorEvent(url, message), {}), null, `expected "${message}" to be dropped`);
+  }
+
+  assert.equal(beforeSend(eventWithFrames('Script error.', [url]), {}), null);
+  assert.equal(beforeSend({ request: { url }, message: 'Script error.' }, {}), null);
+});
+
+test('keeps errors that merely mention a script error', () => {
+  const event = errorEvent('https://handsontable.com/docs/javascript-data-grid/', 'Script error in example1.js');
+
+  assert.equal(beforeSend(event, {}), event);
+});

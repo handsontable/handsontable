@@ -672,7 +672,11 @@ Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `de
 
 One exception is fixable in our code: a frozen Astro image (>= 17.1) whose URLs miss the version segment - for example Vite's preload helper asking for `/docs/_astro/*.css` instead of `/docs/17.1/_astro/*.css` ("Unable to preload CSS", HANDSONTABLE-DOCS-22T). Fix it at assemble time in `deploy/rewriteVersionedPaths.mjs`, which post-processes each frozen build before deploy (see `README-DEPLOYMENT.md`), not in `Head.astro` or `beforeSend` - neither ever reaches a frozen image.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks. `prod-docs/18.1` carries `sentryOnLoad` and the `Head.astro` guards, but only in the version that was last cherry-picked there, so a rule added on `develop` is inert in production until its own cherry-pick lands - say so when reporting that a filter is done.
+
+**Never cancel a `vite:preloadError` for a failed `import()`.** Vite fires that event both for a CSS preload failure and for a rejected `import()` (`baseModule().catch(handlePreloadError)` in its preload helper), and a cancelled event makes the helper *return* instead of throw - so the import resolves to `undefined` and the caller crashes on `.default` (Sentry HANDSONTABLE-DOCS-24F, -24P, -246). The reload guard in `Head.astro` cancels only payloads starting `Unable to preload CSS`, where the module itself still loads; every other failure reloads but keeps rejecting, so the chunk-load filters above see it.
+
+Errors raised entirely inside Google Tag Manager (every frame `gtm.js`, `gtag/js`, or `<anonymous>` - the code a Custom HTML tag injects) come from tags in the externally managed GTM container that call globals the docs never load (`jQuery`, `$`, `_cio`, `ym`, ...). `beforeSend` drops them; the real fix is in the GTM container. One first-party frame keeps the event.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 
