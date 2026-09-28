@@ -3472,6 +3472,10 @@ export default (): Record<string, unknown> => {
      * A column's own `availableConditions` replaces the grid-level one for that column. The two are
      * not merged.
      *
+     * `availableConditions` changes what the condition lists contain, not which parts the menu
+     * shows. The [`dropdownMenu`](#dropdownmenu) option decides that, so if its configuration leaves
+     * out or hides `filter_by_condition`, the setting has nothing to act on.
+     *
      * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
      * Those rows are then never hidden by a filter, and their values are not offered in the
      * **Filter by value** list.

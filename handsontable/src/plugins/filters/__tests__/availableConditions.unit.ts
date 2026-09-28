@@ -32,6 +32,8 @@ describe('Filters -> availableConditions', () => {
 
     it('should reject values that are not one of those shapes', () => {
       expect(isAvailableConditionsSetting(true, DATA_TYPES)).toBe(false);
+      // Kept free on purpose: it can mean "hide the Filter by condition section" later without a break.
+      expect(isAvailableConditionsSetting(false, DATA_TYPES)).toBe(false);
       expect(isAvailableConditionsSetting('eq', DATA_TYPES)).toBe(false);
       expect(isAvailableConditionsSetting(null, DATA_TYPES)).toBe(false);
       expect(isAvailableConditionsSetting(['eq', 1], DATA_TYPES)).toBe(false);

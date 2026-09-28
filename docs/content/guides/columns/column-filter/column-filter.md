@@ -628,6 +628,12 @@ A few rules apply to every shape:
 To hide the whole **Filter by condition** section of a column, set `filters` to `false` for that
 column instead. See [Enable filtering for individual columns](#enable-filtering-for-individual-columns).
 
+`availableConditions` changes what the condition lists contain, not which parts the menu shows. The
+[`dropdownMenu`](@/api/options.md#dropdownmenu) option decides that, through the filter item keys
+listed in [Column menu](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
+If your `dropdownMenu` configuration leaves out or hides `filter_by_condition`, the setting has
+nothing to act on.
+
 In the following demo, the **Price** column follows a grid-level rule that removes **Is not
 between** from numeric columns. The **Brand** column offers a short list of its own, and the
 **Date** column drops **Today**, **Tomorrow**, and **Yesterday**.
