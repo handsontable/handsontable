@@ -551,7 +551,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
-- Location: `src/**/__tests__/`
+- Location: mostly `src/**/__tests__/`; also `test/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed
@@ -570,10 +570,10 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Purpose: Verify TypeScript type definitions generated into `handsontable/tmp/` from the `.ts` sources
 
 **Walkontable Tests:**
-- Separate test pipeline (`npm run test:walkontable`)
+- Specs (`test/spec/`): separate test pipeline (`npm run test:walkontable`) with its own spec runner (`SpecRunner.html`)
+- Unit tests (`test/unit/`): Jest tests that the core `npm run test:unit` runs, not `test:walkontable`
 - Location: `src/3rdparty/walkontable/test/`
-- Has its own spec runner (`SpecRunner.html`)
-- Do not mix with main E2E tests
+- Do not mix the specs with main E2E tests
 
 **Visual Regression Tests:**
 - Framework: Playwright

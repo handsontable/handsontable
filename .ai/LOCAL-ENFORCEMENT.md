@@ -4,8 +4,9 @@ Every change passes these **local** gates before it reaches CI. This is agent-fi
 human-second: the **git hooks (lefthook) are the enforcement floor for everyone**, and
 the **Claude Code hooks add an earlier, agent-time layer** on top. `--no-verify`
 bypasses the git hooks, but CI re-runs the same checks — never rely on the bypass.
-One of them does not block in CI: the presence gate runs there with `GATE_MODE: warn`,
-so a missing test pushed with `--no-verify` reaches the PR as a warning, not a red check.
+One of them does not block in CI: the presence gate runs there with `GATE_MODE: warn`.
+Its check stays green, and its verdict appears only in the job's step summary. So a
+missing test or a new `*.spec.js` pushed with `--no-verify` fails no CI check.
 
 Setup is automatic: `pnpm install` runs the root `prepare` script
 (`scripts/prepare-dev-env.mjs`), which wires the lefthook git hooks **and** syncs
@@ -23,10 +24,13 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | Agent-time (Claude Code) | `Stop` (turn end; 120 s timeout in `.claude/settings.json`) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
 | **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
-| CI | `test.yml` + gates | the same checks (the ratchet is a step of `Lint / core`); the presence gate runs with `GATE_MODE: warn` in `checks.yml` | see the pipeline; a missing test is a warning here, not a block |
+| CI | `test.yml` + gates | the git-hook checks again (the ratchet is a step of `Lint / core`); the presence gate runs with `GATE_MODE: warn` in `checks.yml` | see the pipeline; a missing test or a new `*.spec.js` stays green here, with the verdict in the step summary only |
 
-Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.** The
-presence gate is the exception: its one blocking run is pre-push.
+Most rules escalate: **agent-time → pre-commit → pre-push → CI.** Two exceptions.
+The `SessionStart` and `PreToolUse` hooks are agent-only and have no git-hook or CI
+counterpart. The presence gate (a missing test, a new `*.spec.js`) blocks only at
+pre-push. A Stop run killed at its 120 s timeout blocks nothing either, because
+the hook blocks a turn only by exiting 2; pre-push then runs those tests again.
 
 **The changelog entry-filename check** (`assertEntryFilenames` in `bin/changelog`,
 pure logic in `bin/lib/entry-filenames.js`). It asserts that every
@@ -54,8 +58,8 @@ closes that gap without red-walling the debt: it lints only the changed
 `handsontable/{src,test}/**/*.{spec,unit}.js` and `*.unit.ts` files (the
 frozen-tier override in `handsontable/.eslintrc.js` names `*.unit.js`,
 `*.unit.ts`, and `*.spec.js`, so ESLint reports the three rules in all of them),
-intersects the warnings
-with the lines the branch **added** (`git diff -U0` against the merge-base), and
+intersects the warnings with the lines the branch **added** (`git diff -U0`
+against the merge-base), and
 **exits 1 when any of the three rules fires on an added line**. A pre-existing
 occurrence on an unchanged line stays a warning. `RATCHETED_RULES` in the lib is
 the single source of truth for the rule set; pre-push and CI run the same script,
@@ -71,9 +75,10 @@ so the local scope is exactly the CI scope. Three things to know:
   not block; only the lines you changed inside it count.
 - **How to satisfy it:** wait for the *condition*, not the clock —
   `await waitUntil(() => …)` (`handsontable/test/helpers/common.js`) or a hook
-  promise. `waitForNextAnimationFrames()` is not a way out: the same rule flags
-  it for any frame count except a literal `0`. A broken or flaky legacy spec migrates
-  to Playwright (`tests/e2e/`) instead of gaining a delay. For a genuine
+  promise. `waitForNextAnimationFrames()` is not a way out:
+  `handsontable/no-fixed-sleep-in-spec` flags it for any frame count except a
+  literal `0`. A broken or flaky legacy spec migrates to Playwright
+  (`tests/e2e/`) instead of gaining a delay. For a genuine
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
 - **Which base:** pre-push diffs against the merge-base of `origin/develop`
@@ -105,10 +110,11 @@ so the local scope is exactly the CI scope. Three things to know:
   summary.
 
 **Changed unit tests** run too, in both the Stop hook and pre-push: one
-`npm run test:unit` per touched unit file. Jest maps imports to `src`, so no bundle
-is built, but `test:unit` runs `build:styles` first (`before` in
-`handsontable/scripts/tasks.json`), once per touched file. A Jest *infra* failure (couldn't start) warns instead of
-blocking (CI is authoritative), the same way the presence gate skips a config gap.
+`npm run test:unit` per touched unit file. Jest maps imports to `src`, so the leg
+builds no bundle, but `test:unit` runs `build:styles` first (`before` in
+`handsontable/scripts/tasks.json`), once per touched file. A Jest *infra* failure
+(couldn't start) does not block (CI is authoritative), the same way the presence
+gate skips a config gap: pre-push prints a note, and the Stop hook skips silently.
 **A run that was killed is the same case.** A child aborted by Node on buffer
 overflow (`ENOBUFS`) or by a signal produced no verdict — `spawnSync` returns
 `status: null` with a truncated buffer, which is indistinguishable from a real
@@ -301,7 +307,7 @@ Machine-enforced by the presence gate; full decision rules in
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.
 - **When red, diagnose which is wrong** — the code or the test's expectation — and fix whichever genuinely is. The code is the prime *suspect*, not a rule.
-- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Enforcement differs per item. Lint blocks a focused test, and in `tests/` any skip. In `handsontable/`, the ratchet blocks a new skip or `it.flaky` on an added line. The weakening detector only warns on a removed or loosened assertion. A test with no assertion gets a `handsontable/require-assertion-in-test` warning in `handsontable/` that blocks nothing, and no check at all in `tests/`, so review owns it.)
+- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Enforcement differs per item. Lint blocks a focused test in `handsontable/`, `tests/`, and `visual-tests/` (the wrapper configs ban none), and any skip in `tests/`. In `handsontable/`, the ratchet blocks a new skip or `it.flaky` on an added line. The weakening detector only warns on a removed or loosened assertion. A test with no assertion gets a `handsontable/require-assertion-in-test` warning in `handsontable/` that blocks nothing, and no check at all in `tests/`, so review owns it.)
 - **Bug fix → failing test first:** turn the repro into a test that fails *for the right reason*, then fix; it stays as a regression guard so nobody re-checks it by hand.
 - **Run the impacted test green locally** before commit/push, and state the result with the run's evidence. For E2E that means **only the specs you created/changed** (the Stop hook and pre-push select exactly those); the full suite runs in PR CI and the develop nightly — never locally.
 - **Coverage is the floor** (necessary); **mutation/meaningfulness is the ceiling** (sufficient). Never pad coverage with hollow tests.

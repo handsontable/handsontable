@@ -9,7 +9,7 @@ Read and apply the review checklists from these files:
 - @.claude/skills/handsontable-code-review/references/code-quality.md -- ESLint rules, JSDoc, naming, cognitive complexity, bundle size
 - @.claude/skills/handsontable-code-review/references/architecture.md -- SOLID, Law of Demeter, plugin decoupling, breaking changes, convention over configuration
 - @.claude/skills/handsontable-code-review/references/performance-a11y.md -- large arrays, render batching, WCAG 2.1 AA, keyboard navigation
-- @.claude/skills/handsontable-code-review/references/tests.md -- a named exercising test per new interaction path, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened assertion
+- @.claude/skills/handsontable-code-review/references/tests.md -- a named exercising test per new interaction path, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened assertion, a DOM/API assertion beside every visual capture
 
 ## Core-specific context
 
@@ -29,5 +29,5 @@ For core development rules, read:
 
 ## Testing
 
-- Behavior changes need the test kind the change calls for (decision table in `handsontable/.ai/TESTING.md`): a Jest unit test (`*.unit.js` / `*.unit.ts`) for logic, a Playwright spec (`tests/e2e/*.spec.ts`) for anything a user can see or do. A new Jasmine `*.spec.js` is not allowed (pre-push blocks it, CI only warns), so flag one; edits to existing ones are fine.
+- Behavior changes need the test kind the change calls for (decision table in `handsontable/.ai/TESTING.md`): a Jest unit test (`*.unit.js` / `*.unit.ts`) for logic, a Playwright spec (`tests/e2e/**/*.spec.ts`) for anything a user can see or do. Flag a new Jasmine `*.spec.js`: pre-push blocks one, but CI stays green on it. Edits to existing ones are fine.
 - Favor E2E tests over unit tests. If a unit test would require mocking, write an E2E test instead.

@@ -6,8 +6,8 @@
 - Source files: `camelCase.ts` (e.g., `hiddenColumns.ts`, `conditionCollection.ts`, `editorManager.ts`). Walkontable (`src/3rdparty/walkontable/`) is also `camelCase.ts`.
 - Plugin directories: `camelCase/` (e.g., `src/plugins/hiddenColumns/`, `src/plugins/copyPaste/`)
 - Helper files: `camelCase.ts` in `src/helpers/` (e.g., `array.ts`, `object.ts`, `unicode.ts`)
-- Test files: `*.unit.js` for Jest unit tests, `*.spec.js` for Jasmine E2E tests
-- Type definition files: `*.types.ts` in `handsontable/test/types/`; generated `.d.ts` in `handsontable/tmp/`
+- Test files: `*.unit.js` or `*.unit.ts` for Jest unit tests, `*.spec.js` for Jasmine E2E tests
+- Type test files: `*.types.ts` in the `__tests__/` dir next to the source (`handsontable/test/types/tsconfig.json` compiles them); generated `.d.ts` in `handsontable/tmp/`
 - Each plugin directory has an `index.ts` barrel that re-exports `PLUGIN_KEY`, `PLUGIN_PRIORITY`, and the class
 
 **Functions:**

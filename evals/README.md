@@ -141,8 +141,8 @@ layer still judges intent.
 ## Mutation layer (installed, manual-only)
 
 StrykerJS is installed (root devDependencies: `@stryker-mutator/core` +
-`@stryker-mutator/jest-runner`), and nothing in CI runs it; the scorer's `mutation.available` flips to true
-automatically. Config: `handsontable/stryker.config.json` (jest runner via
+`@stryker-mutator/jest-runner`), and nothing in CI runs it; the scorer's
+`mutation.available` flips to true automatically. Config: `handsontable/stryker.config.json` (jest runner via
 `handsontable/jest.stryker.config.js`, which pins the Babel transform +
 `envName: 'commonjs'` — Stryker's worker cwd breaks cwd-relative Babel
 discovery). `inPlace` mode is used because the sandbox breaks pnpm workspace

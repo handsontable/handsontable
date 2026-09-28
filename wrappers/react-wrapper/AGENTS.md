@@ -31,7 +31,7 @@
   inline test components. `@typescript-eslint/no-empty-function` allows empty methods/functions
   (editor lifecycle stubs, test doubles).
 - Test: `npm run test --prefix wrappers/react-wrapper` (Jest + React Testing Library)
-- **Test paradigm:** the presence gate covers `wrappers/**` — a wrapper source change must ship a matching test (pre-push blocks without one; CI only warns). The Jest suite here is **jsdom** (props, lifecycle, reactivity). Anything user-visible / real-browser goes to **Playwright E2E** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill (React StrictMode / single-instance gotchas in its `references/wrappers.md`). Local gates + exact rules: `.ai/LOCAL-ENFORCEMENT.md`.
+- **Test paradigm:** the presence gate covers `wrappers/**` — a wrapper source change must ship a matching test (pre-push blocks without one; CI stays green and reports it only in the step summary). The Jest suite here is **jsdom** (props, lifecycle, reactivity). Anything user-visible / real-browser goes to **Playwright E2E** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill (React StrictMode / single-instance gotchas in its `references/wrappers.md`). Local gates + exact rules: `.ai/LOCAL-ENFORCEMENT.md`.
 
 ## Common Pitfalls
 

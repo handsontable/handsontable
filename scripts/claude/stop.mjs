@@ -8,8 +8,8 @@
  *   - a unit test the session touched now fails.
  *
  * It does NOT hard-block on "source changed without a test" — that fires every
- * turn and would be hostile mid-task; pre-push enforces existence (CI only
- * warns), where the `Refactor-only:` escape is available.
+ * turn and would be hostile mid-task; pre-push enforces existence (CI runs
+ * the same check but stays green), where the `Refactor-only:` escape is available.
  */
 import { execSync, spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
@@ -169,7 +169,7 @@ if (toRun.length > 0) {
 }
 
 // Run any changed Jest unit test the session touched. Jest maps imports to src,
-// so no bundle is built, but `test:unit` runs `build:styles` first
+// so the leg builds no bundle, but `test:unit` runs `build:styles` first
 // (handsontable/scripts/tasks.json), once per file below. One jest per existing
 // file (a single, shell-safe --testPathPattern; never a `|`-joined regex, which
 // run.mjs would append to a shell unquoted). An infra failure (jest could not

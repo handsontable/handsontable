@@ -439,8 +439,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     recordGreen(root, toRun);
   }
 
-  // 5) Run any changed Jest unit test. Jest maps imports to src, so no bundle is
-  //    built, but `test:unit` runs `build:styles` first (scripts/tasks.json),
+  // 5) Run any changed Jest unit test. Jest maps imports to src, so the leg builds
+  //    no bundle, but `test:unit` runs `build:styles` first (scripts/tasks.json),
   //    once per file below. One jest per file (a single, shell-safe
   //    --testPathPattern; never a `|`-joined regex — run.mjs appends it to a
   //    shell command unquoted). Only existing files (a session may record a

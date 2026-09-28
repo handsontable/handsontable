@@ -244,7 +244,8 @@ export function formatReport(findings) {
     '',
     'Fix: wait for the condition instead of the clock — `await waitUntil(() => …)` '
       + '(`handsontable/test/helpers/common.js`) or a hook promise. `waitForNextAnimationFrames()` is a fixed '
-      + 'wait too: the rule flags it for any frame count except a literal `0`. A broken or flaky legacy spec '
+      + 'wait too: `handsontable/no-fixed-sleep-in-spec` flags it for any frame count except a literal `0`. '
+      + 'A broken or flaky legacy spec '
       + 'migrates to Playwright (`tests/e2e/`). For a genuine exception, disable the rule on that line with a '
       + 'ticket: `// eslint-disable-next-line <rule> -- <TICKET>: <why no condition exists>`. '
       + 'Rules: `.ai/LOCAL-ENFORCEMENT.md`.',

@@ -15,7 +15,7 @@ Walkontable's specs have their own dedicated test runner. Do NOT run them throug
 - **Run command:** `npm run test:walkontable --prefix handsontable` (the `test/spec/` specs)
 - **Test location:** `src/3rdparty/walkontable/test/`
 
-The directory contains two sub-pipelines:
+The directory holds two kinds of test, and each runs in a different pipeline:
 
 - `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap). Only `test:walkontable` runs them.
 - `test/unit/` -- Unit-style tests for calculators, filters, renderers, and utilities (48 `*.unit.ts`/`*.unit.js` files). These are Jest tests: the core `jest.config.js` picks them up, so the main `npm run test:unit` and the core `Unit / test` CI job run them, and `test:walkontable` does not.
@@ -38,7 +38,7 @@ Tests are organized by subsystem: `overlay/`, `scroll/`, `selection/`, `renderer
 - Running Walkontable tests via `test:e2e` -- they have their own command and will not execute.
 - Skipping frozen row/column scenarios -- this misses the overlay edge cases where most regressions occur.
 - Testing only small datasets -- Walkontable bugs often surface at scale.
-- Modifying Walkontable test bootstrap/Rspack config without verifying that both `spec/` and `unit/` sub-pipelines still pass.
+- Modifying the Walkontable test bootstrap or Rspack config without verifying that `test/spec/` still passes under `test:walkontable` and `test/unit/` under the core `test:unit`.
 - Clearing an inline overflow longhand with jQuery: `$el.css('overflow-x', '')` does not clear an inline `overflow-x` in this harness, so the "clip removed" branch of a spec keeps the clip and asserts against the wrong layout. Write `el.style.overflowX = ''` on the element and assert the intermediate fact (`getComputedStyle(el).overflowX === 'visible'`) before the behavior.
 - Trusting the spec count. Until the bridge reporter sanitized failed expectations (`test/helpers/jasmine-bridge-reporter.js`), a failing spec whose `expected` or `actual` was a cyclic object (`toBe(window)`, `toEqual([overlay, …])`) could not cross the Puppeteer bridge and was dropped from the run: `Running 16 specs.` in `--verbose` mode, `15 specs, 0 failures` at the end, exit code 0. The `getOverlays` spec sat in that state from #12951 on. The bridge now reports such a spec as a normal failure with the value described (`[unserializable Window]`); if a count ever comes up short again, compare the `Running N specs.` line against the summary line with `npm run test:walkontable -- --testPathPattern=<file> --verbose`.
 - Turning on the uniform-size flags (`rowHeightsUniform`/`columnWidthsUniform`) in a bare Walkontable spec and then asserting scrollbar-dependent row/column counts: the bare harness overflows content without rendering a real scrollbar, while the single-pass layout snapshot predicts one — so predicted and measured diverge there. Assert the snapshot booleans directly, or use a fixture that renders a real scrollbar; don't compare snapshot-predicted scrollbars/counts against the bare DOM.

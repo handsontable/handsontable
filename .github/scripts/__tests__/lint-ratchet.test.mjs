@@ -90,13 +90,13 @@ test('every ratcheted rule is warn-level for a .spec.js and a .unit.js path in h
   // matching the frozen tier — would turn the ratchet into a silent no-op:
   // ESLint would emit nothing under that id for those files and the
   // intersection would always be empty. Resolve the level per path the way
-  // ESLint does, for one path of each ratcheted extension. A flattened
+  // ESLint does, for one `.spec.js` and one `.unit.js` path. A flattened
   // id→level map over all overrides would pass with the rules configured for
   // some unrelated glob, which is exactly the mismatch it cannot catch.
   //
   // `*.unit.ts` is in RATCHETED_FILES and in the override that turns these
-  // rules on, so the ratchet covers it. No `.unit.ts` path is listed below,
-  // though, so this test does not pin that override's glob.
+  // rules on, so the ratchet covers it. This test lists no `.unit.ts` path;
+  // `handsontable/test/__tests__/frozenTierLintScope.unit.js` pins that glob.
   const require = createRequire(import.meta.url);
   // The config lives at a path resolved from the repo root at runtime; the rule wants a literal.
   // eslint-disable-next-line import/no-dynamic-require
