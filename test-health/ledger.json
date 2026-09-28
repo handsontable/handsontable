@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-25T05:45:58.972Z",
+  "updatedAt": "2026-09-28T21:02:13.912Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-classic-min",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "36480443736",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36480443736",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3045_SheetsBar-merge-restore",
+      "headSha": "366c8e820b680f767d9fa6622fe41e398f7118be",
+      "event": "pull_request",
+      "seenAt": "2026-09-28T21:01:18Z"
+    },
     {
       "tier": "jasmine",
       "leg": "UMD (theme: main)",

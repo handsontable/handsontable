@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-28T13:47:53.005Z",
+  "generatedAt": "2026-09-28T21:02:13.912Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1616
+    "entries": 1617
   },
   "rows": [
     {
@@ -20,14 +20,14 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 2,
-      "count30": 16,
-      "countAll": 16,
-      "runs30": 9,
-      "flakyRuns30": 9,
-      "branches30": 8,
+      "count7": 3,
+      "count30": 17,
+      "countAll": 17,
+      "runs30": 10,
+      "flakyRuns30": 10,
+      "branches30": 9,
       "nightlyRuns30": 0,
-      "openBranches30": 8,
+      "openBranches30": 9,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
@@ -41,10 +41,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-22T14:01:18Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35732912304/attempts/2",
-        "branch": "feature/DEV-134_Restore-hidden-rows-after-undoing-remove",
-        "leg": "e2e-horizon-min",
+        "seenAt": "2026-09-28T21:01:18Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36480443736",
+        "branch": "feature/DEV-3045_SheetsBar-merge-restore",
+        "leg": "e2e-classic-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
