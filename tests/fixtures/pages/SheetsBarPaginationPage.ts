@@ -73,6 +73,17 @@ export class SheetsBarPaginationPage {
     return this.page.locator('.ht_clone_inline_start th').filter({ hasText: new RegExp(`^${label}$`) }).first();
   }
 
+  /**
+   * The column header in the top clone that shows the given label.
+   */
+  columnHeader(label: string): Locator {
+    return this.page.locator('.ht_clone_top th').filter({ hasText: new RegExp(`^${label}$`) }).first();
+  }
+
+  isSelectedByColumnHeader(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.selection.isSelectedByColumnHeader());
+  }
+
   selectedLast(): Promise<number[] | undefined> {
     return this.page.evaluate(() => window.hot.getSelectedLast());
   }

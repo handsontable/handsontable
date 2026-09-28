@@ -19,17 +19,33 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
   batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
-  Pagination page and page size back first (`setPageSize()` then `setPage()`, skipped when
-  unchanged): Pagination holds one page for the whole grid and clamps it on every load, so a
-  switch through a shorter sheet moves it, and a selection or scroll aimed at a row on another
-  page lands on a hidden row and does nothing. The selection goes back through `selectCells()`
-  first (so a cell selection still runs the selection hooks), but `selectCells()` rejects any
-  range touching a header unless `navigableHeaders` is on, and a whole-row, whole-column, or
-  select-all selection carries header coordinates. So the view state also keeps the
-  `Selection#exportSelection()` snapshot (`selectionState`), and a rejected `selectCells()` falls
-  back to `importSelection()` — after checking every range against the arriving sheet's counts,
-  since the import validates nothing. A stored order whose length no
-  longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
+  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
+  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
+  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
+  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
+  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
+  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
+  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
+  nor restored: DataProvider answers a page change with a fetch, and the result would load into
+  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
+  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
+  of that paint, and a `beforePageChange` veto keeps the clamped page. A restored selection is
+  followed to its page; a selection carried over from the previous sheet, or one the follow could
+  not reach, is deselected rather than left on a hidden row.
+  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
+  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
+  and so are the ranges handed to the import, or the stored state would become the live
+  selection). A selection made from a header or spanning a whole axis (any header or
+  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
+  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
+  while a whole column on page 2 or later has none — Pagination moves its start to the page's
+  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
+  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
+  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
+  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
+  layer, the step core answers with those classes and hooks. A plain cell selection goes through
+  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
+  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
   read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
   count — are dropped one by one before `trimRows()`, which rejects the whole list when any
   index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical

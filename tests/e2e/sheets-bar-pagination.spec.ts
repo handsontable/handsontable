@@ -21,7 +21,7 @@ test.describe('SheetsBar keeps the pagination state of each sheet', () => {
     await expect.poll(() => grid.selectedLast()).toEqual([64, 0, 64, 0]);
 
     await grid.switchToSheet(1);
-    await expect(grid.pageLabel).toHaveText(/ of 2$/);
+    await grid.expectPage(1, 2);
 
     await grid.switchToSheet(0);
     await grid.expectPage(7, 20);
@@ -60,6 +60,23 @@ test.describe('SheetsBar keeps the pagination state of each sheet', () => {
     await expect.poll(() => grid.selected()).toEqual([[61, -1, 61, 0], [64, -1, 64, 0]]);
   });
 
+  test('a whole column selected from its header on a later page comes back as a column selection', async () => {
+    await grid.goToPage(7, 20);
+    await grid.columnHeader('Name').click();
+    await expect.poll(() => grid.isSelectedByColumnHeader()).toBe(true);
+
+    const selected = await grid.selected();
+    const headerClass = await grid.columnHeader('Name').getAttribute('class');
+
+    await grid.switchToSheet(1);
+    await grid.switchToSheet(0);
+
+    await grid.expectPage(7, 20);
+    await expect.poll(() => grid.selected()).toEqual(selected);
+    await expect.poll(() => grid.isSelectedByColumnHeader()).toBe(true);
+    await expect(grid.columnHeader('Name')).toHaveAttribute('class', headerClass ?? '');
+  });
+
   test('each sheet comes back on its own page', async () => {
     await grid.goToPage(7, 20);
     await grid.switchToSheet(1);
@@ -83,6 +100,8 @@ test.describe('SheetsBar keeps the pagination state of each sheet', () => {
     await expect(grid.cell(40, 0)).toHaveText('Long row 41');
 
     await grid.switchToSheet(1);
+    await expect(grid.pageSizeSelect).toHaveValue('10');
+    await grid.expectPage(1, 2);
     await grid.pageSizeSelect.selectOption('5');
     await grid.expectPage(1, 3);
 

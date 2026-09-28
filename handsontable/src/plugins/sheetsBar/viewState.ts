@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { SelectionState } from '../../selection/types';
+import { clamp } from '../../helpers/number';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
@@ -36,7 +37,18 @@ export interface ViewState {
   customBorders: Array<Record<string, unknown>>;
   cellMeta: TrackedCellMeta[];
   pagination: PaginationState | null;
+
+  /**
+   * The selection as `getSelected()` reports it. Restored through `selectCells()` when
+   * `selectionState` describes a plain cell selection.
+   */
   selection: number[][] | undefined;
+
+  /**
+   * The full selection, as copies: every layer, the focus, and the header and grid-span flags.
+   * It wins over `selection` for a selection made from a header or spanning a whole axis, and
+   * supplies the focus for a plain one.
+   */
   selectionState: SelectionState | null;
   scroll: { row: number, col: number };
 }
@@ -58,6 +70,10 @@ interface PaginationPlugin {
   getCurrentPageSize: () => number | 'auto';
   setPage: (page: number) => void;
   setPageSize: (pageSize: number | 'auto') => void;
+  nextPage: () => void;
+  prevPage: () => void;
+  getSetting: (name: string) => unknown;
+  getPaginationData: () => { totalPages: number, firstVisibleRowIndex: number, lastVisibleRowIndex: number };
 }
 
 /**
@@ -274,12 +290,25 @@ function captureCustomBorders(hot: HotInstance): Array<Record<string, unknown>> 
 }
 
 /**
+ * Returns the Pagination plugin when it pages the grid's own rows, or `undefined`. With an external
+ * data source (DataProvider) a page change is a server fetch, and its result is loaded into whichever
+ * sheet is active when it resolves — so the view state leaves the page alone there.
+ */
+function getLocalPagination(hot: HotInstance): PaginationPlugin | undefined {
+  if (hot.runHooks('hasExternalDataSource') === true) {
+    return undefined;
+  }
+
+  return getEnabledPlugin(hot, 'pagination') as PaginationPlugin | undefined;
+}
+
+/**
  * Captures the page and page size. Pagination keeps one current page for the whole grid and
  * clamps it to the page count on every load, so a switch through a shorter sheet would
  * otherwise bring the sheet back on a different page than the one it left.
  */
 function capturePagination(hot: HotInstance): PaginationState | null {
-  const pagination = getEnabledPlugin(hot, 'pagination') as PaginationPlugin | undefined;
+  const pagination = getLocalPagination(hot);
 
   if (!pagination) {
     return null;
@@ -291,10 +320,11 @@ function capturePagination(hot: HotInstance): PaginationState | null {
 /**
  * Puts a page and page size back through the Pagination API, skipping the calls that would not
  * change anything so a switch between sheets on the same page fires no page hooks. The page
- * size goes first: changing it re-clamps the current page.
+ * size goes first: changing it re-clamps the current page, and the page is clamped to the count
+ * the arriving sheet has, so a page past its end does not fire a change that lands where it was.
  */
 function applyPagination(hot: HotInstance, state: PaginationState) {
-  const pagination = getEnabledPlugin(hot, 'pagination') as PaginationPlugin | undefined;
+  const pagination = getLocalPagination(hot);
 
   if (!pagination) {
     return;
@@ -304,29 +334,46 @@ function applyPagination(hot: HotInstance, state: PaginationState) {
     pagination.setPageSize(state.pageSize);
   }
 
-  if (pagination.getCurrentPage() !== state.page) {
-    pagination.setPage(state.page);
+  const page = clamp(state.page, 1, Math.max(pagination.getPaginationData().totalPages, 1));
+
+  if (pagination.getCurrentPage() !== page) {
+    pagination.setPage(page);
   }
 }
 
 /**
  * Captures every selection layer together with its header and grid-span flags, or `null` when
- * nothing is selected. `getSelected()` alone cannot describe a selection anchored in a header — a
- * whole row, a whole column, select-all — because `selectCells()` rejects header coordinates
- * unless `navigableHeaders` is on.
+ * nothing is selected. `getSelected()` alone cannot describe a whole row, a whole column, or
+ * select-all: their ranges may carry header coordinates, which `selectCells()` rejects, or none at
+ * all, since Pagination moves a column's start to the first row of the page. The captured ranges
+ * are copies, and so is the active range — `exportSelection()` hands that one out live.
  */
 function captureSelectionState(hot: HotInstance): SelectionState | null {
   const state = hot.selection.exportSelection();
 
-  return state.ranges.length > 0 && state.activeRange ? state : null;
+  if (state.ranges.length === 0 || !state.activeRange) {
+    return null;
+  }
+
+  return { ...state, activeRange: state.activeRange.clone() };
 }
 
 /**
- * Puts a header-anchored selection back through the selection's own import, the way `dialog` and
- * `emptyDataState` restore one. Skipped when a range no longer fits the grid, since the import
- * does not validate what it is handed.
+ * Whether a captured selection was made from a header or spans a whole axis. Only such a
+ * selection needs more than `selectCells()`: that one re-lays the ranges, but drops the flags
+ * that decide the header highlight and how a later trim repairs the selection.
  */
-function importSelectionState(hot: HotInstance, state: SelectionState): void {
+function isHeaderSelection(state: SelectionState): boolean {
+  return state.selectedByRowHeader.length > 0 ||
+    state.selectedByColumnHeader.length > 0 ||
+    state.rowExtentSpansGrid.length > 0 ||
+    state.columnExtentSpansGrid.length > 0;
+}
+
+/**
+ * Whether every range of a captured selection, and its focus, still fits the grid.
+ */
+function fitsGrid(hot: HotInstance, state: SelectionState): boolean {
   const tableParams = {
     countRows: hot.countRows(),
     countCols: hot.countCols(),
@@ -334,28 +381,115 @@ function importSelectionState(hot: HotInstance, state: SelectionState): void {
     countColHeaders: hot.countColHeaders(),
   };
 
-  if (!state.activeRange || !state.ranges.every(range => range.isValid(tableParams))) {
-    return;
-  }
-
-  hot.selection.importSelection({ ...state, activeRange: state.activeRange });
+  return !!state.activeRange &&
+    state.activeRange.highlight.isValid(tableParams) &&
+    state.ranges.every(range => range.isValid(tableParams));
 }
 
 /**
- * Restores the selection. A plain cell selection goes through `selectCells()`, which runs the
- * selection hooks as before; a selection `selectCells()` rejects — one anchored in a header —
- * is imported from the captured selection state instead.
+ * Replays a one-layer whole-row, whole-column, or select-all selection through the public
+ * selection API, which runs the selection hooks and marks the header state exactly as the
+ * original gesture did. Returns `false` for a shape the API cannot express.
  */
-function restoreSelection(hot: HotInstance, state: ViewState): void {
-  if (!state.selection) {
-    return;
+function replaySingleLayer(hot: HotInstance, state: SelectionState): boolean {
+  const { from, to } = state.ranges[0];
+  const { row, col } = (state.activeRange as NonNullable<SelectionState['activeRange']>).highlight;
+  const focusPosition = { row: row ?? 0, col: col ?? 0 };
+  const spansRows = state.rowExtentSpansGrid.includes(0);
+  const spansColumns = state.columnExtentSpansGrid.includes(0);
+
+  if (spansRows && spansColumns) {
+    hot.selection.selectAll((from.col ?? 0) < 0, (from.row ?? 0) < 0, {
+      focusPosition,
+      disableHeadersHighlight: state.disableHeadersHighlight,
+    });
+
+    return true;
   }
 
-  const selected = hot.selectCells(state.selection, false, false);
-
-  if (!selected && state.selectionState) {
-    importSelectionState(hot, state.selectionState);
+  if (spansColumns) {
+    return hot.selectRows(from.row ?? 0, to.row ?? 0, focusPosition);
   }
+
+  if (spansRows) {
+    return hot.selectColumns(from.col ?? 0, to.col ?? 0, focusPosition);
+  }
+
+  return false;
+}
+
+/**
+ * Puts a multi-layer header selection back through the selection's own import, the way `dialog`
+ * and `emptyDataState` restore one, handing it copies so the stored state never becomes the live
+ * selection. The import runs no selection hooks and leaves the grid's row/column selection
+ * classes as they were, so the last layer's end is set once more and the selection finished:
+ * that is the step core answers with the classes, `afterSelection`, and `afterSelectionEnd`.
+ */
+function importLayers(hot: HotInstance, state: SelectionState): void {
+  const ranges = state.ranges.map(range => range.clone());
+  const activeRange = (state.activeRange as NonNullable<SelectionState['activeRange']>).clone();
+
+  hot.selection.importSelection({ ...state, ranges, activeRange });
+  hot.selection.setRangeEnd(ranges[ranges.length - 1].to.clone());
+  hot.selection.finish();
+}
+
+/**
+ * Restores a selection made from a header or spanning a whole axis. Returns `false` when the
+ * captured ranges no longer fit the arriving sheet.
+ */
+function restoreHeaderSelection(hot: HotInstance, state: SelectionState): boolean {
+  if (!fitsGrid(hot, state)) {
+    return false;
+  }
+
+  if (state.ranges.length === 1 && replaySingleLayer(hot, state)) {
+    return true;
+  }
+
+  importLayers(hot, state);
+
+  return true;
+}
+
+/**
+ * Moves the focus back to the cell it had inside its layer. `selectCells()` puts the focus on the
+ * start of the last range, so a focus moved inside a range, or held by another layer, is otherwise
+ * lost on the round-trip.
+ */
+function restoreFocus(hot: HotInstance, state: SelectionState): void {
+  const layer = state.ranges[state.activeSelectionLayer];
+  const highlight = state.activeRange?.highlight;
+  const current = hot.selection.getActiveSelectedRange()?.highlight;
+  const unchanged = hot.selection.getActiveSelectionLayerIndex() === state.activeSelectionLayer &&
+    current?.row === highlight?.row && current?.col === highlight?.col;
+
+  if (!unchanged && layer && highlight && fitsGrid(hot, state) && layer.includes(highlight)) {
+    hot.selection.setRangeFocus(highlight.clone(), state.activeSelectionLayer);
+  }
+}
+
+/**
+ * Restores the selection and returns whether it did. A selection made from a header, or one
+ * spanning a whole axis, is replayed from the captured selection state; a plain cell selection goes
+ * through `selectCells()`, which runs the selection hooks, and gets its focus back afterwards.
+ */
+function restoreSelection(hot: HotInstance, state: ViewState): boolean {
+  const snapshot = state.selectionState ?? null;
+
+  if (snapshot && isHeaderSelection(snapshot)) {
+    return restoreHeaderSelection(hot, snapshot);
+  }
+
+  if (!state.selection || !hot.selectCells(state.selection, false, false)) {
+    return false;
+  }
+
+  if (snapshot) {
+    restoreFocus(hot, snapshot);
+  }
+
+  return true;
 }
 
 /**
@@ -621,16 +755,95 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
  * rest of the restore happens in: scrolling to a column while rendering is suspended measures
  * the widths of the sheet that has just left, and lands short by the difference. The page goes
  * first, because the rows of every other page are hidden, and a selection or a scroll aimed at a
- * hidden row does nothing.
+ * hidden row does nothing. Returns whether the captured selection was put back, which decides
+ * what {@link keepSelectionOnPage} may do with it.
  */
-export function restoreViewport(hot: HotInstance, state: ViewState): void {
+export function restoreViewport(hot: HotInstance, state: ViewState): boolean {
   if (state.pagination) {
     applyPagination(hot, state.pagination);
   }
 
-  restoreSelection(hot, state);
+  const restored = restoreSelection(hot, state);
 
   hot.scrollViewportTo({ row: state.scroll.row, col: state.scroll.col, verticalSnap: 'top', horizontalSnap: 'start' });
+
+  return restored;
+}
+
+/**
+ * Opens a never-visited sheet on the configured initial page and page size, instead of the page
+ * and page size the previous sheet left behind. Runs after the render batch, like
+ * {@link restoreViewport}, so the page count is the arriving sheet's.
+ */
+export function resetViewport(hot: HotInstance): void {
+  const pagination = getLocalPagination(hot);
+
+  if (pagination) {
+    applyPagination(hot, {
+      page: pagination.getSetting('initialPage') as number,
+      pageSize: pagination.getSetting('pageSize') as number | 'auto',
+    });
+  }
+}
+
+/**
+ * Whether a visual row sits on the page Pagination currently shows.
+ */
+function isRowOnPage(pagination: PaginationPlugin, row: number): boolean {
+  const { firstVisibleRowIndex, lastVisibleRowIndex } = pagination.getPaginationData();
+
+  return row >= firstVisibleRowIndex && row <= lastVisibleRowIndex;
+}
+
+/**
+ * Pages towards a row until it is on the shown page, and returns whether it got there. Stops
+ * when a page change does not happen — a `beforePageChange` listener vetoed it — and after one
+ * pass over the page count.
+ */
+function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number): boolean {
+  const { totalPages } = pagination.getPaginationData();
+
+  for (let step = 0; step < totalPages && !isRowOnPage(pagination, row); step++) {
+    const page = pagination.getCurrentPage();
+
+    if (row < pagination.getPaginationData().firstVisibleRowIndex) {
+      pagination.prevPage();
+    } else {
+      pagination.nextPage();
+    }
+
+    if (pagination.getCurrentPage() === page) {
+      break;
+    }
+  }
+
+  if (!isRowOnPage(pagination, row)) {
+    return false;
+  }
+
+  hot.scrollViewportTo({ row, verticalSnap: 'top' });
+
+  return true;
+}
+
+/**
+ * Keeps the focused cell on the page Pagination shows, once the arriving sheet is painted. With a
+ * `'auto'` page size the page boundaries depend on row heights measured in that paint, so the
+ * restored page can end a row short of the selection; a host can also veto the page change. A
+ * restored selection is followed to its page (`follow`); one carried over from the previous sheet
+ * is not, and a selection still off the page is dropped rather than left on a hidden row.
+ */
+export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
+  const pagination = getLocalPagination(hot);
+  const row = hot.selection.getActiveSelectedRange()?.highlight.row;
+
+  if (!pagination || row === undefined || row === null || row < 0 || isRowOnPage(pagination, row)) {
+    return;
+  }
+
+  if (!follow || !followRow(hot, pagination, row)) {
+    hot.deselectCell();
+  }
 }
 
 /**
