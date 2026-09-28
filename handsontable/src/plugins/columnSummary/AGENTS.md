@@ -90,6 +90,40 @@ DOM write it replaced.
 
 `refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state.
 
+## A read-only summary cell is locked by a `beforeSetCellMeta` veto (DEV-148)
+
+The plugin owns the `readOnly` state of a destination whose endpoint is `readOnly` (the default), and
+nothing else may clear it. `#onBeforeSetCellMeta` vetoes every `setCellMeta(row, col, 'readOnly', falsy)`
+on such a cell. `isLockedSummaryCell(visualRow, visualColumn)` is the predicate, backed by
+`Endpoints#isReadOnlyDestination()`, which reads the same per-pass `#summaryDestinations` cache as
+`isSummaryDestination()`. The cache now maps each destination column to its endpoint's `readOnly` flag.
+
+Why a veto, and not just a smarter menu item: the menu click is only one of four write paths that
+unlocked the cell. The other three:
+
+- **Undo of a column toggle.** `ReadOnlyToggleAction.undo` writes `Boolean(stateBefore[row]?.[col])` over
+  the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled cell
+  was writable), so undo wrote `false` onto the summary.
+- **Redo** writes the toggle's value over the whole range.
+- **A direct `setCellMeta` call.** It held only until the next recalculation re-applied `readOnly`,
+  which is the "comes back after a reload" symptom in the ticket.
+
+Three rules the lock follows:
+
+- **It never blocks the plugin itself.** Its own writes go through `_setCellMetaDeclarative`, which fires
+  no hooks. That includes the vacated-cell `readOnly: false` reset in the `reversedRowCoords` re-derive.
+- **An endpoint configured `readOnly: false` is not locked.** Its cell toggles like any other, as before.
+- **The column is passed as is**, the same way `refreshCellMetas` and `setEndpointValue` address
+  `destinationColumn` when they write the meta. Do not "fix" it to a physical column in the predicate
+  alone, or the lock and the meta it protects land on different cells.
+
+The "Read only" menu item (`contextMenu/predefinedItems/readOnly.ts`) asks
+`getPlugin('columnSummary').isLockedSummaryCell()` too. It leaves locked cells out of its mark, its
+direction check, and its write loop, and it hides itself when nothing in the selection can be toggled.
+Its "make writable" undo snapshot records a locked cell as it really is (read-only), so that undo
+writes `true` back; the "make read-only" snapshot is empty, and undo's `false` for the summary is what
+the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../contextMenu/AGENTS.md`.
+
 ## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
 
 `reversedRowCoords: true` means the destination is counted from the **bottom** of the table, so

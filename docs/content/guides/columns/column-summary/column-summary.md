@@ -626,6 +626,14 @@ If you need to style the summary row, use the class name assigned automatically 
 
 :::
 
+::: tip
+
+By default, a summary cell is [read-only](@/api/options.md#readonly), and the [`ColumnSummary`](@/api/columnSummary.md) plugin keeps it that way. The **Read only** item of the context menu and the column menu doesn't appear for a summary cell, and it leaves summary cells unchanged when you toggle a whole column. Calling [`setCellMeta()`](@/api/core.md#setcellmeta) to make a summary cell editable has no effect either.
+
+To make a summary cell editable, set its `readOnly` option to `false`.
+
+:::
+
 ### Step 5: Make room for the destination cell
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.

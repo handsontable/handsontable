@@ -89,11 +89,12 @@ class Endpoints {
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
   /**
-   * Destination columns keyed by physical destination row, built once per refresh pass. Used to
-   * keep summary results out of other summaries when their row is trimmed and the
-   * `columnSummaryResult` class is unreachable.
+   * Destination columns keyed by physical destination row, built once per refresh pass, each mapped
+   * to whether its endpoint is `readOnly`. Used to keep summary results out of other summaries when
+   * their row is trimmed and the `columnSummaryResult` class is unreachable, and to lock the
+   * `readOnly` state of a read-only summary cell.
    */
-  #summaryDestinations: Map<number, Set<number>> | null = null;
+  #summaryDestinations: Map<number, Map<number, boolean>> | null = null;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -212,11 +213,14 @@ class Endpoints {
       let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
 
       if (columns === undefined) {
-        columns = new Set();
+        columns = new Map();
         this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
       }
 
-      columns.add(endpoint.destinationColumn!);
+      const column = endpoint.destinationColumn!;
+
+      // Two endpoints sharing one destination is a misconfiguration. Lock the cell if either is read-only.
+      columns.set(column, columns.get(column) === true || Boolean(endpoint.readOnly));
     });
   }
 
@@ -237,6 +241,25 @@ class Endpoints {
     }
 
     return this.#summaryDestinations!.get(physicalRow)?.has(column) === true;
+  }
+
+  /**
+   * Checks whether a physical cell holds the result of an endpoint configured as `readOnly`.
+   *
+   * The plugin owns the `readOnly` state of such a cell, so it is locked against any other write
+   * (see `ColumnSummary#isLockedSummaryCell`). An endpoint configured `readOnly: false` is not
+   * reported, which leaves its cell as toggleable as any other.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} column Column index.
+   * @returns {boolean}
+   */
+  isReadOnlyDestination(physicalRow: number, column: number): boolean {
+    if (this.#summaryDestinations === null) {
+      this.cacheSummaryDestinations(this.getAllEndpoints());
+    }
+
+    return this.#summaryDestinations!.get(physicalRow)?.get(column) === true;
   }
 
   /**

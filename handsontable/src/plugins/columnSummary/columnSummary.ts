@@ -47,7 +47,7 @@ export interface SummaryEndpoint {
  * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values) |
  * | `reversedRowCoords` | No | Boolean | `false` | [Reverses the row coordinate, count row coordinates backward](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell). Useful when displaying summary results at the bottom of the grid, as it allows you to reference rows relative to the last row (e.g., `destinationRow: 0` refers to the last row when this option is enabled) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
- * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly) |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly). The plugin keeps the cell read-only: the "Read only" menu item and [`setCellMeta()`](@/api/core.md#setcellmeta) can't make it editable |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
@@ -238,6 +238,7 @@ export class ColumnSummary extends BasePlugin {
       (index: number, amount: number, physicalColumns: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_col', index, amount, physicalColumns, source)); // eslint-disable-line max-len
     this.addHook('afterRowMove', this.#onAfterRowMove);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeSetCellMeta', this.#onBeforeSetCellMeta);
 
     super.enablePlugin();
   }
@@ -543,6 +544,49 @@ export class ColumnSummary extends BasePlugin {
 
     return cellValue;
   }
+
+  /**
+   * Checks whether a cell is the destination of a summary configured as `readOnly` (the default).
+   *
+   * The plugin owns the `readOnly` state of such a cell: it writes it on every recalculation, and
+   * nothing else may clear it. The "Read only" menu item leaves these cells out, and a
+   * `setCellMeta` that would make one writable is vetoed.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean}
+   */
+  isLockedSummaryCell(row: number, column: number): boolean {
+    if (!this.enabled || !this.endpoints) {
+      return false;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    // The column is used as is: the plugin addresses every destination column the same way when it
+    // writes the cell's `readOnly` and class (see `Endpoints#refreshCellMetas`).
+    return physicalRow !== null && this.endpoints.isReadOnlyDestination(physicalRow, column);
+  }
+
+  /**
+   * `beforeSetCellMeta` hook callback. Vetoes a write that would make a read-only summary cell
+   * writable - from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
+   *
+   * The plugin's own writes go through `_setCellMetaDeclarative`, which fires no hooks, so they are
+   * never vetoed here.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The cell meta key.
+   * @param {*} value The value to set.
+   * @returns {boolean|undefined} `false` to veto the write.
+   */
+  #onBeforeSetCellMeta = (row: number, column: number, key: string, value: unknown) => {
+    if (key === 'readOnly' && !value && this.isLockedSummaryCell(row, column)) {
+      return false;
+    }
+  };
 
   /**
    * `afterInit` hook callback.

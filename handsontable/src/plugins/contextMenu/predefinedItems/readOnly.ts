@@ -5,17 +5,41 @@ import * as C from '../../../i18n/constants';
 export const KEY = 'make_read_only';
 
 /**
- * Reports whether every, no, or only some of the selected cells are read-only. A hidden cell under a
- * merged block is left out: the block's state sits on its top-left cell.
+ * Returns a check for whether a cell's read-only state is owned by another plugin and cannot be
+ * toggled. That is the destination of a read-only column summary: the ColumnSummary plugin writes
+ * its `readOnly` state and vetoes any other write that would clear it (DEV-148).
+ *
+ * The plugin is resolved once per call, not once per cell, because the item walks the whole
+ * selection on every menu draw.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {Function} A `(row, col) => boolean` check, taking visual indexes.
+ */
+function getLockedCellCheck(hot: HotInstance): (row: number, col: number) => boolean {
+  const columnSummary = hot.getPlugin('columnSummary');
+
+  if (columnSummary?.enabled !== true) {
+    return () => false;
+  }
+
+  return (row: number, col: number) => columnSummary.isLockedSummaryCell(row, col);
+}
+
+/**
+ * Reports whether every, no, or only some of the selected cells are read-only. Two kinds of cell
+ * are left out: a hidden cell under a merged block, because the block's state sits on its top-left
+ * cell, and a cell whose read-only state is locked (see `getLockedCellCheck()`).
  *
  * @param {Core} hot The Handsontable instance.
  * @returns {boolean|string}
  */
 function getReadOnlyState(hot: HotInstance) {
+  const isLocked = getLockedCellCheck(hot);
+
   return getSelectionCheckState(hot.getSelectedRange() ?? [], (row: number, col: number) => {
     const cellMeta = hot.getCellMetaTransient(row, col);
 
-    return cellMeta.hidden ? null : Boolean(cellMeta.readOnly);
+    return cellMeta.hidden || isLocked(row, col) ? null : Boolean(cellMeta.readOnly);
   });
 }
 
@@ -42,10 +66,14 @@ export default function readOnlyItem() {
       const ranges = this.getSelectedRange() ?? [];
       // "At least one", unlike the mark: a partly read-only selection is made writable as a whole.
       // Asked of `checkSelectionConsistency()`, which stops at the first read-only cell.
-      const atLeastOneReadOnly = checkSelectionConsistency(
-        ranges,
-        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
-      );
+      //
+      // A locked cell is left out of the whole click (DEV-148). A read-only summary cell would
+      // otherwise make every selection that holds it "at least one read-only", so a column with a
+      // summary could never be made read-only, and the loop below would unlock the summary.
+      const isLocked = getLockedCellCheck(this);
+      const isReadOnlyCell = (row: number, col: number) => !isLocked(row, col) &&
+        Boolean(this.getCellMetaTransient(row, col).readOnly);
+      const atLeastOneReadOnly = checkSelectionConsistency(ranges, isReadOnlyCell);
       const readOnly = !atLeastOneReadOnly;
       // Making the selection read-only: `checkSelectionConsistency()` above found no match, which
       // means it already walked every cell to confirm that - so every affected cell's prior state
@@ -53,6 +81,8 @@ export default function readOnlyItem() {
       // entry reads as `false`) with no further reads. Making it writable needs the REAL per-cell
       // states, because the check above stopped at the FIRST read-only cell and knows nothing about
       // the rest - restoring a mixed selection on undo is only possible with a second, full pass.
+      // That pass records a locked cell as it really is (read-only), so undo writes it back as is.
+      // The empty snapshot has no entry for it, and undo's `false` there is vetoed by ColumnSummary.
       const stateBefore = atLeastOneReadOnly
         ? getReadOnlyStates(ranges, (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly))
         : {};
@@ -61,13 +91,31 @@ export default function readOnlyItem() {
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {
-          if (row >= 0 && col >= 0) {
+          if (row >= 0 && col >= 0 && !isLocked(row, col)) {
             this.setCellMeta(row, col, 'readOnly', readOnly);
           }
         });
       }
 
       this.render();
+    },
+    // Hidden, not disabled, when nothing in the selection can be toggled - a selection made only of
+    // read-only summary cells (DEV-148). A wider selection keeps the item and toggles the rest.
+    hidden(this: HotInstance) {
+      const isLocked = getLockedCellCheck(this);
+      let hasLockedCell = false;
+      // Stops at the first cell that can be toggled, so a large selection is not walked to the end.
+      const hasToggleableCell = checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
+        if (isLocked(row, col)) {
+          hasLockedCell = true;
+
+          return false;
+        }
+
+        return !this.getCellMetaTransient(row, col).hidden;
+      });
+
+      return hasLockedCell && !hasToggleableCell;
     },
     disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
