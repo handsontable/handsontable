@@ -29,5 +29,5 @@ For core development rules, read:
 
 ## Testing
 
-- Behavior changes need the test kind the change calls for (decision table in `handsontable/.ai/TESTING.md`): a Jest unit test (`*.unit.js` / `*.unit.ts`) for logic, a Playwright spec (`tests/e2e/**/*.spec.ts`) for anything a user can see or do. Flag a new Jasmine `*.spec.js`: pre-push blocks one, but CI stays green on it. Edits to existing ones are fine.
-- Favor E2E tests over unit tests. If a unit test would require mocking, write an E2E test instead.
+- Behavior changes need the test kind the change calls for (the "What to test, and in which framework" section of `handsontable/.ai/TESTING.md`): a Jest unit test (`*.unit.js` / `*.unit.ts`) for logic, a Playwright spec (`tests/e2e/**/*.spec.ts`) for anything a user can see or do. The presence gate blocks a new Jasmine `*.spec.js`, at pre-push and in CI. Edits to existing ones are fine.
+- Where either kind could prove the change, favor E2E: if a unit test would require mocking, write an E2E test instead.

@@ -7,7 +7,7 @@
 - Plugin directories: `camelCase/` (e.g., `src/plugins/hiddenColumns/`, `src/plugins/copyPaste/`)
 - Helper files: `camelCase.ts` in `src/helpers/` (e.g., `array.ts`, `object.ts`, `unicode.ts`)
 - Test files: `*.unit.js` or `*.unit.ts` for Jest unit tests, `*.spec.js` for Jasmine E2E tests
-- Type test files: `*.types.ts` in the `__tests__/` dir next to the source (`handsontable/test/types/tsconfig.json` compiles them); generated `.d.ts` in `handsontable/tmp/`
+- Type test files: `*.types.ts` in a `src/**/__tests__/` dir (`handsontable/test/types/tsconfig.json` compiles them); generated `.d.ts` in `handsontable/tmp/`
 - Each plugin directory has an `index.ts` barrel that re-exports `PLUGIN_KEY`, `PLUGIN_PRIORITY`, and the class
 
 **Functions:**

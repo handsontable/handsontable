@@ -45,10 +45,10 @@ function ruleLevels(files) {
 
 /**
  * The frozen-tier determinism rule is switched on by one override in `handsontable/.eslintrc.js`,
- * and only the file patterns that override names are covered: the 220 `*.unit.ts` files sat
- * outside it until review found `src/helpers/__tests__/function.unit.ts` carrying eleven `sleep()`
- * calls the rule never saw, while the same source saved as `.unit.js` warned. This pins the
- * override's reach in both directions.
+ * and only the file patterns that override names are covered: the `*.unit.ts` files (220 on
+ * 2026-09-07) sat outside it until review found `src/helpers/__tests__/function.unit.ts`
+ * carrying eleven `sleep()` calls the rule never saw, while the same source saved as `.unit.js`
+ * warned. This pins the override's reach in both directions.
  */
 describe('the frozen-tier determinism rule scope (handsontable/.eslintrc.js)', () => {
   const levels = ruleLevels([...TEST_FILES, ...NON_TEST_FILES]);

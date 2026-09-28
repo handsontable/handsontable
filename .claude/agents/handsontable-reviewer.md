@@ -40,7 +40,7 @@ Apply the discipline from `handsontable-code-review/SKILL.md`:
 ## Additional checks
 
 - Missing changelog entry in `.changelogs/` for source-code changes.
-- Missing test coverage: a behavior change needs the test kind the decision table in `handsontable/.ai/TESTING.md` assigns it (Jest unit for logic, Playwright `tests/e2e/` for anything a user can see or do), not both by default. Flag a new Jasmine `*.spec.js`: pre-push blocks one, but CI stays green on it.
+- Missing test coverage: a behavior change needs the test kind the "What to test, and in which framework" section of `handsontable/.ai/TESTING.md` assigns it (Jest unit for logic, Playwright `tests/e2e/` for anything a user can see or do), not both by default. The presence gate blocks a new Jasmine `*.spec.js`, at pre-push and in CI.
 - Wrapper code (`wrappers/`) must not contain business logic.
 - New dependencies require team discussion.
 

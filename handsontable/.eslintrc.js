@@ -279,9 +279,9 @@ module.exports = {
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
-    // Every Jasmine spec and every Jest unit test, in both languages (248 `*.unit.ts` files on
-    // 2026-09-23). The `*.unit.ts` files sat outside this override until review found
-    // `src/helpers/__tests__/function.unit.ts` carrying eleven sleep() calls the rule never saw.
+    // Every Jasmine spec and every Jest unit test, in both languages. The `*.unit.ts` files sat
+    // outside this override until review found `src/helpers/__tests__/function.unit.ts` carrying
+    // eleven sleep() calls the rule never saw.
     {
       files: ['*.unit.js', '*.unit.ts', '*.spec.js'],
       rules: {

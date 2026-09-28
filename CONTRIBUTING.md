@@ -28,12 +28,12 @@ To speed up the process of merging your changes, follow these rules:
     - `./handsontable/src/`
     - `./wrappers/angular-wrapper/projects/hot-table/src/`
     - `./wrappers/vue3/src/`
-7. **Ship a test with your change.** Every change to `handsontable/src/**` or `wrappers/**` must include a matching test change. This is not a courtesy — a **presence gate** blocks a push that lacks one. CI runs the same check on every PR in warn mode: it stays green and writes its verdict to the job's step summary. The *kind* of test follows the *kind* of change:
+7. **Ship a test with your change.** Every change to `handsontable/src/**` or `wrappers/**` must include a matching test change. This is not a courtesy — a **presence gate** enforces it on every PR (and locally, before you push). The *kind* of test follows the *kind* of change:
     - **User-visible** (rendering, editing, selection, keyboard, menus, overlays) → an **E2E** test. New E2E is **Playwright** (`tests/e2e/**/*.spec.ts`). The legacy Jasmine/Puppeteer `*.spec.js` suite is **frozen** — you may edit an existing spec, but **new `*.spec.js` files are blocked**; migrate a broken one to Playwright rather than patch it.
     - **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, in addition to, never instead of the E2E test above — a screenshot proves pixels only; the rule is in `visual-tests/AGENTS.md` (Decision rule).
-    - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` in a `__tests__/` directory next to the source.
+    - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` or `*.unit.ts` in a `__tests__/` directory next to the source.
     - **Public API / type surface** (an exported type, a `GridSettings` option, a wrapper prop or input) → a **type test**, `*.types.ts`, in the package whose types changed. React and Angular have no type-test harness yet, so declare a type change there (see the refactor bullet) until they do.
-    - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → its own test runner (separate pipeline).
+    - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → new behavior tests are Playwright, in `tests/e2e/walkontable/`. The engine's Jasmine specs (`test/spec/`) are frozen like the main suite and run in their own pipeline (`npm run test:walkontable`); its unit tests (`test/unit/`) are Jest and run with the core `npm run test:unit`.
     - **Pure refactor or internal non-runtime change** (types no consumer imports, config, internal re-exports) → no test required, but you must declare it with a `Refactor-only: <reason>` trailer in the message of the commit that makes the change – a trailer covers only the files its own commit changes. If that commit is already pushed, write `[refactor-only: <reason>]` in the PR description instead, as plain text rather than code (a PR branch must not be force-pushed). Either way, the reason needs at least three words that say what the change is. A comment-only edit and a translation dictionary need no declaration.
 
     Your tests help us understand the issue and make sure it stays fixed forever. Write them to prove the *intended* behavior, ideally before the code — for a bug fix, write the failing test first, confirm it fails for the right reason, then fix it so it stays as a regression guard.
@@ -72,9 +72,9 @@ Running `pnpm install` wires the git hooks (via [lefthook](https://github.com/ev
 
 - **pre-commit** — lints your staged files (auto-fixes where it can).
 - **pre-push** — runs the **presence gate** (blocks a source change with no matching test), a **test-weakening detector** (warns on dropped/loosened assertions and added skips), and the **unit tests and Playwright specs you touched**.
-- **CI** mirrors all of the above and is the authoritative gate, with one exception: it runs the presence gate in warn mode.
+- **CI** mirrors all of the above and is the authoritative gate.
 
-`git ... --no-verify` bypasses the local hooks, and CI re-runs the same checks, so for most of them the bypass only defers the failure. A missing test, or a new Jasmine `*.spec.js`, is the exception: CI does not fail it, so it reaches review green. Don't rely on the bypass.
+`git ... --no-verify` bypasses the local hooks, but CI re-runs the same checks — so the bypass only defers the failure. Don't rely on it.
 
 **The meaningfulness bar (non-negotiable):** *green is not the goal — correct behavior is.* When a test is red, diagnose which side is wrong (the code or the test's expectation) and fix that side. Never reach green by weakening the test. These moves are banned and, except where noted, machine-detected:
 

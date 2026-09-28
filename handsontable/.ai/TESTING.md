@@ -8,7 +8,7 @@
 - Jest for unit tests (configured in `handsontable/jest.config.js`; `jest-jasmine2` runner)
 - **Playwright for new E2E** (`tests/` package; the current paradigm — skill: `handsontable-playwright-e2e`)
 - Jasmine with Puppeteer for the **frozen legacy** E2E suite (headless Chrome via `test/scripts/run-puppeteer.mjs`)
-- Separate test runner for Walkontable (`npm run test:walkontable`)
+- Separate test runner for Walkontable's specs (`npm run test:walkontable`); Walkontable's unit tests run in the core Jest suite
 
 **Assertion Library:**
 - Jest's built-in `expect()` for unit tests
@@ -19,7 +19,7 @@
 **Run Commands:**
 ```bash
 # From handsontable/ directory:
-npm run test:unit                  # Run all Jest unit tests (~446 files, Walkontable's test/unit/ included)
+npm run test:unit                  # Run all Jest unit tests (~448 files, Walkontable's test/unit/ included)
 npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~946 spec files)
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
@@ -82,7 +82,7 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 ## Test File Organization
 
 **Location:**
-- **Unit tests**: Co-located with source in `src/**/__tests__/` directories
+- **Unit tests**: Co-located with source in `src/**/__tests__/` directories; also `test/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
 - **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and its contract tests)
 - **E2E core method tests**: `src/__tests__/core/` — filename matches the method name (e.g., `selectCell.spec.js`)
 - **E2E hook tests**: `src/__tests__/hooks/` — filename matches the hook name (e.g., `afterChange.spec.js`)
@@ -93,9 +93,9 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 - **Plugin E2E tests**: `src/plugins/{pluginName}/__tests__/` (alongside plugin source)
 
 **Naming:**
-- Unit tests: `{feature}.unit.js` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
+- Unit tests: `{feature}.unit.js` or `{feature}.unit.ts` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
 - E2E tests: `{featureName}.spec.js` — the filename must match the method, hook, or setting name exactly (e.g., `selectCell.spec.js`, `afterChange.spec.js`, `height.spec.js`)
-- Type tests: `*.types.ts` in the `__tests__/` dir next to the source (`test/types/tsconfig.json` compiles them)
+- Type tests: `*.types.ts` in a `src/**/__tests__/` dir (`test/types/tsconfig.json` compiles them)
 
 **Structure Examples:**
 ```
@@ -552,7 +552,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
-- Location: mostly `src/**/__tests__/`; also `test/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
+- Location: mostly `src/**/__tests__/`; also `test/__tests__/` and `test/helpers/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed

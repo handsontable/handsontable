@@ -3,8 +3,7 @@
  * Pre-push gate (invoked by lefthook). The local, fast mirror of the CI
  * enforcement: a change must carry a test, and any changed Playwright spec is
  * run so a new test is proven before it is pushed. Bypassable with
- * `git push --no-verify` — CI re-runs these checks, but it runs the presence
- * gate with GATE_MODE=warn, so this hook is the one place a missing test blocks.
+ * `git push --no-verify` — CI is the real guarantee.
  *
  * Scoped to stay fast: it runs the presence gate (no build), the determinism
  * ratchet on the changed spec files, only the Playwright specs the push
