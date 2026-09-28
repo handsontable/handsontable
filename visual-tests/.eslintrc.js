@@ -97,6 +97,83 @@ const DETERMINISM_RESTRICTIONS = [
       + 'the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`).',
   },
 ];
+// Visual-only, so it is kept out of the two blocks above, which mirror `tests/.eslintrc.cjs` (the first one
+// verbatim): a functional spec asserts, so it has no capture to guard. A capture on the statement straight
+// after a pointer or keyboard primitive photographs whichever half of the transition the runner reached — the
+// focus move a Tab starts, the highlight a click paints on the next frame. Three filters specs
+// (escaping-the-menu, entering-and-escaping-by-value-lists, accepting-by-enter) were repaired when this landed:
+// their 28 sites assert the state, then capture (28 of 28 captures byte-identical before and after, locally).
+// Their actions settle inside the keydown handler (Tab, Shift+Tab and Escape focus or close synchronously, and
+// no repaired capture follows the condition input's 10 ms focus timer), so there the assertions make a wrong
+// state fail loudly rather than close a race; they are the shape every later repair takes. The other 100, 15
+// of them in the other six filters specs, wear a tracked disable line.
+//
+// esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
+// lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
+// `:has(> X)` form parses and matches NOTHING, with no error: a first draft written that way reported 0 sites
+// where there are 128. `~` fires on ANY earlier sibling, so it cannot express "nothing asserted in between"
+// and is not a broader `+`. And the capture half must be the statement's OWN call, read through attribute
+// paths: a descendant `:has()` there also matches a whole `visualTest(…)` statement whose body captures, so
+// a test that acts followed by a test that captures reported the second test call itself (2 false sites in
+// cross-browser/copy-paste.spec.ts). The action half keeps the descendant form on purpose — an action
+// nested inside the previous statement (`await Promise.all([… click() …])`) still acted — and it takes a
+// declaration as well as an expression statement, because `const clicked = await cell.click();` acted too.
+//
+// Adjacency sees the previous statement only, and only when that statement is an expression or a
+// declaration. A comment between the action and the capture does not break it (comments are not AST
+// siblings). A neutral statement does (`const box = …`, 1 site of 211 when this was measured with the page
+// helpers counted), and so does an action inside an `if`, `try` or loop block just before the capture, or a
+// capture that opens a block — neither of those two shapes is in the tree today, and the self-test pins all
+// four as unseen. A capture is the statement's own `screenshot()` call: awaited or not, kept in a `const`,
+// returned, or handed straight to `expect()` (the last three are in no spec today; the self-test pins them
+// too). A tracked `waitForTimeout()`
+// in between shields 18 captures in 12 specs: replacing such a sleep with the assertion it stands for clears
+// both lines, while deleting it with nothing in its place makes the capture fire, so the disable line moves
+// to the capture. Page helpers are deliberately not enumerated: a renamed helper would silently leave the
+// list, and the helpers that act with no `expect()` or wait (25 of the 48 exported from `src/page-helpers.ts`
+// on 2026-09-23, plus three that wait only with a fixed sleep: collapseNestedRow, resizeColumn, resizeRow)
+// are their own follow-up, each ending on the state it produced.
+//
+// Primitives only: the pointer, keyboard, and focus methods a spec calls on a locator or a page, plus any
+// call on `page.mouse`, `page.keyboard` or `page.touchscreen`. The names past the seven the spec listed
+// (`tap`, `pressSequentially`, `clear`, `check`, `uncheck`, `setChecked`, `selectOption`, `focus`, `blur`,
+// `selectText`, `dispatchEvent`, `dragAndDrop`) matched 0 extra sites when this landed; they are here so
+// another spelling of the same action is not a way around it. A method is matched by name on any object, so a same-named call
+// that is no Playwright action (`Set#clear()`, `Array#fill()`) counts too; none sits before a capture today.
+//
+// One rule id, one severity: `no-restricted-syntax` cannot be `warn` for this selector and `error` for the
+// sleep bans, and a disable line on a capture silences every selector on that line (harmless — a
+// `tablePage.screenshot()` is the one statement none of the others can match). Measured 2026-09-23: 128 of
+// the 273 captures in 50 of the 112 specs (the dotfile template holds one more, which ESLint never lints) —
+// 61 multi-frameworks, 59 js-only, 8 cross-browser; 0 in `src/`.
+const SCREENSHOT = 'callee.property.name="screenshot"';
+const CAPTURE = `:matches(${[
+  `ExpressionStatement[expression.argument.${SCREENSHOT}]`,
+  `ExpressionStatement[expression.${SCREENSHOT}]`,
+  `VariableDeclaration[declarations.0.init.argument.${SCREENSHOT}]`,
+  `VariableDeclaration[declarations.0.init.${SCREENSHOT}]`,
+  `ReturnStatement[argument.argument.${SCREENSHOT}]`,
+  `ReturnStatement[argument.${SCREENSHOT}]`,
+  // `expect(await tablePage.screenshot()).toMatchSnapshot()`, awaited or not.
+  `ExpressionStatement[expression.argument.callee.object.arguments.0.argument.${SCREENSHOT}]`,
+  `ExpressionStatement[expression.callee.object.arguments.0.argument.${SCREENSHOT}]`,
+].join(', ')})`;
+const ACTING_STATEMENT = ':matches(ExpressionStatement, VariableDeclaration)';
+const POINTER_OR_KEYBOARD_METHOD = '/^(click|dblclick|tap|hover|press|pressSequentially|type|fill|clear|check'
+  + '|uncheck|setChecked|selectOption|dragTo|dragAndDrop|focus|blur|selectText|dispatchEvent)$/';
+const CAPTURE_RESTRICTIONS = [
+  {
+    selector: `${ACTING_STATEMENT}:has(CallExpression[callee.property.name=${POINTER_OR_KEYBOARD_METHOD}]) `
+      + `+ ${CAPTURE}, `
+      + `${ACTING_STATEMENT}:has(CallExpression[callee.object.property.name=/^(mouse|keyboard|touchscreen)$/]) `
+      + `+ ${CAPTURE}`,
+    message: 'A capture straight after a pointer or keyboard action photographs whichever half of the '
+      + 'transition the runner reached. Assert the state the screenshot is meant to show first — `await '
+      + 'expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` / `.toHaveClass()` — or call a '
+      + 'page helper that does. A tracked exception carries `// eslint-disable-next-line no-restricted-syntax '
+      + '-- DEV-1234: <why>`. See visual-tests/AGENTS.md (Determinism).',
+  },
+];
 // The two shapes a spec must not write once `visualTest()` exists, scoped to `tests/**/*.spec.ts` so the
 // conditional skip stays legal in `src/`, which is where it is emitted from now. A bare `test()` renders on
 // every variant the tier launches and states nothing, which is how the golden set grew from 1646 to 1676
@@ -123,6 +200,12 @@ const SPEC_DECLARATION_RESTRICTIONS = [
       + '`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`.',
   },
 ];
+// The statement a spec's docblock belongs to, and the ticket it has to name: a ClickUp id in one of the
+// three spaces development work lives in (`DEV-`, `PRO-`, `SU-`, never numbered 0) or a GitHub issue of four
+// or more digits. The plugin tests the pattern unanchored against the block's main description, so a ticket
+// in a trailing tag does not count, and the pattern bounds itself: `#1234ab`, `DEV-0` and `XDEV-12` fail.
+const SPEC_TEST_CALL = 'ExpressionStatement > CallExpression[callee.name=/^(test|visualTest)$/]';
+const SPEC_DOCBLOCK_TICKET = '(?:^|[^\\w#])(?:(?:DEV|PRO|SU)-[1-9]\\d*\\b|#[1-9]\\d{3,}\\b)';
 // A rule setting replaces the inherited one rather than merging with it, so the airbnb list every
 // `.ts` file gets today (`for..in`, `for..of`, labels, `with`) is spread in first.
 const AIRBNB_RESTRICTED_SYNTAX = require('eslint-config-airbnb-base/rules/style')
@@ -156,6 +239,7 @@ module.exports = {
           ...AIRBNB_RESTRICTED_SYNTAX,
           ...WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS,
           ...DETERMINISM_RESTRICTIONS,
+          ...CAPTURE_RESTRICTIONS,
         ],
       }
     },
@@ -169,14 +253,46 @@ module.exports = {
           ...AIRBNB_RESTRICTED_SYNTAX,
           ...WAIT_FOR_FUNCTION_POLLING_RESTRICTIONS,
           ...DETERMINISM_RESTRICTIONS,
+          ...CAPTURE_RESTRICTIONS,
           ...SPEC_DECLARATION_RESTRICTIONS,
         ],
+        // Every test call carries a docblock that says what its capture proves and names the ticket that
+        // owns it, so a red golden has an owner and a stale spec has a stated reason to exist. When this
+        // landed, 91 of the 115 calls had no block, none of the 24 that had one named a ticket, and six of
+        // those were copies of one filters spec's sentence, pasted onto specs about something else.
+        //
+        // Setting `contexts` does not cost the function rule: the plugin's option schema defaults
+        // `require.FunctionDeclaration` to true, so a function in a spec still needs its block (measured,
+        // and pinned by behavior in the self-test, since reading the option back sees the default). The
+        // context names `visualTest` as well as `test`: after the variant declaration renamed every call,
+        // a `callee.name="test"` selector matched nothing and the rule was silently off (measured). A
+        // looped spec (`urls.forEach(url => { visualTest(…) })`) gets one block per inner call, which is
+        // where the jsdoc plugin attaches it.
+        //
+        // No fixer: it would write an empty `/**\n *\n */` stub above an undocumented call on every
+        // `eslint --fix` (the pre-commit hook, the agent hook), which `match-description` rejects anyway.
+        'jsdoc/require-jsdoc': ['error', {
+          contexts: [SPEC_TEST_CALL],
+          enableFixer: false,
+        }],
+        // `match-description` skips a block with no main description, so an empty block, or one holding
+        // only a tag (`@see …`), would otherwise pass both rules.
+        'jsdoc/require-description': ['error', {
+          contexts: [SPEC_TEST_CALL],
+        }],
+        'jsdoc/match-description': ['error', {
+          mainDescription: SPEC_DOCBLOCK_TICKET,
+          message: 'The spec docblock says what the capture proves and names the ticket that owns it '
+            + '(DEV-1234, or a GitHub issue as #12345). See visual-tests/AGENTS.md (Determinism).',
+          contexts: [SPEC_TEST_CALL],
+        }],
       }
     },
     {
       // Same treatment the root config gives `scripts/**/*.mjs`: Node ESM needs
       // the file extension on relative imports, which the base config forbids.
-      files: ['lib/**/*.mjs'],
+      // `test/` holds the lint config's own self-test, which imports ESLint.
+      files: ['lib/**/*.mjs', 'test/**/*.mjs'],
       rules: {
         'import/extensions': [
           'error',

@@ -11,6 +11,10 @@ import {
   FilterConditions,
 } from '../../../src/page-helpers';
 
+/**
+ * Checks that changing the page size (50, auto, then 20) re-pages a filtered and sorted grid and updates
+ * the controls, including after a move to the next page. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

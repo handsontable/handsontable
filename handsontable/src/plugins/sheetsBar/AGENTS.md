@@ -22,7 +22,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   longer matches the data is skipped. Manual sizes are stored as sparse
   `[physicalIndex, size]` pairs read and written through the resize plugins'
   `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its height) and
-  cleared through their bulk `clearManualSizes()`.
+  cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
+  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
+  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
+  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
+  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
+  visual space its stored index is mapped through. For the same reason the hidden rows are
+  captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
+  the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
+  `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -102,7 +110,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
   `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the
-  host removed.
+  host removed. Physical keys are not stable across `alter()`: an insert or remove renumbers
+  every physical index after it, and core's `MetaManager` shifts its own cell meta to match.
+  The `afterCreateRow`/`afterRemoveRow`/`afterCreateCol`/`afterRemoveCol` handlers re-key the
+  map the same way (drop the removed indexes, shift the rest; an `auto` insert shifts nothing,
+  because `DataMap` does not shift core meta for it either), and a host `loadData` clears
+  it, because `loadData` clears core's cell meta. Any new code path that renumbers physical
+  indexes must re-key it too, or the serve hook paints a cell's meta onto its neighbor. The
+  `auto` skip also covers the rows a switch creates for `minRows` or `minSpareRows` while the
+  arriving sheet's map sits over the outgoing sheet's data, so the re-key needs no
+  `#isSwitching` guard, and must not take one: a host `alter()` from
+  `afterSheetTabStateRestore` runs inside the switch and has to re-key. The four listeners
+  register at `orderIndex` -1, so the map is shifted before a host listener on the same hook
+  reads meta, the way core shifts `MetaManager` before it fires. The map follows whatever indexes the hooks
+  report, so the NestedRows tree operations, which fire `afterCreateRow`/`afterRemoveRow` with
+  computed indexes (and fire nothing on a tree row move), can still drift from core meta.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
   after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
   filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
@@ -149,19 +171,60 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   so the bar sits after the last row. A layout where the bar covers a row, is clipped, or overshoots
   the declared height is a core/layout bug, not a plugin one (`tests/e2e/bottom-slot-sizing.spec.ts`,
   DEV-2848).
+- **A `dblclick` on the chevron is two menu clicks, never a rename (DEV-3086).** The tab's
+  `dblclick` handler skips the chevron on every tab, not only the active one: on another tab
+  the first click switches sheets and repaints, so the pair's `dblclick` lands on a chevron that
+  is active by then. Without the guard the rename input opened on top of the menu the second
+  click had just opened. The reverse order needs no guard — opening the menu moves the focus,
+  the input blurs, and the blur commits the rename first.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
+- **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
+  `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
+  restore runs after it and goes through the public `sort()`, `filter()` and `merge()`, whose
+  UndoRedo actions register on `beforeColumnSort`/`beforeFilter`/`beforeMergeCells`. Without the
+  guard they land on the fresh stack, and the first Ctrl+Z after a switch took back the arriving
+  sheet's own sort. `restoreFilterConditions` also skips `filter()` when neither the stored state
+  nor the grid has a condition — the neutral state's `filterConditions: []` is truthy, so every
+  switch used to run a filter pass.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
-- **A switch runs `loadData()` once or twice, and AutoColumnSize sweeps every column on each
-  (DEV-2905).** `#applySheet` first applies the sheet's settings (declared, or inherited formula
-  settings for a runtime-added sheet) through `updateSettings()`; when that changes the Formulas
-  plugin's `sheetName` and the engine sheet holds content, `Formulas#switchSheet` runs a `loadData()`
-  of the engine's serialized content (`source: 'Formulas.switchSheet'`) before the bar's own
-  `loadData()` — a blank engine sheet skips it. Each `loadData()` nulls the width map, so the
-  AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
+- **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
+  (DEV-2905, DEV-3040).** `#applySheet` first applies the sheet's settings (declared, or inherited
+  formula settings for a runtime-added sheet) through `updateSettings()`; when that changes the
+  Formulas plugin's `sheetName`, `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of
+  the engine's serialized content (`source: 'Formulas.switchSheet'`), right before the bar's own
+  `loadData()` overwrote it. `#withoutFormulasSwitchLoad` sets the Formulas plugin's `@private`
+  `skipSheetSwitchLoad` flag around that `updateSettings()` (duck-typed through `getPlugin`, like
+  `#withoutUndoEntry` does for UndoRedo), so Formulas only binds the sheet and the bar's load — whose
+  Formulas `afterLoadData` writes the array into that sheet — is the one load. Between the two calls
+  the grid still holds the departing sheet's data while bound to the arriving sheet. The switch is
+  render-suspended and the binding clears the owed resync, so Formulas writes nothing into the engine;
+  a read in that window (another plugin's `updatePlugin`, a host `afterUpdateSettings` listener)
+  answers from the arriving engine sheet at the departing grid's coordinates, until the load replaces
+  the data. **Core does write in that window**: `updateSettings()` ends in `adjustRowsAndCols()`,
+  which pads the array the grid holds — the departing sheet's own `data`, by reference — up to the
+  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols` — and a grid-level one does the
+  same whenever the update changes what the padding reads (a baseline restoring `columns: null`
+  opens the `minCols` branch; an arriving `trimRows` lowers `countRows()`). So `#applySheet` runs
+  that update under `#withoutAutoPadding`, and `#onBeforeAutoCreate` (registered on
+  `beforeCreateRow`/`beforeCreateCol` at the top of `enablePlugin`, so the init build is covered
+  too) vetoes every create with source `auto` while it is set. The `loadData()` that follows pads
+  the arriving sheet's data inside its own `adjustRowsAndCols()`, before `afterLoadData`, exactly as
+  a plain load does, so host listeners, the AutoColumnSize sweep and the Formulas engine write all
+  see the padded size. Do not replace the veto with a zero-then-reapply of the `min*` keys: that
+  missed grid-level keys, ran a second `updateSettings()` (a second Formulas `setSheetContent` and
+  engine undo entry per switch, and a second host `afterUpdateSettings`), and moved the padding
+  after `afterLoadData`. The listener returns `undefined` rather than `true` when it does not veto,
+  so it never overrides another listener's `false`. Before this, only a formula switch onto a
+  non-empty engine sheet was safe (`switchSheet()` loaded a throwaway copy first); a workbook without
+  Formulas and a switch onto an empty engine sheet padded the departing sheet. Pinned in
+  `sheetsBar.unit.js`: "loads the grid once per switch", the four "does not pad a … sheet's data …"
+  tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch",
+  and "leaves the Formulas switch load and min padding working after a switch threw mid-update". The
+  `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before
   the Formulas `afterLoadData` fed the new data to the engine, and the engine's `valuesUpdated` batch
@@ -169,8 +232,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `orderIndex` -1, and `tests/e2e/sheet-switch-autosize.spec.ts` pins the count. What remains is
   O(rows × cols) per `loadData()` by design — the `syncLimit` contract is "first paint exact" — so a
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
-  double load and the Formulas `afterCellMetaReset` scan of the *outgoing* sheet that the
-  `updateSettings()` triggers are the remaining per-switch costs, both outside this plugin.
+  Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
+  triggers is the remaining per-switch cost outside this plugin.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

@@ -280,12 +280,42 @@ They are written in different places and can drift. Keep this in mind:
   sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
   row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
   splice cannot leave a later one pointing at the wrong sibling.
+- **The `beforeRemoveRow` listener is registered with `orderIndex: -1`, and that number is load-bearing.**
+  `beforeRemoveRow` listeners run in registration order, and registration follows ascending
+  `PLUGIN_PRIORITY`. At the default order, every plugin below 300 read the list before the
+  subtree was added to it. Formulas (260) is the one that broke: it translated the parent alone to HyperFormula
+  indexes, so the engine kept the descendants while the grid dropped them, and its
+  `isItPossibleToRemoveRows` veto never saw them either (DEV-3092). The negative index puts the
+  expansion ahead of every default-order listener, including host hooks and a listener registered by a
+  plugin enabled at runtime. **Registration order is not stable even for a grid built with the plugin
+  on.** `updatePlugin()` runs `disablePlugin()` (which clears the hooks) and `enablePlugin()` on every
+  `updateSettings()` carrying the `nestedRows` key, which in React is every re-render, so before the
+  negative index the listener moved to the tail. From then on, a host `beforeRemoveRow` saw the parent
+  alone too, so what it received depended on whether a settings update had happened. The negative index
+  makes the list the same every time for every default-order listener. UndoRedo was never affected
+  either way: `RemoveRowAction` snapshots the tree through `NestedRows#captureRemovedRows()` (delegating to the `DataManager`), which walks
+  each removed row's subtree itself. The guarantee stops at order index `-1`. A host listener registered
+  with a lower index always runs before the expansion. One registered with `-1` itself is ordered by
+  insertion (`HooksBucket#insertByOrder` places an entry after the existing entries with the same
+  index), so it runs after the expansion when it was added after the plugin was enabled, and before it
+  once `updatePlugin()` has re-registered the plugin's listener.
+  Global (`Hooks.getSingleton()`) listeners still run first, because the
+  global bucket runs before the instance bucket. The expansion has no side effects and is idempotent (the
+  accumulator is a `Set`), so it may run even when a later listener vetoes the removal, and a detach,
+  which hands the hook a list that is already expanded, is unaffected. `amount` is not rewritten, so a
+  listener that sizes its work from `amount` (ColumnSummary) still sees the count before expansion. Do
+  not "fix" an ordering problem here by raising `PLUGIN_PRIORITY`, and do not make Formulas expand the
+  list itself.
 - **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
   open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
   so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
   (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
   still dropping `__children`. A two-level "no error" assertion is not enough — use
   `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
+- **Detach is one undo action, not a remove/create pair.** `detachFromParent()` must carry its source
+  through all structural hooks. UndoRedo recognizes the initial `NestedRows` source and records
+  `NestedRowsDetachAction`; redo uses `UndoRedo.redo` so it does not record another action. Do not bypass
+  either source, or one Ctrl/Cmd+Z replays only half of the tree move (DEV-138).
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new

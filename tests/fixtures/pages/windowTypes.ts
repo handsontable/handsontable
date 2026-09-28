@@ -192,12 +192,14 @@ export interface FixtureHotInstance {
   rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getFirstFullyVisibleColumn(): number;
+  getLastFullyVisibleColumn(): number;
   getLastPartiallyVisibleRow(): number;
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
   getColWidth(col: number): number;
-  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
@@ -218,6 +220,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  getSettings(): { fixedColumnsStart?: number, [key: string]: unknown };
   alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
@@ -380,6 +383,10 @@ declare global {
     wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
+    /** Names of the public selection hooks fired on the selection-features fixture grid. */
+    selectionHookLog: string[];
+    /** Renderer calls that painted a cell of the selection-features fixture grid. */
+    cellPaintCount: number;
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
     /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
@@ -396,6 +403,13 @@ declare global {
       physicalRows: number[];
       source?: string;
     }[];
+    /**
+     * Physical rows a HOST `beforeRemoveRow` listener (declared in the constructor settings) saw on
+     * each call, in firing order - the DEV-3092 remove-parent fixture's `updatePlugin()` regression
+     * case, where NestedRows' own listener has to keep running ahead of this one even after it is
+     * cleared and re-registered by an `updateSettings()` call.
+     */
+    hostBeforeRemoveRowLog?: number[][];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */

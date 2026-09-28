@@ -5,6 +5,10 @@ import {
   selectFromContextMenu,
 } from '../../src/page-helpers';
 
+/**
+ * Checks that a column frozen through the context menu stays pinned while the grid scrolls horizontally.
+ * Owned by DEV-2981.
+ */
 visualTest('Test freezing', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

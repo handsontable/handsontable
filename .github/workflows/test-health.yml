@@ -1,10 +1,12 @@
 # The cross-run flake ledger.
 #
-# Runs after every completed `Tests` or `Develop` run and collects every flaky or
-# failed test it left behind as artifacts — the Playwright
-# JSON report of each failed leg (`playwright-report-*`, which a green leg uploads
-# too when a flaky test was under quarantine) and the Puppeteer runner's
-# failed-specs record (`puppeteer-failed-specs-*`) — into a ledger on `gh-pages`:
+# Runs after every completed `Tests`, `Develop`, `Publish`, or `Visual nightly` run
+# and collects every flaky or failed test it left behind as artifacts — the
+# Playwright JSON report of each failed leg (`playwright-report-*`, which a green
+# leg uploads too when a flaky test was under quarantine), the Puppeteer runner's
+# failed-specs record (`puppeteer-failed-specs-*`), and the visual compare record
+# every Compare job uploads (`visual-compare-*`; a pull request's arrives on its
+# `Tests` run, the nightly's on its own) — into a ledger on `gh-pages`:
 #
 #   https://handsontable.github.io/handsontable/test-health/
 #
@@ -32,12 +34,16 @@ on:
   workflow_run:
     # 'Publish' collects the rc/stable paths, where `test.yml` runs as nested jobs of the Publish
     # run rather than as its own 'Tests' run — the window DEV-2667 showed the ledger earns most.
-    workflows: ['Tests', 'Develop', 'Publish']
+    # 'Visual nightly' collects the weekday full render: the only build that renders the wrappers for
+    # real, and the one where a flaky golden shows up night after night. 'Visual seed' stays out on
+    # purpose — a seed's differences are what its merge changed — and the collector skips a seed-tier
+    # record on any run it does see.
+    workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly']
     types: [completed]
   workflow_dispatch:
     inputs:
       run-id:
-        description: 'Id of the Tests or Develop run to collect (backfill, or testing a change to this workflow)'
+        description: 'Id of the Tests, Develop, Publish, or Visual nightly run to collect (backfill, or testing a change to this workflow)'
         required: true
         type: string
 
@@ -86,7 +92,7 @@ jobs:
           echo "RUN_ID=${RUN_ID}" >> "$GITHUB_ENV"
           echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
 
-      # Only the two artifact families the ledger reads, one directory each. An
+      # Only the three artifact families the ledger reads, one directory each. An
       # expired or vanished artifact is a warning, never a failure: the other
       # legs of the run still get recorded.
       - name: Download the run's test artifacts
@@ -95,7 +101,7 @@ jobs:
         run: |
           mkdir -p artifacts
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|puppeteer-failed-specs-)")) | .name' \
+            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|puppeteer-failed-specs-|visual-compare-)")) | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
             echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."

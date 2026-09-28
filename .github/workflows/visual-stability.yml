@@ -5,19 +5,49 @@ name: Visual stability
 # captures came back byte-different, and which pairs the suite's own comparison
 # (reg-cli with regconfig.json's tolerances) would have called "changed".
 #
-# On demand only. It publishes nothing, reads no secret, comments nowhere, so it
-# needs no fork guard and can never touch `base/<branch>`; the verdict lives in
-# the job summary. Ten machines are the point: a single-machine loop cannot see
-# the cross-runner component of the noise (the same commit renders byte-stable
-# on one box and flips on the next), which is why the ticket asks for ten
-# consecutive runs rather than a local repeat.
+# It runs every weekday night on develop (a schedule always runs on the default
+# branch, which is develop), and on demand. The nightly full render
+# (visual-nightly.yml) catches drift: one render against the baseline, so it sees
+# a change the seed did not carry. This catches noise: several runners against
+# EACH OTHER, from one commit, so it sees a capture that cannot render the same
+# way twice. The two run on the same nights — this one thirty minutes after the
+# nightly, so they do not contend for runner slots at the same instant — so a
+# flake and a drift seen the same morning can be told apart, for the captures
+# this run renders: one it calls unstable is a flake. One it calls stable but
+# the nightly calls changed is drift or a poisoned golden: compare the nightly's
+# render (its sha256 is on the ledger) with the golden before looking for the
+# commit. Three agreeing runners do not rule out a rare flake. On the schedule
+# it renders on three runners; a dispatch keeps ten, the DEV-2797 acceptance
+# count.
 #
-# Scope is deliberately narrow — the filters family plus the RTL selection spec,
-# the two groups that produced every sighting — so a dispatch costs ~10 short
-# jobs, not ten full suites. Widen `SPECS` for another investigation rather than
-# growing this into a second suite; the nightly full render is a separate
-# workflow.
+# It publishes nothing, comments nowhere, and never touches `base/<branch>`; the
+# verdict lives in the job summary. The one secret it reads is the Slack webhook,
+# in the `notify` job alone, which posts a failed scheduled run and skips itself
+# when the secret is absent — the same shape as visual-nightly.yml. Several
+# machines are the point: a single-machine loop cannot see the cross-runner
+# component of the noise (the same commit renders byte-stable on one box and
+# flips on the next), which is why the acceptance asks for separate runners
+# rather than a local repeat.
+#
+# Scope is narrow by default — the filters family plus the RTL selection spec,
+# the two groups that produced every sighting — so a night renders on three
+# runners (the matrix still starts ten jobs, and seven stop at their first
+# step), not three full suites. A dispatch can widen the spec lists to every
+# spec (`scope: full`) for one investigation; the schedule never does. `full`
+# keeps the same variants: js on chromium in classic plus the chosen theme,
+# and the cross-browser specs on chromium and firefox. No wrapper, no WebKit,
+# and no other theme renders.
+#
+# A trim that drops `classic` or the chosen theme from a filters spec (the
+# consolidation work) does not turn this matrix red. The spec skips that pass
+# in every render, so its captures leave the set the verdict judges, and the
+# run stays green while it measures less. After such a trim, render a theme the
+# filters specs still declare: the `theme` input, and the schedule's
+# `main-dark` fallback with it.
 on:
+  schedule:
+    # 02:30 UTC Tue–Sat: the nightly's `0 2 * * 2-6` nights, thirty minutes later.
+    - cron: '30 2 * * 2-6'
   workflow_dispatch:
     inputs:
       iterations:
@@ -30,6 +60,11 @@ on:
         type: choice
         default: 'main-dark'
         options: ['main', 'main-dark', 'horizon', 'horizon-dark']
+      scope:
+        description: 'What to render: the specs under investigation, or every spec in the same variants (js: classic plus the theme, on chromium; cross-browser: chromium and firefox)'
+        type: choice
+        default: 'investigation'
+        options: ['investigation', 'full']
 
 permissions:
   contents: read
@@ -61,10 +96,13 @@ jobs:
       matrix:
         iteration: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
+      # A schedule carries no inputs, so every read of one needs its fallback: an empty count would
+      # make the comparison below a bash error on every iteration, and an empty theme would render the
+      # themed pass with no theme at all. Three on the schedule; the dispatch default stays ten.
       - name: Skip beyond the requested iteration count
         id: gate
         env:
-          ITERATIONS: ${{ inputs.iterations }}
+          ITERATIONS: ${{ inputs.iterations || '3' }}
           ITERATION: ${{ matrix.iteration }}
         run: |
           if [ "$ITERATION" -gt "$ITERATIONS" ]; then
@@ -98,7 +136,7 @@ jobs:
         run: npx --no playwright install-deps chromium firefox
         working-directory: visual-tests
 
-      # No Build stage to download from on a dispatch, so this composes the same
+      # No Build stage to download from on a dispatch or the schedule, so this composes the same
       # screenshot tree visual.yml's artifact-fallback path does: the ES + CJS
       # build, the language packs, the type declarations the regenerated
       # `exports` map names (partial-packaging.test.mjs pins that pairing), and
@@ -166,7 +204,7 @@ jobs:
       # screenshot path, so an iteration keeps whatever the LAST attempt drew. That hides exactly what
       # this matrix measures: a stuck band now throws, Playwright re-runs the spec, and the retry's
       # clean capture is the one compared. With no retries a stuck band becomes the missing-capture
-      # signal the verdict already reports. It costs nothing on a dispatch.
+      # signal the verdict already reports. It costs nothing here.
       #
       # A status collected per render instead of `bash -e`'s first-failure exit. Actions runs this
       # block with -e, so one `selection` spec using up its budget ended the step and the two filters
@@ -177,9 +215,17 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         working-directory: visual-tests
         env:
-          HOT_THEME_UNDER_TEST: ${{ inputs.theme }}
+          HOT_THEME_UNDER_TEST: ${{ inputs.theme || 'main-dark' }}
+          SCOPE: ${{ inputs.scope || 'investigation' }}
         run: |
           status=0
+
+          # `full` widens both groups to everything their config renders: every path contains
+          # `tests`, and `.` matches every cross-browser spec file. The schedule never sets it.
+          if [ "$SCOPE" = "full" ]; then
+            MULTI_SPECS=tests
+            CROSS_SPECS=.
+          fi
 
           npx playwright test --config playwright-cross-browser.config.ts --project=chromium --project=firefox --retries=0 --reporter=dot "$CROSS_SPECS" || status=1
 
@@ -226,3 +272,33 @@ jobs:
       # criterion is written against.
       - name: Byte stability across runners
         run: node ./visual-tests/scripts/stability-verdict.mjs runs >> "$GITHUB_STEP_SUMMARY"
+
+  # A failed scheduled run posts to Slack, the way the nightly does, because nobody
+  # watches a 02:30 run. A night fails when a render job fails (a spec failed
+  # outright, or the build or the preview server did), fewer than two renders
+  # were uploaded, a runner pair could not be compared or differs past the gate's
+  # tolerances, or a capture is missing from a render. A byte difference the
+  # tolerances absorb is listed in the summary and fails nothing.
+  # `failure()` is the status function the job needs:
+  # without one, GitHub ANDs the implicit success() onto the condition and the job
+  # can never run when a job it needs failed (.ai/CI.md). The schedule only — whoever
+  # dispatches a run is watching it. The webhook is the one secret this workflow
+  # reads, and the step skips itself when it is absent.
+  notify:
+    name: Notify Slack
+    needs: [ render, verdict ]
+    if: ${{ failure() && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":warning: Visual stability on ${{ github.ref_name }} failed: a render job failed, runners differ past the gate's tolerances, or a capture is missing.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (the verdict is in the job summary)"
+            }

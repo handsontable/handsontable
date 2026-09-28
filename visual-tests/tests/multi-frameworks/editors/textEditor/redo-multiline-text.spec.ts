@@ -3,7 +3,8 @@ import { helpers } from '../../../../src/helpers';
 import { selectCell, selectEditor, openEditor } from '../../../../src/page-helpers';
 
 /**
- * Checks whether Control+Shift+Z redoes the last action for multiline text.
+ * Checks whether Control+Shift+Z redoes the last action for multiline text: three line breaks are added and
+ * two undone, then redone one at a time. One capture per redo. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

@@ -5,6 +5,15 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Ana García', 'Engineering', 'Senior Engineer', '2021-04-12'],
+  ['James Okafor', 'Marketing', 'Product Manager', '2022-08-30'],
+  ['Li Wei', 'Engineering', 'Staff Engineer', '2019-02-18'],
+  ['Sofia Rossi', 'Sales', 'Account Executive', '2023-01-09'],
+  ['Diego Fernández', 'Design', 'UX Designer', '2020-11-23'],
+  ['Amara Singh', 'Engineering', 'Engineering Manager', '2018-06-05'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
@@ -38,14 +47,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['Ana García', 'Engineering', 'Senior Engineer', '2021-04-12'],
-          ['James Okafor', 'Marketing', 'Product Manager', '2022-08-30'],
-          ['Li Wei', 'Engineering', 'Staff Engineer', '2019-02-18'],
-          ['Sofia Rossi', 'Sales', 'Account Executive', '2023-01-09'],
-          ['Diego Fernández', 'Design', 'UX Designer', '2020-11-23'],
-          ['Amara Singh', 'Engineering', 'Engineering Manager', '2018-06-05'],
-        ]}
+        data={data}
         colHeaders={['Name', 'Department', 'Title', 'Hire date']}
         rowHeaders={true}
         height="auto"

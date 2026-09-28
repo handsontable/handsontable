@@ -1244,6 +1244,12 @@ export default function Core(
     this.runHooks('afterDeselect');
   });
 
+  // The hovered layer is read when the borders are drawn, so a view render repaints the handles.
+  // Not `instance.render()`: that forces a full draw, which a hover during a scroll must not pay.
+  this.selection.addLocalHook('afterSetHandlesHoveredLayer', () => {
+    instance.view.render();
+  });
+
   this.selection
     .addLocalHook('beforeHighlightSet', () => instance.runHooks('beforeSelectionHighlightSet'))
     .addLocalHook('beforeSetRangeStart',

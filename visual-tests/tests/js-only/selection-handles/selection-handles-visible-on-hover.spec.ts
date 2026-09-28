@@ -3,8 +3,8 @@ import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
 /**
- * Verifies that four edge-adjustment handles are visible when hovering over a
- * cell inside the pre-selected range with `selectionHandles: true`.
+ * Verifies that four edge-adjustment handles are visible when hovering over a cell inside the pre-selected
+ * range with `selectionHandles: true`. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

@@ -87,7 +87,7 @@ const VOCABULARY = {
 };
 
 // What opens a string in a spec. The backtick is in the set because the five looped cross-browser specs
-// title their tests with a template literal (`Test rows resizing for: ${url}`), whose `${` would otherwise
+// title their tests with a template literal (`Test scrolling for: ${url}`), whose `${` would otherwise
 // read as the opening brace of the declaration object.
 const QUOTES = new Set(['\'', '"', '`']);
 
@@ -172,10 +172,10 @@ function endOfTemplateExpression(source, start, where) {
  * Everything below reads the spec as text, and prose is text too. Measured on this tree before the strip:
  * one in-body comment naming `screenshotPath()` moved the derived golden total from 1676 to 1681 and red
  * the no-op proof on all five js prefixes, although no golden had moved; a comment naming `test(` reads as
- * a bare test call to the scan below in the same way. That is not hypothetical — the consolidation lands
- * about 130 eslint-disable lines and about 91 docblocks on these same spec bodies, describing the captures
- * they sit above. Strings are preserved exactly, so the route literals the cross-browser derivation reads
- * are untouched.
+ * a bare test call to the scan below in the same way. That is not hypothetical — the capture lint (G4)
+ * landed 100 eslint-disable lines and a docblock on every test call of these same spec bodies, describing
+ * the captures they sit above. Strings are preserved exactly, so the route literals the cross-browser
+ * derivation reads are untouched.
  *
  * A regex literal is not tracked, because a `/…/` holding a quote or a `//` is the only shape that could
  * fool this and the spec tree holds none (measured 2026-09-18: zero regex literals under `tests/`). A `/`
@@ -799,9 +799,9 @@ test('the reader resolves a string-literal reason and refuses a name it cannot r
 });
 
 test('a comment that names screenshotPath() or test() is prose, not a capture', () => {
-  // The derivation counts `screenshotPath()` over a spec's source, and the consolidation lands about 130
-  // eslint-disable lines and about 91 docblocks on these exact spec bodies, describing the captures they
-  // sit above. One such sentence used to add a golden to the derived total per declared variant and red
+  // The derivation counts `screenshotPath()` over a spec's source, and the capture lint (G4) landed 100
+  // eslint-disable lines and a docblock on every test call of these exact spec bodies, describing the
+  // captures they sit above. One such sentence used to add a golden to the derived total per declared variant and red
   // the no-op proof on all five js prefixes although no golden had moved.
   const body = 'visualTest(__filename, {\n  themes: [\'main\'],\n  browsers: [\'chromium\'],\n'
     + '  wrappers: [],\n}, async({ tablePage }) => {\n'

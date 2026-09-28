@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ext .js,.mjs,.ts .",
+    "test:lint-config": "node --test test/__tests__/determinism-lint.test.mjs",
     "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
     "test:cross-browser": "npx playwright test --config playwright-cross-browser.config.ts --reporter=dot",

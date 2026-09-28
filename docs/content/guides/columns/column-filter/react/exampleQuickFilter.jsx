@@ -107,13 +107,56 @@ const QUICK_FILTER_STYLES = `
   }
 `;
 
-const columns = [
+const columnOptions = [
   { value: '0', label: 'Brand' },
   { value: '1', label: 'Model' },
   { value: '2', label: 'Price' },
   { value: '3', label: 'Date' },
   { value: '4', label: 'Time' },
   { value: '5', label: 'In stock' },
+];
+
+const data = [
+  {
+    brand: 'Jetpulse',
+    model: 'Racing Socks',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: false,
+  },
+  {
+    brand: 'Gigabox',
+    model: 'HL Mountain Frame',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: false,
+  },
+  {
+    brand: 'Camido',
+    model: 'Cycling Cap',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: true,
+  },
+  {
+    brand: 'Chatterpoint',
+    model: 'Road Tire Tube',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: true,
+  },
+  {
+    brand: 'Eidel',
+    model: 'HL Road Tire',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    sellTime: '01:23',
+    inStock: true,
+  },
 ];
 
 const ExampleComponent = () => {
@@ -149,7 +192,7 @@ const ExampleComponent = () => {
     setOpen(false);
   };
 
-  const selectedLabel = columns.find((c) => c.value === selectedColumn)?.label || 'Brand';
+  const selectedLabel = columnOptions.find((c) => c.value === selectedColumn)?.label || 'Brand';
 
   return (
     <>
@@ -166,11 +209,24 @@ const ExampleComponent = () => {
               onClick={() => setOpen(!open)}
             >
               <span className="filter-dropdown-text">{selectedLabel}</span>
-              <svg className="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+              <svg
+                className="filter-dropdown-chevron"
+                aria-hidden="true"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6l6 -6" />
+              </svg>
             </button>
             {open && (
               <ul className="filter-dropdown-menu" role="listbox">
-                {columns.map((col) => (
+                {columnOptions.map((col) => (
                   <li
                     key={col.value}
                     role="option"
@@ -188,48 +244,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotTableComponentRef}
-        data={[
-          {
-            brand: 'Jetpulse',
-            model: 'Racing Socks',
-            price: 30,
-            sellDate: '2023-10-11',
-            sellTime: '01:23',
-            inStock: false,
-          },
-          {
-            brand: 'Gigabox',
-            model: 'HL Mountain Frame',
-            price: 1890.9,
-            sellDate: '2023-05-03',
-            sellTime: '11:27',
-            inStock: false,
-          },
-          {
-            brand: 'Camido',
-            model: 'Cycling Cap',
-            price: 130.1,
-            sellDate: '2023-03-27',
-            sellTime: '03:17',
-            inStock: true,
-          },
-          {
-            brand: 'Chatterpoint',
-            model: 'Road Tire Tube',
-            price: 59,
-            sellDate: '2023-08-28',
-            sellTime: '08:01',
-            inStock: true,
-          },
-          {
-            brand: 'Eidel',
-            model: 'HL Road Tire',
-            price: 279.99,
-            sellDate: '2023-10-02',
-            sellTime: '01:23',
-            inStock: true,
-          },
-        ]}
+        data={data}
         columns={[
           {
             title: 'Brand',

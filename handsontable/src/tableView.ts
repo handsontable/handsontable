@@ -1011,6 +1011,7 @@ class TableView {
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
+      heightFollowsContent: () => this.#isHeightContentDriven(),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -2745,6 +2746,18 @@ class TableView {
   }
 
   /**
+   * Tells whether the grid's height follows its content: `height: 'auto'`, which `core/rootSize.ts`
+   * writes on the root as inline `height: auto`. The engine reads it to keep the holder at `auto`
+   * inside an ancestor that clips or scrolls but has no height of its own, where sizing the holder
+   * to that ancestor collapses the grid to 0px (DEV-3062).
+   *
+   * @returns {boolean}
+   */
+  #isHeightContentDriven(): boolean {
+    return this.hot.rootElement.style.height === 'auto';
+  }
+
+  /**
    * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
    * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
    * room for them – otherwise the holder takes the whole box and pushes the slot content past the
@@ -2808,7 +2821,7 @@ class TableView {
       // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
       // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
       // row (DEV-2848).
-      const followsContent = isVerticallyScrollableByWindow || rootElement.style.height === 'auto';
+      const followsContent = isVerticallyScrollableByWindow || this.#isHeightContentDriven();
 
       if (followsContent) {
         addClass(rootWrapperElement, 'ht-grid-follows-content');
