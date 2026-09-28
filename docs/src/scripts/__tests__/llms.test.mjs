@@ -12,6 +12,7 @@ import {
   SITE_URL,
 } from '../../llms.mjs';
 import { buildAllSidebars } from '../../sidebar.mjs';
+import { AGENT_NOTE_MD, AGENT_NOTE_TEXT } from '../../agent-note.mjs';
 
 // Built once: buildAllSidebars() re-reads frontmatter for every content page,
 // so every real-content test below shares this result.
@@ -268,6 +269,14 @@ test('buildLlmsFull emits each page as an H1 boundary with a URL line, keeping b
   const pageCount = sections.reduce((n, s) => n + s.items.length, 0);
 
   assert.equal(full.match(/^# /gm).length, pageCount + 1);
+});
+
+test('buildLlmsFull carries the agent note exactly once, at the end', () => {
+  const sections = buildLlmsSections(fixtureSidebars());
+  const full = buildLlmsFull(fixtureRouteMap(sections), sections);
+
+  assert.ok(full.endsWith(AGENT_NOTE_MD), 'the corpus must end with the agent note');
+  assert.equal(full.split(AGENT_NOTE_TEXT).length - 1, 1, 'the note must appear exactly once');
 });
 
 test('buildLlmsFull fails loudly when a sidebar page has no Markdown twin', () => {

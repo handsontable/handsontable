@@ -89,6 +89,8 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | `Handsontable.helper.sanitize()` | 18.0 | 19.0 | Pass-through. Use the `sanitizer` option. | [`sanitizer` option](@/api/options.md#sanitizer) |
 | `registerShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#9-formulas-shortcut-methods) |
 | `unregisterShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#9-formulas-shortcut-methods) |
+| `spliceCol()` (`Core`) | 19.0 | 20.0 | Read the column, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole columns. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#20-splicecol-and-splicerow-are-deprecated) |
+| `spliceRow()` (`Core`) | 19.0 | 20.0 | Read the row, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole rows. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#20-splicecol-and-splicerow-are-deprecated) |
 
 ### Options
 

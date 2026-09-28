@@ -4,61 +4,63 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    model: 'Racing Socks',
+    size: 'S',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: false,
+    color: 'Black',
+  },
+  {
+    model: 'HL Mountain Shirt',
+    size: 'XS',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: false,
+    color: 'White',
+  },
+  {
+    model: 'Cycling Cap',
+    size: 'L',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: true,
+    color: 'Green',
+  },
+  {
+    model: 'Ski Jacket',
+    size: 'M',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: true,
+    color: 'Blue',
+  },
+  {
+    model: 'HL Goggles',
+    size: 'XL',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    sellTime: '01:23',
+    inStock: true,
+    color: 'Black',
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        {
-          model: 'Racing Socks',
-          size: 'S',
-          price: 30,
-          sellDate: '2023-10-11',
-          sellTime: '01:23',
-          inStock: false,
-          color: 'Black',
-        },
-        {
-          model: 'HL Mountain Shirt',
-          size: 'XS',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          sellTime: '11:27',
-          inStock: false,
-          color: 'White',
-        },
-        {
-          model: 'Cycling Cap',
-          size: 'L',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          sellTime: '03:17',
-          inStock: true,
-          color: 'Green',
-        },
-        {
-          model: 'Ski Jacket',
-          size: 'M',
-          price: 59,
-          sellDate: '2023-08-28',
-          sellTime: '08:01',
-          inStock: true,
-          color: 'Blue',
-        },
-        {
-          model: 'HL Goggles',
-          size: 'XL',
-          price: 279.99,
-          sellDate: '2023-10-02',
-          sellTime: '01:23',
-          inStock: true,
-          color: 'Black',
-        },
-      ]}
+      data={data}
       columns={[
         {
           title: 'Model',
           // set the type of the 'Model' column
-          type: 'text',
+          type: 'text', // 'text' is the default type, so you can omit this line
           data: 'model',
         },
         {

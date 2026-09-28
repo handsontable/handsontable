@@ -24,6 +24,7 @@ const aiToolsItems = [
   { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
   { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
   { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+  { path: 'guides/ai-tools/docs-mcp-server/docs-mcp-server' },
 ];
 
 const stylingItems = [
@@ -47,6 +48,7 @@ const dataManagementItems = [
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },

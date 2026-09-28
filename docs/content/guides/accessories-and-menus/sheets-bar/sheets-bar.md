@@ -127,6 +127,26 @@ const configurationOptions = {
 
 Read more about where the bar renders in the [layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md) guide.
 
+::: only-for react
+
+### Keep sheet data stable
+
+Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. When a sheet's `data` is a new array, the plugin reads it as a new workbook and rebuilds it. The rebuild discards the user's edits, sort and filter state, and any sheets added at runtime.
+
+```jsx
+// Rebuilds the workbook on every render
+<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: [['Rent', 1200]] }] }} />
+
+// Keeps the workbook
+const budgetData = [['Rent', 1200]];
+
+<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
+```
+
+A fresh `settings` object on each render is fine. The plugin compares `settings` by content and `data` by reference.
+
+:::
+
 ## Managing sheets programmatically
 
 Get the plugin instance with [`getPlugin()`](@/api/core.md#getplugin) and call its API methods.

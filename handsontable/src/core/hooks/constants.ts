@@ -485,6 +485,16 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   *
+   * @event Hooks#afterImport
+   * @since 19.0.0
+   * @param {object} result The applied {@link ImportFile} result.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   */
+  'afterImport',
+
+  /**
    * Fired after the Handsontable instance is initiated.
    *
    * @event Hooks#afterInit
@@ -1494,6 +1504,19 @@ export const REGISTERED_HOOKS = [
   'beforeCellAlignment',
 
   /**
+   * Fired before toggling the read-only state of the selected cells, from the context menu or column
+   * menu "Read only" item.
+   *
+   * @event Hooks#beforeReadOnlyToggle
+   * @since 19.0.0
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of booleans (the previous `readOnly` state) indexed by visual column.
+   * @param {CellRange[]} ranges An array of `CellRange` coordinates where the read-only state will be applied.
+   * @param {boolean} readOnly The new read-only state being applied to every affected cell.
+   */
+  'beforeReadOnlyToggle',
+
+  /**
    * Fired before one or more cells are changed.
    *
    * Use this hook to silently alter the user's changes before Handsontable re-renders.
@@ -1678,6 +1701,18 @@ export const REGISTERED_HOOKS = [
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCellMeta',
+
+  /**
+   * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
+   * result is applied to the grid. Mutating `result` changes what gets applied.
+   *
+   * @event Hooks#beforeImport
+   * @since 19.0.0
+   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
+   */
+  'beforeImport',
 
   /**
    * Fired before the Handsontable instance is initiated.
@@ -3855,6 +3890,9 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeDetachChild
    * @param {object} parent An object representing the parent from which the element is to be detached.
    * @param {object} element The detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeDetachChild',
 
@@ -3866,6 +3904,9 @@ export const REGISTERED_HOOKS = [
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementPosition The final row index of the detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterDetachChild',
 

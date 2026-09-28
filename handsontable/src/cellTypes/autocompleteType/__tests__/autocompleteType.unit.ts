@@ -65,6 +65,7 @@ describe('AutocompleteCellType', () => {
         valueGetter: AutocompleteCellType.valueGetter,
         valueSetter: AutocompleteCellType.valueSetter,
         parsePastedValue: true,
+        textEllipsis: true,
       });
     });
   });

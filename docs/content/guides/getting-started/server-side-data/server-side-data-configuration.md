@@ -38,6 +38,7 @@ dataProvider: {
   onRowsCreate: async (payload) => { /* POST */ },
   onRowsUpdate: async (rows) => { /* PATCH */ },
   onRowsRemove: async (rowIds) => { /* DELETE */ },
+  // refetchAfterCreate: false, // optional; default `true` refetches the current query after a successful create
 },
 pagination: { pageSize: 10 }, // or `true`; `pageSize` is read from Pagination into `fetchRows` queryParameters (not a dataProvider key)
 columnSorting: true, // server-side sort (one column)

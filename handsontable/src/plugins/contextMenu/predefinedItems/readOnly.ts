@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { checkSelectionConsistency, getSelectionCheckState } from '../utils';
+import { checkSelectionConsistency, getReadOnlyStates, getSelectionCheckState } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
@@ -46,11 +46,23 @@ export default function readOnlyItem() {
         ranges,
         (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
       );
+      const readOnly = !atLeastOneReadOnly;
+      // Making the selection read-only: `checkSelectionConsistency()` above found no match, which
+      // means it already walked every cell to confirm that - so every affected cell's prior state
+      // is `false`, and an empty snapshot restores that correctly on undo (a cell with no explicit
+      // entry reads as `false`) with no further reads. Making it writable needs the REAL per-cell
+      // states, because the check above stopped at the FIRST read-only cell and knows nothing about
+      // the rest - restoring a mixed selection on undo is only possible with a second, full pass.
+      const stateBefore = atLeastOneReadOnly
+        ? getReadOnlyStates(ranges, (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly))
+        : {};
+
+      this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {
           if (row >= 0 && col >= 0) {
-            this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+            this.setCellMeta(row, col, 'readOnly', readOnly);
           }
         });
       }

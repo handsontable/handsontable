@@ -4,14 +4,16 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['A1', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+  ['A2', '/docs/img/examples/javascript-the-good-parts.jpg'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
-      data={[
-        ['A1', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', '/docs/img/examples/javascript-the-good-parts.jpg'],
-      ]}
+      data={data}
       columns={[
         {},
         {
@@ -19,9 +21,11 @@ const ExampleComponent = () => {
             const img = document.createElement('img');
 
             img.src = value;
+
             img.addEventListener('mousedown', (event) => {
               event.preventDefault();
             });
+
             td.innerText = '';
             td.appendChild(img);
 

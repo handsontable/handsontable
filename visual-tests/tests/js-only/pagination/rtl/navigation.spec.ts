@@ -1,4 +1,4 @@
-import { test } from '../../../../src/test-runner';
+import { visualTest, JS_VARIANTS } from '../../../../src/test-runner';
 import { helpers } from '../../../../src/helpers';
 import {
   forPaginationClickFirstPageButton,
@@ -7,9 +7,16 @@ import {
   forPaginationClickLastPageButton,
 } from '../../../../src/page-helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that, in RTL, the last, first, next, and previous page buttons move the page and update the
+ * pagination controls: one capture after Last, after First, after Next, and after Previous. Owned by
+ * DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/pagination-demo')

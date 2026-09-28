@@ -88,6 +88,30 @@ export function getAlignmentClasses(ranges: CellRangeLike[], callback: (row: num
 
 /**
  * @param {CellRange[]} ranges An array of the cell ranges.
+ * @param {Function} callback The callback function.
+ * @returns {object}
+ */
+export function getReadOnlyStates(ranges: CellRangeLike[], callback: (row: number, col: number) => boolean) {
+  const states: Record<number, boolean[]> = {};
+
+  arrayEach(ranges, (range: CellRangeLike) => {
+    range.forAll((row: number, col: number) => {
+      // Read-only states should only be collected within cell ranges. We skip header coordinates.
+      if (row >= 0 && col >= 0) {
+        if (!states[row]) {
+          states[row] = [];
+        }
+
+        states[row][col] = callback(row, col);
+      }
+    });
+  });
+
+  return states;
+}
+
+/**
+ * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {string} type The type of the alignment axis ('horizontal' or 'vertical').
  * @param {string} alignment CSS class name to add.
  * @param {Function} cellDescriptor The function which fetches the cell meta object based in passed coordinates.
@@ -210,7 +234,13 @@ export function checkSelectionConsistency(ranges: CellRangeLike[], comparator: (
         }
       });
 
-      return result;
+      // `arrayEach` stops the moment a callback returns exactly `false`. A range with no match
+      // must return anything else so the NEXT range still gets a chance - returning `result`
+      // (`false` while nothing has matched yet) stopped the whole search after the FIRST range
+      // that came up empty, so a match sitting in a later range (a multi-layer selection, e.g. a
+      // Ctrl+click) was never found (DEV-136, reported by Bugbot). Only stop once a match is
+      // actually found, which `!result` expresses: `false` (stop) once `result` is `true`.
+      return !result;
     });
   }
 

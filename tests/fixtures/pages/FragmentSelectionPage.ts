@@ -94,6 +94,20 @@ export class FragmentSelectionPage {
   }
 
   /**
+   * Locates a row header inside one specific overlay.
+   *
+   * @param {OverlayName} overlay The overlay to look in.
+   * @param {number} row Position among the rendered rows. It matches the visual row index only while
+   * the grid has not scrolled vertically.
+   * @returns {Locator}
+   */
+  rowHeader(overlay: OverlayName, row: number): Locator {
+    return this.grid
+      .locator(OVERLAY_SELECTORS[overlay])
+      .locator(`tbody tr:nth-child(${row + 1}) > th`);
+  }
+
+  /**
    * Fails loudly when a drag would run outside the grid's visible box. An element the grid's width
    * or height clips still reports a layout box, so a drag aimed at it would silently land on
    * whatever is really at those pixels and the test would assert against the wrong gesture.
@@ -115,7 +129,7 @@ export class FragmentSelectionPage {
 
     if (!withinX || !withinY) {
       throw new Error(
-        `The drag across ${label} leaves the grid's visible box `
+        `The pointer path over ${label} leaves the grid's visible box `
         + `(x ${Math.min(startX, endX)}–${Math.max(startX, endX)}, y ${y} vs grid `
         + `x ${gridBox.x}–${gridBox.x + gridBox.width}, y ${gridBox.y}–${gridBox.y + gridBox.height}). `
         + 'Pick a target the grid actually shows.');
@@ -251,6 +265,133 @@ export class FragmentSelectionPage {
     await this.page.mouse.move(startX + (((endX - startX) * 2) / 3), startY + (((endY - startY) * 2) / 3), { steps: 5 });
     await this.page.mouse.move(endX, endY, { steps: 5 });
     await this.page.mouse.up();
+  }
+
+  /**
+   * Fails loudly unless a press at a point lands on the given master-table cell. A box-derived point
+   * can sit under a header clone or past the fold, and a press there starts a different gesture.
+   *
+   * @param {string} label Describes the cell, for the error message.
+   * @param {number} x The press's horizontal position.
+   * @param {number} y The press's vertical position.
+   * @param {string} testId The `data-testid` the cell carries.
+   */
+  async #assertPressLandsOnCell(label: string, x: number, y: number, testId: string): Promise<void> {
+    const hit = await this.page.evaluate(([px, py]) => {
+      const td = document.elementFromPoint(px, py)?.closest('td');
+
+      return td?.closest('.ht_master') ? td.getAttribute('data-testid') : null;
+    }, [x, y]);
+
+    if (hit !== testId) {
+      throw new Error(`A press at (${x}, ${y}) lands on ${hit ?? 'no master cell'}, not on ${label}.`);
+    }
+  }
+
+  /**
+   * Drags from a master-table cell's text out past the grid's right edge and releases the button off
+   * the grid, so the `mouseup` lands on the page instead of on the grid.
+   *
+   * It leaves through the right edge because the top and left edges cross a header, which cancels the
+   * selection before the release. The fixture is left-to-right.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @returns {Promise<boolean>} Whether the `mouseup` landed off the grid.
+   */
+  async dragFromCellOutOfGrid(row: number, col: number): Promise<boolean> {
+    const label = `cell ${row},${col} in the master overlay`;
+    const box = await this.cell('master', row, col).boundingBox();
+    const gridBox = await this.grid.boundingBox();
+    const viewport = this.page.viewportSize();
+
+    if (!box || !gridBox || !viewport) {
+      throw new Error(`${label}, the grid, or the viewport has no size`);
+    }
+
+    const y = box.y + (box.height / 2);
+    const startX = box.x + 15;
+    const endX = gridBox.x + gridBox.width + 60;
+
+    await this.#assertPressLandsOnCell(label, startX, y, `cell-${row}-${col}`);
+
+    if (endX >= viewport.width) {
+      throw new Error(`The release point (x ${endX}) is outside the ${viewport.width}px viewport`);
+    }
+
+    await this.page.evaluate(() => window.resetLastMouseUp());
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+
+    for (let step = 1; step <= 20; step += 1) {
+      await this.page.mouse.move(startX + (((endX - startX) * step) / 20), y, { steps: 2 });
+    }
+
+    await this.page.mouse.up();
+
+    return (await this.page.evaluate(() => window.wasLastMouseUpOffGrid())) === true;
+  }
+
+  /**
+   * Returns the master table's scroll position.
+   *
+   * @returns {Promise<{left: number, top: number}>}
+   */
+  scrollPosition(): Promise<{ left: number, top: number }> {
+    return this.grid.evaluate((grid) => {
+      const holder = grid.querySelector('.ht_master .wtHolder')!;
+
+      return { left: holder.scrollLeft, top: holder.scrollTop };
+    });
+  }
+
+  /**
+   * Hovers a row header with no button held.
+   *
+   * @param {number} row Position among the rendered rows.
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async hoverRowHeader(row: number): Promise<number> {
+    const box = await this.rowHeader('inlineStart', row).boundingBox();
+
+    if (!box) {
+      throw new Error(`The header of row ${row} has no layout box`);
+    }
+
+    return this.#hoverAt(`the header of row ${row}`, box.x + (box.width / 2), box.y + (box.height / 2));
+  }
+
+  /**
+   * Hovers the column header row at the grid's horizontal center, with no button held.
+   *
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async hoverColumnHeader(): Promise<number> {
+    const headerRow = await this.grid.locator(OVERLAY_SELECTORS.top).locator('thead tr').first().boundingBox();
+    const gridBox = await this.grid.boundingBox();
+
+    if (!headerRow || !gridBox) {
+      throw new Error('The column header row or the grid has no layout box');
+    }
+
+    return this.#hoverAt(
+      'the column header row', gridBox.x + (gridBox.width / 2), headerRow.y + (headerRow.height / 2));
+  }
+
+  /**
+   * Moves the pointer to a point inside the grid with no button held.
+   *
+   * @param {string} label Describes the target, for the guard's error message.
+   * @param {number} x Where the pointer ends, horizontally.
+   * @param {number} y Where the pointer ends, vertically.
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async #hoverAt(label: string, x: number, y: number): Promise<number> {
+    await this.#assertDragStaysInsideGrid(label, x, x, y);
+    await this.page.evaluate(() => window.resetHeaderMoveCount());
+    await this.page.mouse.move(x, y, { steps: 20 });
+
+    return this.page.evaluate(() => window.getHeaderMoveCount());
   }
 
   /**

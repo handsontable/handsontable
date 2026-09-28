@@ -1015,7 +1015,7 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
+    it('should drop the dropdown below the editor and past the table\'s edge, when there is not enough space below inside the table (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1030,12 +1030,22 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      const container = $(getActiveEditor().htContainer);
+      const editor = getActiveEditor();
+      const listRect = editor.htContainer.getBoundingClientRect();
+      const cellRect = getCell(6, 0).getBoundingClientRect();
+      const rootRect = editor.hot.rootElement.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
+      // #8688: the list is positioned against the VIEWPORT, so running out of room inside the
+      // table no longer forces a flip. There is room below the cell on screen, so the list opens
+      // downwards and is free to hang past the table's own bottom edge instead of being cut off
+      // at it. The flip still happens when the viewport itself is too short below the cell -
+      // that case is covered by `tests/e2e/dropdown-editor-clip.spec.ts`.
+      expect(listRect.top).toBeCloseTo(cellRect.bottom, 0);
+      expect(listRect.bottom).toBeGreaterThan(rootRect.bottom);
+      expect(listRect.left).toBeCloseTo(cellRect.left, 0);
     });
 
-    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+    it('should keep the dropdown below the editor and re-measure it after the choices list is changed (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1051,23 +1061,31 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
-      const container = $(editor.htContainer);
 
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      const rowH = getDefaultRowHeight();
+      // #8688: both lists open downwards now. The viewport has room below the cell either way,
+      // so narrowing the query re-measures the list in place instead of flipping it above the
+      // cell to fit inside the table. What still has to hold on every re-query is that the list
+      // stays anchored to the cell's bottom edge and re-measures to the choices it renders.
+      const cellRect = () => getCell(5, 0).getBoundingClientRect();
+      const wideRect = editor.htContainer.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: rowH, left: 0 });
+      expect(wideRect.top).toBeCloseTo(cellRect().bottom, 0);
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual({ top: (6 * rowH) + 1, left: 0 });
+      const narrowRect = editor.htContainer.getBoundingClientRect();
+
+      expect(narrowRect.top).toBeCloseTo(cellRect().bottom, 0);
+      expect(editor.htEditor.countRows()).toBeLessThan(choices.filter(choice => choice.includes('r')).length);
+      expect(narrowRect.height).toBeLessThan(wideRect.height);
     });
 
     it('should limit the list to the space size left below the editor (table has defined size)', async() => {

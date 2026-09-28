@@ -323,6 +323,12 @@ class Endpoints {
     } else {
       /* eslint-disable no-lonely-if */
       if (name === 'destinationRow' && endpoint.reversedRowCoords) {
+        // Keep the caller's offset-from-the-bottom so the destination can be re-derived after a
+        // structure alteration (DEV-144); resolving it here loses it otherwise. This is an INTERNAL
+        // field carried on the endpoint object through the interface's index signature - it is not a
+        // public option, so it is deliberately not declared on `EndpointConfig` and a caller cannot
+        // set it (`parseSettings` never copies it).
+        endpoint.reversedRowOffset = settings[name] as number;
         endpoint[name] = this.countAddressableRows() - (settings[name] as number) - 1;
 
       } else {
@@ -431,6 +437,74 @@ class Endpoints {
     } else {
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
         this.shiftEndpointCoordinates(endpoint, placeOfAlteration);
+      });
+    }
+
+    if (type === 'row' && !rowMoving) {
+      const isRemoval = multiplier === -1;
+
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        const reversedRowOffset = endpoint.reversedRowOffset;
+
+        // A reversed endpoint is anchored to the bottom of the table, so a row inserted or removed
+        // re-derives its destination from the current physical row count (DEV-144). The generic
+        // shift above only moves an endpoint whose destination sits at or below the alteration,
+        // which misses a row appended past the anchor. A move leaves the row count unchanged, so it
+        // is excluded above - the anchor cannot have moved.
+        if (!endpoint.reversedRowCoords || typeof reversedRowOffset !== 'number') {
+          return;
+        }
+
+        const newDestinationRow = this.countAddressableRows() - reversedRowOffset - 1;
+
+        // Enough removals drive `count - reversedRowOffset - 1` below zero (the generic shift above can
+        // have already left `destinationRow` negative, so this is checked before the equality guard).
+        // Warn instead of letting the summary vanish silently. The negative index is left as-is rather
+        // than added to `isEndpointOutOfBounds`, whose result feeds the all-or-nothing gate in
+        // `resetAllEndpoints` - catching negatives there would make one below-zero endpoint skip
+        // clearing every sibling (DEV-144).
+        if (newDestinationRow < 0) {
+          this.throwOutOfBoundsWarning();
+
+          return;
+        }
+
+        // The generic shift already set `destinationRow` to where the old summary cell now sits, so it
+        // is both the comparison point and the cell whose declarative meta must be dropped on a move.
+        const oldDestinationRow = endpoint.destinationRow!;
+
+        if (newDestinationRow === oldDestinationRow) {
+          return;
+        }
+
+        // On a REMOVAL the re-derived anchor can land on a row that already holds user data, and the
+        // refresh right after would overwrite it (DEV-144). Leave the endpoint parked in that case:
+        // `resetAllEndpoints` cleared the old cell and the refresh rewrites the summary there, which
+        // matches the pre-fix (non-destructive) behavior. An INSERT re-anchoring onto data is
+        // allowed - it matches what the initial parse does when it plants the anchor on the reversed
+        // slot, whatever that slot holds. `destinationColumn` is passed as a visual column, the same
+        // way `setEndpointValue`/`_setCellMetaDeclarative` address it in this block.
+        if (isRemoval) {
+          const targetValue = this.hot.getSourceDataAtCell(newDestinationRow, endpoint.destinationColumn!);
+
+          if (targetValue !== null && targetValue !== undefined && targetValue !== '') {
+            return;
+          }
+        }
+
+        // Moving the anchor: the old cell's value was cleared by `resetAllEndpoints`, so drop its
+        // declarative `readOnly` and result class too, or it stays an uneditable cell that
+        // `getCellValue` keeps treating as a summary result. `readOnly` is reset to `false` (the
+        // schema default), not to a column-level override the cell may have carried - it had already
+        // shadowed that override since the initial parse, so this is not a new shadow.
+        const oldDestinationVisualRow = this.hot.toVisualRow(oldDestinationRow);
+
+        if (oldDestinationVisualRow !== null) {
+          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, endpoint.destinationColumn!, 'readOnly', false);
+          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, endpoint.destinationColumn!, 'className', '');
+        }
+
+        endpoint.destinationRow = newDestinationRow;
       });
     }
 

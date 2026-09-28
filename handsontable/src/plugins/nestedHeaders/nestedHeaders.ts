@@ -8,6 +8,7 @@ import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
+  COLUMN_TYPE,
   HEADER_TYPE,
 } from '../../selection';
 import { BasePlugin } from '../base';
@@ -933,7 +934,11 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Adjusts the column highlight start index and width to align with the nested header spanning configuration.
+   * Adjusts the column highlight start index and width to align with the nested header spanning
+   * configuration. Redirects a non-root (`hiddenHeader`) column onto the group's visible origin `<th>`
+   * for `HEADER_TYPE` (header-selection highlight) and `COLUMN_TYPE` (the `currentColClassName`
+   * row/column highlight) alike, since both can resolve to a group-level header cell once the
+   * selection's header extent spans more than the leaf level.
    */
   #onBeforeHighlightingColumnHeader = (
     visualColumn: number, headerLevel: number,
@@ -955,7 +960,7 @@ export class NestedHeaders extends BasePlugin {
       colspan = 1,
     }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? {};
 
-    if (selectionType === HEADER_TYPE) {
+    if (selectionType === HEADER_TYPE || selectionType === COLUMN_TYPE) {
       if (!isRoot) {
         return headerNodeData.columnIndex as number;
       }

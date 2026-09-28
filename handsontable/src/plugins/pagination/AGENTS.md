@@ -67,7 +67,7 @@ note in `../base/AGENTS.md`.
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
 - **This plugin no longer reserves its own height.** Its `beforeHeightChange` `calc(height - bar)` hook
-  moved into core (`reserveEdgeSlotsHeight` in `core.ts`), which subtracts EVERY bottom- and top-slot
+  moved into core (`reserveEdgeSlotsHeight` in `core/rootSize.ts`), which subtracts EVERY bottom- and top-slot
   bar from a pixel `height` — the sheets bar and the license notification too, so both bars behave
   the same. Inside a scrollable ancestor or a CSS-sized container the engine reserves the slots'
   height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on

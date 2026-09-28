@@ -27,6 +27,7 @@ import type { Filters } from './filters';
 import type { Formulas } from './formulas';
 import type { HiddenColumns } from './hiddenColumns';
 import type { HiddenRows } from './hiddenRows';
+import type { ImportFile } from './importFile';
 import type { Loading } from './loading';
 import type { ManualColumnFreeze } from './manualColumnFreeze';
 import type { ManualColumnMove } from './manualColumnMove';
@@ -75,6 +76,7 @@ export interface PluginTypeMap {
   formulas: Formulas;
   hiddenColumns: HiddenColumns;
   hiddenRows: HiddenRows;
+  importFile: ImportFile;
   loading: Loading;
   manualColumnFreeze: ManualColumnFreeze;
   manualColumnMove: ManualColumnMove;

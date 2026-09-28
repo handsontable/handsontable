@@ -1,7 +1,18 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
-test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
+/**
+ * Checks where Tab and Shift+Tab move the focus on the basic two-tables demo, where an input sits above
+ * each grid: into a grid, from cell to cell, and out of it at a row's edge (autoWrapRow is off). Three
+ * captures, one after each run of key presses (Tab, Tab, Shift+Tab; then seven Tabs; then Shift+Tab): the
+ * first input focused with no selection, the bottom grid's first cell, and the second input focused. Owned
+ * by DEV-2981.
+ */
+visualTest('Test focus on Shift+Tab navigation', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/basic-two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');

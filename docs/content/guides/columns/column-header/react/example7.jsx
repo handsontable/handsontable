@@ -4,17 +4,25 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  [1, 'Ana Garcia', 'Product Manager', 'Spain', '2022-03-14'],
+  [2, 'James Okafor', 'Senior Engineer', 'Nigeria', '2021-07-02'],
+  [3, 'Li Wei', 'Data Analyst', 'China', '2023-01-19'],
+  [4, 'Sofia Rossi', 'UX Designer', 'Italy', '2020-11-30'],
+  [5, 'Mateo Fernandez', 'Engineering Lead', 'Argentina', '2019-05-08'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        [1, 'Ana Garcia', 'Product Manager', 'Spain', '2022-03-14'],
-        [2, 'James Okafor', 'Senior Engineer', 'Nigeria', '2021-07-02'],
-        [3, 'Li Wei', 'Data Analyst', 'China', '2023-01-19'],
-        [4, 'Sofia Rossi', 'UX Designer', 'Italy', '2020-11-30'],
-        [5, 'Mateo Fernandez', 'Engineering Lead', 'Argentina', '2019-05-08'],
+      data={data}
+      colHeaders={[
+        'Employee ID',
+        'Employee full name',
+        'Current job title',
+        'Country of residence',
+        'Employment start date',
       ]}
-      colHeaders={['Employee ID', 'Employee full name', 'Current job title', 'Country of residence', 'Employment start date']}
       rowHeaders={true}
       colWidths={[100, 130, 130, 130, 130]}
       columnHeaderHeight={50}

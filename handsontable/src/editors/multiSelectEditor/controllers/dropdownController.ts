@@ -227,7 +227,7 @@ export class DropdownController {
    * Controls dropdown height based on entry count and configured visible rows.
    *
    * @param {object} availableSpace Available space object.
-   * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
+   * @param {boolean} noFlip If true, the current vertical flip is kept as it is.
    */
   updateDimensions(
     availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
@@ -235,8 +235,11 @@ export class DropdownController {
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
     const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
-    if (!noFlip && requiresFlippingVertically) {
-      this.#cache.flippedVertically = true;
+    // Decided both ways: a scroll that follows the cell calls this again, and a flip that could
+    // only be set would keep the list above a cell that has room below it again. `prepare()`
+    // resets the flag before every open, so the first call of an edit is unaffected.
+    if (!noFlip) {
+      this.#cache.flippedVertically = requiresFlippingVertically;
     }
 
     if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {

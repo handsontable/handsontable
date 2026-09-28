@@ -7,9 +7,16 @@
  * the matching Handsontable example modules.
  */
 import Default from '@astrojs/starlight/components/Head.astro';
+import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 ---
 
 <Default {...Astro.props} />
+
+{/* Invisible to readers; a pointer for AI agents that scrape the rendered HTML
+    instead of fetching the page's /docs/_md Markdown twin. set:html emits the
+    HTML comment verbatim — an Astro template comment (the syntax of this very
+    note) would be stripped at build time. */}
+<Fragment set:html={AGENT_NOTE_HTML_COMMENT} />
 
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
@@ -29,6 +36,32 @@ import Default from '@astrojs/starlight/components/Head.astro';
 </script>
 
 <script is:inline>
+  // A page cached from before a deploy asks for content-hashed _astro/ chunks that no longer
+  // exist, and Vite's preload helper fires vite:preloadError ("Unable to preload CSS for ...").
+  // Reload once per session to pick up the current build. A second failure, or no
+  // sessionStorage, lets the error through so a real outage never loops. This only mitigates
+  // stale chunks on builds that include this Head; frozen /docs/<major>.<minor>/ images never
+  // get it, and their nested wrong-base preloads (Sentry HANDSONTABLE-DOCS-22T) are fixed at
+  // assemble time by deploy/rewriteVersionedPaths.mjs.
+  window.addEventListener('vite:preloadError', function (event) {
+    var reloadKey = 'hot-docs-preload-error-reload';
+
+    try {
+      if (sessionStorage.getItem(reloadKey)) {
+        return;
+      }
+
+      sessionStorage.setItem(reloadKey, '1');
+    } catch (error) {
+      return;
+    }
+
+    event.preventDefault();
+    window.location.reload();
+  });
+</script>
+
+<script is:inline>
   // Patch Starlight's table-of-contents elements to silently handle browsers without :has()
   // support (Chrome < 105, e.g. Chrome Mobile 75 on Android 6.0; Safari < 15.4). Their init
   // passes :has() to querySelectorAll, which throws a DOMException named "SyntaxError" there
@@ -44,6 +77,13 @@ import Default from '@astrojs/starlight/components/Head.astro';
     var originalDefine = customElements.define;
 
     customElements.define = function (name, constructor, options) {
+      // A second evaluation of the module that registers an element would otherwise throw a
+      // NotSupportedError ("the name has already been used with this registry", Sentry
+      // HANDSONTABLE-DOCS-22D). The first definition stays in place, so skip the repeat.
+      if (customElements.get(name)) {
+        return undefined;
+      }
+
       if (guardedTags.indexOf(name) === -1 || typeof constructor !== 'function') {
         return originalDefine.call(customElements, name, constructor, options);
       }

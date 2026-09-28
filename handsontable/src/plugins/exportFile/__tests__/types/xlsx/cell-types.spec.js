@@ -212,7 +212,7 @@ describe('exportFile XLSX type — cell types', () => {
       expect(cell.value.getUTCDate()).toBe(28);
     });
 
-    it('should apply the mm-dd-yy numFmt to date cells', async() => {
+    it('should derive the date numFmt from the cell\'s dateFormat Intl options', async() => {
       handsontable({
         data: [['2020-01-15']],
         columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
@@ -221,7 +221,10 @@ describe('exportFile XLSX type — cell types', () => {
 
       const ws = await parseXlsx();
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm-dd-yy');
+      // A four-digit year is `yyyy`, not `yy`: the import inverts the pattern back into these same
+      // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year. The order and the
+      // separator follow the cell's `locale`, `en-US` by default, so Excel shows what the grid showed.
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm/dd/yyyy');
     });
 
     it('should export an `intl-date` type cell as an Excel date', async() => {
@@ -266,7 +269,7 @@ describe('exportFile XLSX type — cell types', () => {
   });
 
   describe('time type cells', () => {
-    it('should export a `time` type cell as an Excel time serial with h:mm:ss numFmt', async() => {
+    it('should export a `time` type cell as an Excel time serial with a time numFmt', async() => {
       handsontable({
         data: [['12:30:00']],
         columns: [{
@@ -286,7 +289,7 @@ describe('exportFile XLSX type — cell types', () => {
       expect(cell.value.getUTCSeconds()).toBe(0);
     });
 
-    it('should apply the h:mm:ss numFmt to time cells so Excel categorizes it as Time not Custom', async() => {
+    it('should derive the time numFmt from the cell\'s timeFormat Intl options', async() => {
       handsontable({
         data: [['08:05:30']],
         columns: [{
@@ -297,7 +300,9 @@ describe('exportFile XLSX type — cell types', () => {
 
       const ws = await parseXlsx();
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('h:mm:ss');
+      // Excel still categorizes this as Time rather than Custom; the padding now follows the
+      // cell's own options so the import recovers them.
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('hh:mm:ss');
     });
 
     it('should export midnight (00:00:00) correctly', async() => {

@@ -260,10 +260,10 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
   });
 
   // The ordering canary of the width/height unification: `height: 'auto'` must keep every column
-  // reachable through the holder. Today the `overflow: clip` shorthand clips both axes (element
-  // mode); once `'auto'` stops writing it, the `overflow-x: clip` longhand carries the same layout
-  // through the split mode. A core change that drops the shorthand before the engine can split the
-  // axes fails here.
+  // reachable through the holder. `'auto'` writes no `overflow` shorthand, so the `overflow-x: clip`
+  // longhand alone carries this layout through the engine's split mode (root owns the columns, the
+  // window owns the rows). It passed before the `'auto'` change too, through the element mode, and
+  // fails if core ever drops the longhand or the engine loses the split.
   test('keeps every column reachable with `height: "auto"`', async () => {
     await grid.rebuild({ height: 'auto' });
 
@@ -319,6 +319,83 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     await grid.scrollHolderBy(400);
 
     expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+  });
+
+  // A wheel gesture over a split-owner grid must move each axis EXACTLY once. The grid scrolls both
+  // itself - the holder for the columns, and the window for the rows, through
+  // `Overlays#scrollVertically` and `rootWindow.scrollBy({ behavior: 'instant' })` - so it has to
+  // consume the event. An earlier version of this branch refused `preventDefault` whenever a named
+  // axis was window-owned, to stop the page freezing under the pointer. That reason is gone (the
+  // grid now scrolls the page itself), and the refusal let the browser apply the SAME deltas a
+  // second time: a diagonal swipe moved the columns 200px for a 100px `deltaX`. A "moved more than
+  // zero" assertion cannot see that, which is how it went unnoticed - assert the exact distance.
+  test('moves each axis exactly once for a diagonal wheel, and scrolls the page itself', async () => {
+    await grid.watchWheelEvents();
+
+    const before = (await grid.scrollExtents()).holderScrollLeft;
+
+    await grid.wheelOverGrid(240, 100);
+
+    const [gesture] = await grid.wheelLog();
+    const after = await grid.scrollExtents();
+
+    expect(gesture.deltaY).toBe(240);
+    // Consumed, because the grid answered both axes itself.
+    expect(gesture.defaultPrevented).toBe(true);
+    // Exactly the gesture's `deltaX`, never twice it.
+    expect(after.holderScrollLeft - before).toBe(100);
+    // The rows are the window's axis, and the grid scrolled it instead of freezing the page.
+    expect(after.windowScrollY).toBe(240);
+  });
+
+  test('moves the columns exactly once for a horizontal-only wheel and leaves the page still', async () => {
+    await grid.watchWheelEvents();
+
+    const before = (await grid.scrollExtents()).holderScrollLeft;
+
+    await grid.wheelOverGrid(0, 160);
+
+    const [gesture] = await grid.wheelLog();
+    const after = await grid.scrollExtents();
+
+    expect(gesture.defaultPrevented).toBe(true);
+    expect(after.holderScrollLeft - before).toBe(160);
+    expect(after.windowScrollY).toBe(0);
+  });
+
+  // The wrapper re-send shape: React and Angular push every option on every commit, so `height`
+  // arrives again unchanged while `width` moves from container-driven to definite. `applyRootSize`
+  // reports no scroll-owner change for it - it compares the inline HEIGHT, which did not move - so
+  // core does not call `updateMainScrollableElements()`. The engine has to catch it on its own:
+  // `Overlays#beforeDraw` re-resolves the owners and `ScrollSync#resyncScrollableElementsWithOwners`
+  // rebinds the listeners in `afterDraw`, inside this same `updateSettings`. Without that the
+  // horizontal listener would stay on the window while the root clips the columns.
+  test('re-picks the scroll owner when only `width` moves and `height` is re-sent unchanged', async () => {
+    await grid.rebuild({ height: 'auto', width: '100%' });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(true);
+
+    await grid.updateSettings({ height: 'auto', width: 500 });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(false);
+    expect((await grid.rootState()).overflowX).toBe('clip');
+
+    // The listeners really did move: scrolling the holder drives the frozen rows with it.
+    await grid.scrollHolderBy(400);
+
+    expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+
+    // A written-down column index is theme-dependent (see `tests/AGENTS.md`), so read the band the
+    // master renders right now and take its middle - the top clone mirrors that same band.
+    const columns = await grid.renderedColumns();
+
+    expect(columns.length).toBeGreaterThan(0);
+
+    const column = columns[Math.floor(columns.length / 2)];
+    const topBox = await grid.box(grid.topCloneCell(0, column));
+    const masterBox = await grid.box(grid.cell(5, column));
+
+    expect(Math.abs(topBox.x - masterBox.x)).toBeLessThanOrEqual(2);
   });
 
   test('keeps the legacy `preventOverflow: "horizontal"` alias on the same layout', async () => {

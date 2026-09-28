@@ -41,6 +41,18 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
+    sheetId: number | null,
+    sheetName: string | null,
+    /** DEV-207: `showFormulas()`/`hideFormulas()`/`isShowingFormulas()` toggle. */
+    showFormulas(): void,
+    hideFormulas(): void,
+    isShowingFormulas(): boolean,
+    // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
+    // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
+    engine: {
+      getSheetDimensions(sheetId: number): { width: number, height: number },
+      getSheetSerialized(sheetId: number): unknown[][],
+    } | null,
   };
   getPlugin(name: 'undoRedo'): {
     undo(): void,
@@ -89,6 +101,7 @@ export interface FixtureHotInstance {
     isEnabled(): boolean;
   };
   getPlugin(name: 'nestedRows'): {
+    enabled: boolean,
     collapseAll(): void,
     expandAll(): void,
     collapseParent(row: number): boolean,
@@ -102,6 +115,11 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: the header width the plugin asked for has no public getter, and
+    // a grid at the default width is exactly the defect worth pinning (DEV-2938).
+    headersUI: {
+      rowHeaderWidthCache: number | null,
+    } | null,
     // Private, but a spec needs it: there is no public API for the stash window that add child,
     // detach child, remove row and row move open around themselves.
     collapsingUI: {
@@ -140,6 +158,19 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    /** The `<td>` currently being edited. Throws once the grid is destroyed. */
+    getEditedCell(): HTMLTableCellElement,
+    /**
+     * The list's own sub-grid, on the `handsontable` / `autocomplete` / `dropdown` family. Read by
+     * `DropdownEditorClipPage#startListHeightWriteRecorder()` to record its height writes.
+     */
+    htEditor?: {
+      updateSettings(settings: Record<string, unknown>, ...rest: unknown[]): void,
+    },
+    /** Whether that family's list is rendered above the edited cell. */
+    isFlippedVertically?: boolean,
+    /** The multiselect editor keeps its own flip state on this controller instead. */
+    dropdownController?: { isFlippedVertically(): boolean },
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
@@ -161,11 +192,14 @@ export interface FixtureHotInstance {
   rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getFirstFullyVisibleColumn(): number;
+  getLastFullyVisibleColumn(): number;
   getLastPartiallyVisibleRow(): number;
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
-  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
+  getColWidth(col: number): number;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
@@ -186,6 +220,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  getSettings(): { fixedColumnsStart?: number, [key: string]: unknown };
   alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
@@ -228,6 +263,33 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
+    initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
+    /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
+    htDropdownOptions: string[];
+    /** DEV-2938 / DEV-2978 fixtures: everything the page logged through `console.error`, in order. */
+    consoleErrors?: string[];
+    /** DEV-2978 fixture: how many `setSheetContent` calls the bound engine has taken since the last reset. */
+    sheetWriteCount?: number;
+    /**
+     * DEV-2978 fixture, `sheet-switch` scenario, and the DEV-2905 fixture: the shared HyperFormula
+     * instance the grid and the spec both address, so a spec can read a sheet the grid is not
+     * currently bound to, or remove the bound one.
+     */
+    htEngine?: {
+      getSheetId(name: string): number,
+      getSheetSerialized(sheetId: number): unknown[][],
+      /** DEV-2905 fixture: removes a sheet behind the Formulas plugin's back. */
+      removeSheet(sheetId: number): unknown,
+    };
+    /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
+    measuredColumns?: number;
+    /** DEV-2905 fixture: reloads the active sheet through `loadData()` with values the engine has not seen. */
+    loadFreshBudget?(): void;
+    /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
+    sourceData?: unknown[];
+    /** DEV-2938 fixture: how many times the grid has drawn since it was built. */
+    renderCount?: number;
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
     /**
@@ -253,6 +315,13 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /**
+     * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
+     * `defaultPrevented` each one carried once the grid's own handler had run.
+     */
+    wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
+    /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
     /**
      * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
      * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
@@ -295,8 +364,29 @@ declare global {
     resetBorderMoveCount(): boolean;
     /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
     getBorderMoveCount(): number;
+    /**
+     * Resets the count of mouse moves that landed on a header (fragmentSelection fixture).
+     */
+    resetHeaderMoveCount(): boolean;
+    /**
+     * Returns how many mouse moves landed on a header since the reset (fragmentSelection fixture).
+     */
+    getHeaderMoveCount(): number;
+    /**
+     * Forgets the latest `mouseup` (fragmentSelection fixture).
+     */
+    resetLastMouseUp(): boolean;
+    /**
+     * Whether the latest `mouseup` landed off the grid; `null` when none has since the reset
+     * (fragmentSelection fixture).
+     */
+    wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
+    /** Names of the public selection hooks fired on the selection-features fixture grid. */
+    selectionHookLog: string[];
+    /** Renderer calls that painted a cell of the selection-features fixture grid. */
+    cellPaintCount: number;
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
     /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
@@ -313,6 +403,13 @@ declare global {
       physicalRows: number[];
       source?: string;
     }[];
+    /**
+     * Physical rows a HOST `beforeRemoveRow` listener (declared in the constructor settings) saw on
+     * each call, in firing order - the DEV-3092 remove-parent fixture's `updatePlugin()` regression
+     * case, where NestedRows' own listener has to keep running ahead of this one even after it is
+     * cleared and re-registered by an `updateSettings()` call.
+     */
+    hostBeforeRemoveRowLog?: number[][];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */
