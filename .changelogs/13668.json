@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed column summaries after a column or row move. A summary now follows its column and keeps summarizing the same rows, and `sourceColumn`/`destinationColumn` are read as physical indexes as documented, including when the grid starts with a column order.",
+  "type": "fixed",
+  "issueOrPR": 13668,
+  "breaking": false,
+  "framework": "none"
+}
