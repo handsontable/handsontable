@@ -304,15 +304,25 @@ Machine-enforced by the presence gate; full decision rules in
   waive.
 - **A pushed commit is waived from the PR description.** A pushed commit cannot take a trailer without a
   force-push, which a PR branch must not do, so write `[refactor-only: <reason>]` in the PR description (outside
-  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. The
-  placeholder itself (`<reason>`, or an elided `…`) declares nothing, in a trailer or in the description, so
-  pasting the instruction or the red verdict leaves the job red. Locally,
+  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. Locally,
   pre-push asks `gh` for the description when the verdict would fail.
+- **A waiver says what the change is.** Its reason needs at least three words, in a trailer or in the
+  description – `TBD`, `x`, and the placeholder itself (`<reason>`, or an elided `…`) declare nothing. In the
+  description it has to be plain text: a waiver GitHub shows as code (a fenced or indented block, backticks, a
+  `<code>` or `<pre>` element) or hides in an HTML comment is a quotation, so pasting the instruction, an
+  example, or the red verdict leaves the job red. Where Markdown is ambiguous the gate reads it the stricter
+  way: a `<!--` before the waiver, even one inside code, hides it.
 - **A comment-only change needs no test.** When a `.ts` or `.js` source file's diff changes nothing but comments
   and whitespace (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments
   from both versions with a lexer that knows strings, templates, and regex literals, and compares them; a
   trailing comment on a code line or a reindent still counts as code, and so does any `.tsx` change (JSX text
-  can look like a comment).
+  can look like a comment). The lexer never guesses whether a `/` starts a regex or divides: where the syntax
+  does not settle it (a line break included, because ASI can end the statement), it follows both readings and
+  needs them to agree on every line, or it treats the file as code. Only an in-place edit qualifies: a rename,
+  a copy, or a move into source is code, and so is an edit to a theme file the theme build rewrites as text
+  (`TEXT_REWRITTEN_SOURCE`, pinned against that build's loader rules). A comment a tool acts on is code too:
+  a `#__PURE__` annotation (the minifier drops the call), a `/// <reference>` or `@ts-` directive, a bundler or
+  source-map comment, or a coverage hint.
 - **Translation dictionaries need no test.** `handsontable/src/i18n/languages/` is pure data: a test there could
   only restate the strings. The path list stays short on purpose – a path joins it only when no test could fail
   on it. Every other non-runtime change still needs a type test (public types) or a declaration (internal types,

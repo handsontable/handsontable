@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   classify, isCoverage, isNewJasmineSpec, refactorDeclared, evaluate,
   sourceGroup, coverageGroups, waivedFiles, isRefactorCommit, isRevertCommit,
   stripComments, isCommentOnlyChange, commitsTouching, undeclaredCommits, isWaived, bodyWaiver, isSource,
+  commentOnlyCandidate, TEXT_REWRITTEN_SOURCE,
 } from '../lib/presence-gate.mjs';
 import { stripHtmlComments } from '../lib/strip-html-comments.mjs';
 
@@ -71,7 +73,7 @@ test('refactorDeclared ignores the <reason> placeholder copied from the docs', (
   assert.equal(refactorDeclared(['Refactor-only: <reason>']), false);
   assert.equal(refactorDeclared(['Refactor-only:  <why this needs no test> ']), false);
   assert.equal(refactorDeclared(['Refactor-only: &lt;reason&gt;']), false, 'an HTML-escaped copy');
-  assert.equal(refactorDeclared(['Refactor-only: <reason>', 'Refactor-only: renamed a field']), true,
+  assert.equal(refactorDeclared(['Refactor-only: <reason>', 'Refactor-only: renamed a private field']), true,
     'a real trailer beside a pasted one still counts');
   assert.equal(refactorDeclared(['Refactor-only: moved <T> generics to one file']), true,
     'angle brackets inside a real reason are fine');
@@ -328,7 +330,7 @@ test('a Refactor-only trailer waives only the files its own commit changed', () 
   const FILE_A = 'handsontable/src/helpers/a.ts';
   const FILE_B = 'handsontable/src/helpers/b.ts';
   const r = evaluate([{ status: 'M', path: FILE_A }, { status: 'M', path: FILE_B }], [
-    { message: 'DEV-1: extract a helper\n\nRefactor-only: pure extraction', files: [FILE_A] },
+    { message: 'DEV-1: extract a helper\n\nRefactor-only: pure extraction, no behavior change', files: [FILE_A] },
     { message: 'DEV-1: change the rounding', files: [FILE_B] },
   ]);
 
@@ -340,7 +342,7 @@ test('a Refactor-only trailer waives only the files its own commit changed', () 
 test('a file changed by a refactor commit and by an ordinary commit is not waived', () => {
   const FILE = 'handsontable/src/helpers/a.ts';
   const commits = [
-    { message: 'Refactor-only: rename a local', files: [FILE] },
+    { message: 'Refactor-only: renamed a local variable', files: [FILE] },
     { message: 'DEV-1: change the behavior', files: [FILE] },
   ];
 
@@ -350,7 +352,7 @@ test('a file changed by a refactor commit and by an ordinary commit is not waive
 
 test('every uncovered file waived: pass as a declared refactor, listing the waived files', () => {
   const FILE = 'handsontable/src/helpers/a.ts';
-  const r = evaluate([{ status: 'M', path: FILE }], [{ message: 'Refactor-only: rename a local', files: [FILE] }]);
+  const r = evaluate([{ status: 'M', path: FILE }], [{ message: 'Refactor-only: renamed a local variable', files: [FILE] }]);
 
   assert.equal(r.pass, true);
   assert.equal(r.reason, 'refactor-declared');
@@ -360,7 +362,7 @@ test('every uncovered file waived: pass as a declared refactor, listing the waiv
 test('a waiver never hides behind coverage: a covered package needs no waiver and reports ok', () => {
   const r = evaluate(
     [{ status: 'M', path: CORE_SRC }, { status: 'A', path: 'tests/e2e/filters/menu.spec.ts' }],
-    [{ message: 'Refactor-only: rename', files: [CORE_SRC] }],
+    [{ message: 'Refactor-only: renamed a local variable', files: [CORE_SRC] }],
   );
 
   assert.equal(r.reason, 'ok');
@@ -448,6 +450,212 @@ test('the review\'s exploits are code changes, not comment-only ones', () => {
   }
 });
 
+/**
+ * Does editing `from` to `to` on line `line` of `base` pass as comment-only?
+ *
+ * @param {string} base The base version.
+ * @param {string} from The text the edit replaces.
+ * @param {string} to Its replacement.
+ * @param {number} line The 1-based line the edit is on.
+ * @returns {boolean} The verdict.
+ */
+function commentOnlyEdit(base, from, to, line) {
+  return isCommentOnlyChange({ baseText: base, headText: base.replace(from, to), removed: [line], added: [line] });
+}
+
+test('an uncertain `/` is read both ways, so no guess about regex or division can hide code', () => {
+  // Reported in review: guessing regex-or-division from the character before
+  // the `/` read these the wrong way, a later JSDoc closed the comment the
+  // guess opened, and `limit(10)` → `limit(999)` passed as comment-only.
+  const tail = 'limit(10);\n/**\n * Doc.\n */\nfunction f() {}\n';
+  const exploits = [
+    'if (x) /[/*]/.test(s) && y;\n', // a regex after the `)` of an `if` head
+    'const y = x! / 2; // see a/*b\n', // a division after TypeScript's non-null `!`
+    'const y = a++ / 2; // a/*b\n',
+    'const y = a-- / 2; // a/*b\n',
+    'const y = +class {} / 2; // a/*b\n',
+    'const y = of / 2; // a/*b\n', // an identifier named `of`
+    'const y = it.return / 2; // a/*b\n', // a keyword used as a property name divides
+    'const y = [...typeof /[/*]/];\n', // but a keyword after a spread is an operator
+    'const y = obj.if(x) / 2; // a/*b\n',
+    'for await (const v of w) /[/*]/.test(v);\n',
+  ];
+
+  for (const head of exploits) {
+    assert.equal(commentOnlyEdit(head + tail, 'limit(10)', 'limit(999)', 2), false, JSON.stringify(head));
+  }
+
+  // A division read as a regex after `!` swallows a template's opening
+  // backtick, so the template's text on line 2 looked like a block comment at
+  // the start of a line – no `/*` after code anywhere.
+  const shifted = "const r = a! / '`' + `/\n/* 10 */\n`;\n// `\n";
+
+  assert.equal(commentOnlyEdit(shifted, '10', '999', 2), false, 'the template text is runtime data');
+});
+
+test('the readings of an uncertain `/` must agree on every line, or the lex is incomplete', () => {
+  // The JSDoc closes the comment the regex reading opens, so only the
+  // disagreement between the readings can make this incomplete.
+  assert.equal(stripComments('const y = x! / 2; // see a/*b\n/**\n * Doc.\n */\n').complete, false,
+    'the readings disagree');
+
+  // They agree when no comment opener or quote follows the `/` on its line.
+  const agree = stripComments('if (!/^a/.test(s)) {}\n/**\n * Doc.\n */\n');
+
+  assert.equal(agree.complete, true);
+  assert.equal(agree.text, 'if (!/^a/.test(s)) {}');
+  // A reading whose regex runs into a line break is dropped, not a disagreement.
+  assert.equal(stripComments('const r = !/a/.test(s) // note\n').complete, true);
+});
+
+test('the certain cases need no second reading: a statement head, a call, a property, a keyword', () => {
+  const cases = [
+    ['if (x) /[/*]/.test(s); // c\n', 'if (x) /[/*]/.test(s);'],
+    ['const y = size(a) / 2; // half\n', 'const y = size(a) / 2;'],
+    ['const y = mod.default / 2; // c\n', 'const y = mod.default / 2;'],
+    ['return /[/*]/.test(s); // c\n', 'return /[/*]/.test(s);'],
+    ['const y = a / b / c; // c\n', 'const y = a / b / c;'],
+    ['const f = () => /[/*]/; // c\n', 'const f = () => /[/*]/;'],
+    ['const y = [1, 2][0] / 2; // c\n', 'const y = [1, 2][0] / 2;'],
+  ];
+
+  for (const [source, text] of cases) {
+    const r = stripComments(source);
+
+    assert.equal(r.complete, true, source);
+    assert.equal(r.text, text, source);
+  }
+});
+
+test('across a line break a division is never certain, because ASI can end the statement first', () => {
+  // Reported by the red team: after `let x`, a type, an import, or `debugger`,
+  // a `/` on the next line starts a regex; the rules called it a division.
+  const tail = '/[/*]/.test(s);\nexport const limit = 1;\n/**\n * Doc.\n */\nexport const z = 1;\n';
+  const heads = [
+    'let x\n', 'debugger\n', 'import s from "./s.mjs"\n', 'let x: number\n', 'type A = string\n',
+    'type T = \'a\' | \'b\'\n', 'let x: string[]\n', 'declare function f(a: string)\n', 'x: for (;;) { break x\n}\n',
+  ];
+
+  for (const head of heads) {
+    const base = `const s = "";\n${head}${tail}`;
+    const line = base.split('\n').indexOf('export const limit = 1;') + 1;
+
+    assert.equal(commentOnlyEdit(base, 'limit = 1', 'limit = 2', line), false, JSON.stringify(head));
+  }
+
+  // A division continued on the next line still lexes: its regex reading dies.
+  assert.equal(commentOnlyEdit('const y = a\n  / b;\n/**\n * Old.\n */\n', 'Old', 'New', 4), true);
+});
+
+test('identifiers are Unicode and may hold escapes, so no keyword hides inside a longer name', () => {
+  // Reported by the red team: `ñreturn` read as `ñ` plus the keyword `return`.
+  const tail = ' / 2 + "x/" + "/*";\nexport function limit() {\n  return 10;\n}\n/** doc */\nexport const z = 1;\n';
+
+  for (const name of ['ñreturn', '\\u{62}return', 'total\u200Creturn', 'Δtypeof']) {
+    const base = `export const ${name} = 4;\nexport const y = ${name}${tail}`;
+
+    assert.equal(commentOnlyEdit(base, 'return 10', 'return 999', 4), false, name);
+  }
+  assert.equal(commentOnlyEdit(
+    'declare function ñif(x: number): number;\nexport const y = ñif(1) / 2 + "x/" + "/*";\nlimit(10);\n/** doc */\n',
+    'limit(10)', 'limit(999)', 3,
+  ), false, 'a call to a function whose name ends in `if` divides');
+});
+
+test('`void` can be a type and a number can end in a dot, so neither settles the next `/`', () => {
+  const tail = '\nlimit(10);\n/**\n * Doc.\n */\n';
+
+  for (const head of [
+    'const y = x as void / 2 + "x/" + "/*";', 'const y = x satisfies void / 2 + "x/" + "/*";',
+    'const y = 1. in /[/*]/;', 'const y = 1..in / y + "x/" + "/*";',
+  ]) {
+    assert.equal(commentOnlyEdit(head + tail, 'limit(10)', 'limit(999)', 2), false, head);
+  }
+});
+
+test('a line terminator git does not count makes the file code', () => {
+  // Reported by the red team: JavaScript ends a `//` comment at a CR, U+2028,
+  // or U+2029, so code after one sits on what git numbers as a comment line.
+  for (const terminator of ['\r', '\u2028', '\u2029']) {
+    const base = `// note${terminator}export const limit = 10;\n/**\n * Doc.\n */\n`;
+
+    assert.equal(stripComments(base).complete, false, JSON.stringify(terminator));
+    assert.equal(commentOnlyEdit(base, '10', '999', 1), false, JSON.stringify(terminator));
+  }
+  // CR LF line endings are fine, and so is a CR LF line continuation.
+  const crlf = 'const y = a! / "x/\\\r\n" + "/*";\r\nexport function limit() { return 10; }\r\n/**\r\n * Doc.\r\n */\r\n';
+
+  assert.equal(stripComments(crlf).complete, true);
+  assert.equal(commentOnlyEdit(crlf, 'return 10', 'return 999', 3), false, 'the division reading survives');
+});
+
+test('a backslash outside a literal kills its reading, and a dead reading ends the lex', { timeout: 5000 }, () => {
+  // Reported by the red team: a division reading kept `\` as code and read
+  // `\//` as a line comment (a false block), and a reading that died at `\/*`
+  // was re-queued forever (a hang).
+  const noSlash = 'export const tracked = f => !/\\/(dist|tmp)\\//.test(f);\n/**\n * Old.\n */\nexport const z = 1;\n';
+
+  assert.equal(stripComments(noSlash).complete, true);
+  assert.equal(commentOnlyEdit(noSlash, 'Old', 'New', 3), true);
+  assert.equal(stripComments('declare const s: string;\nlet x: string\n/\\/*/.test(s);\n').complete, true);
+  assert.equal(stripComments('export const x = 1 \\/* note */;\n').complete, false, 'a stray backslash');
+});
+
+test('a leading `#!` line is kept as code, so a `/*` inside it opens nothing', () => {
+  const base = '#!/usr/bin/env node --no-warnings /* see the docs\nexport function limit() {\n  return 10;\n}\n/**\n * Doc.\n */\n';
+
+  assert.equal(commentOnlyEdit(base, 'return 10', 'return 999', 3), false);
+  assert.equal(commentOnlyEdit(base, ' * Doc.', ' * New doc.', 6), true, 'a JSDoc edit below it still passes');
+});
+
+test('a comment a tool acts on is code: annotations, directives, bundler and coverage hints', () => {
+  // Reported by the red team: an added `/*#__PURE__*/` line makes the minifier
+  // drop the call on the next line, and `/// <reference>` changes type checking.
+  const base = '/**\n * Registers every module.\n */\nregisterAllModules();\nexport const ready = true;\n';
+  const added = [
+    '/*#__PURE__*/', '// @ts-expect-error', '/// <reference types="node" />', '/* istanbul ignore next */',
+    '//# sourceMappingURL=index.js.map', '/* webpackChunkName: "all" */', '/* @__NO_SIDE_EFFECTS__ */',
+  ];
+
+  for (const comment of added) {
+    const head = base.replace('registerAllModules();', `${comment}\nregisterAllModules();`);
+
+    assert.equal(isCommentOnlyChange({ baseText: base, headText: head, removed: [], added: [4] }), false, comment);
+  }
+  assert.equal(commentOnlyEdit(base, ' * Registers every module.', ' * @__PURE__', 2), false, 'a JSDoc tag');
+  assert.equal(commentOnlyEdit(base, 'Registers every', 'Registers all', 2), true, 'plain prose is still prose');
+});
+
+test('a diff that names no changed lines is judged as code', () => {
+  // Reported by the red team: git prints no hunks for a file it calls binary.
+  const base = 'export function limit() {\n  return 10;\n}\n';
+  const head = 'export function limit() {\n  return\n  10;\n}\n';
+
+  assert.equal(isCommentOnlyChange({ baseText: base, headText: head, removed: [], added: [] }), false);
+});
+
+test('only an in-place edit of a .ts or .js file no build rewrites as text is a comment-only candidate', () => {
+  assert.equal(commentOnlyCandidate({ status: 'M', path: 'handsontable/src/core.ts' }), true);
+  assert.equal(commentOnlyCandidate({ status: 'M', path: 'wrappers/vue3/src/helpers.js' }), true);
+  for (const status of ['A', 'D', 'R', 'C']) {
+    assert.equal(commentOnlyCandidate({ status, path: 'handsontable/src/core.ts' }), false, status);
+  }
+  assert.equal(commentOnlyCandidate({ status: 'M', path: 'wrappers/react-wrapper/src/hotTable.tsx' }), false);
+  assert.equal(commentOnlyCandidate({ status: 'M', path: 'handsontable/src/themes/theme/main.ts' }), false);
+  assert.equal(commentOnlyCandidate({
+    status: 'M', path: 'handsontable/src/themes/static/variables/colors/ant.ts',
+  }), false);
+});
+
+test('the text-rewritten sources are exactly the theme build\'s string-replace-loader rules', () => {
+  // Reported by the red team: the theme UMD build rewrites these files with
+  // regexes that see comments. A new loader rule must join the list.
+  const config = readFileSync(new URL('../../../handsontable/.config/themes-umd-development.js', import.meta.url), 'utf8');
+  const rules = [...config.matchAll(/test:\s*\/(.+)\/,\s*\n\s*loader:\s*'string-replace-loader'/g)].map(m => m[1]);
+
+  assert.deepEqual(rules, TEXT_REWRITTEN_SOURCE.map(r => r.source));
+});
+
 test('a JSDoc-only edit is comment-only; a code edit, or a blank line, is judged exactly', () => {
   const base = '/**\n * Old words.\n */\nexport function f() {\n  return 1;\n}\n';
 
@@ -498,7 +706,7 @@ test('a waiver follows a rename: edits under the old name still need a test', ()
   // newest first, as `git log` lists them.
   const commits = [
     {
-      hash: 'b2', subject: 'rename', message: 'Refactor-only: rename a to b', files: ['a.ts', 'b.ts'],
+      hash: 'b2', subject: 'rename', message: 'Refactor-only: renamed a to b only', files: ['a.ts', 'b.ts'],
       renames: [['a.ts', 'b.ts']],
     },
     { hash: 'a1', subject: 'edit a', message: 'DEV-1: change a', files: ['a.ts'] },
@@ -515,7 +723,7 @@ test('a merge commit\'s own edits never waive, even beside a refactor commit', (
   // `return 999` it wrote was waived by an earlier refactor commit.
   const commits = [
     { hash: 'm1', subject: 'Merge develop (merge)', message: '', merge: true, files: ['a.ts'] },
-    { hash: 'r1', subject: 'extract', message: 'Refactor-only: extract a helper', files: ['a.ts'] },
+    { hash: 'r1', subject: 'extract', message: 'Refactor-only: extracted a shared helper', files: ['a.ts'] },
   ];
 
   assert.equal(isWaived('a.ts', commits), false);
@@ -524,26 +732,101 @@ test('a merge commit\'s own edits never waive, even beside a refactor commit', (
 
 test('bodyWaiver reads [refactor-only: <reason>] from the PR description, and needs a reason', () => {
   assert.equal(bodyWaiver('Some text.\n\n[refactor-only: renamed a private field]\n'), 'renamed a private field');
-  assert.equal(bodyWaiver('[Refactor-Only:  types only ]'), 'types only');
+  assert.equal(bodyWaiver('[Refactor-Only:  internal types only ]'), 'internal types only');
   assert.equal(bodyWaiver('[refactor-only: ]'), null, 'an empty reason is no waiver');
   assert.equal(bodyWaiver(''), null);
   assert.equal(bodyWaiver(undefined), null);
-  assert.equal(bodyWaiver(stripHtmlComments('<!-- [refactor-only: in a comment] -->')), null,
+  assert.equal(bodyWaiver(stripHtmlComments('<!-- [refactor-only: hidden in a comment] -->')), null,
     'the CLI strips comments first');
 });
 
 test('bodyWaiver ignores the <reason> placeholder from a pasted instruction or red verdict', () => {
   // Reported in review: the red verdict tells the author to write
   // `[refactor-only: <reason>]`, so pasting it must not turn the job green.
+  // Plain text, so the placeholder rule decides, not the code stripping.
   assert.equal(bodyWaiver('[refactor-only: <reason>]'), null);
-  assert.equal(bodyWaiver('write `[refactor-only: <reason>]` in the PR description instead'), null);
+  assert.equal(bodyWaiver('write [refactor-only: <why this needs no test>] in the PR description instead'), null);
   assert.equal(bodyWaiver('[refactor-only: &lt;reason&gt;]'), null, 'an HTML-escaped copy');
-  assert.equal(bodyWaiver('any `[refactor-only: …]` token, or `[refactor-only: ...]`'), null, 'an elided reason');
+  assert.equal(bodyWaiver('any [refactor-only: …] token, or [refactor-only: ...]'), null, 'an elided reason');
   assert.equal(
-    bodyWaiver('CI said: write `[refactor-only: <reason>]`.\n\n[refactor-only: renamed a private field]'),
+    bodyWaiver('CI said: write [refactor-only: <reason>].\n\n[refactor-only: renamed a private field]'),
     'renamed a private field',
     'a real waiver after a pasted placeholder still counts',
   );
+});
+
+test('a waiver reason needs at least three words, in a trailer and in the description', () => {
+  // Reported in review: TBD, reason, x, and .... used to pass as reasons.
+  for (const reason of ['TBD', 'reason', 'x', '....', 'types only', 'a b c d']) {
+    assert.equal(bodyWaiver(`[refactor-only: ${reason}]`), null, reason);
+    assert.equal(refactorDeclared([`Refactor-only: ${reason}`]), false, reason);
+  }
+  // The shortest real reason in develop's history.
+  assert.equal(bodyWaiver('[refactor-only: JSDoc wording only.]'), 'JSDoc wording only.');
+  assert.equal(refactorDeclared(['Refactor-only: JSDoc wording only.']), true);
+  assert.equal(refactorDeclared(['Refactor-only: renommé un champ privé']), true, 'any language counts');
+});
+
+test('a waiver inside Markdown code is a quotation, not a declaration', () => {
+  // Reported in review: a [refactor-only: …] inside a code fence waived the PR.
+  const reason = 'moved helpers into one file';
+  const quoted = [
+    `Example:\n\n\`\`\`\n[refactor-only: ${reason}]\n\`\`\`\n`,
+    `CI log:\n~~~text\n[refactor-only: ${reason}]\n~~~\n`,
+    `- item\n\n    \`\`\`\n    [refactor-only: ${reason}]\n    \`\`\`\n`,
+    `\`\`\`\`\n\`\`\`\n[refactor-only: ${reason}]\n\`\`\`\n\`\`\`\`\n`, // a shorter fence inside a longer one
+    `Unclosed:\n\`\`\`\n[refactor-only: ${reason}]\n`,
+    `write \`[refactor-only: ${reason}]\` like this`,
+    `write \`\` [refactor-only: ${reason}] \`\` like this`,
+  ];
+
+  for (const body of quoted) {
+    assert.equal(bodyWaiver(body), null, JSON.stringify(body));
+  }
+  assert.equal(bodyWaiver(`\`\`\`\n[refactor-only: ${reason}]\n\`\`\`\n\n[refactor-only: renamed a private field]`),
+    'renamed a private field', 'a real waiver after a fence still counts');
+});
+
+test('a waiver GitHub shows as code stays a quotation: CR LF, indented blocks, HTML code, quoted fences', () => {
+  // Reported by the red team: each of these counted as a waiver.
+  const w = '[refactor-only: moved helpers into one file]';
+  const quoted = [
+    `CI log:\r\n~~~text\r\n${w}\r\n~~~\r\n`, // the GitHub editor writes CR LF
+    `Unclosed:\r\n\`\`\`\r\n${w}\r\n`,
+    `Log:\n\n    ${w}\n`, // an indented code block
+    `Log:\n\n\t${w}\n`,
+    `<code>${w}</code>`,
+    `<pre>\n${w}\n</pre>`,
+    `<kbd>${w}</kbd> and <samp>${w}</samp> and <tt>${w}</tt>`,
+    `> ~~~\n> ${w}\n> ~~~\n`, // a fence in a quote
+    `- \`\`\`\n  ${w}\n  \`\`\`\n`, // a fence in a list item
+    `\`\`\`md\nNested example:\n    \`\`\`\n${w}\n\`\`\`\n`, // a 4-space line cannot close a fence
+    `- item\n  \`\`\`\n  code\n\`\`\`\n${w}\n\`\`\`\n`, // the list ends, and a new fence opens
+    'It doesn`t change behavior.\n\nThe verdict suggested `' + w + '`, but I added a test.\n',
+    '## Don`t merge yet\n`' + w + '`\n',
+    'Use \\`x` ' + w + ' `y`', // an escaped backtick opens nothing
+    '`<!--`\n```\n-->\n' + w + '\n```\n', // `<!--` in code is text, so the fence stands
+  ];
+
+  for (const body of quoted) {
+    assert.equal(bodyWaiver(body), null, JSON.stringify(body));
+  }
+});
+
+test('a plain-text waiver still counts beside code, and its reason keeps its code and links', () => {
+  // Reported by the red team: these real waivers were refused or cut short.
+  assert.equal(bodyWaiver('Fixes the don`t typo.\n\n[refactor-only: renamed a private field]\n\nUse `bar` now.\n'),
+    'renamed a private field', 'a stray backtick in another paragraph');
+  assert.equal(bodyWaiver('[refactor-only: extracted `getRange` into `rangeHelpers`]'),
+    'extracted `getRange` into `rangeHelpers`', 'code in the reason counts as words');
+  assert.equal(bodyWaiver('[refactor-only: follow-up to [#1](https://example.com/1), internal types only]'),
+    'follow-up to [#1](https://example.com/1), internal types only', 'a link in the reason');
+  assert.equal(bodyWaiver('[refactor-only: renamed arr[i] to a named local]'), 'renamed arr[i] to a named local');
+  assert.equal(bodyWaiver('```\ncode\n```\n\n[refactor-only: renamed a private field]'), 'renamed a private field');
+  assert.equal(bodyWaiver('- ```\n  code\n  ```\n\n[refactor-only: renamed a private field]'), 'renamed a private field');
+  // Fails closed, deliberately: an unterminated `<!--` hides the rest in one
+  // of the two readings, even when GitHub shows it as text inside code.
+  assert.equal(bodyWaiver('The gate strips `<!--` first.\n\n[refactor-only: renamed a private field]'), null);
 });
 
 test('the PR-description waiver clears what no commit declared, and nothing else', () => {

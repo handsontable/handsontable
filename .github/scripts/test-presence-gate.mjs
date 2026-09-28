@@ -41,10 +41,9 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
-  evaluate, isCommentOnlyChange, isSource, bodyWaiver, undeclaredCommits, COVERAGE_HINTS,
+  evaluate, isCommentOnlyChange, isSource, bodyWaiver, undeclaredCommits, COVERAGE_HINTS, commentOnlyCandidate,
 } from './lib/presence-gate.mjs';
 import { collectWarnings, renderWarnings, isAdvisoryPath } from './lib/presence-warnings.mjs';
-import { stripHtmlComments } from './lib/strip-html-comments.mjs';
 
 const base = process.env.GATE_BASE;
 const head = process.env.GATE_HEAD || 'HEAD';
@@ -207,9 +206,10 @@ function changedLines(diff) {
  * The source files among `paths` whose diff changes comments and whitespace
  * only, judged on both versions of each file (isCommentOnlyChange). Any git
  * failure leaves the file out, so it still needs a test — the safe direction.
- * Only modified and renamed `.ts`/`.js` files qualify. A new, deleted, `.vue`,
- * or `.tsx` file is judged as code: the lexer is not a JSX parser, and JSX text
- * such as `// docs link` would read as a comment.
+ * Only an in-place edit of a `.ts`/`.js` file qualifies (commentOnlyCandidate):
+ * a new, deleted, renamed, copied, `.vue`, or `.tsx` file is judged as code.
+ * The diff is forced to text, so a file git would call binary (a NUL byte, a
+ * `-diff` attribute) still names the lines it changed.
  *
  * @param {string} mergeBase The merge-base commit.
  * @param {{status: string, oldPath: string, path: string}[]} changes Parsed diff entries.
@@ -220,13 +220,15 @@ function readCommentOnly(mergeBase, changes, paths) {
   const found = [];
 
   for (const change of changes) {
-    if (!paths.has(change.path) || !'MR'.includes(change.status) || !/\.(ts|js)$/.test(change.path)) {
+    if (!paths.has(change.path) || !commentOnlyCandidate(change)) {
       continue;
     }
     try {
       const baseText = git(['show', `${mergeBase}:${change.oldPath}`]);
       const headText = git(['show', `${head}:${change.path}`]);
-      const diff = git(['diff', '-U0', '--no-color', mergeBase, head, '--', change.oldPath, change.path]);
+      const diff = git([
+        'diff', '-U0', '--no-color', '--text', '--no-ext-diff', '--no-textconv', mergeBase, head, '--', change.path,
+      ]);
 
       if (isCommentOnlyChange({ baseText, headText, ...changedLines(diff) })) {
         found.push(change.path);
@@ -362,7 +364,7 @@ let result = evaluate(changes, commits);
 if (result.reason === 'missing-coverage') {
   const uncovered = new Set(result.uncovered.flatMap(({ files }) => files));
   const commentOnly = readCommentOnly(mergeBase, changes.filter(change => isSource(change)), uncovered);
-  const waiver = bodyWaiver(stripHtmlComments(readWaiverBody() ?? ''));
+  const waiver = bodyWaiver(readWaiverBody() ?? '');
 
   if (commentOnly.length > 0 || waiver) {
     result = evaluate(changes, commits, { commentOnly, bodyWaiver: waiver });
@@ -425,7 +427,9 @@ if (result.pass) {
   lines.push('**A refactor or an internal non-runtime change** (types no consumer imports, config, internal '
     + 're-exports) needs no test, but it has to say so. A commit you have not pushed yet: amend it to add a `Refactor-only: <reason>` trailer. A commit you '
     + 'have pushed: a PR branch must not be force-pushed, so write `[refactor-only: <reason>]` in the PR '
-    + 'description instead and re-run the job. It waives every file listed here, and reviewers see it.');
+    + 'description instead and re-run the job. It waives every file listed here, and reviewers see it. The '
+    + 'reason needs at least three words that say what the change is, and the description waiver has to be plain '
+    + 'text: one inside code or an HTML comment is a quotation and waives nothing.');
 }
 
 console.log(lines.join('\n'));

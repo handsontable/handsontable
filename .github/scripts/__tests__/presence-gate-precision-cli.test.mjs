@@ -119,7 +119,7 @@ test('a Refactor-only trailer waives only the files its own commit changed', (t)
   t.after(() => rmSync(root, { recursive: true, force: true }));
   git(root, 'switch', '-q', '-c', 'feature');
   write(root, FILE_A, 'export const a = 1; // moved\n');
-  commit(root, 'DEV-1: move a\n\nRefactor-only: comment only');
+  commit(root, 'DEV-1: move a\n\nRefactor-only: comment edit only');
   write(root, FILE_B, 'export const b = 2;\n');
   commit(root, 'DEV-1: change b');
 
@@ -142,7 +142,7 @@ test('a merge commit in the range (a CI merge ref) does not cancel a waiver', (t
   t.after(() => rmSync(root, { recursive: true, force: true }));
   git(root, 'switch', '-q', '-c', 'feature');
   write(root, FILE_A, 'export const a = 1; // moved\n');
-  commit(root, 'DEV-1: move a\n\nRefactor-only: comment only');
+  commit(root, 'DEV-1: move a\n\nRefactor-only: comment edit only');
   git(root, 'switch', '-q', 'develop');
   write(root, 'README.md', 'base moved on\n');
   commit(root, 'unrelated base work');
@@ -272,7 +272,7 @@ test('renaming a file in a refactor commit does not launder an untrailered edit 
   write(root, FILE_A, 'export const a = 999;\n');
   commit(root, 'DEV-1: change a');
   git(root, 'mv', FILE_A, 'handsontable/src/helpers/moved.ts');
-  commit(root, 'DEV-1: move a\n\nRefactor-only: rename only');
+  commit(root, 'DEV-1: move a\n\nRefactor-only: rename with no edits');
 
   const run = runGate(root, 'develop');
 
@@ -295,7 +295,7 @@ test('a conflict resolution in a merge is not waived; a clean merge of the base 
   commit(root, 'base a');
   git(root, 'switch', '-q', '-c', 'feature');
   write(root, FILE_A, lines('const l3 = 3; // note'));
-  commit(root, 'DEV-1: note l3\n\nRefactor-only: comment only');
+  commit(root, 'DEV-1: note l3\n\nRefactor-only: comment edit only');
   git(root, 'switch', '-q', 'develop');
   write(root, FILE_B, 'export const b = 1; // develop\n');
   commit(root, 'develop edits b');
@@ -350,7 +350,7 @@ test('[refactor-only: <reason>] in the PR description waives a pushed, untrailer
     /the PR description waives these source files: `\[refactor-only: types only, no runtime change\]`/,
   );
 
-  const commented = runGate(root, 'develop', { GATE_PR_BODY: '<!-- [refactor-only: hidden] -->' });
+  const commented = runGate(root, 'develop', { GATE_PR_BODY: '<!-- [refactor-only: hidden in a comment] -->' });
 
   assert.equal(commented.status, 1, 'a waiver inside an HTML comment is inert');
 });
@@ -381,6 +381,30 @@ test('pasting the red verdict, or its placeholder trailer, waives nothing', (t) 
 
   assert.equal(trailer.status, 1, trailer.stdout);
   assert.ok(trailer.stdout.includes(`- \`${FILE_A}\``), `a placeholder trailer declares nothing:\n${trailer.stdout}`);
+});
+
+test('a description waiver quoted as code, or with too few words, waives nothing; as plain text it does', (t) => {
+  // Reported in review: `[refactor-only: TBD]` and a waiver inside a code
+  // fence both turned the job green.
+  const root = baseRepo();
+  const waiver = '[refactor-only: moved the helper into its own file]';
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_B, 'export const b = 2;\n');
+  commit(root, 'DEV-1: change b');
+
+  for (const body of [`Example:\n\n\`\`\`\n${waiver}\n\`\`\`\n`, `Write \`${waiver}\`.`, '[refactor-only: TBD]']) {
+    const run = runGate(root, 'develop', { GATE_PR_BODY: body });
+
+    assert.equal(run.status, 1, `${JSON.stringify(body)} waives nothing:\n${run.stdout}`);
+    assert.match(run.stdout, /at least three words/, 'the verdict says what a reason needs');
+    assert.match(run.stdout, /one inside code or an HTML comment is a quotation/);
+  }
+
+  const plain = runGate(root, 'develop', { GATE_PR_BODY: `Context.\n\n${waiver}\n` });
+
+  assert.equal(plain.status, 0, plain.stdout);
 });
 
 test('locally, a failing verdict asks gh for the PR body, so pre-push honors a waiver written after a push', (t) => {
@@ -472,4 +496,48 @@ test('a diff too large for a 1 MB buffer is read, not skipped', (t) => {
 
   assert.equal(run.status, 1, run.stdout.slice(0, 2000));
   assert.ok(run.stdout.includes(`- \`${FILE_B}\``));
+});
+
+test('a rename, a move into source, a diff git calls binary, and a theme file are judged as code', (t) => {
+  // Reported by the red team: each passed as "changed only in comments".
+  const root = baseRepo();
+  const LIMIT = 'handsontable/src/helpers/limit.ts';
+  const THEME = 'handsontable/src/themes/theme/main.ts';
+  const MOVED = 'handsontable/src/helpers/sample.ts';
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  write(root, LIMIT, 'export function limit() {\n  return 10;\n}\n');
+  write(root, THEME, 'import { a } from "./a";\n\nexport default a;\n');
+  write(root, 'tests/e2e/helpers/sample.ts', 'export const sample = 1;\n');
+  commit(root, 'more base');
+
+  const judge = (edit) => {
+    git(root, 'switch', '-q', '-C', 'feature', 'develop');
+    edit();
+    commit(root, 'DEV-1: edit');
+
+    return runGate(root, 'develop');
+  };
+  const cases = {
+    'a pure rename': [() => git(root, 'mv', FILE_A, 'handsontable/src/helpers/renamed.ts'),
+      'handsontable/src/helpers/renamed.ts'],
+    'a move from tests into source': [() => git(root, 'mv', 'tests/e2e/helpers/sample.ts', MOVED), MOVED],
+    'a diff git calls binary': [() => {
+      write(root, '.gitattributes', '*.ts -diff\n');
+      write(root, LIMIT, 'export function limit() {\n  return\n  10;\n}\n'); // ASI: now returns undefined
+    }, LIMIT],
+    'a header comment on a theme file': [() => write(root, THEME, `/**\n * The main theme.\n */\n${readTheme()}`), THEME],
+  };
+
+  function readTheme() {
+    return git(root, 'show', `develop:${THEME}`);
+  }
+
+  for (const [name, [edit, file]] of Object.entries(cases)) {
+    const run = judge(edit);
+
+    assert.equal(run.status, 1, `${name}:\n${run.stdout}`);
+    assert.ok(run.stdout.includes(`- \`${file}\``), `${name} names the file:\n${run.stdout}`);
+    assert.ok(!run.stdout.includes('changed only in comments'), `${name} is not comment-only:\n${run.stdout}`);
+  }
 });

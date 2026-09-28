@@ -138,11 +138,15 @@ const JASMINE_TREE = [
 ];
 
 const REFACTOR_TRAILER = /^Refactor-only:\s*(.*\S)/i;
-const BODY_WAIVER = /\[refactor-only:\s*([^\]]*?\S)\s*\]/gi;
+// The reason may hold one level of brackets: a Markdown link, an index.
+const BODY_WAIVER = /\[refactor-only:\s*((?:[^[\]]|\[[^[\]]*\])*?\S)\s*\]/gi;
 // A reason copied from the docs or from the gate's own red verdict (`<reason>`,
 // or an elided `…`) is a placeholder, not a declaration: pasting the
 // instruction must not waive.
 const PLACEHOLDER_REASON = /^(<[^<>]*>|&lt;.*&gt;|…|\.{3})$/;
+// A reason names what the change is: "TBD", "x", or "reason" is not one. 86 of
+// the 89 reasons in develop's history have four words or more.
+const MIN_REASON_WORDS = 3;
 // The body line `git revert` writes.
 const REVERT_LINE = /^This reverts commit [0-9a-f]{7,40}\.?$/m;
 
@@ -251,18 +255,43 @@ export function isSource({ path }) {
 }
 
 /**
- * Is this waiver reason a real one, not the `<reason>` placeholder?
+ * Source files a build step rewrites as text, comments included: the theme UMD
+ * build (`handsontable/.config/themes-umd-development.js`) runs
+ * string-replace-loader over them, so a comment edit there changes the bundle.
+ * These are the loader rules' own `test` patterns, pinned against that file.
+ */
+export const TEXT_REWRITTEN_SOURCE = Object.freeze([/theme\/[\w-]+\.ts$/, /static\/variables\/.*\.ts$/]);
+
+/**
+ * May this change be judged comment-only? Only an in-place edit (status M) of
+ * a `.ts` or `.js` file that no build step rewrites as text. A rename or a copy
+ * moves code, so it counts as code however little its text changed; `.tsx` is
+ * left out because the lexer is not a JSX parser.
+ *
+ * @param {{status: string, path: string}} change A parsed diff entry.
+ * @returns {boolean} True when isCommentOnlyChange() may judge it.
+ */
+export function commentOnlyCandidate({ status, path }) {
+  return status === 'M' && /\.(ts|js)$/.test(path)
+    && !(path.startsWith('handsontable/src/') && TEXT_REWRITTEN_SOURCE.some(r => r.test(path)));
+}
+
+/**
+ * Is this waiver reason a real one: at least MIN_REASON_WORDS words, and not
+ * the `<reason>` placeholder?
  *
  * @param {string} reason The reason text after `Refactor-only:`.
- * @returns {boolean} True when the reason is not a placeholder.
+ * @returns {boolean} True when the reason says what the change is.
  */
 function isRealReason(reason) {
-  return !PLACEHOLDER_REASON.test(reason.trim());
+  const text = reason.trim();
+
+  return !PLACEHOLDER_REASON.test(text) && (text.match(/\p{L}{2,}/gu) ?? []).length >= MIN_REASON_WORDS;
 }
 
 /**
  * Is a pure refactor declared in these trailer lines?
- * A `Refactor-only:` trailer with a non-empty reason that is not a placeholder.
+ * A `Refactor-only:` trailer whose reason is a real one (see isRealReason).
  *
  * @param {string[]} trailers Commit trailer lines.
  * @returns {boolean} True when a real Refactor-only trailer is present.
@@ -377,17 +406,221 @@ export function waivedFiles(commits) {
 }
 
 /**
- * The waiver the PR description declares: `[refactor-only: <reason>]`, outside
- * HTML comments (the caller strips them), with a non-empty reason. A pasted
- * instruction or red verdict carries the `<reason>` placeholder, which waives
- * nothing; a real waiver elsewhere in the same body still counts.
+ * Mark the inline code spans between `from` and `to` (one paragraph) as
+ * hidden. A span opens at a run of backticks and closes at the next run of the
+ * same length; a run with no partner is text. A backslash escapes the first
+ * backtick of a run.
  *
- * @param {string|undefined|null} body The live PR body, comments stripped.
+ * @param {string} src The description.
+ * @param {number} from Where the paragraph starts.
+ * @param {number} to Where it ends.
+ * @param {Uint8Array} hidden The mask to fill.
+ */
+function markCodeSpans(src, from, to, hidden) {
+  const runEnd = (at) => {
+    let end = at;
+
+    while (end < to && src[end] === '`') {
+      end += 1;
+    }
+
+    return end;
+  };
+  let i = from;
+
+  while (i < to) {
+    if (src[i] !== '`') {
+      i += 1;
+      continue; // eslint-disable-line no-continue
+    }
+
+    const end = runEnd(i);
+    let slashes = 0;
+
+    while (i - slashes - 1 >= from && src[i - slashes - 1] === '\\') {
+      slashes += 1;
+    }
+
+    const open = slashes % 2 === 1 ? i + 1 : i;
+    const length = end - open;
+    let close = -1;
+
+    for (let k = end; length > 0 && k < to;) {
+      if (src[k] === '`') {
+        const kEnd = runEnd(k);
+
+        if (kEnd - k === length) {
+          close = kEnd;
+          break;
+        }
+        k = kEnd;
+      } else {
+        k += 1;
+      }
+    }
+    if (close === -1) {
+      i = end;
+    } else {
+      hidden.fill(1, open, close);
+      i = close;
+    }
+  }
+}
+
+/**
+ * Mark the parts of a PR description that GitHub renders as code: fenced
+ * blocks (``` or ~~~, also inside a quote or a list item), indented code
+ * blocks, inline code spans, and `<code>`, `<pre>`, `<kbd>`, `<samp>`, and
+ * `<tt>` elements. Line endings may be CR LF: the GitHub editor writes them.
+ * Characters already hidden (by an HTML comment) are read as blanks. Reading
+ * too much as code only makes the gate stricter, so the rules lean that way.
+ *
+ * @param {string} text The description.
+ * @param {Uint8Array} hidden The mask to fill.
+ */
+function markMarkdownCode(text, hidden) {
+  const src = text.split('').map((c, i) => (hidden[i] === 1 && c !== '\n' ? ' ' : c)).join('');
+  // Blockquote markers and list markers in front of a line's content.
+  const container = /^(?:[ \t]{0,3}(?:>[ \t]?|(?:[-*+]|\d{1,9}[.)])(?=[ \t]|\r?$)[ \t]*))*/;
+  let fence = null;
+  let paragraph = -1;
+  let previous = 'blank';
+  const endParagraph = (at) => {
+    if (paragraph !== -1) {
+      markCodeSpans(src, paragraph, at, hidden);
+    }
+    paragraph = -1;
+  };
+
+  for (let start = 0; start <= src.length;) {
+    const newline = src.indexOf('\n', start);
+    const end = newline === -1 ? src.length : newline;
+    const line = src.slice(start, end);
+    const inner = line.slice(container.exec(line)[0].length);
+    const opener = /^ {0,3}(`{3,}|~{3,})(.*?)\r?$/.exec(inner);
+
+    if (fence !== null) {
+      const closer = /^ {0,3}(`{3,}|~{3,})[ \t]*\r?$/.exec(inner);
+      const column = line.length - inner.trimStart().length;
+
+      if (closer && closer[1][0] === fence.run[0] && closer[1].length >= fence.run.length) {
+        // A closer indented less than its opener may instead end the list item
+        // the fence sat in and open a new fence; that reading hides more, so
+        // it is the one taken.
+        fence = column < fence.column ? { run: closer[1], column } : null;
+      }
+      hidden.fill(1, start, end);
+    } else if (opener && !(opener[1][0] === '`' && opener[2].includes('`'))) {
+      endParagraph(start);
+      // The column the fence starts at, list and quote markers included.
+      fence = { run: opener[1], column: line.length - inner.trimStart().length };
+      hidden.fill(1, start, end);
+      previous = 'code';
+    } else if (inner.trim() === '') {
+      endParagraph(start);
+      previous = previous === 'indented' ? 'indented' : 'blank';
+    } else if (/^(?: {4}|\t)/.test(inner) && (previous === 'blank' || previous === 'indented')) {
+      // An indented code block: it cannot interrupt a paragraph.
+      hidden.fill(1, start, end);
+      previous = 'indented';
+    } else {
+      if (paragraph === -1) {
+        paragraph = start;
+      }
+      previous = 'text';
+      if (/^ {0,3}#{1,6}(?:[ \t]|\r?$)/.test(inner)) {
+        // A heading is a block of its own: a code span cannot leave it.
+        endParagraph(end);
+      }
+    }
+    if (newline === -1) {
+      break;
+    }
+    start = newline + 1;
+  }
+  endParagraph(src.length);
+
+  for (const tag of src.matchAll(/<(code|pre|kbd|samp|tt)\b[^>]*>/gi)) {
+    const closer = new RegExp(`</${tag[1]}\\s*>`, 'i').exec(src.slice(tag.index));
+
+    hidden.fill(1, tag.index, closer ? tag.index + closer.index + closer[0].length : src.length);
+  }
+}
+
+/**
+ * Mark the HTML comments of a PR description, as stripHtmlComments() removes
+ * them: repeated until nothing reassembles, and an unterminated `<!--` hides
+ * the rest. Characters already hidden (by code) are left out of the text the
+ * comments are found in.
+ *
+ * @param {string} text The description.
+ * @param {Uint8Array} hidden The mask to fill.
+ */
+function markHtmlComments(text, hidden) {
+  let kept = [];
+
+  for (let i = 0; i < text.length; i += 1) {
+    if (hidden[i] !== 1) {
+      kept.push(i);
+    }
+  }
+  for (;;) {
+    const visible = kept.map(i => text[i]).join('');
+    const drop = new Set();
+
+    for (const comment of visible.matchAll(/<!--[\s\S]*?-->/g)) {
+      for (let k = comment.index; k < comment.index + comment[0].length; k += 1) {
+        drop.add(k);
+      }
+    }
+    if (drop.size === 0) {
+      const open = visible.indexOf('<!--');
+
+      if (open !== -1) {
+        kept.slice(open).forEach((i) => {
+          hidden[i] = 1;
+        });
+      }
+
+      return;
+    }
+    kept.forEach((i, k) => {
+      if (drop.has(k)) {
+        hidden[i] = 1;
+      }
+    });
+    kept = kept.filter((_, k) => !drop.has(k));
+  }
+}
+
+/**
+ * The waiver the PR description declares: `[refactor-only: <reason>]` as
+ * prose, with a real reason (see isRealReason). A waiver GitHub shows as code
+ * (see markMarkdownCode) or hides in an HTML comment is a quotation – a pasted
+ * CI log, an example – and waives nothing. Markdown lets each hide the other
+ * (`<!--` inside code is text; a fence inside a comment is hidden), so both
+ * orders are read, and the waiver must be prose in both. A pasted instruction
+ * or red verdict carries the `<reason>` placeholder, which waives nothing; a
+ * real waiver elsewhere in the same body still counts.
+ *
+ * @param {string|undefined|null} body The live PR description.
  * @returns {string|null} The reason, or null when no waiver is declared.
  */
 export function bodyWaiver(body) {
-  for (const hit of String(body ?? '').matchAll(BODY_WAIVER)) {
-    if (isRealReason(hit[1])) {
+  const text = String(body ?? '');
+  const codeFirst = new Uint8Array(text.length);
+  const commentsFirst = new Uint8Array(text.length);
+
+  markMarkdownCode(text, codeFirst);
+  markHtmlComments(text, codeFirst);
+  markHtmlComments(text, commentsFirst);
+  markMarkdownCode(text, commentsFirst);
+
+  for (const hit of text.matchAll(BODY_WAIVER)) {
+    const last = hit.index + hit[0].length - 1;
+    const prose = [hit.index, last].every(at => codeFirst[at] === 0 && commentsFirst[at] === 0);
+
+    if (prose && isRealReason(hit[1])) {
       return hit[1];
     }
   }
@@ -396,17 +629,470 @@ export function bodyWaiver(body) {
 }
 
 /**
- * A `/` in code starts a regular-expression literal after these characters,
- * and is division after anything else (an identifier, a number, `)` or `]`).
- * `}` counts as a regex start: when it is wrong, the lexer keeps a division's
- * operand as literal text, which reads as code — the safe direction.
+ * Where a `/` in code sits, a regular-expression literal and a division can
+ * both be possible. These rules settle the cases that have one answer; every
+ * other `/` is read both ways (see stripComments), because a wrong guess lets a
+ * comment opener that is really part of a literal hide the code after it.
+ *
+ * A regex follows these punctuation characters: each needs an operand next.
  */
-const REGEX_AFTER_CHARS = new Set([...'(,=:[!&|?{};+-*%<>~^}']);
-const REGEX_AFTER_WORDS = new Set([
-  'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield',
-  'await',
+const REGEX_AFTER_PUNCTUATION = new Set([...'(,=:[&|?{;*%<~^']);
+// A regex follows these keywords, which an expression or a new statement
+// follows. After `.` or `#` they are property names, and a division follows.
+const REGEX_AFTER_KEYWORDS = new Set([
+  'return', 'typeof', 'instanceof', 'in', 'new', 'delete', 'throw', 'case', 'do', 'else', 'extends', 'default',
+  'break', 'continue', 'debugger',
 ]);
-const IDENTIFIER_CHAR = /[\w$]/;
+// Either reading after these words: each is a keyword before an expression in
+// one place and something a division can follow in another – a plain
+// identifier (`of`, `yield`, `await`), or a type (`x satisfies void / 2`).
+const EITHER_AFTER_KEYWORDS = new Set(['of', 'yield', 'await', 'void']);
+// A `)` that closes one of these statement heads is followed by a statement,
+// so a regex; any other `)` ends an expression, so a division.
+const STATEMENT_HEADS = new Set(['if', 'while', 'for', 'with']);
+// An identifier character, as JavaScript defines one (`ñreturn` is one word).
+const IDENTIFIER_CHAR = /[$\p{ID_Continue}\u200C\u200D]/u;
+// A Unicode escape inside an identifier (`a`, `\u{61}`): the only
+// backslash code may hold outside a literal.
+const IDENTIFIER_ESCAPE = /\\u(?:[0-9a-fA-F]{4}|\{[0-9a-fA-F]+\})/y;
+// Line terminators git does not count as line breaks. JavaScript ends a `//`
+// comment at each, so code after one would sit on a "comment" line; no source
+// file holds one, and a file that does is judged as code.
+const UNCOUNTED_LINE_BREAK = /\r(?!\n)|[\u2028\u2029]/;
+// Comments a tool in this repo acts on: a `#__PURE__` annotation makes the
+// minifier drop the call, a `/// <reference>` changes type checking, a bundler
+// or source-map comment changes the bundle, a coverage hint changes the
+// coverage floor. They are code, not prose.
+const DIRECTIVE_COMMENT = new RegExp([
+  String.raw`[@#]__[A-Z][A-Z_]*__`,
+  String.raw`^\/\/\/\s*<`,
+  String.raw`[@#]\s*source(?:Mapping)?URL\s*=`,
+  String.raw`webpack[A-Z]\w*\s*:`,
+  String.raw`@vite-ignore`,
+  String.raw`@jsx\w*`,
+  String.raw`@ts-(?:ignore|expect-error|nocheck|check)\b`,
+  String.raw`\b(?:istanbul|c8|v8)\s+ignore\b`,
+].join('|'));
+const QUOTE_STATES = { "'": 'sq', '"': 'dq', '`': 'tpl' };
+const CLOSERS = { sq: "'", dq: '"', regex: '/', class: ']' };
+// The most readings the lexer follows at once, and the most times it may fork
+// in one file, before it gives up and the file counts as code.
+const MAX_READINGS = 64;
+const MAX_FORKS = 20000;
+
+/**
+ * How a `/` in code reads at this point of one reading, before a line break is
+ * taken into account (see slashReading).
+ *
+ * @param {object} b The reading (see stripComments).
+ * @returns {'regex'|'division'|'either'} The reading, or 'either' when both are possible.
+ */
+function readingOnOneLine(b) {
+  if (b.lastKind === '') {
+    return 'regex';
+  }
+  if (b.lastKind === 'word') {
+    // An identifier, a number, `this`, a property name, or a keyword.
+    const keyword = REGEX_AFTER_KEYWORDS.has(b.word) || EITHER_AFTER_KEYWORDS.has(b.word);
+
+    if (!keyword || b.wordAfter === '.' || b.wordAfter === '#') {
+      return 'division';
+    }
+    if (b.wordAfter === '1.') {
+      // `1. in /re/` (the operator) or `1..in / 2` (a property of `1.`).
+      return 'either';
+    }
+
+    return REGEX_AFTER_KEYWORDS.has(b.word) ? 'regex' : 'either';
+  }
+  if (b.lastKind === 'literal') {
+    // After a string, a template, or a regex literal.
+    return 'division';
+  }
+  if (b.lastKind === 'slash') {
+    // After a division.
+    return 'regex';
+  }
+  if (b.last === ')') {
+    const head = b.closed;
+
+    if (head === null || head.word === 'await') {
+      // An unmatched `)`, or `for await (…)` versus `await (…) / 2`.
+      return 'either';
+    }
+    if (head.property) {
+      return 'division';
+    }
+
+    return STATEMENT_HEADS.has(head.word) ? 'regex' : 'division';
+  }
+  if (b.last === ']') {
+    return 'division';
+  }
+  if (b.last === '+' || b.last === '-') {
+    // `a++ / 2` divides; `a + /re/` and `-/re/` do not.
+    return b.last2 === b.last ? 'either' : 'regex';
+  }
+  if (b.last === '>') {
+    // `=> /re/` is a regex; `>` closing a type argument (`x as A<B> / 2`) is not.
+    return b.last2 === '=' ? 'regex' : 'either';
+  }
+
+  // `}` (a block or an object), `!` (`!/re/` or TypeScript's `x! / 2`), `.`
+  // (`...`/`1.`), and anything unexpected.
+  return REGEX_AFTER_PUNCTUATION.has(b.last) ? 'regex' : 'either';
+}
+
+/**
+ * How a `/` in code reads at this point of one reading. A line break before it
+ * can end the statement (ASI: `let x` or `type A = B`, then `/re/.test(s)` on
+ * the next line), so across one a division is never certain.
+ *
+ * @param {object} b The reading (see stripComments).
+ * @returns {'regex'|'division'|'either'} The reading, or 'either' when both are possible.
+ */
+function slashReading(b) {
+  const reading = readingOnOneLine(b);
+
+  return reading === 'division' && b.lineBreak ? 'either' : reading;
+}
+
+/**
+ * Record that the reading's current line holds code.
+ *
+ * @param {object} b The reading.
+ */
+function markLine(b) {
+  if (b.segLines[b.segLines.length - 1] !== b.line) {
+    b.segLines.push(b.line);
+  }
+}
+
+/**
+ * Emit a code character, turning any whitespace before it into one space.
+ *
+ * @param {object} b The reading.
+ * @param {string} c The character.
+ * @param {string} [kind] What it is: 'slash' for a division, 'word' for part of
+ *   an identifier escape; by default 'word' for an identifier character and
+ *   'punct' for anything else.
+ */
+function emit(b, c, kind) {
+  const isWord = kind === 'word' || (kind === undefined && IDENTIFIER_CHAR.test(c));
+
+  if (isWord && (b.lastKind !== 'word' || b.gap)) {
+    // A new word: remember what came before it, to tell `a.return` from `return`.
+    b.word = '';
+    b.numeric = /[0-9]/.test(c);
+    if (b.lastKind !== 'punct') {
+      b.wordAfter = '';
+    } else if (b.last === '.' && b.numberDot) {
+      b.wordAfter = '1.';
+    } else {
+      b.wordAfter = b.last === '.' && b.last2 === '.' ? '...' : b.last;
+    }
+  }
+  if (c === '.' && !b.gap) {
+    // A dot right after a number may belong to it (`1.`), so the word after it
+    // is not surely a property name.
+    b.numberDot = (b.lastKind === 'word' && b.numeric) || (b.last === '.' && b.numberDot);
+  } else if (c === '.') {
+    b.numberDot = false;
+  }
+  if (isWord) {
+    b.word += c;
+  }
+  if (b.gap && b.any) {
+    b.seg += ' ';
+  }
+  b.last2 = b.gap ? '' : b.last;
+  b.gap = false;
+  b.lineBreak = false;
+  b.seg += c;
+  b.any = true;
+  markLine(b);
+  b.last = c;
+  b.lastKind = isWord ? 'word' : (kind ?? 'punct');
+}
+
+/**
+ * Emit a literal's character verbatim.
+ *
+ * @param {object} b The reading.
+ * @param {string} c The character.
+ */
+function raw(b, c) {
+  b.seg += c;
+  b.any = true;
+  markLine(b);
+}
+
+/**
+ * Emit a stretch of source verbatim, counting the lines it spans.
+ *
+ * @param {object} b The reading.
+ * @param {string} text The stretch.
+ */
+function rawText(b, text) {
+  for (const c of text) {
+    if (c === '\n') {
+      b.seg += c;
+      b.line += 1;
+    } else {
+      raw(b, c);
+    }
+  }
+}
+
+/**
+ * The reading has just closed a string, template, or regex literal.
+ *
+ * @param {object} b The reading.
+ * @param {string} c The closing character.
+ */
+function closeLiteral(b, c) {
+  b.last = c;
+  b.last2 = '';
+  b.lastKind = 'literal';
+  b.lineBreak = false;
+  b.state = 'code';
+}
+
+/**
+ * Handle a `//` or `/*` comment that starts at b.i. A directive comment (see
+ * DIRECTIVE_COMMENT) is code, emitted verbatim; any other comment is skipped.
+ *
+ * @param {object} b The reading; mutated.
+ * @param {string} text The file's contents.
+ * @param {boolean} block True for `/*`, false for `//`.
+ */
+function openComment(b, text, block) {
+  const close = block ? text.indexOf('*/', b.i + 2) : text.indexOf('\n', b.i);
+  const end = close === -1 ? text.length : close + (block ? 2 : 0);
+  const comment = text.slice(b.i, end);
+
+  if (DIRECTIVE_COMMENT.test(comment) && (close !== -1 || !block)) {
+    if (b.gap && b.any) {
+      b.seg += ' ';
+    }
+    b.gap = true;
+    rawText(b, comment);
+    b.i = end;
+
+    return;
+  }
+  b.state = block ? 'block' : 'line';
+  b.i += 2;
+}
+
+/**
+ * Advance one reading through the rest of its current line.
+ *
+ * @param {object} b The reading; mutated.
+ * @param {string} text The file's contents.
+ * @returns {'line'|'end'|'fork'|'dead'} 'line' after a line break, 'end' at
+ *   the end of the file, 'fork' at a `/` that can read either way (b.i stays on
+ *   it), 'dead' when this reading cannot be how the file lexes.
+ */
+function advance(b, text) {
+  while (b.i < text.length) {
+    const c = text[b.i];
+    const next = text[b.i + 1];
+
+    if (c === '\n') {
+      if (b.state === 'line' || b.state === 'hashbang') {
+        b.state = 'code';
+      }
+      if (b.state === 'code') {
+        b.gap = true;
+        b.lineBreak = true;
+      } else if (b.state === 'block') {
+        // A comment holding a line break is one for ASI.
+        b.lineBreak = true;
+      } else if (b.state === 'tpl') {
+        b.seg += c;
+      } else {
+        // A string, a regex, or a regex class does not span lines.
+        return 'dead';
+      }
+      b.line += 1;
+      b.i += 1;
+
+      return 'line';
+    }
+
+    if (b.state === 'line') {
+      b.i += 1;
+    } else if (b.state === 'hashbang') {
+      // `#!…` on the first line: a comment to JavaScript, but the shell reads
+      // it, so it is kept verbatim as code.
+      raw(b, c);
+      b.i += 1;
+    } else if (b.state === 'block') {
+      if (c === '*' && next === '/') {
+        b.state = 'code';
+        b.gap = true;
+        b.i += 2;
+      } else {
+        b.i += 1;
+      }
+    } else if (b.state === 'code') {
+      if (c === '/' && (next === '/' || next === '*')) {
+        if (text[b.i - 1] === '\\') {
+          return 'dead';
+        }
+        openComment(b, text, next === '*');
+      } else if (/\s/.test(c)) {
+        b.gap = true;
+        b.i += 1;
+      } else if (c === '\\') {
+        IDENTIFIER_ESCAPE.lastIndex = b.i;
+
+        const escape = IDENTIFIER_ESCAPE.exec(text);
+
+        if (escape === null) {
+          // Outside a literal, a backslash can only start an identifier escape.
+          return 'dead';
+        }
+        for (const e of escape[0]) {
+          emit(b, e, 'word');
+        }
+        b.i += escape[0].length;
+      } else if (c === '/') {
+        const reading = b.forced ?? slashReading(b);
+
+        if (reading === 'either') {
+          return 'fork';
+        }
+        b.forced = null;
+        if (reading === 'regex') {
+          emit(b, c);
+          b.state = 'regex';
+        } else {
+          emit(b, c, 'slash');
+        }
+        b.i += 1;
+      } else if (c === '}' && b.braces.length > 0 && b.braces[b.braces.length - 1] === 0) {
+        // The end of a template's `${…}`: back to the template's text.
+        b.braces.pop();
+        emit(b, c);
+        b.state = 'tpl';
+        b.i += 1;
+      } else {
+        if (c === '{' && b.braces.length > 0) {
+          b.braces[b.braces.length - 1] += 1;
+        } else if (c === '}' && b.braces.length > 0) {
+          b.braces[b.braces.length - 1] -= 1;
+        }
+        if (c === '(') {
+          const word = b.lastKind === 'word';
+
+          b.parens.push({
+            word: word ? b.word : '',
+            property: word && (b.wordAfter === '.' || b.wordAfter === '#'),
+          });
+        }
+
+        const closed = c === ')' ? (b.parens.pop() ?? null) : undefined;
+
+        emit(b, c);
+        if (closed !== undefined) {
+          b.closed = closed;
+        }
+        b.state = QUOTE_STATES[c] ?? 'code';
+        b.i += 1;
+      }
+    } else if (b.state === 'tpl') {
+      if (c === '\\') {
+        // An escape; `\` before CR LF continues the line.
+        const width = next === '\r' && text[b.i + 2] === '\n' ? 3 : 2;
+
+        rawText(b, text.slice(b.i, b.i + width));
+        b.i += width;
+      } else if (c === '`') {
+        raw(b, c);
+        closeLiteral(b, c);
+        b.i += 1;
+      } else if (c === '$' && next === '{') {
+        raw(b, '$');
+        raw(b, '{');
+        b.last = '{';
+        b.last2 = '';
+        b.lastKind = 'punct';
+        b.braces.push(0);
+        b.state = 'code';
+        b.i += 2;
+      } else {
+        raw(b, c);
+        b.i += 1;
+      }
+    } else if (c === '\\') {
+      // An escape in a string ('sq', 'dq'), a regex, or a regex character
+      // class ('class'). A string may continue past a line break (CR LF
+      // included); a regex may not.
+      if ((next === '\n' || next === '\r') && (b.state === 'regex' || b.state === 'class')) {
+        return 'dead';
+      }
+
+      const width = next === '\r' && text[b.i + 2] === '\n' ? 3 : 2;
+
+      rawText(b, text.slice(b.i, b.i + width));
+      b.i += width;
+    } else {
+      raw(b, c);
+      if (c === CLOSERS[b.state]) {
+        if (b.state === 'class') {
+          b.state = 'regex';
+        } else {
+          closeLiteral(b, c);
+        }
+      } else if (b.state === 'regex' && c === '[') {
+        b.state = 'class';
+      }
+      b.i += 1;
+    }
+  }
+
+  return 'end';
+}
+
+/**
+ * Copy a reading, so that two readings can go separate ways from a fork. The
+ * objects on the parenthesis stack are never mutated, so they are shared.
+ *
+ * @param {object} b The reading.
+ * @param {'regex'|'division'} forced How the copy reads the `/` it stands on.
+ * @returns {object} The copy.
+ */
+function forkReading(b, forced) {
+  return {
+    ...b, braces: b.braces.slice(), parens: b.parens.slice(), segLines: b.segLines.slice(), forced,
+  };
+}
+
+/**
+ * The state that decides how a reading lexes from here on.
+ *
+ * @param {object} b The reading.
+ * @returns {string} A key that two readings share only when they will lex the rest alike.
+ */
+function readingKey(b) {
+  return JSON.stringify([
+    b.state, b.braces, b.parens, b.closed, b.gap, b.lineBreak, b.last, b.last2, b.lastKind, b.word, b.wordAfter,
+    b.numeric, b.numberDot, b.forced,
+  ]);
+}
+
+/**
+ * Can a reading that reached the end of the file be how a file that parses
+ * lexes? Not if it is still inside a comment, a literal, or a `${…}`.
+ *
+ * @param {object} b The reading.
+ * @returns {boolean} True when the reading ended cleanly.
+ */
+function endedCleanly(b) {
+  return b.braces.length === 0 && ['code', 'line', 'hashbang'].includes(b.state);
+}
 
 /**
  * Strip the comments out of JavaScript or TypeScript source, and report which
@@ -415,16 +1101,24 @@ const IDENTIFIER_CHAR = /[\w$]/;
  * kept verbatim. A template's `${…}` is lexed as code again, nested templates
  * included, so a comment opener inside one cannot start a comment. Whitespace
  * outside literals collapses to one space, so a comment that sat between two
- * tokens leaves the same text as no comment at all.
+ * tokens leaves the same text as no comment at all. A comment a tool acts on
+ * (DIRECTIVE_COMMENT) and a leading `#!` line are kept as code.
  *
- * A `/` is a regex literal after an operator, punctuation, or a keyword such
- * as `return`, and division after an identifier, a number, `)` or `]` (see
- * REGEX_AFTER_CHARS). It is not a JSX parser: text inside JSX reads as code
- * or as comments by accident, which is why the CLI does not ask it about
- * `.tsx` files. `complete` is false when the file ends inside a comment or a
- * literal, when a string or a regex runs into a line break, or when a comment
- * opens right after a backslash — any sign it lost its place — and callers
- * must then treat the file as code.
+ * It never guesses whether a `/` starts a regex or divides. Where the rules in
+ * slashReading() have one answer it takes it; everywhere else it follows both
+ * readings, drops a reading that breaks (a regex running into a line break, a
+ * backslash outside a literal), and requires every reading still standing to
+ * produce the same text for each line. The file's real lexing is always one of
+ * the readings, so their agreement proves the text; when they disagree,
+ * `complete` is false.
+ *
+ * It is not a JSX parser: text inside JSX reads as code or as comments by
+ * accident, which is why the CLI does not ask it about `.tsx` files.
+ * `complete` is false when the readings disagree or all break, when the file
+ * ends inside a comment or a literal, when the file holds a line terminator git
+ * does not count (UNCOUNTED_LINE_BREAK), or past MAX_READINGS readings or
+ * MAX_FORKS forks – any sign it lost its place – and callers must then treat
+ * the file as code.
  *
  * @param {string} text The file's contents.
  * @returns {{text: string, codeLines: Set<number>, complete: boolean}} The
@@ -433,158 +1127,77 @@ const IDENTIFIER_CHAR = /[\w$]/;
  */
 export function stripComments(text) {
   const codeLines = new Set();
-  // One entry per open `${`: how many `{` are open inside it.
-  const braces = [];
   let out = '';
-  let state = 'code';
-  let line = 1;
-  let gap = false;
-  let broken = false;
-  let last = '';
-  let word = '';
-  let i = 0;
+  let forks = 0;
+  let readings = [{
+    i: 0, line: 1, state: text.startsWith('#!') ? 'hashbang' : 'code', braces: [], parens: [], closed: null,
+    gap: false, lineBreak: false, any: false, last: '', last2: '', lastKind: '', word: '', wordAfter: '',
+    numeric: false, numberDot: false, forced: null, seg: '', segLines: [],
+  }];
+  const incomplete = () => ({ text: out, codeLines, complete: false });
 
-  // Emit a code character, turning any whitespace before it into one space.
-  const emit = (c) => {
-    const joined = !gap && IDENTIFIER_CHAR.test(last);
+  if (UNCOUNTED_LINE_BREAK.test(text)) {
+    return incomplete();
+  }
 
-    if (gap && out.length > 0) {
-      out += ' ';
+  for (;;) {
+    const ended = [];
+    const work = readings;
+
+    while (work.length > 0) {
+      const b = work.pop();
+      const status = advance(b, text);
+
+      if (status === 'fork') {
+        forks += 1;
+        if (forks > MAX_FORKS || ended.length + work.length + 2 > MAX_READINGS) {
+          return incomplete();
+        }
+        work.push(forkReading(b, 'regex'), forkReading(b, 'division'));
+      } else if (status === 'line' || (status === 'end' && endedCleanly(b))) {
+        // A dead reading, or one that ends inside a comment or a literal,
+        // cannot be how a file that parses lexes.
+        ended.push({ b, status });
+      }
     }
-    gap = false;
-    out += c;
-    codeLines.add(line);
-    if (IDENTIFIER_CHAR.test(c)) {
-      word = joined ? word + c : c;
+    if (ended.length === 0) {
+      return incomplete();
     }
-    last = c;
-  };
-  // Emit a literal's character verbatim.
-  const raw = (c) => {
-    out += c;
-    codeLines.add(line);
-  };
 
-  while (i < text.length) {
-    const c = text[i];
-    const next = text[i + 1];
+    const [{ b: first, status }] = ended;
+    const lines = first.segLines.join();
 
-    if (c === '\n') {
-      if (state === 'line') {
-        state = 'code';
-      }
-      if (state === 'code') {
-        gap = true;
-      } else if (state === 'tpl') {
-        out += c;
-      } else if (state !== 'block') {
-        // A string, a regex, or a regex class does not span lines.
-        broken = true;
-      }
-      line += 1;
-      i += 1;
-    } else if (state === 'line') {
-      i += 1;
-    } else if (state === 'block') {
-      if (c === '*' && next === '/') {
-        state = 'code';
-        gap = true;
-        i += 2;
-      } else {
-        i += 1;
-      }
-    } else if (state === 'code') {
-      if (c === '/' && next === '/') {
-        state = 'line';
-        i += 2;
-      } else if (c === '/' && next === '*') {
-        if (text[i - 1] === '\\') {
-          broken = true;
-        }
-        state = 'block';
-        i += 2;
-      } else if (/\s/.test(c)) {
-        gap = true;
-        i += 1;
-      } else if (c === '/') {
-        const regex = last === '' || REGEX_AFTER_CHARS.has(last)
-          || (IDENTIFIER_CHAR.test(last) && REGEX_AFTER_WORDS.has(word));
+    if (ended.some(({ b }) => b.i !== first.i || b.seg !== first.seg || b.segLines.join() !== lines)) {
+      return incomplete();
+    }
+    out += first.seg;
+    first.segLines.forEach(n => codeLines.add(n));
+    if (status === 'end') {
+      return { text: out, codeLines, complete: true };
+    }
 
-        emit(c);
-        if (regex) {
-          state = 'regex';
-        }
-        i += 1;
-      } else if (c === '}' && braces.length > 0 && braces[braces.length - 1] === 0) {
-        // The end of a template's `${…}`: back to the template's text.
-        braces.pop();
-        emit(c);
-        state = 'tpl';
-        i += 1;
-      } else {
-        if (c === '{' && braces.length > 0) {
-          braces[braces.length - 1] += 1;
-        } else if (c === '}' && braces.length > 0) {
-          braces[braces.length - 1] -= 1;
-        }
-        emit(c);
-        state = { "'": 'sq', '"': 'dq', '`': 'tpl' }[c] ?? 'code';
-        i += 1;
-      }
-    } else if (state === 'tpl') {
-      if (c === '\\') {
-        raw(c);
-        raw(next ?? '');
-        line += next === '\n' ? 1 : 0;
-        i += 2;
-      } else if (c === '`') {
-        raw(c);
-        last = c;
-        state = 'code';
-        i += 1;
-      } else if (c === '$' && next === '{') {
-        raw('${');
-        last = '{';
-        braces.push(0);
-        state = 'code';
-        i += 2;
-      } else {
-        raw(c);
-        i += 1;
-      }
-    } else {
-      // A string ('sq', 'dq'), a regex, or a regex character class ('class').
-      raw(c);
-      if (c === '\\') {
-        raw(next ?? '');
-        line += next === '\n' ? 1 : 0;
-        i += 2;
-      } else {
-        const closes = { sq: "'", dq: '"', regex: '/', class: ']' }[state];
+    const seen = new Set();
 
-        if (c === closes) {
-          last = c;
-          state = state === 'class' ? 'regex' : 'code';
-        } else if (state === 'regex' && c === '[') {
-          state = 'class';
-        }
-        i += 1;
+    readings = [];
+    for (const { b } of ended) {
+      const key = ended.length > 1 ? readingKey(b) : '';
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        b.seg = '';
+        b.segLines = [];
+        readings.push(b);
       }
     }
   }
-
-  return {
-    text: out,
-    codeLines,
-    complete: !broken && braces.length === 0 && (state === 'code' || state === 'line'),
-  };
 }
 
 /**
  * Does a diff change comments and whitespace only? True only when all of
  * these hold, so a lexer slip can make the gate stricter but never looser:
  * both versions lex completely, their comment-stripped texts are identical,
- * and no removed or added line holds code in its own version.
+ * the diff names the lines it changed (a diff git calls binary names none), and
+ * no removed or added line holds code in its own version.
  *
  * @param {{baseText: string, headText: string, removed: number[], added: number[]}} change
  *   Both versions of the file, and the 1-based numbers of the lines the diff
@@ -592,6 +1205,10 @@ export function stripComments(text) {
  * @returns {boolean} True when the change cannot alter behavior.
  */
 export function isCommentOnlyChange({ baseText, headText, removed, added }) {
+  if (baseText !== headText && removed.length === 0 && added.length === 0) {
+    return false;
+  }
+
   const base = stripComments(baseText);
   const head = stripComments(headText);
 
