@@ -137,7 +137,12 @@ const JASMINE_TREE = [
   /^handsontable\/src\/3rdparty\/walkontable\/test\//,
 ];
 
-const REFACTOR_TRAILER = /^Refactor-only:\s*\S/i;
+const REFACTOR_TRAILER = /^Refactor-only:\s*(.*\S)/i;
+const BODY_WAIVER = /\[refactor-only:\s*([^\]]*?\S)\s*\]/gi;
+// A reason copied from the docs or from the gate's own red verdict (`<reason>`,
+// or an elided `…`) is a placeholder, not a declaration: pasting the
+// instruction must not waive.
+const PLACEHOLDER_REASON = /^(<[^<>]*>|&lt;.*&gt;|…|\.{3})$/;
 // The body line `git revert` writes.
 const REVERT_LINE = /^This reverts commit [0-9a-f]{7,40}\.?$/m;
 
@@ -246,14 +251,28 @@ export function isSource({ path }) {
 }
 
 /**
+ * Is this waiver reason a real one, not the `<reason>` placeholder?
+ *
+ * @param {string} reason The reason text after `Refactor-only:`.
+ * @returns {boolean} True when the reason is not a placeholder.
+ */
+function isRealReason(reason) {
+  return !PLACEHOLDER_REASON.test(reason.trim());
+}
+
+/**
  * Is a pure refactor declared in these trailer lines?
- * A `Refactor-only:` trailer with a non-empty reason.
+ * A `Refactor-only:` trailer with a non-empty reason that is not a placeholder.
  *
  * @param {string[]} trailers Commit trailer lines.
- * @returns {boolean} True when a non-empty Refactor-only trailer is present.
+ * @returns {boolean} True when a real Refactor-only trailer is present.
  */
 export function refactorDeclared(trailers) {
-  return trailers.some(t => REFACTOR_TRAILER.test(t.trim()));
+  return trailers.some((line) => {
+    const hit = REFACTOR_TRAILER.exec(line.trim());
+
+    return hit !== null && isRealReason(hit[1]);
+  });
 }
 
 /**
@@ -359,15 +378,21 @@ export function waivedFiles(commits) {
 
 /**
  * The waiver the PR description declares: `[refactor-only: <reason>]`, outside
- * HTML comments (the caller strips them), with a non-empty reason.
+ * HTML comments (the caller strips them), with a non-empty reason. A pasted
+ * instruction or red verdict carries the `<reason>` placeholder, which waives
+ * nothing; a real waiver elsewhere in the same body still counts.
  *
  * @param {string|undefined|null} body The live PR body, comments stripped.
  * @returns {string|null} The reason, or null when no waiver is declared.
  */
 export function bodyWaiver(body) {
-  const hit = /\[refactor-only:\s*([^\]]*?\S)\s*\]/i.exec(String(body ?? ''));
+  for (const hit of String(body ?? '').matchAll(BODY_WAIVER)) {
+    if (isRealReason(hit[1])) {
+      return hit[1];
+    }
+  }
 
-  return hit ? hit[1] : null;
+  return null;
 }
 
 /**

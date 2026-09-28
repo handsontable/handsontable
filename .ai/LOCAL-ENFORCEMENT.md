@@ -304,7 +304,9 @@ Machine-enforced by the presence gate; full decision rules in
   waive.
 - **A pushed commit is waived from the PR description.** A pushed commit cannot take a trailer without a
   force-push, which a PR branch must not do, so write `[refactor-only: <reason>]` in the PR description (outside
-  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. Locally,
+  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. The
+  placeholder itself (`<reason>`, or an elided `…`) declares nothing, in a trailer or in the description, so
+  pasting the instruction or the red verdict leaves the job red. Locally,
   pre-push asks `gh` for the description when the verdict would fail.
 - **A comment-only change needs no test.** When a `.ts` or `.js` source file's diff changes nothing but comments
   and whitespace (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments

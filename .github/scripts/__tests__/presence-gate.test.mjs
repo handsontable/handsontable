@@ -67,6 +67,16 @@ test('refactorDeclared requires a non-empty reason', () => {
   assert.equal(refactorDeclared(['DEV-123: some feature']), false);
 });
 
+test('refactorDeclared ignores the <reason> placeholder copied from the docs', () => {
+  assert.equal(refactorDeclared(['Refactor-only: <reason>']), false);
+  assert.equal(refactorDeclared(['Refactor-only:  <why this needs no test> ']), false);
+  assert.equal(refactorDeclared(['Refactor-only: &lt;reason&gt;']), false, 'an HTML-escaped copy');
+  assert.equal(refactorDeclared(['Refactor-only: <reason>', 'Refactor-only: renamed a field']), true,
+    'a real trailer beside a pasted one still counts');
+  assert.equal(refactorDeclared(['Refactor-only: moved <T> generics to one file']), true,
+    'angle brackets inside a real reason are fine');
+});
+
 // --- evaluate: the end-to-end decisions ---
 test('source change with a matching unit test passes', () => {
   const r = evaluate([
@@ -520,6 +530,20 @@ test('bodyWaiver reads [refactor-only: <reason>] from the PR description, and ne
   assert.equal(bodyWaiver(undefined), null);
   assert.equal(bodyWaiver(stripHtmlComments('<!-- [refactor-only: in a comment] -->')), null,
     'the CLI strips comments first');
+});
+
+test('bodyWaiver ignores the <reason> placeholder from a pasted instruction or red verdict', () => {
+  // Reported in review: the red verdict tells the author to write
+  // `[refactor-only: <reason>]`, so pasting it must not turn the job green.
+  assert.equal(bodyWaiver('[refactor-only: <reason>]'), null);
+  assert.equal(bodyWaiver('write `[refactor-only: <reason>]` in the PR description instead'), null);
+  assert.equal(bodyWaiver('[refactor-only: &lt;reason&gt;]'), null, 'an HTML-escaped copy');
+  assert.equal(bodyWaiver('any `[refactor-only: …]` token, or `[refactor-only: ...]`'), null, 'an elided reason');
+  assert.equal(
+    bodyWaiver('CI said: write `[refactor-only: <reason>]`.\n\n[refactor-only: renamed a private field]'),
+    'renamed a private field',
+    'a real waiver after a pasted placeholder still counts',
+  );
 });
 
 test('the PR-description waiver clears what no commit declared, and nothing else', () => {

@@ -355,6 +355,34 @@ test('[refactor-only: <reason>] in the PR description waives a pushed, untrailer
   assert.equal(commented.status, 1, 'a waiver inside an HTML comment is inert');
 });
 
+test('pasting the red verdict, or its placeholder trailer, waives nothing', (t) => {
+  // Reported in review: the verdict tells the author to write
+  // `[refactor-only: <reason>]`; a PR description that quotes the verdict
+  // carries that placeholder and used to turn the job green.
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_B, 'export const b = 2;\n');
+  commit(root, 'DEV-1: change b');
+
+  const blocked = runGate(root, 'develop');
+
+  assert.equal(blocked.status, 1, blocked.stdout);
+
+  const pasted = runGate(root, 'develop', { GATE_PR_BODY: `Context.\n\nCI output:\n\n${blocked.stdout}\n` });
+
+  assert.equal(pasted.status, 1, `a pasted verdict is not a waiver:\n${pasted.stdout}`);
+
+  write(root, FILE_A, 'export const a = 2;\n');
+  commit(root, 'DEV-1: change a\n\nRefactor-only: <reason>');
+
+  const trailer = runGate(root, 'develop');
+
+  assert.equal(trailer.status, 1, trailer.stdout);
+  assert.ok(trailer.stdout.includes(`- \`${FILE_A}\``), `a placeholder trailer declares nothing:\n${trailer.stdout}`);
+});
+
 test('locally, a failing verdict asks gh for the PR body, so pre-push honors a waiver written after a push', (t) => {
   const root = baseRepo();
   const bin = mkdtempSync(path.join(tmpdir(), 'presence-gate-gh-'));
