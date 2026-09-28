@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { IndexesChangeSource } from '../../translations/indexMapper';
 import { BasePlugin } from '../base';
 import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -48,6 +49,24 @@ export interface ColumnConditions {
   column: number;
   conditions: ConditionId[];
   operation: OperationType;
+}
+
+/**
+ * The object form of the grid-level `filters` option.
+ *
+ * A closed interface on purpose: before 19.0 the option was typed `boolean | object`, so a
+ * misspelled key or a wrong value type compiled and was silently ignored at runtime.
+ */
+export interface FiltersSettings {
+  /**
+   * `'show'` filters only the values shown in the "Filter by value" list, `'apply'` applies the
+   * search term as the filter.
+   */
+  searchMode?: 'show' | 'apply';
+  /**
+   * `false` leaves the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of the filter.
+   */
+  filterFixedRows?: boolean;
 }
 
 export const PLUGIN_KEY = 'filters';
@@ -287,6 +306,17 @@ export class Filters extends BasePlugin {
    * @type {boolean}
    */
   #isRefilteringForPinnedRows = false;
+  /**
+   * The pinned rows the trimming map currently reflects: the set the last filtering pass exempted,
+   * `null` when it exempted nothing, or `undefined` when that is unknown.
+   *
+   * Lets a sort or a row move skip the re-filter when it left the same physical rows pinned. It
+   * names PHYSICAL rows, so anything that renumbers them (an insert, a remove, a data reload) sets
+   * it back to `undefined`.
+   *
+   * @type {Set<number>|null|undefined}
+   */
+  #appliedPinnedRows: Set<number> | null | undefined;
 
   /**
    * Initializes the plugin and registers the column header hook needed to inject the filter UI.
@@ -427,8 +457,10 @@ export class Filters extends BasePlugin {
    * Only grids that opted in and are actually filtering pay for this.
    *
    * @private
+   * @param {boolean} [onlyIfPinnedRowsChanged=false] Skip the pass when the rows pinned now are the
+   * ones the last pass exempted. Only sound for a change that keeps the physical row numbers.
    */
-  #refilterForPinnedRows() {
+  #refilterForPinnedRows(onlyIfPinnedRowsChanged = false) {
     // The OPTION, not the current counts: clearing the last `fixedRows*` count makes the counts
     // zero, and gating on them would read that as "this grid never opted in" and skip the pass
     // that puts the no-longer-pinned rows back under the conditions.
@@ -439,11 +471,15 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    // A re-entrancy flag, not a test on the change's source. Writing `filtersRowsMap` does not fire
-    // this hook - only a change to the index SEQUENCE does, and a trimming map is not the sequence -
-    // so `filter()` cannot re-enter here on its own. The flag stops a consumer that sorts or moves
-    // rows from `beforeFilter`/`afterFilter`. Source is no help: a sort reports `'update'`, the same
-    // value ordinary changes carry.
+    // Checked after the gates above, because resolving the pinned rows walks the whole row
+    // sequence - a grid that is not filtering must not pay for it on every sort.
+    if (onlyIfPinnedRowsChanged && this.#arePinnedRowsApplied()) {
+      return;
+    }
+
+    // Writing `filtersRowsMap` does not fire `afterRowSequenceChange` - only a change to the index
+    // SEQUENCE does, and a trimming map is not the sequence - so `filter()` cannot re-enter here on
+    // its own. The flag stops a consumer that sorts or moves rows from `beforeFilter`/`afterFilter`.
     this.#isRefilteringForPinnedRows = true;
 
     try {
@@ -451,6 +487,37 @@ export class Filters extends BasePlugin {
     } finally {
       this.#isRefilteringForPinnedRows = false;
     }
+  }
+
+  /**
+   * Whether the rows pinned now are exactly the physical rows the last filtering pass exempted.
+   *
+   * @private
+   */
+  #arePinnedRowsApplied(): boolean {
+    const appliedRows = this.#appliedPinnedRows;
+
+    if (appliedRows === undefined) {
+      return false;
+    }
+
+    const pinnedRows = this.#getPinnedRows();
+
+    if (appliedRows === null || pinnedRows === null) {
+      return appliedRows === pinnedRows;
+    }
+
+    if (appliedRows.size !== pinnedRows.size) {
+      return false;
+    }
+
+    for (const physicalRow of pinnedRows) {
+      if (!appliedRows.has(physicalRow)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -626,11 +693,13 @@ export class Filters extends BasePlugin {
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     // Option A for the stale exemption: re-run the filter whenever the rows the overlays freeze may
-    // have moved. `afterUpdateSettings` covers the `fixedRows*` options themselves, and the row
-    // sequence hook covers an insert, a remove, a move and a sort. Both are cheap no-ops unless the
-    // grid opted in AND is actually filtering - see `#refilterForPinnedRows()`.
+    // have moved. `afterUpdateSettings` covers the `fixedRows*` options themselves, the row sequence
+    // hook covers a move and a sort, and the row count hooks cover an insert and a remove. All are
+    // cheap no-ops unless the grid opted in AND is actually filtering - see `#refilterForPinnedRows()`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterRowSequenceChange', this.#onAfterRowSequenceChange);
+    this.addHook('afterCreateRow', this.#onAfterRowCountChange);
+    this.addHook('afterRemoveRow', this.#onAfterRowCountChange);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
@@ -737,6 +806,7 @@ export class Filters extends BasePlugin {
       // guard - so a surviving instance keeps pointing the Tab focus at detached elements and blocks
       // a fresh one. Same stale-reference family as the collection/observer above (DEV-2889).
       this.#menuFocusNavigator = undefined;
+      this.#appliedPinnedRows = undefined;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 
@@ -1276,6 +1346,7 @@ export class Filters extends BasePlugin {
     // `afterFilter` are host code and may throw, and a memo surviving the call would answer the
     // next read from this pass's row order.
     this.#pinnedRowsCache = undefined;
+    this.#appliedPinnedRows = undefined;
     this.#isFilterPassActive = true;
 
     try {
@@ -1341,6 +1412,8 @@ export class Filters extends BasePlugin {
       this.hot.batchExecution(() => {
         this.filtersRowsMap?.setValues(trimmedRowsState);
       }, true);
+
+      this.#appliedPinnedRows = pinnedRows;
 
       // The visible rows are the matches plus the pinned rows, so an empty match list no longer
       // means an empty grid - deselecting on it would drop the selection while rows are on screen.
@@ -1558,6 +1631,11 @@ export class Filters extends BasePlugin {
       return;
     }
 
+    // `updateData()` resizes the index mappers through `fitToLength()`, which fires `'insert'` or
+    // `'remove'` but no `afterCreateRow`/`afterRemoveRow`. That cleared `#appliedPinnedRows`, so
+    // a resize re-filters here; a same-size update leaves the pinned rows alone and skips.
+    this.#refilterForPinnedRows(true);
+
     const filteredColumns = this.conditionCollection?.getFilteredColumns() ?? [];
 
     if (filteredColumns.length === 0) {
@@ -1591,13 +1669,43 @@ export class Filters extends BasePlugin {
   /**
    * `afterRowSequenceChange` listener.
    *
-   * An insert, a remove, a move or a sort all change which rows sit at the two ends of the grid,
-   * and the trimming map still holds the previous pass's answer. Every source is acted on, because
-   * none of them identifies a change this plugin caused - writing `filtersRowsMap` does not reach
-   * this hook at all, and a sort reports `'update'`, the same value ordinary changes carry.
-   * `#refilterForPinnedRows()` owns the re-entrancy guard.
+   * An insert, a remove, a move or a sort all can change which rows sit at the two ends of the grid,
+   * and the trimming map still holds the previous pass's answer. The source decides what to do:
+   *
+   * - `'move'` and `'update'` (a sort) only reorder rows, so the physical row numbers still mean
+   *   what they meant in the last pass. The re-filter is skipped when the same physical rows are
+   *   pinned - under the default `sortFixedRows` a sort never moves them, and a sort fires this
+   *   hook twice.
+   * - `'insert'` and `'remove'` renumber the physical rows, so the last pass's set cannot be
+   *   compared at all: after `insert_row_above` at 0 it reads `{0}` before and after, while the row
+   *   behind it changed. They also arrive too early to re-filter here - the index mapper fires this
+   *   before it updates the trimming maps, and `DataMap` before it splices the data - so a pass run
+   *   now is shifted by the rows being added or removed. `#onAfterRowCountChange` re-filters.
+   * - `'init'` resets every trimming map right after this hook, so a pass run now is discarded.
+   *
+   * @param {string} source The change source reported by the row index mapper. Typed from the mapper,
+   * not from the hook's `ChangeSource` declaration, which lists cell-change sources and none of these.
    */
-  #onAfterRowSequenceChange = () => {
+  #onAfterRowSequenceChange = (source: IndexesChangeSource | undefined) => {
+    if (source === 'move' || source === 'update') {
+      this.#refilterForPinnedRows(true);
+
+      return;
+    }
+
+    this.#appliedPinnedRows = undefined;
+
+    if (source !== 'insert' && source !== 'remove' && source !== 'init') {
+      this.#refilterForPinnedRows();
+    }
+  };
+
+  /**
+   * `afterCreateRow` and `afterRemoveRow` listener: re-applies the exemption once the data and the
+   * trimming maps reflect the new row count. See `#onAfterRowSequenceChange` for why it cannot run
+   * any earlier.
+   */
+  #onAfterRowCountChange = () => {
     this.#refilterForPinnedRows();
   };
 

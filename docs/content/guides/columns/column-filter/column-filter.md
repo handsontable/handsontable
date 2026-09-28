@@ -254,8 +254,7 @@ ignored and logs a warning:
 columns: [{ filters: { filterFixedRows: false } }],
 ```
 
-TypeScript does not reject that, because a column's settings are typed from the grid's settings.
-Treat the table above as the contract rather than the type.
+TypeScript rejects that too: inside `columns`, `filters` is typed as a boolean.
 
 To change the *order* of the values in a column's **Filter by value** list, use the
 [`filterValueComparator`](@/api/options.md#filtervaluecomparator) option, which does work inside
@@ -992,8 +991,8 @@ is a grid-level option, because [`fixedRowsTop`](@/api/options.md#fixedrowstop) 
 [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) freeze rows for the whole table.
 
 Which rows are exempt follows the rows on screen, so it keeps up as the grid changes: adding or
-removing a row at either end, moving rows, and sorting all re-apply the filter with the new frozen
-rows. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
+removing a row at either end, moving rows, and sorting all re-apply the filter when they change
+which rows are frozen. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
 because filtering then happens on the server, which knows nothing about frozen rows.
 
 In the following demo, the first and the last row are frozen, and filtering doesn't affect them.

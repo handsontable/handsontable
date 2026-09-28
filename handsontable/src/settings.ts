@@ -91,6 +91,9 @@ export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
+  // Only `false` is read per column (it hides that column's filter UI); the grid-level object form
+  // is ignored there, so it is not accepted here.
+  filters?: boolean;
 }
 
 /**
