@@ -4,7 +4,7 @@
  *
  * Runs the pure evaluator (lib/presence-gate.mjs) against the current PR diff.
  * Derives the base ref from the PR event when available, skips cleanly on
- * branch pushes, and exits non-zero only in block mode.
+ * branch pushes and tooling gaps, and exits non-zero only in block mode.
  *
  * Env:
  *   GATE_MODE   'warn' (default) exits 0 always; 'block' exits 1 on failure.
@@ -13,12 +13,19 @@
  *               payload's frozen `base.sha` — see the blocking-gate rule in
  *               .ai/CI.md. Locally, pre-push passes the merge-base with
  *               origin/develop. When unset, the gate is a branch push and is
- *               skipped.
+ *               skipped. An unresolvable base, or none shared with the head,
+ *               is a tooling gap: skipped with a warning. Any other git failure
+ *               fails the run, so a broken read can never pass as green.
+ *   GATE_HEAD   The commit to judge (default HEAD). Lets a replay judge a
+ *               branch that is not checked out.
  *   GATE_PR_BODY_FILE  Path to a file holding the LIVE PR body (the `presence`
- *               job in checks.yml writes it from the API). Feeds the one
- *               body-dependent advisory warning; absent or unreadable, that
- *               check is skipped silently. GATE_PR_BODY carries the body
- *               inline when no file is given.
+ *               job in checks.yml writes it from the API). Feeds the
+ *               `[refactor-only: <reason>]` waiver and the one body-dependent
+ *               advisory warning; absent or unreadable, both are skipped.
+ *               GATE_PR_BODY carries the body inline when no file is given.
+ *               Outside Actions, a failing verdict with no body given asks
+ *               `gh pr view` for the current branch's body, so pre-push honors
+ *               a waiver written after a push.
  *
  * The verdict is printed as GitHub-flavored Markdown so a workflow step can post
  * it as a sticky PR comment. Below the verdict the CLI prints ADVISORY warnings
@@ -31,12 +38,16 @@
  * paragraph in .ai/LOCAL-ENFORCEMENT.md), so it is pinned end to end by
  * presence-gate-cli.test.mjs — do not reword it.
  */
-import { execSync, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { evaluate, isCommentOnlyChange, isSource, COVERAGE_HINTS } from './lib/presence-gate.mjs';
+import {
+  evaluate, isCommentOnlyChange, isSource, bodyWaiver, undeclaredCommits, COVERAGE_HINTS,
+} from './lib/presence-gate.mjs';
 import { collectWarnings, renderWarnings, isAdvisoryPath } from './lib/presence-warnings.mjs';
+import { stripHtmlComments } from './lib/strip-html-comments.mjs';
 
 const base = process.env.GATE_BASE;
+const head = process.env.GATE_HEAD || 'HEAD';
 const mode = process.env.GATE_MODE === 'block' ? 'block' : 'warn';
 
 if (!base) {
@@ -45,44 +56,8 @@ if (!base) {
 }
 
 /**
- * Parse `git diff --name-status` into `{ status, oldPath, path }` entries.
- *
- * @param {string} range The diff range, e.g. `<base>...HEAD`.
- * @returns {{status: string, oldPath: string, path: string}[]} Parsed diff entries.
- */
-function readChanges(range) {
-  const out = execSync(`git diff --name-status ${range}`, { encoding: 'utf8' });
-  return out.split('\n').filter(Boolean).map((line) => {
-    const [status, ...rest] = line.split('\t');
-    // For renames (Rxxx) git prints old\tnew — take the new path, keep the old
-    // one so a pathspec-limited diff still sees the rename.
-    return { status: status[0], oldPath: rest[0], path: rest[rest.length - 1] };
-  });
-}
-
-/**
- * Read the range's commits with the files each one changed, so a
- * `Refactor-only:` trailer waives only its own commit's files. In CI the
- * checkout is the PR's merge ref, whose merge commit carries no trailer.
- * `git log --name-only` lists no files for a merge commit anyway; --no-merges
- * states that intent instead of relying on the default.
- *
- * @param {string} range The commit range, e.g. `<base>..HEAD`.
- * @returns {{message: string, files: string[]}[]} One entry per commit.
- */
-function readCommits(range) {
-  const out = execFileSync('git', ['-c', 'core.quotePath=false', 'log', '--no-merges', '--name-only',
-    '--format=%x1e%B%x1d', range], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-
-  return out.split('\x1e').filter(record => record.includes('\x1d')).map((record) => {
-    const [message, files] = record.split('\x1d');
-
-    return { message, files: files.split('\n').map(f => f.trim()).filter(Boolean) };
-  });
-}
-
-/**
- * Run git and return stdout.
+ * Run git and return stdout. Paths come back unquoted (`core.quotePath=false`),
+ * and the buffer fits a large diff: a truncated read must fail, not shrink.
  *
  * @param {string[]} args Git arguments.
  * @returns {string} Stdout.
@@ -90,9 +65,118 @@ function readCommits(range) {
 function git(args) {
   return execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
     encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
+    maxBuffer: 256 * 1024 * 1024,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+}
+
+/**
+ * Run git, returning null instead of throwing.
+ *
+ * @param {string[]} args Git arguments.
+ * @returns {string|null} Trimmed stdout, or null when git failed.
+ */
+function tryGit(args) {
+  try {
+    return git(args).trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse NUL-separated `--name-status -z` output into `{ status, oldPath, path }`
+ * entries. NUL separation keeps a path with a tab, a quote, or non-ASCII
+ * characters intact; a rename or copy carries both paths.
+ *
+ * @param {string} out The `-z` output.
+ * @returns {{status: string, oldPath: string, path: string}[]} Parsed entries.
+ */
+function parseNameStatus(out) {
+  const tokens = out.split('\0');
+  const entries = [];
+  let i = 0;
+
+  while (i < tokens.length) {
+    const status = tokens[i].trim();
+
+    if (!status) {
+      i += 1;
+    } else if (status[0] === 'R' || status[0] === 'C') {
+      entries.push({ status: status[0], oldPath: tokens[i + 1], path: tokens[i + 2] });
+      i += 3;
+    } else {
+      entries.push({ status: status[0], oldPath: tokens[i + 1], path: tokens[i + 1] });
+      i += 2;
+    }
+  }
+
+  return entries;
+}
+
+/**
+ * The files changed between the merge-base and the head.
+ *
+ * @param {string} range The diff range, e.g. `<base>...<head>`.
+ * @returns {{status: string, oldPath: string, path: string}[]} Parsed diff entries.
+ */
+function readChanges(range) {
+  return parseNameStatus(git(['diff', '-z', '--name-status', '-M', range]));
+}
+
+/**
+ * Unquote a path git printed C-style in a patch header.
+ *
+ * @param {string} path The path as printed.
+ * @returns {string} The path.
+ */
+function unquote(path) {
+  if (!path.startsWith('"')) {
+    return path;
+  }
+
+  return path.slice(1, -1).replace(/\\([\\"tn])/g, (_, c) => ({ t: '\t', n: '\n' })[c] ?? c);
+}
+
+/**
+ * Read the range's commits, newest first, with the files each one changed, so
+ * a `Refactor-only:` trailer waives only its own commit's files. A rename
+ * records both names, so a waiver can follow the file through it. A merge
+ * commit contributes only what the merge itself wrote — the hunks
+ * `git show --cc` keeps, a conflict resolution — and never waives: a clean
+ * merge, the CI merge ref included, contributes nothing.
+ *
+ * @param {string} range The commit range, e.g. `<base>..<head>`.
+ * @returns {object[]} One entry per commit: `{hash, subject, message, files, renames, merge?}`.
+ */
+function readCommits(range) {
+  const out = git(['log', '-z', '--no-merges', '--name-status', '-M', '--format=%x1e%H%x1f%B%x1d', range]);
+  const commits = out.split('\x1e').filter(record => record.includes('\x1d')).map((record) => {
+    const [header, rest] = record.split('\x1d');
+    const [hash, message] = header.split('\x1f');
+    const entries = parseNameStatus(rest);
+
+    return {
+      hash,
+      subject: message.split('\n')[0],
+      message,
+      files: [...new Set(entries.flatMap(entry => [entry.oldPath, entry.path]))],
+      renames: entries.filter(entry => entry.status === 'R').map(entry => [entry.oldPath, entry.path]),
+    };
+  });
+
+  for (const hash of git(['rev-list', '--merges', range]).split('\n').filter(Boolean)) {
+    const patch = git(['show', '--cc', '--format=', '--no-color', hash]);
+    const files = [...patch.matchAll(/^diff --cc (.+)$/gm)].map(([, file]) => unquote(file));
+
+    if (files.length > 0) {
+      const subject = git(['log', '-1', '--format=%s', hash]).trim();
+
+      commits.push({ hash, subject: `${subject} (merge)`, message: '', merge: true, files, renames: [] });
+    }
+  }
+
+  return commits;
 }
 
 /**
@@ -123,37 +207,28 @@ function changedLines(diff) {
  * The source files among `paths` whose diff changes comments and whitespace
  * only, judged on both versions of each file (isCommentOnlyChange). Any git
  * failure leaves the file out, so it still needs a test — the safe direction.
- * Only modified and renamed `.ts`/`.js`/`.tsx` files qualify; a new, deleted,
- * or `.vue` file is judged as code.
+ * Only modified and renamed `.ts`/`.js` files qualify. A new, deleted, `.vue`,
+ * or `.tsx` file is judged as code: the lexer is not a JSX parser, and JSX text
+ * such as `// docs link` would read as a comment.
  *
- * @param {string} base The base ref.
+ * @param {string} mergeBase The merge-base commit.
  * @param {{status: string, oldPath: string, path: string}[]} changes Parsed diff entries.
  * @param {Set<string>} paths The source files to judge.
  * @returns {string[]} The comment-only files.
  */
-function readCommentOnly(base, changes, paths) {
-  let mergeBase;
-
-  try {
-    mergeBase = git(['merge-base', base, 'HEAD']).trim();
-  } catch {
-    // No merge-base: every file is judged as code, and the verdict stands.
-    return [];
-  }
-
+function readCommentOnly(mergeBase, changes, paths) {
   const found = [];
 
   for (const change of changes) {
-    if (!paths.has(change.path) || !'MR'.includes(change.status) || !/\.(ts|js|tsx)$/.test(change.path)) {
+    if (!paths.has(change.path) || !'MR'.includes(change.status) || !/\.(ts|js)$/.test(change.path)) {
       continue;
     }
     try {
       const baseText = git(['show', `${mergeBase}:${change.oldPath}`]);
-      const headText = git(['show', `HEAD:${change.path}`]);
-      const diff = git(['diff', '-U0', '--no-color', mergeBase, 'HEAD', '--', change.oldPath, change.path]);
-      const lines = changedLines(diff);
+      const headText = git(['show', `${head}:${change.path}`]);
+      const diff = git(['diff', '-U0', '--no-color', mergeBase, head, '--', change.oldPath, change.path]);
 
-      if (isCommentOnlyChange({ baseText, headText, ...lines })) {
+      if (isCommentOnlyChange({ baseText, headText, ...changedLines(diff) })) {
         found.push(change.path);
       }
     } catch {
@@ -235,44 +310,94 @@ function annotation(warning) {
   return `::warning title=Test-presence gate (${warning.type})::${text}`;
 }
 
-let changes;
-let commits;
+/**
+ * The live PR body, for the waiver. CI hands it in; outside Actions, when the
+ * verdict would fail and nothing was handed in, ask `gh` for the current
+ * branch's pull request, so a waiver written after a push also clears the
+ * pre-push copy of the gate. No `gh`, no PR, or a replay of another head: none.
+ *
+ * @returns {string|undefined} The body, or undefined.
+ */
+function readWaiverBody() {
+  const given = readPrBody();
 
-try {
-  changes = readChanges(`${base}...HEAD`);
-  commits = readCommits(`${base}..HEAD`);
-} catch (error) {
+  if (given !== undefined || process.env.GITHUB_ACTIONS === 'true' || head !== 'HEAD') {
+    return given;
+  }
+  try {
+    return execFileSync('gh', ['pr', 'view', '--json', 'body', '--jq', '.body'], {
+      encoding: 'utf8',
+      timeout: 15_000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+const baseCommit = tryGit(['rev-parse', '--verify', '--quiet', `${base}^{commit}`]);
+const headCommit = tryGit(['rev-parse', '--verify', '--quiet', `${head}^{commit}`]);
+const mergeBase = baseCommit && headCommit ? tryGit(['merge-base', baseCommit, headCommit]) : null;
+
+if (!mergeBase) {
   // A tooling gap (an unknown base ref, a clone too shallow to reach the fork
   // point) is a skip, never a block — in either mode, the way the ratchet
-  // treats it. In Actions the skip is also a visible annotation.
-  const why = String(error.message).split('\n')[0];
+  // treats it. In Actions the skip is also a visible annotation. Anything that
+  // fails after this point is not a gap, and fails the run.
+  const why = !baseCommit ? 'unknown revision' : !headCommit ? `unknown head "${head}"` : 'no merge-base';
 
   console.log(`presence-gate: could not read the diff against "${base}" (${why}) — skipped.`);
   if (process.env.GITHUB_ACTIONS === 'true') {
-    console.error(`::warning title=Test-presence gate skipped::could not read the diff against ${base}`);
+    console.error(`::warning title=Test-presence gate skipped::could not read the diff against ${base} (${why})`);
   }
   process.exit(0);
 }
 
+const changes = readChanges(`${base}...${head}`);
+const commits = readCommits(`${base}..${head}`);
 let result = evaluate(changes, commits);
 
-// Only a failing verdict pays for reading both versions of each uncovered file:
-// a JSDoc-only edit is not a behavior change.
+// Only a failing verdict pays for reading both versions of each uncovered file
+// (a JSDoc-only edit is not a behavior change) and for asking about the body.
 if (result.reason === 'missing-coverage') {
   const uncovered = new Set(result.uncovered.flatMap(({ files }) => files));
-  const commentOnly = readCommentOnly(base, changes.filter(change => isSource(change)), uncovered);
+  const commentOnly = readCommentOnly(mergeBase, changes.filter(change => isSource(change)), uncovered);
+  const waiver = bodyWaiver(stripHtmlComments(readWaiverBody() ?? ''));
 
-  if (commentOnly.length > 0) {
-    result = evaluate(changes, commits, { commentOnly });
+  if (commentOnly.length > 0 || waiver) {
+    result = evaluate(changes, commits, { commentOnly, bodyWaiver: waiver });
   }
+}
+
+/**
+ * The commits that changed a file without a trailer, for the message.
+ *
+ * @param {string} file The uncovered file.
+ * @returns {string} ` – changed in <sha> <subject>, …`, or '' when none are known.
+ */
+function blame(file) {
+  const change = changes.find(entry => entry.path === file);
+  const aliases = change && change.oldPath !== file ? [change.oldPath] : [];
+  const undeclared = undeclaredCommits(file, commits, aliases);
+  const named = undeclared.slice(0, 3).map(commit => `\`${commit.hash.slice(0, 9)}\` ${commit.subject}`);
+  const more = undeclared.length > 3 ? `, and ${undeclared.length - 3} more` : '';
+
+  return named.length > 0 ? ` – changed without a trailer in ${named.join('; ')}${more}` : '';
 }
 
 const lines = ['## Test-presence gate', ''];
 if (result.pass) {
   if (result.reason === 'refactor-declared') {
-    lines.push('✅ Pass — these source files changed with no test, but every commit that changed them carries '
-      + 'a `Refactor-only:` trailer or is a `git revert`. Existing tests for the area must stay green.', '');
-    lines.push(...result.waived.map(f => `- \`${f}\``));
+    if (result.waived.length > 0) {
+      lines.push('✅ Pass — these source files changed with no test, but every commit that changed them carries '
+        + 'a `Refactor-only:` trailer or is a `git revert`. Existing tests for the area must stay green.', '');
+      lines.push(...result.waived.map(f => `- \`${f}\``), '');
+    }
+    if (result.bodyWaived.length > 0) {
+      lines.push('✅ Pass — the PR description waives these source files: '
+        + `\`[refactor-only: ${result.bodyWaiver}]\`. A reviewer should agree the change needs no test.`, '');
+      lines.push(...result.bodyWaived.map(f => `- \`${f}\``));
+    }
   } else if (result.reason === 'comments-only') {
     lines.push('✅ Pass — these source files changed only in comments and whitespace (a JSDoc edit, for example), '
       + 'which changes no behavior:', '');
@@ -286,15 +411,18 @@ if (result.pass) {
   lines.push(...result.newJasmine.map(f => `- \`${f}\``));
 } else if (result.reason === 'missing-coverage') {
   lines.push('❌ Source changed with no matching test change in the same package. For each package below, add a '
-    + 'test where that package\'s tests live. For a pure refactor, add a `Refactor-only: <reason>` trailer to the '
-    + 'commit that makes it – a trailer covers only the files its own commit changes.', '');
+    + 'test where that package\'s tests live.', '');
 
   for (const { group, files } of result.uncovered) {
     lines.push(`**${group}** – needs ${COVERAGE_HINTS[group]}:`);
-    lines.push(...files.map(f => `- \`${f}\``), '');
+    lines.push(...files.map(f => `- \`${f}\`${blame(f)}`), '');
   }
   lines.push('A deleted test does not count, and neither does a test in another package, `docs/tests/`, '
-    + '`evals/`, `examples/`, or `performance-tests/`. A visual spec counts for any package.');
+    + '`evals/`, `examples/`, or `performance-tests/`. A visual spec counts for any package.', '');
+  lines.push('**A refactor or a non-runtime change** (types, config, re-exports) needs no test, but it has to say '
+    + 'so. A commit you have not pushed yet: amend it to add a `Refactor-only: <reason>` trailer. A commit you '
+    + 'have pushed: a PR branch must not be force-pushed, so write `[refactor-only: <reason>]` in the PR '
+    + 'description instead and re-run the job. It waives every file listed here, and reviewers see it.');
 }
 
 console.log(lines.join('\n'));
@@ -305,7 +433,7 @@ console.log(lines.join('\n'));
 try {
   const warnings = collectWarnings({
     changes,
-    diff: readDiff(`${base}...HEAD`, changes),
+    diff: readDiff(`${base}...${head}`, changes),
     prBody: readPrBody(),
   });
   const rendered = renderWarnings(warnings);

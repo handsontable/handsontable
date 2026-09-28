@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
@@ -96,12 +96,19 @@ function baseRepo() {
  * @param {string} base GATE_BASE.
  * @returns {{status: number|null, stdout: string}} The run.
  */
-function runGate(root, base) {
-  const result = spawnSync(process.execPath, [CLI], {
-    cwd: root,
-    encoding: 'utf8',
-    env: { ...GIT_ENV, GATE_BASE: base, GATE_MODE: 'block' },
-  });
+function runGate(root, base, env = {}) {
+  // GITHUB_ACTIONS keeps the CLI from asking `gh` for a PR body, so a run
+  // never depends on the developer's gh login; a test that wants the fallback
+  // passes GITHUB_ACTIONS: undefined.
+  const merged = { ...GIT_ENV, GITHUB_ACTIONS: 'true', GATE_BASE: base, GATE_MODE: 'block', ...env };
+
+  for (const [name, value] of Object.entries(merged)) {
+    if (value === undefined) {
+      delete merged[name];
+    }
+  }
+
+  const result = spawnSync(process.execPath, [CLI], { cwd: root, encoding: 'utf8', env: merged });
 
   return { status: result.status, stdout: result.stdout + result.stderr };
 }
@@ -224,4 +231,189 @@ test('an unreadable base is a skip, not a block, even in block mode', (t) => {
 
   assert.equal(run.status, 0, run.stdout);
   assert.match(run.stdout, /could not read the diff against "origin\/no-such-branch"[^\n]*skipped/);
+});
+
+// --- review round ---
+test('renaming a file in a refactor commit does not launder an untrailered edit to it', (t) => {
+  // Reported in review, reproduced here: edit a.ts, then `git mv a.ts b.ts`
+  // in a Refactor-only commit; b.ts used to pass as waived.
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_A, 'export const a = 999;\n');
+  commit(root, 'DEV-1: change a');
+  git(root, 'mv', FILE_A, 'handsontable/src/helpers/moved.ts');
+  commit(root, 'DEV-1: move a\n\nRefactor-only: rename only');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 1, run.stdout);
+  assert.match(
+    run.stdout,
+    /- `handsontable\/src\/helpers\/moved\.ts` – changed without a trailer in `[0-9a-f]{9}` DEV-1: change a/,
+  );
+});
+
+test('a conflict resolution in a merge is not waived; a clean merge of the base still is', (t) => {
+  // Reported in review: with --no-merges a merge's conflict resolution was
+  // invisible, so an edit it made to a file a refactor commit also touched was
+  // waived. `git show --cc` keeps exactly the hunks the merge wrote itself.
+  const root = baseRepo();
+  const lines = l3 => `export const a = 1;\nconst l2 = 2;\n${l3}\nconst l4 = 4;\nconst l5 = 5;\n`;
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  write(root, FILE_A, lines('const l3 = 3;'));
+  commit(root, 'base a');
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_A, lines('const l3 = 3; // note'));
+  commit(root, 'DEV-1: note l3\n\nRefactor-only: comment only');
+  git(root, 'switch', '-q', 'develop');
+  write(root, FILE_B, 'export const b = 1; // develop\n');
+  commit(root, 'develop edits b');
+  git(root, 'switch', '-q', 'feature');
+  git(root, 'merge', '-q', '--no-edit', 'develop');
+
+  const clean = runGate(root, 'develop');
+
+  assert.equal(clean.status, 0, `a clean merge writes nothing of its own:\n${clean.stdout}`);
+
+  git(root, 'switch', '-q', 'develop');
+  write(root, FILE_A, lines('const l3 = 30;'));
+  commit(root, 'develop edits l3');
+  git(root, 'switch', '-q', 'feature');
+  // Both sides changed l3, so the merge conflicts; the resolution writes a
+  // value neither side had.
+  assert.notEqual(spawnSync('git', ['merge', '--no-edit', 'develop'], { cwd: root, env: GIT_ENV }).status, 0,
+    'the scenario needs a real conflict');
+  write(root, FILE_A, lines('const l3 = 999; // note'));
+  git(root, 'add', FILE_A);
+  git(root, 'commit', '-q', '--no-edit');
+  assert.equal(git(root, 'rev-list', '--parents', '-n1', 'HEAD').split(' ').length, 3, 'HEAD is a merge commit');
+
+  const evil = runGate(root, 'develop');
+
+  assert.equal(evil.status, 1, `the resolution is the merge's own edit:\n${evil.stdout}`);
+  assert.match(evil.stdout, /changed without a trailer in `[0-9a-f]{9}` Merge branch 'develop' into feature \(merge\)/);
+});
+
+test('[refactor-only: <reason>] in the PR description waives a pushed, untrailered commit', (t) => {
+  // Reported in review: once a refactor commit is pushed without the trailer,
+  // no later commit can fix it and a force-push is forbidden.
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_B, 'export const b = 1; // types only\n');
+  commit(root, 'DEV-1: tighten b');
+
+  const blocked = runGate(root, 'develop');
+
+  assert.equal(blocked.status, 1, blocked.stdout);
+  assert.match(blocked.stdout, /write `\[refactor-only: <reason>\]` in the PR description/);
+
+  const waived = runGate(root, 'develop', {
+    GATE_PR_BODY: 'Context.\n\n[refactor-only: types only, no runtime change]\n',
+  });
+
+  assert.equal(waived.status, 0, waived.stdout);
+  assert.match(
+    waived.stdout,
+    /the PR description waives these source files: `\[refactor-only: types only, no runtime change\]`/,
+  );
+
+  const commented = runGate(root, 'develop', { GATE_PR_BODY: '<!-- [refactor-only: hidden] -->' });
+
+  assert.equal(commented.status, 1, 'a waiver inside an HTML comment is inert');
+});
+
+test('locally, a failing verdict asks gh for the PR body, so pre-push honors a waiver written after a push', (t) => {
+  const root = baseRepo();
+  const bin = mkdtempSync(path.join(tmpdir(), 'presence-gate-gh-'));
+
+  t.after(() => {
+    rmSync(root, { recursive: true, force: true });
+    rmSync(bin, { recursive: true, force: true });
+  });
+  writeFileSync(path.join(bin, 'gh'), '#!/bin/sh\necho "[refactor-only: from the live body]"\n');
+  chmodSync(path.join(bin, 'gh'), 0o755);
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, FILE_B, 'export const b = 1; // types only\n');
+  commit(root, 'DEV-1: tighten b');
+
+  const run = runGate(root, 'develop', {
+    GITHUB_ACTIONS: undefined,
+    PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+  });
+
+  assert.equal(run.status, 0, run.stdout);
+  assert.match(run.stdout, /`\[refactor-only: from the live body\]`/);
+});
+
+test('a non-ASCII source path is still source, and still needs a test', (t) => {
+  // Reported in review: without -z the path came back quoted, isSource missed
+  // it, and it needed no test.
+  const root = baseRepo();
+  const file = 'handsontable/src/helpers/zażółć.ts';
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, file, 'export const z = 1;\n');
+  commit(root, 'DEV-1: add z');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 1, run.stdout);
+  assert.ok(run.stdout.includes(`- \`${file}\``), run.stdout);
+});
+
+test('a .tsx file is judged as code: JSX text can look like a comment', (t) => {
+  // Reported in review: `// docs link` inside an <a> is rendered text.
+  const root = baseRepo();
+  const file = 'wrappers/react-wrapper/src/link.tsx';
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  write(root, file, 'export const L = () => (\n  <a href="#">\n    // docs link\n  </a>\n);\n');
+  commit(root, 'base link');
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, file, 'export const L = () => (\n  <a href="#">\n    // read the docs\n  </a>\n);\n');
+  commit(root, 'DEV-1: reword the link');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 1, run.stdout);
+  assert.doesNotMatch(run.stdout, /changed only in comments/);
+});
+
+test('a translation dictionary needs no test', (t) => {
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, 'handsontable/src/i18n/languages/fa-IR.ts', 'export default { a: "b" };\n');
+  commit(root, 'DEV-1: add Persian');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 0, run.stdout);
+});
+
+test('a diff too large for a 1 MB buffer is read, not skipped', (t) => {
+  // Reported in review: readChanges used execSync's default 1 MB buffer, so a
+  // big diff threw ENOBUFS and the catch turned it into a green skip.
+  const root = baseRepo();
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  git(root, 'switch', '-q', '-c', 'feature');
+  mkdirSync(path.join(root, 'docs/bulk'), { recursive: true });
+  for (let i = 0; i < 24000; i += 1) {
+    writeFileSync(path.join(root, `docs/bulk/page-with-a-long-enough-name-${String(i).padStart(5, '0')}.md`), '');
+  }
+  write(root, FILE_B, 'export const b = 2;\n');
+  commit(root, 'DEV-1: change b beside a big docs import');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 1, run.stdout.slice(0, 2000));
+  assert.ok(run.stdout.includes(`- \`${FILE_B}\``));
 });

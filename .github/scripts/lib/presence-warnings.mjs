@@ -39,7 +39,9 @@
  *   (the advisory paragraph in .ai/LOCAL-ENFORCEMENT.md holds the criterion
  *   and the tally recipe).
  */
-import { classify, isCoverage, isFrozenJasmineSpec } from './presence-gate.mjs';
+import {
+  classify, coverageGroups, isCoverage, isFrozenJasmineSpec, isSource, sourceGroup,
+} from './presence-gate.mjs';
 
 /**
  * Matches a NEW test-block opener on an added line: `it(`, `it.each(`, `fit(`.
@@ -359,11 +361,14 @@ export function walkontableRouting(changes) {
 }
 
 /**
- * Visual-only coverage: production source changed and every change that
- * satisfies the gate is a capture spec under `visual-tests/tests/` — no unit
- * test (the visual package's own included), no `tests/e2e` spec, no wrapper
- * spec, no `*.types.ts`, no edited Jasmine spec. A screenshot proves pixels,
- * not behavior.
+ * Visual-only coverage: production source changed in a package, and every
+ * change that covers that package (in the gate's per-package sense,
+ * coverageGroups()) is a capture spec under `visual-tests/tests/` — no unit
+ * test (the visual package's own included), no `tests/e2e` spec, no spec of
+ * that wrapper, no `*.types.ts`, no edited Jasmine spec. A screenshot proves
+ * pixels, not behavior. Judged per package, like the gate: core source beside
+ * a visual spec and a React unit test fires for core, because the React test
+ * covers only React and the screenshot is core's only coverage.
  *
  * Deletions count on neither side. A removed source file needs no test, and a
  * removed visual spec is not the coverage this warning is about – nor, since
@@ -395,24 +400,32 @@ export function walkontableRouting(changes) {
  */
 export function visualOnlyCoverage(changes) {
   const live = changes.filter(change => change.status !== 'D');
-  const sourceFiles = live
-    .filter(change => classify(change.path) === 'source')
-    .map(change => change.path);
-
-  if (sourceFiles.length === 0) {
-    return null;
-  }
-
   const coverage = live.filter(change => isCoverage(change));
+  const byGroup = new Map();
 
-  if (coverage.length === 0 || !coverage.every(change => VISUAL_SPEC_RE.test(change.path))) {
-    return null;
+  for (const change of live.filter(isSource)) {
+    const group = sourceGroup(change.path);
+
+    if (!byGroup.has(group)) {
+      byGroup.set(group, []);
+    }
+    byGroup.get(group).push(change.path);
   }
 
-  return {
-    sourceFiles,
-    visualSpecs: coverage.map(change => `${change.path} (${change.status})`),
-  };
+  const sourceFiles = [];
+  const visualSpecs = new Set();
+
+  for (const [group, files] of byGroup) {
+    const covering = coverage.filter(change => coverageGroups(change.path).includes(group));
+
+    // No coverage at all: the verdict already says `missing-coverage`.
+    if (covering.length > 0 && covering.every(change => VISUAL_SPEC_RE.test(change.path))) {
+      sourceFiles.push(...files);
+      covering.forEach(change => visualSpecs.add(`${change.path} (${change.status})`));
+    }
+  }
+
+  return sourceFiles.length > 0 ? { sourceFiles, visualSpecs: [...visualSpecs] } : null;
 }
 
 /**

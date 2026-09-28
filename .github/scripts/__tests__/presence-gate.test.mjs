@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {
   classify, isCoverage, isNewJasmineSpec, refactorDeclared, evaluate,
   sourceGroup, coverageGroups, waivedFiles, isRefactorCommit, isRevertCommit,
-  stripComments, isCommentOnlyChange,
+  stripComments, isCommentOnlyChange, commitsTouching, undeclaredCommits, isWaived, bodyWaiver, isSource,
 } from '../lib/presence-gate.mjs';
+import { stripHtmlComments } from '../lib/strip-html-comments.mjs';
 
 // --- classify: the 17 real-repo paths validated during scoping ---
 const CLASSIFY_CASES = [
@@ -405,9 +406,36 @@ test('stripComments drops comments, keeps literals verbatim, and reports the lin
 test('stripComments reports an incomplete lex, which callers treat as code', () => {
   assert.equal(stripComments('const x = 1; /* never closed\n').complete, false);
   assert.equal(stripComments('const s = "never closed\nconst y = 2;\n').complete, false);
-  // A regex literal holding a comment opener derails the lexer into a comment
-  // that never closes; the incomplete lex is what keeps it safe.
-  assert.equal(stripComments('const re = /\\/*/;\nconst y = 2;\n').complete, false);
+  assert.equal(stripComments('const re = /never closed\nconst y = 2;\n').complete, false, 'a regex spans no lines');
+  assert.equal(stripComments('const t = `${a\n').complete, false, 'an open ${ is not a finished lex');
+});
+
+test('stripComments lexes regex literals and nested templates, so a comment opener inside one is not a comment', () => {
+  // Reported in review: `/\/*/g` used to open a block comment that the next
+  // JSDoc closed, so the code in between vanished from both versions.
+  const regex = stripComments('const re = /\\/*/g;\nreturn 10;\n/** doc */\n');
+
+  assert.equal(regex.text, 'const re = /\\/*/g; return 10;');
+  assert.deepEqual([...regex.codeLines], [1, 2]);
+  assert.equal(regex.complete, true);
+  assert.equal(stripComments('return /a[/*]b/.test(s);\n').text, 'return /a[/*]b/.test(s);', 'a class holds a /');
+  assert.equal(stripComments('const x = a / b; // c\n').text, 'const x = a / b;', 'division is not a regex');
+
+  const nested = stripComments('const s = `${a ? `/*` : \'\'}`;\nreturn 10;\n');
+
+  assert.equal(nested.text, 'const s = `${a ? `/*` : \'\'}`; return 10;');
+  assert.equal(nested.complete, true);
+});
+
+test('the review\'s exploits are code changes, not comment-only ones', () => {
+  const regexBase = 'const re = /\\/*/g;\nfunction f() {\n  return 10;\n}\n/** doc */\n';
+  const nestedBase = 'const s = `${a ? `/*` : \'\'}`;\nfunction f() {\n  return 10;\n}\n/** doc */\n';
+
+  for (const base of [regexBase, nestedBase]) {
+    assert.equal(isCommentOnlyChange({
+      baseText: base, headText: base.replace('return 10', 'return 999999'), removed: [3], added: [3],
+    }), false, JSON.stringify(base));
+  }
 });
 
 test('a JSDoc-only edit is comment-only; a code edit, or a blank line, is judged exactly', () => {
@@ -451,4 +479,73 @@ test('evaluate: comment-only files need no test; any other uncovered file still 
 
   assert.equal(mixed.pass, false);
   assert.deepEqual(mixed.uncovered, [{ group: 'core', files: [CODE] }]);
+});
+
+// --- review round: lineage, merges, the PR-description waiver ---
+test('a waiver follows a rename: edits under the old name still need a test', () => {
+  // Reported in review: an untrailered commit edits a.ts, then a Refactor-only
+  // commit renames it to b.ts, and b.ts used to pass as waived. Commits come
+  // newest first, as `git log` lists them.
+  const commits = [
+    {
+      hash: 'b2', subject: 'rename', message: 'Refactor-only: rename a to b', files: ['a.ts', 'b.ts'],
+      renames: [['a.ts', 'b.ts']],
+    },
+    { hash: 'a1', subject: 'edit a', message: 'DEV-1: change a', files: ['a.ts'] },
+  ];
+
+  assert.deepEqual(commitsTouching('b.ts', commits).map(c => c.hash), ['b2', 'a1']);
+  assert.equal(isWaived('b.ts', commits), false);
+  assert.deepEqual(undeclaredCommits('b.ts', commits).map(c => c.hash), ['a1']);
+  assert.equal(isWaived('b.ts', commits.slice(0, 1)), true, 'the rename alone is a declared refactor');
+});
+
+test('a merge commit\'s own edits never waive, even beside a refactor commit', () => {
+  // Reported in review: a conflict resolution in a merge was invisible, so a
+  // `return 999` it wrote was waived by an earlier refactor commit.
+  const commits = [
+    { hash: 'm1', subject: 'Merge develop (merge)', message: '', merge: true, files: ['a.ts'] },
+    { hash: 'r1', subject: 'extract', message: 'Refactor-only: extract a helper', files: ['a.ts'] },
+  ];
+
+  assert.equal(isWaived('a.ts', commits), false);
+  assert.deepEqual(undeclaredCommits('a.ts', commits).map(c => c.hash), ['m1']);
+});
+
+test('bodyWaiver reads [refactor-only: <reason>] from the PR description, and needs a reason', () => {
+  assert.equal(bodyWaiver('Some text.\n\n[refactor-only: renamed a private field]\n'), 'renamed a private field');
+  assert.equal(bodyWaiver('[Refactor-Only:  types only ]'), 'types only');
+  assert.equal(bodyWaiver('[refactor-only: ]'), null, 'an empty reason is no waiver');
+  assert.equal(bodyWaiver(''), null);
+  assert.equal(bodyWaiver(undefined), null);
+  assert.equal(bodyWaiver(stripHtmlComments('<!-- [refactor-only: in a comment] -->')), null,
+    'the CLI strips comments first');
+});
+
+test('the PR-description waiver clears what no commit declared, and nothing else', () => {
+  const FILE = 'handsontable/src/helpers/a.ts';
+  const r = evaluate([{ status: 'M', path: FILE }], [{ message: 'DEV-1: change a', files: [FILE] }], {
+    bodyWaiver: 'types only',
+  });
+
+  assert.equal(r.pass, true);
+  assert.equal(r.reason, 'refactor-declared');
+  assert.deepEqual(r.bodyWaived, [FILE]);
+  assert.equal(r.bodyWaiver, 'types only');
+
+  const jasmine = evaluate([
+    { status: 'M', path: FILE },
+    { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/new.spec.js' },
+  ], [], { bodyWaiver: 'types only' });
+
+  assert.equal(jasmine.reason, 'new-jasmine-spec', 'a waiver never admits a new Jasmine spec');
+});
+
+test('translation dictionaries need no test, but stay source to the changelog gate', () => {
+  const dictionary = 'handsontable/src/i18n/languages/fa-IR.ts';
+
+  assert.equal(isSource({ path: dictionary }), false);
+  assert.equal(classify(dictionary), 'source', 'classify() is what changelog-gate.mjs reads');
+  assert.equal(evaluate([{ status: 'M', path: dictionary }]).reason, 'ok');
+  assert.equal(isSource({ path: 'handsontable/src/i18n/registry.ts' }), true, 'the i18n code itself still needs one');
 });

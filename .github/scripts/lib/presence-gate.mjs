@@ -38,6 +38,17 @@
  *   changes no behavior. isCommentOnlyChange() decides it conservatively, and
  *   the CLI reads both versions of the file to feed it. Replayed over develop,
  *   JSDoc-only docs PRs were nearly all of the gate's failures.
+ * - **A waiver follows the file, not the name.** A file renamed in a refactor
+ *   commit is still judged on the ordinary commits that edited it under its old
+ *   name, and a merge commit's own edits (a conflict resolution) never waive.
+ * - **The PR description can waive what a pushed commit cannot.** A pushed
+ *   commit takes no trailer without a force-push, which a PR branch must not
+ *   do, so `[refactor-only: <reason>]` in the live PR body waives the PR's
+ *   uncovered files, the way `[skip changelog]` skips the changelog gate. It is
+ *   visible in review, which is the point.
+ * - **Translation dictionaries need no test.** `handsontable/src/i18n/languages/`
+ *   holds text, which the testing rules list as needing no test; the changelog
+ *   gate still sees them, because classify() does not change.
  */
 
 /**
@@ -216,13 +227,22 @@ export function isNewJasmineSpec({ status, path }) {
 }
 
 /**
- * Is a source change present?
+ * Production source that needs no test: data the testing rules exempt. Kept
+ * out of isSource() only, so classify() — which the changelog gate uses — still
+ * calls these files source.
+ */
+const NO_TEST_SOURCE = [
+  /^handsontable\/src\/i18n\/languages\//,
+];
+
+/**
+ * Is a source change present that needs a test?
  *
  * @param {{status: string, path: string}} change A parsed diff entry.
  * @returns {boolean} True when the change is production source needing a test.
  */
 export function isSource({ path }) {
-  return classify(path) === 'source';
+  return classify(path) === 'source' && !NO_TEST_SOURCE.some(r => r.test(path));
 }
 
 /**
@@ -257,42 +277,129 @@ export function isRevertCommit(message) {
 }
 
 /**
- * The files a declaration waives: those that every commit touching them
- * declares a refactor or a revert. A file changed by one refactor commit and
- * one ordinary commit is not waived — the ordinary commit's change needs a test.
+ * Does this commit declare its own changes a refactor (a trailer) or a
+ * restoration (`git revert`)? A merge commit's own edits never do.
  *
- * @param {{message: string, files: string[]}[]} commits The range's commits.
- * @returns {Set<string>} The waived paths.
+ * @param {{message: string, merge?: boolean}} commit A commit.
+ * @returns {boolean} True when the commit waives the files it changed.
  */
-export function waivedFiles(commits) {
-  const touches = new Map();
+function isDeclaredCommit(commit) {
+  return !commit.merge && (isRefactorCommit(commit.message) || isRevertCommit(commit.message));
+}
 
-  for (const { message, files } of commits) {
-    const refactor = isRefactorCommit(message) || isRevertCommit(message);
+/**
+ * The commits that changed a file under any of its names. Commits come in
+ * `git log` order, newest first, so a rename is met before the edits made
+ * under the old name: a commit that renames `old` to a name in the lineage
+ * adds `old` to it.
+ *
+ * @param {string} path The file's name at the head of the range.
+ * @param {{files: string[], renames?: string[][]}[]} commits The range's commits, newest first.
+ * @param {string[]} [aliases] Other names the file had (a rename across the whole range).
+ * @returns {object[]} The commits that touched the file.
+ */
+export function commitsTouching(path, commits, aliases = []) {
+  const names = new Set([path, ...aliases]);
+  const touching = [];
 
-    for (const file of files) {
-      if (!touches.has(file)) {
-        touches.set(file, []);
+  for (const commit of commits) {
+    for (const [from, to] of commit.renames ?? []) {
+      if (names.has(to)) {
+        names.add(from);
       }
-      touches.get(file).push(refactor);
+    }
+    if (commit.files.some(file => names.has(file))) {
+      touching.push(commit);
     }
   }
 
-  return new Set([...touches].filter(([, flags]) => flags.every(Boolean)).map(([file]) => file));
+  return touching;
 }
+
+/**
+ * The commits that changed a file without declaring it: what makes the file
+ * need a test. The CLI names them in the missing-coverage message.
+ *
+ * @param {string} path The file's name at the head of the range.
+ * @param {object[]} commits The range's commits, newest first.
+ * @param {string[]} [aliases] Other names the file had.
+ * @returns {object[]} The undeclared commits.
+ */
+export function undeclaredCommits(path, commits, aliases = []) {
+  return commitsTouching(path, commits, aliases).filter(commit => !isDeclaredCommit(commit));
+}
+
+/**
+ * Is a file waived: did every commit that changed it, under any name, declare
+ * a refactor or a revert? A file changed by one refactor commit and one
+ * ordinary commit is not waived — the ordinary commit's change needs a test.
+ *
+ * @param {string} path The file's name at the head of the range.
+ * @param {object[]} commits The range's commits, newest first.
+ * @param {string[]} [aliases] Other names the file had.
+ * @returns {boolean} True when the file is waived.
+ */
+export function isWaived(path, commits, aliases = []) {
+  const touching = commitsTouching(path, commits, aliases);
+
+  return touching.length > 0 && touching.every(isDeclaredCommit);
+}
+
+/**
+ * Every file the range's declarations waive (see isWaived).
+ *
+ * @param {object[]} commits The range's commits, newest first.
+ * @returns {Set<string>} The waived paths.
+ */
+export function waivedFiles(commits) {
+  const all = new Set(commits.flatMap(commit => commit.files));
+
+  return new Set([...all].filter(file => isWaived(file, commits)));
+}
+
+/**
+ * The waiver the PR description declares: `[refactor-only: <reason>]`, outside
+ * HTML comments (the caller strips them), with a non-empty reason.
+ *
+ * @param {string|undefined|null} body The live PR body, comments stripped.
+ * @returns {string|null} The reason, or null when no waiver is declared.
+ */
+export function bodyWaiver(body) {
+  const hit = /\[refactor-only:\s*([^\]]*?\S)\s*\]/i.exec(String(body ?? ''));
+
+  return hit ? hit[1] : null;
+}
+
+/**
+ * A `/` in code starts a regular-expression literal after these characters,
+ * and is division after anything else (an identifier, a number, `)` or `]`).
+ * `}` counts as a regex start: when it is wrong, the lexer keeps a division's
+ * operand as literal text, which reads as code — the safe direction.
+ */
+const REGEX_AFTER_CHARS = new Set([...'(,=:[!&|?{};+-*%<>~^}']);
+const REGEX_AFTER_WORDS = new Set([
+  'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield',
+  'await',
+]);
+const IDENTIFIER_CHAR = /[\w$]/;
 
 /**
  * Strip the comments out of JavaScript or TypeScript source, and report which
  * lines hold code. A small lexer: `//` and `/* … *\/` are comments, except
- * inside a string or template literal, whose contents are kept verbatim.
- * Whitespace outside literals collapses to one space, so a comment that sat
- * between two tokens leaves the same text as no comment at all.
+ * inside a string, template, or regular-expression literal, whose contents are
+ * kept verbatim. A template's `${…}` is lexed as code again, nested templates
+ * included, so a comment opener inside one cannot start a comment. Whitespace
+ * outside literals collapses to one space, so a comment that sat between two
+ * tokens leaves the same text as no comment at all.
  *
- * It does not recognize regular-expression literals, or `${…}` inside a
- * template (the whole template is kept as text, so a comment in there reads as
- * code — the safe direction). A regex literal that contains a comment opener
- * can derail it; `complete` is false when the file ends inside a comment or
- * a literal, and callers must then treat the file as code.
+ * A `/` is a regex literal after an operator, punctuation, or a keyword such
+ * as `return`, and division after an identifier, a number, `)` or `]` (see
+ * REGEX_AFTER_CHARS). It is not a JSX parser: text inside JSX reads as code
+ * or as comments by accident, which is why the CLI does not ask it about
+ * `.tsx` files. `complete` is false when the file ends inside a comment or a
+ * literal, when a string or a regex runs into a line break, or when a comment
+ * opens right after a backslash — any sign it lost its place — and callers
+ * must then treat the file as code.
  *
  * @param {string} text The file's contents.
  * @returns {{text: string, codeLines: Set<number>, complete: boolean}} The
@@ -301,12 +408,37 @@ export function waivedFiles(commits) {
  */
 export function stripComments(text) {
   const codeLines = new Set();
+  // One entry per open `${`: how many `{` are open inside it.
+  const braces = [];
   let out = '';
   let state = 'code';
   let line = 1;
   let gap = false;
   let broken = false;
+  let last = '';
+  let word = '';
   let i = 0;
+
+  // Emit a code character, turning any whitespace before it into one space.
+  const emit = (c) => {
+    const joined = !gap && IDENTIFIER_CHAR.test(last);
+
+    if (gap && out.length > 0) {
+      out += ' ';
+    }
+    gap = false;
+    out += c;
+    codeLines.add(line);
+    if (IDENTIFIER_CHAR.test(c)) {
+      word = joined ? word + c : c;
+    }
+    last = c;
+  };
+  // Emit a literal's character verbatim.
+  const raw = (c) => {
+    out += c;
+    codeLines.add(line);
+  };
 
   while (i < text.length) {
     const c = text[i];
@@ -320,7 +452,8 @@ export function stripComments(text) {
         gap = true;
       } else if (state === 'tpl') {
         out += c;
-      } else if (state === 'sq' || state === 'dq') {
+      } else if (state !== 'block') {
+        // A string, a regex, or a regex class does not span lines.
         broken = true;
       }
       line += 1;
@@ -340,41 +473,86 @@ export function stripComments(text) {
         state = 'line';
         i += 2;
       } else if (c === '/' && next === '*') {
+        if (text[i - 1] === '\\') {
+          broken = true;
+        }
         state = 'block';
         i += 2;
       } else if (/\s/.test(c)) {
         gap = true;
         i += 1;
-      } else {
-        if (gap && out.length > 0) {
-          out += ' ';
+      } else if (c === '/') {
+        const regex = last === '' || REGEX_AFTER_CHARS.has(last)
+          || (IDENTIFIER_CHAR.test(last) && REGEX_AFTER_WORDS.has(word));
+
+        emit(c);
+        if (regex) {
+          state = 'regex';
         }
-        gap = false;
-        out += c;
-        codeLines.add(line);
+        i += 1;
+      } else if (c === '}' && braces.length > 0 && braces[braces.length - 1] === 0) {
+        // The end of a template's `${…}`: back to the template's text.
+        braces.pop();
+        emit(c);
+        state = 'tpl';
+        i += 1;
+      } else {
+        if (c === '{' && braces.length > 0) {
+          braces[braces.length - 1] += 1;
+        } else if (c === '}' && braces.length > 0) {
+          braces[braces.length - 1] -= 1;
+        }
+        emit(c);
         state = { "'": 'sq', '"': 'dq', '`': 'tpl' }[c] ?? 'code';
         i += 1;
       }
-    } else {
-      // Inside a string or template literal: kept verbatim.
-      out += c;
-      codeLines.add(line);
+    } else if (state === 'tpl') {
       if (c === '\\') {
-        if (next === '\n') {
-          line += 1;
-        }
-        out += next ?? '';
+        raw(c);
+        raw(next ?? '');
+        line += next === '\n' ? 1 : 0;
+        i += 2;
+      } else if (c === '`') {
+        raw(c);
+        last = c;
+        state = 'code';
+        i += 1;
+      } else if (c === '$' && next === '{') {
+        raw('${');
+        last = '{';
+        braces.push(0);
+        state = 'code';
         i += 2;
       } else {
-        if ((state === 'sq' && c === "'") || (state === 'dq' && c === '"') || (state === 'tpl' && c === '`')) {
-          state = 'code';
+        raw(c);
+        i += 1;
+      }
+    } else {
+      // A string ('sq', 'dq'), a regex, or a regex character class ('class').
+      raw(c);
+      if (c === '\\') {
+        raw(next ?? '');
+        line += next === '\n' ? 1 : 0;
+        i += 2;
+      } else {
+        const closes = { sq: "'", dq: '"', regex: '/', class: ']' }[state];
+
+        if (c === closes) {
+          last = c;
+          state = state === 'class' ? 'regex' : 'code';
+        } else if (state === 'regex' && c === '[') {
+          state = 'class';
         }
         i += 1;
       }
     }
   }
 
-  return { text: out, codeLines, complete: !broken && (state === 'code' || state === 'line') };
+  return {
+    text: out,
+    codeLines,
+    complete: !broken && braces.length === 0 && (state === 'code' || state === 'line'),
+  };
 }
 
 /**
@@ -424,15 +602,17 @@ function toCommits(changes, commits) {
  * @param {{status: string, path: string}[]} changes Parsed diff entries.
  * @param {Array<{message: string, files: string[]}>|string[]} [commits] The
  *   range's commits, or the squashed form (see toCommits).
- * @param {{commentOnly?: string[]}} [options] `commentOnly`: source files whose
- *   diff changes comments and whitespace only (see isCommentOnlyChange). They
- *   need no test.
+ * @param {{commentOnly?: string[], bodyWaiver?: string|null}} [options]
+ *   `commentOnly`: source files whose diff changes comments and whitespace only
+ *   (see isCommentOnlyChange) — they need no test. `bodyWaiver`: the reason
+ *   the PR description gives in `[refactor-only: <reason>]` (see bodyWaiver())
+ *   — it waives every file a commit trailer did not.
  * @returns {{ pass: boolean, sourceFiles: string[], newJasmine: string[],
  *   uncovered: {group: string, files: string[]}[], waived: string[],
- *   commentOnly: string[], reason: string }} Verdict and the data needed to
- *   build a PR comment.
+ *   bodyWaived: string[], bodyWaiver: string|null, commentOnly: string[],
+ *   reason: string }} Verdict and the data needed to build a PR comment.
  */
-export function evaluate(changes, commits = [], { commentOnly = [] } = {}) {
+export function evaluate(changes, commits = [], { commentOnly = [], bodyWaiver: bodyReason = null } = {}) {
   const sourceFiles = changes.filter(isSource).map(c => c.path);
   const newJasmine = changes.filter(isNewJasmineSpec).map(c => c.path);
 
@@ -440,19 +620,30 @@ export function evaluate(changes, commits = [], { commentOnly = [] } = {}) {
   // of whether other coverage exists.
   if (newJasmine.length > 0) {
     return {
-      pass: false, sourceFiles, newJasmine, uncovered: [], waived: [], commentOnly: [], reason: 'new-jasmine-spec',
+      pass: false,
+      sourceFiles,
+      newJasmine,
+      uncovered: [],
+      waived: [],
+      bodyWaived: [],
+      bodyWaiver: bodyReason,
+      commentOnly: [],
+      reason: 'new-jasmine-spec',
     };
   }
 
   const covered = new Set(changes.filter(isCoverage).flatMap(c => coverageGroups(c.path)));
-  const refactorFiles = waivedFiles(toCommits(changes, commits));
+  const allCommits = toCommits(changes, commits);
   const commentFiles = new Set(commentOnly);
   const byGroup = new Map();
   const waived = [];
+  const bodyWaived = [];
   const comments = [];
 
-  for (const file of sourceFiles) {
+  for (const change of changes.filter(isSource)) {
+    const file = change.path;
     const group = sourceGroup(file);
+    const aliases = change.oldPath && change.oldPath !== file ? [change.oldPath] : [];
 
     if (covered.has(group)) {
       continue;
@@ -461,8 +652,12 @@ export function evaluate(changes, commits = [], { commentOnly = [] } = {}) {
       comments.push(file);
       continue;
     }
-    if (refactorFiles.has(file)) {
+    if (isWaived(file, allCommits, aliases)) {
       waived.push(file);
+      continue;
+    }
+    if (bodyReason) {
+      bodyWaived.push(file);
       continue;
     }
     if (!byGroup.has(group)) {
@@ -473,12 +668,14 @@ export function evaluate(changes, commits = [], { commentOnly = [] } = {}) {
 
   const uncovered = [...byGroup].map(([group, files]) => ({ group, files }));
 
-  const verdict = { sourceFiles, newJasmine, uncovered, waived, commentOnly: comments };
+  const verdict = {
+    sourceFiles, newJasmine, uncovered, waived, bodyWaived, bodyWaiver: bodyReason, commentOnly: comments,
+  };
 
   if (uncovered.length > 0) {
     return { pass: false, ...verdict, reason: 'missing-coverage' };
   }
-  if (waived.length > 0) {
+  if (waived.length > 0 || bodyWaived.length > 0) {
     return { pass: true, ...verdict, reason: 'refactor-declared' };
   }
   if (comments.length > 0) {

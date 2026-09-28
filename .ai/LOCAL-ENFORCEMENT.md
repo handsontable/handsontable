@@ -299,19 +299,34 @@ Machine-enforced by the presence gate; full decision rules in
 - **Not a deleted test.** Removing a test is never coverage.
 - **A trailer covers its own commit only.** A source file with no test passes when every commit that changed it
   carries `Refactor-only: <reason>`, or was written by `git revert` (`This reverts commit <sha>.`). One trailer
-  no longer waives a whole branch, so put it on the refactor commit, not on a later one.
-- **A comment-only change needs no test.** When a source file's diff changes nothing but comments and whitespace
-  (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments from both
-  versions and compares them; a trailing comment on a code line or a reindent still counts as code.
+  no longer waives a whole branch, so put it on the refactor commit, not on a later one. The waiver follows the
+  file: edits made before a rename still count, and a merge commit's own edits (a conflict resolution) never
+  waive.
+- **A pushed commit is waived from the PR description.** A pushed commit cannot take a trailer without a
+  force-push, which a PR branch must not do, so write `[refactor-only: <reason>]` in the PR description (outside
+  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. Locally,
+  pre-push asks `gh` for the description when the verdict would fail.
+- **A comment-only change needs no test.** When a `.ts` or `.js` source file's diff changes nothing but comments
+  and whitespace (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments
+  from both versions with a lexer that knows strings, templates, and regex literals, and compares them; a
+  trailing comment on a code line or a reindent still counts as code, and so does any `.tsx` change (JSX text
+  can look like a comment).
+- **Translation dictionaries need no test.** `handsontable/src/i18n/languages/` is text; every other non-runtime
+  change (types, config, re-exports) still needs a trailer or the PR-description waiver.
 
 **In CI the gate blocks** (`GATE_MODE: block` on `Checks / test presence`): a red verdict fails the Checks
-module, which stops the pipeline like the changelog gate. A tooling gap – an unreadable base ref, say – is a
-skip with a warning, never a block. CI hands the gate the base branch's live tip (`origin/<base.ref>`), never
-the payload's `base.sha` – the blocking-gate rule in [`.ai/CI.md`](CI.md). Replayed over develop's last 600
-first-parent commits (303 change source), these rules block 5, each a real miss: a type change in the React
-wrapper with no React test (twice), a language file and a theme cleanup with no trailer, and an editor change
-with no test. The same replay under the old rules failed 31, nearly all JSDoc-only docs PRs. Over the last 300
-commits, the new rules block none.
+module, which stops the pipeline like the changelog gate. A tooling gap – an unreadable base ref, or no
+merge-base – is a skip with a warning, never a block; any other git failure fails the run. CI hands the gate the
+base branch's live tip (`origin/<base.ref>`), never the payload's `base.sha` – the blocking-gate rule in
+[`.ai/CI.md`](CI.md).
+
+Measured on 2026-09-28. **Develop's history** (600 first-parent commits, 308 of them with source that needs a
+test): the rules block 3 – two React prop-type changes with no React-side test (a type-surface change needs a
+type test in its package, or a declaration) and a theme cleanup with no trailer. The old rules failed 27 there,
+25 of them JSDoc-only docs PRs that now pass as `comments-only`. Over the last 300 commits the rules block none.
+Develop is squash-merged, so each of those commits is one commit and cannot exercise the per-commit rule. **The
+21 open PRs** (175 commits, 20 merges) exercise it: all pass. Twelve change core source, each with a core-tier
+test, so no verdict there depended on a trailer.
 
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.

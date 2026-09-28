@@ -411,12 +411,28 @@ test('visual-only coverage is silent when any non-visual coverage accompanies th
     { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/x.unit.js' },
     { status: 'A', path: 'tests/e2e/filters.spec.ts' },
     { status: 'M', path: FROZEN_SPEC }, // a MODIFIED Jasmine spec is coverage to the gate
-    { status: 'A', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' },
     { status: 'A', path: 'handsontable/src/__tests__/core/x.types.ts' },
   ]) {
     assert.equal(isCoverage(coverage), true, `${coverage.path} is coverage to the gate`);
     assert.equal(visualOnlyCoverage([...VISUAL_ONLY_PR, coverage]), null, `${coverage.path} pairs the source change`);
   }
+});
+
+test('visual-only coverage is judged per package, like the gate', () => {
+  // Reported in review: core source + a visual spec + a React unit test stayed
+  // silent, while the gate itself treats the visual spec as core's only
+  // coverage (a React test covers only React).
+  const reactSpec = { status: 'A', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' };
+  const reactSrc = { status: 'M', path: 'wrappers/react-wrapper/src/hotTableInner.tsx' };
+  const fired = visualOnlyCoverage([...VISUAL_ONLY_PR, reactSpec]);
+
+  assert.ok(fired, 'a React test does not pair a core source change');
+  assert.deepEqual(fired.sourceFiles, [VISUAL_SRC.path], 'the warning names the core file only');
+  assert.equal(visualOnlyCoverage([reactSrc, VISUAL_SPEC, reactSpec]), null, 'a React test pairs React source');
+
+  const both = visualOnlyCoverage([VISUAL_SRC, reactSrc, VISUAL_SPEC, reactSpec]);
+
+  assert.deepEqual(both?.sourceFiles, [VISUAL_SRC.path], 'only the package whose coverage is all screenshots');
 });
 
 test('visual-only coverage is silent with no source change — a visual spec alone, a helper, a demo, or the codemod shape', () => {
