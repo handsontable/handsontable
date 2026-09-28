@@ -16,8 +16,11 @@
  *   VISUAL_BUDGET_FILE the budget file (default: `visual-tests/visual-budget.json`)
  *   VISUAL_PR_BODY_FILE     the LIVE description, written by the workflow's github-script step
  *   VISUAL_PR_BODY          the event payload's description, used only when the live read failed
- *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it, which is what makes "did this
- *                           pull request raise it" answerable
+ *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it NOW, which is what tells a base
+ *                           that moved during the run from one that did not
+ *   VISUAL_BUDGET_BUILT_ON_FILE the budget file at the base commit this run's merge ref was built on,
+ *                           which is what makes "did this pull request raise it" answerable. Unset, the
+ *                           growth check falls back to the base file; set but unreadable, it says so
  *   GITHUB_EVENT_NAME       whether a marker can be asked for at all
  *
  * Exits 1 on a violation. A missing `out.json` — the bootstrap path, where there is no comparison —
@@ -72,11 +75,26 @@ if (process.env.VISUAL_BUDGET_BASE_FILE) {
   }
 }
 
+// The base commit this run's merge ref was built on. `undefined` when nobody asked (a local run), `null`
+// when the workflow asked and the file could not be read: the verdict reports the second and not the first.
+let builtOnBudget;
+
+if (process.env.VISUAL_BUDGET_BUILT_ON_FILE) {
+  try {
+    builtOnBudget = JSON.parse(await readFile(process.env.VISUAL_BUDGET_BUILT_ON_FILE, 'utf-8'));
+  } catch {
+    builtOnBudget = null;
+    console.log('No budget file for the base commit this run was built on; the growth check compares '
+      + 'against the base branch as it is now.');
+  }
+}
+
 const verdict = evaluateBudget({
   report,
   budget,
   body,
   baseBudget,
+  builtOnBudget,
   isPullRequest: process.env.GITHUB_EVENT_NAME === 'pull_request',
 });
 

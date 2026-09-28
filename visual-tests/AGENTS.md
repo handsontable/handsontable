@@ -677,8 +677,18 @@ which of these run locally and which only in CI.
   itself is not guarded by it; what guards develop is the declaration sweep in
   `lib/__tests__/visual-declarations.test.mjs`, which asserts the file EQUALS what the checked-in specs
   derive and runs in the tooling suite on every pull request. The marker keys on the file's diff against
-  the base branch rather than on reg-suit's new-versus-deleted counts: a rename nets those to zero while
-  the set grows, and a bootstrap build reports every record as new.
+  the base rather than on reg-suit's new-versus-deleted counts: a rename nets those to zero while
+  the set grows, and a bootstrap build reports every record as new. **"The base" is the commit the run's
+  merge ref was built on** (the merge commit's first parent, read with `git cat-file` because the checkout
+  is depth 1), not the base branch as it stands when Compare runs. GitHub builds the merge ref when the
+  run starts, and the goldens are fetched about twenty minutes later. On 2026-09-28 a trim (#13647, 1676
+  goldens to 1225) merged two minutes into #13642's run: it rendered the old specs against the new goldens
+  (496 new, 45 deleted), and the check, judging against the tip, asked for a marker the pull request had
+  no reason to add. Adding it would have re-allowed the 451 trimmed records. So the step reads the file
+  twice. The built-on copy answers "did this pull request raise it". The tip answers "did the base change
+  its budget during the run", which fails with "merge the base branch and push". A re-run cannot fix it,
+  because it replays the same merge ref. A base whose goldens changed without its budget changing (a
+  restyle) is stale the same way and not detected here: the file records counts, not pixels.
   The marker is comment-stripped, so the PR template's documented example cannot authorise a growth.
   Three things are worth knowing before changing it. The ceiling is **per prefix**, never on the total: a
   `pr`-tier build renders two of the eleven, and its 480 records would clear a 1676 ceiling without

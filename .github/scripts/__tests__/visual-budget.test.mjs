@@ -117,6 +117,33 @@ test('the growth check is given the base branch\'s budget file', () => {
     'the budget step must be given the base file');
 });
 
+test('the growth check is also given the budget at the base this run was built on', () => {
+  // The render and the checked-out budget come from the merge ref GitHub builds when the run starts; the
+  // goldens and the base tip are read twenty minutes later. Judged against the tip alone, a base that
+  // trimmed its goldens mid-run reads as this pull request raising the file, and the gate asks for a
+  // marker that would re-allow every trimmed record (run 36392712913). The merge commit's first parent is
+  // the base it was built on; `cat-file` because a depth-1 checkout hides the parents from `rev-parse`.
+  const workflow = readFileSync(WORKFLOW, 'utf8');
+  const baseStep = workflow.slice(stepAt(workflow, 'Read the base branch\'s visual budget'),
+    stepAt(workflow, 'Visual budget'));
+  const budgetStep = workflow.slice(stepAt(workflow, 'Visual budget'), stepAt(workflow, 'Mirror the verdict'));
+  const file = /\$\{\{ runner\.temp \}\}\/built-on-visual-budget\.json$/m;
+
+  assert.ok(baseStep.includes('git cat-file -p HEAD | awk \'/^parent /{ n++; if (n == 1) first = $2 } '
+    + 'END { if (n == 2) print first }\''), 'the built-on base is the first parent of a two-parent merge, only of one');
+  assert.match(baseStep, /EVENT_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
+    'the payload\'s base sha is the fallback, passed through env like every context value');
+  assert.match(baseStep, /built_on=\$\{built_on:-\$EVENT_BASE_SHA\}/);
+  assert.match(baseStep, /git fetch --depth=1 origin "\$built_on"/);
+  assert.match(baseStep, new RegExp(`^ {10}BUILT_ON_BUDGET_FILE: ${file.source}`, 'm'),
+    'the base step must write the built-on file');
+  assert.match(baseStep, /git show FETCH_HEAD:visual-tests\/visual-budget\.json > "\$BUILT_ON_BUDGET_FILE"/);
+  assert.match(budgetStep, new RegExp(`^ {10}VISUAL_BUDGET_BUILT_ON_FILE: ${file.source}`, 'm'),
+    'the budget step must be handed the same file the base step wrote');
+  // The tip is still read: it is what tells a base that moved from one that did not.
+  assert.match(budgetStep, /VISUAL_BUDGET_BASE_FILE: \$\{\{ runner\.temp \}\}\/base-visual-budget\.json/);
+});
+
 test('the budget file and the script it is read by are both present', () => {
   // The step names a path; if either half moves, the job fails at runtime on a build that already
   // spent twenty minutes rendering.

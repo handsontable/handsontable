@@ -68,8 +68,12 @@ Two cases worth knowing:
   carries the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
 - **A visual change merged into the branch you target.** The golden records always come from that branch's
   latest build, so once someone else's intentional change lands, your next run inherits their differences
-  as well as yours. **Rebase** — approving would also approve any real regression of your own that the same
-  build contains.
+  as well as yours. **Merge the target branch into yours and push.** Approving would also approve any real
+  regression of your own that the same build contains. Do not rebase and force-push a branch bound to a
+  pull request. If the change landed while your run was rendering, the run compared your render against
+  goldens newer than the code it built. When that change moved the golden budget, the `Visual budget`
+  section says so and fails the run. The same remedy applies: "Re-run jobs" replays the same merge
+  commit, so push instead. Do not add a `[visual budget: …]` marker for it.
 
 If the branch you target has no golden records yet, the check does not fail. The build promotes its own
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
