@@ -1,5 +1,6 @@
 import {
   getBorderSettingsProperty,
+  getEdgesInsideBlock,
   isHeaderPlaceholder,
   lookupSelectionHeader,
   measureHeaderSelectionBox,
@@ -235,5 +236,48 @@ describe('measureHeaderSelectionBox', () => {
 
   it('should keep a single RTL column width equal to that header width', () => {
     expect(measureHeaderSelectionBox('columns', 200, 200, 50, 50, 10, true, 400)).toEqual([159, 50]);
+  });
+});
+
+describe('getEdgesInsideBlock', () => {
+  const NONE = { top: false, bottom: false, start: false, end: false };
+
+  it('should report no interior edge when the overlay renders the whole block', () => {
+    expect(getEdgesInsideBlock([0, 0, 2, 2], { firstRow: 0, lastRow: 9, firstColumn: 0, lastColumn: 9 }))
+      .toEqual(NONE);
+  });
+
+  it('should report no interior edge for a block that ends exactly on the band\'s last track', () => {
+    expect(getEdgesInsideBlock([0, 0, 1, 1], { firstRow: 0, lastRow: 1, firstColumn: 0, lastColumn: 1 }))
+      .toEqual(NONE);
+  });
+
+  it('should report the bottom edge as interior in the overlay of the top frozen rows', () => {
+    // A 3x3 block at (0,0) with `fixedRowsTop: 2`: the `top` overlay renders rows 0-1 only.
+    expect(getEdgesInsideBlock([0, 0, 2, 2], { firstRow: 0, lastRow: 1, firstColumn: 0, lastColumn: 9 }))
+      .toEqual({ ...NONE, bottom: true });
+  });
+
+  it('should report the end edge as interior in the overlay of the frozen columns', () => {
+    expect(getEdgesInsideBlock([0, 0, 2, 2], { firstRow: 0, lastRow: 9, firstColumn: 0, lastColumn: 1 }))
+      .toEqual({ ...NONE, end: true });
+  });
+
+  it('should report both edges as interior in the frozen corner overlay', () => {
+    expect(getEdgesInsideBlock([0, 0, 2, 2], { firstRow: 0, lastRow: 1, firstColumn: 0, lastColumn: 1 }))
+      .toEqual({ ...NONE, bottom: true, end: true });
+  });
+
+  it('should report the top edge as interior in the overlay of the bottom frozen rows', () => {
+    // Pins the pure helper only. A block over rows 6-8 with `fixedRowsBottom: 2` on 10 rows would give
+    // the `bottom` overlay this band, but that overlay never renders the block's root, so `appear()`
+    // returns before it asks.
+    expect(getEdgesInsideBlock([6, 1, 8, 2], { firstRow: 8, lastRow: 9, firstColumn: 0, lastColumn: 9 }))
+      .toEqual({ ...NONE, top: true });
+  });
+
+  it('should report the start edge as interior when the block starts before the band', () => {
+    expect(getEdgesInsideBlock([0, 3, 0, 6], { firstRow: 0, lastRow: 9, firstColumn: 5, lastColumn: 12 }))
+      .toEqual({ ...NONE, start: true });
   });
 });

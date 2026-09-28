@@ -14,11 +14,13 @@ import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browse
 import {
   getBorderSettingsProperty,
   getCornerStyle,
+  getEdgesInsideBlock,
   lookupSelectionHeader,
   measureHeaderSelectionBox,
   resolveHeaderLevel,
   standsBelowColumnHeader,
 } from './utils';
+import type { InteriorEdges, RenderedBand } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 import {
@@ -674,6 +676,10 @@ class Border {
    * @param {number} left The left position of the handler.
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
+   * @param {boolean} [rendersBottomEnd=true] Whether this overlay renders the selection's bottom-end
+   *   corner. `false` for an overlay that renders only part of a merged block, whose own box ends on a
+   *   freeze line inside the block (DEV-143); the bottom handle belongs to the overlay that renders
+   *   the block's real corner.
    */
   updateMultipleSelectionHandlesPosition(
     fromRow: number,
@@ -684,6 +690,7 @@ class Border {
     left: number,
     width: number,
     height: number,
+    rendersBottomEnd = true,
   ) {
     const handles = this.selectionHandles;
 
@@ -758,7 +765,7 @@ class Border {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
-      if (this.isSouthEastOfAreaSelection(toRow, toCol)) {
+      if (rendersBottomEnd && this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
       } else {
@@ -1462,6 +1469,62 @@ class Border {
   }
 
   /**
+   * Resolves which corner the fill handle is drawn for and which edges of the box lie inside a
+   * merged block (DEV-143).
+   *
+   * A merged focus cell reaches `appear()` as one coordinate, so the box is measured from the
+   * block's root cell, and each overlay renders that cell over its own band only. An overlay that
+   * renders part of the block therefore measures a box ending on the freeze line. The
+   * `onModifyGetCellCoords` setting reports the block's extent, and every edge the block reaches past
+   * this overlay's band is interior: the overlay that renders the block's outline there draws it.
+   * The same answer moves the fill-handle check onto the block's bottom-end corner. Not a layout
+   * read, so `appear()` may ask it before its style writes.
+   *
+   * @param {number} toRow The box's bottom row, clamped to this overlay's band.
+   * @param {number} toColumn The box's end column, clamped to this overlay's band.
+   * @param {boolean} isMultiple Whether the box spans more than one coordinate. A multi-cell range
+   *   keeps all its edges; only the single-coordinate path measures a merged block from its root.
+   * @param {RenderedBand} band This overlay's rendered band.
+   * @returns {{ checkRow: number, checkCol: number, interiorEdges: InteriorEdges | null }}
+   */
+  resolveMergedBlockEdges(toRow: number, toColumn: number, isMultiple: boolean, band: RenderedBand) {
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
+
+    if (!hookResult || !Array.isArray(hookResult)) {
+      return { checkRow: toRow, checkCol: toColumn, interiorEdges: null };
+    }
+
+    const blockExtent = hookResult as number[];
+
+    return {
+      checkRow: blockExtent[2],
+      checkCol: blockExtent[3],
+      interiorEdges: isMultiple ? null : getEdgesInsideBlock(blockExtent, band),
+    };
+  }
+
+  /**
+   * Hides the edges of a merged block's box that lie inside the block (see `getEdgesInsideBlock` in
+   * `utils.ts`).
+   *
+   * @param {InteriorEdges} interiorEdges The edges to hide.
+   */
+  hideInteriorEdges(interiorEdges: InteriorEdges) {
+    if (interiorEdges.top) {
+      this.topStyle!.display = 'none';
+    }
+    if (interiorEdges.bottom) {
+      this.bottomStyle!.display = 'none';
+    }
+    if (interiorEdges.start) {
+      this.startStyle!.display = 'none';
+    }
+    if (interiorEdges.end) {
+      this.endStyle!.display = 'none';
+    }
+  }
+
+  /**
    * Show border around one or many cells.
    *
    * The fill handle is normally centered on the selection's bottom-end corner, so half of it hangs
@@ -1653,6 +1716,15 @@ class Border {
     );
     const inlinePosProperty = isRtl ? 'right' : 'left';
 
+    // Resolved before the long corner-geometry comment below because the extensions it describes
+    // depend on it: an edge inside a merged block is not drawn, so nothing extends toward it.
+    const { checkRow, checkCol, interiorEdges } = this.resolveMergedBlockEdges(toRow, toColumn, isMultiple, {
+      firstRow: firstRenderedRow,
+      lastRow: lastRenderedRow,
+      firstColumn: firstRenderedColumn,
+      lastColumn: lastRenderedColumn,
+    });
+
     // Corner geometry is resolved per edge rather than from a single `settings.border.width` delta,
     // which misaligns edges whose own width differs from the border-object default - e.g. a cell
     // shared by two overlapping custom-border ranges of different widths. Two distinct roles:
@@ -1669,9 +1741,10 @@ class Border {
     // only if it has a visible bottom edge. Without this, a per-cell custom border whose end/bottom
     // side is hidden (an interior or split-range edge) would still extend into the empty neighbor and
     // stick out. For regular selections the side settings are absent, so `!undefined?.hide` is `true`
-    // and the extension behaves exactly as before.
-    const extendToEnd = !this.settings.end?.hide;
-    const extendToBottom = !this.settings.bottom?.hide;
+    // and the extension behaves exactly as before. An edge inside a merged block is not drawn either,
+    // so the same rule applies to it.
+    const extendToEnd = !this.settings.end?.hide && !interiorEdges?.end;
+    const extendToBottom = !this.settings.bottom?.hide && !interiorEdges?.bottom;
     const bottomThickness = parseInt(this.bottomStyle!.height, 10);
     const endThickness = parseInt(this.endStyle!.width, 10);
     const bottomDelta = Math.ceil(bottomThickness / 2);
@@ -1729,20 +1802,26 @@ class Border {
       this.bottomStyle!.display = 'none';
     }
 
+    if (interiorEdges) {
+      this.hideInteriorEdges(interiorEdges);
+    }
+
     let cornerVisibleSetting = this.settings.border?.cornerVisible;
 
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
       cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
-    let [checkRow, checkCol] = [toRow, toColumn];
+    // The hook can move the corner onto a merged block's bottom-end, which an overlay rendering only
+    // part of the block does not render. Only the overlay that does draws the handle; the others
+    // would put one on the freeze line inside the block (DEV-143).
+    const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn;
 
-    if (hookResult && Array.isArray(hookResult)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      [,, checkRow, checkCol] = hookResult;
-    }
-
-    if (isMobileOrIpadOS() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
+    if (
+      isMobileOrIpadOS() ||
+      !cornerVisibleSetting ||
+      !rendersFillCorner ||
+      !this.isSouthEastOfAreaSelection(checkRow, checkCol)
+    ) {
       this.cornerStyle!.display = 'none';
 
     } else {
@@ -1819,6 +1898,7 @@ class Border {
         inlineStartPos,
         width,
         height,
+        rendersFillCorner,
       );
     }
 

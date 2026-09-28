@@ -138,6 +138,51 @@ The same testing trap applies: the master-scoped `visibleMoveZones()` passes on 
 `visibleMoveZonesInAnyOverlay()` and hit-test with `moveZoneHitsAt()` (`tests/e2e/move-zone.spec.ts`,
 "a selection crossing a frozen pane").
 
+## A merged block crossing a freeze line keeps one outline and one fill handle (DEV-143)
+
+A merged focus cell reaches `Border#appear()` as ONE coordinate (`[r, c, r, c]`), so `isMultiple` is
+false and the box is measured from the block's root cell. Every overlay renders that cell over its
+own band only: with `mergeCells.virtualized` MergeCells clamps the `rowspan`/`colspan` to the band
+(`clampToVirtualViewport`), and without it the cell keeps the full span and the browser truncates it
+at the edge of the overlay's table (measured: `rowspan=3` in the two-row `top` clone lays out two
+rows tall). Either way an overlay that renders part of the block measures a box ending on the freeze
+line. Left alone, every slice drew a closed box (a selection edge through the merged cell on each
+seam) and its own fill handle and mobile bottom handle.
+
+- **The block's extent comes from the `onModifyGetCellCoords` setting, asked once per `appear()`**
+  (`Border#resolveMergedBlockEdges`). `getEdgesInsideBlock` (`selection/border/utils.ts`) compares it
+  with the overlay's rendered band and hides every edge the block reaches past; the overlay that
+  renders the block's outline there draws it.
+- **What the extent is depends on the MergeCells mode.** Without `virtualized` it is the full block,
+  and the master is a no-op because MergeCells' viewport-calculator overrides widen the master's band
+  to cover every merged block in view. With `virtualized` the `'render'` source clamps it to the
+  master's band (and reads `getActiveOverlayName()` for the frozen-start side, which names the clone
+  while that clone draws), so the master is a no-op by construction. The clamp also means the master
+  and a clone that start past the block's root (the master's band starts at column 1 behind a
+  frozen column) still draw a start edge inside the block; a frozen pane covers it, which is why the
+  E2E probe hit-tests instead of counting displayed edges.
+- **Only the single-cell path takes the interior-edge rule.** A multi-cell range crossing a seam has
+  the same geometry, but its clamped edge falls on the clone holder's clip edge, where a 1px layer
+  is hidden by accident; a 2px edge there still shows. That clamp also serves the master's overscan
+  and the entire-row/column header paths, so it was left alone.
+- **The fill handle and the mobile bottom handle are drawn only by an overlay that renders the
+  corner** (`checkRow`, `checkCol` inside the band, on BOTH paths). `isSouthEastOfAreaSelection`
+  answers `true` whenever there is no area range, and the hook remap points every clone at the
+  block's bottom-end, so an area whose bottom-end lies in a crossing block also put a handle on the
+  seam in each clone. A block entirely inside the frozen corner keeps the corner's handle; the
+  master's and the other clones' copies sit under it.
+- **A block whose scrollable part is scrolled behind a pane shows an outline open at the seam and no
+  fill handle**, like a multi-cell range in the same state; before, the frozen slice drew a closed
+  box with a handle on the seam.
+
+Not covered: a block crossing the `fixedRowsBottom` line. MergeCells renders that block wrongly on
+its own (before and after this fix), and no overlay draws a reachable handle there.
+
+Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (both MergeCells modes, hit-tested: one
+reachable handle on the block's corner, no visible edge inside the block, the outline on every track
+of every side), the merged-cell case in `tests/e2e/ipad-selection-handles.spec.ts`, and
+`test/unit/selection/border/utils.unit.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.

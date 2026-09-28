@@ -215,6 +215,47 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Merges the given blocks after construction, so the frozen-pane fixture can put a merged cell
+   * across its freeze lines.
+   */
+  async mergeCells(cells: { row: number, col: number, rowspan: number, colspan: number }[]): Promise<void> {
+    await this.page.evaluate((mergedCells) => {
+      window.hot.updateSettings({ mergeCells: mergedCells });
+    }, cells);
+  }
+
+  /**
+   * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
+   * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
+   * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`
+   * count.
+   */
+  async reachableBottomHandles(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const overlays: string[] = [];
+
+      document.querySelectorAll('.bottomSelectionHandle-HitArea').forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+
+        if (getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+
+        if (hit && (hit === handle || handle.contains(hit))) {
+          const overlay = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
+            'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'].find(name => handle.closest(`.${name}`));
+
+          overlays.push(overlay ?? 'none');
+        }
+      });
+
+      return overlays.sort();
+    });
+  }
+
+  /**
    * Turns the fill handle off so a frozen-row overlay-size assertion can pin the
    * `isMobileOrIpadOS()` corner-reserve branch without `cornerVisible` also being true.
    */
