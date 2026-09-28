@@ -21,9 +21,11 @@ visualTest(__filename, {
       .getFullUrl()
   );
 
-  // The labels are Arabic, so the submenu is identified by its container, which the menu names after
-  // the item (`htContextMenuSub_Alignment`) whatever the language.
-  const submenu = tablePage.locator('.htContextMenuSub_Alignment');
+  // The menu names a submenu's container after the item's LABEL, with every character outside A-Z, a-z
+  // and 0-9 turned into an underscore, so the Arabic "Alignment" leaves only underscores and there is
+  // no `htContextMenuSub_Alignment` here. Alignment is the only item with a submenu in the demo's default list (`customBorders` is
+  // off), so the one submenu container, found by the class every submenu carries, is Alignment's.
+  const submenu = tablePage.locator('.htContextMenu[class*="htContextMenuSub_"]');
   const firstOption = submenu.locator(':scope > .ht_master .htCore tbody td').first();
 
   await clickRelativeToViewport(80, 80, 'right'); // top-left
