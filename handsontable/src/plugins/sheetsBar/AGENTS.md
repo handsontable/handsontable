@@ -238,11 +238,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
   Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
   triggers is the remaining per-switch cost outside this plugin.
-- **The strip's own icons (overflow chevron, add/menu buttons) are installed once at build time,
-  not per render** (DEV-3003) — `bar.ts`/`tabStrip.ts` call `createIcon()` when the strip is
-  constructed. `#onAfterSetTheme` calls `this.#ui?.refreshIcons()` because `useTheme()` never
-  goes through `updateSettings()`; skip that call and a theme switch leaves the bar's icons stale
-  while the rest of the chrome re-themes. The active-sheet check mark in `menus.ts` is different:
+- **The bar's icons (paging arrows, add/all-sheets buttons, tab chevrons) are kept through an
+  injected `syncIcon()`** (DEV-3003) — `bar.ts` and `tabStrip.ts` receive `syncIcon` (bound to the
+  grid in `sheetsBar.ts`), not `createIcon`, and each owns one slot class
+  (`ht-sheets-bar__button-icon`, `ht-sheets-bar__tab-chevron-icon`). `#onAfterSetTheme` calls
+  `this.#ui?.refreshIcons()` and `this.#tabStrip?.refreshIcons()`, which update the icons **in
+  place** and only when the theme's icons revision moved. **Never answer `afterSetTheme` with
+  `#refreshUI()`**: `TabStrip#render()` aborts a tab drag and cancels an open rename, and the hook
+  also fires for a color-scheme or density switch (a ThemeBuilder `params()` or `setColorScheme()`
+  included), so the user loses the sheet name they were typing (PR #13639 review; pinned by "a
+  color-scheme switch keeps an open tab rename" in `tests/e2e/icon-elements.spec.ts`). The active-sheet check mark in `menus.ts` is different:
   it is built fresh every time a menu row is rendered (`#renderSheetName`, per `open()`), so it
   always reflects the current theme with no `refreshIcons()` involvement.
 

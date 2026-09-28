@@ -187,3 +187,11 @@ icons revision moved, so an ordinary menu open costs one class check per icon. T
 the input's NEXT SIBLING (`input + .ht-icon` in `_radio.scss`): `build()` inserts it with
 `insertAdjacentElement('afterend', ...)` carrying the slot class, and the refresh finds it by that class
 instead of appending a second one at the end of the wrapper.
+
+**The "Filter by value" list is a nested Handsontable instance, and only a root instance gets a
+ThemeManager** (`core.ts`). Its checkbox ticks would therefore always take the plain-glyph fallback and
+ignore a class-list or renderer mapping. `ui/multipleSelect.ts` calls `linkIconSource(itemsBox, hot)`
+(`themes/engine/icons.ts`) right after constructing the list and **before** `init()` renders its first
+checkbox; `createIcon()`/`syncIcon()` then draw its icons with the root's manager, read on every call so a
+later theme switch is followed. Do not assign the root's `themeManager` to the nested instance instead: the
+nested grid's own `updateSettings()`/`useTheme()` paths destroy the manager they find (PR #13639 review).

@@ -35,18 +35,20 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.
 
-## The indicator is a real element (DEV-3003), and the append order is load-bearing
+## The indicator is a real element (DEV-3003), updated in place on every draw
 
-`#onAfterGetColHeader` still writes the glyph through `fastInnerText(el, '+' | '-')` — that call
-**replaces every child of `el`**, so `el.appendChild(createIcon(this.hot, 'collapseOn' | 'collapseOff'))`
-runs strictly *after* it in both branches. Appending before would have the icon wiped out on the very
-next line.
+`#onAfterGetColHeader` runs for every collapsible header on every draw, so it must not rebuild the
+indicator. `#syncIndicatorContent()` keeps two children: the leading `'+'`/`'-'` text node, updated
+through `textContent` only when the state flips (inserted once if missing), and one icon kept through
+`syncIcon()` with the `collapsibleIndicator__icon` slot class, which swaps `collapseOn`/`collapseOff` on a
+state change and re-applies the theme mapping only when the icons revision moved.
 
-That ordering is also what makes plain `createIcon()` + `appendChild()` safe here, with no `syncIcon()`
-slot bookkeeping needed: `fastInnerText` runs on **every** draw, unconditionally, in both the collapsed
-and expanded branches, so the icon slot is always empty by the time `appendChild` runs — there is never
-a stale icon to dedupe against. Forcing several renders in a row still leaves exactly one icon, because
-each draw starts by wiping the previous one.
+**Never write the text with `fastInnerText()` here.** Once the text node has a sibling (the icon),
+`fastInnerText()` always takes its slow lane - it empties the element and builds a new text node - so
+the icon would have to be rebuilt after it on every draw, re-running any icon renderer callback per
+header per scroll frame. That was the first DEV-3003 version, and the PR #13639 review flagged it.
+Pinned by "a draw with no state change keeps the indicator's icon and text nodes" in
+`tests/e2e/icon-elements.spec.ts`.
 
 The `'+'`/`'-'` text stays. It is not new user-visible content: `text-indent: -100px; font-size: 0;` on
 `.collapsibleIndicator` (`_collapsible-columns.scss`) already hid it before this change, so it was

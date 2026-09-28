@@ -136,10 +136,12 @@ select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — 
 ## Icons are built once, not per render (DEV-3003)
 
 `ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
-ht-icon-<name>">` elements built by `createIcon()` when the UI is constructed, not rebuilt on every
-draw. A theme change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme`
-explicitly calls `this.#ui?.refreshIcons()` to rebuild them against the new theme's icon config — forgetting
-that hook leaves the pager showing the previous theme's icons after a `useTheme()` switch.
+ht-icon-<name>">` elements kept through an injected `syncIcon()` (bound to the grid in `pagination.ts`)
+with the `ht-page-icon` slot class, built when the UI is constructed, not rebuilt on every draw. A theme
+change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme` explicitly
+calls `this.#ui?.refreshIcons()` — forgetting that hook leaves the pager showing the previous theme's icons
+after a `useTheme()` switch. The refresh updates the same elements in place and does nothing unless the
+theme's icons revision moved, so a color-scheme or density switch rebuilds nothing.
 
 ## Where to look next
 
