@@ -1007,6 +1007,27 @@ describe('ThemeManager', () => {
 
           expect(manager.getIconsRevision()).toBe(afterRenderer);
         });
+
+        it('never hands two managers the same revision, so an icon stamped by a torn-down ' +
+          'manager is re-applied by the next one (PR #13639 review)', () => {
+          // A grid that moves from theme object A to theme object B destroys A's manager and
+          // builds a new one for B. `syncIcon()` keeps an icon whose stamp equals the current
+          // revision, so B must never start at a value A already stamped.
+          const managerA = createThemeManager({
+            hot: hot(),
+            themeObject: createTheme(createValidThemeConfig({ name: 'revision-a', icons: { menu: 'a-menu' } })),
+          });
+          const revisionA = managerA.getIconsRevision();
+
+          managerA.destroy();
+
+          const managerB = createThemeManager({
+            hot: hot(),
+            themeObject: createTheme(createValidThemeConfig({ name: 'revision-b', icons: { menu: 'b-menu' } })),
+          });
+
+          expect(managerB.getIconsRevision()).not.toBe(revisionA);
+        });
       });
     });
   });

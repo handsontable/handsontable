@@ -177,5 +177,68 @@ describe('createIcon / syncIcon', () => {
       expect(afterSecondChange.className).toBe('ht-icon ht-icon-arrow-right slot ht-icon--external ti ti-x');
       expect(afterSecondChange.className).not.toContain('ti-chevron-right');
     });
+
+    it('re-applies the new theme\'s mapping when the grid swaps to a brand-new theme manager ' +
+      '(PR #13639 review)', () => {
+      // Theme object A -> theme object B tears A's manager down and builds a new one. A
+      // per-manager counter restarted at the same value A had stamped, so the kept icon kept A's
+      // class list.
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({ name: 'theme-a', icons: { ...mainIcons, menu: 'a-menu' } })),
+      });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'menu');
+
+      expect(icon.className).toContain('a-menu');
+
+      hot.themeManager.destroy();
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({ name: 'theme-b', icons: { ...mainIcons, menu: 'b-menu' } })),
+      });
+
+      const kept = syncIcon(hot, container, 'slot', 'menu');
+
+      expect(kept).toBe(icon);
+      expect(kept.className).toBe('ht-icon ht-icon-menu slot ht-icon--external b-menu');
+    });
+
+    it('keeps exactly one slot icon when a renderer callback assigns `className` ' +
+      '(PR #13639 review)', () => {
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({
+          icons: {
+            ...mainIcons,
+            menu: (element) => {
+              element.className = 'material-symbols-outlined';
+              element.textContent = 'menu';
+            },
+          },
+        })),
+      });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+
+      // Simulate the next header draws: the slot must still be found, not appended again.
+      syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+      syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+
+      expect(container.querySelectorAll('i').length).toBe(1);
+      expect(icon.classList.contains('site-class')).toBe(true);
+      expect(icon.classList.contains('ht-icon')).toBe(true);
+      expect(icon.classList.contains('ht-icon-menu')).toBe(true);
+      expect(icon.classList.contains('ht-icon--external')).toBe(true);
+      expect(icon.classList.contains('slot')).toBe(true);
+      expect(icon.classList.contains('material-symbols-outlined')).toBe(true);
+      expect(icon.textContent).toBe('menu');
+    });
   });
 });

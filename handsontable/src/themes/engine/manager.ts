@@ -53,6 +53,16 @@ const THEME_PREFIX = 'ht-theme-';
 const THEME_STYLE_ATTRIBUTE = 'data-hot-theme-style';
 
 /**
+ * The last icons revision handed out by any `ThemeManager`. Shared across every manager so a
+ * revision value is never reused: a grid that moves from theme object A to theme object B gets a
+ * brand-new manager, and a per-manager counter would restart at the same value A's stamps carry,
+ * so `syncIcon()` would keep A's class-list or renderer mapping on every kept icon.
+ *
+ * @type {number}
+ */
+let lastIconsRevision = 0;
+
+/**
  * Prefix of the class that scopes the per-instance override rules to a single grid.
  *
  * It deliberately does not start with `ht-theme-`, because `Core#onThemeChange` strips every
@@ -126,7 +136,8 @@ export class ThemeManager {
   #externalIcons: Map<string, IconValue> = new Map();
 
   /**
-   * Bumped every time `#resolveIcons()` (re)resolves the active theme's icon mapping. `syncIcon()`
+   * Set to a fresh value (from the module-level `lastIconsRevision` counter, unique across every
+   * manager) each time `#resolveIcons()` sees the active theme's icon mapping change. `syncIcon()`
    * (`themes/engine/icons.ts`) stamps this value on an icon element it keeps in place, so a kept
    * slot re-applies the mapping only after a real theme change instead of on every draw – see
    * `getIconsRevision()`.
@@ -357,7 +368,8 @@ export class ThemeManager {
     // `syncIcon()` re-apply every kept icon on the next draw although no icon had changed.
     if (this.#iconsChanged(icons)) {
       this.#lastIcons = { ...icons };
-      this.#iconsRevision += 1;
+      lastIconsRevision += 1;
+      this.#iconsRevision = lastIconsRevision;
     }
 
     this.#externalIcons = external;
@@ -445,8 +457,14 @@ export class ThemeManager {
       element.className += ` ${external.trim()}`;
     } else if (typeof external === 'function') {
       external(element, name);
-      // The callback owns the element's content, not its role: re-assert the hidden state so a
-      // renderer that rewrote the attributes cannot expose the decorative glyph to assistive tech.
+      // The callback owns the element's content, not its identity or role. Re-add the grid's own
+      // classes, so a renderer that assigned `className` cannot drop the `.ht-icon` sizing or the
+      // slot class `syncIcon()` looks the element up by (losing it made every header draw append
+      // one more `<i>`). Re-assert the hidden state, so a renderer that rewrote the attributes
+      // cannot expose the decorative glyph to assistive tech.
+      // `options.className` can carry several classes (`syncIcon()` joins a site class and a slot
+      // class), and `classList.add()` throws on a token with a space in it.
+      element.classList.add(...classes.join(' ').split(/\s+/).filter(Boolean));
       element.setAttribute('aria-hidden', 'true');
     }
   }
