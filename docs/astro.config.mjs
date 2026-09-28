@@ -873,10 +873,9 @@ export default defineConfig({
         //      anything about our code.
         //
         //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
-        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
-        //      repeats them for its own mount. Neither can reach these events: they
+        //      failures the example runner catches. It cannot reach these events: they
         //      arrive through `onunhandledrejection` from Astro's own island hydration,
-        //      outside any try/catch of ours. Keep the three lists in step.
+        //      outside any try/catch of ours. Keep the two lists in step.
         //
         //      Tradeoff: this also hides a deployment that ships HTML referencing a
         //      chunk that was never uploaded. Deploy-time asset verification, not error
@@ -886,9 +885,11 @@ export default defineConfig({
         //      `gtm.js`, `gtag/js`, or the `<anonymous>` code a Custom HTML tag injects.
         //      Those tags reference globals the docs never load (`jQuery`, `$`, `_cio`,
         //      `ym`, `FundraiseUp`, ... - Sentry HANDSONTABLE-DOCS-24E, -24D, -25A, -24J,
-        //      -251 and ~30 more), so the fix belongs in the GTM container, not here. One
-        //      frame from our own bundles keeps the event, so a GTM call into our code
-        //      that breaks it stays visible.
+        //      -251 and ~30 more), so the fix belongs in the GTM container, not here. At
+        //      least one frame must be a real `gtm.js`/`gtag/js` frame: an all-`<anonymous>`
+        //      stack has no provable owner and stays visible. One frame from our own
+        //      bundles keeps the event, so a GTM call into our code that breaks it stays
+        //      visible too.
         //
         //   7. `Script error.`. The browser strips every detail - message, file, and stack -
         //      from an error thrown by a cross-origin script loaded without CORS, leaving at
@@ -959,7 +960,8 @@ export default defineConfig({
         }
 
         // Drop errors whose every frame belongs to Google Tag Manager or the anonymous
-        // code its Custom HTML tags inject. A single frame from our bundles keeps it.
+        // code its Custom HTML tags inject, as long as one frame is a real GTM frame.
+        // A single frame from our bundles keeps it.
         var frames = [];
 
         values.forEach(function (value) {
@@ -970,14 +972,20 @@ export default defineConfig({
           }
         });
 
+        var frameFile = function (frame) {
+          return (frame && (frame.abs_path || frame.filename)) || '';
+        };
         var isTagManagerFrame = function (frame) {
-          var file = (frame && (frame.abs_path || frame.filename)) || '';
+          var file = frameFile(frame);
 
-          return file === '<anonymous>' || /googletagmanager\\.com\\/(gtm\\.js|gtag\\/js)/.test(file) ||
+          return /googletagmanager\\.com\\/(gtm\\.js|gtag\\/js)/.test(file) ||
             file === '/gtm.js' || file === '/gtag/js';
         };
+        var isTagManagerOrInjectedFrame = function (frame) {
+          return isTagManagerFrame(frame) || frameFile(frame) === '<anonymous>';
+        };
 
-        if (frames.length > 0 && frames.every(isTagManagerFrame)) {
+        if (frames.some(isTagManagerFrame) && frames.every(isTagManagerOrInjectedFrame)) {
           return null;
         }
 

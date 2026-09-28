@@ -182,6 +182,13 @@ test('keeps a GTM-triggered error that runs through our own bundle', () => {
   assert.equal(beforeSend(event, {}), event);
 });
 
+test('keeps an error whose frames are all anonymous, with no GTM frame', () => {
+  // `<anonymous>` alone does not prove GTM injected the code, so the event stays visible.
+  const event = eventWithFrames('jQuery is not defined', ['<anonymous>', '<anonymous>']);
+
+  assert.equal(beforeSend(event, {}), event);
+});
+
 test('keeps an error that has no stack frames at all', () => {
   // The GTM rule needs at least one frame to judge by.
   const event = errorEvent('https://handsontable.com/docs/javascript-data-grid/', 'jQuery is not defined');
