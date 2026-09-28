@@ -324,10 +324,10 @@ merge-base – is a skip with a warning, never a block; any other git failure fa
 base branch's live tip (`origin/<base.ref>`), never the payload's `base.sha` – the blocking-gate rule in
 [`.ai/CI.md`](CI.md).
 
-Measured on 2026-09-28. **Develop's history** (600 first-parent commits, 308 of them with source that needs a
+Measured on 2026-09-28. **Develop's history** (600 first-parent commits, 310 of them with source that needs a
 test): the rules block 3 for missing coverage – two React prop-type changes with no React-side test and a theme
 cleanup with no trailer. All 3 are real misses. The React two change public types, which need a type test in
-their package, or, while React has no harness, a declaration. The old rules failed 27 there, 25 of them
+their package, or, while React has no harness, a declaration. The old rules failed 26 there, 24 of them
 JSDoc-only docs PRs that now pass as `comments-only`. Over the last 300 commits the rules block none.
 
 Develop is squash-merged, so its commits cannot exercise the per-commit rule; **the last 600 merged PRs**
