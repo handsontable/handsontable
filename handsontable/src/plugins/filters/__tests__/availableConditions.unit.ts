@@ -1,51 +1,58 @@
-import getOptionsList, { TYPES } from 'handsontable/plugins/filters/constants';
+import getOptionsList, { TYPES, getConditionListType } from 'handsontable/plugins/filters/constants';
 import {
   applyAvailableConditionsRule,
+  findAvailableConditionsProblems,
+  findOffListNames,
   isAvailableConditionsSetting,
   resolveAvailableConditionsRule,
 } from 'handsontable/plugins/filters/availableConditions';
 
 const SEPARATOR = '---------';
-const DATA_TYPES = Object.keys(TYPES);
 
 /**
  * The list the "Filter by condition" select would show, as condition keys and separators.
  */
-function listKeys(type: string, setting?: unknown, onUnknownName?: (name: string, listType: string) => void) {
-  return getOptionsList(type, setting, onUnknownName)
+function listKeys(type: string, setting?: unknown) {
+  return getOptionsList(type, setting)
     .map(item => (item.name === SEPARATOR ? SEPARATOR : item.key));
 }
 
 describe('Filters -> availableConditions', () => {
   describe('isAvailableConditionsSetting', () => {
     it('should accept the three documented shapes', () => {
-      expect(isAvailableConditionsSetting(undefined, DATA_TYPES)).toBe(true);
-      expect(isAvailableConditionsSetting([], DATA_TYPES)).toBe(true);
-      expect(isAvailableConditionsSetting(['eq', SEPARATOR, 'gt'], DATA_TYPES)).toBe(true);
-      expect(isAvailableConditionsSetting({ exclude: ['not_between'] }, DATA_TYPES)).toBe(true);
+      expect(isAvailableConditionsSetting(undefined)).toBe(true);
+      expect(isAvailableConditionsSetting([])).toBe(true);
+      expect(isAvailableConditionsSetting(['eq', SEPARATOR, 'gt'])).toBe(true);
+      expect(isAvailableConditionsSetting({ exclude: ['not_between'] })).toBe(true);
       expect(isAvailableConditionsSetting({
         numeric: { exclude: ['not_between'] },
         text: ['contains', 'begins_with'],
         'intl-date': [],
-      }, DATA_TYPES)).toBe(true);
+      })).toBe(true);
     });
 
     it('should reject values that are not one of those shapes', () => {
-      expect(isAvailableConditionsSetting(true, DATA_TYPES)).toBe(false);
+      expect(isAvailableConditionsSetting(true)).toBe(false);
       // Kept free on purpose: it can mean "hide the Filter by condition section" later without a break.
-      expect(isAvailableConditionsSetting(false, DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting('eq', DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting(null, DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting(['eq', 1], DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting({ exclude: 'eq' }, DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting({ include: ['eq'] }, DATA_TYPES)).toBe(false);
+      expect(isAvailableConditionsSetting(false)).toBe(false);
+      expect(isAvailableConditionsSetting('eq')).toBe(false);
+      expect(isAvailableConditionsSetting(null)).toBe(false);
+      expect(isAvailableConditionsSetting(['eq', 1])).toBe(false);
+      expect(isAvailableConditionsSetting({ exclude: 'eq' })).toBe(false);
     });
 
-    it('should reject a per-type map that mixes in `exclude`, an unknown type, or a nested map', () => {
+    it('should reject a per-type map that mixes in `exclude`, or holds a nested map', () => {
       // An object with `exclude` is read as a rule, so a per-type map cannot also carry one.
-      expect(isAvailableConditionsSetting({ exclude: ['eq'], numeric: ['gt'] }, DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting({ dropdown: ['eq'] }, DATA_TYPES)).toBe(false);
-      expect(isAvailableConditionsSetting({ numeric: { text: ['eq'] } }, DATA_TYPES)).toBe(false);
+      expect(isAvailableConditionsSetting({ exclude: ['eq'], numeric: ['gt'] })).toBe(false);
+      expect(isAvailableConditionsSetting({ numeric: { text: ['eq'] } })).toBe(false);
+    });
+
+    it('should accept a per-type key no list exists for, so the valid entries next to it still apply', () => {
+      // The key itself is ignored and reported by `findAvailableConditionsProblems()`; rejecting the
+      // whole setting would silently drop the valid entries too.
+      expect(isAvailableConditionsSetting({ numeric: ['gt'], dropdown: ['eq'] })).toBe(true);
+      // `include` is not a rule key, so this reads as a per-type map with one unknown key.
+      expect(isAvailableConditionsSetting({ include: ['eq'] })).toBe(true);
     });
   });
 
@@ -64,6 +71,15 @@ describe('Filters -> availableConditions', () => {
       expect(resolveAvailableConditionsRule(setting, 'text')).toEqual({ exclude: ['contains'] });
       expect(resolveAvailableConditionsRule(setting, 'date')).toBeUndefined();
       expect(resolveAvailableConditionsRule(undefined, 'date')).toBeUndefined();
+    });
+  });
+
+  describe('getConditionListType', () => {
+    it('should keep a type that has its own list, and map any other type to text', () => {
+      expect(getConditionListType('numeric')).toBe('numeric');
+      expect(getConditionListType('intl-date')).toBe('intl-date');
+      expect(getConditionListType('dropdown')).toBe('text');
+      expect(getConditionListType('mixed')).toBe('text');
     });
   });
 
@@ -112,25 +128,8 @@ describe('Filters -> availableConditions', () => {
       expect(listKeys('numeric', ['gt', 'gt', 'lt'])).toEqual(['none', SEPARATOR, 'gt', 'lt']);
     });
 
-    it('should leave out, and report, allow-listed names the data type does not offer', () => {
-      const unknown: string[][] = [];
-
-      expect(listKeys('numeric', ['gt', 'begins_with', 'no_such_condition'], (name, listType) => {
-        unknown.push([name, listType]);
-      })).toEqual(['none', SEPARATOR, 'gt']);
-      expect(unknown).toEqual([
-        ['begins_with', 'numeric'],
-        ['no_such_condition', 'numeric'],
-      ]);
-    });
-
-    it('should not report excluded names the data type does not offer', () => {
-      // One grid-level exclusion is meant to cover every column, so a name only some types offer
-      // must not warn on the others.
-      const onUnknownName = jest.fn();
-
-      expect(listKeys('text', { exclude: ['not_between'] }, onUnknownName)).toEqual(TYPES.text);
-      expect(onUnknownName).not.toHaveBeenCalled();
+    it('should leave out allow-listed names the data type does not offer', () => {
+      expect(listKeys('numeric', ['gt', 'begins_with', 'no_such_condition'])).toEqual(['none', SEPARATOR, 'gt']);
     });
 
     it('should apply a per-type entry by the list the column type falls back to', () => {
@@ -157,12 +156,45 @@ describe('Filters -> availableConditions', () => {
     });
   });
 
+  describe('findAvailableConditionsProblems', () => {
+    it('should report names no data type offers, in allow-lists and exclusions alike', () => {
+      expect(findAvailableConditionsProblems(['eq', 'eqq', SEPARATOR], TYPES, SEPARATOR))
+        .toEqual([{ kind: 'unknownName', name: 'eqq' }]);
+      expect(findAvailableConditionsProblems({ numeric: { exclude: ['not_betwen'] } }, TYPES, SEPARATOR))
+        .toEqual([{ kind: 'unknownName', name: 'not_betwen' }]);
+    });
+
+    it('should not report a name that another data type offers', () => {
+      // One grid-level exclusion is meant to cover every column, so a name only some types offer
+      // is not a mistake.
+      expect(findAvailableConditionsProblems({ exclude: ['not_between', 'intl_date_today'] }, TYPES, SEPARATOR))
+        .toEqual([]);
+    });
+
+    it('should report a per-type key no list exists for', () => {
+      expect(findAvailableConditionsProblems({ numeric: ['gt'], dropdown: ['eq'] }, TYPES, SEPARATOR))
+        .toEqual([{ kind: 'unknownDataType', dataType: 'dropdown' }]);
+    });
+
+    it('should report nothing for no setting', () => {
+      expect(findAvailableConditionsProblems(undefined, TYPES, SEPARATOR)).toEqual([]);
+    });
+  });
+
+  describe('findOffListNames', () => {
+    it('should list the allow-listed names the list does not offer, and nothing for an exclusion', () => {
+      expect(findOffListNames(['gt', 'contains', SEPARATOR, 'eq'], TYPES.numeric, SEPARATOR)).toEqual(['contains']);
+      expect(findOffListNames({ exclude: ['contains'] }, TYPES.numeric, SEPARATOR)).toEqual([]);
+      expect(findOffListNames(undefined, TYPES.numeric, SEPARATOR)).toEqual([]);
+    });
+  });
+
   describe('applyAvailableConditionsRule', () => {
     it('should not change the default list it was given', () => {
       const defaults = [...TYPES.numeric];
 
-      applyAvailableConditionsRule(defaults, { exclude: ['gt'] });
-      applyAvailableConditionsRule(defaults, ['lt']);
+      applyAvailableConditionsRule(defaults, { exclude: ['gt'] }, SEPARATOR);
+      applyAvailableConditionsRule(defaults, ['lt'], SEPARATOR);
 
       expect(defaults).toEqual(TYPES.numeric);
     });

@@ -24,8 +24,16 @@ import {
   toEmptyString,
   warnAboutInvalidColumnAvailableConditions,
   warnAboutPerColumnFilterSettings,
+  warnAboutUnavailableCondition,
+  warnAboutUnknownCondition,
+  warnAboutUnknownConditionsDataType,
 } from './utils';
-import { isAvailableConditionsSetting } from './availableConditions';
+import {
+  findAvailableConditionsProblems,
+  findOffListNames,
+  isAvailableConditionsSetting,
+  resolveAvailableConditionsRule,
+} from './availableConditions';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
@@ -36,6 +44,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE,
   TYPES,
+  getConditionListType,
 } from './constants';
 import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
@@ -57,6 +66,7 @@ export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const AVAILABLE_CONDITIONS_KEY = 'availableConditions';
 const DATA_TYPES = Object.keys(TYPES);
+const KNOWN_CONDITION_NAMES = new Set(Object.values(TYPES).flat().filter(name => name !== SEPARATOR));
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
@@ -200,7 +210,7 @@ export class Filters extends BasePlugin {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
       filterFixedRows: (value: unknown) => typeof value === 'boolean',
-      availableConditions: (value: unknown) => isAvailableConditionsSetting(value, DATA_TYPES),
+      availableConditions: (value: unknown) => isAvailableConditionsSetting(value),
     };
   }
 
@@ -509,43 +519,95 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Warns once per grid about the parts of a per-column `filters` object that are ignored.
+   * Warns once per grid about per-column `filters` objects and `availableConditions` values that do
+   * not do what they say.
    *
-   * A column object is read for `availableConditions` only. Any other key warns, because the other
-   * settings are resolved once for the whole grid, and an invalid `availableConditions` value warns
-   * too, because the column then falls back to the grid-level one.
-   *
-   * Scanned over every column rather than raised from the visibility check, so a grid with no
-   * dropdown menu, or a column whose menu is never opened, still gets the message - the docs
-   * promise it is logged once per grid, not once per menu opening. A visibility predicate is also
-   * the wrong place for a side effect.
+   * Scanned over every column rather than raised from the visibility check or a menu opening, so a
+   * grid with no dropdown menu, or a column whose menu is never opened, still gets the message - the
+   * docs promise it is logged once per grid, not once per menu opening. A visibility predicate is
+   * also the wrong place for a side effect.
    *
    * @private
    */
   #warnAboutPerColumnSettingsObjects = () => {
     const columnCount = this.hot.countCols();
 
+    this.#warnAboutAvailableConditionsProblems(this.getSetting(AVAILABLE_CONDITIONS_KEY));
+
     for (let visualColumn = 0; visualColumn < columnCount; visualColumn++) {
       const columnSettings = this.#getOwnColumnSettings(visualColumn);
 
-      if (!isObject(columnSettings)) {
-        continue;
+      if (isObject(columnSettings)) {
+        this.#warnAboutColumnSettingsObject(columnSettings as Record<string, unknown>);
       }
 
-      const settings = columnSettings as Record<string, unknown>;
-
-      if (Object.keys(settings).some(key => key !== AVAILABLE_CONDITIONS_KEY)) {
-        warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
-      }
-
-      if (
-        hasOwnProperty(settings, AVAILABLE_CONDITIONS_KEY) &&
-        !isAvailableConditionsSetting(settings[AVAILABLE_CONDITIONS_KEY], DATA_TYPES)
-      ) {
-        warnAboutInvalidColumnAvailableConditions(this.hot.rootElement, PLUGIN_KEY);
-      }
+      this.#warnAboutOffListConditions(visualColumn);
     }
   };
+
+  /**
+   * Warns about one per-column `filters` object.
+   *
+   * It is read for `availableConditions` only. An object with any other key, or with no key at all,
+   * warns, because it does nothing there. An invalid `availableConditions` value warns too, because
+   * the column then falls back to the grid-level one.
+   */
+  #warnAboutColumnSettingsObject(settings: Record<string, unknown>) {
+    const keys = Object.keys(settings);
+
+    if (keys.length === 0 || keys.some(key => key !== AVAILABLE_CONDITIONS_KEY)) {
+      warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
+    }
+
+    if (!hasOwnProperty(settings, AVAILABLE_CONDITIONS_KEY)) {
+      return;
+    }
+
+    const value = settings[AVAILABLE_CONDITIONS_KEY];
+
+    if (isAvailableConditionsSetting(value)) {
+      this.#warnAboutAvailableConditionsProblems(value);
+    } else {
+      warnAboutInvalidColumnAvailableConditions(this.hot.rootElement, PLUGIN_KEY);
+    }
+  }
+
+  /**
+   * Warns about the condition names no data type offers, and the per-type keys no list exists for,
+   * in a valid `availableConditions` value.
+   */
+  #warnAboutAvailableConditionsProblems(setting: unknown) {
+    findAvailableConditionsProblems(setting, TYPES, SEPARATOR).forEach((problem) => {
+      if (problem.kind === 'unknownName') {
+        warnAboutUnknownCondition(this.hot.rootElement, problem.name);
+      } else {
+        warnAboutUnknownConditionsDataType(this.hot.rootElement, problem.dataType, DATA_TYPES);
+      }
+    });
+  }
+
+  /**
+   * Warns about the allow-listed conditions that exist, but not in the list a column uses.
+   *
+   * The column's type is read from its column meta, not from every cell as the menu does, because
+   * this runs for every column on every scan.
+   */
+  #warnAboutOffListConditions(visualColumn: number) {
+    const setting = this._getAvailableConditions(visualColumn);
+
+    if (setting === undefined) {
+      return;
+    }
+
+    const { type } = this.hot.getColumnMeta(visualColumn);
+    const columnType = typeof type === 'string' ? type : 'text';
+    const listType = getConditionListType(columnType);
+    const rule = resolveAvailableConditionsRule(setting, listType);
+
+    findOffListNames(rule, TYPES[listType], SEPARATOR)
+      .filter(name => KNOWN_CONDITION_NAMES.has(name))
+      .forEach(name => warnAboutUnavailableCondition(this.hot.rootElement, name, columnType, listType));
+  }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -752,6 +814,10 @@ export class Filters extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
+    // `updateSettings({ filters })` lands here from `BasePlugin`'s own `afterUpdateSettings`
+    // listener, and the disable above removes this plugin's listener for that same round - so the
+    // new value is scanned here. The grid is built by now, so the column meta layer resolves.
+    this.#warnAboutPerColumnSettingsObjects();
   }
 
   /**
@@ -1918,7 +1984,8 @@ export class Filters extends BasePlugin {
     if (isObject(columnSettings) && hasOwnProperty(columnSettings as object, AVAILABLE_CONDITIONS_KEY)) {
       const value = (columnSettings as Record<string, unknown>)[AVAILABLE_CONDITIONS_KEY];
 
-      if (isAvailableConditionsSetting(value, DATA_TYPES)) {
+      // An own `undefined` (a wrapper prop left unset) means "not set", so the grid-level value applies.
+      if (value !== undefined && isAvailableConditionsSetting(value)) {
         return value;
       }
     }

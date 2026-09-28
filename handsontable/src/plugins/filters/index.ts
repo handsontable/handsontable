@@ -10,4 +10,5 @@ export type {
   AvailableConditionsRule,
   AvailableConditionsList,
   AvailableConditionsExclusion,
+  AvailableConditionsDataType,
 } from './availableConditions';

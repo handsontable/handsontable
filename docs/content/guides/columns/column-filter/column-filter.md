@@ -619,14 +619,34 @@ A few rules apply to every shape:
 
 - **None** always stays first, so you do not need to list it.
 - A list can only pick operators that the column's data type offers by default. Any other name is
-  left out, and Handsontable logs a console warning.
+  left out.
 - Separators left at the start, at the end, or side by side are removed.
 - The setting changes the lists only. A condition you add with
   [`addCondition()`](@/api/filters.md#addcondition) still filters, even if the list does not offer
   it, and the column's menu still shows it as the selected condition.
+- A column whose own `availableConditions` is `undefined` uses the grid-level value.
 
-To hide the whole **Filter by condition** section of a column, set `filters` to `false` for that
-column instead. See [Enable filtering for individual columns](#enable-filtering-for-individual-columns).
+Handsontable logs a console warning when the grid is created, and when you change the setting, for
+each of these mistakes:
+
+- A name that no data type offers, for example a typo in `exclude`.
+- A name in a column's list that the column's data type does not offer.
+- A data type key without a list of its own, such as `dropdown`. That entry is ignored, and the
+  other entries still apply.
+
+To change the setting at runtime, pass the whole `filters` object to
+[`updateSettings()`](@/api/core.md#updatesettings). Two things to know:
+
+- Updating the `filters` option clears the filters that are applied. Save them with
+  [`exportConditions()`](@/api/filters.md#exportconditions) first, and restore them with
+  [`importConditions()`](@/api/filters.md#importconditions).
+- A `filters` object that leaves out `availableConditions` keeps the previous value. To go back to
+  the default lists, pass `availableConditions: undefined` or `filters: true`.
+
+To hide every filter control in a column's menu, set `filters` to `false` for that column. See
+[Enable filtering for individual columns](#enable-filtering-for-individual-columns). To hide only
+the **Filter by condition** section, leave `filter_by_condition` out of the
+[`dropdownMenu`](@/api/options.md#dropdownmenu) items.
 
 `availableConditions` changes what the condition lists contain, not which parts the menu shows. The
 [`dropdownMenu`](@/api/options.md#dropdownmenu) option decides that, through the filter item keys

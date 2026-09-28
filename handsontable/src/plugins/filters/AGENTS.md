@@ -122,22 +122,32 @@ captured when the plugin is enabled.
   question (`isEnabled()`); this one answers only "did *this column* opt out", and only an own
   property is a per-column answer.
 - **A column `filters` OBJECT is read for `availableConditions` only (DEV-3056).** Every other key
-  in it (`searchMode`, `filterFixedRows`, anything unknown) is still ignored and warns, the way
-  `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)` resolves
-  the value: a VALID own column value wins and REPLACES the grid-level one (no merging); otherwise
-  `getSetting('availableConditions')`. An invalid column value falls back to the grid value, and the
-  warning for it comes from the column scan, never from the read. The list itself is built in one
-  place, `getOptionsList()` called from `ConditionComponent#reset()`, which both condition selects
-  share. Four rules ride along. (1) `none` is always kept FIRST, because `reset()` selects
-  `items[0]`. (2) An allow-list may only pick names from the column type's STOCK list; any other
-  name is dropped with a `warnOnce` - never a throw inside a menu opening. An excluded name the type
-  lacks is NOT reported, so one grid-level `{ exclude }` can cover columns of every type. (3) A
-  per-type key matches the LIST type after the `text` fallback, so `dropdown`, `checkbox`, custom
-  types and `mixed` follow the `text` entry, and the validator rejects any other key. (4) The setting
-  shapes the list, never the filter: a condition added through `addCondition()` still filters, and
-  `setState()` still names it in the caption (the caption reads `value.name`, not the item list).
-  Coverage: `availableConditions.unit.ts` (the pure helper), `perColumnFilters.unit.js` (the read and
-  the warnings), `tests/e2e/filters-available-conditions.spec.ts` (the menu).
+  in it (`searchMode`, `filterFixedRows`, anything unknown), and an EMPTY object, still warns, the
+  way `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)`
+  resolves the value: a VALID own column value wins and REPLACES the grid-level one (no merging); an
+  own `undefined` (a wrapper prop left unset) and an invalid value both fall back to
+  `getSetting('availableConditions')`. The list itself is built in one place, `getOptionsList()`
+  called from `ConditionComponent#reset()`, which both condition selects share, and it is silent.
+  Five rules ride along. (1) `none` is always kept FIRST, because `reset()` selects `items[0]`, and
+  the no-selection branch passes a COPY of its descriptor, because `SelectUI#setItems()` translates
+  names in place and the registry's descriptor is shared. (2) An allow-list may only pick names from
+  the column type's STOCK list; any other name is dropped. (3) A per-type key matches the LIST type
+  after the `text` fallback (`getConditionListType()`), so `dropdown`, `checkbox`, custom types and
+  `mixed` follow the `text` entry. An unknown key does NOT invalidate the setting - rejecting it
+  dropped the valid entries next to it - it is ignored and warned. (4) Every warning comes from the
+  column scan (`#warnAboutPerColumnSettingsObjects`), never from a menu opening: names no type
+  offers (typos, in `exclude` too), off-list names in a column's allow-list (named with the column's
+  meta `type` and its list type - the scan reads column meta, not `getDataType()`, which walks every
+  cell), and unknown per-type keys. An excluded name some OTHER type offers is not reported, so one
+  grid-level `{ exclude }` can cover columns of every type. The scan also runs from `updatePlugin()`,
+  because `updateSettings({ filters })` reaches `updatePlugin()` from `BasePlugin`'s own
+  `afterUpdateSettings` listener and the disable inside it removes this plugin's listener for that
+  round. (5) The setting shapes the list, never the filter: a condition added through
+  `addCondition()` still filters, and `setState()` still names it in the caption (the caption reads
+  `value.name`, not the item list). `false` is rejected on purpose, so it stays free to mean "hide
+  the section" later. Coverage: `availableConditions.unit.ts` (the pure helpers),
+  `perColumnFilters.unit.js` (the read and the warnings), `tests/e2e/filters-available-conditions.spec.ts`
+  (the menu).
 - **The ignored-object warning is raised by scanning every column, never from a visibility check.**
   A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
   menu — or a column whose menu is never opened — is never warned, while the docs promise once per

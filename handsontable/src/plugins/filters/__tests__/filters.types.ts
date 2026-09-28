@@ -13,6 +13,9 @@ const perType: AvailableConditions = {
 // @ts-expect-error - `exclude` holds condition names, not one name.
 const badExclusion: AvailableConditionsRule = { exclude: 'not_between' };
 
+// @ts-expect-error - a per-type key must be a data type with its own list; `dropdown` uses `text`.
+const badDataType: AvailableConditions = { numeric: ['gt'], dropdown: ['eq'] };
+
 Handsontable(document.createElement('div'), {
   filters: {
     availableConditions: perType,

@@ -425,6 +425,11 @@ declare namespace Handsontable {
     export namespace Filters {
       export type ConditionId = import('./plugins/filters').ConditionId;
       export type OperationType = import('./plugins/filters').OperationType;
+      export type AvailableConditions = import('./plugins/filters').AvailableConditions;
+      export type AvailableConditionsRule = import('./plugins/filters').AvailableConditionsRule;
+      export type AvailableConditionsList = import('./plugins/filters').AvailableConditionsList;
+      export type AvailableConditionsExclusion = import('./plugins/filters').AvailableConditionsExclusion;
+      export type AvailableConditionsDataType = import('./plugins/filters').AvailableConditionsDataType;
     }
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;

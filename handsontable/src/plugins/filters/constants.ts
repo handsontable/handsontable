@@ -208,31 +208,29 @@ export const TYPES: Record<string, string[]> = {
 };
 
 /**
+ * Gets the data type whose condition list a column uses. A type with no list of its own uses `text`.
+ *
+ * @private
+ * @param {string} type The column's data type.
+ * @returns {string}
+ */
+export function getConditionListType(type: string): string {
+  return TYPES[type] ? type : TYPE_TEXT;
+}
+
+/**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).
  *
  * @private
  * @param {string} type The data type.
  * @param {*} [availableConditions] The `availableConditions` setting that applies to the column.
- * @param {Function} [onUnknownName] Called with each allow-listed condition name the data type does not offer, and
- *   the data type whose list was used.
  * @returns {object}
  */
-export default function getOptionsList(
-  type: string,
-  availableConditions?: unknown,
-  onUnknownName?: (name: string, listType: string) => void,
-): Record<string, unknown>[] {
+export default function getOptionsList(type: string, availableConditions?: unknown): Record<string, unknown>[] {
   const items: Record<string, unknown>[] = [];
-  let typeName = type;
-
-  if (!TYPES[typeName]) {
-    typeName = TYPE_TEXT;
-  }
-
+  const typeName = getConditionListType(type);
   const rule = resolveAvailableConditionsRule(availableConditions, typeName);
-  const names = rule ?
-    applyAvailableConditionsRule(TYPES[typeName], rule, name => onUnknownName?.(name, typeName)) :
-    TYPES[typeName];
+  const names = rule ? applyAvailableConditionsRule(TYPES[typeName], rule, SEPARATOR) : TYPES[typeName];
 
   arrayEach(names, (typeValue) => {
     let option: Record<string, unknown>;

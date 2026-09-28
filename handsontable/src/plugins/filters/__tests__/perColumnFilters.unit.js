@@ -1,11 +1,20 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, Filters } from 'handsontable/plugins';
-import { registerCellType, CheckboxCellType, NumericCellType, TextCellType } from 'handsontable/cellTypes';
+import {
+  registerCellType,
+  CheckboxCellType,
+  DropdownCellType,
+  NumericCellType,
+  TextCellType,
+} from 'handsontable/cellTypes';
+import { getConditionDescriptor } from 'handsontable/plugins/filters/conditionRegisterer';
+import { FILTERS_CONDITIONS_NONE } from 'handsontable/i18n/constants';
 import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 
 registerCellType(CheckboxCellType);
+registerCellType(DropdownCellType);
 registerCellType(NumericCellType);
 registerCellType(TextCellType);
 registerPlugin(AutoColumnSize);
@@ -363,12 +372,78 @@ describe('Filters -> per-column filters switch', () => {
       expect(warningsWith('"availableConditions" option is not valid').length).toBe(1);
     });
 
-    it('should leave out, and warn once about, a name the column type does not offer', () => {
+    it('should warn about a name the column type does not offer at init, without opening a menu', () => {
       buildTypedGrid(true, [{}, { filters: { availableConditions: ['gt', 'contains'] } }, {}]);
 
+      expect(warningsWith('"contains" condition is not available for "numeric" columns').length).toBe(1);
       expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
       expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
-      expect(warningsWith('"contains" condition is not available for the "numeric" data type').length).toBe(1);
+      expect(warningsWith('"contains" condition').length).toBe(1);
+    });
+
+    it('should name both the column type and the list it uses in that warning', () => {
+      buildGrid({
+        columns: [{ type: 'dropdown', source: ['Red', 'Green'], filters: { availableConditions: ['eq', 'gt'] } }],
+      });
+
+      expect(warningsWith('"gt" condition is not available for "dropdown" columns, which use the "text" list')
+        .length).toBe(1);
+    });
+
+    it('should use the grid-level rule for a column whose own value is undefined', () => {
+      // A wrapper column prop left unset arrives as an own `undefined`; it must not switch the
+      // column back to the stock list.
+      buildTypedGrid(
+        { availableConditions: { numeric: { exclude: ['not_between'] } } },
+        [{}, { filters: { availableConditions: undefined } }, {}],
+      );
+
+      expect(conditionKeysForColumn(1)).not.toContain('not_between');
+      expect(conditionKeysForColumn(1)).toContain('between');
+      expect(warningsWith('availableConditions')).toEqual([]);
+    });
+
+    it('should warn about a name no data type offers, in an exclusion too', () => {
+      buildTypedGrid({ availableConditions: { numeric: { exclude: ['not_betwen'] } } });
+
+      expect(warningsWith('names the "not_betwen" condition, which does not exist').length).toBe(1);
+      expect(conditionKeysForColumn(1)).toContain('not_between');
+    });
+
+    it('should keep the valid per-type entries next to a key no list exists for, and warn about the key', () => {
+      buildTypedGrid({ availableConditions: { numeric: { exclude: ['not_between'] }, dropdown: ['eq'] } });
+
+      expect(conditionKeysForColumn(1)).not.toContain('not_between');
+      expect(warningsWith('has a "dropdown" key, which no condition list exists for').length).toBe(1);
+      expect(warningsWith('"availableConditions" option is not valid')).toEqual([]);
+    });
+
+    it('should warn for an empty per-column filters object', () => {
+      buildTypedGrid(true, [{}, { filters: {} }, {}]);
+
+      expect(warningsWith('inside `columns`').length).toBe(1);
+    });
+
+    it('should scan again when the grid-level value arrives through updateSettings', () => {
+      buildTypedGrid();
+
+      expect(warningsWith('which does not exist')).toEqual([]);
+
+      hot.updateSettings({ filters: { availableConditions: ['eqq'] } });
+
+      expect(warningsWith('names the "eqq" condition, which does not exist').length).toBe(1);
+    });
+
+    it('should not rename the shared "none" condition when the menu resets with no selection', () => {
+      // `setItems()` translates the item names in place, so the component must pass a copy.
+      buildTypedGrid();
+
+      const component = hot.getPlugin('filters').components.get('filter_by_condition');
+
+      hot.deselectCell();
+      component.reset();
+
+      expect(getConditionDescriptor('none').name).toBe(FILTERS_CONDITIONS_NONE);
     });
 
     it('should keep filtering by a condition the list no longer offers', () => {

@@ -100,7 +100,13 @@ test.describe('filters.availableConditions', () => {
 
     await grid.openConditionSelect();
 
-    await expect.poll(() => grid.conditionOptions()).not.toContain('Is not between');
+    // An exact list, so an empty read taken before the menu renders cannot pass it.
+    await expect.poll(() => grid.conditionOptions()).toEqual([
+      'None', SEP,
+      'Is empty', 'Is not empty', SEP,
+      'Is equal to', 'Is not equal to', SEP,
+      'Greater than', 'Greater than or equal to', 'Less than', 'Less than or equal to', 'Is between',
+    ]);
     expect(grid.pageErrors).toEqual([]);
   });
 

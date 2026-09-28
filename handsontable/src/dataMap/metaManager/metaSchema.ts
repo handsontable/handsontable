@@ -3465,12 +3465,21 @@ export default (): Record<string, unknown> => {
      * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
      * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
      * own (for example `dropdown`) uses the `text` list. **None** always stays first. A name the
-     * column's data type does not offer is left out, with a console warning. The setting changes the
-     * lists only: a condition added through [`addCondition()`](@/api/filters.md#addcondition) still
-     * filters, and its select still shows it.
+     * column's data type does not offer is left out. The setting changes the lists only: a condition
+     * added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
+     * still shows it.
+     *
+     * When the grid is created, and when the setting changes, a console warning names each condition
+     * that no data type offers, each listed condition a column's data type does not offer, and each
+     * data type key without a list of its own. Such a key is ignored; the other entries still apply.
      *
      * A column's own `availableConditions` replaces the grid-level one for that column. The two are
-     * not merged.
+     * not merged. A column whose own value is `undefined` uses the grid-level value.
+     *
+     * Updating the `filters` option through [`updateSettings()`](@/api/core.md#updatesettings)
+     * clears the filters that are applied. A `filters` object that leaves out `availableConditions`
+     * keeps the previous value; pass `availableConditions: undefined` or `filters: true` to go back to
+     * the default lists.
      *
      * `availableConditions` changes what the condition lists contain, not which parts the menu
      * shows. The [`dropdownMenu`](#dropdownmenu) option decides that, so if its configuration leaves

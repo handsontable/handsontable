@@ -63,13 +63,38 @@ export function warnAboutInvalidColumnAvailableConditions(scope: object, pluginK
 }
 
 /**
- * Warn that an `availableConditions` allow-list names a condition the column's data type does
- * not offer, so the condition is left out of the list.
+ * Warn that an `availableConditions` allow-list names a condition the column's list does not offer,
+ * so the condition is left out of the list.
  */
-export function warnAboutUnavailableCondition(scope: object, conditionName: string, dataType: string) {
-  warnOnce(scope, `filters.availableConditions.${dataType}.${conditionName}`, toSingleLine`The\x20
-    "${conditionName}" condition is not available for the "${dataType}" data type, so the\x20
+export function warnAboutUnavailableCondition(
+  scope: object, conditionName: string, columnType: string, listType: string
+) {
+  const typeDescription = columnType === listType ?
+    `"${columnType}" columns` : `"${columnType}" columns, which use the "${listType}" list`;
+
+  warnOnce(scope, `filters.availableConditions.${columnType}.${conditionName}`, toSingleLine`The\x20
+    "${conditionName}" condition is not available for ${typeDescription}, so the\x20
     \`filters.availableConditions\` option leaves it out of the "Filter by condition" list.`);
+}
+
+/**
+ * Warn that an `availableConditions` setting names a condition that no data type offers.
+ */
+export function warnAboutUnknownCondition(scope: object, conditionName: string) {
+  warnOnce(scope, `filters.availableConditions.unknown.${conditionName}`, toSingleLine`The\x20
+    \`filters.availableConditions\` option names the "${conditionName}" condition, which does not\x20
+    exist, so it has no effect. Check the name against the ones \`addCondition()\` takes.`);
+}
+
+/**
+ * Warn that an `availableConditions` per-type map has a key that no condition list exists for.
+ */
+export function warnAboutUnknownConditionsDataType(scope: object, dataType: string, dataTypes: string[]) {
+  const keys = dataTypes.map(type => `"${type}"`).join(', ');
+
+  warnOnce(scope, `filters.availableConditions.dataType.${dataType}`, toSingleLine`The\x20
+    \`filters.availableConditions\` option has a "${dataType}" key, which no condition list exists for,\x20
+    so that entry is ignored. The keys are ${keys}. Any other column type uses the "text" list.`);
 }
 
 /**
