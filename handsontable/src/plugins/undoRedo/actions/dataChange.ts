@@ -2,6 +2,7 @@ import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
+import { colToPropOrIndex } from '../../../helpers/columnProp';
 import {
   collectMergedCellsDestroyedByChange,
   remergeCellsGeometryOnly,
@@ -124,7 +125,11 @@ export class DataChangeAction extends BaseAction {
         );
 
         clonedChanges.forEach((change: unknown[]) => {
-          change[1] = hot.propToCol(change[1] as string | number);
+          // A change can address a column that does not exist yet – `minSpareCols` and auto column
+          // growth both create it as the change is applied – and `propToCol()` answers `null` for
+          // that. Keeping the original address means the replay still targets the column that ends
+          // up holding the value, which is what it did before `null` became a possible answer.
+          change[1] = hot.propToCol(change[1] as string | number) ?? change[1];
         });
 
         const selected = effectiveLen > 1
@@ -212,7 +217,9 @@ export class DataChangeAction extends BaseAction {
       const visualRow = hot.toVisualRow(physicalRow) as number | null;
 
       if (visualRow === null) {
-        sourceChanges.push([physicalRow, hot.colToProp(visualColumn), value]);
+        // A recorded column that no longer exists keeps its index as the address, as the grid-side
+        // replay does.
+        sourceChanges.push([physicalRow, colToPropOrIndex(hot, visualColumn), value]);
 
         return;
       }

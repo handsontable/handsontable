@@ -21,6 +21,7 @@ import { isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -181,6 +182,17 @@ class DataMap {
   }
 
   /**
+   * Checks whether a `null` property names no column. `null` is a real property only for a column
+   * declared `{ data: null }`, which reads and writes through a `"null"` key as it always has.
+   *
+   * @param {*} prop The column property.
+   * @returns {boolean}
+   */
+  #namesNoColumn(prop: unknown): boolean {
+    return prop === null && !this.propToColCache!.has(null as unknown as string);
+  }
+
+  /**
    * Builds the column property cache from the `columns` setting.
    *
    * @param {Function|Array} columns The columns setting value.
@@ -267,17 +279,16 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * The declared return type is the `string|number` shape `Core#colToProp` has always exposed, so
-   * widening it does not leak into consumer code. A `columns[].data` accessor function is handed
-   * back as-is at runtime – code that has to handle it reads the result through `unknown` and
-   * `isDataAccessorFn()`.
+   * A `columns[].data` accessor function is handed back as-is at runtime – code that has to handle
+   * it reads the result through `unknown` and `isDataAccessorFn()`.
    *
    * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number} Column property, physical column index, or the passed argument.
+   * @returns {string|number|null} Column property, physical column index, `null` when the index
+   *   names no column that exists and is visible, or the passed argument when it is not an integer.
    */
-  colToProp(column: number): string | number;
+  colToProp(column: number): string | number | null;
   /* eslint-disable jsdoc/require-jsdoc -- the implementation shares the JSDoc of the overload above */
-  colToProp(column: number): string | number | DataAccessorFn {
+  colToProp(column: number): string | number | DataAccessorFn | null {
     // TODO: Should it work? Please, look at the test:
     // "it should return the provided property name, when the user passes a property name as a column number".
     if (Number.isInteger(column) === false) {
@@ -286,9 +297,12 @@ class DataMap {
 
     const physicalColumn = this.hot!.toPhysicalColumn(column);
 
-    // Out of range, not visible column index.
+    // The index identifies no column that currently exists, so there is no property to name.
+    // `null` matches `toPhysicalColumn` / `toVisualColumn`, which the caller has to test for
+    // anyway. Returning the argument instead made an unknown index indistinguishable from a
+    // physical one (#7031).
     if (physicalColumn === null) {
-      return column;
+      return null;
     }
 
     // Cached property.
@@ -303,27 +317,36 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {string|number|Function} prop Column property, a physical column index, or a
-   *   `columns[].data` accessor function.
-   * @returns {string|number|Function} Visual column index or the passed argument.
+   * @param {string|number|Function|null} prop Column property, a physical column index, a
+   *   `columns[].data` accessor function, or `null`.
+   * @returns {string|number|Function|null} Visual column index, `null` when the argument names no
+   *   visible column, or the passed argument when it is a property this data set does not use.
    */
-  propToCol(prop: string | number | DataAccessorFn) {
-    const cachedPhysicalIndex = this.propToColCache!.get(prop);
+  propToCol(prop: string | number | DataAccessorFn | null) {
+    // The cache is consulted before `null` is rejected: a column declared `{ data: null }` stores
+    // `null` as its property, so the lookup resolves it to a real column.
+    const cachedPhysicalIndex = this.propToColCache!.get(prop as string | number | DataAccessorFn);
 
     if (cachedPhysicalIndex !== undefined) {
       return this.hot!.toVisualColumn(cachedPhysicalIndex);
     }
 
-    // Property may be a physical column index.
+    // No column uses `null` as its property, so it means "no column" — most often it arrived from
+    // a `colToProp()` that could not resolve one.
+    if (prop === null) {
+      return null;
+    }
+
+    // A property that names no column is handed back unchanged. Only a numeric argument is
+    // treated as an index and resolved below.
     if (typeof prop !== 'number') {
       return prop;
     }
 
-    const visualColumn = this.hot!.toVisualColumn(prop);
-
-    // Fall back to the physical index when toVisualColumn returns null
-    // (e.g. column is trimmed/hidden and has no visual equivalent).
-    return visualColumn !== null ? visualColumn : prop;
+    // Property may be a physical column index. `null` when it identifies no visible column —
+    // either past the last one or trimmed. It used to fall back to the passed index, which
+    // named a different column whenever the two coordinate spaces had diverged (#7031).
+    return this.hot!.toVisualColumn(prop);
   }
 
   /**
@@ -1031,10 +1054,11 @@ class DataMap {
    * Returns single value from the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
    * @returns {*}
    */
-  get(row: number, prop: string | number | DataAccessorFn) {
+  get(row: number, prop: string | number | DataAccessorFn | null) {
     const physicalRow = this.hot!.toPhysicalRow(row);
 
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -1048,8 +1072,9 @@ class DataMap {
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
-    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      value = dataRow[prop];
+    if (dataRow && !this.#namesNoColumn(prop) && typeof prop !== 'function' &&
+        hasOwnProperty(dataRow, prop as string | number)) {
+      value = dataRow[prop as string | number];
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -1208,8 +1233,10 @@ class DataMap {
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @returns {*}
    */
-  getCopyable(row: number, prop: string | number | DataAccessorFn) {
-    const colIndex = this.propToCol(prop);
+  getCopyable(row: number, prop: string | number | DataAccessorFn | null) {
+    // Falls back to the prop so an out-of-range index still reaches the meta lookup, keeping the
+    // copyable getters reading back what they did before `propToCol()` began answering `null`.
+    const colIndex = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - the copy path
@@ -1225,10 +1252,16 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
    * @param {string} value The value to set.
    */
-  set(row: number, prop: string | number | DataAccessorFn, value: unknown) {
+  set(row: number, prop: string | number | DataAccessorFn | null, value: unknown) {
+    // No column, nothing to write. Falling through would add a literal `"null"` key to the row.
+    if (this.#namesNoColumn(prop)) {
+      return;
+    }
+
     const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -1251,8 +1284,8 @@ class DataMap {
     const { dataDotNotation } = this.hot!.getSettings();
 
     // try to set value under property `prop` (includes dot)
-    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      dataRow[prop] = newValue;
+    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop as string | number)) {
+      dataRow[prop as string | number] = newValue;
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -1288,7 +1321,8 @@ class DataMap {
         return;
       }
 
-      dataRow[prop] = newValue;
+      // An unbound column (`{ data: null }`) stores its value under a `"null"` key.
+      dataRow[prop as string | number] = newValue;
     }
   }
 
@@ -1443,7 +1477,8 @@ class DataMap {
         if (physicalRow === null) {
           break;
         }
-        row.push(getFn.call(this, r, this.colToProp(c)));
+        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
       }
       if (physicalRow !== null) {
         output.push(row);

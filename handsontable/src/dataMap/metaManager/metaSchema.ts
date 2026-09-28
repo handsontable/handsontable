@@ -4259,7 +4259,10 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
-      const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+      // A column index that names no column has no schema entry to compare against. Every value
+      // read from it is empty anyway, so the comparisons below are never reached in that case.
+      const schemaDefault = prop === null ?
+        undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
@@ -4323,7 +4326,9 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
-          const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+          // See `isEmptyCol()` — a column index that names no column has no schema entry.
+          const schemaDefault = prop === null ?
+            undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {

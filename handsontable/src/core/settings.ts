@@ -756,7 +756,7 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

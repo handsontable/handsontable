@@ -5,6 +5,7 @@ import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /**
  * Structure returned by createTable().
@@ -643,7 +644,11 @@ class GhostTable {
       td,
       row,
       column,
-      this.hot!.colToProp(column),
+      // Resolved so a renderer keeps receiving what it did before `colToProp()` began answering
+      // `null` for a column it cannot resolve. An unbound column (`{ data: null }`) has always
+      // reached renderers as `null`; `BaseRenderer` declares `string | number`, so the cast keeps
+      // that long-standing mismatch here instead of widening the renderer contract in this PR.
+      colToPropOrIndex(this.hot!, column) as string | number,
       value,
       cellProperties,
     ];
