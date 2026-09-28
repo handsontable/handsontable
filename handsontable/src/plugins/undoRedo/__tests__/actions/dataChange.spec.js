@@ -32,6 +32,9 @@ describe('UndoRedo -> DataChange action', () => {
       // The physical row of each entry in `changes`. This is what the replay addresses, so that a
       // filter or a trim applied between the edit and the undo cannot send it to another row.
       physicalRows: [1],
+      // The prop each entry wrote, read before `changes` has its props turned into columns. The
+      // replay writes by it when the grid can no longer address the column (#5409).
+      props: [2],
       selected: [[1, 2]],
       countCols: 5,
       countRows: 5,

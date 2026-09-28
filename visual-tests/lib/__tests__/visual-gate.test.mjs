@@ -185,6 +185,23 @@ test('a missing report URL degrades to the artifact instructions', () => {
   assert.match(v.comment, /visual-diff-report/);
 });
 
+test('the artifact is described as the differences, never as a copy of the whole report', () => {
+  // The core artifact holds the report and the images of each changed, new, or deleted item
+  // (`lib/visual-diff-report.mjs`), not the passing screenshots, so "the same thing" would promise a
+  // reviewer images it does not carry. The docs artifact holds its failed comparisons the same way.
+  const v = evaluate({
+    report: report({ changed: 2 }), reportUrl: 'https://example.test/index.html', runUrl: 'https://r/1',
+  });
+
+  assert.doesNotMatch(v.comment, /holds the same thing/);
+  assert.ok(v.comment.includes('the `visual-diff-report` artifact on the [workflow run](https://r/1) holds the '
+    + 'report and the images of every difference.'));
+
+  const fork = evaluate({ report: report({ changed: 2 }), seeded: false });
+
+  assert.match(fork.comment, /the `visual-diff-report` artifact holds the images of every\n> difference\./);
+});
+
 // The docs suite (DEV-2860) runs this same evaluator over a manifest built from Playwright's report,
 // and only three names differ. Pinned because the alternative is a second copy of every branch above,
 // and because a docs comment naming the CORE environment would send a reviewer to an approval that

@@ -285,14 +285,18 @@ function toVisualIndexes(indexes: number[], toVisual: (index: number) => number 
 
 /**
  * Restores the trimmed row set, clearing whatever the previously active sheet left behind.
+ * Rows past the end of the data are dropped first — the data may have shrunk while the sheet
+ * was away, and `trimRows()` rejects the whole list when a single index is out of range.
  */
 function restoreTrimmedState(hot: HotInstance, state: ViewState) {
   const trimRowsPlugin = getEnabledPlugin(hot, 'trimRows') as
     { untrimAll: () => void, trimRows: (rows: number[]) => void } | undefined;
 
   if (trimRowsPlugin) {
+    const sourceRows = hot.countSourceRows();
+
     trimRowsPlugin.untrimAll();
-    trimRowsPlugin.trimRows(state.trimmedRows);
+    trimRowsPlugin.trimRows(state.trimmedRows.filter(row => row < sourceRows));
   }
 }
 

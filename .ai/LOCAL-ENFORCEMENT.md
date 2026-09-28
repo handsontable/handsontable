@@ -299,10 +299,70 @@ Machine-enforced by the presence gate; full decision rules in
 - **User-visible** (render, interaction, keyboard, menus, overlays) → **Playwright E2E**, `tests/e2e/**/*.spec.ts`.
 - **Only pixels can prove it** (theme tokens, geometry, compositing) → a **visual spec**, `visual-tests/tests/**/*.spec.ts`, **in addition to, never instead of** the Playwright E2E. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage (`presence-gate.mjs`), so this line is policy the reviewer checks, not a gate — rule: `visual-tests/AGENTS.md` → Decision rule.
 - **Logic / invisible** (data, indexing, algorithms, internal state) → **Jest unit**, `*.unit.js` in a `__tests__/` dir next to the source.
-- **Public API / type surface** → a **type test**, `*.types.ts`.
+- **Public API / type surface** (an exported type, a `GridSettings` option, a wrapper prop or input) → a **type test**, `*.types.ts`, in the package whose types changed. Core and Vue have the harness (`test:types`); React and Angular do not yet, so a type change there is declared (next bullets) until they do. A React behavior test cannot stand in: React's Jest runs `.tsx` through `babel-jest`, which strips types unchecked.
 - **Framework consumption** (wrapper / npm) → an integration demo (matrix; being built).
-- **Pure refactor / non-runtime** (types, docs, config, i18n text, re-exports) → **no test**; declare `Refactor-only: <reason>` as a commit trailer.
+- **Pure refactor / internal non-runtime** (types no consumer imports, config, internal re-exports) → **no test**; declare `Refactor-only: <reason>` as a trailer on the commit that makes the refactor. A comment-only edit and a translation dictionary need no declaration (below).
 - New Jasmine `*.spec.js` is **blocked** — new E2E is Playwright; migrate broken Jasmine specs rather than patch them.
+
+**What the presence gate accepts as "a matching test"** (`.github/scripts/lib/presence-gate.mjs`, DEV-3066):
+
+- **A test in the changed package.** A core source change (`handsontable/src/**`) needs a unit or type test under
+  `handsontable/`, a case in an existing Jasmine spec, or a Playwright spec under `tests/`. A wrapper's source
+  needs a test in that wrapper. A visual spec counts for any package (the visual-only-coverage advisory flags it).
+  A test in another package, `docs/tests/`, `evals/`, `examples/`, or `performance-tests/` covers nothing.
+- **Not a deleted test.** Removing a test is never coverage.
+- **A trailer covers its own commit only.** A source file with no test passes when every commit that changed it
+  carries `Refactor-only: <reason>`, or was written by `git revert` (`This reverts commit <sha>.`). One trailer
+  no longer waives a whole branch, so put it on the refactor commit, not on a later one. The waiver follows the
+  file: edits made before a rename still count, and a merge commit's own edits (a conflict resolution) never
+  waive.
+- **A pushed commit is waived from the PR description.** A pushed commit cannot take a trailer without a
+  force-push, which a PR branch must not do, so write `[refactor-only: <reason>]` in the PR description (outside
+  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. Locally,
+  pre-push asks `gh` for the description when the verdict would fail.
+- **A waiver says what the change is.** Its reason needs at least three words, in a trailer or in the
+  description – `TBD`, `x`, and the placeholder itself (`<reason>`, or an elided `…`) declare nothing. In the
+  description it has to be plain text: a waiver GitHub shows as code (a fenced or indented block, backticks, a
+  `<code>` or `<pre>` element) or hides in an HTML comment is a quotation, so pasting the instruction, an
+  example, or the red verdict leaves the job red. Where Markdown is ambiguous the gate reads it the stricter
+  way: a `<!--` before the waiver, even one inside code, hides it.
+- **A comment-only change needs no test.** When a `.ts` or `.js` source file's diff changes nothing but comments
+  and whitespace (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments
+  from both versions with a lexer that knows strings, templates, and regex literals, and compares them; a
+  trailing comment on a code line or a reindent still counts as code, and so does any `.tsx` change (JSX text
+  can look like a comment). The lexer never guesses whether a `/` starts a regex or divides: where the syntax
+  does not settle it (a line break included, because ASI can end the statement), it follows both readings and
+  needs them to agree on every line, or it treats the file as code. Only an in-place edit qualifies: a rename,
+  a copy, or a move into source is code, and so is an edit to a theme file the theme build rewrites as text
+  (`TEXT_REWRITTEN_SOURCE`, pinned against that build's loader rules). A comment a tool acts on is code too:
+  a `#__PURE__` annotation (the minifier drops the call), a `/// <reference>` or `@ts-` directive, a bundler or
+  source-map comment, or a coverage hint.
+- **Translation dictionaries need no test.** `handsontable/src/i18n/languages/` is pure data: a test there could
+  only restate the strings. The path list stays short on purpose – a path joins it only when no test could fail
+  on it. Every other non-runtime change still needs a type test (public types) or a declaration (internal types,
+  config, re-exports). The gate checks the package, not the kind of test, so the reviewer holds that line.
+
+**In CI the gate blocks** (`GATE_MODE: block` on `Checks / test presence`): a red verdict fails the Checks
+module, which stops the pipeline like the changelog gate. A tooling gap – an unreadable base ref, or no
+merge-base – is a skip with a warning, never a block; any other git failure fails the run. CI hands the gate the
+base branch's live tip (`origin/<base.ref>`), never the payload's `base.sha` – the blocking-gate rule in
+[`.ai/CI.md`](CI.md).
+
+Measured on 2026-09-28. **Develop's history** (600 first-parent commits, 310 of them with source that needs a
+test): the rules block 3 for missing coverage – two React prop-type changes with no React-side test and a theme
+cleanup with no trailer. All 3 are real misses. The React two change public types, which need a type test in
+their package, or, while React has no harness, a declaration. The old rules failed 26 there, 24 of them
+JSDoc-only docs PRs that now pass as `comments-only`. Over the last 300 commits the rules block none.
+
+Develop is squash-merged, so its commits cannot exercise the per-commit rule; **the last 600 merged PRs**
+(#12617–#13650) do. Each one's branch survives as `refs/pull/<n>/head`, so the replay runs the gate on the real
+commits (2,924; 438 PRs have more than one) against the squash commit's parent. The per-commit verdict matches
+the squash-commit verdict in all 600. That includes the 9 PRs that rely on a trailer (one has 33 commits): all 9
+pass per commit. The 12 blocks are the same 3 misses plus 9 PRs that added a Jasmine spec before the freeze
+landed (2026-07-22). **The 21 open PRs** (175 commits, 20 merges) all pass.
+
+Squash merging costs the gate nothing: it judges the PR branch, and the squash commit's body concatenates the
+commit messages, so every trailer reaches develop. A PR-description waiver does not – the PR is its record.
 
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.

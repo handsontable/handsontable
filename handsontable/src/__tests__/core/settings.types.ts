@@ -1071,3 +1071,14 @@ hot.updateSettings({
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabAdd: (sheetId, name, source) => {},
 });
+
+// DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,
+// so the declared parameter must admit it. The directive below turns into an "unused" error if the
+// parameter is ever narrowed back to `number`.
+const _modifyDataColumnIsNullable: Handsontable.GridSettings = {
+  modifyData(row, column) {
+    // @ts-expect-error `column` can be `null`, which does not fit a plain `number`.
+    const _plainNumberColumn: number = column;
+    const _nullableColumn: number | null = column;
+  },
+};

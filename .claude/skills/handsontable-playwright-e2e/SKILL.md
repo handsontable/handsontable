@@ -81,7 +81,8 @@ what it cost: `tests/AGENTS.md`.
 
 - **User-visible** (rendering, interaction, keyboard, menus, overlays) → **E2E here**.
 - **Invisible to users** (data, indexing, algorithms) → **Jest `*.unit.js`** — still mandatory.
-- **Pure refactor / non-runtime** → no new test; declare `Refactor-only: <reason>` in the commit.
+- **Public type surface** → a `*.types.ts` type test in the package whose types changed.
+- **Pure refactor / internal non-runtime** → no new test; declare `Refactor-only: <reason>` in the commit.
 - **New API / plugin / editor** → new spec. **Bug fix** → a failing case in the closest existing spec.
 - **Broken or flaky legacy Jasmine → migrate to Playwright**, don't patch it.
 

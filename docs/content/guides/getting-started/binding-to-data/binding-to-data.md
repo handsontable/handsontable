@@ -466,7 +466,7 @@ afterChange(changes, source) {
   changes.forEach(([row, prop, oldValue, newValue]) => {
     const column = this.propToCol(prop);
 
-    // column is the visual column index
+    // `column` is the visual column index, or `null` if the property names no column.
   });
 }
 ```

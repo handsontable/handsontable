@@ -242,6 +242,16 @@ They are written in different places and can drift. Keep this in mind:
   is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
   it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
   visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
+- **The same hand-built inserts bypass the `minRows`/`minSpareRows` filler count, so a lowered minimum can
+  take the wrong empty row.** `DataMap` counts the trailing rows those options appended
+  (`#trailingFillerRows`, the DEV-2206 bullet in `handsontable/AGENTS.md`) and keeps that count in step only
+  through `createRow`/`removeRow`. A top-level append through `addChildAtIndex()` reaches neither, so the
+  source grows while the count stays put, and the window of "filler" rows slides onto the new row. Lowering
+  the option afterwards still removes the right NUMBER of rows and never a row holding data — the removal only
+  takes empty rows — but it can take the user's new empty row, with its cell meta, and keep a filler.
+  Measured: `minSpareRows: 2`, `addSibling()` below the last row, a meta marker set on the new row, then
+  `updateSettings({ minSpareRows: 0 })` — 4 rows, as expected, and the marker gone. A known limit, deliberately
+  left open: keeping the count in step would mean these inserts calling into `DataMap` internals.
 - **Removing a parent must reach every depth, and a two-level fixture cannot tell you whether it
   does.** `#onBeforeRemoveRow()` rewrites the core's list of rows to remove, and the data side and the
   index side of that removal are driven by different things: `DataManager#filterData()` splices the
