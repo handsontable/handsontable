@@ -391,7 +391,9 @@ class Endpoints {
     logicRows: number[] | null | undefined, source: string, forceRefresh = true
   ) {
     // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
-    if (source === 'auto') {
+    // An automatic removal still does: a lowered minimum size gives its rows back that way, and the endpoints
+    // must follow it like any other removal.
+    if (source === 'auto' && action.indexOf('insert') === 0) {
       return;
     }
 
