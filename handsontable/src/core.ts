@@ -5145,7 +5145,8 @@ export default function Core(
    * @memberof Core#
    * @function getDataAtProp
    * @param {string|number} prop Property name or physical column index.
-   * @returns {Array} Array of cell values.
+   * @returns {Array} Array of cell values. An empty array when `prop` names no column – an index past
+   *   the last column, a negative index, or a property name your data set does not use.
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop: string | number) {

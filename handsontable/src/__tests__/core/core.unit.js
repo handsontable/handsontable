@@ -380,6 +380,43 @@ describe('Core', () => {
 
     core.destroy();
   });
+
+  describe('getDataAtProp', () => {
+    it('should return the values of the column the property names', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(1)).toEqual(['b', 'e']);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for an index past the last column', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(99)).toEqual([]);
+      expect(core.getDataAtProp(-1)).toEqual([]);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for a property name the data set does not use', () => {
+      const core = new Core(container, { data: [{ id: 1, name: 'x' }, { id: 2, name: 'y' }] });
+
+      core.init();
+
+      // The name is handed back unchanged rather than resolved to `null`, so it never reaches the
+      // "no column" early return.
+      expect(core.propToCol('missing')).toBe('missing');
+      expect(core.getDataAtProp('missing')).toEqual([]);
+      expect(core.getDataAtProp('name')).toEqual(['x', 'y']);
+
+      core.destroy();
+    });
+  });
 });
 
 describe('Core.setDataAtCell past the last column', () => {

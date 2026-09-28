@@ -59,7 +59,8 @@ export function normalizeSortToQueryFormat(
  * Converts query-format sort `{ prop, order }` to ColumnSorting plugin format `{ column, sortOrder }`.
  *
  * @param {{ prop: string, order: 'asc'|'desc' }|null} sort Query-format sort.
- * @param {function(string): number} propToCol Maps column data key to visual column index.
+ * @param {function(string): (number|null)} propToCol Maps column data key to visual column index, or
+ *   to `null` when the key names no column.
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
 export function querySortToPluginSort(
