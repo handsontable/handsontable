@@ -52,6 +52,30 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'A3');
   });
 
+  test('the sort indicator comes back with its sheet when beforeColumnSort cancels the restore', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    });
+
+    await bar.clickTab(1);
+    await expect(bar.sortLabel(0)).not.toHaveClass(/\bdescending\b/);
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.addHook('beforeColumnSort', () => false);
+    });
+
+    await bar.clickTab(0);
+
+    await bar.expectCell(0, 0, 'A3');
+    await expect(bar.sortLabel(0)).toHaveClass(/\bdescending\b/);
+  });
+
   test('Ctrl+Z after a sheet round-trip does not undo the restored sort', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

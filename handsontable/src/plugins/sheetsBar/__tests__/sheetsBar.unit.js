@@ -2224,6 +2224,258 @@ describe('SheetsBar plugin', () => {
     expect(filters.exportConditions()).toEqual([]);
   });
 
+  it('keeps the arriving sheet\'s own filter conditions when beforeFilter cancels the restore', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    vetoFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(filters.exportConditions()).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(hot.countRows()).toBe(4);
+  });
+
+  it('falls back to the arriving sheet\'s conditions when a later filter pass is canceled', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    vetoFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+
+    expect(filters.exportConditions()).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('keeps the arriving sheet\'s sort config when beforeColumnSort cancels the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a'], ['c'], ['b']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    columnSorting.sort({ column: 0, sortOrder: 'desc' });
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+  });
+
+  it('keeps the sort config a canceling beforeColumnSort listener set during the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort(currentSortConfig, destinationSortConfigs) {
+        if (!vetoSort) {
+          return undefined;
+        }
+
+        if (destinationSortConfigs.length > 0) {
+          this.getPlugin('columnSorting').setSortConfig({ column: 0, sortOrder: 'desc' });
+        }
+
+        return false;
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+  });
+
+  it('sorts without throwing after a canceled restore on a grid whose sorting was re-enabled', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    hot.updateSettings({ columnSorting: false });
+    hot.updateSettings({ columnSorting: true });
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+    vetoSort = false;
+
+    expect(() => columnSorting.sort({ column: 0, sortOrder: 'desc' })).not.toThrow();
+    expect(hot.getDataAtCol(0)).toEqual([3, 2, 1]);
+  });
+
+  it('keeps an unfiltered arriving sheet unfiltered when a later filter pass on it is canceled', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    vetoFilter = true;
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+
+    expect(filters.exportConditions()).toEqual([]);
+  });
+
+  it('undoes the first filter on an unfiltered arriving sheet back to no filter', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+    hot.getPlugin('undoRedo').undo();
+
+    expect(filters.exportConditions()).toEqual([]);
+    expect(hot.countRows()).toBe(4);
+  });
+
+  it('passes the departing sheet\'s conditions to beforeFilter as the previous stack on a restore', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+    const beforeFilter = jest.fn();
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    hot.addHook('beforeFilter', beforeFilter);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeFilter).toHaveBeenCalledTimes(1);
+    expect(beforeFilter.mock.calls[0][0]).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(beforeFilter.mock.calls[0][1]).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'lt', args: [2] }] },
+    ]);
+  });
+
   it('renames the engine sheet with the tab and rewrites the references to it', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 

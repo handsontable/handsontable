@@ -96,6 +96,11 @@
       manualColumnResize: true,
       columnSorting: true,
       undo: true,
+      afterGetColHeader(col, TH) {
+        if (col >= 0) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        }
+      },
       layoutDirection: htParams.get('rtl') ? 'rtl' : 'ltr',
       licenseKey: 'non-commercial-and-evaluation',
     });

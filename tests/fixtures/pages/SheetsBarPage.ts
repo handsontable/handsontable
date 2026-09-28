@@ -56,6 +56,13 @@ export class SheetsBarPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
+  /**
+   * The sorting label inside a column header, scoped to the top overlay so the match is unambiguous.
+   */
+  sortLabel(col: number): Locator {
+    return this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`).locator('span.colHeader');
+  }
+
   async clickTab(index: number): Promise<void> {
     await this.tab(index).locator('.ht-sheets-bar__tab-label').click();
   }
