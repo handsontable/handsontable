@@ -133,10 +133,11 @@
       })[params.get('license')] ?? 'non-commercial-and-evaluation';
 
       // `?colHeader=markup` and `?colHeader=prose` put content into a HEADER, which is the one
-      // surface that still reaches `innerHTML` through `fastInnerHTML`. `prose` carries no markup
-      // at all - `HTML_CHARACTERS` matches any `&` with a later `;`, so an ampersand and a
-      // semicolon in the same string are enough. Cell data is deliberately not parameterized:
-      // `textRenderer` writes through `fastInnerText`, so it never reaches the sink.
+      // surface that still reaches `innerHTML` through `fastInnerHTML`. `markup` is the only one
+      // that gets there: `HTML_CHARACTERS` matches a markup shape, so `prose` - an ampersand and a
+      // semicolon in ordinary text - takes the `textContent` path instead. Cell data is
+      // deliberately not parameterized: `textRenderer` writes through `fastInnerText`, so it never
+      // reaches the sink.
       const headerContent = ({
         markup: '<b>ID</b>',
         prose: 'Smith & Sons, Ltd.; est. 1920',
@@ -220,8 +221,9 @@
 
       document.querySelector('[data-testid="open-context-menu"]').addEventListener('click', async() => {
         try {
-          // A read-only selection makes the `readOnly` item render its checkmark through
-          // `markLabelAsSelected`, which is the surface that still builds markup as a string.
+          // A read-only selection makes the `readOnly` item render its check mark. The mark used
+          // to be a `<span>` baked into the item's label, which put the grid's own markup through
+          // `fastInnerHTML`; the renderer now builds it with `createElement` (DEV-2650).
           window.hot.updateSettings({
             contextMenu: ['make_read_only'],
             cells: () => ({ readOnly: true }),

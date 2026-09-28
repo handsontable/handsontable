@@ -17,7 +17,7 @@ import type { GeometryReader } from './domMeasure/geometryReader';
 
 export interface DomBindings {
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
@@ -34,7 +34,7 @@ export interface WalkontableInstance {
   drawn: boolean;
   domBindings: DomBindings;
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   eventManager: EventManager;
   activeOverlayName: string;
   wtEvent: WalkontableEvent | Record<string, unknown>;
@@ -72,6 +72,10 @@ export type OverlayType = 'inline_start' | 'top' | 'top_inline_start_corner' | '
 export interface StylesHandler {
   getCSSVariableValue(variableName: string): string | number;
   getDefaultRowHeight(visualRowIndex?: number): number;
+  // Optional: `stylesHandler` is a user-supplied setting (it defaults to `null`), and a standalone
+  // Walkontable host — the engine's own test harness included — may implement only part of the
+  // class Handsontable passes in. Every caller must handle its absence.
+  getStyleForTD?(cssProperty: string): number | string | undefined;
   areCellsBorderBox(): boolean;
   [key: string]: unknown;
 }

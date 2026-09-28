@@ -140,9 +140,11 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
+   * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`:
+   * `'col_left'`, `'col_right'`, `'---------'`, `'remove_col'`, `'---------'`, `'clear_column'`,
+   * `'---------'`, `'make_read_only'`, `'---------'`, `'alignment'`.
    *
-   * @returns {Array}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [
@@ -273,7 +275,7 @@ export class DropdownMenu extends BasePlugin {
       return;
     }
 
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS, PLUGIN_KEY);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -536,7 +538,9 @@ export class DropdownMenu extends BasePlugin {
     offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 },
     anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
-    if (this.menu?.isOpened()) {
+    // `isClosed()`, not `isOpened()`: a menu still being built is not open yet, and a nested `open()`
+    // from one of its item callbacks must not announce and position a second one (DEV-41).
+    if (this.menu && !this.menu.isClosed()) {
       return;
     }
 
@@ -598,9 +602,12 @@ export class DropdownMenu extends BasePlugin {
     // Only an unknown one: rebuilding on every call would fire both item hooks per command, which
     // a listener would see as noise. And never while the menu is open — it was just built, and a
     // rebuild would swap the items out from under the click that is running this command.
-    const [primaryCommandName] = commandName.split(':');
-
-    if (!this.commandExecutor.commands[primaryCommandName] && !this.menu?.isOpened()) {
+    // A command can also be registered under a key that itself contains a colon, so both names
+    // count as known here. `hasCommand()` is the boolean form of the resolution rule `execute()`
+    // applies, and asking it keeps the two from drifting apart. Testing only the primary name
+    // would rebuild the list on every colon-keyed command, which is exactly the per-call hook
+    // noise this check exists to avoid.
+    if (!this.commandExecutor.hasCommand(commandName) && (!this.menu || this.menu.isClosed())) {
       this.prepareMenuItems();
     }
 

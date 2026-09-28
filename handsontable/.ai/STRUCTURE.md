@@ -289,6 +289,10 @@ handsontable/src/
     ├── stylesHandler.ts         # Runtime CSS style handler
     ├── valueAccessors.ts        # Value getter/setter utilities
     ├── a11yAnnouncer.ts         # Accessibility announcer
+    ├── manualResize/            # Drag gesture shared by the two manual resize plugins
+    │   ├── resizeGesture.ts     # ResizeGesture: handle, guide, drag state, resize hooks
+    │   ├── axis.ts              # ROW_RESIZE_AXIS / COLUMN_RESIZE_AXIS descriptors
+    │   └── utils.ts             # Size-option rules and pointer math
     └── dataStructures/          # Data structure utilities
         └── uniqueMap.ts         # UniqueMap implementation
 ```
@@ -300,6 +304,11 @@ handsontable/src/
 - Contains: Each plugin in its own directory with `index.ts` barrel export
 - Key files: `base/base.ts` (BasePlugin), `registry.ts` (plugin registry)
 - Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
+- Convention: Each plugin directory also has an `AGENTS.md` (with `CLAUDE.md` symlinked to it) carrying that
+  plugin's own knowledge - read it before changing the plugin. `base/AGENTS.md` documents the plugin contract
+  itself, including the full `PLUGIN_PRIORITY` table. The drag gesture and helpers the two resize plugins
+  share are not a plugin, so they live outside this directory, in `src/utils/manualResize/` - see its own
+  `AGENTS.md`.
 
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite
@@ -360,8 +369,8 @@ handsontable/src/
 
 **Directories:**
 - Plugin directories: `camelCase` (e.g., `autoColumnSize/`, `manualRowMove/`)
-- Feature modules: `camelCase` (e.g., `dataMap/`, `focusManager/`, `shortcutContexts/`)
-- Walkontable subdirectories: `camelCase` (e.g., `calculator/`, `renderer/`, `overlay/`)
+- Feature modules: `camelCase` (e.g., `dataMap/`, `focusManager/`, `cellTypes/`)
+- Walkontable subdirectories: `camelCase` (e.g., `axisSizing/`, `domMeasure/`, `overlay/`)
 
 **Exports:**
 - Plugin barrel files export: `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }`
@@ -375,8 +384,9 @@ handsontable/src/
 - Implementation: `handsontable/src/plugins/myPlugin/myPlugin.ts`
 - Barrel export: `handsontable/src/plugins/myPlugin/index.ts` (export `PLUGIN_KEY`, `PLUGIN_PRIORITY`, class)
 - Register in: `handsontable/src/plugins/index.ts` (add to `registerAllPlugins()`)
-- E2E tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.spec.js`
+- E2E tests: new E2E is Playwright in `tests/e2e/` (the Jasmine `*.spec.js` suite is frozen)
 - Unit tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.unit.js`
+- Knowledge file: `handsontable/src/plugins/myPlugin/AGENTS.md`, plus `ln -s AGENTS.md CLAUDE.md`
 - Types: auto-generated in `handsontable/tmp/` via `npm run build:types`
 
 **New Editor:**

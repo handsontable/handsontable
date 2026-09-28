@@ -9,20 +9,94 @@ describe('SamplesGenerator', () => {
     }).toThrowWithCause('Unsupported sample type', { handsontable: true });
   });
 
-  it('should be possible to set samples count', () => {
-    const sg = new SamplesGenerator();
+  describe('resolveSampleCount', () => {
+    it('should accept a whole number above zero', () => {
+      expect(SamplesGenerator.resolveSampleCount(6)).toBe(6);
+    });
 
-    sg.setSampleCount(10);
+    it('should accept a numeric string, so it compares equal to the same number', () => {
+      // Stored raw, the string '6' compared as different from the number 6, and re-sending the
+      // same intent as a numeric literal reported a change.
+      expect(SamplesGenerator.resolveSampleCount('6')).toBe(6);
+    });
 
-    expect(sg.getSampleCount()).toBe(10);
+    it('should floor a fractional value', () => {
+      expect(SamplesGenerator.resolveSampleCount(2.5)).toBe(2);
+    });
+
+    it('should resolve values that cannot be a sample count to `null`', () => {
+      // `true` and `[]` used to parse to NaN. Because `NaN !== NaN`, every later comparison
+      // reported a change and the size cache was dropped on every `updateSettings` call, forever.
+      // A negative count produced a `needed` value that collected no samples at all.
+      expect(SamplesGenerator.resolveSampleCount(true)).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount([])).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount(' ')).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount(-1)).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount(0)).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount(null)).toBe(null);
+      expect(SamplesGenerator.resolveSampleCount(undefined)).toBe(null);
+    });
   });
 
-  it('should be possible to allow using duplicates', () => {
-    const sg = new SamplesGenerator();
+  describe('applySamplingOptions', () => {
+    it('should apply both options', () => {
+      const sg = new SamplesGenerator();
 
-    sg.setAllowDuplicates(true);
+      sg.applySamplingOptions({ samplingRatio: 10, allowDuplicates: true });
 
-    expect(sg.allowDuplicates).toBe(true);
+      expect(sg.getSampleCount()).toBe(10);
+      expect(sg.allowDuplicates).toBe(true);
+    });
+
+    it('should restore the default sample count when `samplingRatio` is `null`', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ samplingRatio: 10, allowDuplicates: false });
+      sg.applySamplingOptions({ samplingRatio: null, allowDuplicates: false });
+
+      expect(sg.getSampleCount()).toBe(SamplesGenerator.SAMPLE_COUNT);
+    });
+
+    it('should report `true` when the sample count changes', () => {
+      const sg = new SamplesGenerator();
+
+      expect(sg.applySamplingOptions({ samplingRatio: 6, allowDuplicates: false })).toBe(true);
+    });
+
+    it('should report `true` when the duplicates policy changes', () => {
+      const sg = new SamplesGenerator();
+
+      expect(sg.applySamplingOptions({ samplingRatio: null, allowDuplicates: true })).toBe(true);
+    });
+
+    it('should report `false` when neither option changes', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ samplingRatio: 6, allowDuplicates: true });
+
+      // The auto-size plugins re-measure on a `true`, and they re-apply these options on every
+      // `updateSettings` call. Re-sending the same values must not report a change, or every
+      // update would force a re-measure.
+      expect(sg.applySamplingOptions({ samplingRatio: 6, allowDuplicates: true })).toBe(false);
+    });
+
+    it('should report `false` when an unusable ratio is re-sent', () => {
+      const sg = new SamplesGenerator();
+
+      // Both resolve to `null`. Left as NaN this never converged: the comparison was NaN !== NaN,
+      // so the plugins re-measured on every single `updateSettings` call.
+      sg.applySamplingOptions({ samplingRatio: true, allowDuplicates: false });
+
+      expect(sg.applySamplingOptions({ samplingRatio: true, allowDuplicates: false })).toBe(false);
+    });
+
+    it('should report `false` when the same ratio arrives as a string and then a number', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ samplingRatio: '6', allowDuplicates: false });
+
+      expect(sg.applySamplingOptions({ samplingRatio: 6, allowDuplicates: false })).toBe(false);
+    });
   });
 
   it('should internally call `generateSamples` when calling `generateRowSamples`', () => {

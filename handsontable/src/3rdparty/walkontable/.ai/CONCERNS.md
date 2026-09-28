@@ -44,3 +44,9 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 - What's thin: the wiring that feeds it (`gatherLayoutInput.ts`) and its interaction with the `singlePassLayout` escape hatch (off for `mergeCells`, and window-mode fallback to DOM measurement) are exercised only through the integration suites.
 - Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/`.
 - Priority: Medium.
+
+**Per-axis prediction (`viewport/boxLayout/` + `overlay/axisOwner.ts`):**
+- What's covered: the split-owner layout (an element owning one axis, the window the other – a definite `width` with no `height`) is a measured mode; `viewport.spec.js`, `master.spec.js`, `overlay.spec.js`, and `tests/e2e/width-window-scroll.spec.ts` pin its geometry.
+- What's thin: the layout snapshot still carries one `scrollMode` for both axes (`gatherLayoutInput.ts`), so the single-pass solver never runs for a split layout and every draw there measures the DOM. A per-axis `scrollMode` would let the prediction cover it; nothing asserts the cost today.
+- Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/gatherLayoutInput.ts`, `resolveLayout.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/axisOwner.ts`.
+- Priority: Low.

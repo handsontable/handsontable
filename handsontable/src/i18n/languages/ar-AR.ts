@@ -120,6 +120,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'الانتقال إلى الصفحة التالية',
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
+  [C.SHEETS_BAR_SECTION]: 'الأوراق',
+  [C.SHEETS_BAR_ADD_SHEET]: 'إضافة ورقة',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'كل الأوراق',
+  [C.SHEETS_BAR_SHEET_MENU]: 'إجراءات الورقة: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'اسم الورقة',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'حذف',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'تكرار',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'إعادة تسمية',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'نقل لليمين',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'نقل لليسار',
+  [C.SHEETS_BAR_PAGE_PREV]: 'تمرير الأوراق للخلف',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'تمرير الأوراق للأمام',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'تم تنشيط الورقة [name]',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'لم يتم تغيير اسم الورقة: [name] مستخدم بالفعل',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'ورقة',
+
   [C.LOADING_TITLE]: 'جاري التحميل...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 

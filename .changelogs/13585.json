@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `filterValueComparator` option to set a custom order of the values in the Filters plugin's \"Filter by value\" list, per column or for the whole grid.",
+  "type": "added",
+  "issueOrPR": 13585,
+  "breaking": false,
+  "framework": "none"
+}

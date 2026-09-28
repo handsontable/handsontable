@@ -1,4 +1,4 @@
-import { test, expect, waitForScrollbarClearanceToSettle } from '../../src/test-runner';
+import { visualTest, expect, waitForScrollbarClearanceToClose, CLASSIC } from '../../src/test-runner';
 import {
   selectCell,
   selectColumnHeaderByNameAndOpenMenu,
@@ -6,9 +6,16 @@ import {
 } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
-test('Copy between tables', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+/**
+ * Checks that a value copied from one table pastes into a writable cell of the other table and not into a
+ * read-only one. It asserts the cell text and captures nothing, and it declares Chromium only, so the
+ * cross-browser leg never runs it on Firefox or WebKit. Owned by DEV-2981.
+ */
+visualTest('Copy between tables', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -38,9 +45,16 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   expect(await tableTopCellReadOnly.innerText()).not.toBe(copiedText);
 });
 
-test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+/**
+ * Checks that copy, paste, and cut move cell values inside one table. It asserts the cell text and captures
+ * nothing, and it declares Chromium only, so the cross-browser leg never runs it on Firefox or WebKit.
+ * Owned by DEV-2981.
+ */
+visualTest('Copy/Paste/Cut inside table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -69,9 +83,16 @@ test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
   expect(await cutCell.innerText()).toBe('');
 });
 
-test('Copy and paste data in a scrolled table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+/**
+ * Checks that a range selected across a scroll (Shift+click on the far bottom-right cell) is copied whole,
+ * and pasted at the top-left of the grid. The capture shows the pasted block. It declares Chromium only,
+ * so this capture never renders on Firefox or WebKit. Owned by DEV-2981.
+ */
+visualTest('Copy and paste data in a scrolled table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/large-dataset-demo');
 
   const table = tablePage.locator('#root .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -85,6 +106,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
     element.scrollTo(10000, 10000); // Large values to ensure scrolling to the end
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
@@ -92,7 +114,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
   // its centre sits inside both bands: without this wait the click is swallowed, the selection never
   // reaches the corner, and only one cell is copied. The assertions below still pass in that case -
   // they check the first pasted cell - so it shows up only as a changed screenshot.
-  await waitForScrollbarClearanceToSettle(tablePage);
+  await waitForScrollbarClearanceToClose(tablePage);
 
   const endCell = table.locator('.ht_master table tr:last-of-type > td:last-of-type');
 
@@ -105,6 +127,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
     element.scrollTo(0, 0);
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   const targetCell = await selectCell(0, 0, table);
@@ -113,14 +136,22 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
 
   await tablePage.keyboard.press(`${helpers.modifier}+v`);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await targetCell.innerText()).toBe('B2');
 });
 
-test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+/**
+ * Checks the same range cut and then pasted: the first capture shows the emptied source, the second the
+ * pasted block. It declares Chromium only, so these captures never render on Firefox or WebKit. Owned by
+ * DEV-2981.
+ */
+visualTest('Cut and paste data in a scrolled table', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/large-dataset-demo');
 
   const table = tablePage.locator('#root .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable');
@@ -134,6 +165,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
     element.scrollTo(10000, 10000); // Large values to ensure scrolling to the end
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
@@ -141,7 +173,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
   // its centre sits inside both bands: without this wait the click is swallowed, the selection never
   // reaches the corner, and only one cell is copied. The assertions below still pass in that case -
   // they check the first pasted cell - so it shows up only as a changed screenshot.
-  await waitForScrollbarClearanceToSettle(tablePage);
+  await waitForScrollbarClearanceToClose(tablePage);
 
   const endCell = table.locator('.ht_master table tr:last-of-type > td:last-of-type');
 
@@ -154,6 +186,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
     element.scrollTo(0, 0);
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
@@ -167,14 +200,22 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
 
   await tablePage.keyboard.press(`${helpers.modifier}+v`);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted keyboard.press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await targetCell.innerText()).toBe('B2');
 });
 
-test('Copy/Paste/Cut table initialized as web component', async({ goto, tablePage, browserName }) => {
-  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
-
+/**
+ * Checks that copy, paste, and cut work in a grid initialized as a web component (`<hot-table>`). It
+ * asserts the cell text and captures nothing, and it declares Chromium only, so the cross-browser leg never
+ * runs it on Firefox or WebKit. Owned by DEV-2981.
+ */
+visualTest('Copy/Paste/Cut table initialized as web component', {
+  themes: [CLASSIC],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/web-component-demo');
 
   const tableTop = tablePage.locator('#root > hot-table');

@@ -34,16 +34,18 @@ function maskedRenderer(
   return td;
 }
 
+const data = [
+  ['Alice Chen', 'alice@example.com', 'Admin', 'Wh1stl3!2024'],
+  ['Bob Garcia', 'bob@example.com', 'Editor', 'P@ssw0rd42'],
+  ['Carol Smith', 'carol@example.com', 'Viewer', 'Tr0ub4dor&3'],
+  ['Dave Kim', 'dave@example.com', 'Editor', 'c0rrectH0rs3'],
+  ['Eve Johnson', 'eve@example.com', 'Admin', 'Sup3rS3cr3t!'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['Alice Chen', 'alice@example.com', 'Admin', 'Wh1stl3!2024'],
-        ['Bob Garcia', 'bob@example.com', 'Editor', 'P@ssw0rd42'],
-        ['Carol Smith', 'carol@example.com', 'Viewer', 'Tr0ub4dor&3'],
-        ['Dave Kim', 'dave@example.com', 'Editor', 'c0rrectH0rs3'],
-        ['Eve Johnson', 'eve@example.com', 'Admin', 'Sup3rS3cr3t!'],
-      ]}
+      data={data}
       colHeaders={['Name', 'Email', 'Role', 'Password']}
       columns={[
         { type: 'text' },

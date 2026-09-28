@@ -368,6 +368,11 @@ export function createStylesHandler() {
     areCellsBorderBox() {
       return false;
     },
+    getStyleForTD(cssProperty) {
+      // The hider height compensation reads the cells' rendered bottom border here. Puppeteer runs
+      // this suite at 100% with no display scaling, so the declared 1px is what a browser paints.
+      return ({ 'border-bottom-width': '1px', 'box-sizing': 'content-box' })[cssProperty];
+    },
     getCSSVariableValue(variableName) {
       const cssVariables = {
         'cell-autofill-size': 6,

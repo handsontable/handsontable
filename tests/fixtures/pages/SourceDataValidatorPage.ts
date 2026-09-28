@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * One scenario for the `source-data-validator-address.html` fixture.
@@ -57,11 +58,9 @@ export class SourceDataValidatorPage {
       `/tests/fixtures/demo/source-data-validator-address.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    // The uncompressed bundle is several megabytes, and every worker pulls its own copy, so this
-    // wait can outlast the `expect` timeout on a cold or busy server. `waitForFunction` polls
-    // against the test budget instead, and the fixture installs its helper and reports `ready`
-    // in the block right after the bundle's own script.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    // The fixture installs its helper and reports `ready` in the block right after the bundle's own
+    // script, so the bundle has to be there before the status can be read.
+    await awaitBundle(this.page);
 
     await expect(this.status).toHaveText('ready');
   }

@@ -490,6 +490,248 @@ describe('ColumnSummarySpec', () => {
     });
   });
 
+  describe('empty and whitespace-only cells', () => {
+    // The Delete key clears a cell to `null`, but clearing it in the editor stores `''`. Loading
+    // data from a backend brings in `""` the same way. All of them must read as empty - `Number('')`
+    // is `0`, so an unguarded check turns a blank cell into a real zero.
+    // A factory, not a shared array - the plugin writes its result into the data it was given.
+    const clearedInEditor = () => [[10], [20], [''], [30], [null]];
+
+    it('should not count a cell that holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should not treat an empty string as zero when calculating the minimum', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+    });
+
+    // Negative values, because a zero slipping into a column of positive numbers leaves `max` right
+    // by accident.
+    it('should not treat an empty string as zero when calculating the maximum', async() => {
+      handsontable({
+        data: [[-10], [-20], [''], [-30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'max'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(-10);
+    });
+
+    it('should not divide by a cell that holds an empty string when calculating the average', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
+    it('should keep the sum unchanged when the range holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(60);
+    });
+
+    it('should treat a whitespace-only cell as empty', async() => {
+      handsontable({
+        data: [[10], [20], ['   '], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should report "Not enough data" when every cell in the range holds an empty string', async() => {
+      handsontable({
+        data: [[''], [''], [''], [''], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe('Not enough data');
+    });
+
+    it('should still count a cell that holds a zero', async() => {
+      handsontable({
+        data: [[0], [10], [20], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    // The seeded cases above all start with the empty string already in the data. This one covers the
+    // path the reporter actually takes: the value arrives through `afterChange`, which recalculates
+    // the endpoint. An empty cell edited in the editor commits `''`, not `null`.
+    it('should recalculate correctly when an empty string arrives through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+
+      // Typing a number back in must bring the cell back into the count.
+      await setDataAtCell(0, 0, 15);
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    it('should recalculate the minimum when a cell is emptied through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
+    // `forceNumeric` runs `parseFloat`, which is a different rule from the default path. These two
+    // pin where the two disagree, so the split stays deliberate.
+    it('should not sum boolean values when `forceNumeric` is enabled, unlike the default path', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum',
+            forceNumeric: true,
+          },
+        ]
+      });
+
+      // `parseFloat(true)` is `NaN`, so every checkbox cell is skipped.
+      expect(getDataAtCell(4, 0)).toBe(0);
+    });
+
+    it('should throw for an empty cell when `forceNumeric` is on and errors are not suppressed', async() => {
+      expect(() => {
+        handsontable({
+          data: [[10], [20], [''], [30], [null]],
+          columnSummary: [
+            {
+              destinationColumn: 0,
+              destinationRow: 4,
+              ranges: [[0, 3]],
+              type: 'sum',
+              forceNumeric: true,
+              suppressDataTypeErrors: false,
+            },
+          ]
+        });
+      }).toThrowError(/is not in a numeric format/);
+    });
+
+    // Booleans stay countable on purpose: a `checkbox` column stores `true`/`false`, and summing it
+    // is how you count the ticked boxes.
+    it('should keep summing boolean values, so a checkbox column counts the ticked boxes', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+  });
+
   describe('customFunction', () => {
     it('should apply a custom function to the entries in the provided range', async() => {
       handsontable({

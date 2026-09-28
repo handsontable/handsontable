@@ -1,0 +1,95 @@
+# Loading plugin — the "please wait" overlay
+
+The `loading` plugin shows a spinner over the grid. Read this before touching `loading.ts` or `content.ts`.
+
+It is the smallest plugin here (~340 lines) because **it owns no DOM of its own**: it drives the Dialog
+plugin.
+
+## It force-enables the Dialog plugin
+
+`enablePlugin()` resolves `getPlugin('dialog')` and, if that plugin is not enabled, sets
+`getSettings().dialog = true` directly. Two things follow:
+
+- **This is the exception to "no direct cross-plugin coupling"**, and it is deliberate. Everything visible —
+  `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog. Every one of those methods
+  re-checks `this.#dialogPlugin?.isEnabled()` before acting, because a user can switch `dialog: false` back
+  off at any time.
+- **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
+  disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
+  every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it
+  back. `updatePlugin()` runs the usual `disablePlugin(); enablePlugin();` cycle, and the tracked
+  registration is what keeps that from doubling the hook. Registering it inside the guard is the older
+  shape and it silently loses the hook on the first `updateSettings()` (fixed in #13410, covered by
+  `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
+
+### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
+
+`#onAfterDialogFocus()` re-focuses the dialog container, which is what lets a screen reader announce the
+loading overlay — a loading screen always renders through `content`, so it reports no focusable elements
+and nothing inside it can hold the focus. But the hook is the **dialog's**, not this plugin's, so it also
+fires for a dialog the application opened for its own reasons. It is therefore gated on
+`getSetting('template') !== null`: a `template` dialog reports its own focusable elements and the dialog
+plugin has just focused one of them, so re-focusing the container would undo that and leave the buttons
+unannounced.
+
+Without the gate, enabling `loading` silently broke the confirm-dialog focus fix from DEV-47 — the dialog
+focused the first button and this listener pulled it straight back onto the container. It stayed invisible
+because `focus()` was a no-op on the `confirm` template until that same ticket fixed it, so the two
+defects hid each other. `isVisible()` is **not** a usable guard here: it delegates to
+`dialogPlugin.isVisible()`, which is true for any dialog at all.
+
+## `show()` is idempotent, and vetoable only on a real open
+
+If the dialog is already visible, `show(options)` **updates and returns** — it does not re-run
+`beforeLoadingShow` / `afterLoadingShow`. So those hooks mean "the loading overlay opened", not "someone
+called `show`". Do not use them to count calls.
+
+`disablePlugin()` calls `hide()` **before** `super.disablePlugin()`, so the overlay cannot outlive the
+plugin.
+
+## `content.ts` returns DOM nodes, and four things about it are load-bearing
+
+DEV-2617 rewrote this file. It used to return an **HTML string** that the Dialog plugin wrote through
+`fastInnerHTML` — a Trusted Types sink, so `loading.show()` threw under a CSP carrying
+`require-trusted-types-for 'script'` and the overlay never rendered. It was easy to miss because the grid
+constructs cleanly: the overlay is only built on `show()`/`update()`.
+
+It now builds a `TemplateSpec` through `buildTemplate()` (`helpers/dom/template.ts`). Four rules:
+
+1. **It returns an ELEMENT, not a `DocumentFragment`.** Dialog stores `content` in its settings and
+   re-reads it on every render (`#renderDialog`), and **appending a fragment empties it** — so the first
+   render showed the overlay and the next one showed an empty box. Re-appending the same element is a no-op.
+2. **The spinner spec carries `ns: SVG_NS`.** An `<svg>` created through `createElement` without the SVG
+   namespace is an unknown HTML element that renders **nothing at all, with no error**. Descendants inherit
+   it, so only the root needs it.
+3. **`LOADING_CLASS_NAME` is imported from `helpers/constants`, not re-exported through `./loading`.** The
+   two modules import each other, and `DEFAULT_ICON_SPEC` reads the class name at **module scope** — a
+   cyclic binding read that early lands in the temporal dead zone and throws
+   `Cannot access '_constants' before initialization` when a wrapper loads the ESM build. `PLUGIN_KEY` and
+   `DEFAULT_ICON` stay cyclic safely because they are only read inside the function body.
+4. **`title` and `description` are `text:` nodes** — markup passed there shows up literally. Only a
+   **custom** `icon` still goes through `fastInnerHTML`, because that option is documented as markup; the
+   built-in spinner is recognized by identity (`icon === DEFAULT_ICON`) and built as nodes. A custom icon is
+   the caller's own markup, so it is passed the resolved `sanitizer` and a `warnScope` and obeys their
+   policy like any other value they hand the grid. **Never pass a value derived from user input.**
+
+Element ids stay namespaced `${id}-loading-title` / `-description`, and `id` comes from the dialog's
+GUID-derived value — see the `template.id` rule in `../dialog/AGENTS.md` for why it must not be
+caller-supplied.
+
+## Root instances only
+
+`isEnabled()` is `isRootInstance(this.hot) && !!getSettings()[PLUGIN_KEY]`, like the other overlay plugins.
+
+## Where to look next
+
+- The surface this plugin drives, and everything about its placement, focus and CSS:
+  `../dialog/AGENTS.md`.
+- Sibling overlay surfaces: `../notification/AGENTS.md`, `../emptyDataState/AGENTS.md`.
+- The plugin that usually triggers it: `../dataProvider/AGENTS.md`.
+- Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
+
+## Testing
+
+- `npm run test:e2e --prefix handsontable -- --testPathPattern='loading'`
+- `npm run test:unit --prefix handsontable -- --testPathPattern='loading'`

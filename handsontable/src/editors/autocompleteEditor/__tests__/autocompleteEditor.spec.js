@@ -60,7 +60,10 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
@@ -91,15 +94,18 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
@@ -123,7 +129,10 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -153,15 +162,17 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
@@ -212,15 +223,18 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // First renderable row index.
-    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
@@ -239,7 +253,10 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -269,15 +286,17 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // First renderable column index.
-    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
@@ -996,7 +1015,7 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
+    it('should drop the dropdown below the editor and past the table\'s edge, when there is not enough space below inside the table (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1011,12 +1030,22 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      const container = $(getActiveEditor().htContainer);
+      const editor = getActiveEditor();
+      const listRect = editor.htContainer.getBoundingClientRect();
+      const cellRect = getCell(6, 0).getBoundingClientRect();
+      const rootRect = editor.hot.rootElement.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
+      // #8688: the list is positioned against the VIEWPORT, so running out of room inside the
+      // table no longer forces a flip. There is room below the cell on screen, so the list opens
+      // downwards and is free to hang past the table's own bottom edge instead of being cut off
+      // at it. The flip still happens when the viewport itself is too short below the cell -
+      // that case is covered by `tests/e2e/dropdown-editor-clip.spec.ts`.
+      expect(listRect.top).toBeCloseTo(cellRect.bottom, 0);
+      expect(listRect.bottom).toBeGreaterThan(rootRect.bottom);
+      expect(listRect.left).toBeCloseTo(cellRect.left, 0);
     });
 
-    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+    it('should keep the dropdown below the editor and re-measure it after the choices list is changed (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1032,23 +1061,31 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
-      const container = $(editor.htContainer);
 
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      const rowH = getDefaultRowHeight();
+      // #8688: both lists open downwards now. The viewport has room below the cell either way,
+      // so narrowing the query re-measures the list in place instead of flipping it above the
+      // cell to fit inside the table. What still has to hold on every re-query is that the list
+      // stays anchored to the cell's bottom edge and re-measures to the choices it renders.
+      const cellRect = () => getCell(5, 0).getBoundingClientRect();
+      const wideRect = editor.htContainer.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: rowH, left: 0 });
+      expect(wideRect.top).toBeCloseTo(cellRect().bottom, 0);
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual({ top: (6 * rowH) + 1, left: 0 });
+      const narrowRect = editor.htContainer.getBoundingClientRect();
+
+      expect(narrowRect.top).toBeCloseTo(cellRect().bottom, 0);
+      expect(editor.htEditor.countRows()).toBeLessThan(choices.filter(choice => choice.includes('r')).length);
+      expect(narrowRect.height).toBeLessThan(wideRect.height);
     });
 
     it('should limit the list to the space size left below the editor (table has defined size)', async() => {
@@ -2426,7 +2463,9 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      // Every choice contains a lowercase 'e', so the queried list settles at the full 9 rows.
+      // Poll for that state instead of guessing how long the editor's deferred query takes.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 9);
 
       {
         const ac = getActiveEditor();
@@ -2449,7 +2488,9 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await waitForNextAnimationFrames(2);
+      // The case-sensitive query for an uppercase 'E' matches nothing - the emptied list IS the
+      // asserted behavior, so polling for it cannot mask a failure.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 0);
 
       {
         const ac = getActiveEditor();

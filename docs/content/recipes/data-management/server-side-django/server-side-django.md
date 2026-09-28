@@ -308,7 +308,7 @@ With the backend and Vite dev server running (`bash setup.sh`), open `http://loc
 | Option | What it does |
 |---|---|
 | `rowId: 'id'` | Tells `dataProvider` which field identifies a row. Must match the serializer field name. |
-| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are cancelled when the user sorts or filters before the previous response arrives. |
+| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are canceled when the user sorts or filters before the previous response arrives. |
 | `return res.json()` in `onRowsCreate` | Return the server response so `dataProvider` can update its internal row map with the server-assigned `id` values. |
 | `pagination: { pageSize: 10 }` | Enables the pagination toolbar. `dataProvider` sends the current page and size to `fetchRows` automatically. |
 | `columnSorting: true` | Enables column header click-to-sort. The sort state is passed to `fetchRows` on each change. |

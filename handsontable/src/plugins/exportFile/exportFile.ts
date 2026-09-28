@@ -168,7 +168,9 @@ export interface ExportOptions {
    */
   rowDelimiter?: string;
   /**
-   * Include column headers.
+   * Include column headers. With the NestedHeaders plugin, every header layer is exported: XLSX writes
+   * one header row per layer with merged group cells, and CSV writes one header line per layer with a
+   * group label repeated across every column it spans.
    */
   colHeaders?: boolean;
   /**
@@ -271,9 +273,10 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * Supported formats:
  * - **CSV** (`'csv'`) — synchronous, no additional setup required.
- * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Requires the
- *   [ExcelJS](https://github.com/exceljs/exceljs) library to be passed as the `engine` option
- *   in the plugin settings.
+ * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Needs an xlsx engine injected and
+ *   detected through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs)
+ *   (the only engine supported today). Features the engine cannot write are reported in one
+ *   console warning per export.
  *
  * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
  *
@@ -488,7 +491,7 @@ export class ExportFile extends BasePlugin {
    *
    * This method is only supported for text-based formats such as CSV.
    * Calling it with a binary format (e.g. `'xlsx'`) throws an error — use
-   * [[ExportFile#exportAsBlobAsync]] instead.
+   * {@link ExportFile#exportAsBlobAsync} instead.
    *
    * @param {string} format Export format type e.g. `'csv'`.
    * @param {object} options Export options.
@@ -557,7 +560,7 @@ export class ExportFile extends BasePlugin {
    * Triggers a synchronous file download for text-based export formats (e.g. `'csv'`).
    *
    * Calling this method with a binary format (e.g. `'xlsx'`) throws an error — use
-   * [[ExportFile#downloadFileAsync]] instead.
+   * {@link ExportFile#downloadFileAsync} instead.
    *
    * @param {string} format Export format type e.g. `'csv'`.
    * @param {object} options Export options.

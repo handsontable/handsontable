@@ -251,6 +251,74 @@ describe('settings', () => {
         expect(holder.getBoundingClientRect().width).toBeAroundValue(200, 1);
       });
 
+      it('should clip the horizontal axis on its own for `height: \'auto\'` and a definite width', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 'auto',
+        });
+
+        // `'auto'` is a free height like an unset one: the root owns the horizontal axis through
+        // the `overflow-x` longhand only, and the vertical axis belongs to the page.
+        expect(hot.rootElement.style.overflowX).toBe('clip');
+        expect(hot.rootElement.style.overflowY).toBe('');
+        expect(hot.rootElement.style.overflow).toBe('');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(false);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder.scrollWidth).toBeGreaterThan(holder.clientWidth);
+        expect(hot.countRenderedRows()).toBeLessThan(100);
+      });
+
+      it('should clip nothing for `height: \'auto\'` and a relative width', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: '100%',
+          height: 'auto',
+        });
+
+        expect(hot.rootElement.style.overflow).toBe('');
+        expect(hot.rootElement.style.overflowX).toBe('');
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('visible');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should write `width: null` as an empty inline width, never as `nullpx`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          width: 200,
+        });
+
+        expect(hot.rootElement.style.overflowX).toBe('clip');
+
+        await updateSettings({ width: null });
+
+        expect(hot.rootElement.style.width).toBe('');
+        expect(hot.rootElement.style.overflowX).toBe('');
+      });
+
+      it('should not clip when `width` is a `var()` or a container-query unit and `height` is omitted', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          width: 'var(--grid-width, 50%)',
+        });
+
+        expect(hot.rootElement.style.width).toBe('var(--grid-width, 50%)');
+        expect(hot.rootElement.style.overflowX).toBe('');
+
+        await updateSettings({ width: '50cqw' });
+
+        expect(hot.rootElement.style.width).toBe('50cqw');
+        expect(hot.rootElement.style.overflowX).toBe('');
+      });
+
       it('should not apply overflow clipping when `width` is `auto` and `height` is not provided', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(5, 5),
@@ -454,9 +522,9 @@ describe('settings', () => {
       it('should render vertically when `width` is narrower than the columns and `height` is omitted', async() => {
         // A width-constrained grid whose columns are wider than the width renders at content height
         // and scrolls vertically with the window (previously the whole grid collapsed to `0px`).
-        // Known limitation: the columns past the constrained width are clipped by the root's
-        // `overflow-x: clip` and are not reachable via a horizontal scrollbar — reaching them needs
-        // per-axis trimming (window vertical + element horizontal), tracked in a follow-up task.
+        // The root's `overflow-x: clip` makes the root the owner of the horizontal axis, so the
+        // columns past the constrained width are reached through the holder's own horizontal
+        // scrollbar while the window keeps the vertical axis.
         const hot = handsontable({
           data: createSpreadsheetData(8, 10),
           rowHeaders: true,
@@ -472,6 +540,29 @@ describe('settings', () => {
         // Not collapsed: the grid is visible and sizes vertically to its content.
         expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
         expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(false);
+        expect(hot.view.hasHorizontalScroll()).toBe(true);
+        expect(holder.scrollWidth).toBeGreaterThan(holder.clientWidth);
+      });
+
+      it('should scroll the holder horizontally to a column past the constrained `width`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 300,
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+
+        await scrollViewportTo({
+          row: 0,
+          col: 9,
+        });
+
+        expect(holder.scrollLeft).toBeGreaterThan(0);
+        expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(holder.scrollLeft);
       });
 
       it('should not clip horizontally when `width` is a percentage and `height` is omitted', async() => {

@@ -43,6 +43,33 @@ export default class RowUtils {
   }
 
   /**
+   * Whether ANY row of this table could be exact. `false` when the mode cannot vary per row and is
+   * the floor — which is every grid that never sets the mode — so a caller looping over rows can
+   * skip the per-row `isExact` probe entirely. Reading it once per draw instead of once per row is
+   * what keeps a default grid paying nothing for the mode.
+   *
+   * @returns {boolean}
+   */
+  mayHaveExactRows(): boolean {
+    // A uniform mode ignores the index, so any index answers for the whole table.
+    return !this.#rowSizeSource.isModeUniform() || this.#rowSizeSource.getMode(0) === 'exact';
+  }
+
+  /**
+   * Whether one row renders at exactly its provided height, with taller content clipped.
+   *
+   * @param {number} sourceIndex Row source index.
+   * @returns {boolean}
+   */
+  isExact(sourceIndex: number): boolean {
+    // The mode first: in the (default) `min` mode it is a constant read, whereas the size read runs
+    // the host's whole row-height funnel (the `modifyRowHeight` hooks in Handsontable). Reading the
+    // size only for exact-mode rows keeps this free on every grid that does not use the mode.
+    return this.#rowSizeSource.getMode(sourceIndex) === 'exact' &&
+      hasProvidedHeight(this.#rowSizeSource.getSize(sourceIndex));
+  }
+
+  /**
    * Returns row height based on passed source index.
    *
    * @param {number} sourceIndex Row source index.
@@ -50,6 +77,11 @@ export default class RowUtils {
    */
   getHeight(sourceIndex: number) {
     let height = this.#rowSizeSource.getSize(sourceIndex);
+
+    if (hasProvidedHeight(height) && this.#rowSizeSource.getMode(sourceIndex) === 'exact') {
+      return height;
+    }
+
     const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
@@ -64,10 +96,20 @@ export default class RowUtils {
    *
    * @param {number} sourceIndex Row source index.
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {boolean} [isExact] Whether the row is exact (see `isExact`). A caller that already
+   *   resolved it for the row passes it in, so the row-height funnel is not run a second time.
    * @returns {number}
    */
-  getHeightByOverlayName(sourceIndex: number, overlayName: string) {
+  getHeightByOverlayName(sourceIndex: number, overlayName: string, isExact = this.isExact(sourceIndex)) {
     let height = this.#rowSizeSource.getSizeForOverlay(sourceIndex, overlayName);
+
+    if (isExact) {
+      // Exactness was decided from the row's own height. An overlay listener that answers nothing
+      // for this overlay must not drop the row to the floor shape there, while the row-height cache
+      // (built from `getHeight`) still carries the exact value: the row's own height applies.
+      return hasProvidedHeight(height) ? height : this.#rowSizeSource.getSize(sourceIndex);
+    }
+
     const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
@@ -76,4 +118,16 @@ export default class RowUtils {
 
     return height;
   }
+}
+
+/**
+ * Whether a provided height counts as one. A non-positive or missing height is "no height
+ * provided", so it falls through to the default and the floor path, whatever the mode says (a `0`
+ * from a hidden row must never become a 0px exact row).
+ *
+ * @param {number|undefined} providedHeight The provided height of a row.
+ * @returns {boolean}
+ */
+function hasProvidedHeight(providedHeight: number | undefined): boolean {
+  return providedHeight !== undefined && providedHeight > 0;
 }

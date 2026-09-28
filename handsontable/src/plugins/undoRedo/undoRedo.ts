@@ -11,6 +11,10 @@ export interface UndoRedoAction {
   [key: string]: unknown;
 }
 
+export interface UndoRedoActionResult {
+  wasUndone?: boolean;
+}
+
 export const PLUGIN_KEY = 'undoRedo';
 export const PLUGIN_PRIORITY = 1000;
 
@@ -23,7 +27,9 @@ Hooks.getSingleton().register('afterRedo');
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
- * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
+ * The plugin is enabled by default. It doesn't track every grid operation. For the list of tracked
+ * actions and the known limitations, see
+ * [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md).
  * @example
  * ```js
  * undo: true
@@ -206,6 +212,18 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
+    // A wrappedAction returns `null` when the operation changed nothing (e.g. an `alter` that
+    // removed no rows or columns). A no-op must not stack an action, clear the redo stack, or fire
+    // any stack-change hook, so resolve it before announcing anything. wrappedAction only snapshots
+    // grid state (every registered one is a pure capture), and `done()` runs inside the
+    // `beforeRemove*`/`beforeCreate*` hook before the operation applies, so capturing it here rather
+    // than after `beforeUndoStackChange` reads the same state.
+    const newAction: unknown = wrappedAction();
+
+    if (newAction === null) {
+      return;
+    }
+
     const doneActionsCopy = this.doneActions.slice();
     const continueAction = this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source);
 
@@ -213,12 +231,9 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const newAction: unknown = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
-    if (newAction !== null) {
-      this.doneActions.push(newAction);
-    }
+    this.doneActions.push(newAction);
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
@@ -243,6 +258,18 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
+    type UndoableAction = {
+      canUndo?: (hot: HotInstance) => boolean
+      undo: (hot: HotInstance, callback: (result?: UndoRedoActionResult) => void) => void
+    };
+    const pendingAction = this.doneActions[this.doneActions.length - 1] as UndoableAction;
+
+    // A nested remove-row undo can still fail (plugin disabled, create-row veto). Formulas
+    // always calls `engine.undo()` in `beforeUndo`, so that check has to win first.
+    if (pendingAction.canUndo?.(this.hot) === false) {
+      return;
+    }
+
     const doneActionsCopy = this.doneActions.slice();
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
@@ -264,10 +291,18 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
+    let wasUndone = true;
+
     try {
-      (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+      (action as UndoableAction).undo(this.hot, (result) => {
         this.ignoreNewActions = false;
-        this.undoneActions.push(action);
+        wasUndone = result?.wasUndone !== false;
+
+        if (wasUndone) {
+          this.undoneActions.push(action);
+        } else {
+          this.doneActions.push(action);
+        }
       });
 
     } catch (error) {
@@ -280,7 +315,10 @@ export class UndoRedo extends BasePlugin {
     }
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
-    this.hot.runHooks('afterUndo', actionClone);
+
+    if (wasUndone) {
+      this.hot.runHooks('afterUndo', actionClone);
+    }
   }
 
   /**
@@ -298,21 +336,35 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const undoneActionsCopy = this.undoneActions.slice();
+    type RedoableAction = {
+      canRedo?: (hot: HotInstance) => boolean
+    };
+    const pendingAction = this.undoneActions[this.undoneActions.length - 1] as RedoableAction;
 
-    this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+    // A redo whose removal would name no row or column changes nothing. Formulas always calls
+    // `engine.redo()` in `beforeRedo`, so that check has to win first - same as `canUndo()` in `undo()`.
+    if (pendingAction.canRedo?.(this.hot) === false) {
+      return;
+    }
 
-    const action = this.undoneActions.pop();
-
-    this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
-
+    const action = this.undoneActions[this.undoneActions.length - 1];
     const actionClone = deepClone(action);
 
+    // Do not mutate the stack until every `beforeRedo` listener accepts the action. A canceled
+    // redo must remain available to retry once the condition that vetoed it no longer applies.
     const continueAction = this.hot.runHooks('beforeRedo', actionClone);
 
     if (continueAction === false) {
       return;
     }
+
+    const undoneActionsCopy = this.undoneActions.slice();
+
+    this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
+
+    this.undoneActions.pop();
+
+    this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
     this.ignoreNewActions = true;
 

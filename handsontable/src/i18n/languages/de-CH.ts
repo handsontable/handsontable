@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Zur nächsten Seite wechseln',
   [C.PAGINATION_LAST_PAGE]: 'Zur letzten Seite wechseln',
 
+  [C.SHEETS_BAR_SECTION]: 'Blätter',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Blatt hinzufügen',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Alle Blätter',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Blattaktionen: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Blattname',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Löschen',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplizieren',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Umbenennen',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Nach rechts verschieben',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Nach links verschieben',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Blätter rückwärts scrollen',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Blätter vorwärts scrollen',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Blatt [name] aktiviert',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Blattname nicht geändert: [name] wird bereits verwendet',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blatt',
+
   [C.LOADING_TITLE]: 'Lädt...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Schließen',
 

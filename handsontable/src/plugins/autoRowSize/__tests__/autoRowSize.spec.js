@@ -465,7 +465,7 @@ describe('AutoRowSize', () => {
     const row1HeightInitial = parseInt(getCell(1, -1).style.height, 10);
     const row2HeightInitial = parseInt(getCell(2, -1).style.height, 10);
 
-    expect(row0HeightInitial).toBeGreaterThanOrEqual(layout.firstRenderedRowDefaultHeight);
+    expect(row0HeightInitial).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
     expect(row1HeightInitial).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
     expect(row2HeightInitial).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
 
@@ -519,7 +519,7 @@ describe('AutoRowSize', () => {
     const plugin = getPlugin('manualColumnMove');
     const L = getThemeLayout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.lineHeight + L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.lineHeight + L.defaultDataRowHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (4 * L.lineHeight));
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
@@ -527,7 +527,7 @@ describe('AutoRowSize', () => {
 
     await render();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.defaultDataRowHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.lineHeight + L.defaultDataRowHeight);
     expect(parseInt(getCell(2, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (5 * L.lineHeight));
   });
@@ -544,13 +544,13 @@ describe('AutoRowSize', () => {
 
     const L = getThemeLayout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.defaultDataRowHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.defaultDataRowHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (4 * L.lineHeight));
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
   });
@@ -566,7 +566,7 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
@@ -650,7 +650,7 @@ describe('AutoRowSize', () => {
 
     await render();
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(getRowHeight(0)).toBe(getThemeLayout().defaultDataRowHeight);
     expect(getRowHeight(1)).toBe(getThemeLayout().defaultDataRowHeight);
     expect(getRowHeight(2)).toBe(getThemeLayout().defaultDataRowHeight);
   });
@@ -675,7 +675,7 @@ describe('AutoRowSize', () => {
 
     await render();
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(getRowHeight(0)).toBe(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should not throw error while traversing header\'s DOM elements', async() => {
@@ -846,7 +846,12 @@ describe('AutoRowSize', () => {
 
     await scrollViewportHorizontally(500);
 
-    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('1px');
+    // The gridline between the row header and the frozen first column must still be drawn while
+    // `htFirstDatasetColumnNotRendered` is on the root element. Since #6673 the row header owns
+    // that gridline (its inline-end border) and the cell behind it draws none, so assert both
+    // sides - a missing seam and a doubled one are both failures.
+    expect(getComputedStyle(getCell(0, -1, true)).borderRightWidth).toBe('1px');
+    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('0px');
   });
 
   it('should add css class to the .ht-wrapper when plugin is enabled', async() => {

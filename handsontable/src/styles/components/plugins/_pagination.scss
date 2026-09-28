@@ -44,6 +44,23 @@
           position: relative;
           border-radius: var(--ht-input-border-radius);
 
+          // The visible fill lives on the wrapper. A native <select> clips its own
+          // background-color to a radius smaller than its border-radius, leaving the
+          // rounded corners unfilled (DEV-42); a <div> fills them correctly. The select
+          // fills this wrapper exactly, so wrapper :hover / :focus-within are equivalent
+          // to the select's own :hover / :focus. (`:has()` is banned in src/**.)
+          background-color: var(--ht-input-background-color);
+
+          // Keep `:hover` last so it wins over `:focus-within` when hovered while focused,
+          // matching the select's own hover-over-focus precedence.
+          &:focus-within {
+            background-color: var(--ht-input-focus-background-color);
+          }
+
+          &:hover {
+            background-color: var(--ht-input-hover-background-color);
+          }
+
           select {
             padding-inline-start: var(--ht-gap-size);
             padding-inline-end: calc(var(--ht-gap-size) + var(--ht-icon-size));
@@ -51,30 +68,29 @@
             padding-bottom: var(--ht-gap-size);
             border-radius: var(--ht-input-border-radius);
             color: var(--ht-input-foreground-color);
-            background-color: var(--ht-input-background-color);
+            background-color: transparent;
             border: 1px solid var(--ht-input-border-color);
             line-height: calc(var(--ht-line-height) - 4px);
             -webkit-appearance: none;
             font-size: inherit;
             cursor: pointer;
 
+            // Disabled is never visible: pageSizeSelect.disabled is set only when the whole
+            // section is display:none (ui.ts setPageSizeSectionVisibility).
             &:disabled {
               opacity: 0.4;
               cursor: default;
               color: var(--ht-input-disabled-foreground-color);
-              background-color: var(--ht-input-disabled-background-color);
               border-color: var(--ht-input-disabled-border-color);
             }
 
             &:hover:not(:disabled) {
               color: var(--ht-input-hover-foreground-color);
-              background-color: var(--ht-input-hover-background-color);
               border-color: var(--ht-input-hover-border-color);
             }
 
             &:focus {
               color: var(--ht-input-focus-foreground-color);
-              background-color: var(--ht-input-focus-background-color);
               border-color: var(--ht-input-focus-border-color);
               outline: none;
             }

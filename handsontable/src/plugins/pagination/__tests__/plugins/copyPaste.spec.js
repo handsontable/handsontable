@@ -45,4 +45,49 @@ describe('Pagination integration with CopyPaste', () => {
       ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
     ]);
   });
+
+  it('should paste the leading clipboard rows when the paste starts mid-page', async() => {
+    // Unique clipboard rows are required: identical letters make keep-prefix and
+    // keep-suffix truncation look the same, which is how DEV-1119 shipped green.
+    handsontable({
+      data: createSpreadsheetData(15, 3),
+      pagination: {
+        pageSize: 10,
+      },
+      copyPaste: true,
+    });
+
+    await selectCell(7, 1);
+
+    getPlugin('CopyPaste').paste([
+      'Summit Boots',
+      'Zenith Hoodie',
+      'Eclipse Scarf',
+      'Horizon Cap',
+      'Pulsar Socks',
+      'Velocity Hat',
+      'Aether Jacket',
+      'Nimbus Gloves',
+      'Quasar Belt',
+      'Orbit Scarf',
+    ].join('\n'));
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+      ['A4', 'B4', 'C4'],
+      ['A5', 'B5', 'C5'],
+      ['A6', 'B6', 'C6'],
+      ['A7', 'B7', 'C7'],
+      ['A8', 'Summit Boots', 'C8'],
+      ['A9', 'Zenith Hoodie', 'C9'],
+      ['A10', 'Eclipse Scarf', 'C10'],
+      ['A11', 'B11', 'C11'],
+      ['A12', 'B12', 'C12'],
+      ['A13', 'B13', 'C13'],
+      ['A14', 'B14', 'C14'],
+      ['A15', 'B15', 'C15'],
+    ]);
+  });
 });

@@ -66,7 +66,6 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     rowIndexMapper: rowMapper,
     columnIndexMapper: columnMapper,
   } = hot;
-  const updateNextCellsHeight = new Map();
 
   /**
    * Runs before the cell is rendered.
@@ -91,9 +90,10 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
 
-      if (updateNextCellsHeight.has(row) && !hot.getSettings().rowHeaders) {
-        TD.style.height = `${updateNextCellsHeight.get(row)}px`;
-        updateNextCellsHeight.delete(row);
+      const heightNextToBlock = getHeightNextToMergedBlock(row, col);
+
+      if (heightNextToBlock !== null) {
+        TD.style.height = `${heightNextToBlock}px`;
       }
 
       TD.style.display = '';
@@ -112,25 +112,6 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
     const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
-
-    if (origColumn === 0 && !hot.getSettings().rowHeaders) {
-      const rowHeights = hot._getRowHeightFromSettings(row);
-
-      if (rowHeights !== undefined) {
-        const borderBoxSizing = hot.stylesHandler.areCellsBorderBox();
-        const borderCompensation = borderBoxSizing ? 0 : 1;
-
-        updateNextCellsHeight.set(row, rowHeights - borderCompensation);
-
-      } else if (isSafari()) {
-        // Safari bug fix - the height of the cells next to the merged cell must be defined
-        // so that their height is proportional to the height of the merged cell
-        // (this emulates default behavior in Chrome, FF etc.)
-        const height = sumCellsHeights(hot, origRow, origRowspan);
-
-        updateNextCellsHeight.set(row, height / origRowspan);
-      }
-    }
 
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row) ?? 0;
     const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col) ?? 0;
@@ -159,6 +140,54 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       TD.removeAttribute('colspan');
       TD.style.display = 'none';
     }
+  }
+
+  /**
+   * Returns the height the cell right after a merged block has to carry, or `null` when the cell is
+   * not such a neighbor. Without row headers, a block that starts at column 0 owns the row's first
+   * cell (the one the engine writes the row height on), so the browser sizes the rows of the block
+   * from their next cell instead. The height is derived from the merged collection inside the
+   * neighbor's own paint: it holds under `renderMode: 'onChange'` when the origin is skipped, and
+   * it goes away with the merge, because a collection change repaints every cell.
+   *
+   * @private
+   * @param {number} row Visual row index of the cell being painted.
+   * @param {number} col Visual column index of the cell being painted.
+   * @returns {number|null}
+   */
+  function getHeightNextToMergedBlock(row: number, col: number): number | null {
+    if (hot.getSettings().rowHeaders) {
+      return null;
+    }
+
+    const renderedColumn = columnMapper.getRenderableFromVisualIndex(col);
+
+    if (renderedColumn === null || renderedColumn === 0) {
+      return null;
+    }
+
+    const previousVisualColumn = columnMapper.getVisualFromRenderableIndex(renderedColumn - 1);
+    const blockBefore = previousVisualColumn === null ?
+      false : plugin.mergedCellsCollection.get(row, previousVisualColumn);
+
+    if (blockBefore === false || blockBefore.col !== 0) {
+      return null;
+    }
+
+    const rowHeight = hot._getRowHeightFromSettings(row);
+
+    if (rowHeight !== undefined) {
+      return rowHeight - (hot.stylesHandler.areCellsBorderBox() ? 0 : 1);
+    }
+
+    if (isSafari()) {
+      // Safari bug fix - the height of the cells next to the merged cell must be defined
+      // so that their height is proportional to the height of the merged cell
+      // (this emulates default behavior in Chrome, FF etc.)
+      return sumCellsHeights(hot, blockBefore.row, blockBefore.rowspan) / blockBefore.rowspan;
+    }
+
+    return null;
   }
 
   return { before, after };

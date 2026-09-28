@@ -209,14 +209,14 @@ These cases never discard the stored heights, so passing `rowHeights` does not r
 - A grid whose [`manualRowResize`](@/api/options.md#manualrowresize) option is already a non-empty array. The plugin replays that array, so the stored heights stay.
 - The React, Angular and Vue wrappers, where a `rowHeights` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
 
-In each case, clear the heights explicitly:
+In each case, clear the heights explicitly.
+
+:::
 
 ```js
 hot.getPlugin('manualRowResize').clearManualSizes();
 hot.render();
 ```
-
-:::
 
 ::: only-for javascript
 

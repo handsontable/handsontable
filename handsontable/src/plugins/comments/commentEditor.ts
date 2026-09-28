@@ -67,6 +67,10 @@ class CommentEditor {
    */
   #editor: HTMLElement | null = null;
   /**
+   * @type {HTMLTextAreaElement | null}
+   */
+  #input: HTMLTextAreaElement | null = null;
+  /**
    * @type {CSSStyleDeclaration | null}
    */
   #editorStyle: CSSStyleDeclaration | null = null;
@@ -259,16 +263,23 @@ class CommentEditor {
     editor.appendChild(textarea);
     this.#container.appendChild(editor);
 
+    this.#input = textarea;
+
     return editor;
   }
 
   /**
    * Get the input element.
    *
+   * The element is held rather than looked up. `Comments#targetIsCommentTextArea()` compares
+   * against it for every "mouseover" the document sees while the editor is open, and the textarea
+   * is built once here and never replaced, so a `querySelector` per call is pure overhead on a
+   * pointer-move path.
+   *
    * @returns {HTMLTextAreaElement | null}
    */
   getInputElement(): HTMLTextAreaElement | null {
-    return this.#editor?.querySelector<HTMLTextAreaElement>(`.${CommentEditor.CLASS_INPUT}`) ?? null;
+    return this.#input;
   }
 
   /**
@@ -289,6 +300,7 @@ class CommentEditor {
     this.#editor?.parentNode?.removeChild(this.#editor);
     this.#editor = null;
     this.#editorStyle = null;
+    this.#input = null;
     this.#resizeObserver.destroy();
 
     if (containerParentElement && this.#container) {

@@ -2,6 +2,7 @@ import { objectEach } from '../../../../helpers/object';
 import { throwWithCause } from '../../../../helpers/errors';
 import type { StylesHandler } from '../types';
 import type { SettingsPort } from '../ports';
+import type { RowHeightMode } from '../axisSizing/axisSizeSource';
 import { getDefaults } from './defaults';
 
 /**
@@ -75,7 +76,10 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'stylesHandler'): StylesHandler;
   /* eslint-disable jsdoc/require-jsdoc -- TypeScript overload signatures share the JSDoc of the first overload above */
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
+  getSetting(key: 'layoutReservedHeight', trimmingContainer: HTMLElement): number;
+  getSetting(key: 'heightFollowsContent'): boolean;
   getSetting(key: 'rtlMode'): boolean;
+  getSetting(key: 'guid'): string;
   getSetting(key: 'isDataViewInstance'): boolean;
   getSetting(key: 'fixedColumnsStart'): number;
   getSetting(key: 'fixedRowsTop'): number;
@@ -88,6 +92,7 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
   getSetting(key: 'viewportRowRenderingOffsetIsAuto'): boolean;
   getSetting(key: 'viewportColumnRenderingOffsetIsAuto'): boolean;
+  getSetting(key: 'rowHeightMode', sourceRowIndex: number): RowHeightMode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

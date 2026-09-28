@@ -5,7 +5,7 @@ description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E s
 
 # Handsontable E2E Testing Guide (legacy Jasmine/Puppeteer — frozen)
 
-> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
+> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`, and appending three or more new `it` blocks to a modified frozen spec draws its non-blocking `frozen-suite-growth` advisory — state the justification in the PR if the frozen tier is right. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
 
 ## Standard boilerplate (MUST follow)
 
@@ -121,9 +121,13 @@ it('should open editor on double-tap', async() => {
 
 Use `simulateTouch(target)` when you need to test the full Android event sequence including synthetic mouse events.
 
-## Flaky test handling
+## Waiting in an edited spec (hard rules)
 
-Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
+The frozen suite's flakiness is timing debt. An edit must not add to it, and a broken or flaky spec migrates (see the top of this file) — these rules cover the edit you MUST make in place.
+
+- **A rendered-DOM count assertion pins the viewport first.** `countRenderedRows()`, `countRenderedCols()`, and any `tbody tr` count depend on how many rows the container shows, which varies per theme and per machine. Size the container with `containerHeightForRows(n)` or `scrollViewportTo()` the target into view before counting. An unpinned count is a per-theme coin flip.
+- **`waitUntil(condition, timeout)` replaces `sleep()` and `waitForNextAnimationFrames()`.** It is a spec global from `test/helpers/common.js`: it polls the condition every frame and rejects with a named reason when the state never arrives. `waitForNextAnimationFrames()` is a fixed sleep denominated in frames — it awaits at most 2 real frames (`normalizeFrameCount` caps it) and pads the rest of the request with 16 ms per frame — so it is `sleep()` in a different unit. Every `sleep()` call warns today (`handsontable/no-fixed-sleep-in-spec` runs at warn level so the existing debt surfaces without red-walling CI); a diff-scoped ratchet that fails a NEW `sleep()` on an added line is landing in a sibling PR — treat a new one as an error now.
+- **`it.flaky()` is not a wait.** A retry hides a race, it does not remove one; new `it.flaky()` sites are lint-warned (`handsontable/no-new-it-flaky`). A spec that needs a retry is a spec to migrate to Playwright.
 
 ## What to test for plugins
 
@@ -137,6 +141,7 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 
 - **All:** `npm run test:e2e --prefix handsontable`
 - **Targeted:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex>` - the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **A pattern that matches nothing still reports green.** `test/e2e/index.js` tests the pattern (case-insensitive) against webpack context keys, which are relative to `handsontable/src/` or `handsontable/test/e2e/` — `./validators/dropdownValidator/__tests__/dropdownValidator.spec.js`, not `src/validators/...`. So `src/validators` matches no file, and the run still ends `5 specs, 0 failures` with exit 0 (measured on four no-match patterns in DEV-2911). Read the spec count before trusting a targeted run. Keep the pattern free of shell characters too: `scripts/run.mjs` passes it to `sh -c` unquoted, so `(a|b)` is a syntax error and `a\|b` reaches the regex as a literal `\|` that matches nothing. Run one plain pattern per command (`validat` covers every validator and validation spec).
 - **With theme:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex> --theme=horizon` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
@@ -203,5 +208,6 @@ See `src/plugins/pagination/__tests__/` for reference - separate dirs for option
 - Not testing the `updateSettings()` cycle.
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.
 - Not testing both keyboard navigation modes (spreadsheet + data grid).
+- Trusting the spec count. Until the bridge reporter sanitized failed expectations (`test/helpers/jasmine-bridge-reporter.js`, shared with the Walkontable runner), a failing spec whose `expected` or `actual` was a cyclic object (`toBe(window)`, `toEqual([overlay, …])`) could not cross the Puppeteer bridge and was dropped from the run: `Running N specs.` in `--verbose` mode, `N-1 specs, 0 failures` at the end, exit code 0. The bridge now reports such a spec as a normal failure with the value described (`[unserializable Window]`); if a count ever comes up short again, compare the `Running N specs.` line against the summary line with `npm run test:e2e -- --testPathPattern=<file> --verbose`.
 
 Reference `handsontable/.ai/TESTING.md` for full testing docs. Key files: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`.

@@ -4,6 +4,7 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ManualRowMove } from '../../manualRowMove';
+import { TrimRows } from '../../trimRows';
 
 /**
  * The plugin registered its redo-state reset on `afterUndo` (twice) instead of `afterRedo`, so
@@ -20,6 +21,7 @@ describe('Formulas redo state', () => {
     registerPlugin(Formulas);
     registerPlugin(UndoRedo);
     registerPlugin(ManualRowMove);
+    registerPlugin(TrimRows);
   });
 
   beforeEach(() => {
@@ -133,5 +135,78 @@ describe('Formulas redo state', () => {
     hot.getPlugin('undoRedo').undo();
 
     expect(hot.getPlugin('formulas').indexSyncer.isPerformingUndoRedo()).toBe(false);
+  });
+
+  // An undo or redo whose removal names no row any more changes nothing in Handsontable. It has to be
+  // refused before `beforeUndo` / `beforeRedo`, because this plugin steps HyperFormula in those hooks: a
+  // refusal found only after them left the engine one step away from the grid and the undo/redo flag set.
+  describe('an undo or redo that would remove no row', () => {
+    /**
+     * Builds a grid with a formula, so the engine records every row operation on its own undo stack.
+     *
+     * @returns {object} The Handsontable instance.
+     */
+    function buildWithTrimRows() {
+      hot = new Handsontable(container, {
+        data: [
+          [1, '=A1+10'],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        undoRedo: true,
+        trimRows: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return hot;
+    }
+
+    it('does not step the engine when undoing a row insertion whose index no longer exists', () => {
+      buildWithTrimRows();
+      const { engine, indexSyncer } = hot.getPlugin('formulas');
+      const beforeUndo = jest.fn();
+
+      hot.alter('insert_row_above', 5, 1); // recorded at visual index 5
+      // A trim is not on the undo stack and does not touch the engine, so the index goes stale while the
+      // engine's own undo stack keeps the row insertion.
+      hot.getPlugin('trimRows').trimRows([0, 1, 2]);
+      hot.addHook('beforeUndo', beforeUndo);
+
+      expect(engine.isThereSomethingToUndo()).toBe(true);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(beforeUndo).not.toHaveBeenCalled();
+      expect(engine.isThereSomethingToUndo()).toBe(true);
+      expect(indexSyncer.isPerformingUndoRedo()).toBe(false);
+    });
+
+    it('does not step the engine or delete another row when redoing a removal of a trimmed row', () => {
+      buildWithTrimRows();
+      const { engine, indexSyncer } = hot.getPlugin('formulas');
+      const beforeRedo = jest.fn();
+
+      hot.alter('remove_row', 1, 1); // records physical row 1
+      hot.getPlugin('undoRedo').undo();
+      // The recorded row is now trimmed, so `toVisualRow()` returns `null`, which `alter()` would read as
+      // "take the rows from the end".
+      hot.getPlugin('trimRows').trimRows([1]);
+      hot.addHook('beforeRedo', beforeRedo);
+
+      expect(engine.isThereSomethingToRedo()).toBe(true);
+
+      hot.getPlugin('undoRedo').redo();
+
+      expect(beforeRedo).not.toHaveBeenCalled();
+      expect(engine.isThereSomethingToRedo()).toBe(true);
+      expect(indexSyncer.isPerformingUndoRedo()).toBe(false);
+      // The last row is still there: nothing was removed from the end in place of the trimmed one.
+      expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    });
   });
 });

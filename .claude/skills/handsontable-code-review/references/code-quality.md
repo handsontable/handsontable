@@ -14,7 +14,7 @@ Review staged or changed code for compliance with Handsontable coding convention
    - All public and private APIs must have JSDoc comments.
    - New hooks and configuration options must include a `@since` tag.
    - Use Markdown formatting, not HTML tags. Line breaks use empty lines, never `<br>`.
-   - Use `[[MY_LINK]]` syntax for links, not `{@link MY_LINK}`. End every sentence with a full stop.
+   - Cross-reference with the inline `link` tag in qualified `Class#member` form (`{@link Core#getCellMeta}`), never TypeDoc's `[[Target]]`, which the docs pipeline publishes as literal text. Use inline code for targets the API reference does not document. End every sentence with a full stop.
 
 3. **Private fields:**
    - Use the `#` prefix for private class fields and methods. Do not use `@private` JSDoc tag unless `#` is avoided for documented performance reasons.

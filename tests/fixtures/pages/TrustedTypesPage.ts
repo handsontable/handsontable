@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * A Content Security Policy violation as the fixture records it. `sample` is the
@@ -93,6 +94,7 @@ export class TrustedTypesPage {
     }
 
     await this.page.goto(`/tests/fixtures/demo/trusted-types.html?${params}`);
+    await awaitBundle(this.page);
     await expect(this.status).not.toBeEmpty();
   }
 

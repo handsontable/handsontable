@@ -127,7 +127,7 @@ const App = () => {
 
 The render prop function receives the following props:
 
-- **`value: T`** - Current editor value
+- **`value: T`** - Current editor value. Updates in the same render as `setValue`.
 - **`setValue: (newValue: T) => void`** - Update the editor value
 - **`finishEditing: () => void`** - Save changes and close the editor
 - **`isOpen: boolean`** - Whether the editor is currently open
@@ -1198,7 +1198,7 @@ Use this pattern for editors that display dropdowns, popovers, or similar UI ele
 
 **Using `preventCloseElement`**
 
-Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The factory will attach a `mousedown` listener to that element that stops propagation, so clicks on it are not treated as "click-outside" and the editor stays open.
+Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The grid then treats that element and everything inside it as a part of the editor: neither a click landing in it nor the browser focus moving into it counts as a "click-outside", so the editor stays open.
 
 Create the element in `init` or `afterInit`, assign it to `editor.preventCloseElement`, and append it to the editor container (or to the document if the dropdown is rendered outside the container).
 

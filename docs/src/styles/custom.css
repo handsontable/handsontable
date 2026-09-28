@@ -1,3 +1,32 @@
+/*
+ * Cascade-layer order for Starlight's sublayers.
+ *
+ * Starlight declares this order in `@astrojs/starlight/style/layers.css`, but
+ * that file's statement never reaches the browser, and it does not order
+ * anything either. Astro runs each emitted stylesheet through lightningcss,
+ * which resolves a layer statement by physically reordering the layer blocks
+ * that follow it and then drops the redundant statement. A statement that
+ * lands after a block for a layer it names can no longer reorder that layer,
+ * so it is simply dropped - and `layers.css` lands late, because the
+ * `customCss` stylesheets (which write into `starlight.components` and
+ * `starlight.content`) are bundled ahead of Starlight's own styles.
+ *
+ * Order then fell back to first appearance in the bundle, which put
+ * `starlight.reset` (and its `* { margin: 0 }`) after `starlight.content`.
+ * Later layers beat earlier ones regardless of specificity, so every markdown
+ * gap (`--sl-content-gap-y`) collapsed to zero on every docs page, while
+ * unlayered heading margins kept working and hid the breakage.
+ *
+ * Declared here, the statement precedes every layer block in the bundle, so
+ * lightningcss reorders them and the built CSS carries Starlight's order. Keep
+ * it first in the file, and keep every layer any docs stylesheet writes into
+ * listed here. `rapide` stays last, matching starlight-theme-rapide's own
+ * `@layer starlight, rapide;`. Guarded by
+ * `src/lib/__tests__/cascade-layer-order.test.mjs` (authoring) and
+ * `scripts/validate-layer-order.mjs` (the built output, run from `build`).
+ */
+@layer starlight.base, starlight.reset, starlight.core, starlight.content, starlight.components, starlight.utils, rapide;
+
 /* Base */
 @import './base/variables.css';
 @import './base/typography.css';

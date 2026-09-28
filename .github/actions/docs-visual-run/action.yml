@@ -1,24 +1,71 @@
-name: Docs visual tests
+name: Docs visual run
 description: >-
-  Run the docs Playwright visual suite against a base URL (the PR's Cloudflare
-  preview) and upload the report. Reused by the PR Tests pipeline; the
-  standalone docs-visual-tests.yml keeps its own copy for the workflow_dispatch
-  manual runs until the higher pipelines are reworked. The label gate is a
-  separate, earlier job in the caller — this action only runs the tests.
+  Run the docs Playwright visual suite (docs/tests/visualDocs.spec.ts, 441
+  full-page captures) against a base URL and hold it to a real baseline. The
+  golden records live in R2 under `docs/base/<branch>/`, in the bucket the core
+  suite uses, behind the same probe → compare → gate → comment →
+  environment-approval contract as visual.yml. This is the ONE implementation
+  behind docs.yml's `visual` job (mode: compare, against the pull request's
+  Cloudflare preview), docs-visual-seed.yml (mode: seed, after a staging deploy)
+  and the docs-visual-tests.yml dispatch. It replaced an actions/cache baseline
+  that never was one (DEV-2860; the probe step says why). A composite action
+  cannot read `secrets`, so the caller passes the R2 credentials as inputs.
   Requires checkout first.
 
 inputs:
   test-url:
-    description: 'Base docs URL to test (e.g. the PR preview)'
+    description: 'Base docs URL to test (the pull request preview, a staging deploy, or localhost)'
     required: true
-  update-snapshots:
-    description: 'Regenerate snapshots instead of comparing'
+  mode:
+    description: >-
+      compare: fetch the golden records under base-key, run the suite against
+      them and produce a verdict. seed: render every golden from test-url and
+      write base-key. A compare against a branch with no golden records yet
+      bootstraps them the way visual.yml's Seed step does.
     required: false
-    default: 'false'
+    default: 'compare'
+  base-key:
+    description: 'R2 prefix of the golden records, e.g. docs/base/develop'
+    required: true
+  actual-key:
+    description: 'R2 prefix this run publishes under: docs/pr-<n>/<sha> for a pull request; equal to base-key for a seed'
+    required: true
   pass-cookie:
     description: 'Auth cookie for the target docs environment'
     required: false
     default: ''
+  r2-access-key-id:
+    description: 'R2 access key id (the caller passes secrets.R2_ACCESS_KEY_ID)'
+    required: false
+    default: ''
+  r2-secret-access-key:
+    description: 'R2 secret access key (the caller passes secrets.R2_SECRET_ACCESS_KEY)'
+    required: false
+    default: ''
+  r2-account-id:
+    description: 'Cloudflare account id (the caller passes secrets.R2_ACCOUNT_ID); the S3 endpoint is https://<account>.r2.cloudflarestorage.com'
+    required: false
+    default: ''
+  report-domain:
+    description: 'Public domain the bucket is served on; the probe and the report links go through it'
+    required: false
+    default: 'visual.handsontable.com'
+  bucket:
+    description: 'R2 bucket name'
+    required: false
+    default: 'handsontable-visual'
+  run-url:
+    description: 'This workflow run, linked from the comment'
+    required: false
+    default: ''
+
+outputs:
+  verdict:
+    description: 'What the comparison found: bootstrap | error | clean | changed (compare mode only)'
+    value: ${{ steps.gate.outputs.verdict }}
+  report-url:
+    description: 'The published Playwright report, or the run URL when nothing was published'
+    value: ${{ steps.gate.outputs.report-url }}
 
 runs:
   using: composite
@@ -38,65 +85,302 @@ runs:
       shell: bash
       run: pnpm install
 
-    - name: Install Playwright browsers
+    # Chromium only: both projects in docs/playwright.config.ts use Desktop
+    # Chrome, so the firefox and webkit downloads were dead weight.
+    - name: Install the Playwright browser
       shell: bash
       working-directory: ./docs
-      run: pnpm exec playwright install --with-deps
+      run: pnpm exec playwright install --with-deps chromium
 
-    - name: Restore snapshot cache
-      id: cache
-      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
-      with:
-        key: plawyright-cache/${{ github.repository }}/${{ github.ref }}-${{ github.run_id }}
-        restore-keys: |
-          plawyright-cache/${{ github.repository }}/${{ github.ref }}
-          plawyright-cache/${{ github.repository }}/refs/heads/develop
-        path: docs/tests/test-artifacts
+    # Why a probe against R2 and not a cache. Until DEV-2860 both entry points
+    # restored the goldens from actions/cache keyed on `github.ref`, with a
+    # `refs/heads/develop` restore-key that NOTHING ever saved: develop.yml does
+    # not run this suite, and GitHub scopes a pull request's cache to that pull
+    # request. The only possible hit was the same pull request's earlier commit,
+    # so commit 2 was compared against commit 1 and never against develop
+    # (observed on PR #13440). On a miss the action ran `--update-snapshots`,
+    # wrote whatever the preview rendered as the goldens, passed, and posted
+    # nothing -- a false green by construction. The baseline is now
+    # `docs/base/<branch>/` in R2, written only by a seed, and this probe is a
+    # plain HTTPS HEAD against the public bucket, exactly as visual.yml does it.
+    - name: Check for golden records
+      shell: bash
+      env:
+        REPORT_DOMAIN: ${{ inputs.report-domain }}
+        BASE_KEY: ${{ inputs.base-key }}
+        MODE: ${{ inputs.mode }}
+      run: |
+        # Only a definite 404 means "no baseline yet". A transport failure or
+        # any other status must never be read as absence: the bootstrap path
+        # below would then render the goldens from this build and overwrite
+        # `docs/base/<branch>`, the baseline every other pull request compares
+        # against. In seed mode the answer is informational -- a seed writes the
+        # prefix regardless -- but the probe still refuses to guess.
+        code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+          --retry 3 --retry-all-errors --retry-delay 2 \
+          -L -I "https://$REPORT_DOMAIN/$BASE_KEY/out.json") || code=000
+        case "$code" in
+          2??)
+            echo "DOCS_VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
+            echo "Golden records found for $BASE_KEY."
+            ;;
+          404)
+            echo "DOCS_VISUAL_BOOTSTRAP=true" >> "$GITHUB_ENV"
+            if [ "$MODE" = "seed" ]; then
+              echo "No golden records for $BASE_KEY yet -- this seed is the first."
+            else
+              echo "No golden records for $BASE_KEY -- this build seeds them."
+            fi
+            ;;
+          *)
+            echo "::error::Could not tell whether golden records exist for $BASE_KEY (HTTP $code)."
+            echo "Refusing to guess -- seeding on a transient failure would overwrite the baseline."
+            exit 1
+            ;;
+        esac
 
-    - name: Check if cache was restored
-      id: check-cache
+    # Compare mode only. A seed renders into an empty tree on purpose: the
+    # reconcile below is `aws s3 sync --delete`, and a golden fetched here for a
+    # page since removed from paths.js would survive in the local tree, be
+    # synced straight back, and never leave the baseline.
+    #
+    # `baseline.txt` is the list of goldens that existed BEFORE the run, which
+    # the manifest adapter needs to tell a deleted golden (in the baseline,
+    # declared by no test) from a new one (declared by a test, not in the
+    # baseline). Playwright's report cannot say which files were there before it
+    # started, so the workflow records that here, between the sync and the run.
+    - name: Fetch the golden records
+      if: inputs.mode == 'compare' && env.DOCS_VISUAL_BOOTSTRAP != 'true'
+      shell: bash
+      working-directory: ./docs
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.r2-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
+        AWS_DEFAULT_REGION: auto
+        R2_ENDPOINT: https://${{ inputs.r2-account-id }}.r2.cloudflarestorage.com
+        BUCKET: ${{ inputs.bucket }}
+        BASE_KEY: ${{ inputs.base-key }}
+      run: |
+        # The bucket allows no anonymous listing, so there is no credential-free
+        # fetch. The callers keep fork and Dependabot runs away from this action
+        # (docs.yml's `preview` is fork-guarded and `visual` needs it); an empty
+        # credential here is a caller bug, named rather than left to `aws`.
+        if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+          echo "::error::No R2 credentials were passed to the docs-visual-run action, so the golden records cannot be fetched."
+          exit 1
+        fi
+
+        mkdir -p ./tests/test-artifacts/screenshots
+        aws s3 sync "s3://$BUCKET/$BASE_KEY/screenshots" ./tests/test-artifacts/screenshots \
+          --endpoint-url "$R2_ENDPOINT"
+        find ./tests/test-artifacts/screenshots -name '*.png' \
+          | sed 's#^./tests/test-artifacts/screenshots/##' | sort > ./tests/test-artifacts/baseline.txt
+        echo "$(wc -l < ./tests/test-artifacts/baseline.txt | tr -d ' ') golden records fetched for $BASE_KEY."
+
+    # Nothing came down (a bootstrap) or nothing was asked for (a seed): the
+    # adapter still expects the file, and an empty baseline is the truthful one.
+    - name: Start from an empty baseline
+      if: inputs.mode != 'compare' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
       shell: bash
       working-directory: ./docs
       run: |
-        if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
-          echo "cache-restored=true" >> $GITHUB_ENV
+        mkdir -p ./tests/test-artifacts
+        : > ./tests/test-artifacts/baseline.txt
+
+    # A failing test here is a visual difference, or a golden that does not
+    # exist yet (docs/playwright.config.ts sets `updateSnapshots: 'none'` on CI,
+    # so a missing golden fails its test instead of being written and passed).
+    # Both are what the gate reports; neither may red the job by itself, so the
+    # step continues on error and the manifest below reads the JSON report.
+    - name: Compare against the golden records
+      if: inputs.mode == 'compare' && env.DOCS_VISUAL_BOOTSTRAP != 'true'
+      shell: bash
+      working-directory: ./docs
+      continue-on-error: true
+      env:
+        BASE_URL: ${{ inputs.test-url }}
+        PASS_COOKIE: ${{ inputs.pass-cookie }}
+      run: npx playwright test --project=visual
+
+    # A seed, or the first compare against a branch with no golden records.
+    # `--update-snapshots` writes every golden the suite declares. Failures here
+    # DO fail the step -- a page that 404s or never settles must not leave a
+    # hole in the baseline that every later pull request then reports as new.
+    - name: Render the baseline
+      if: inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
+      shell: bash
+      working-directory: ./docs
+      env:
+        BASE_URL: ${{ inputs.test-url }}
+        PASS_COOKIE: ${{ inputs.pass-cookie }}
+      run: npx playwright test --project=visual --update-snapshots
+
+    # The adapter (docs/tests/lib/visual-manifest.mjs) turns Playwright's JSON
+    # report into the reg-suit `out.json` shape visual-gate.mjs already reads.
+    # A comparison writes `out.json`, the file the gate reads. A seed or a
+    # bootstrap writes `seed.json` instead: every item in a freshly rendered
+    # tree is "passing", so the same file under the gate's name would read as
+    # "all screenshots match the golden records" on the bootstrap path, where
+    # the gate runs too and must report that this build created the baseline.
+    # The seed step uploads it as `<base-key>/out.json`, the name the probe
+    # checks. `!cancelled()` rather than `always()`: a canceled job writes
+    # nothing. A missing or unparsable report exits 1 with the reason, and the
+    # gate then sees no manifest and blocks with "could not compare" -- the
+    # right verdict for a run that died.
+    - name: Write the manifest
+      if: ${{ !cancelled() }}
+      shell: bash
+      working-directory: ./docs
+      env:
+        MODE: ${{ inputs.mode }}
+        BOOTSTRAP: ${{ env.DOCS_VISUAL_BOOTSTRAP }}
+      run: |
+        if [ "$MODE" = "compare" ] && [ "$BOOTSTRAP" != "true" ]; then
+          node ./tests/scripts/visual-manifest.mjs compare \
+            ./tests/test-artifacts/report.json \
+            ./tests/test-artifacts/screenshots \
+            ./tests/test-artifacts/out.json \
+            ./tests/test-artifacts/baseline.txt
         else
-          echo "cache-restored=false" >> $GITHUB_ENV
+          node ./tests/scripts/visual-manifest.mjs seed \
+            ./tests/test-artifacts/screenshots \
+            ./tests/test-artifacts/seed.json
         fi
 
-    - name: Initialize snapshots
-      if: ${{ env.cache-restored != 'true' || inputs.update-snapshots == 'true' }}
+    # The Playwright HTML report is static (index.html plus data/*.zip) and
+    # works from the CDN over HTTPS; the comment links `<actual-key>/results/`.
+    # Same-repo runs only: a fork or Dependabot run has no credentials, and the
+    # guard is the canonical one so the set stays greppable and testable
+    # (root AGENTS.md, "fork and Dependabot pull requests").
+    #
+    # This condition carries NO status-check function, on purpose: GitHub therefore
+    # ANDs an implicit `success()` onto it, so a failed `Write the manifest` step —
+    # which is how a run with pages that never rendered ends — skips the publish
+    # rather than uploading a report of a comparison that did not happen. Do not
+    # add `!cancelled()` here "for consistency" with the verdict step below; that
+    # would publish the broken run. The verdict step wants the opposite, which is
+    # why it does carry one. (.ai/CI.md, the status-function entry.)
+    - name: Publish the report
+      if: ${{ inputs.mode == 'compare' && env.DOCS_VISUAL_BOOTSTRAP != 'true'
+        && (github.event_name != 'pull_request'
+            || (github.event.pull_request.head.repo.full_name == github.repository
+                && github.actor != 'dependabot[bot]')) }}
       shell: bash
       working-directory: ./docs
-      # PASS_COOKIE here too — the source job set it job-level, so BOTH the
-      # init (cache-miss/update) and the compare run authenticated with it.
       env:
-        PASS_COOKIE: ${{ inputs.pass-cookie }}
-      run: BASE_URL=${{ inputs.test-url }} npx playwright test --update-snapshots
+        AWS_ACCESS_KEY_ID: ${{ inputs.r2-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
+        AWS_DEFAULT_REGION: auto
+        R2_ENDPOINT: https://${{ inputs.r2-account-id }}.r2.cloudflarestorage.com
+        BUCKET: ${{ inputs.bucket }}
+        ACTUAL_KEY: ${{ inputs.actual-key }}
+      run: |
+        aws s3 cp ./tests/test-artifacts/results "s3://$BUCKET/$ACTUAL_KEY/results" \
+          --recursive --endpoint-url "$R2_ENDPOINT"
+        aws s3 cp ./tests/test-artifacts/out.json "s3://$BUCKET/$ACTUAL_KEY/out.json" \
+          --endpoint-url "$R2_ENDPOINT"
 
-    - name: Test
-      if: ${{ env.cache-restored == 'true' && inputs.update-snapshots != 'true' }}
+    # A seed reconciles: `--delete` makes the prefix exactly what this render
+    # produced, so a page removed from paths.js leaves the baseline instead of
+    # lingering as a phantom deletion on every later pull request. On a pull
+    # request this runs only for a bootstrap (no baseline existed) and only from
+    # the main repository -- the canonical fork guard, both halves. No status
+    # function: a failed render skips this step, so a seed with holes never
+    # lands.
+    - name: Seed the golden records
+      if: ${{ inputs.mode == 'seed'
+        || (env.DOCS_VISUAL_BOOTSTRAP == 'true' && github.event_name == 'pull_request'
+            && (github.event.pull_request.head.repo.full_name == github.repository
+                && github.actor != 'dependabot[bot]')) }}
       shell: bash
       working-directory: ./docs
       env:
-        PASS_COOKIE: ${{ inputs.pass-cookie }}
-      run: BASE_URL=${{ inputs.test-url }} npx playwright test
+        AWS_ACCESS_KEY_ID: ${{ inputs.r2-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.r2-secret-access-key }}
+        AWS_DEFAULT_REGION: auto
+        R2_ENDPOINT: https://${{ inputs.r2-account-id }}.r2.cloudflarestorage.com
+        BUCKET: ${{ inputs.bucket }}
+        BASE_KEY: ${{ inputs.base-key }}
+      run: |
+        # Same refusal as visual.yml's Seed step. A blank manifest would make
+        # the probe return 200 forever, and every later pull request would then
+        # compare against nothing and report every page as new.
+        if [ ! -f ./tests/test-artifacts/seed.json ]; then
+          echo "::error::The render produced no manifest; there is nothing to seed."
+          exit 1
+        fi
 
-    - name: Save snapshot cache
-      if: ${{ !cancelled() && (env.cache-restored != 'true' || inputs.update-snapshots == 'true') }}
-      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
-      with:
-        key: plawyright-cache/${{ github.repository }}/${{ github.ref }}-${{ github.run_id }}
-        path: docs/tests/test-artifacts
+        rendered=$(jq '.actualItems | length' ./tests/test-artifacts/seed.json)
+
+        if [ "$rendered" = "0" ]; then
+          echo "::error::The render produced no screenshots; refusing to seed an empty baseline."
+          echo "Syncing with --delete here would erase every golden under $BASE_KEY."
+          exit 1
+        fi
+
+        aws s3 sync ./tests/test-artifacts/screenshots "s3://$BUCKET/$BASE_KEY/screenshots" \
+          --delete --endpoint-url "$R2_ENDPOINT"
+        aws s3 cp ./tests/test-artifacts/seed.json "s3://$BUCKET/$BASE_KEY/out.json" \
+          --endpoint-url "$R2_ENDPOINT"
+        echo "Seeded $rendered golden records under $BASE_KEY."
+
+    # The core suite's gate, pointed at this tree through the variables its
+    # header documents: it reads `out.json`, writes `comment.md` beside it, and
+    # exports `verdict=` and `report-url=` for the caller's approve job. It
+    # blocks only when it cannot tell what the visual state is; differences are
+    # the `changed` verdict, which docs.yml holds on the `docs-visual-approval`
+    # environment. `!cancelled()`, not the implicit `success()`: after an
+    # earlier failure the comment must still be rewritten, or the sticky
+    # comment keeps showing the previous push's verdict.
+    - name: Docs visual verdict
+      id: gate
+      if: ${{ !cancelled() && inputs.mode == 'compare' }}
+      shell: bash
+      working-directory: ./docs
+      env:
+        VISUAL_GATE_DIR: ./tests/test-artifacts
+        VISUAL_GATE_TITLE: Docs visual tests
+        VISUAL_GATE_ENVIRONMENT: docs-visual-approval
+        VISUAL_GATE_ARTIFACT: docs-visual-report
+        VISUAL_GATE_REPORT_PATH: results/index.html
+        VISUAL_REPORT_DOMAIN: ${{ inputs.report-domain }}
+        REG_ACTUAL_KEY: ${{ inputs.actual-key }}
+        VISUAL_BOOTSTRAP: ${{ env.DOCS_VISUAL_BOOTSTRAP }}
+        VISUAL_RUN_URL: ${{ inputs.run-url }}
+        # Mirrors the publish and seed guards above: a fork or Dependabot run
+        # publishes nothing and seeds nothing, so the comment must not link a
+        # report that was never uploaded.
+        IS_UNTRUSTED: ${{ github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name != github.repository
+              || github.actor == 'dependabot[bot]') }}
+      run: |
+        if [ "$IS_UNTRUSTED" = "true" ]; then
+          export VISUAL_PUBLISHED=false VISUAL_SEEDED=false
+        else
+          export VISUAL_PUBLISHED=true VISUAL_SEEDED=true
+        fi
+
+        node ../visual-tests/scripts/visual-gate.mjs
+
+    # Needs no token, so it is readable on every run -- root AGENTS.md:
+    # "Withheld content goes to $GITHUB_STEP_SUMMARY".
+    - name: Mirror the verdict to the job summary
+      if: ${{ !cancelled() && inputs.mode == 'compare' }}
+      shell: bash
+      working-directory: ./docs
+      run: cat ./tests/test-artifacts/comment.md >> "$GITHUB_STEP_SUMMARY" || true
 
     - name: Upload test report
-      if: always()
+      if: ${{ !cancelled() }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
       with:
         # Not "playwright-report" — that name is taken by the e2e failure
         # artifact when running inside the Tests pipeline (names are immutable
-        # per run).
+        # per run). `output/` carries the actual and diff PNGs of the failed
+        # comparisons, which the HTML report references.
         name: docs-visual-report
-        path: ./docs/tests/test-artifacts/results
+        path: |
+          ./docs/tests/test-artifacts/results
+          ./docs/tests/test-artifacts/output
         retention-days: 30
         overwrite: true

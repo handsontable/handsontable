@@ -85,7 +85,7 @@ registerConflict('dataProvider', [
  *
  * @typedef {object} DataProviderFilterColumn
  * @property {string} prop Column data key.
- * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as [[Filters#exportConditions]]).
+ * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as {@link Filters#exportConditions}).
  * @property {Array<DataProviderFilterCondition>} conditions Filter conditions (same shape as Filters `exportConditions`).
  */
 
@@ -179,6 +179,17 @@ export interface DataProviderConfig {
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
   onRowsRemove?: (payload: unknown[]) => Promise<void>;
+  /**
+   * Whether a successful `onRowsCreate` is followed by an automatic `fetchRows` refetch of the current query.
+   * Set to `false` to apply the server response yourself (for example inside `onRowsCreate`), which keeps a new
+   * row visible on the current page when the grid is sorted. Defaults to `true`.
+   *
+   * With Pagination enabled, a skipped refetch leaves the row total and the page count stale until the next
+   * `fetchRows` call; reconcile them yourself. When a `fetchRows` request is still in flight when the create
+   * finishes (for example a sort or filter change made just before the insert), the plugin refetches anyway, so
+   * the pending response cannot overwrite the rows you applied.
+   */
+  refetchAfterCreate?: boolean;
 }
 
 export {
@@ -191,14 +202,15 @@ export {
  * @class DataProvider
  *
  * @description
- * A truthy [[Options#dataProvider]] value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`) is validated like other plugin options.
- * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the [[Hooks#hasExternalDataSource]] hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
+ * A truthy {@link Options#dataProvider} value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`, and the optional `refetchAfterCreate`) is validated like other plugin options.
+ * When the object is a **complete** server-backed configuration (the five required keys `rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` present and valid; `refetchAfterCreate` is optional), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the {@link Hooks#hasExternalDataSource} hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
  * If required callbacks are missing or invalid, `fetchRows` and the affected mutation paths no-op until the configuration is valid.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
- * When the [[Options#notification]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
+ * After a successful `onRowsCreate`, the plugin refetches the current query; set `refetchAfterCreate: false` to skip that refetch and apply the server response yourself. The refetch still runs when another `fetchRows` request is in flight at that moment, so its late response cannot drop the rows you applied.
+ * When the {@link Options#notification} plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
  *
  * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
- * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
+ * Use {@link Options#columnSorting} for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
 export class DataProvider extends BasePlugin {
   /**
@@ -318,7 +330,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Disables the plugin, aborts fetch, resets query state.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
-   * The constructor registers [[Hooks#hasExternalDataSource]] for the period before the first `enablePlugin()`;
+   * The constructor registers {@link Hooks#hasExternalDataSource} for the period before the first `enablePlugin()`;
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
@@ -347,7 +359,7 @@ export class DataProvider extends BasePlugin {
    * Fetches rows from `fetchRows` with current or overridden query parameters.
    *
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
-   * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); [[Hooks#beforeDataProviderFetch]] receives it, and it is not passed to `fetchRows`.
+   * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); {@link Hooks#beforeDataProviderFetch} receives it, and it is not passed to `fetchRows`.
    * Numeric `page` is clamped to at least 1.
    * When the response `totalRows` implies fewer pages than the requested `page`, fetches again at the last valid page without applying the out-of-range result (avoids redundant `afterPageChange` loads and aborted duplicate requests after row removal on the last page).
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
@@ -450,6 +462,11 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Server create via `onRowsCreate`. Use `rowsAmount` to insert more than one row in one call.
+   * After a successful `onRowsCreate`, refetches the current query unless `refetchAfterCreate` is `false`;
+   * {@link Hooks#afterRowsMutation} fires in both cases. With the refetch off, a `fetchRows` request that is
+   * still in flight when the create finishes (a sort or filter change made just before) would otherwise resolve
+   * later and `loadData()` the rows `onRowsCreate` applied out of the grid, so that one case refetches anyway
+   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}).
    *
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
@@ -473,6 +490,10 @@ export class DataProvider extends BasePlugin {
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
+        if (!this.#shouldRefetchAfterCreate() && !this.#hasFetchInFlight()) {
+          return;
+        }
+
         await this.fetchData({ skipLoading: true });
       }
     );
@@ -594,6 +615,28 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Whether `createRows()` refetches after a successful `onRowsCreate`. Reads the raw config so it follows the
+   * current `dataProvider` object after `updateSettings()` (a key omitted later means "default" again). Any value
+   * other than `false` means refetch; a non-boolean value is warned about by `BasePlugin#updatePluginSettings`.
+   *
+   * @returns {boolean}
+   */
+  #shouldRefetchAfterCreate(): boolean {
+    return this.#getConfig()?.refetchAfterCreate !== false;
+  }
+
+  /**
+   * Whether a `fetchRows` request started by {@link DataProvider#fetchData} has not settled yet. The controller is
+   * created when the request starts and cleared in `fetchData`'s `finally`, so a non-null controller is exactly
+   * "a response can still arrive and call `loadData()`".
+   *
+   * @returns {boolean}
+   */
+  #hasFetchInFlight(): boolean {
+    return this.#abortController !== null;
+  }
+
+  /**
    * @returns {Function|undefined}
    */
   #getOnRowsUpdate(): ((payload: object[]) => Promise<void>) | undefined {
@@ -661,7 +704,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Merges overrides into `#queryParameters` and normalizes sort / page for `fetchRows`.
    *
-   * @param {object} overrides Partial query overrides (subset of [[DataProviderQueryParameters]] keys).
+   * @param {object} overrides Partial query overrides (subset of `DataProviderQueryParameters` keys).
    * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
   #mergeAndNormalizeFetchParams(overrides: DataProviderFetchDataOverrides): DataProviderBeforeFetchParameters {
@@ -723,8 +766,8 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Shows an error toast in the [[Options#notification]] plugin when it is enabled.
-   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls [[DataProvider#fetchData]] again.
+   * Shows an error toast in the {@link Options#notification} plugin when it is enabled.
+   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls {@link DataProvider#fetchData} again.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
@@ -823,13 +866,13 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Runs [[#fetchData]] for internal fire-and-forget refetches (initial load, `updatePlugin`, sort, filter, and the
-   * Refetch notification action). [[#fetchData]] already surfaces the failure – it fires
-   * [[Hooks#afterDataProviderFetchError]] and shows the error notification – before rethrowing for its public callers,
+   * Runs {@link DataProvider#fetchData} for internal fire-and-forget refetches (initial load, `updatePlugin`, sort, filter, and the
+   * Refetch notification action). {@link DataProvider#fetchData} already surfaces the failure – it fires
+   * {@link Hooks#afterDataProviderFetchError} and shows the error notification – before rethrowing for its public callers,
    * so here the rejection is only logged and settled. Without this, `fetchRows` failures reach the page as
    * `unhandledrejection` events.
    *
-   * @param {object} [overrides] Partial query overrides passed to [[#fetchData]].
+   * @param {object} [overrides] Partial query overrides passed to {@link DataProvider#fetchData}.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Resolves to `null` when the fetch fails.
    */
   #fetchDataSilently(
@@ -843,7 +886,7 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
+   * Default handler for {@link Hooks#hasExternalDataSource}: `true` when this instance has a complete server-backed
    * `dataProvider` configuration. Registered in the constructor (early lifecycle) and in `enablePlugin()` after each
    * `disablePlugin()` clears `addHook` listeners.
    *
@@ -905,7 +948,7 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Intercepts filter action when `fetchRows` is set: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
-   * Without `fetchRows`, returns nothing so Filters run client-side trimming (same guard pattern as [[#onBeforeColumnSort]]).
+   * Without `fetchRows`, returns nothing so Filters run client-side trimming (same guard pattern as `#onBeforeColumnSort()`).
    *
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
@@ -955,7 +998,7 @@ export class DataProvider extends BasePlugin {
    *
    * @param {Array} doneActionsCopy Snapshot of the undo stack before the new action.
    * @param {string} [source] Change source for the action being pushed onto the stack.
-   * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
+   * @returns {boolean|void} Return `false` to block stacking (see {@link Hooks#beforeUndoStackChange}).
    */
   readonly #onBeforeUndoStackChange = (doneActionsCopy: unknown[], source: string | undefined) => {
     if (!isFunction(this.#getOnRowsUpdate())) {

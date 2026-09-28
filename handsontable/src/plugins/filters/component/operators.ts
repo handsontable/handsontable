@@ -28,10 +28,13 @@ export class OperatorsComponent extends BaseComponent {
   /**
    * Initializes the operators component with the given ID and display name, and builds the operators UI element.
    */
-  constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
+  constructor(hotInstance: HotInstance, options: {
+    id: string; name: string; hiddenWhen?: (() => boolean);
+  }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
@@ -50,7 +53,7 @@ export class OperatorsComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement) => {
         if (isHTMLElement(wrapper.parentNode)) {
           addClass(wrapper.parentNode, 'htFiltersMenuOperators');

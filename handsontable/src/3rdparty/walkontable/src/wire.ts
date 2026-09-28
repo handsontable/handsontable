@@ -37,7 +37,7 @@ export interface EngineContext {
   // The DOM roots, flattened (there is no `domBindings` bag). `rootElement` is intentionally omitted:
   // it is assigned later by TableView and is never read inside the engine.
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
   // The sizing ports — the seam between the engine and whoever supplies row heights / column widths.

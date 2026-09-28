@@ -7,7 +7,12 @@ import type { SettingsPort } from '../ports';
  *
  * @property {Option} facade @todo desc.
  * @property {Option} ariaTags Option `ariaTags`.
+ * @property {Option} guid Option `guid` - the host instance's unique id, used to build the
+ *                         per-grid `id` on column headers that data cells reference through
+ *                         `aria-describedby` so a screen reader announces the header with the cell.
  * @property {Option} cellRenderer Option `cellRenderer`.
+ * @property {Option} shouldPaintCell Option `shouldPaintCell` - asked before a cell element is reset and
+ *                                    painted; answering `false` leaves the element exactly as it is.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
  * @property {Option} currentRowClassName Option `currentRowClassName`.
@@ -26,13 +31,21 @@ import type { SettingsPort } from '../ports';
  * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
  * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
  * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
+ * @property {Option} renderEpoch Option `renderEpoch` - a number the host advances on every structural
+ *                                change (index remap, data or settings reload); the selection scan cache
+ *                                keys on it.
  * @property {Option} preventOverflow Option `preventOverflow`.
+ * @property {Option} layoutReservedHeight Option `layoutReservedHeight`.
+ * @property {Option} heightFollowsContent Option `heightFollowsContent` - `true` when the host asked
+ *                                         for the grid's height to follow its content, so a vertical
+ *                                         owner with no height of its own leaves the holder at `auto`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeightOption `rowHeight`.
  * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
+ * @property {Option} rowHeightMode Option `rowHeightMode`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -117,6 +130,15 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
       return false;
     },
     preventWheel: false,
+    // Height the host keeps for its own UI inside the VERTICAL axis owner: the root wrapper's top and
+    // bottom layout slots (pagination bar, sheets bar, license notification). Called with the
+    // resolved owner; only slots that owner CONTAINS count, so a root element that owns the axis
+    // itself (an explicit `height`) reserves nothing there. Engine default: no host UI.
+    layoutReservedHeight: () => 0,
+    // Whether the host sized the grid by its content (Handsontable's `height: 'auto'`). A single
+    // owner with no height of its own is then content-driven like the window, so the holder keeps
+    // `height: auto` instead of collapsing to that owner's 0px. Engine default: not requested.
+    heightFollowsContent: false,
 
     // data source
     data: undefined,
@@ -151,6 +173,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     },
     totalRows: undefined,
     totalColumns: undefined,
+    shouldPaintCell: () => true,
     cellRenderer: (row: number, column: number, TD: HTMLTableCellElement) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const cellData = settings.getSetting('data', row, column);
@@ -168,6 +191,11 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     rowHeightByOverlayName() {
       // return undefined means use default size for the rendered cell content
     },
+    // How a provided row height is honored, per row. `'min'` keeps it as a floor the content may
+    // grow past (the historical behavior); `'exact'` renders the row at exactly that height and
+    // clips taller content. A host supplies a function of the source row index; the default is a
+    // literal so the (per row, per draw) read costs nothing when the mode is not in use.
+    rowHeightMode: 'min',
     rowHeightsUniform() {
       // return true only when every row is guaranteed the default height (enables the
       // PositionCache arithmetic fast path). Conservative default: false.
@@ -208,6 +236,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     beforeDraw: null,
     onDraw: null,
     onBeforeRemoveCellClassNames: null,
+    renderEpoch: 0,
     onAfterDrawSelection: null,
     onBeforeDrawBorders: null,
     // viewport scroll hooks
@@ -237,6 +266,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     headerClassName: null,
     rtlMode: false,
     ariaTags: true,
+    guid: '',
     stylesHandler: null,
   };
 }

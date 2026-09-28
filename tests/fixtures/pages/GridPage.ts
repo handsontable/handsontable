@@ -125,4 +125,12 @@ export class GridPage {
   async clipboardText(): Promise<string> {
     return this.page.evaluate(() => navigator.clipboard.readText());
   }
+
+  /**
+   * How many times the plugin ran a paste to completion, counted through `afterPaste` (fixture
+   * probe). One Ctrl+V must produce exactly one, however many listeners saw the event.
+   */
+  async pasteHookCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as any).__pasteHookCalls);
+  }
 }

@@ -90,7 +90,7 @@ export class OverlaysPage {
     await this.page
       // eslint-disable-next-line no-undef
       .waitForFunction(() => document.querySelectorAll('.htScrollbarClearanceFiller').length === 0,
-        undefined, { timeout: 5000 })
+        undefined, { timeout: 5000, polling: 100 })
       .catch(() => {
         throw new Error('the scrollbar track never faded, so a press near the grid edge would land in it');
       });

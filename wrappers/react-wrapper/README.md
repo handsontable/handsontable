@@ -13,7 +13,7 @@
 
   <p>With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
-<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://forum.handsontable.com/">Community</a>
 
   <br>
 
@@ -56,6 +56,11 @@
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/react-data-grid/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/react-data-grid/context-menu/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/react-data-grid/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/react-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/react-data-grid/notification/) <br>
+&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/react-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/react-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/react-data-grid/shadow-dom/) <br>
 
 <div id="installation">
 
@@ -181,12 +186,20 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 <br>
 
+## 🤖 AI & agent resources
+
+Working with an AI assistant or coding agent? Handsontable and HyperFormula ship first-party agent resources:
+
+- **Agent Skills** — install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills` → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **Docs MCP server** — live semantic search over the docs, API reference, release notes, and GitHub issues: `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp` → [guide](https://handsontable.com/docs/react-data-grid/docs-mcp-server/)
+- **Docs written for agents** — every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt)
+
 ## 🛟 Support
 
 **We're here to help!**
 
 If you're using Handsontable with a free, non-commercial license, you can:
-- Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
+- Get quick help from our [**Ask AI** assistant](https://handsontable.com/docs/react-data-grid/ai-docs-assistant/) available in the documentation.
 - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
 - Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
 
@@ -211,7 +224,7 @@ For commercial use, a paid license is required. This license includes support an
 
 For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
 
-If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/react-data-grid/license-key/).
 
 <br>
 
@@ -226,4 +239,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2025 Handsoncode
+© 2012 - 2026 Handsoncode

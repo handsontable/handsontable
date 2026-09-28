@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column sorting comparator running twice when `columnSorting` (or `multiColumnSorting`) is enabled via `updateSettings`.",
+  "type": "fixed",
+  "issueOrPR": 13608,
+  "breaking": false,
+  "framework": "none"
+}

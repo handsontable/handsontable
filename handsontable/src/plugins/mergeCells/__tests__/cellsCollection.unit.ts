@@ -21,6 +21,8 @@ describe('MergeCells', () => {
     const hotMock = {
       render: () => {
       },
+      markAllCellsChanged: () => {
+      },
       countCols: () => 100,
       countRows: () => 100,
       _createCellCoords: (row, column) => new CellCoords(row, column),
@@ -817,12 +819,18 @@ describe('MergeCells', () => {
        *
        */
       function createHot(physicalToVisual) {
+        const visualToPhysical = new Map();
+
+        physicalToVisual.forEach((visual, physical) => {
+          visualToPhysical.set(visual, physical);
+        });
+
         return {
           ...hotMock,
           toVisualColumn: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
-          toPhysicalColumn: visual => visual,
+          toPhysicalColumn: visual => (visualToPhysical.has(visual) ? visualToPhysical.get(visual) : -1),
           toVisualRow: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
-          toPhysicalRow: visual => visual,
+          toPhysicalRow: visual => (visualToPhysical.has(visual) ? visualToPhysical.get(visual) : -1),
         };
       }
 
@@ -885,6 +893,68 @@ describe('MergeCells', () => {
         expect(collection.mergedCells.length).toBe(0);
       });
 
+      it('should keep a single-cell fragment whose physical index the caller retained', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 5], [3, 1]])),
+        });
+
+        collection.add({ row: 2, col: 0, rowspan: 2, colspan: 1 });
+
+        const merge = collection.mergedCells[0];
+        const snapshot = new Map([[merge, [2, 3]]]);
+        const retained = new Map([[merge, new Set([2])]]);
+
+        collection.translateAfterAxisMove('row', snapshot, retained);
+
+        expect(collection.mergedCells.length).toBe(1);
+        expect(collection.mergedCells[0].row).toBe(5);
+        expect(collection.mergedCells[0].rowspan).toBe(1);
+        expect(collection.mergedCells[0].colspan).toBe(1);
+      });
+
+      it('should not let one merge\'s retained index keep another merge\'s single-cell fragment', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 5], [3, 1]])),
+        });
+
+        // both merges cover physical rows 2 and 3, in different columns, so a retained index shared
+        // between them would keep a fragment of the merge that retained nothing
+        collection.add({ row: 2, col: 0, rowspan: 2, colspan: 1 });
+        collection.add({ row: 2, col: 2, rowspan: 2, colspan: 1 });
+
+        const [notRetaining, retaining] = collection.mergedCells;
+        const snapshot = new Map([[notRetaining, [2, 3]], [retaining, [2, 3]]]);
+        const retained = new Map([[retaining, new Set([2])]]);
+
+        collection.translateAfterAxisMove('row', snapshot, retained);
+
+        expect(collection.mergedCells.length).toBe(1);
+        expect(collection.mergedCells[0].col).toBe(2);
+        expect(collection.mergedCells[0].row).toBe(5);
+      });
+
+      it('should keep a single-cell fragment on the column axis whose physical column the caller retained', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[0, 0], [1, 4], [2, 1], [3, 2], [4, 3]])),
+        });
+
+        // the merge is already `rowspan: 1` (its other rows are trimmed) and spans physical columns
+        // 1,2,3; physical 1 leaves the block, so it comes out as a single cell and must be retained
+        collection.add({ row: 2, col: 1, rowspan: 1, colspan: 3 });
+
+        const merge = collection.mergedCells[0];
+        const snapshot = new Map([[merge, [1, 2, 3]]]);
+        const retained = new Map([[merge, new Set([1, 2, 3])]]);
+
+        collection.translateAfterAxisMove('column', snapshot, retained);
+
+        expect(collection.mergedCells.map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan })))
+          .toEqual([
+            { row: 2, col: 1, rowspan: 1, colspan: 2 },
+            { row: 2, col: 4, rowspan: 1, colspan: 1 },
+          ]);
+      });
+
       it('should drop a merge whose physical indexes are all unmapped', () => {
         const collection = new MergedCellsCollection({
           hot: createHot(new Map()),
@@ -944,6 +1014,50 @@ describe('MergeCells', () => {
         expect(collection.get(0, 3)).toBe(mergeA);
       });
 
+      it('should shrink the footprint when the relocation carries a smaller row span', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 3, colspan: 2 }); // (0,0)-(2,1)
+
+        // two of the merge's three rows were trimmed away
+        collection.relocateInMatrix([{ mergedCell: merge, row: 0, col: 0, rowspan: 1 }]);
+
+        expect(merge.rowspan).toBe(1);
+        expect(collection.get(0, 0)).toBe(merge);
+
+        // the rows the merge no longer occupies are free for whatever surfaces there
+        expect(collection.get(1, 0)).toBe(false);
+        expect(collection.get(2, 0)).toBe(false);
+      });
+
+      it('should grow the footprint when the relocation carries a larger row span', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 1, colspan: 2 });
+
+        // the trimmed rows became visible again
+        collection.relocateInMatrix([{ mergedCell: merge, row: 0, col: 0, rowspan: 3 }]);
+
+        expect(merge.rowspan).toBe(3);
+        expect(collection.get(1, 1)).toBe(merge);
+        expect(collection.get(2, 1)).toBe(merge);
+      });
+
+      it('should not let a shrinking merge leave a footprint on top of the merge below it', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 3, colspan: 1 }); // (0,0)-(2,0)
+        const mergeB = collection.add({ row: 3, col: 0, rowspan: 3, colspan: 1 }); // (3,0)-(5,0)
+
+        // A's last two rows were trimmed away, so B moves up into the space they occupied
+        collection.relocateInMatrix([
+          { mergedCell: mergeA, row: 0, col: 0, rowspan: 1 },
+          { mergedCell: mergeB, row: 1, col: 0, rowspan: 3 },
+        ]);
+
+        expect(collection.get(0, 0)).toBe(mergeA);
+        expect(collection.get(1, 0)).toBe(mergeB);
+        expect(collection.get(2, 0)).toBe(mergeB);
+        expect(collection.get(3, 0)).toBe(mergeB);
+      });
+
       it('should leave the matrix unchanged for an empty relocation list', () => {
         const collection = new MergedCellsCollection({ hot: hotMock });
         const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
@@ -985,6 +1099,48 @@ describe('MergeCells', () => {
 
         expect(collection.get(0, 0)).toBe(merge);
         expect(collection.get(1, 1)).toBe(merge);
+      });
+    });
+
+    describe('`dropMerges` method', () => {
+      it('should drop the merges from both the list and the lookup matrix', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+        const mergeB = collection.add({ row: 5, col: 5, rowspan: 2, colspan: 2 });
+
+        collection.dropMerges([mergeA]);
+
+        expect(collection.mergedCells).toEqual([mergeB]);
+        expect(collection.get(0, 0)).toBe(false);
+        expect(collection.get(1, 1)).toBe(false);
+        expect(collection.get(5, 5)).toBe(mergeB);
+      });
+
+      it('should drop a merge already purged from the matrix, and one whose coordinates match nothing', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const purged = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+        const survivor = collection.add({ row: 5, col: 5, rowspan: 2, colspan: 2 });
+
+        collection.removeFromMatrix([purged]);
+
+        // the merge kept the stale coordinates it was purged with, and another merge has since taken
+        // the slot they name — dropping by identity must not touch that one
+        purged.row = 5;
+        purged.col = 5;
+
+        collection.dropMerges([purged]);
+
+        expect(collection.mergedCells).toEqual([survivor]);
+      });
+
+      it('should ignore a merge that is not in the list', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+
+        collection.dropMerges([createMergedCell(5, 5, 2, 2)]);
+
+        expect(collection.mergedCells).toEqual([merge]);
+        expect(collection.get(0, 0)).toBe(merge);
       });
     });
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the first column rendering 1px narrower than the other columns when row headers are enabled, and the row header growing by 1px when the grid was scrolled horizontally.",
+  "type": "fixed",
+  "issueOrPR": 6673,
+  "breaking": false,
+  "framework": "none"
+}

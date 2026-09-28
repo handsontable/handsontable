@@ -113,8 +113,24 @@ export class AppComponent implements OnInit {
                   }, 0);
                 },
               },
-              { key: 'colors:green', name: 'Green' },
-              { key: 'colors:blue', name: 'Blue' },
+              {
+                key: 'colors:green',
+                name: 'Green',
+                callback() {
+                  setTimeout(() => {
+                    alert('You clicked green!');
+                  }, 0);
+                },
+              },
+              {
+                key: 'colors:blue',
+                name: 'Blue',
+                callback() {
+                  setTimeout(() => {
+                    alert('You clicked blue!');
+                  }, 0);
+                },
+              },
             ],
           },
         },

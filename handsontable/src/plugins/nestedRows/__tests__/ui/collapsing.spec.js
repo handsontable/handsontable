@@ -683,17 +683,16 @@ describe('NestedRows Collapsing UI', () => {
         nestedRows: true
       });
 
-      const rowsBefore = countRows();
-
       await updateSettings({ nestedRows: false });
 
       const plugin = getPlugin('nestedRows');
+
+      expect(countRows()).toBe(3);
 
       // `disablePlugin` unregisters the trimming map, so the write is dropped without an error.
       expect(plugin.collapseParent(0)).toBe(false);
       expect(plugin.getCollapsedParents()).toEqual([]);
       expect(plugin.getRowLevel(0)).toBe(null);
-      expect(countRows()).toBe(rowsBefore);
     });
 
     it('should keep the collapsed rows collapsed after updateSettings', async() => {

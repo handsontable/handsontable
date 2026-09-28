@@ -31,8 +31,10 @@ describe('built-in plugins', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ImportFile',
       'Filters',
       'Formulas',
+      'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',
@@ -44,6 +46,7 @@ describe('built-in plugins', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);

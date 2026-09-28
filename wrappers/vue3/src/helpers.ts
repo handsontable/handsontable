@@ -98,7 +98,7 @@ export function filterPassedProps(props) {
 export function prepareSettings(props: HotTableProps, currentSettings?: Handsontable.GridSettings): HotTableProps {
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
-  const additionalHotSettingsInProps: Handsontable.GridSettings = props.settings ? assignedProps : null;
+  const additionalHotSettingsInProps: Handsontable.GridSettings | null = props.settings ? assignedProps : null;
   const initOnlySettingKeys: string[] =
     (currentSettings as any)?._initOnlySettings || [];
   const newSettings: Handsontable.GridSettings = {};

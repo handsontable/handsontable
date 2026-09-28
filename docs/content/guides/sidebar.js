@@ -24,6 +24,7 @@ const aiToolsItems = [
   { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
   { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
   { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+  { path: 'guides/ai-tools/docs-mcp-server/docs-mcp-server' },
 ];
 
 const stylingItems = [
@@ -47,6 +48,7 @@ const dataManagementItems = [
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },
@@ -83,10 +85,12 @@ const rowsItems = [
 
 const cellFeaturesItems = [
   { path: 'guides/cell-features/selection/selection' },
+  { path: 'guides/cell-features/move-cells/move-cells' },
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
   { path: 'guides/cell-features/read-only-cells/read-only-cells' },
+  { path: 'guides/cell-features/clickable-links/clickable-links' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -142,6 +146,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },
   { path: 'guides/accessories-and-menus/layout-slots/layout-slots' },
+  { path: 'guides/accessories-and-menus/sheets-bar/sheets-bar' },
 ];
 
 const internationalizationItems = [
@@ -162,6 +167,7 @@ const buildingAndToolingItems = [
 ];
 
 const optimizationItems = [
+  { path: 'guides/optimization/rendering/rendering' },
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
@@ -203,8 +209,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
-  { path: 'guides/upgrade-and-migration/migrating-from-18.2-to-19.0/migrating-from-18.2-to-19.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-18.2/migrating-from-18.1-to-18.2' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },

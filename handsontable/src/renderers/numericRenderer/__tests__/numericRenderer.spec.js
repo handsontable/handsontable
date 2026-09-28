@@ -40,15 +40,16 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
   });
 
-  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', async() => {
+  it('should render the cell with "dir" attribute set as "ltr" even when the value is not of a numeric-like type ' +
+    '(the cell is still configured as numeric, DEV-135)', async() => {
     handsontable({
       data: [['1z', 'z', true]],
       renderer: 'numeric'
     });
 
-    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
-    expect(getCell(0, 1).getAttribute('dir')).toBeNull();
-    expect(getCell(0, 2).getAttribute('dir')).toBeNull();
+    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 1).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
   });
 
   it('should add class names `htNumeric` and `htRight` to the cell if it is a number', async() => {
@@ -69,13 +70,33 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('htRight htNumeric');
   });
 
-  it('should not add class name `htNumeric` to the cell if it is string (text)', async() => {
+  it('should add class names `htNumeric` and `htRight` to the cell even if it is string (text), because the ' +
+    'cell is configured as numeric (DEV-135)', async() => {
     handsontable({
       data: [['abc']],
       renderer: 'numeric',
     });
 
-    expect(getCell(0, 0).className).toEqual('');
+    expect(getCell(0, 0).className).toEqual('htRight htNumeric');
+  });
+
+  it('should add class names `htNumeric` and `htRight`, and set "dir" to "ltr", for a `type: \'numeric\'` cell ' +
+    'holding a non-numeric value, without needing `validateCells()` (DEV-135)', async() => {
+    handsontable({
+      data: [[null, undefined, 'abc']],
+      columns: [
+        { type: 'numeric' },
+        { type: 'numeric' },
+        { type: 'numeric' },
+      ],
+    });
+
+    expect(getCell(0, 0).className).toEqual('htRight htNumeric');
+    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 1).className).toEqual('htRight htNumeric');
+    expect(getCell(0, 1).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 2).className).toEqual('htRight htNumeric');
+    expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
   });
 
   it('should add class name `htDimmed` to the cell', async() => {

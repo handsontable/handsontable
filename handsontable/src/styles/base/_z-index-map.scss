@@ -4,15 +4,14 @@
 // 101–119 is reserved for selection affordances drawn inside an overlay: the moveCells bands (100,
 // inlined by `border.ts`), the autofill fill handle (110) and the selection resize handles (115),
 // all in `components/core/_selection.scss`.
-// Nothing in that group may reach 120. `.ht_master` declares no z-index, so it opens no stacking
-// context and its children compete directly with the clone values below — an affordance at 120 or
-// above paints over a frozen pane its cell has scrolled under, and wins hit-testing there. The
-// frozen overlays draw their own copy of every affordance, so none of them needs to outrank a clone
-// to be visible inside a pane.
+// The master table starts a stacking context at 0, so its descendants stay below the frozen
+// overlays even when the browser promotes its scroll holder to a composited layer. The frozen
+// overlays draw their own copy of every affordance.
 // The clone values are declared twice: here, and in
 // `handsontable/src/3rdparty/walkontable/css/walkontable.scss`. Keep both in sync.
 
 $z-indexes: (
+  "ht_master": 0,
   "ht_clone_master": 100,
   "ht_clone_inline_start": 120,
   "ht_clone_bottom": 130,

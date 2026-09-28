@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a menu item callback that throws, or that closes the menu while it opens, leaving the grid unusable for the rest of the page.",
+  "type": "fixed",
+  "issueOrPR": 13503,
+  "breaking": false,
+  "framework": "none"
+}

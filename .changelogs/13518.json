@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the documented firing rule for the row and column removal hooks, which fire once per run of neighboring indexes.",
+  "type": "fixed",
+  "issueOrPR": 13518,
+  "breaking": false,
+  "framework": "none"
+}

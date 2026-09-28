@@ -31,6 +31,13 @@ describe('normalizeFormula', () => {
     });
   });
 
+  describe('open references', () => {
+    it('should shift a whole-column reference by the column offset only', () => {
+      expect(normalizeFormula('=SUM(A:A)', ',', 1, 1)).toBe('SUM(B:B)');
+      expect(normalizeFormula('=SUM(2:2)', ',', 1, 1)).toBe('SUM(3:3)');
+    });
+  });
+
   describe('string literals', () => {
     it('should not offset cell-reference-like patterns inside double-quoted string literals', () => {
       // The "See A1" string constant must stay unchanged; only the A1 reference in the condition is shifted.
@@ -41,9 +48,12 @@ describe('normalizeFormula', () => {
       expect(normalizeFormula('=IF(A1>0,"A1=""yes""","no")', ',', 1, 0)).toBe('IF(A2>0,"A1=""yes""","no")');
     });
 
-    it('should not offset cell-reference-like patterns inside single-quoted sheet name references', () => {
-      // Single-quoted tokens are sheet names (e.g. 'Sheet A1'!B2); the name must stay unchanged.
-      expect(normalizeFormula('=\'Sheet A1\'!B2', ',', 1, 1)).toBe('\'Sheet A1\'!C3');
+    it('should not offset a qualified reference, its sheet name or its cell part', () => {
+      // The header band is prepended to the exported sheet only; a reference that names another
+      // sheet (quoted or bare) points at cells the export never moved.
+      expect(normalizeFormula('=\'Sheet A1\'!B2', ',', 1, 1)).toBe('\'Sheet A1\'!B2');
+      expect(normalizeFormula('=Rates!A1+A1', ',', 1, 1)).toBe('Rates!A1+B2');
+      expect(normalizeFormula('=SUM(Rates!$A$1:$A$3)', ',', 1, 1)).toBe('SUM(Rates!$A$1:$A$3)');
     });
   });
 

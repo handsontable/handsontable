@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a shortened `columns` array, sent together with `data`, rendering and validating a column with the previous column's settings.",
+  "type": "fixed",
+  "issueOrPR": 5543,
+  "breaking": false,
+  "framework": "none"
+}

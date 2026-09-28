@@ -21,6 +21,14 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+
+    // How a clipboard event reaches the grid. `lws-shape` stands in for the two things
+    // Salesforce Lightning Web Security does that matter here (DEV-2795) — see the block that
+    // installs it below. Same fail-loud allowlist as the two params above.
+    window.htDelivery = ({ normal: 'normal', 'lws-shape': 'lws-shape' })[htParams.get('delivery') ?? 'normal'];
+    if (!window.htDelivery) {
+      throw new Error('Unknown ?delivery= value: ' + JSON.stringify(htParams.get('delivery')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
   <!--
@@ -47,6 +55,12 @@
     shadow boundary. Cells are stamped with data-testid via a renderer;
     Playwright locators pierce open shadow roots transparently.
   -->
+  <!--
+    A light-DOM button ABOVE the host, so sequential Tab navigation enters the grid from
+    outside the shadow tree (DEV-2886). The textarea below the host is the counterpart for
+    Shift+Tab from beneath.
+  -->
+  <button data-testid="before-grid" type="button">Before the grid</button>
   <div id="shadow-host" data-testid="shadow-host"></div>
   <div id="outside-area">
     <textarea data-testid="outside-textarea" rows="3" cols="40"></textarea>
@@ -84,6 +98,51 @@
     container.setAttribute('data-testid', 'grid');
     shadowRoot.appendChild(container);
 
+    // Every clipboard event that makes it out to the document, recorded. In the default
+    // delivery mode this fills up; under `container-only` it must stay empty, which is what
+    // proves the grid was driven by a listener the event reached before the document.
+    window.__clipboardAtDocument = [];
+    ['copy', 'cut', 'paste'].forEach((eventName) => {
+      document.addEventListener(eventName, () => window.__clipboardAtDocument.push(eventName));
+    });
+
+    // Salesforce Lightning Web Security (DEV-2795, #13388) changes two things about a clipboard
+    // event, and the grid needs both to be true at once before it looks like a real org.
+    //
+    // 1. Delivery. LWS hands the event only to listeners bound at or below the grid's own
+    //    container — the ones CopyPaste binds on the shadow root and on the document never run.
+    //    `stopPropagation` on the container has exactly that reach: every listener ON the
+    //    container still fires (only `stopImmediatePropagation` would cut those off, whatever
+    //    the registration order), while the shadow root and the document above it stop seeing
+    //    the event. Bound in the bubble phase, and installed before the grid exists, so it
+    //    cannot depend on the plugin's own listener order.
+    //
+    // 2. `composedPath()`. LWS collapses it to the shadow host chain, so the grid internals are
+    //    gone from it. That is what sends `#resolveClipboardEventTarget` down its second branch,
+    //    onto the retargeted `event.target` — the branch that actually carries the paste in an
+    //    org. Without this the path stays intact, the first branch answers, and the LWS half of
+    //    that method is never exercised. Applied in the CAPTURE phase on the container so it is
+    //    in place before any bubble listener reads the path.
+    //
+    // Together these reproduce the SHAPE of LWS, not LWS: a real org also runs the grid behind a
+    // membrane that proxies the DOM itself. Only an org can confirm the whole picture.
+    if (window.htDelivery === 'lws-shape') {
+      const hostChain = [
+        document.querySelector('[data-testid="shadow-host"]'),
+        document.body,
+        document.documentElement,
+        document,
+        window,
+      ];
+
+      ['copy', 'cut', 'paste'].forEach((eventName) => {
+        container.addEventListener(eventName, (event) => {
+          event.composedPath = () => hostChain;
+        }, true);
+        container.addEventListener(eventName, (event) => event.stopPropagation());
+      });
+    }
+
     const shadowSibling = document.createElement('div');
     shadowSibling.setAttribute('data-testid', 'shadow-sibling');
     shadowSibling.style.cssText = 'padding: 16px; margin-top: 8px; background: #eee;';
@@ -105,6 +164,31 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    // A web component rendered INSIDE a cell, so its content sits one shadow boundary deeper
+    // than the grid itself. An event raised in there resolves to a node the cell's own tree
+    // cannot see with `Node.contains()`, which is the case that must not read as outside the grid.
+    class CellWidgetElement extends HTMLElement {
+      constructor() {
+        super();
+
+        const widgetRoot = this.attachShadow({ mode: 'open' });
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.setAttribute('data-testid', 'cell-widget-button');
+        button.textContent = 'Widget';
+        widgetRoot.appendChild(button);
+      }
+    }
+
+    customElements.define('cell-widget', CellWidgetElement);
+
+    const widgetRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.dom.empty(td);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+      td.appendChild(document.createElement('cell-widget'));
+    };
+
     const hot = new Handsontable(container, {
       data: [
         ['A1', 'B1', 'C1'],
@@ -119,9 +203,23 @@
       // The comment on B4 backs the hover-tooltip cases (issue #8624). B4 and A4 are
       // untouched by the other tests, so the comment cannot disturb them.
       comments: true,
-      cell: [{ row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } }],
+      cell: [
+        { row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } },
+        // C2 hosts the nested web component; no other test touches that cell.
+        { row: 1, col: 2, renderer: widgetRenderer },
+      ],
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // How many times the plugin ran a paste to completion. Every grid now has more than one
+    // clipboard listener bound, so a single Ctrl+V reaches the plugin several times and only
+    // the event registry keeps the handler running once. Counting the hook is what would catch
+    // that registry failing: under the default `overwrite` paste mode, writing the same values
+    // twice looks identical to writing them once, so no value assertion can see it.
+    window.__pasteHookCalls = 0;
+    hot.addHook('afterPaste', () => {
+      window.__pasteHookCalls += 1;
     });
 
     document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
@@ -147,6 +245,8 @@
         window.__outsideClickTargets = targets;
       },
       outsideClickTargets: () => window.__outsideClickTargets,
+      clipboardEventsSeenAtDocument: () => window.__clipboardAtDocument,
+      pasteHookCalls: () => window.__pasteHookCalls,
     };
   </script>
 </body>

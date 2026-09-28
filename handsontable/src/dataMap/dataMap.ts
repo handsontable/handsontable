@@ -606,7 +606,7 @@ class DataMap {
    * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
    * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
    * @param {string} [source] Source of method call.
-   * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
+   * @returns {boolean} Returns `false` when action was canceled, otherwise `true`.
    */
   removeRow(index: number, amount = 1, source: string) {
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
@@ -659,7 +659,7 @@ class DataMap {
    * @param {number} [index] Visual index of the column to be removed. If not provided, the last column will be removed.
    * @param {number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed.
    * @param {string} [source] Source of method call.
-   * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
+   * @returns {boolean} Returns `false` when action was canceled, otherwise `true`.
    */
   removeCol(index: number, amount = 1, source: string) {
     if (this.hot!.dataType === 'object' || this.tableMeta.columns) {
@@ -966,9 +966,12 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
+   * The value is returned as it is stored, so it can be of any type. `Core#getCopyableData()`
+   * converts it to a string; the clipboard and Autofill consume it raw.
+   *
    * @param {number} row Visual row index.
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
-   * @returns {string}
+   * @returns {*}
    */
   getCopyable(row: number, prop: string | number | DataAccessorFn | null) {
     // Falls back to the prop so an out-of-range index still reaches the meta lookup, keeping the

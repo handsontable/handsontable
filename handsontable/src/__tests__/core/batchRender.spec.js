@@ -21,7 +21,6 @@ describe('Core.batchRender', () => {
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const result = batchRender(() => {
       // fast render
@@ -37,8 +36,6 @@ describe('Core.batchRender', () => {
     expect(hot.suspendRender).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
-    expect(hot.view._wt.draw).toHaveBeenCalledBefore(hot.view._wt.wtOverlays.adjustElementsSize);
   });
 
   it('should batch nested multi-line operations into one render call', async() => {
@@ -49,7 +46,6 @@ describe('Core.batchRender', () => {
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const result = batchRender(() => {
       alter('insert_row_above', 1, 5);
@@ -72,6 +68,5 @@ describe('Core.batchRender', () => {
     expect(hot.suspendRender).toHaveBeenCalledTimes(3);
     expect(hot.resumeRender).toHaveBeenCalledTimes(3);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

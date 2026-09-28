@@ -19,6 +19,29 @@
 export const REGRESSION_CALLOUT_THRESHOLD_TIMING = 15;
 export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 
+// Per-scenario heap overrides. `jsHeapMaxBytes` is the highest heap sample inside the window, and
+// on the two horizontal-scroll scenarios that peak depends on where V8 happened to schedule a GC
+// during 500 wheel-driven renders: replaying 42 develop goldens, their run-to-run heap CV is
+// 4.4-6.3% against 1.1-1.8% on the vertical ones and 0.9-3.7% everywhere else, and they fired 9 of
+// the 20 no-change heap callouts. The wider band is derived from that replay
+// (scripts/replay-goldens.mjs prints the per-scenario heap curve), not chosen by eye.
+export const HEAP_THRESHOLDS_BY_SCENARIO = Object.freeze({
+  'scroll-left': 10,
+  'scroll-right': 10,
+});
+
+/**
+ * @param {string} scenarioName
+ * @returns {number} the heap callout threshold for that scenario
+ */
+export function heapThresholdFor(scenarioName) {
+  return HEAP_THRESHOLDS_BY_SCENARIO[scenarioName] ?? REGRESSION_CALLOUT_THRESHOLD_HEAP;
+}
+
+// Fewer comparable rows than this and the run shift is not estimated. With nine scenarios a median
+// over five still tolerates two genuinely-regressed rows without moving.
+export const RUN_SHIFT_MIN_ROWS = 5;
+
 // Coefficient of variation above which a measurement is flagged as unreliable.
 export const CV_WARNING_THRESHOLD = 15;
 
@@ -28,10 +51,46 @@ export const CV_WARNING_THRESHOLD = 15;
 // re-run develop for nothing.
 export const INCOMPARABLE_LABELS = {
   'window-mismatch': 'window mismatch',
+  'version-mismatch': 'measurement changed',
   'baseline-incomplete': 'baseline incomplete',
   'current-incomplete': 'capture incomplete',
   'both-incomplete': 'capture incomplete',
 };
+
+// The two reasons under which nothing derived from the trace is comparable -- timing, heap and DOM
+// extrema alike -- because the two sides measured different things under one scenario name. A
+// window mismatch is the pre-marks fallback against a marked run; a version mismatch is a scenario
+// whose spec changed what its window contains (`measurementVersion`, see lib/environment.mjs).
+export const TRACE_MISMATCH_REASONS = Object.freeze(['window-mismatch', 'version-mismatch']);
+
+const TRACE_MISMATCH_TEXT = {
+  'window-mismatch': 'the two sides were measured over different trace windows',
+  'version-mismatch': 'the scenario was redefined since the baseline was recorded (different '
+    + 'measurementVersion), so the two sides measure different things',
+};
+
+/**
+ * The per-scenario trace mismatch the teardown detected, keyed by scenario name, from the two lists
+ * it puts on the report meta. Stated once here so both report builders read the same map.
+ *
+ * @param {{ crossWindowScenarios?: string[], versionMismatchScenarios?: string[] }} meta
+ * @returns {Record<string, 'window-mismatch' | 'version-mismatch'>}
+ */
+export function traceMismatches(meta = {}) {
+  const map = {};
+
+  for (const name of meta.versionMismatchScenarios || []) {
+    map[name] = 'version-mismatch';
+  }
+
+  // A window mismatch is the stronger statement (the sides do not even bracket the same slice), so
+  // it wins when a scenario is on both lists.
+  for (const name of meta.crossWindowScenarios || []) {
+    map[name] = 'window-mismatch';
+  }
+
+  return map;
+}
 
 // The baseline-side label, kept as a named export because it is the case the task filed.
 export const BASELINE_INCOMPLETE_LABEL = INCOMPARABLE_LABELS['baseline-incomplete'];
@@ -173,18 +232,22 @@ function joinList(items) {
  *
  * @param {object | null | undefined} baselineCategories
  * @param {object | null | undefined} currentCategories
- * @param {boolean} [isCrossWindow] -- the two sides were measured over different trace windows
+ * @param {boolean | 'window-mismatch' | 'version-mismatch'} [mismatch] -- a trace-level mismatch
+ *   between the two sides; `true` is the window mismatch, kept for callers that predate the second
+ *   reason
  * @returns {{ comparable: boolean, reason: string | null, label: string | null }}
  */
-export function comparability(baselineCategories, currentCategories, isCrossWindow = false) {
-  // A window mismatch invalidates every quantity derived from the trace, including the heap and
-  // DOM extrema, which are taken over the samples inside the window.
-  if (isCrossWindow) {
+export function comparability(baselineCategories, currentCategories, mismatch = false) {
+  const traceReason = mismatch === true ? 'window-mismatch' : mismatch;
+
+  // Either trace mismatch invalidates every quantity derived from the trace, including the heap
+  // and DOM extrema, which are taken over the samples inside the window.
+  if (TRACE_MISMATCH_REASONS.includes(traceReason)) {
     return {
       comparable: false,
-      reason: 'window-mismatch',
-      shortLabel: INCOMPARABLE_LABELS['window-mismatch'],
-      label: 'the two sides were measured over different trace windows',
+      reason: traceReason,
+      shortLabel: INCOMPARABLE_LABELS[traceReason],
+      label: TRACE_MISMATCH_TEXT[traceReason],
       // Nothing derived from the trace is comparable, so no category is exempt.
       incompleteCategories: [...ACTIVE_CATEGORIES],
     };
@@ -223,6 +286,56 @@ export function comparability(baselineCategories, currentCategories, isCrossWind
     label: phrases.join('; '),
     incompleteCategories,
   };
+}
+
+/**
+ * The common factor by which this run differs from its baseline, as a percentage.
+ *
+ * Across the develop goldens every scenario moves together run to run: the per-run speed factor
+ * spans 0.63x to 1.12x and removing it takes the scroll scenarios' run-to-run CV from ~13% to
+ * ~3%. That factor is the CI runner, not the code, and a reader needs it named to tell "+18% raw,
+ * +2% relative" from "+45% raw, +40% relative". It is the median of the comparable total deltas,
+ * so a pull request that regresses one or two scenarios does not move it -- and it is reported
+ * beside the raw delta, never used to gate a callout, because a change that slows every scenario
+ * by the same amount is exactly what a median-based normalization cannot see.
+ *
+ * @param {Array<number | null | undefined>} deltas -- per-scenario total deltas, in percent
+ * @returns {number | null} null with fewer than RUN_SHIFT_MIN_ROWS finite deltas
+ */
+export function runShift(deltas) {
+  const values = (deltas || []).filter(v => typeof v === 'number' && Number.isFinite(v));
+
+  if (values.length < RUN_SHIFT_MIN_ROWS) {
+    return null;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * A delta with the run shift removed, as a ratio rather than a subtraction: a row at +20% on a run
+ * that is itself +20% slower sits at 0%, not at the -0.7% a naive `20 - 20` would also give but a
+ * `-10 - 20` would not.
+ *
+ * @param {number | null} delta -- percent
+ * @param {number | null} shift -- percent, from runShift
+ * @returns {number | null}
+ */
+export function relativeToShift(delta, shift) {
+  if (delta == null || shift == null || !Number.isFinite(delta) || !Number.isFinite(shift)) {
+    return null;
+  }
+
+  // A run that took no time at all has no ratio to anything. Unreachable for a median of real
+  // active-time deltas, guarded so the arithmetic can never hand a division by zero to a formatter.
+  if (shift <= -100) {
+    return null;
+  }
+
+  return ((1 + delta / 100) / (1 + shift / 100) - 1) * 100;
 }
 
 /**

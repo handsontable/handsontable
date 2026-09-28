@@ -6,7 +6,7 @@ It owns **only the scrolling**. Whoever started the drag owns the selection: thi
 
 ## Two input paths, and the mobile one is easy to forget
 
-The plugin listens on the document of `rootWindow` **and every parent frame** (`registerEvents()` walks up with `getParentWindow`).
+The plugin listens on the document of `rootWindow` **and every parent frame** (`registerEvents()` walks up with `getParentWindow`). iPadOS 13+ is included: `MultipleSelectionHandles` enables via `isMobileOrIpadOS()`, not `isMobileBrowser()` alone (DEV-1081).
 
 - **Mouse:** `mousemove` feeds positions, `mouseup` ends the drag.
 - **Touch:** `touchstart` / `touchmove` / `touchend` / `touchcancel`. These are not optional — no browser fires `mousemove` while a finger is down, so without them the plugin is dead on mobile. That was issue #11658.

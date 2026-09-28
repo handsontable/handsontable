@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
+import { collectAdjacentHiddenPhysicalIndexes } from '../../../utils/hiddenIndexes';
 
 /**
  * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
@@ -33,9 +34,6 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
 
       hiddenRowsPlugin.showRows(rows);
 
-      // We render rows at first. It was needed for getting fixed rows.
-      // Please take a look at #6864 for broader description.
-      this.view.adjustElementsSize();
       this.render();
 
       const allRowsSelected = endVisualRow - startVisualRow + 1 === this.countRows();
@@ -76,7 +74,10 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         ? rowIndexMapper.getRenderableFromVisualIndex(visualEndRow)
         : null;
       const notTrimmedRowIndexes = rowIndexMapper.getNotTrimmedIndexes();
-      const physicalRowIndexes = [];
+      const hiddenPhysicalLookup = new Set(
+        hiddenPhysicalRows.filter((physical): physical is number => typeof physical === 'number')
+      );
+      const physicalRowIndexes: number[] = [];
 
       if (visualStartRow !== visualEndRow) {
         if (visualStartRow === null || visualEndRow === null) {
@@ -89,39 +90,28 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         // Collect not trimmed rows if there are some hidden rows in the selection range.
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
-          const hiddenPhysicalRowsLookup = new Set(hiddenPhysicalRows);
 
           physicalIndexesInRange.forEach((physicalIndex: number) => {
-            if (hiddenPhysicalRowsLookup.has(physicalIndex)) {
+            if (hiddenPhysicalLookup.has(physicalIndex)) {
               physicalRowIndexes.push(physicalIndex);
             }
           });
         }
 
-        // Handled row is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartRow === 0 && visualStartRow !== null && renderableStartRow < visualStartRow) {
-        // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
-        physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, visualStartRow)); // physical indexes
-
         // When all rows are hidden and the context menu is triggered using top-left corner.
       } else if (renderableStartRow === null) {
-        // Show all hidden rows.
-        physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, this.countRows()));
+        arrayEach(notTrimmedRowIndexes.slice(0, this.countRows()), (physicalIndex) => {
+          physicalRowIndexes.push(physicalIndex);
+        });
 
-      } else {
-        const lastVisualIndex = this.countRows() - 1;
-        const lastRenderableIndex = rowIndexMapper.getRenderableFromVisualIndex(
-          rowIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1) ?? lastVisualIndex
+      } else if (visualStartRow !== null) {
+        collectAdjacentHiddenPhysicalIndexes(
+          visualStartRow,
+          this.countRows(),
+          notTrimmedRowIndexes,
+          hiddenPhysicalLookup,
+          physicalRowIndexes,
         );
-
-        if (renderableEndRow === null) {
-          return true;
-        }
-
-        // Handled row is the last rendered index and there are some visual indexes after it.
-        if (visualEndRow !== null && renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {
-          physicalRowIndexes.push(...notTrimmedRowIndexes.slice(visualEndRow + 1));
-        }
       }
 
       arrayEach(physicalRowIndexes, (physicalRowIndex) => {

@@ -248,13 +248,15 @@ export function mixin(Base: Function, ...mixins: object[]): object {
 }
 
 /**
- * Checks if two objects or arrays are (deep) equal.
+ * Checks if two values are (deep) equal. Objects, arrays, dates, primitives, `null` and
+ * `undefined` are all comparable – the parameters are `unknown` so that a caller holding a
+ * value of unknown shape does not have to assert one just to compare it.
  *
- * @param {object|Array} object1 The first object to compare.
- * @param {object|Array} object2 The second object to compare.
+ * @param {*} object1 The first value to compare.
+ * @param {*} object2 The second value to compare.
  * @returns {boolean}
  */
-export function isObjectEqual(object1: object | unknown[], object2: object | unknown[]): boolean {
+export function isObjectEqual(object1: unknown, object2: unknown): boolean {
   const stableStringify = (obj: unknown): string => {
     if (obj === undefined) {
       return 'undefined';
@@ -299,6 +301,36 @@ export function isObject(object: unknown): boolean {
  */
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === '[object Object]';
+}
+
+/**
+ * Recursively deletes function-valued keys from a cloned value. `deepClone` keeps functions by
+ * reference at every depth, so a top-level-only sweep would still alias a nested closure onto the
+ * object created on undo.
+ *
+ * Array entries that hold a function become `null`. Object keys that hold a function are deleted.
+ *
+ * @param {unknown} value The cloned value to sweep.
+ */
+export function stripFunctionValues(value: unknown): void {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      if (typeof entry === 'function') {
+        value[index] = null;
+      } else {
+        stripFunctionValues(entry);
+      }
+    });
+
+  } else if (isPlainObject(value)) {
+    Object.keys(value).forEach((key) => {
+      if (typeof value[key] === 'function') {
+        delete value[key];
+      } else {
+        stripFunctionValues(value[key]);
+      }
+    });
+  }
 }
 
 /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an `alter` action that removed no rows or columns still being added to the undo stack.",
+  "type": "fixed",
+  "issueOrPR": 13521,
+  "breaking": false,
+  "framework": "none"
+}

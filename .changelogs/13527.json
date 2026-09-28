@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Filter-by-value listing plaintext source values in password columns. Password values now reach the `modifyFiltersMultiSelectValue` hook as hashed display, so an existing handler on a password column either receives the hash or has its return value replaced, depending on registration order.",
+  "type": "fixed",
+  "issueOrPR": 13527,
+  "breaking": false,
+  "framework": "none"
+}

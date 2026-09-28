@@ -423,6 +423,22 @@ When you use the parent-child row structure, the following Handsontable features
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
 
+### Row header width with custom labels
+
+The `NestedRows` plugin sizes the row header column from the depth of your data, not from the text in
+the headers. It then spends part of that width on the indentation and on the collapse or expand
+button. If you pass your own labels through [`rowHeaders`](@/api/options.md#rowheaders), they can be
+cut off, and the indentation that separates parents from children gets squeezed.
+
+You have two ways to give the labels room:
+
+- Set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to a fixed number of pixels. The plugin
+  treats the width it computes as a minimum, so a larger value of your own wins.
+- Enable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin by setting
+  [`autoRowHeaderSize`](@/api/options.md#autorowheadersize) to `true`. It measures the headers as they
+  are rendered, so the indentation and the button are counted, and it sizes the column to the longest
+  label.
+
 ### Keyboard shortcuts
 
 This header-focused shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).

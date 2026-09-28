@@ -48,7 +48,7 @@ describe('Single selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await mouseDoubleClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -70,7 +70,7 @@ describe('Single selection scroll (RTL mode)', () => {
       await selectCell(0, 4);
       await keyDownUp('arrowleft');
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -94,7 +94,7 @@ describe('Single selection scroll (RTL mode)', () => {
       await selectCell(-1, 4);
       await keyDownUp('arrowleft');
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -116,7 +116,7 @@ describe('Single selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await selectCell(0, 5);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

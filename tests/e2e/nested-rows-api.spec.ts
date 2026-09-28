@@ -360,4 +360,35 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.countRows()).toBe(rowsBefore);
     expect(await nestedRows.hookLog()).toEqual([]);
   });
+
+  test('disabling the plugin removes the collapse buttons and the indent spacers from the row headers', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(0);
+
+    await nestedRows.updateSettings({ nestedRows: false });
+
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+    await expect(nestedRows.collapseButton(0)).toHaveCount(0);
+  });
+
+  test('the master hider is tall enough for the table on initial display', async({ page, theme }) => {
+    // NestedRows used to force an overlay resize in a `requestAnimationFrame` after its first
+    // render, because the hider came out too short on initial display. That call was removed with
+    // the other 29 in DEV-19: Walkontable now notices for itself that the geometry it would write
+    // differs from the geometry it last wrote. Nothing else pinned the behaviour the removed hook
+    // was fixing, so this does - a hider shorter than the table clips the last rows and stops the
+    // scrollbar early.
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    const { hiderHeight, tableHeight } = await nestedRows.masterHiderVsTable();
+
+    expect(tableHeight).toBeGreaterThan(0);
+    expect(hiderHeight).toBeGreaterThanOrEqual(tableHeight);
+  });
 });

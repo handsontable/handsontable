@@ -17,6 +17,10 @@ describe('preventOverflow option', () => {
       $('.wtHolder').remove();
     }
 
+    // Unconditionally, not at the end of the spec that scrolls: a spec awaiting a scroll callback
+    // that never fires times out with the page still scrolled, and every later spec in the suite
+    // then starts at that offset.
+    window.scrollTo(0, 0);
     this.$wrapper.remove();
     this.wotInstance.destroy();
   });
@@ -50,7 +54,7 @@ describe('preventOverflow option', () => {
     expect(spec().$table.parents('.ht_master').css('overflow')).toBe('hidden');
   });
 
-  it('should set overflow-x to `hidden` for top clone when `horizontal` value is passed', async() => {
+  it('should keep the top clone holder a horizontal scroll container when `horizontal` value is passed', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -65,7 +69,80 @@ describe('preventOverflow option', () => {
 
     wt.draw();
 
-    expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-x')).toBe('hidden');
+    // The top clone holder is a scroll container on the axis the engine mirrors (DEV-2937) and clipped
+    // on the other, whatever `preventOverflow` says: the option moves the axis owners, not the clones.
+    expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-x')).toBe('auto');
     expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-y')).toBe('hidden');
+  });
+
+  it('should own the horizontal axis and leave the vertical one to the window when `horizontal` is passed', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      preventOverflow() {
+        return 'horizontal';
+      }
+    });
+
+    wt.draw();
+
+    // The option is an alias of a per-axis owner: the wrapper owns the horizontal axis, the window
+    // the vertical one. The old single-answer resolution reported the window on both.
+    expect(wt.wtViewport.isHorizontallyScrollableByWindow()).toBe(false);
+    expect(wt.wtViewport.isVerticallyScrollableByWindow()).toBe(true);
+    expect(wt.wtViewport.getWorkspaceWidth()).toBe(500);
+  });
+
+  it('should scroll the frozen bottom rows with the window when `horizontal` is passed', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedRowsBottom: 2,
+      preventOverflow() {
+        return 'horizontal';
+      }
+    });
+
+    wt.draw();
+
+    // The bottom overlay is pinned against the vertical axis, the same as the top one. It used to
+    // be left on the holder, which does not scroll vertically in this layout.
+    expect(wt.wtOverlays.topOverlay.mainTableScrollableElement).toBe(window);
+    expect(wt.wtOverlays.bottomOverlay.mainTableScrollableElement).toBe(window);
+    expect(wt.wtOverlays.inlineStartOverlay.mainTableScrollableElement).toBe(wt.wtTable.holder);
+  });
+
+  it('should fire the vertical scroll callback on a window scroll when `horizontal` is passed', async() => {
+    const scrollHorizontally = jasmine.createSpy('scrollHorizontally');
+    let resolveVerticalScroll;
+    const verticalScrolled = new Promise((resolve) => {
+      resolveVerticalScroll = resolve;
+    });
+    const scrollVertically = jasmine.createSpy('scrollVertically').and.callFake(() => {
+      resolveVerticalScroll();
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onScrollVertically: scrollVertically,
+      onScrollHorizontally: scrollHorizontally,
+      preventOverflow() {
+        return 'horizontal';
+      }
+    });
+
+    wt.draw();
+    window.scrollTo(0, 200);
+
+    // The vertical position used to be read off the holder (the single scrolling element), which
+    // never moves on a page scroll, so this callback never fired in this layout.
+    await verticalScrolled;
+
+    expect(scrollVertically.calls.count()).toBe(1);
+    expect(scrollHorizontally.calls.count()).toBe(0);
+    expect(wt.wtOverlays.topOverlay.getScrollPosition()).toBe(200);
   });
 });

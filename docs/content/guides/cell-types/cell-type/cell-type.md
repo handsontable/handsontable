@@ -246,7 +246,7 @@ const hotSettings = ref({
 
 When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
 
-This gives users a convenient way of defining which cell type should be used for describing cell properties. The user doesn't need to know which part of the code is responsible for rendering, validating, or editing the cell value. They do not even need to know that there are any functions at all. You can change the cell behaviour associated with an alias without changing the code that defines a cell's properties.
+This gives users a convenient way of defining which cell type should be used for describing cell properties. The user doesn't need to know which part of the code is responsible for rendering, validating, or editing the cell value. They do not even need to know that there are any functions at all. You can change the cell behavior associated with an alias without changing the code that defines a cell's properties.
 
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 

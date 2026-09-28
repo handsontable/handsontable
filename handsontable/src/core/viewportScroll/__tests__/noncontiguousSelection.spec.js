@@ -32,7 +32,7 @@ describe('Non-contiguous selection scroll', () => {
       await keyDown('control/meta');
       await simulateClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 3, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -54,7 +54,7 @@ describe('Non-contiguous selection scroll', () => {
       await scrollViewportHorizontally(25);
       await selectCells([[0, 3], [0, 5]]);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

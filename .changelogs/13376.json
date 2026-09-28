@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `useHotEditor` so `value` updates in the same render as `setValue`, and mounted React editors inherit the grid theme `color-scheme`.",
+  "type": "changed",
+  "issueOrPR": 13376,
+  "breaking": false,
+  "framework": "react"
+}

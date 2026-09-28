@@ -55,12 +55,18 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
         this.deselectCell();
       }
 
-      this.view.adjustElementsSize();
       this.render();
     },
     disabled: false,
     hidden(this: HotInstance) {
-      return !(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner());
+      if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner())) {
+        return true;
+      }
+
+      // Nothing to hide — no column is rendered. A corner select-all with every column already
+      // hidden is the reported case (DEV-164); an empty grid is the same dead entry
+      // (`hideColumns([])` hides nothing), so suppress the item whenever no column is visible.
+      return this.columnIndexMapper.getRenderableIndexesLength() === 0;
     }
   };
 }
