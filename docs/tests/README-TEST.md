@@ -39,12 +39,16 @@ There is no snapshot cache. The goldens live in the `handsontable-visual` R2 buc
 
 - `Docs visual seed` runs after every push build of `Docs Staging Deployment` (`develop`, `release/x.y.z`)
   and re-seeds `docs/base/<branch>` from that deploy's own URL, which never moves (the staging run records
-  it in a `docs-staging-deploy` artifact). It first runs `exampleGridLayout.spec.ts` against that URL and
-  writes nothing when an example does not lay out its grid; the first failed seed of a streak posts to
-  Slack. Dispatch it with `branch` to re-seed by hand from the branch's latest successful deploy.
+  it in a `docs-staging-deploy` artifact). It writes nothing when an example does not lay out its grid:
+  `exampleGridLayout.spec.ts` checks five pages first, and the render checks every page it photographs, on
+  the same load (`lib/example-grid-layout.ts`). The first failed automatic seed of a streak posts to Slack.
+  Dispatch it with `branch` to re-seed by hand from the branch's latest successful deploy. A release branch
+  needs `docs-staging.yml`'s deploy-record steps cherry-picked before its seeds can succeed (`docs/AGENTS.md`
+  2.18).
 - `Docs Visual Tests` (dispatch only) with `update-snapshots` ticked re-seeds `docs/base/<this branch>` from
-  the chosen `test_env`; unticked, it compares against that baseline and publishes the report under
-  `docs/dispatch/<branch>/<run_id>`.
+  the chosen `test_env`, through a URL that moves with the next deploy when it is a deployed one; to
+  re-seed from one staging deploy, use `Docs visual seed`. Unticked, it compares against that baseline and
+  publishes the report under `docs/dispatch/<branch>/<run_id>`.
 
 A pull request with the `run-docs-visual` label is compared against `docs/base/<target branch>` by
 `docs.yml`'s `visual` job. On CI a missing golden fails the test (`updateSnapshots: 'none'`), so a pull

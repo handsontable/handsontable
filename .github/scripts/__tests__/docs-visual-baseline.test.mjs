@@ -253,13 +253,16 @@ test('every render that writes golden records first passes the example grid layo
   const render = actionStep('Render the baseline');
   const all = actionSteps();
 
+  assert.ok(all.indexOf(actionStep('Check for golden records')) < all.indexOf(layout),
+    'the layout check reads DOCS_VISUAL_BOOTSTRAP, which the probe step sets');
   assert.ok(all.indexOf(layout) < all.indexOf(render), 'the layout check must run before the render it gates');
   assert.equal(stepIf(layout), stepIf(render),
     'the check must guard exactly the runs that render golden records: a seed, a re-seed dispatch, and a bootstrap');
   assert.match(layout, /\n\s+id: layout\n/, 'the verdict step reads steps.layout.outcome');
-  // With the config's three CI retries, a grid that collapses on 30% of page loads passes about 85%
-  // of runs as "flaky", so a retry must not count as a pass here.
-  assert.match(layout, /^\s+npx playwright test --project=functional --fail-on-flaky-tests exampleGridLayout\.spec\.ts$/m);
+  // A retry must not count as a pass, and with --fail-on-flaky-tests it cannot change the verdict, so
+  // --retries=0 only makes a red run fail four times sooner.
+  assert.match(layout,
+    /^\s+npx playwright test --project=functional --fail-on-flaky-tests --retries=0 exampleGridLayout\.spec\.ts$/m);
   assert.match(layout, /jq -e '\.stats\.skipped == 0 and \.stats\.expected > 0' \.\/tests\/test-artifacts\/report\.json/,
     'Playwright exits 0 when every test was skipped, so the report must show tests that ran');
   // The YAML key, not the word: the splitter attaches the next step's leading comment to this step.
@@ -274,25 +277,46 @@ test('every render that writes golden records first passes the example grid layo
       `${name} carries a status-check function, so it would still run after a failed layout check`);
   }
 
-  // The spec must keep checking every fact, on every page and framework, with nothing skipped, or
-  // the gate passes a broken render without anything going red.
+  // The facts live in one module both specs read, so a fact dropped there leaves both checks blind at
+  // once, and nothing else would go red.
+  // The judgement (which facts fail) is unit-tested in docs/tests/lib/__tests__/example-grid-layout-problems.test.mjs;
+  // what is pinned here is that the browser half measures those facts and both specs use the result.
+  const libPath = 'docs/tests/lib/example-grid-layout.ts';
+  const judgementPath = 'docs/tests/lib/example-grid-layout-problems.mjs';
   const specPath = 'docs/tests/exampleGridLayout.spec.ts';
 
-  assert.ok(existsSync(path.join(root, specPath)), `${specPath} is missing`);
+  for (const rel of [libPath, judgementPath, specPath, 'docs/tests/lib/__tests__/example-grid-layout-problems.test.mjs']) {
+    assert.ok(existsSync(path.join(root, rel)), `${rel} is missing`);
+  }
 
+  const lib = read(libPath);
+  const judgement = read(judgementPath);
   const spec = read(specPath);
 
-  assert.match(spec, /querySelectorAll<HTMLElement>\('\.hot-example-preview'\)/, 'the spec no longer measures every example');
-  assert.match(spec, /querySelectorAll<HTMLElement>\('\.ht_master \.wtHolder'\)/, 'the spec no longer finds the example grids');
-  assert.match(spec, /return \['no example on the page'\];/, 'a page with no example would pass the check');
-  assert.match(spec, /if \(grids\.length === 0\) \{\n\s+return \[`\$\{example\}: no grid rendered`\];/,
+  assert.match(lib, /import \{ layoutProblems as judgeLayout \} from '\.\/example-grid-layout-problems\.mjs';/);
+  assert.match(lib, /return judgeLayout\(examples\);/, 'the browser half must judge with the tested module');
+
+  assert.match(lib, /querySelectorAll<HTMLElement>\('\.hot-example-preview'\)/, 'the check no longer measures every example');
+  assert.match(lib, /querySelectorAll<HTMLElement>\('\.ht_master \.wtHolder'\)/, 'the check no longer finds the example grids');
+  assert.match(judgement, /return \['no example on the page'\];/, 'a page with no example would pass the check');
+  assert.match(judgement, /if \(grids\.length === 0\) \{\n\s+return \[`\$\{example\}: no grid rendered`\];/,
     'an example that failed to mount would pass the check');
-  assert.match(spec, /if \(holderHeight === 0\) \{/, 'the spec no longer fails a collapsed grid');
-  assert.match(spec, /\} else if \(!showsARow\) \{/, 'the spec no longer fails a holder too short to show a row');
-  assert.match(spec, /if \(holderWidth > rootWidth\) \{/, 'the spec no longer fails a holder wider than its grid root');
-  assert.match(spec, /if \(cutOffLeft > 0\) \{/, 'the spec no longer fails a grid the example cuts off on the left');
-  assert.match(spec, /if \(cutOffRight > 0\) \{/, 'the spec no longer fails a grid the example cuts off on the right');
-  assert.match(spec, /\}\)\.toEqual\(\[\]\);/, 'the spec no longer requires an empty list of problems');
+  assert.match(judgement, /if \(holderHeight === 0\) \{/, 'the check no longer fails a collapsed grid');
+  // Only a grid with rows can be too short to show one: nine pages on a healthy deploy have none.
+  assert.match(judgement, /\} else if \(rowCount > 0 && !showsARow\) \{/, 'the check no longer fails a holder too short to show a row');
+  assert.match(lib, /rowCount: rows\.length,/);
+  assert.match(judgement, /if \(holderWidth > rootWidth\) \{/, 'the check no longer fails a holder wider than its grid root');
+  assert.match(judgement, /if \(cutOffLeft > 0\) \{/, 'the check no longer fails a grid the example cuts off on the left');
+  assert.match(judgement, /if \(cutOffRight > 0\) \{/, 'the check no longer fails a grid the example cuts off on the right');
+  // The cut-off is the root's, not the holder's: `.ht_master` already clips a too-wide holder at the root's
+  // edge, and counting it twice sends a core sizing bug to the docs wrapper CSS.
+  assert.match(lib, /cutOffLeft: Math\.max\(0, Math\.floor\(clipLeft - rootRect\.left\)\),/);
+  assert.match(lib, /cutOffRight: Math\.max\(0, Math\.floor\(rootRect\.right - clipRight\)\),/);
+  // Settled is where the measurement stops, broken or not, so a page that settles broken fails at once.
+  assert.match(lib, /return settled;\n\s+\}, \{\n\s+message: 'the example grids stop changing',\n\s+timeout,\n\s+\}\)\.toBe\(true\);/);
+  assert.match(spec, /import \{ layoutProblems, settledExamples \} from '\.\/lib\/example-grid-layout';/);
+  assert.match(spec, /expect\(layoutProblems\(await settledExamples\(page\)\), `every example on \$\{path\} lays out its grid`\)\.toEqual\(\[\]\);/,
+    'the spec no longer requires an empty list of problems');
   assert.doesNotMatch(spec, /\b(?:test|describe)(?:\.describe)?\.(?:skip|fixme|fail|only)\s*\(/,
     'a skipped, fixme\'d, expected-to-fail, or focused test turns the gate off');
   for (const slug of ['row-height', 'column-width', 'batch-operations', 'demo', 'grid-size']) {
@@ -301,6 +325,32 @@ test('every render that writes golden records first passes the example grid layo
   for (const urlPath of ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid']) {
     assert.ok(spec.includes(`urlPath: '${urlPath}'`), `the spec no longer covers ${urlPath}`);
   }
+});
+
+test('the render that writes golden records checks every page it photographs, on the same load', () => {
+  // The fast check visits five page shapes on one load each. A grid that collapses on some loads can pass
+  // it on a lucky one, and a page shape outside the five is never visited, and either would then be
+  // photographed as the truth. So the render checks each page it writes, before its screenshot.
+  const render = actionStep('Render the baseline');
+  const compare = actionStep('Compare against the golden records');
+  const visual = read('docs/tests/visualDocs.spec.ts');
+
+  assert.match(render, /^\s+DOCS_VISUAL_LAYOUT_GATE: 'true'$/m, 'the render must turn the per-page check on');
+  // The YAML key, not the word: the splitter attaches the next step's leading comment to this step.
+  assert.doesNotMatch(compare, /^\s+DOCS_VISUAL_LAYOUT_GATE:/m,
+    'a compare judges screenshots against the goldens; gating it on layout would red every docs pull request on '
+      + 'a develop that is broken, which is the seed\'s job to refuse');
+  assert.match(visual, /import \{ layoutProblems, settledExamples \} from '\.\/lib\/example-grid-layout';/);
+  assert.match(visual, /^const LAYOUT_GATE = process\.env\.DOCS_VISUAL_LAYOUT_GATE === 'true';$/m);
+
+  const gate = visual.indexOf('if (LAYOUT_GATE && await page.locator(\'.hot-example-preview\').count() > 0) {');
+
+  assert.notEqual(gate, -1, 'visualDocs.spec.ts no longer checks the layout of the page it renders');
+  assert.ok(visual.indexOf('.hot-example-preview--loading') < gate, 'the check must wait for the examples to load');
+  assert.ok(gate < visual.indexOf('await expect(page).toHaveScreenshot('), 'the check must come before the screenshot');
+  assert.ok(visual.slice(gate, visual.indexOf('await expect(page).toHaveScreenshot(')).includes(
+    'expect(layoutProblems(await settledExamples(page)), `every example on ${path} lays out its grid`).toEqual([]);'),
+  'the per-page check must require an empty list of problems');
 });
 
 test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
@@ -313,6 +363,14 @@ test('a bootstrap that seeded nothing says so, instead of the core gate\'s "base
   assert.match(gate, /SEED_OUTCOME: \$\{\{ steps\.seed\.outcome \}\}/);
   assert.match(gate,
     /if \[ "\$VISUAL_BOOTSTRAP" = "true" \] && \[ "\$IS_UNTRUSTED" != "true" \] && \[ "\$SEED_OUTCOME" != "success" \]; then/);
+  // A compare that is not a pull request never seeds (the seed step's bootstrap arm is pull-request-only),
+  // so it must hear "nothing to compare", not that its render or its seed failed.
+  assert.match(gate, /EVENT_NAME: \$\{\{ github\.event_name \}\}/);
+  const dispatch = gate.indexOf('if [ "$VISUAL_BOOTSTRAP" = "true" ] && [ "$IS_UNTRUSTED" != "true" ] && [ "$EVENT_NAME" != "pull_request" ]; then');
+
+  assert.notEqual(dispatch, -1, 'a non-pull-request bootstrap is not told apart from a failed seed');
+  assert.ok(dispatch < gate.indexOf('[ "$SEED_OUTCOME" != "success" ]'), 'the dispatch case must answer first');
+  assert.match(gate.slice(dispatch), /a compare dispatch does not create them\.[\s\S]*?echo "verdict=bootstrap" >> "\$GITHUB_OUTPUT"/);
   assert.match(gate, /no baseline created/);
   assert.match(gate, /echo "verdict=error" >> "\$GITHUB_OUTPUT"/);
   // It must answer before the core gate runs, which would overwrite comment.md.
@@ -573,6 +631,9 @@ test('a seed renders the staging deploy\'s own URL, which the deploy records for
   assert.match(resolve, /if \[ -n "\$DEPLOYED_SHA" \] && \[ "\$sha" != "\$DEPLOYED_SHA" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
     'a record for another commit must not be seeded from');
   assert.match(resolve, /echo "url=\$url\/docs" >> "\$GITHUB_OUTPUT"/);
+  // A release branch cut before the record step leaves no record; the error says so and names the remedy.
+  assert.match(resolve, /repos\/\$REPO\/contents\/\.github\/workflows\/docs-staging\.yml\?ref=\$staged_sha" 2>\/dev\/null \| grep -q 'name: docs-staging-deploy'/);
+  assert.match(resolve, /cherry-pick the deploy-record steps from develop's docs-staging\.yml onto \$BRANCH/);
   assert.match(job(seed, 'seed'), /test-url: \$\{\{ steps\.target\.outputs\.url \}\}/);
   assert.doesNotMatch(seed, /url="https:\/\/(?:rc-[^"]*\.)?handsontable-docs-staging\.pages\.dev\/docs"/,
     'a seed from a branch alias can mix two deploys again');
@@ -603,7 +664,10 @@ test('a failed docs seed posts to Slack once per streak, through a condition tha
   assert.match(streak, /RUN_NAME: Docs visual seed \(\$\{\{ github\.event\.workflow_run\.head_branch \}\}\)/);
   assert.match(streak, /gh run list --repo "\$REPO" --workflow docs-visual-seed\.yml/);
   assert.match(streak, /\.displayTitle == env\.RUN_NAME/);
-  assert.match(streak, /\.conclusion == "success" or \.conclusion == "failure"/, 'a skipped or cancelled run neither starts nor ends a streak');
+  // A skipped or cancelled run neither starts nor ends a streak, and a failed hand dispatch does not start
+  // one: counting it would mute the first real breakage after someone tried a seed by hand.
+  assert.match(streak, /--json databaseId,displayTitle,conclusion,event/);
+  assert.match(streak, /\.conclusion == "success" or \(\.conclusion == "failure" and \.event == "workflow_run"\)/);
 
   for (const [name, step] of [['streak', streak], ['message', message], ['send', send]]) {
     assert.match(stepIf(step), /env\.SLACK_WEBHOOK_URL != ''/, `the ${name} step must skip itself without the secret`);
@@ -622,7 +686,9 @@ test('the dispatch workflow is a thin caller of the action: no workflow_call, no
   // The trigger key, not a mention: the header names the fragment mode it replaced.
   assert.doesNotMatch(dispatch, /^\s*workflow_call:/m, 'nothing calls docs-visual-tests.yml — docs.yml uses the action');
   assert.doesNotMatch(dispatch, /run-docs-visual|pulls\.get/, 'the label gate belongs to docs.yml');
-  assert.match(dispatch, /^\s+update-snapshots:\n\s+description: 'Re-seed docs\/base\/<this branch> from the chosen environment'\n\s+type: boolean/m);
+  // A deployed environment moves with the next deploy, so the input points at the seed that pins one.
+  assert.match(dispatch,
+    /^\s+update-snapshots:\n\s+description: 'Re-seed docs\/base\/<this branch> from the chosen environment\.[^'\n]*dispatch Docs visual seed'\n\s+type: boolean/m);
   assert.match(dispatch, /uses: \.\/\.github\/actions\/docs-visual-run/);
   assert.match(dispatch, /mode: \$\{\{ inputs\.update-snapshots && 'seed' \|\| 'compare' \}\}/);
   assert.match(dispatch, /base-key: docs\/base\/\$\{\{ github\.ref_name \}\}/);

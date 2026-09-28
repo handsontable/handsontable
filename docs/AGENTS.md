@@ -881,36 +881,62 @@ concluding anything from a golden you read back.
   the spec matches the deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from
   `paths.js` leaves the baseline. A dispatch with `branch` seeds from the record of that branch's latest
   successful staging run; with no record there, it fails and says so. It never runs for a pull request's
-  staging deploy. Its copy on the default branch is the one that runs, so a change to it is exercised only
+  staging deploy. **A release branch cut before the record step must get it cherry-picked.** The seed's
+  copy on develop is the one that runs, but a release branch's staging deploy runs that branch's own
+  `docs-staging.yml`, so until the `Record the deploy's own URL for the docs visual seed` and `Upload the
+  deploy record` steps are on it, its staging runs leave no record and every seed of it fails (and posts
+  to Slack once), with an error naming the commit whose `docs-staging.yml` lacks them. As of 2026-09-28
+  that is every `release/*` branch; `release/18.1.1` is the one still deploying. The `Docs Visual Tests`
+  dispatch with `update-snapshots` is the other writer of `docs/base/<branch>`, and it has no fixed URL:
+  it renders the environment it is given, and a deployed one (`dev.handsontable.com`) moves with the next
+  deploy, so its check and its render can read two builds. To re-seed from one staging deploy, dispatch
+  `Docs visual seed` with the branch instead. Its copy on the default branch is the one that runs, so a change to it is exercised only
   after merging – dispatch it to test that, or to re-seed by hand. **Known lag:** the staging deploy
   triggers on `docs/**` and `handsontable/package.json` only, so a core-only merge that changes grid
   rendering is not in the baseline until the next docs merge, and a docs pull request opened in that window
   reports develop's own grid change as its differences. Widening that trigger is a separate call; it costs
   a ~10-minute docs deploy per core merge.
-- **A render that writes golden records passes the example grid layout spec first.** Between #13381
+- **A render that writes golden records checks the example grid layout, twice.** Between #13381
   (2026-09-18) and #13626 (2026-09-24) every `height: 'auto'` example grid rendered with a 0px
   `.ht_master .wtHolder`, 21 seeds wrote the blank grids into `docs/base/develop`, and a docs pull
-  request's visual run then reported that all 437 screenshots matched. `tests/exampleGridLayout.spec.ts`
-  checks every example on five pages (`demo`, `grid-size`, `column-width`, `row-height`,
-  `batch-operations`) in all four frameworks: the example rendered a grid; the master holder has a height
-  and is tall enough to show a whole row; it is no wider than the grid root; and the example's
-  `overflow: hidden` wrapper cuts nothing off the grid. The action's `Check that the example grids are
-  laid out` step runs it right before `Render the baseline`, on the same condition – a seed, a re-seed
-  dispatch, or a bootstrap. It runs with `--fail-on-flaky-tests`, because the config's three CI retries
-  would pass a grid that collapses on some page loads, and then checks the JSON report, because Playwright
-  exits 0 when every test was skipped. A failure skips the render and the seed, so the baseline does not
-  move, and a refused pull request bootstrap says "no baseline created" instead of the core gate's
-  "baseline created". So **a red seed can mean the deploy is broken**: read the check's report in the run's
-  `docs-visual-report` artifact and fix the render. Never loosen the spec to let a seed through; a page on
-  its list that legitimately stops rendering a grid gets replaced, not exempted. As of 2026-09-25 the width
-  facts fail on develop – #13381 also made the holder 33 to 35px wider than its root on 819 of the 976
-  example grids, which the wrapper then cuts off, and #13626 fixed only the height – so no develop seed
-  lands until that is fixed. The spec runs in the `functional` project on every docs pull request too.
+  request's visual run then reported that all 437 screenshots matched. The facts live in
+  `tests/lib/example-grid-layout.ts`: every example rendered a grid; its master holder has a height and,
+  when the grid has body rows, is tall enough to show a whole one; it is no wider than the grid root; and
+  the example's `overflow: hidden` wrapper cuts nothing off the root. Two checks read them:
+  - **The fast check.** `tests/exampleGridLayout.spec.ts` covers five pages (`demo`, `grid-size`,
+    `column-width`, `row-height`, `batch-operations`) in all four frameworks. The action's `Check that
+    the example grids are laid out` step runs it right before `Render the baseline`, on the same
+    condition (a seed, a re-seed dispatch, or a bootstrap), with `--fail-on-flaky-tests --retries=0`, and
+    then checks the JSON report, because Playwright exits 0 when every test was skipped. A deploy broken
+    everywhere fails there in seconds instead of after a full render.
+  - **The authoritative check.** `Render the baseline` sets `DOCS_VISUAL_LAYOUT_GATE`, and then
+    `tests/visualDocs.spec.ts` checks every page with examples on the same load it photographs, before the
+    screenshot. The fast check sees one load per page: a grid that collapses on some loads can pass it,
+    and a page shape outside its five is never visited. Neither can become a golden, because the load
+    that is photographed is the load that is checked. A compare never sets the variable: a pull request
+    is judged against the goldens, and gating it on layout would red every docs pull request whenever
+    develop is broken.
+  Either failure skips the seed, so the baseline does not move, and a refused pull request bootstrap says
+  "no baseline created" instead of the core gate's "baseline created". So **a red seed can mean the deploy
+  is broken**: read the report in the run's `docs-visual-report` artifact and fix the render. Never loosen
+  a fact to let a seed through; a page that legitimately stops rendering a grid gets replaced in the fast
+  check's list, not exempted. The "whole row" fact skips a grid with no body rows: a scan of all 445
+  pages on the last deploy before #13381 (`caabcd21`, 2026-09-28) found nine pages with empty grids
+  (`empty-data-state`, `loading`, `server-side-data`, `binding-to-data`), each with a healthy 30 to 300px
+  holder, which failed every seed until then. With that rule the same scan passed every page. As of
+  2026-09-25 the width facts fail on develop - #13381 also made the holder 33 to 35px wider than its root
+  on 819 of the 976 example grids, and #13626 fixed only the height - so no develop seed lands until that
+  is fixed. The fast check runs in the `functional` project on every docs pull request too.
 - **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
   automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
   dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
-  when the previous finished seed of the same branch did not fail too; the workflow's `run-name` carries
-  the branch, which is how it finds that run. `jq` builds the payload, so no branch name can break its JSON.
+  when the previous finished automatic seed of the same branch did not fail too. A failed hand dispatch
+  does not start a streak, or trying a seed by hand would mute the first real breakage after it; any
+  success ends one. The workflow's `run-name` carries the branch, which is how it finds those runs. `jq`
+  builds the payload, so no branch name can break its JSON.
+- **A compare dispatch on a branch with no baseline says "nothing to compare".** Only a pull request's
+  compare seeds a missing baseline (the seed step's bootstrap arm), so a `Docs Visual Tests` compare there
+  gets a `bootstrap` verdict naming the two ways to create one, not an error.
 - **The visual project stays opt-in through the `run-docs-visual` label** – 441 full-page captures per run
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.

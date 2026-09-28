@@ -19,7 +19,11 @@ inputs:
     description: >-
       Base docs URL to test (the pull request preview, a staging deploy, or
       localhost). docs-visual-seed.yml passes a staging deploy's own URL, which
-      never moves, so the layout check and the render read the same build.
+      never moves, so the layout check and the render read the same build. The
+      Docs Visual Tests dispatch passes whatever environment it was given: a
+      deployed one is read through a URL that moves with the next deploy, so a
+      re-seed from it can mix two builds, and localhost is the checkout's own
+      build. To re-seed from one staging deploy, dispatch Docs visual seed.
     required: true
   mode:
     description: >-
@@ -208,21 +212,29 @@ runs:
       run: npx playwright test --project=visual
 
     # Every run that writes golden records -- a seed, a re-seed dispatch, a
-    # bootstrap -- first proves that the example grids are laid out, because the
-    # render below takes whatever the target serves as the truth. Between #13381
-    # and #13626 every `height: 'auto'` example grid rendered 0px tall, 21 seeds
-    # wrote the blank grids into `docs/base/develop`, and every compare against
-    # them then "matched". The spec fails when an example's grid is missing,
-    # collapsed, too short to show a row, wider than its root, or cut off by the
-    # example, on five pages in all four frameworks; its header says what each
-    # page covers. `--fail-on-flaky-tests` because a retry must not launder a
-    # grid that collapses on some page loads: with the config's three retries,
-    # one that collapses 30% of the time passes about 85% of runs. Playwright
-    # exits 0 when every test was skipped, so the report must also show tests
-    # that ran. Failing here fails the job, and neither the render nor the seed
-    # step below carries a status-check function, so both are skipped and the
-    # baseline does not move. docs-visual-seed.yml's notify job posts the first
-    # failed seed of a streak to Slack.
+    # bootstrap -- is checked for example grids that are not laid out, because
+    # the render below takes whatever the target serves as the truth. Between
+    # #13381 and #13626 every `height: 'auto'` example grid rendered 0px tall, 21
+    # seeds wrote the blank grids into `docs/base/develop`, and every compare
+    # against them then "matched". Two checks, for two jobs:
+    #
+    # - This step, the FAST one: docs/tests/exampleGridLayout.spec.ts on five
+    #   page shapes in all four frameworks. A deploy broken everywhere fails here
+    #   in seconds instead of after a 13-minute render. `--retries=0`, because
+    #   with `--fail-on-flaky-tests` a retry cannot change the verdict and would
+    #   only make a red run four times slower.
+    # - The render's own check, the AUTHORITATIVE one: `DOCS_VISUAL_LAYOUT_GATE`
+    #   below makes visualDocs.spec.ts check every page it photographs, on the
+    #   same page load (docs/tests/lib/example-grid-layout.ts). A grid that
+    #   collapses on some loads can pass this step on a lucky load, and a page
+    #   shape outside the five is not visited here; neither can become a golden,
+    #   because the load that is photographed is the load that is checked.
+    #
+    # Playwright exits 0 when every test was skipped, so the report must also
+    # show tests that ran. Failing here fails the job, and neither the render
+    # nor the seed step below carries a status-check function, so both are
+    # skipped and the baseline does not move. docs-visual-seed.yml's notify job
+    # posts the first failed automatic seed of a streak to Slack.
     - name: Check that the example grids are laid out
       id: layout
       if: inputs.mode == 'seed' || env.DOCS_VISUAL_BOOTSTRAP == 'true'
@@ -232,7 +244,7 @@ runs:
         BASE_URL: ${{ inputs.test-url }}
         PASS_COOKIE: ${{ inputs.pass-cookie }}
       run: |
-        npx playwright test --project=functional --fail-on-flaky-tests exampleGridLayout.spec.ts
+        npx playwright test --project=functional --fail-on-flaky-tests --retries=0 exampleGridLayout.spec.ts
         jq -e '.stats.skipped == 0 and .stats.expected > 0' ./tests/test-artifacts/report.json > /dev/null \
           || { echo "::error::The layout check ran no test to completion, so it proved nothing. Nothing was rendered."; exit 1; }
 
@@ -247,6 +259,10 @@ runs:
       env:
         BASE_URL: ${{ inputs.test-url }}
         PASS_COOKIE: ${{ inputs.pass-cookie }}
+        # Every page with examples must lay out its grids on the load that is
+        # photographed (the layout step above says why). Set here only: a
+        # compare judges screenshots against the goldens, not layouts.
+        DOCS_VISUAL_LAYOUT_GATE: 'true'
       run: npx playwright test --project=visual --update-snapshots
 
     # The adapter (docs/tests/lib/visual-manifest.mjs) turns Playwright's JSON
@@ -390,6 +406,7 @@ runs:
               || github.actor == 'dependabot[bot]') }}
         LAYOUT_OUTCOME: ${{ steps.layout.outcome }}
         SEED_OUTCOME: ${{ steps.seed.outcome }}
+        EVENT_NAME: ${{ github.event_name }}
       run: |
         if [ "$IS_UNTRUSTED" = "true" ]; then
           export VISUAL_PUBLISHED=false VISUAL_SEEDED=false
@@ -398,13 +415,33 @@ runs:
         fi
 
         # On a trusted bootstrap the core gate reports "baseline created",
-        # because it assumes the render and the seed ran. When the seed did not
-        # succeed, say why instead of claiming a baseline that does not exist.
+        # because it assumes the render and the seed ran. Two cases where they
+        # did not, each said as what it is:
+        #
+        # - A compare that is not a pull request (a Docs Visual Tests dispatch
+        #   on a branch with no baseline yet). The seed step's bootstrap arm is
+        #   pull-request-only, so nothing was seeded by design, not by failure.
+        # - A pull request bootstrap, the one case the seed step does run on,
+        #   whose seed did not succeed.
+        if [ "$VISUAL_BOOTSTRAP" = "true" ] && [ "$IS_UNTRUSTED" != "true" ] && [ "$EVENT_NAME" != "pull_request" ]; then
+          {
+            echo "## $VISUAL_GATE_TITLE — nothing to compare"
+            echo
+            echo "This base branch has no golden records yet, and a compare dispatch does not create them."
+            echo "Dispatch Docs visual seed with the branch, or Docs Visual Tests with \`update-snapshots\`, to create them."
+            echo
+            echo "[Workflow run]($VISUAL_RUN_URL)"
+          } > "$VISUAL_GATE_DIR/comment.md"
+          echo "verdict=bootstrap" >> "$GITHUB_OUTPUT"
+          echo "report-url=$VISUAL_RUN_URL" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
         if [ "$VISUAL_BOOTSTRAP" = "true" ] && [ "$IS_UNTRUSTED" != "true" ] && [ "$SEED_OUTCOME" != "success" ]; then
           if [ "$LAYOUT_OUTCOME" = "failure" ]; then
             reason='its example grids failed the layout check (`docs/tests/exampleGridLayout.spec.ts`), so nothing was rendered'
           else
-            reason='its render or its seed did not finish'
+            reason='its render or its seed did not finish (the render fails on a page whose example grids are not laid out, too)'
           fi
 
           {
