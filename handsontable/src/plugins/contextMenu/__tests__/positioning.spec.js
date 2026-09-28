@@ -22,8 +22,9 @@ describe('ContextMenu', () => {
       $('html').attr('dir', 'ltr');
     });
 
-    // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts (every
-    // corner, both layout directions, and a scrolled grid); ./visual-tests/tests/js-only/context-menu/
+    // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts: from every
+    // corner, in both grid directions and both document directions (the rows of this using() table),
+    // with the grid scrolled and with the window scrolled. ./visual-tests/tests/js-only/context-menu/
     // keeps a look check of the menu.
 
     describe('menu opening', () => {

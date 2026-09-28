@@ -239,11 +239,12 @@ Rules for anyone touching this:
   without that `catch` each attempt leaks another set of the sub-menu's document listeners. It is
   the listeners that pile up, not containers: `createContainer()` finds an existing sub-menu
   container by its `...Sub_<name>` class and reuses it. That `<name>` is the item's display LABEL
-  with every character outside A-Z, a-z and 0-9 turned into `_`, so it changes with the language:
+  with every character outside A-Z, a-z, and 0-9 turned into `_`, so it changes with the language:
   under `ar-AR` the Alignment submenu's class is all underscores and `.htContextMenuSub_Alignment`
   matches nothing. A test that opens a submenu in a translated grid finds it by
   `[class*="htContextMenuSub_"]` (or `htDropdownMenuSub_`), as the RTL menu specs under
-  `visual-tests/tests/js-only/` do. `closeSubMenu()` does the parent's
+  `visual-tests/tests/js-only/` do; the visual suite's `waitFor*SubmenuToAppear()` helpers apply the
+  same mapping to the label they are given. `closeSubMenu()` does the parent's
   bookkeeping — the `hotSubMenus` entry, `aria-expanded` — BEFORE destroying the sub-menu, so a
   throwing teardown cannot leave a destroyed menu registered.
 - **`destroy()` while `opening` stops the build, through `#isDestroyed`.** `close()` cannot do it —

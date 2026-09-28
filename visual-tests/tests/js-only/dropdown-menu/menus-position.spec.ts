@@ -10,9 +10,11 @@ import {
  * The look of the column dropdown menu with its Alignment submenu open, opened from column A (the
  * submenu to the right) and from column L near the viewport's right edge (the submenu flipped to the
  * left). Where the submenu opens is asserted from DOM rects in `tests/e2e/submenu-position.spec.ts`,
- * at both inline edges, in both layout directions, and with the grid scrolled, on all six theme and
- * bundle legs; these captures are a check of how it looks. `main` only, for the same reason as the
- * context-menu captures. Owned by DEV-3136.
+ * on all six theme and bundle legs; these captures are a check of how it looks. `main` only:
+ * `Positioner` has no theme-specific branch, and the e2e spec asserts its result on all three themes.
+ * The dropdown menu itself is photographed on all five js variants by
+ * `js-only/complex-demo/open-dropdown-and-context-menu` and the `js-only/filters` specs, but with no
+ * submenu open, so an open submenu is photographed on `main` only. Owned by DEV-3136.
  */
 visualTest(__filename, {
   themes: ['main'],

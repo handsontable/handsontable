@@ -10,10 +10,12 @@ import {
  * The look of the context menu with its Alignment submenu open, in the two placements that differ
  * most: from the top-left corner (submenu to the right, opening down) and from the bottom-right
  * corner (submenu flipped to the left, opening up). Where the submenu opens is asserted from DOM
- * rects in `tests/e2e/submenu-position.spec.ts`, for every corner, both layout directions, and a
- * scrolled grid, on all six theme and bundle legs; these captures are a check of how it looks.
- * `main` only: the placement does not depend on the theme, and the menu's theme tokens are
- * photographed by the filters and dropdown specs. Owned by DEV-3136.
+ * rects in `tests/e2e/submenu-position.spec.ts`, on all six theme and bundle legs; these captures
+ * are a check of how it looks. `main` only: `Positioner` has no theme-specific branch, and the e2e
+ * spec asserts its result on all three themes. The context menu itself is photographed on all five
+ * js variants by `js-only/complex-demo/open-dropdown-and-context-menu` and its RTL twin, but with
+ * no submenu open, so an open submenu, the expanded row it belongs to, and a hovered menu row are
+ * photographed on `main` only. Owned by DEV-3136.
  */
 visualTest(__filename, {
   themes: ['main'],

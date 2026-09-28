@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CLASSIC, CROSS_BROWSERS, JS_VARIANTS, THEMES, VISUAL_TIERS, WRAPPERS } from '../../src/config.mjs';
@@ -952,9 +952,11 @@ test('every spec declares a shape its own directory can host', () => {
     'js-only': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] },
       { ...DEFAULT_DECLARATION },
-      // A look check whose pixels carry no theme signal of their own: the behavior is asserted in
-      // tests/e2e, and the theme tokens it shows are photographed on every variant elsewhere. The
-      // first user is the menu-position family, whose placement tests/e2e/submenu-position.spec.ts asserts.
+      // A look check: a spec whose behavior a functional test asserts on every theme, in tests/e2e or
+      // in a Jasmine spec under handsontable/src, which the next test makes it name. It gives up
+      // main-dark on the pr tier and every other theme everywhere, so its docblock also names the spec
+      // that photographs the same component on every variant. The first user is the menu-position
+      // family, whose placement tests/e2e/submenu-position.spec.ts asserts.
       { themes: ['main'], browsers: ['chromium'], wrappers: [] },
     ],
     'multi-frameworks': [
@@ -968,7 +970,8 @@ test('every spec declares a shape its own directory can host', () => {
   const remedies = {
     'js-only': 'A js-only spec renders the five js variants (what the codemod wrote), the documented '
       + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }, or '
-      + '[\'main\'] alone for a look check whose behavior tests/e2e asserts.',
+      + '[\'main\'] alone for a look check whose behavior a functional test (tests/e2e or Jasmine) '
+      + 'asserts, named in its docblock.',
     'multi-frameworks': 'Every spec here declares all three wrappers, because the seed copies the whole '
       + 'js/chromium/multi-frameworks directory into the three wrapper baselines (scripts/run-tests.mjs). '
       + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '
@@ -1005,6 +1008,44 @@ test('every spec declares a shape its own directory can host', () => {
       + 'allowedShapes in lib/__tests__/visual-declarations.test.mjs, say in the pull request what it '
       + 'buys, and expect the per-prefix numbers below to move — a moved number there is the review, '
       + 'not a bug.');
+  });
+});
+
+test('a single-theme spec names the functional test that asserts its behavior', () => {
+  // `['main']` alone is safe only when a functional test asserts, on every theme, what the capture
+  // shows. A sentence in a comment cannot hold that condition, so the spec has to name the test, and the
+  // named file has to exist: a deleted or renamed functional spec fails here rather than leaving a
+  // look check that guards nothing.
+  const repoRoot = join(PACKAGE_ROOT, '..');
+  // A Playwright spec in tests/e2e, or a Jasmine spec in a __tests__ directory under handsontable/src.
+  const functionalTest = new RegExp('`(tests/e2e/[\\w.-]+\\.spec\\.ts'
+    + '|handsontable/src/[\\w./-]+/__tests__/[\\w./-]+\\.spec\\.js)`', 'g');
+  const singleTheme = specPaths().filter((relativePath) => {
+    if (relativePath === PARKED_SPEC) {
+      return false;
+    }
+
+    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
+
+    return JSON.stringify(normalizeDeclaration(first.declaration, relativePath).themes) === '["main"]';
+  });
+
+  assert.ok(singleTheme.length > 0, 'No spec declares themes: [\'main\'] alone, yet '
+    + 'js-only/context-menu/menus-position.spec.ts did when this pin landed. If the shape has no user '
+    + 'left, remove it from allowedShapes in the previous test; otherwise the declaration reader broke.');
+
+  singleTheme.forEach((relativePath) => {
+    const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
+    const named = [...source.matchAll(functionalTest)].map(match => match[1]);
+
+    assert.ok(named.length > 0, `${relativePath} declares themes: ['main'] alone but names no functional `
+      + 'test. Name the tests/e2e spec (or the Jasmine spec under handsontable/src) that asserts its '
+      + 'behavior on every theme in its docblock, in backticks, or declare the two-theme default.');
+    named.forEach((path) => {
+      assert.ok(existsSync(join(repoRoot, path)), `${relativePath} names \`${path}\` as the test that `
+        + 'asserts its behavior, and that file does not exist. Point it at the spec that does, or give the '
+        + 'capture its themes back.');
+    });
   });
 });
 

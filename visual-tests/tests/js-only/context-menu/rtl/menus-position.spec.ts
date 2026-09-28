@@ -5,9 +5,9 @@ import { clickRelativeToViewport } from '../../../../src/page-helpers';
 /**
  * The look of the RTL context menu, in Arabic, with its Alignment submenu open from the top-left
  * corner, where there is no room on the inline end side and the submenu flips to the right. Where the
- * submenu opens is asserted from DOM rects in `tests/e2e/submenu-position.spec.ts`, for every corner
- * in both layout directions; this capture is a check of how the mirrored menu looks. Owned by
- * DEV-3136.
+ * submenu opens is asserted from DOM rects in `tests/e2e/submenu-position.spec.ts`, in both grid
+ * directions and both document directions; this capture is a check of how the mirrored menu looks.
+ * `main` only, for the reason `../menus-position.spec.ts` gives. Owned by DEV-3136.
  */
 visualTest(__filename, {
   themes: ['main'],
@@ -21,10 +21,12 @@ visualTest(__filename, {
       .getFullUrl()
   );
 
-  // The menu names a submenu's container after the item's LABEL, with every character outside A-Z, a-z
-  // and 0-9 turned into an underscore, so the Arabic "Alignment" leaves only underscores and there is
-  // no `htContextMenuSub_Alignment` here. Alignment is the only item with a submenu in the demo's default list (`customBorders` is
-  // off), so the one submenu container, found by the class every submenu carries, is Alignment's.
+  // The menu names a submenu's container after the item's LABEL, with every character outside A-Z,
+  // a-z, and 0-9 turned into an underscore, so the Arabic "Alignment" leaves only underscores and there
+  // is no `htContextMenuSub_Alignment` here. Alignment is the only VISIBLE item with a submenu in the
+  // demo's context menu: `customBorders` is off, and the export item, which has one, stays hidden
+  // without `exportFile` settings. So the one submenu container, found by the class every submenu
+  // carries, is Alignment's.
   const submenu = tablePage.locator('.htContextMenu[class*="htContextMenuSub_"]');
   const firstOption = submenu.locator(':scope > .ht_master .htCore tbody td').first();
 

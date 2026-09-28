@@ -87,6 +87,14 @@ visualTest(__filename, {
   two goldens per capture, not five, and eight under `tests/multi-frameworks/`. Add `classic` when the spec
   is about the bare delivery path, a horizon theme when the pixels being judged are theme tokens rather
   than geometry, and a wrapper only when its render proves something the js render does not.
+- **`['main']` alone is the look-check shape, for a js-only spec whose behavior a functional test
+  asserts.** One golden a capture: it gives up `main-dark` on the `pr` tier and the bare run, the dark
+  themes, and `horizon` everywhere. So it is right only when a Playwright spec in `tests/e2e` or a
+  Jasmine spec under `handsontable/src` asserts, on every theme, what the capture shows, and another
+  spec photographs the same component on every variant. The docblock names both, and
+  `lib/__tests__/visual-declarations.test.mjs` fails a single-theme spec that names no functional test
+  in backticks, or names one that does not exist. The menu-position family is the first user
+  (`tests/e2e/submenu-position.spec.ts` asserts the placement).
 - **`classic` is a token inside `themes`,** not a separate flag. The bare run is a variant like any other
   and only differs in having no name to pass through `HOT_THEME`, which is what makes
   `helpers.screenshotPath()` drop the `-theme-` suffix. The token lives in declarations only — passing it
@@ -167,15 +175,15 @@ described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66
 webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
 The consolidation lowers these family by family, and each trim lowers `visual-budget.json` in the same
 pull request, so that file has today's counts; the ones here stay the dated reference.
-Every js-only spec renders five times today (the bare chromium run — the "classic" delivery path,
-where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
+Most js-only specs render five times (the bare chromium run — the "classic" delivery path, where the
+core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
-renders is its [variant declaration](#variant-declaration), and a new spec renders two themes by default,
-so "every js variant renders the same count" stops holding with the first spec that takes the default. The
+renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
+the menu-position look checks render on `main` alone, so the js variants no longer render the same count
+(`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement trim). The
 bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
-delivery-path
-parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
+delivery-path parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
 every real change hit all themes or all browsers. So a pull request renders the two default themes on js;
 the seed renders the other js variants and the cross-browser leg minutes after the merge and comments what
@@ -447,8 +455,10 @@ does for you):
   directory's other six filters specs, got
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
-  six specs with their 15 lines, and its replacements assert every state they capture, so 85 remain, in
-  41 specs; `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
+  six specs with their 15 lines, and its replacements assert every state they capture; the
+  submenu-placement trim (#13656) retired the menu family's 24 the same way. So 61 remain, in 33 specs
+  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
+  `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
@@ -613,9 +623,11 @@ does for you):
   left eight menu-position specs (120 goldens) as their only guard. `tests/e2e/submenu-position.spec.ts`
   now asserts the placement from DOM rects (the submenu edge to edge with its parent, its first or
   last row level with the row it belongs to, inside the viewport) for the context and dropdown menus,
-  in both directions and with the grid scrolled, on all six theme and bundle legs. What stays under
+  in both grid directions and both document directions, with the grid's holder scrolled and, for the
+  context menu, with the window scrolled, on all six theme and bundle legs. What stays under
   `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is six captures on `main`, a check
-  of how the menus look.
+  of how the menus look, in the single-theme shape [Variant declaration](#variant-declaration)
+  describes.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -690,7 +702,8 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (85 since #13647 retired the filters family's 15). The rules, what they cannot see, and their three
+  counted and greppable (61 since #13647 and #13656 retired the filters family's 15 and the menu
+  family's 24). The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root

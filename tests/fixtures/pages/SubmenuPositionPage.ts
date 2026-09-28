@@ -8,6 +8,15 @@ import { awaitBundle } from '../bundle';
 export type MenuKind = 'context' | 'dropdown';
 
 /**
+ * The document's direction (`<html dir>`) and the grid's `layoutDirection`, which either follows the
+ * document (`inherit`) or sets its own.
+ */
+export interface Layout {
+  doc: 'ltr' | 'rtl';
+  grid: 'ltr' | 'rtl' | 'inherit';
+}
+
+/**
  * A box in viewport coordinates, as `getBoundingClientRect()` reports it.
  */
 export interface Box {
@@ -43,11 +52,22 @@ export interface SubmenuPlacement {
 const MENU_CLASS: Record<MenuKind, string> = { context: 'htContextMenu', dropdown: 'htDropdownMenu' };
 
 /**
- * How far two edges that should meet may be apart. Measured on all three themes: on `horizon` the
- * submenu's edge meets the parent's exactly, and on `main` and `classic` it overlaps by the menu
- * border, 1 px. The rows line up exactly on every theme.
+ * How far a submenu may reach over its parent menu's edge: the menu border, which it overlaps by
+ * 1 px on `main` and `classic` and not at all on `horizon` (measured).
  */
-export const EDGE_TOLERANCE_PX = 1.5;
+export const EDGE_OVERLAP_PX = 1.5;
+
+/**
+ * How far a submenu may stand off its parent menu's edge. It never does, on any theme, so this only
+ * absorbs sub-pixel rounding.
+ */
+export const EDGE_GAP_PX = 0.5;
+
+/**
+ * How far a submenu's row may be from the row it belongs to. They line up exactly on every theme, so
+ * a 1 px shift fails.
+ */
+export const ROW_TOLERANCE_PX = 0.5;
 
 /**
  * Names a placement from its boxes. A submenu that is neither edge to edge with its parent nor
@@ -59,22 +79,24 @@ export const EDGE_TOLERANCE_PX = 1.5;
 export function placementOf(geometry: SubmenuGeometry): SubmenuPlacement {
   const { parent, anchor, submenu, firstRow, lastRow, viewport } = geometry;
   const round = (value: number) => Math.round(value * 10) / 10;
-  const meets = (a: number, b: number) => Math.abs(a - b) <= EDGE_TOLERANCE_PX;
+  // `gap` is how far the submenu stands off the parent's edge: negative when it overlaps the border.
+  const meetsEdge = (gap: number) => gap <= EDGE_GAP_PX && gap >= -EDGE_OVERLAP_PX;
+  const alignsWith = (a: number, b: number) => Math.abs(a - b) <= ROW_TOLERANCE_PX;
   let side: string;
   let rows: string;
 
-  if (meets(submenu.left, parent.right)) {
+  if (meetsEdge(submenu.left - parent.right)) {
     side = 'right';
-  } else if (meets(submenu.right, parent.left)) {
+  } else if (meetsEdge(parent.left - submenu.right)) {
     side = 'left';
   } else {
     side = `detached: submenu ${round(submenu.left)}–${round(submenu.right)}, `
       + `parent ${round(parent.left)}–${round(parent.right)}`;
   }
 
-  if (meets(firstRow.top, anchor.top)) {
+  if (alignsWith(firstRow.top, anchor.top)) {
     rows = 'below';
-  } else if (meets(lastRow.bottom, anchor.bottom)) {
+  } else if (alignsWith(lastRow.bottom, anchor.bottom)) {
     rows = 'above';
   } else {
     rows = `misaligned: first row at ${round(firstRow.top)}, last row ends at ${round(lastRow.bottom)}, `
@@ -89,8 +111,8 @@ export function placementOf(geometry: SubmenuGeometry): SubmenuPlacement {
 
 /**
  * Page Object for the submenu-position fixture: where the "Alignment" submenu opens relative to its
- * parent menu and the row it belongs to, for the context menu and the dropdown menu, in either layout
- * direction.
+ * parent menu and the row it belongs to, for the context menu and the dropdown menu, in either grid
+ * direction and either document direction.
  *
  * A submenu container carries its parent menu's class as well (`Menu.createContainer()` adds the menu
  * class and `<class>Sub_<item>`), so every parent-menu locator here leaves the submenu containers out.
@@ -101,32 +123,46 @@ export class SubmenuPositionPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  readonly layout: Layout;
+  readonly pageWidth: 'fit' | 'wide';
+  /**
+   * The direction the grid ends up in, which decides the key that opens a submenu and the default
+   * side it opens on.
+   */
   readonly dir: 'ltr' | 'rtl';
   readonly grid: Locator;
 
   /**
-   * Builds the page object for one theme, bundle, and layout direction.
+   * Builds the page object for one theme, bundle, and layout.
    *
    * @param {Page} page The Playwright page.
    * @param {string} theme The active theme.
    * @param {string} bundle The active bundle.
-   * @param {'ltr' | 'rtl'} dir The grid's layout direction.
+   * @param {Layout} layout The document's and the grid's direction.
+   * @param {'fit' | 'wide'} pageWidth `wide` makes the page wider than the viewport, so the window
+   * can scroll sideways.
    */
-  constructor(page: Page, theme = 'main', bundle = 'umd', dir: 'ltr' | 'rtl' = 'ltr') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', layout: Layout = { doc: 'ltr', grid: 'ltr' },
+    pageWidth: 'fit' | 'wide' = 'fit') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.dir = dir;
+    this.layout = layout;
+    this.pageWidth = pageWidth;
+    this.dir = layout.grid === 'inherit' ? layout.doc : layout.grid;
     this.grid = page.getByTestId('grid');
   }
 
   /**
-   * Navigate to the fixture and wait for the grid. Theme, bundle, and direction travel as query
-   * params, so the fixture loads the matching stylesheet and build and lays the grid out that way.
+   * Navigate to the fixture and wait for the grid. Theme, bundle, both directions, and the page width
+   * travel as query params, so the fixture loads the matching stylesheet and build and lays the page
+   * out that way.
    */
   async goto(): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/submenu-position.html?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}`);
+    const { doc, grid } = this.layout;
+
+    await this.page.goto(`/tests/fixtures/demo/submenu-position.html?theme=${this.theme}&bundle=${this.bundle}`
+      + `&dir=${grid}&doc=${doc}&page=${this.pageWidth}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -179,8 +215,9 @@ export class SubmenuPositionPage {
    *
    * @param {number} offsetX The horizontal offset.
    * @param {number} offsetY The vertical offset.
+   * @returns {Promise<{ x: number; y: number }>} The point clicked, in viewport coordinates.
    */
-  async openContextMenuAt(offsetX: number, offsetY: number): Promise<void> {
+  async openContextMenuAt(offsetX: number, offsetY: number): Promise<{ x: number; y: number }> {
     const viewport = this.page.viewportSize();
 
     if (!viewport) {
@@ -192,6 +229,35 @@ export class SubmenuPositionPage {
 
     await this.page.mouse.click(x, y, { button: 'right' });
     await expect(this.menu('context')).toBeVisible();
+
+    return { x, y };
+  }
+
+  /**
+   * Which way the context menu opened from the point it was opened at: `below` when its top edge is
+   * 1 px under the point, `above` when its bottom edge is on it. The menu itself goes through the
+   * same `Positioner` as its submenus.
+   *
+   * @param {{ x: number; y: number }} point The point the menu was opened at.
+   * @returns {Promise<string>} `below`, `above`, or the measured edges when it is neither.
+   */
+  async contextMenuRows(point: { x: number; y: number }): Promise<string> {
+    // The menu's container is never recycled, so two round trips cannot mix two frames here.
+    const { top, bottom } = await this.menu('context').evaluate((element) => {
+      const box = element.getBoundingClientRect();
+
+      return { top: box.top, bottom: box.bottom };
+    });
+
+    if (Math.abs(top - (point.y + 1)) <= ROW_TOLERANCE_PX) {
+      return 'below';
+    }
+
+    if (Math.abs(bottom - point.y) <= ROW_TOLERANCE_PX) {
+      return 'above';
+    }
+
+    return `neither: menu ${top}–${bottom}, opened at ${point.y}`;
   }
 
   /**
@@ -257,6 +323,58 @@ export class SubmenuPositionPage {
     }
 
     throw new Error(`ArrowDown never reached the "Alignment" item of the ${kind} menu`);
+  }
+
+  /**
+   * Opens the "Alignment" submenu by moving the pointer onto its row. The window scroll test opens it
+   * this way because the keyboard cannot: the first ArrowDown in an open context menu scrolls the
+   * window back to its start. The pointer moves with `mouse.move()`, not `locator.hover()`, which
+   * scrolls its target into view first.
+   *
+   * @param {MenuKind} kind The menu the submenu belongs to.
+   */
+  async hoverAlignmentSubmenu(kind: MenuKind): Promise<void> {
+    const point = await this.page.evaluate((name) => {
+      const parent = document.querySelector(`.${name}:not([class*="${name}Sub_"])`);
+      const anchor = Array.from(parent?.querySelectorAll(':scope > .ht_master .htCore tbody td') ?? [])
+        .find(cell => (cell.textContent ?? '').trim() === 'Alignment');
+
+      if (!anchor) {
+        return null;
+      }
+
+      const { left, right, top, bottom } = anchor.getBoundingClientRect();
+
+      return { x: (left + right) / 2, y: (top + bottom) / 2 };
+    }, MENU_CLASS[kind]);
+
+    if (!point) {
+      throw new Error(`The ${kind} menu has no "Alignment" item to hover`);
+    }
+
+    await this.page.mouse.move(point.x, point.y);
+    await expect(this.submenu(kind)).toBeVisible();
+  }
+
+  /**
+   * Scrolls the window sideways, which only a `wide` page can do. A positive offset scrolls an LTR
+   * document to the right; an RTL document scrolls to the left, with a negative offset. Nothing in the
+   * grid re-renders for it, so the wait is on the scroll position itself.
+   *
+   * @param {number} x The horizontal scroll offset.
+   */
+  async scrollWindowTo(x: number): Promise<void> {
+    await this.page.evaluate(offset => window.scrollTo(offset, 0), x);
+    await expect.poll(() => this.windowScrollX(), { message: 'the window never scrolled' }).toBe(x);
+  }
+
+  /**
+   * The window's horizontal scroll offset.
+   *
+   * @returns {Promise<number>} `window.scrollX`.
+   */
+  async windowScrollX(): Promise<number> {
+    return this.page.evaluate(() => window.scrollX);
   }
 
   /**

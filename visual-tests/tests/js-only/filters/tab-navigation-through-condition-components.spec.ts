@@ -42,8 +42,9 @@ visualTest(__filename, {
 
   await tablePage.keyboard.press('Enter'); // open the list of conditions
 
-  // Walk to "Is between" by its label rather than by a count of presses, so a change in the order of a
-  // date column's conditions fails here instead of photographing another condition.
+  // Walk to "Is between" by its label rather than by a count of presses, so a reorder of a date column's
+  // conditions cannot make this capture photograph another condition. The order itself is asserted in
+  // `handsontable/src/plugins/filters/__tests__/component/conditional.spec.js`.
   const conditions = tablePage.locator('.htFiltersConditionsMenu:visible');
   const highlightedCondition = conditions.locator('td.current');
   const highlight = async(label: string, pressesLeft: number): Promise<void> => {
