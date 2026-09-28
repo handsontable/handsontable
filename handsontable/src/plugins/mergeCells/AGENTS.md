@@ -85,6 +85,20 @@ then drops the merges whose anchor is now empty itself and forbids `shiftCollect
 rest. The decision cannot be left to the shift: it reads the merge's *visual* coordinates, which for a
 merge purged while all of its rows were trimmed are stale, frozen at the moment it was purged.
 
+**Resetting a dropped merge's cell meta goes through the anchor, never through `row`/`rowspan`.**
+`#resetMergedCellMeta` runs for every merge in the list when `clearCollections()` runs (every
+`updateSettings({ mergeCells })`, and disabling the plugin), including merges purged because all of their
+rows are trimmed. Their visual coordinates are stale: with every row filtered out they address no row, so
+`removeCellMeta` threw `Expecting an unsigned number` (DEV-3135, a regression from #12798 in 18.1.0); with
+some rows filtered out they address whatever record the trim slid into place, and wiped that record's own
+`copyable: false`. So the reset walks `anchor.physicalRows` × the merge's visual columns, and removes all
+five keys (`hidden`, `copyable`, `spanned`, `rowspan`, `colspan`) from every covered cell — `afterGetCellMeta`
+writes the span keys on whichever cell is the *visible* top-left when it runs, which after a re-anchor is
+not the original one. A trimmed row has no visual index, so its meta is removed through
+`_getMetaManager().removeCellMeta()` by physical index, and the `before`/`afterRemoveCellMeta` hooks do not
+fire for it. A merge with no anchor falls back to its visual rows, skipping any that address no row.
+Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
+
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**
 `afterCreateRow`/`afterRemoveRow`, so by the time those hooks run a re-anchor has already gone round once

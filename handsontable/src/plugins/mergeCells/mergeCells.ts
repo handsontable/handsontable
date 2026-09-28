@@ -32,6 +32,11 @@ export const PLUGIN_PRIORITY = 150;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
+ * The cell meta keys a merge writes on the cells it covers.
+ */
+const MERGE_META_KEYS = ['hidden', 'copyable', 'spanned', 'rowspan', 'colspan'];
+
+/**
  * The physical description of a merged cell: every physical row it covers, and its physical left
  * column. Physical indexes survive trimming and reordering, so this stays authoritative while the
  * merge's visual coordinates are a derived value.
@@ -786,19 +791,73 @@ export class MergeCells extends BasePlugin {
    * the cached meta and leak into consumers that read it directly (e.g. `toHTML`) when the
    * following render is suspended/batched and never actually runs.
    *
+   * The cells are found through the merge's anchor, not its visual coordinates. While rows are
+   * trimmed those coordinates describe only the visible part, and a merge with every row trimmed
+   * keeps the ones it had before the trim: they then address no row at all, or another record
+   * the trim slid into place (DEV-3135). Every key is removed from every covered cell, because
+   * `afterGetCellMeta` writes the span keys on whichever cell was the visible top-left when it ran.
+   *
    * @param {MergedCellCoords} mergedCell The merged cell whose meta should be reset.
    */
   #resetMergedCellMeta(mergedCell: MergedCellCoords) {
-    rangeEach(0, mergedCell.rowspan - 1, (i) => {
+    const anchor = this.#mergeAnchors.get(mergedCell);
+    const anchorColumn = anchor ? this.hot.toVisualColumn(anchor.physicalColumn) : null;
+    const visualColumn = anchorColumn ?? mergedCell.col;
+    const physicalRows = anchor && anchor.physicalRows.length > 0
+      ? anchor.physicalRows
+      : this.#getVisiblePhysicalRows(mergedCell);
+
+    physicalRows.forEach((physicalRow) => {
       rangeEach(0, mergedCell.colspan - 1, (j) => {
-        this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'hidden');
-        this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'copyable');
+        this.#removeMergeMetaAt(physicalRow, visualColumn + j);
       });
     });
+  }
 
-    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'spanned');
-    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'rowspan');
-    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'colspan');
+  /**
+   * Returns the physical rows under the merge's visual coordinates, skipping the ones that
+   * address no row.
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell.
+   * @returns {number[]}
+   */
+  #getVisiblePhysicalRows(mergedCell: MergedCellCoords): number[] {
+    const physicalRows: number[] = [];
+
+    rangeEach(0, mergedCell.rowspan - 1, (i) => {
+      const physicalRow = this.hot.toPhysicalRow(mergedCell.row + i);
+
+      if (physicalRow !== null) {
+        physicalRows.push(physicalRow);
+      }
+    });
+
+    return physicalRows;
+  }
+
+  /**
+   * Removes the merge-related meta keys from one cell. A trimmed row has no visual index to hand
+   * the `beforeRemoveCellMeta`/`afterRemoveCellMeta` hooks, so its meta is removed through the
+   * meta manager, without the hooks.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} visualColumn The visual column index.
+   */
+  #removeMergeMetaAt(physicalRow: number, visualColumn: number) {
+    const visualRow = this.hot.toVisualRow(physicalRow);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (physicalColumn === null) {
+      return;
+    }
+
+    MERGE_META_KEYS.forEach((key) => {
+      if (visualRow === null) {
+        this.hot._getMetaManager().removeCellMeta(physicalRow, physicalColumn, key);
+      } else {
+        this.hot.removeCellMeta(visualRow, visualColumn, key);
+      }
+    });
   }
 
   /**
