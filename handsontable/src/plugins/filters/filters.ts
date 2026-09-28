@@ -491,8 +491,6 @@ export class Filters extends BasePlugin {
 
   /**
    * Whether the rows pinned now are exactly the physical rows the last filtering pass exempted.
-   *
-   * @private
    */
   #arePinnedRowsApplied(): boolean {
     const appliedRows = this.#appliedPinnedRows;
