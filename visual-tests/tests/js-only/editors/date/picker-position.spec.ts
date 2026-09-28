@@ -1,15 +1,18 @@
-import { visualTest, JS_VARIANTS } from '../../../../src/test-runner';
+import { visualTest, expect } from '../../../../src/test-runner';
 import { helpers } from '../../../../src/helpers';
 import {
   doubleClickRelativeToViewport,
 } from '../../../../src/page-helpers';
 
 /**
- * Checks that the date editor's picker opens inside the viewport from a cell near each corner of the grid.
- * One capture per corner. Owned by DEV-2981.
+ * The date editor open on a cell near the grid's top-left corner, with the browser's native date
+ * picker showing: the one capture of it that proves `showPicker()` fires on open and that the theme's
+ * color scheme reaches the native control, which is why it renders on `main` and `main-dark`. Where
+ * the picker opens is the browser's, not the grid's, and the editor's input over the cell is asserted
+ * in `handsontable/src/editors/dateEditor/__tests__/positioning.spec.js`. Owned by DEV-3139.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -20,20 +23,8 @@ visualTest(__filename, {
   );
 
   await doubleClickRelativeToViewport(80, 80, 'left'); // top-left
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
+  await expect(tablePage.locator('.handsontableInput')).toBeFocused();
 
-  await tablePage.keyboard.press('Escape', { delay: 100 }); // closes the editor
-
-  await doubleClickRelativeToViewport(-80, 80, 'left'); // top-right
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Escape', { delay: 100 }); // closes the editor
-
-  await doubleClickRelativeToViewport(80, -80, 'left'); // bottom-left
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Escape', { delay: 100 }); // closes the editor
-
-  await doubleClickRelativeToViewport(-80, -80, 'left'); // bottom-right
+  // the date editor open, with the native picker below it
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

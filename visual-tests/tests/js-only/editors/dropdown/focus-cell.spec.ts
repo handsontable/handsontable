@@ -1,4 +1,4 @@
-import { visualTest, JS_VARIANTS } from '../../../../src/test-runner';
+import { visualTest, expect, JS_VARIANTS } from '../../../../src/test-runner';
 import { helpers } from '../../../../src/helpers';
 import {
   clickRelativeToViewport,
@@ -9,8 +9,9 @@ import {
 /**
  * Checks that, in a grid scrolled to its bottom and inline end, the dropdown editor keeps its full list
  * when a letter is typed (the dropdown type sets `filter: false`): it bolds the typed "a" in each option,
- * highlights the first match, and shows the hover state of the third option under the pointer. Owned by
- * DEV-2981.
+ * highlights the first match, and shows the hover state of the third option under the pointer. It is
+ * the one capture of an editor's `.listbox` list on every js variant, so the handsontable editor's
+ * look checks lean on it too. Owned by DEV-3139.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -38,6 +39,8 @@ visualTest(__filename, {
     80,
     180
   );
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.move(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
+  // "Electronics" has no "a", so the first match the list highlights is "Fashion".
+  await expect(tablePage.locator('.handsontableEditor .ht_master .htCore td.current')).toHaveText('Fashion');
+
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

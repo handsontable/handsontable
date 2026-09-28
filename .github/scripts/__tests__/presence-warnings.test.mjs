@@ -539,7 +539,9 @@ test('VISUAL_SPEC_RE matches every capture spec that actually exists', () => {
       : [path.join(dir, entry.name)]));
   const specs = walk('visual-tests/tests').filter(file => file.endsWith('.spec.ts'));
 
-  assert.ok(specs.length >= 100,
+  // A floor against a MOVE, which leaves nothing here, not against a trim: the golden-set
+  // consolidation shrinks the tree on purpose (112 specs on 2026-09-18, 97 after the editors trim).
+  assert.ok(specs.length >= 30,
     `only ${specs.length} capture specs found under visual-tests/tests — the tree moved, and this pin `
     + 'is now checking almost nothing');
 

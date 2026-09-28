@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable editor list position e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme, bundle, direction, and layout come from the ?theme=/?bundle=/?dir=/?layout= query params,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
+    // document — no XSS. An ABSENT param keeps the default (main / plain UMD / ltr / window) so the
+    // fixture stays browsable by hand; an unknown value THROWS instead of falling back — a typo in the
+    // project config must be one red leg, never a silently mislabeled green one (nothing else asserts
+    // which file loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+    const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
+    const htLayouts = Object.assign(Object.create(null), { window: 'window', sized: 'sized' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htDirection = htDirections[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDirection) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    // The PAGE takes the direction too, so an RTL grid sits in an RTL document the way it does on a
+    // real RTL page: the window then scrolls toward the inline end with a NEGATIVE `scrollX`, which is
+    // the arithmetic the editor's window-scroll branch has to get right.
+    document.documentElement.setAttribute('dir', window.htDirection);
+    window.htLayout = htLayouts[htParams.get('layout') ?? 'window'];
+    if (!window.htLayout) {
+      throw new Error('Unknown ?layout= value: ' + JSON.stringify(htParams.get('layout')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 0; } </style>
+</head>
+<body>
+  <!--
+    Where the `handsontable` editor's list opens, in the two layouts its horizontal flip
+    (`HandsontableEditor#flipDropdownHorizontallyIfNeeded`,
+    `handsontable/src/editors/handsontableEditor/handsontableEditor.ts`) measures differently.
+
+    `window`: the grid has no width or height, so it is as large as its 100 x 50 cells and the PAGE
+    scrolls both ways. The flip then measures the free space from the viewport, through
+    `view.isHorizontallyScrollableByWindow()` and `rootWindow.scrollX`.
+
+    `sized`: the grid is 1000 x 700, narrower than the 1280 px viewport, and scrolls its own holder.
+    The flip then measures the grid's own workspace, on purpose (the comment above that branch says
+    why), so a cell near the grid's inline end flips although the viewport still has room.
+
+    The vertical flip measures the viewport in both layouts.
+
+    Cells render as plain text, so a cell carries no dropdown arrow a click could land on and open
+    the editor by itself (tests/AGENTS.md); the spec selects cells through the API and opens the
+    editor with Enter.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. The message is stamped on the container and the page object rethrows it,
+    // so a broken build reads as its own error instead of a cell that never appeared.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createEmptySpreadsheetData(100, 50),
+        layoutDirection: window.htDirection,
+        ...(window.htLayout === 'sized' ? { width: 1000, height: 700 } : {}),
+        colWidths: 100,
+        rowHeaders: true,
+        colHeaders: true,
+        type: 'handsontable',
+        renderer: testIdRenderer,
+        // The list the visual demo opened, so the list is as wide and as tall as it was there.
+        handsontable: {
+          colHeaders: ['Marque', 'Country', 'Parent company'],
+          autoColumnSize: true,
+          data: [
+            { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+            { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+            { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+            { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+            { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+            { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

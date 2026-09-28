@@ -180,8 +180,8 @@ core inlines the main theme stylesheet — plus the four themes), every multi-fr
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
-three of the menu-position look checks render on `main` alone, so the js variants no longer render the
-same count (`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement
+the look checks of the menu and editor families render on `main` alone, so the js variants no longer
+render the same count (`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement
 trim). The
 bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
 delivery-path parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
@@ -473,8 +473,9 @@ does for you):
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
   six specs with their 15 lines, and its replacements assert every state they capture; the
-  submenu-placement trim (#13656) retired the menu family's 24 the same way. So 61 remain, in 33 specs
-  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
+  submenu-placement trim (#13656) retired the menu family's 24 the same way, and the editors trim that
+  family's 15. So 46 remain, in 27 specs (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests`
+  counts them);
   `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
@@ -645,7 +646,11 @@ does for you):
   `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is a check of how the menus look:
   one capture of an open submenu on every js variant, which guards the seam and border between a menu
   and its submenu on each theme, and four on `main` in the single-theme shape
-  [Variant declaration](#variant-declaration) describes.
+  [Variant declaration](#variant-declaration) describes. The editors family follows the same rule:
+  where the `handsontable` editor's list opens, in a sized grid and on a page the window scrolls, is asserted in
+  `tests/e2e/handsontable-editor-list-position.spec.ts`, and what stays under `tests/js-only/editors/`
+  is 9 captures, 14 goldens. The native date picker is the browser's, so one capture of it on `main`
+  and `main-dark` proves only that it opens themed.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -720,8 +725,8 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (61 since #13647 and #13656 retired the filters family's 15 and the menu
-  family's 24). The rules, what they cannot see, and their three
+  counted and greppable (46 since #13647, #13656, and the editors trim retired the filters family's 15,
+  the menu family's 24, and the editors family's 15). The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root

@@ -10,8 +10,9 @@ describe('DateEditor', () => {
     }
   });
 
-  // Datepicker positioning E2E tests have been moved to visual tests.
-  // See ./visual-tests/tests/js-only/editors/date/
+  // Where the native picker opens is the browser's, not the grid's; this spec asserts the editor's
+  // input over the cell, and ./visual-tests/tests/js-only/editors/date/ keeps one capture of the picker
+  // open, on `main` and `main-dark`.
 
   it('should render the editor TEXTAREA in the correct position when a date cell is opened', async() => {
     handsontable({
