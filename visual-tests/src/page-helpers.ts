@@ -956,21 +956,32 @@ export async function scrollWindowTo(x: number, y: number) {
 }
 
 /**
+ * The class suffix a menu gives a submenu's container: the item's display label with every character
+ * outside A-Z, a-z, and 0-9 turned into an underscore, as `Menu#createContainer()` builds it.
+ *
+ * @param {string} label The item's display label.
+ * @returns {string} The suffix after `htContextMenuSub_` or `htDropdownMenuSub_`.
+ */
+function submenuClassSuffix(label: string) {
+  return label.replace(/[^A-Za-z0-9]/g, '_');
+}
+
+/**
  * Waits for the context submenu to appear on the page.
  *
- * @param {string} submenuName The name of the submenu.
+ * @param {string} submenuName The item's display label.
  */
 export async function waitForContextSubmenuToAppear(submenuName: string) {
-  await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuName}`);
+  await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
 /**
  * Waits for the dropdown submenu to appear on the page.
  *
- * @param {string} submenuName The name of the submenu.
+ * @param {string} submenuName The item's display label.
  */
 export async function waitForDropdownSubmenuToAppear(submenuName: string) {
-  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
+  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
 /**
