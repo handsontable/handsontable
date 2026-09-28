@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-25T16:02:43.330Z",
+  "generatedAt": "2026-09-28T12:29:36.998Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -134,7 +134,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 1,
+      "count7": 0,
       "count30": 8,
       "countAll": 8,
       "runs30": 7,
@@ -171,7 +171,7 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 3,
+      "count7": 2,
       "count30": 6,
       "countAll": 6,
       "runs30": 5,
