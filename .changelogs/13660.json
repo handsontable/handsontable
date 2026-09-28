@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the MergeCells plugin throwing \"Expecting an unsigned number\" when the merges are cleared or updated while the Filters plugin hides every merged row.",
+  "type": "fixed",
+  "issueOrPR": 13660,
+  "breaking": false,
+  "framework": "none"
+}
