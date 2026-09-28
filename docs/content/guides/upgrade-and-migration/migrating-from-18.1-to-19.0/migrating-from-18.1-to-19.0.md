@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -1029,7 +1029,183 @@ If your own code or stylesheet relied on a `numeric` cell staying unstyled while
 value, account for the `htRight`/`htNumeric` classes and the right alignment now always being present
 on such a cell.
 
-## 22. Icons are rendered as `<i>` elements
+## 22. `colToProp()` and `propToCol()` return `null` for an unknown column
+
+[`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) used to hand
+your argument straight back when it named no column. They now return `null`, matching
+[`toVisualColumn()`](@/api/core.md#tovisualcolumn) and the other index translators.
+
+```js
+// A grid with three columns.
+
+// Before 19.0
+hot.colToProp(999); // 999
+hot.propToCol(999); // 999
+hot.colToProp(-1); //  -1
+
+// 19.0 and later
+hot.colToProp(999); // null
+hot.propToCol(999); // null
+hot.colToProp(-1); //  null
+```
+
+### Why this changed
+
+The old result could not be told apart from a real answer. On a grid whose data is an array of
+arrays, `propToCol(3)` returning `3` might mean "column 3" or "there is no such column" — and where
+the visual and physical column order had diverged, the number it returned named a *different*
+column than the one you asked about. Code that used the result as an index read or wrote the wrong
+cell, with nothing to signal it.
+
+### Who is affected
+
+You are affected if you call either method and use the result without checking it. You are not
+affected if you only ever pass indexes you know are in range.
+
+Two cases now return `null` that did not before:
+
+| Call | Before | 19.0 |
+| --- | --- | --- |
+| An index past the last column, or negative | the argument | `null` |
+| `propToCol()` for a column that is trimmed | the physical index | `null` |
+
+A property name your data does not use is still handed back unchanged — only indexes resolve.
+
+### How to migrate
+
+Check the result before using it. Use `Number.isInteger()` for `propToCol()`, not a comparison
+against [`countCols()`](@/api/core.md#countcols): `null` compares as `0`, so a `column < countCols()`
+test lets it through as if it were the first column.
+
+```js
+// Before
+const column = hot.propToCol(prop);
+
+hot.selectCell(0, column);
+
+// After
+const column = hot.propToCol(prop);
+
+if (Number.isInteger(column)) {
+  hot.selectCell(0, column);
+}
+```
+
+```js
+// Before
+const prop = hot.colToProp(column);
+
+hot.setDataAtRowProp(0, prop, 'new value');
+
+// After
+const prop = hot.colToProp(column);
+
+if (prop !== null) {
+  hot.setDataAtRowProp(0, prop, 'new value');
+}
+```
+
+### TypeScript
+
+Both declarations widened, so TypeScript reports the sites that need a check:
+
+```ts
+// Before
+propToCol(prop: string | number): number;
+colToProp(column: number): string | number;
+
+// 19.0 and later
+propToCol(prop: string | number): number | null;
+colToProp(column: number): string | number | null;
+```
+
+Under `strictNullChecks`, an assignment such as `const col: number = hot.propToCol(prop)` stops
+compiling. Narrow it once and reuse the narrowed value:
+
+```ts
+const column = hot.propToCol(prop);
+
+if (column !== null) {
+  hot.selectCell(0, column); // `column` is `number` here
+}
+```
+
+### Hooks: what did not change
+
+The change is scoped to the two methods' own return values. Every hook that used to carry a resolved
+column still carries the same value, so a listener you have today keeps working — with the one
+exception in the next section.
+
+- **`afterSelectionByProp` and `afterSelectionEndByProp`** still report `-1` for a selection that
+  starts in the headers — a row selection, a column selection, or select-all. That `-1` is a
+  selection sentinel, not an out-of-range column index, so it reaches the hook untouched.
+- **`beforeChange` and `afterChange`.** A change addressed at a column index that names no column
+  still reports that index in the changes array, not `null`.
+- **`beforeValidate`, `afterValidate` and `postAfterValidate`**, and the `prop` on the cell
+  properties every cell function receives. A cell whose column does not exist yet — auto column
+  growth resolves the meta before creating the column — still reports the index.
+
+### Other behavior that did not change
+
+- **Auto column growth.** Writing past the last column with
+  [`setDataAtCell()`](@/api/core.md#setdataatcell) still creates the missing columns when your data
+  is an array of arrays with no `columns` setting.
+- **Reading through [`getDataAtCell()`](@/api/core.md#getdataatcell)** and the copyable-data
+  getters. An out-of-range index reads back what it did before.
+- **Undo and redo** still replay a change that created a column.
+
+### `getDataAtProp()` returns an empty array for an index that names no column
+
+[`getDataAtProp()`](@/api/core.md#getdataatprop) built a column range from the resolved property.
+When a *numeric* property named no column, both ends of that range collapsed to column `0`, so the
+method handed back column 0's values for a column that does not exist. It now returns an empty
+array.
+
+```js
+// A grid with three columns and 100 rows.
+
+// Before 19.0
+hot.getDataAtProp(99); // 100 entries, all null
+
+// 19.0 and later
+hot.getDataAtProp(99); // []
+```
+
+A property name your data set does not use is unaffected — it never resolved to an index, and it
+still does not.
+
+### One hook does change
+
+[`modifyData`](@/api/hooks.md#modifydata) receives the resolved column as its second argument. When
+the property is a *numeric* index that names no column, that argument is now `null` instead of the
+index. A property name your data does not use still arrives unchanged.
+
+```js
+// Before
+modifyData(row, column, valueHolder, ioMode) {
+  // `column` was the index you passed, even when no such column existed.
+}
+
+// After
+modifyData(row, column, valueHolder, ioMode) {
+  if (column === null) {
+    return; // no such column
+  }
+}
+```
+
+The TypeScript declaration widened to match, so a callback that annotates `column` as `number`
+stops compiling:
+
+```ts
+// Before
+modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+
+// 19.0 and later
+modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+```
+
+## 23. Icons are rendered as `<i>` elements
 
 Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, generated from an `iconsMap` stylesheet. It's now a real DOM element: `<i class="ht-icon ht-icon-<name>" aria-hidden="true"></i>`, inserted into the cell, header, or menu item it belongs to. The glyph still comes from a `--ht-icon-<name>` CSS variable, applied by an unscoped `.ht-icon-<name>` rule.
 

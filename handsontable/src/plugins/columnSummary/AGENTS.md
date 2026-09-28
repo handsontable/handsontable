@@ -157,6 +157,16 @@ registers **no hooks at all**. `nestedRows.ts` is the trimmer that does register
 (`nestedRows.ts:167`). So check what still depends on the ordering before you touch the deferral — the
 comment names the wrong plugin, which is not the same as naming a problem that no longer exists.
 
+## An automatic insertion is skipped, an automatic removal is not (DEV-2206)
+
+`resetSetupAfterStructureAlteration()` returns early for the `auto` source only when the action is an
+insert. The skip was written for the rows and columns `minSpareRows`/`minSpareCols` create, and it stays
+for them. Removals were never `auto` until a lowered `minRows`/`minSpareRows`/`minCols`/`minSpareCols` started giving
+its rows back that way (`grid.removeSurplusRowsAndCols()`, see the DEV-2206 bullet in
+`handsontable/AGENTS.md`), and the endpoints must follow such a removal like any other — a `reversedRowCoords`
+summary otherwise stays put while the rows below it go, and ends up at the wrong offset from the bottom. Do
+not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js` pins it.
+
 ## Where to look next
 
 - The formula engine this plugin queries for its own cells: `../formulas/AGENTS.md`.

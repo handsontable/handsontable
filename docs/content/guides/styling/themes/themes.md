@@ -1092,7 +1092,7 @@ icons: {
 
 ### Selectors that changed
 
-Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#22-icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
+Icons used to be CSS `::before`/`::after` pseudo-elements. Rendering them as real elements can collide with a selector that assumed no extra child existed -- see [Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#23-icons-are-rendered-as-i-elements) in the migration guide for the full old-to-new selector list and how to migrate.
 
 ## The legacy theme
 

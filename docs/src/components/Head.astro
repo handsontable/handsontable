@@ -43,8 +43,17 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
   // stale chunks on builds that include this Head; frozen /docs/<major>.<minor>/ images never
   // get it, and their nested wrong-base preloads (Sentry HANDSONTABLE-DOCS-22T) are fixed at
   // assemble time by deploy/rewriteVersionedPaths.mjs.
+  //
+  // Only a CSS preload failure is suppressed. Vite fires the same event when the import()
+  // itself rejects, and cancelling that one makes the import resolve to `undefined`, so the
+  // caller crashes on `.default` before the reload lands (Sentry HANDSONTABLE-DOCS-24F,
+  // HANDSONTABLE-DOCS-24P, HANDSONTABLE-DOCS-246). Such failures still reload, but the
+  // original error reaches the caller, where the chunk-load filters drop it.
   window.addEventListener('vite:preloadError', function (event) {
     var reloadKey = 'hot-docs-preload-error-reload';
+    var payload = event.payload;
+    var isCssPreloadFailure = !!payload && typeof payload.message === 'string' &&
+      payload.message.indexOf('Unable to preload CSS') === 0;
 
     try {
       if (sessionStorage.getItem(reloadKey)) {
@@ -56,7 +65,10 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
       return;
     }
 
-    event.preventDefault();
+    if (isCssPreloadFailure) {
+      event.preventDefault();
+    }
+
     window.location.reload();
   });
 </script>

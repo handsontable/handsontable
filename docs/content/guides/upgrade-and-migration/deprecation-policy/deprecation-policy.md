@@ -44,6 +44,14 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
+## Removed in version 20.0
+
+### Behaviors
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| Writing past the last column of an object data source, which added a property named after the column index | 19.0 | `setDataAtRowProp()` | [Migrate from 19.0 to 20.0 -> Writing past the last column](@/guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0.md#writing-past-the-last-column-of-an-object-data-source-is-ignored) |
+
 ## Removed in version 18.0
 
 ### Dependencies
@@ -91,7 +99,7 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | `unregisterShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#9-formulas-shortcut-methods) |
 | `spliceCol()` (`Core`) | 19.0 | 20.0 | Read the column, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole columns. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#20-splicecol-and-splicerow-are-deprecated) |
 | `spliceRow()` (`Core`) | 19.0 | 20.0 | Read the row, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole rows. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#20-splicecol-and-splicerow-are-deprecated) |
-| `iconsMap()` (`handsontable/themes/static/variables/helpers/iconsMap`) | 19.0 | 20.0 | `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`. `iconsMap()` already returns its output. | [Migrate from 18.1 to 19.0 -> Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#22-icons-are-rendered-as-i-elements) |
+| `iconsMap()` (`handsontable/themes/static/variables/helpers/iconsMap`) | 19.0 | 20.0 | `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`. `iconsMap()` already returns its output. | [Migrate from 18.1 to 19.0 -> Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#23-icons-are-rendered-as-i-elements) |
 
 ### Options
 
