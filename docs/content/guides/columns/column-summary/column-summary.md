@@ -526,6 +526,8 @@ To display your column summary result in a cell, provide the destination cell's 
 
 Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColumn`](@/api/columnSummary.md#options) options to the physical coordinates of your required cell.
 
+Because all column summary coordinates are physical, [moving columns](@/guides/columns/column-moving/column-moving.md) or [rows](@/guides/rows/row-moving/row-moving.md) doesn't change what a column summary covers. The summary moves together with its column, the result moves together with its destination row, and the summary keeps summarizing the same rows, wherever they're displayed.
+
 ::: only-for javascript
 
 ```js
