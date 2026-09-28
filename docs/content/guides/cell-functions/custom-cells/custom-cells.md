@@ -13,6 +13,7 @@ vue:
   metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+addedIn: "17.0.0"
 ---
 
 [[toc]]

@@ -14,6 +14,8 @@
  *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
  */
 
+import { Badge } from '@astrojs/starlight/components';
+import { formatAddedIn } from '../lib/added-in.mjs';
 import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
 
 // ── Library version ───────────────────────────────────────────────────────────
@@ -61,6 +63,9 @@ const FRAMEWORK_LABELS: Record<string, string> = {
 const pathname   = Astro.url.pathname;
 const entry      = Astro.locals.starlightRoute.entry;
 const pageTitle  = entry.data.title;
+// "Added in Handsontable X.Y.Z" badge (DEV-2877). The loader can pass a raw,
+// unvalidated value through (see src/lib/added-in.mjs), so the helper decides.
+const addedInText = formatAddedIn((entry.data as { addedIn?: unknown }).addedIn);
 
 const prefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
@@ -112,7 +117,10 @@ const pageHref       = pathname;
   </p>
 </aside>
 
-<h1 id="_top">{pageTitle}</h1>
+<div class="hot-title-row">
+  <h1 id="_top">{pageTitle}</h1>
+  {addedInText && <Badge text={addedInText} variant="default" size="small" class="hot-added-in" />}
+</div>
 
 <script>
   import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
@@ -150,6 +158,28 @@ const pageHref       = pathname;
   /* ── Page title ─────────────────────────────────────────────────────────── */
   h1 {
     color: var(--sl-color-white);
+  }
+
+  .hot-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    row-gap: 0.25rem;
+  }
+
+  /* "Added in Handsontable X.Y.Z" badge (DEV-2877): neutral outline, inherits
+     light/dark tokens. The bottom margin only shows when the badge wraps under
+     the title on narrow viewports, keeping it clear of the intro paragraph. */
+  :global(.hot-added-in.sl-badge) {
+    --sl-color-bg-badge: transparent;
+    --sl-color-border-badge: var(--sl-color-gray-5);
+    --sl-color-text-badge: var(--sl-color-gray-2);
+    font-family: var(--sl-font);
+    font-size: var(--sl-text-sm);
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
   }
 
   /* ── Top bar (breadcrumbs) ───────────────────────────────────────────────── */
