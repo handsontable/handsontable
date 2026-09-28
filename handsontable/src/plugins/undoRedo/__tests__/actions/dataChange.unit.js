@@ -436,7 +436,7 @@ describe('UndoRedo -> DataChange action', () => {
       hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
       hot.getPlugin('undoRedo').undo();
 
-      // `colToProp(2)` now answers `2`, so replaying by column would have written a `2` key.
+      // `colToPropOrIndex(2)` now answers `2`, so replaying by column would have written a `2` key.
       expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Main St' });
     });
 
@@ -553,7 +553,7 @@ describe('UndoRedo -> DataChange action', () => {
       hot.getPlugin('trimRows').trimRows([1]);
       hot.getPlugin('undoRedo').undo();
 
-      // A trimmed row is written to the source data. `colToProp(2)` now answers `2` there too.
+      // A trimmed row is written to the source data. `colToPropOrIndex(2)` answers `2` there too.
       expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
     });
   });

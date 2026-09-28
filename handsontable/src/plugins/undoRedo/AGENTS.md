@@ -301,9 +301,9 @@ sends both to `setSourceDataAtCell()` instead. Two rules come with it.
 
 - **The skip rule is shared, not copied.** `isSkippedPastLastColumn()` in `src/utils/pastLastColumn.ts`
   is read by `Core#setDataAtCell()` and by the replay, the same way `clipRemovalRange()` is shared above.
-- **Write by the prop recorded at edit time, never by `colToProp()` at replay time.** The action keeps a
+- **Write by the prop recorded at edit time, never by `colToPropOrIndex()` at replay time.** The action keeps a
   `props` array beside `physicalRows`, read before `changes` has its props turned into columns. After the
-  `columns` option narrowed, `colToProp(2)` answers `2`, and a write keyed on it adds the positional key
+  `columns` option narrowed, `colToPropOrIndex(2)` answers `2`, and a write keyed on it adds the positional key
   #5409 is about. A numeric prop goes as a string, because `dataSource.setAtCell()` reads a number as a
   column index and drops it past the first row's keys. The trimmed-row path writes by it too. An action
   with no recorded prop drops the change.

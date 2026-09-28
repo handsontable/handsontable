@@ -91,9 +91,8 @@ test('the record upload reaches into .reg, is overwritable and short-lived, and 
 
 test('no artifact upload reads from a dot-directory without include-hidden-files', () => {
   // The trap the record step fell into, pinned repo-wide: the upload matches nothing, and the step is
-  // green. One pre-existing step is known and tracked on its own, because turning it on uploads the whole
-  // `.reg` tree on every run with differences; when it is fixed, this list must lose it.
-  const known = ['.github/workflows/visual.yml: Upload the visual diff report'];
+  // green. No exception is tolerated. The diff report was the last one: it now stages its files out of
+  // `.reg` into the runner's temp dir first (visual-diff-report.test.mjs).
   const files = [
     ...readdirSync(path.join(root, '.github/workflows')).filter(name => name.endsWith('.yml'))
       .map(name => `.github/workflows/${name}`),
@@ -140,7 +139,7 @@ test('no artifact upload reads from a dot-directory without include-hidden-files
   });
 
   assert.ok(files.length > 20, 'the sweep found the workflows');
-  assert.deepEqual(offenders, known);
+  assert.deepEqual(offenders, []);
 });
 
 test('the quarantine is named once for the core suite, and the file it names exists', () => {

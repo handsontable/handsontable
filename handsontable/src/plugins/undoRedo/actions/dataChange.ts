@@ -2,6 +2,7 @@ import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
+import { colToPropOrIndex } from '../../../helpers/columnProp';
 import {
   collectMergedCellsDestroyedByChange,
   remergeCellsGeometryOnly,
@@ -137,7 +138,11 @@ export class DataChangeAction extends BaseAction {
         const props = clonedChanges.map((change: unknown[]) => change[1]);
 
         clonedChanges.forEach((change: unknown[]) => {
-          change[1] = hot.propToCol(change[1] as string | number);
+          // A change can address a column that does not exist yet – `minSpareCols` and auto column
+          // growth both create it as the change is applied – and `propToCol()` answers `null` for
+          // that. Keeping the original address means the replay still targets the column that ends
+          // up holding the value, which is what it did before `null` became a possible answer.
+          change[1] = hot.propToCol(change[1] as string | number) ?? change[1];
         });
 
         const selected = effectiveLen > 1
@@ -191,8 +196,8 @@ export class DataChangeAction extends BaseAction {
    * recorded with. That is a column past the last one of an object data source, which
    * `setDataAtCell()` skips (`utils/pastLastColumn.ts`), or a prop with no column at all, which
    * `setDataAtCell()` rejects by throwing. Replayed through the grid, the first fires no `afterChange`,
-   * so the action never settles and the stack stops recording. `colToProp()` cannot stand in for the
-   * recorded prop: after the `columns` option narrowed, it hands back the index itself, and the write
+   * so the action never settles and the stack stops recording. `colToPropOrIndex()` cannot stand in for
+   * the recorded prop: after the `columns` option narrowed, it hands back the index itself, and the write
    * would then add the positional key #5409 is about. The same holds for a trimmed row, which is
    * written to the source data too. A row that no longer exists cannot be written there, so such a
    * change is replayed by prop through `setDataAtRowProp()` instead, which re-creates it. An action
@@ -258,7 +263,9 @@ export class DataChangeAction extends BaseAction {
 
       if (visualRow === null) {
         if (this.props?.[index] === undefined) {
-          sourceChanges.push([physicalRow, hot.colToProp(visualColumn), value]);
+          // A recorded column that no longer exists keeps its index as the address, as the grid-side
+          // replay does.
+          sourceChanges.push([physicalRow, colToPropOrIndex(hot, visualColumn), value]);
 
         } else {
           writeToSource(physicalRow, index, value);

@@ -380,6 +380,82 @@ describe('Core', () => {
 
     core.destroy();
   });
+
+  describe('getDataAtProp', () => {
+    it('should return the values of the column the property names', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(1)).toEqual(['b', 'e']);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for an index past the last column', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(99)).toEqual([]);
+      expect(core.getDataAtProp(-1)).toEqual([]);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for a property name the data set does not use', () => {
+      const core = new Core(container, { data: [{ id: 1, name: 'x' }, { id: 2, name: 'y' }] });
+
+      core.init();
+
+      // The name is handed back unchanged rather than resolved to `null`, so it never reaches the
+      // "no column" early return.
+      expect(core.propToCol('missing')).toBe('missing');
+      expect(core.getDataAtProp('missing')).toEqual([]);
+      expect(core.getDataAtProp('name')).toEqual(['x', 'y']);
+
+      core.destroy();
+    });
+  });
+
+  describe('an unbound column (`{ data: null }`)', () => {
+    const settings = () => ({
+      data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+      columns: [{ data: 'a' }, { data: null }, { data: 'b' }],
+    });
+
+    it('should keep its slot in `getSourceDataArray()`, so no other column moves', () => {
+      const core = new Core(container, settings());
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0', undefined, 'b0'], ['a1', undefined, 'b1']]);
+
+      core.destroy();
+    });
+
+    it('should read back an edit and run the `modifyData` hook for it', () => {
+      const writes = [];
+      const core = new Core(container, {
+        ...settings(),
+        modifyData(row, column, valueHolder, ioMode) {
+          if (ioMode === 'set') {
+            writes.push([row, column, valueHolder.value]);
+          }
+        },
+      });
+
+      core.init();
+      core.setDataAtCell(0, 1, 'x');
+
+      expect(core.getDataAtCell(0, 1)).toBe('x');
+      expect(core.getDataAtCell(0, 0)).toBe('a0');
+      expect(core.getDataAtCell(0, 2)).toBe('b0');
+      expect(writes).toEqual([[0, 1, 'x']]);
+
+      core.destroy();
+    });
+  });
 });
 
 describe('Core.setDataAtCell past the last column', () => {

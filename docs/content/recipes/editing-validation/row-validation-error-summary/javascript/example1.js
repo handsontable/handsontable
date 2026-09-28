@@ -103,6 +103,10 @@ const hot = new Handsontable(container, {
         for (const change of changes) {
             const [row, prop] = change;
             const col = typeof prop === "string" ? this.propToCol(prop) : prop;
+            // Skip a property that names no column.
+            if (col === null) {
+                continue;
+            }
             const key = cellKey(row, col);
             if (!invalidCells.has(key)) {
                 continue;
