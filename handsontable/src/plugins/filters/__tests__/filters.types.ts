@@ -1,4 +1,27 @@
 import Handsontable from 'handsontable';
+import type { AvailableConditions, AvailableConditionsRule } from 'handsontable/plugins/filters';
+
+// `availableConditions` rides inside the wide `filters` object, so the option itself checks nothing.
+// The exported types are what a user annotates a value with, and they DO check the shape.
+const allowList: AvailableConditionsRule = ['eq', 'gt', '---------', 'between'];
+const exclusion: AvailableConditionsRule = { exclude: ['not_between'] };
+const perType: AvailableConditions = {
+  numeric: { exclude: ['not_between'] },
+  text: ['contains', 'begins_with'],
+};
+
+// @ts-expect-error - `exclude` holds condition names, not one name.
+const badExclusion: AvailableConditionsRule = { exclude: 'not_between' };
+
+Handsontable(document.createElement('div'), {
+  filters: {
+    availableConditions: perType,
+  },
+  columns: [
+    { filters: { availableConditions: allowList } },
+    { filters: { availableConditions: exclusion } },
+  ],
+});
 
 interface ColumnConditions {
   column: number;
@@ -41,8 +64,8 @@ Handsontable(document.createElement('div'), {
 });
 
 // The per-column switch. This one DOES check the type: `ColumnSettings['filters']` is
-// `boolean | object | undefined`, so a wrong type is a compile error. Only `false` is read there -
-// an object is accepted by the type and ignored at runtime, with a console warning.
+// `boolean | object | undefined`, so a wrong type is a compile error. At runtime, `false` hides the
+// filter UI and an object is read for `availableConditions` only - any other key in it warns.
 Handsontable(document.createElement('div'), {
   columns: [
     { filters: false },

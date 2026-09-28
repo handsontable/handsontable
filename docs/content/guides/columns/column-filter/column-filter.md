@@ -43,7 +43,9 @@ non-technical users. And if you want to implement your own interface, you can ea
 programmatically, using Handsontable's API.
 
 You can filter data by value, or use the built-in conditions, which are different for each of the
-available column types.
+available column types. You can also choose which conditions the menu offers, for the whole grid,
+per data type, or per column. See
+[Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers).
 
 ## Filtering demo
 
@@ -244,13 +246,14 @@ filter controls are gone. Filtering that column through the API still works:
 | ----- | --------------- | ------------ |
 | Grid | `true`, `false`, or an object | Switches the plugin on or off, and carries its settings |
 | Inside [`columns`](@/api/options.md#columns) | `false` | Hides the filter controls in that column's dropdown menu |
+| Inside [`columns`](@/api/options.md#columns) | `{ availableConditions: ... }` | Chooses the operators that column's **Filter by condition** lists offer. See [Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers). |
 
-Only `false` means anything at the column level. The sub-options -- `searchMode` and
-`filterFixedRows` -- are read once for the whole grid, so an object written inside `columns` is
-ignored and logs a warning:
+At the column level, an object is read for `availableConditions` only. The other sub-options --
+`searchMode` and `filterFixedRows` -- are read once for the whole grid, so inside `columns` they are
+ignored and log a warning:
 
 ```js
-// WRONG -- ignored, and warns once
+// WRONG -- `filterFixedRows` is ignored here, and warns once
 columns: [{ filters: { filterFixedRows: false } }],
 ```
 
@@ -540,6 +543,9 @@ The following table contains all available filter operators for each built-in da
 | intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
 
+To offer only some of these operators, or to change their order, see
+[Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers).
+
 The **None** operator clears the column's filter. Its programmatic equivalent is
 [`filters.removeConditions(column)`](@/api/filters.md#removeconditions). For more on clearing
 filters with the API, see [Clear a column filter](#clear-a-column-filter).
@@ -549,6 +555,126 @@ operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows
 time input. Pick the value from the browser's picker or type it in your locale's format. When you
 set the condition through the API instead, pass the value as an ISO 8601 string
 (`YYYY-MM-DD` for dates, `HH:mm` for times).
+
+## Choose the conditions the filter menu offers
+
+To change which operators the **Filter by condition** lists offer, use the `availableConditions`
+setting of the [`filters`](@/api/options.md#filters) option. You can set it for the whole grid, per
+data type, or for one column inside [`columns`](@/api/options.md#columns).
+
+`availableConditions` takes one of three shapes:
+
+```js
+// offer only these conditions, in this order ('---------' adds a separator)
+availableConditions: ['eq', 'gt', '---------', 'between'],
+
+// offer the default list for the column's data type, minus these conditions
+availableConditions: { exclude: ['not_between'] },
+
+// one of the two shapes above per data type
+availableConditions: {
+  numeric: { exclude: ['not_between'] },
+  text: ['contains', 'begins_with'],
+},
+```
+
+The data type keys are `text`, `numeric`, `date`, `intl-date`, `intl-time`, and `intl-datetime`. A
+column whose cell type has no list of its own, such as `dropdown` or `checkbox`, uses the `text`
+list.
+
+A column's own `availableConditions` replaces the grid-level one for that column. The two are not
+merged:
+
+```js
+filters: {
+  // every numeric column drops "Is not between"
+  availableConditions: {
+    numeric: { exclude: ['not_between'] },
+  },
+},
+columns: [
+  // this column offers only its own list
+  { type: 'numeric', filters: { availableConditions: ['gt', 'lt'] } },
+  // this column follows the grid-level rule
+  { type: 'numeric' },
+],
+```
+
+The names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes:
+
+| Name | Operator in the menu |
+| ---- | -------------------- |
+| `empty`, `not_empty` | Is empty, Is not empty |
+| `eq`, `neq` | Is equal to, Is not equal to |
+| `begins_with`, `ends_with` | Begins with, Ends with |
+| `contains`, `not_contains` | Contains, Does not contain |
+| `gt`, `gte`, `lt`, `lte` | Greater than, Greater than or equal to, Less than, Less than or equal to |
+| `between`, `not_between` | Is between, Is not between |
+| `date_before`, `date_before_or_equal`, `date_after`, `date_after_or_equal`, `date_tomorrow`, `date_today`, `date_yesterday` | The `date` operators |
+| `intl_date_before`, `intl_date_before_or_equal`, `intl_date_after`, `intl_date_after_or_equal`, `intl_date_between`, `intl_date_tomorrow`, `intl_date_today`, `intl_date_yesterday` | The `intl-date` operators |
+| `intl_time_before`, `intl_time_before_or_equal`, `intl_time_after`, `intl_time_after_or_equal`, `intl_time_between` | The `intl-time` operators |
+| `intl_datetime_before`, `intl_datetime_before_or_equal`, `intl_datetime_after`, `intl_datetime_after_or_equal`, `intl_datetime_between`, `intl_datetime_tomorrow`, `intl_datetime_today`, `intl_datetime_yesterday` | The `intl-datetime` operators |
+
+A few rules apply to every shape:
+
+- **None** always stays first, so you do not need to list it.
+- A list can only pick operators that the column's data type offers by default. Any other name is
+  left out, and Handsontable logs a console warning.
+- Separators left at the start, at the end, or side by side are removed.
+- The setting changes the lists only. A condition you add with
+  [`addCondition()`](@/api/filters.md#addcondition) still filters, even if the list does not offer
+  it, and the column's menu still shows it as the selected condition.
+
+To hide the whole **Filter by condition** section of a column, set `filters` to `false` for that
+column instead. See [Enable filtering for individual columns](#enable-filtering-for-individual-columns).
+
+In the following demo, the **Price** column follows a grid-level rule that removes **Is not
+between** from numeric columns. The **Brand** column offers a short list of its own, and the
+**Date** column drops **Today**, **Tomorrow**, and **Yesterday**.
+
+::: only-for javascript
+
+::: example #exampleAvailableConditions --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleAvailableConditions.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleAvailableConditions.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleAvailableConditions.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleAvailableConditions :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleAvailableConditions.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleAvailableConditions.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example17 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example17.ts)
+@[code](@/content/guides/columns/column-filter/angular/example17.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleAvailableConditions :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleAvailableConditions.vue)
+
+:::
+
+:::
 
 ## Change the order of values in the filter list
 
@@ -1630,7 +1756,9 @@ registerPlugin(DropdownMenu);
 
 At the moment, filtering comes with the following limitations:
 
-- There is no easy way to add custom filter operators to the user interface.
+- There is no easy way to add custom filter operators to the user interface. You can choose which
+  built-in operators appear, and in what order, with
+  [`availableConditions`](#choose-the-conditions-the-filter-menu-offers), but not add new ones.
 - The list of values that you can filter by is generated automatically and there's no supported way
   of modifying it.
 - The filter's dropdown menu has a limited capacity per column: at most 2 regular conditions and 1

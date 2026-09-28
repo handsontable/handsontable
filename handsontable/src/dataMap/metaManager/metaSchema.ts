@@ -3433,7 +3433,8 @@ export default (): Record<string, unknown> => {
      *
      * The option takes different values at the two levels it works at, so they are listed
      * separately below. At the grid level it switches the plugin on and carries its settings. Inside
-     * [`columns`](#columns) it does one thing only: `false` takes that column out of filtering.
+     * [`columns`](#columns), `false` takes that column out of filtering, and an object can set the
+     * column's own `availableConditions`.
      *
      * **At the grid level:**
      *
@@ -3443,13 +3444,33 @@ export default (): Record<string, unknown> => {
      * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
      * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
-     * If you set the `filters` option to an object, you can configure the following settings. Both
-     * of them are read once, for the whole grid, so neither can be set per column:
+     * If you set the `filters` option to an object, you can configure the following settings.
+     * `searchMode` and `filterFixedRows` are read once, for the whole grid, so they cannot be set per
+     * column. `availableConditions` can be set at both levels:
      *
-     * | Property           | Possible values       | Default  | Description                                                                                                                                                         |
-     * | ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `searchMode`       | `'show'` \| `'apply'` | `'show'` | Enable filtering only visible elements                                                                                                                              |
-     * | `filterFixedRows`  | `true` \| `false`     | `true`   | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
+     * | Property              | Possible values                         | Default     | Description                                                                                                                                                         |
+     * | --------------------- | --------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `searchMode`          | `'show'` \| `'apply'`                   | `'show'`    | Enable filtering only visible elements                                                                                                                              |
+     * | `filterFixedRows`     | `true` \| `false`                       | `true`      | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
+     * | `availableConditions` | An array \| An object                   | `undefined` | The operators the **Filter by condition** lists offer. See below.                                                                                                  |
+     *
+     * `availableConditions` takes one of three shapes:
+     *
+     * | Shape                               | Description                                                                                                  |
+     * | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+     * | An array of condition names         | Offer only these conditions, in this order. `'---------'` adds a separator.                                   |
+     * | `{ exclude: [...] }`                | Offer the default list for the column's data type, minus these conditions.                                    |
+     * | An object keyed by data type        | One of the two shapes above per data type: `text`, `numeric`, `date`, `intl-date`, `intl-time`, `intl-datetime`. |
+     *
+     * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
+     * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
+     * own (for example `dropdown`) uses the `text` list. **None** always stays first. A name the
+     * column's data type does not offer is left out, with a console warning. The setting changes the
+     * lists only: a condition added through [`addCondition()`](@/api/filters.md#addcondition) still
+     * filters, and its select still shows it.
+     *
+     * A column's own `availableConditions` replaces the grid-level one for that column. The two are
+     * not merged.
      *
      * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
      * Those rows are then never hidden by a filter, and their values are not offered in the
@@ -3467,19 +3488,21 @@ export default (): Record<string, unknown> => {
      *
      * **Inside `columns`:**
      *
-     * | Setting        | Description                                                                          |
-     * | -------------- | ------------------------------------------------------------------------------------ |
-     * | `false`        | Hide the filter controls in this column's dropdown menu                              |
-     * | Anything else  | No effect – the column keeps whatever the grid-level setting gave it                  |
+     * | Setting                             | Description                                                                          |
+     * | ----------------------------------- | ------------------------------------------------------------------------------------ |
+     * | `false`                             | Hide the filter controls in this column's dropdown menu                              |
+     * | `{ availableConditions: ... }`      | Choose the operators this column's **Filter by condition** lists offer               |
+     * | Anything else                       | No effect – the column keeps whatever the grid-level setting gave it                  |
      *
      * The column's dropdown menu still opens, so entries such as **Clear column** stay available.
      * The plugin's API is not affected either: [`addCondition()`](@/api/filters.md#addcondition)
      * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
      * leaves sorting through the API working.
      *
-     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
-     * does not reject it, because a column's settings are typed from the grid's, so treat the table
-     * above as the contract rather than the type.
+     * Inside `columns`, an object is read for `availableConditions` only. Any other key in it, such
+     * as `searchMode` or `filterFixedRows`, is **ignored**, and logs a warning once per grid.
+     * TypeScript does not reject it, because a column's settings are typed from the grid's, so treat
+     * the table above as the contract rather than the type.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3514,7 +3537,21 @@ export default (): Record<string, unknown> => {
      *   { filters: false },
      * ],
      *
-     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * // remove "Is not between" from every numeric column
+     * filters: {
+     *   availableConditions: {
+     *     numeric: { exclude: ['not_between'] },
+     *   },
+     * },
+     *
+     * // offer only a few operators in one column, in this order
+     * filters: true,
+     * columns: [
+     *   { filters: { availableConditions: ['eq', 'neq', '---------', 'empty', 'not_empty'] } },
+     *   {},
+     * ],
+     *
+     * // WRONG: `filterFixedRows` is grid-level, so it is ignored here and warns
      * columns: [
      *   { filters: { filterFixedRows: false } },
      * ],

@@ -1,6 +1,7 @@
 import { arrayEach } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { getConditionDescriptor } from './conditionRegisterer';
+import { applyAvailableConditionsRule, resolveAvailableConditionsRule } from './availableConditions';
 
 import { CONDITION_NAME as CONDITION_NONE } from './condition/none';
 import { CONDITION_NAME as CONDITION_EMPTY } from './condition/empty';
@@ -211,9 +212,16 @@ export const TYPES: Record<string, string[]> = {
  *
  * @private
  * @param {string} type The data type.
+ * @param {*} [availableConditions] The `availableConditions` setting that applies to the column.
+ * @param {Function} [onUnknownName] Called with each allow-listed condition name the data type does not offer, and
+ *   the data type whose list was used.
  * @returns {object}
  */
-export default function getOptionsList(type: string): Record<string, unknown>[] {
+export default function getOptionsList(
+  type: string,
+  availableConditions?: unknown,
+  onUnknownName?: (name: string, listType: string) => void,
+): Record<string, unknown>[] {
   const items: Record<string, unknown>[] = [];
   let typeName = type;
 
@@ -221,7 +229,12 @@ export default function getOptionsList(type: string): Record<string, unknown>[] 
     typeName = TYPE_TEXT;
   }
 
-  arrayEach(TYPES[typeName], (typeValue) => {
+  const rule = resolveAvailableConditionsRule(availableConditions, typeName);
+  const names = rule ?
+    applyAvailableConditionsRule(TYPES[typeName], rule, name => onUnknownName?.(name, typeName)) :
+    TYPES[typeName];
+
+  arrayEach(names, (typeValue) => {
     let option: Record<string, unknown>;
 
     if (typeValue === SEPARATOR) {

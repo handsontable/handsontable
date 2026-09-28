@@ -121,6 +121,23 @@ captured when the plugin is enabled.
   `false` and the whole filter menu renders blank. Whether the plugin runs at all is `BasePlugin`'s
   question (`isEnabled()`); this one answers only "did *this column* opt out", and only an own
   property is a per-column answer.
+- **A column `filters` OBJECT is read for `availableConditions` only (DEV-3056).** Every other key
+  in it (`searchMode`, `filterFixedRows`, anything unknown) is still ignored and warns, the way
+  `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)` resolves
+  the value: a VALID own column value wins and REPLACES the grid-level one (no merging); otherwise
+  `getSetting('availableConditions')`. An invalid column value falls back to the grid value, and the
+  warning for it comes from the column scan, never from the read. The list itself is built in one
+  place, `getOptionsList()` called from `ConditionComponent#reset()`, which both condition selects
+  share. Four rules ride along. (1) `none` is always kept FIRST, because `reset()` selects
+  `items[0]`. (2) An allow-list may only pick names from the column type's STOCK list; any other
+  name is dropped with a `warnOnce` - never a throw inside a menu opening. An excluded name the type
+  lacks is NOT reported, so one grid-level `{ exclude }` can cover columns of every type. (3) A
+  per-type key matches the LIST type after the `text` fallback, so `dropdown`, `checkbox`, custom
+  types and `mixed` follow the `text` entry, and the validator rejects any other key. (4) The setting
+  shapes the list, never the filter: a condition added through `addCondition()` still filters, and
+  `setState()` still names it in the caption (the caption reads `value.name`, not the item list).
+  Coverage: `availableConditions.unit.ts` (the pure helper), `perColumnFilters.unit.js` (the read and
+  the warnings), `tests/e2e/filters-available-conditions.spec.ts` (the menu).
 - **The ignored-object warning is raised by scanning every column, never from a visibility check.**
   A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
   menu — or a column whose menu is never opened — is never warned, while the docs promise once per

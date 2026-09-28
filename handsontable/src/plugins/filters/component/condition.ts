@@ -10,6 +10,7 @@ import getOptionsList, { CONDITION_NONE } from '../constants';
 import { InputUI } from '../ui/input';
 import { SelectUI } from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
+import { warnAboutUnavailableCondition } from '../utils';
 import type { BaseUI } from '../ui/_base';
 
 interface ConditionDescriptor {
@@ -241,10 +242,16 @@ export class ConditionComponent extends BaseComponent {
     const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
     let items = [getConditionDescriptor(CONDITION_NONE)];
 
-    if (selectedColumn !== null) {
+    if (selectedColumn !== null && this.hot) {
+      const hot = this.hot;
       const { visualIndex } = selectedColumn;
+      const dataType = hot.getDataType(0, visualIndex, hot.countRows(), visualIndex) ?? 'text';
 
-      items = getOptionsList(this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text');
+      items = getOptionsList(
+        dataType,
+        hot.getPlugin('filters')._getAvailableConditions(visualIndex),
+        (name, listType) => warnAboutUnavailableCondition(hot.rootElement, name, listType),
+      );
     }
 
     arrayEach(this.getInputElements(), element => element.hide());

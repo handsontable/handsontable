@@ -1,11 +1,13 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, Filters } from 'handsontable/plugins';
-import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
+import { registerCellType, CheckboxCellType, NumericCellType, TextCellType } from 'handsontable/cellTypes';
 import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 
 registerCellType(CheckboxCellType);
+registerCellType(NumericCellType);
+registerCellType(TextCellType);
 registerPlugin(AutoColumnSize);
 registerPlugin(DropdownMenu);
 registerPlugin(HiddenRows);
@@ -190,7 +192,7 @@ describe('Filters -> per-column filters switch', () => {
       const messages = perColumnWarnings();
 
       expect(messages.length).toBe(1);
-      expect(messages[0]).toContain('Only `false` is read there');
+      expect(messages[0]).toContain('Only `false` and the `availableConditions` setting are read there');
     });
 
     it('should warn without the dropdown menu, and without opening one', () => {
@@ -221,6 +223,164 @@ describe('Filters -> per-column filters switch', () => {
       hiddenFlagsForColumn(0);
 
       expect(perColumnWarnings()).toEqual([]);
+    });
+  });
+
+  describe('the availableConditions setting', () => {
+    const SEPARATOR = '---------';
+    let warnSpy;
+
+    beforeEach(() => {
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    /**
+     * Builds a text, numeric, text grid.
+     *
+     * @param {object} [filters] The grid-level `filters` value.
+     * @param {Array|Function} [columns] Per-column settings merged over each column's type.
+     * @returns {object} The Handsontable instance.
+     */
+    function buildTypedGrid(filters = true, columns = [{}, {}, {}]) {
+      const types = [{ type: 'text' }, { type: 'numeric' }, { type: 'text' }];
+
+      return buildGrid({
+        filters,
+        columns: typeof columns === 'function' ?
+          column => ({ ...types[column], ...columns(column) }) :
+          columns.map((column, index) => ({ ...types[index], ...column })),
+      });
+    }
+
+    /**
+     * The condition keys a condition select receives when the menu opens on a column.
+     *
+     * @param {number} visualColumn The column to select.
+     * @param {string} [componentId] The condition component to read.
+     * @returns {string[]} Condition keys, with separators as `'---------'`.
+     */
+    function conditionKeysForColumn(visualColumn, componentId = 'filter_by_condition') {
+      const component = hot.getPlugin('filters').components.get(componentId);
+      const setItems = jest.spyOn(component.getSelectElement(), 'setItems');
+
+      hot.selectCell(0, visualColumn);
+      component.reset();
+
+      const items = setItems.mock.calls.at(-1)[0];
+
+      setItems.mockRestore();
+
+      return items.map(item => (item.name === SEPARATOR ? SEPARATOR : item.key));
+    }
+
+    /**
+     * The warnings printed so far that contain the given text.
+     *
+     * @param {string} text The text to look for.
+     * @returns {string[]}
+     */
+    function warningsWith(text) {
+      return warnSpy.mock.calls.map(args => args.join(' ')).filter(message => message.includes(text));
+    }
+
+    it('should apply a grid-level per-type rule to the columns of that type only', () => {
+      buildTypedGrid({ availableConditions: { numeric: { exclude: ['not_between'] } } });
+
+      expect(conditionKeysForColumn(1)).not.toContain('not_between');
+      expect(conditionKeysForColumn(1)).toContain('between');
+      expect(conditionKeysForColumn(0)).toContain('contains');
+    });
+
+    it('should let a column rule replace the grid-level one for that column only', () => {
+      buildTypedGrid(
+        { availableConditions: { text: ['eq'] } },
+        [{ filters: { availableConditions: ['contains', SEPARATOR, 'empty'] } }, {}, {}],
+      );
+
+      expect(conditionKeysForColumn(0)).toEqual(['none', SEPARATOR, 'contains', SEPARATOR, 'empty']);
+      expect(conditionKeysForColumn(2)).toEqual(['none', SEPARATOR, 'eq']);
+    });
+
+    it('should give both condition selects the same list', () => {
+      buildTypedGrid(true, [{}, { filters: { availableConditions: ['gt', 'lt'] } }, {}]);
+
+      expect(conditionKeysForColumn(1, 'filter_by_condition')).toEqual(['none', SEPARATOR, 'gt', 'lt']);
+      expect(conditionKeysForColumn(1, 'filter_by_condition2')).toEqual(['none', SEPARATOR, 'gt', 'lt']);
+    });
+
+    it('should read the function form of columns as well', () => {
+      buildTypedGrid(true, column => (column === 1 ? { filters: { availableConditions: ['gte'] } } : {}));
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gte']);
+    });
+
+    it('should follow a column rule changed through updateSettings', () => {
+      buildTypedGrid();
+
+      expect(conditionKeysForColumn(1)).toContain('not_between');
+
+      hot.updateSettings({
+        columns: [{ type: 'text' }, { type: 'numeric', filters: { availableConditions: ['gt'] } }, {}],
+      });
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+    });
+
+    it('should not warn for a column object that holds only availableConditions', () => {
+      buildTypedGrid(true, [{}, { filters: { availableConditions: ['gt'] } }, {}]);
+
+      expect(warningsWith('inside `columns`')).toEqual([]);
+    });
+
+    it('should still warn for the grid-only settings next to availableConditions', () => {
+      buildTypedGrid(true, [{}, { filters: { availableConditions: ['gt'], filterFixedRows: false } }, {}]);
+
+      expect(warningsWith('inside `columns`').length).toBe(1);
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+    });
+
+    it('should fall back to the grid-level rule, and warn once, for an invalid column value', () => {
+      buildTypedGrid(
+        { availableConditions: { numeric: ['lt'] } },
+        [{}, { filters: { availableConditions: 'gt' } }, {}],
+      );
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'lt']);
+
+      hot.updateSettings({ columns: [{}, { filters: { availableConditions: 'gt' } }, {}] });
+
+      expect(warningsWith('`filters.availableConditions` option set inside `columns` is not valid').length).toBe(1);
+    });
+
+    it('should ignore an invalid grid-level value, with the plugin warning', () => {
+      buildTypedGrid({ availableConditions: { numeric: 'gt' } });
+
+      expect(conditionKeysForColumn(1)).toContain('not_between');
+      expect(warningsWith('"availableConditions" option is not valid').length).toBe(1);
+    });
+
+    it('should leave out, and warn once about, a name the column type does not offer', () => {
+      buildTypedGrid(true, [{}, { filters: { availableConditions: ['gt', 'contains'] } }, {}]);
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+      expect(warningsWith('"contains" condition is not available for the "numeric" data type').length).toBe(1);
+    });
+
+    it('should keep filtering by a condition the list no longer offers', () => {
+      // The list decides what the menu offers, not what a column may be filtered by: a condition
+      // added through the API still applies.
+      const filters = buildTypedGrid({ availableConditions: { numeric: { exclude: ['gt'] } } }).getPlugin('filters');
+
+      filters.addCondition(1, 'gt', [15]);
+      filters.filter();
+
+      expect(hot.getDataAtCol(1)).toEqual([20]);
+      expect(conditionKeysForColumn(1)).not.toContain('gt');
     });
   });
 
