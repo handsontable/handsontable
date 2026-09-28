@@ -171,6 +171,34 @@ test('a source change whose only test change deletes a spec is blocked', (t) => 
   assert.match(run.stdout, /A deleted test does not count/);
 });
 
+test('a wrapper prop-type change is blocked, and the verdict asks for a type test before a waiver', (t) => {
+  // The replay's two real React misses: a prop type changed, and the only
+  // test beside it was core's. The verdict must not read as "types need no
+  // test" – a public type change needs a type test in its own package.
+  const root = baseRepo();
+  const PROPS = 'wrappers/react-wrapper/src/types.tsx';
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  write(root, PROPS, 'export interface HotTableProps {\n  id?: string;\n}\n');
+  commit(root, 'wrapper props');
+  git(root, 'switch', '-q', '-c', 'feature');
+  write(root, PROPS, 'export interface HotTableProps {\n  id?: string;\n  className?: string;\n}\n');
+  write(root, SPEC, 'test(\'b\', async() => {\n  expect(2).toBe(2);\n});\n');
+  commit(root, 'DEV-1: add the className prop');
+
+  const run = runGate(root, 'develop');
+
+  assert.equal(run.status, 1, run.stdout);
+  assert.match(run.stdout, /\*\*react-wrapper\*\* – needs /, 'a core test does not cover the wrapper');
+  assert.ok(run.stdout.includes(`- \`${PROPS}\``), run.stdout);
+
+  const typeHint = run.stdout.indexOf('**A public type change**');
+  const waiverHint = run.stdout.indexOf('**A refactor or an internal non-runtime change**');
+
+  assert.ok(typeHint !== -1 && waiverHint > typeHint, `the type-test route comes before the waiver:\n${run.stdout}`);
+  assert.match(run.stdout, /needs a type test: a `\*\.types\.ts` in the package whose types changed/);
+});
+
 test('against the base branch\'s live tip, commits the base gained after the fork are not the branch\'s', (t) => {
   // GATE_BASE is the live tip (origin/<base.ref> in CI). The three-dot diff and
   // the two-dot log both stop at the merge-base, so a source file the base

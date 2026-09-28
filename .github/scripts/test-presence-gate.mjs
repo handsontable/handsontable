@@ -419,8 +419,11 @@ if (result.pass) {
   }
   lines.push('A deleted test does not count, and neither does a test in another package, `docs/tests/`, '
     + '`evals/`, `examples/`, or `performance-tests/`. A visual spec counts for any package.', '');
-  lines.push('**A refactor or a non-runtime change** (types, config, re-exports) needs no test, but it has to say '
-    + 'so. A commit you have not pushed yet: amend it to add a `Refactor-only: <reason>` trailer. A commit you '
+  lines.push('**A public type change** (an exported type, an option, a wrapper prop or input) needs a type test: '
+    + 'a `*.types.ts` in the package whose types changed. React and Angular have no type-test harness yet, so '
+    + 'declare a type change there as below.', '');
+  lines.push('**A refactor or an internal non-runtime change** (types no consumer imports, config, internal '
+    + 're-exports) needs no test, but it has to say so. A commit you have not pushed yet: amend it to add a `Refactor-only: <reason>` trailer. A commit you '
     + 'have pushed: a PR branch must not be force-pushed, so write `[refactor-only: <reason>]` in the PR '
     + 'description instead and re-run the job. It waives every file listed here, and reviewers see it.');
 }
