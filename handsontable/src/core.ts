@@ -1244,6 +1244,12 @@ export default function Core(
     this.runHooks('afterDeselect');
   });
 
+  // The hovered layer is read when the borders are drawn, so a view render repaints the handles.
+  // Not `instance.render()`: that forces a full draw, which a hover during a scroll must not pay.
+  this.selection.addLocalHook('afterSetHandlesHoveredLayer', () => {
+    instance.view.render();
+  });
+
   this.selection
     .addLocalHook('beforeHighlightSet', () => instance.runHooks('beforeSelectionHighlightSet'))
     .addLocalHook('beforeSetRangeStart',
@@ -5057,6 +5063,30 @@ export default function Core(
    */
   this.getDataAtCell = function(row: number, column: number) {
     return datamap.get(row, datamap.colToProp(column));
+  };
+
+  /**
+   * Returns one column's values for a block of rows, resolving the column coordinates once instead
+   * of once per cell.
+   *
+   * This is the bulk form of `getDataAtCell()` for a full-column scan and returns the same values.
+   * The physical row indexes are passed in, so a caller that has already translated them - the sort
+   * gather loop has - does not pay for a second translation per cell.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
+   * local internal type (see `HotInstanceInternal` in the ColumnSorting plugin). Do not add it to
+   * `HotInstance` - that would turn an implementation detail into a supported public API.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getDataAtColumnForRows
+   * @param {number} column Visual column index.
+   * @param {Array} physicalRows Physical row indexes to read, in the order the values are wanted.
+   * @returns {Array} Data at the column, in the same order as `physicalRows`.
+   */
+  this._getDataAtColumnForRows = function(column: number, physicalRows: (number | null)[]) {
+    return datamap.getAtColumnForRows(column, physicalRows);
   };
 
   /**

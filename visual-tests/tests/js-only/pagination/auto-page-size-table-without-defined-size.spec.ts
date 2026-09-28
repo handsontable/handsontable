@@ -11,6 +11,11 @@ import {
   FilterConditions,
 } from '../../../src/page-helpers';
 
+/**
+ * Checks that `pageSize: 'auto'` fits each page to the viewport when the grid has no size of its own: after
+ * filtering and sorting, while paging forward, after the viewport shrinks to 300 px, while paging back, and
+ * on the last page. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

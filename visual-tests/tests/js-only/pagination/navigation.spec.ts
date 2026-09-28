@@ -7,6 +7,10 @@ import {
   forPaginationClickLastPageButton,
 } from '../../../src/page-helpers';
 
+/**
+ * Checks that the last, first, next, and previous page buttons move the page and update the pagination
+ * controls: one capture after Last, after First, after two Nexts, and after Previous. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

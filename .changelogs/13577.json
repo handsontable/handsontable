@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how the `ColumnSorting` and `MultiColumnSorting` plugins sort. Each sorted column is now read in one guarded bulk pass instead of cell by cell, and the sort reorders row positions rather than per-row tuples. A column that sorts with the default comparison (text, and any type without its own sort function, such as `dropdown` or `autocomplete`) also extracts each row's comparison key once instead of on every comparison. Together, this roughly halves the time a large grid takes to sort by a text column. A grid that uses the `Formulas` or `NestedRows` plugin, a `dropdown`, `autocomplete`, or `multiSelect` column, a `columns[].data` accessor, or a column bound to a nested property path (such as `data: 'address.city'`) keeps the per-cell read. When you sort by two or more columns, `modifyData` and `modifyRowData` listeners and `valueGetter` functions now run column by column instead of row by row.",
+  "type": "changed",
+  "issueOrPR": 13577,
+  "breaking": false,
+  "framework": "none"
+}

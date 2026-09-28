@@ -9,6 +9,11 @@ test.beforeEach(async({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
+/**
+ * Checks that typing "to" into the editor of a City cell on the complex demo bolds the matching part of the
+ * cities that contain it and highlights the best match. The column is a dropdown, so the list it opens is
+ * not filtered. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

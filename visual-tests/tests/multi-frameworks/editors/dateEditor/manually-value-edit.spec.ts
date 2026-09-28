@@ -3,7 +3,9 @@ import { helpers } from '../../../../src/helpers';
 import { selectCell, selectEditor, openEditor } from '../../../../src/page-helpers';
 
 /**
- * Checks whether it's possible to manually edit the cell value.
+ * Meant to check that the cell value can be edited by hand in the date editor. The editor is a native
+ * `<input type="date">`, so the Backspace the spec presses acts on a date segment rather than on the last
+ * character of the value; the capture shows the open editor after it. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -18,7 +20,8 @@ visualTest(__filename, {
 
   const cellEditor = await selectEditor();
 
-  await cellEditor.press('Backspace'); // Should remove one character from the end of the value
+  await cellEditor.press('Backspace'); // acts on the focused segment of the native date input
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

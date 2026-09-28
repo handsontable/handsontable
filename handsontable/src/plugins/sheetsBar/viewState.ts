@@ -25,6 +25,7 @@ export interface ViewState {
   hiddenRows: number[];
   hiddenColumns: number[];
   trimmedRows: number[];
+  collapsedParents: number[][];
   colWidths: Array<[number, number]>;
   rowHeights: Array<[number, number]>;
   sortConfig: unknown;
@@ -92,10 +93,16 @@ interface SortingPlugin {
  * Hidden indexes are stored as physical ones. The hiding plugins report visual indexes, and
  * a visual index only means something against the trimming that was in force when it was
  * read — the restore re-applies filters and trimming first, so the same rows have to be found
- * again by an index that does not move.
+ * again by an index that does not move. The hidden rows are read physically, straight off the
+ * plugin's hiding map: a hidden row that a collapsed NestedRows parent trims has no visual
+ * index, so reading it through `getHiddenRows()` would drop it from the capture.
  */
 function captureAxisState(hot: HotInstance) {
-  const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { getHiddenRows: () => number[] } | undefined;
+  const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { pluginName: string } | undefined;
+  const hiddenRowsMap = hiddenRowsPlugin
+    ? hot.rowIndexMapper.hidingMapsCollection.get(hiddenRowsPlugin.pluginName) as
+      { getHiddenIndexes: () => number[] } | undefined
+    : undefined;
   const hiddenColumnsPlugin =
     getEnabledPlugin(hot, 'hiddenColumns') as { getHiddenColumns: () => number[] } | undefined;
   const trimRowsPlugin = getEnabledPlugin(hot, 'trimRows') as { getTrimmedRows: () => number[] } | undefined;
@@ -104,7 +111,7 @@ function captureAxisState(hot: HotInstance) {
     rowSequence: hot.rowIndexMapper.getIndexesSequence().slice(),
     unsortedRowSequence: captureUnsortedRowSequence(hot),
     columnSequence: hot.columnIndexMapper.getIndexesSequence().slice(),
-    hiddenRows: (hiddenRowsPlugin?.getHiddenRows() ?? []).map(row => hot.toPhysicalRow(row)),
+    hiddenRows: hiddenRowsMap?.getHiddenIndexes() ?? [],
     hiddenColumns: (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)),
     trimmedRows: trimRowsPlugin?.getTrimmedRows() ?? [],
   };
@@ -120,6 +127,61 @@ function captureUnsortedRowSequence(hot: HotInstance): number[] {
   const cached = getSortingPlugin(hot)?.indexesSequenceCache?.getValues();
 
   return (cached ?? hot.rowIndexMapper.getIndexesSequence()).slice();
+}
+
+/**
+ * The part of the NestedRows plugin the view state talks to.
+ */
+interface NestedRowsPlugin {
+  getCollapsedParents: () => number[];
+  dataManager: {
+    getRowTreePath: (row: number) => number[] | null,
+    getRowIndexByTreePath: (path: number[] | null) => number | null,
+    hasChildren: (row: number) => boolean,
+  } | null;
+  collapsingUI: {
+    toggleCollapsedRows: (
+      parents: number[], action: 'collapse', shouldRunHooks?: boolean, forceRender?: boolean
+    ) => boolean,
+  } | null;
+}
+
+/**
+ * Captures the collapsed NestedRows parents as tree paths. `loadData` drops the collapsed state,
+ * so a sheet switch would otherwise expand every branch. A physical index would not survive the
+ * sheet's data gaining or losing a row while another sheet is in front — the path does.
+ */
+function captureCollapsedParents(hot: HotInstance): number[][] {
+  const nestedRows = getEnabledPlugin(hot, 'nestedRows') as NestedRowsPlugin | undefined;
+  const dataManager = nestedRows?.dataManager;
+
+  if (!dataManager) {
+    return [];
+  }
+
+  return nestedRows.getCollapsedParents()
+    .map(row => dataManager.getRowTreePath(row))
+    .filter((path): path is number[] => path !== null);
+}
+
+/**
+ * Collapses the parents stored as tree paths again, skipping the ones the data no longer has or
+ * that lost their children. The hooks stay silent — replaying a state the user already chose is
+ * not a new collapse — and the render is left to the caller's batch.
+ */
+function restoreCollapsedParents(hot: HotInstance, state: ViewState) {
+  const nestedRows = getEnabledPlugin(hot, 'nestedRows') as NestedRowsPlugin | undefined;
+  const dataManager = nestedRows?.dataManager;
+
+  if (!dataManager || !nestedRows.collapsingUI || state.collapsedParents.length === 0) {
+    return;
+  }
+
+  const parents = state.collapsedParents
+    .map(path => dataManager.getRowIndexByTreePath(path))
+    .filter((row): row is number => row !== null && dataManager.hasChildren(row));
+
+  nestedRows.collapsingUI.toggleCollapsedRows(parents, 'collapse', false, false);
 }
 
 /**
@@ -197,6 +259,7 @@ export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellM
 
   return {
     ...captureAxisState(hot),
+    collapsedParents: captureCollapsedParents(hot),
     colWidths,
     rowHeights,
     sortConfig: captureSortConfig(hot),
@@ -329,16 +392,26 @@ function restoreSizes(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Restores filter conditions and re-applies the filter.
+ * Restores filter conditions and re-applies the filter. Skipped when there is nothing to apply
+ * and nothing to clear, so a switch between two unfiltered sheets does not run a filter pass.
  */
 function restoreFilterConditions(hot: HotInstance, state: ViewState) {
-  const filters = getEnabledPlugin(hot, 'filters') as
-    { importConditions: (conditions: unknown[]) => void, filter: () => void } | undefined;
+  const filters = getEnabledPlugin(hot, 'filters') as {
+    importConditions: (conditions: unknown[]) => void,
+    exportConditions: () => unknown[],
+    filter: () => void,
+  } | undefined;
 
-  if (filters && state.filterConditions) {
-    filters.importConditions(state.filterConditions);
-    filters.filter();
+  if (!filters || !state.filterConditions) {
+    return;
   }
+
+  if (state.filterConditions.length === 0 && filters.exportConditions().length === 0) {
+    return;
+  }
+
+  filters.importConditions(state.filterConditions);
+  filters.filter();
 }
 
 /**
@@ -395,7 +468,9 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
 /**
  * Restores a previously captured view state. Order matters: row/column order and sort first,
  * since later steps address cells by that reordered position; then filters and trimming,
- * which decide the visual space; then the hidden sets, which are addressed in it; then
+ * which decide the visual space; then the hidden sets, which are addressed in it; then the
+ * collapsed NestedRows parents, after the hidden sets because collapsing trims the children out
+ * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, merges, freeze, and borders, none of which depend on each other.
  *
  * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
@@ -412,6 +487,7 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
+    restoreCollapsedParents(hot, state);
     restoreSizes(hot, state);
     restoreMergedCells(hot, state);
 
@@ -453,6 +529,7 @@ function createNeutralViewState(): ViewState {
     hiddenRows: [],
     hiddenColumns: [],
     trimmedRows: [],
+    collapsedParents: [],
     colWidths: [],
     rowHeights: [],
     sortConfig: [],

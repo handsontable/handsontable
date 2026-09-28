@@ -2,6 +2,10 @@ import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '..
 import { helpers } from '../../src/helpers';
 import { selectCell } from '../../src/page-helpers';
 
+/**
+ * Checks that, with `navigableHeaders`, the arrow keys move the focus from the first cell onto the corner
+ * header. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],
@@ -15,5 +19,6 @@ visualTest(__filename, {
   await tablePage.locator('html').press('ArrowLeft');
   await tablePage.locator('html').press('ArrowUp');
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

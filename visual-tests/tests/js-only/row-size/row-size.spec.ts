@@ -1,6 +1,10 @@
 import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
+/**
+ * Checks that the rows of the row-size demo keep their heights after the grid is scrolled 300 px down with
+ * the mouse wheel. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

@@ -36,6 +36,13 @@ const sanitizeHeader = (html: string): string => {
   return template.innerHTML;
 };
 
+const data = [
+  ['BMW', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
 const ExampleComponent = () => {
   const colors = [
     'yellow',
@@ -61,12 +68,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       sanitizer={sanitizeHeader}
-      data={[
-        ['BMW', 2017, 'black', 'black'],
-        ['Nissan', 2018, 'blue', 'blue'],
-        ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'white', 'gray'],
-      ]}
+      data={data}
       colHeaders={['Car<br>(allowInvalid true)', 'Year', 'Chassis color', 'Bumper color<br>(allowInvalid true)']}
       columns={[
         {

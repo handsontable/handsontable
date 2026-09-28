@@ -68,10 +68,30 @@ that path:
 - **Only `setDataAtCell` writes are validated by the Core.** `setSourceDataAtCell` runs `sourceDataValidator`
   (`dataMap/sourceDataValidator.ts`), a separate mechanism that never touches the `valid` flag — so only the
   former may be excluded from a validation pass, or the restored cells end up validated by nobody.
-- **`STRUCTURAL_ACTION_TYPES`** (`insert_row`, `insert_col`, `remove_row`, `remove_col`) are the only
-  actions that make HyperFormula rewrite formula references, so they are the only ones whose source data has
-  to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves the source data's own reference
-  frame untouched and must **not** trigger the write-back.
+- **`STRUCTURAL_ACTION_TYPES`** (`insert_row`, `insert_col`, `remove_row`, `remove_col`, and
+  `nested_rows_detach`) are the only actions that make HyperFormula rewrite formula references, so they are
+  the only ones whose source data has to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves
+  the source data's own reference frame untouched and must **not** trigger the write-back.
+- **Structural redos replay only in `afterRedo`.** `UndoRedo#redo()` gives every `beforeRedo` listener a
+  chance to veto the action before it runs, so replaying from `beforeRedo` would advance HyperFormula while
+  the grid remains undone. The action types are exactly `STRUCTURAL_ACTION_TYPES`; non-structural redos
+  retain their existing replay path. `UndoRedo` fires `afterRedo` even when the action settles
+  `{ wasRedone: false }` (a late `beforeRemoveRow` veto), so the replay also requires the redo to have
+  applied. `#structuralRedoApplied` reads that from `afterUndoStackChange`, where the done stack grows only
+  on success. This relies on structural redos settling synchronously inside the grid operation, which they
+  all do.
+- **`nested_rows_detach` owns several engine history entries.** NestedRows emits an internal removal,
+  insertion, and cell writes as one grid action. Its undo also replays only in `afterUndo`: a
+  `beforeRemoveRow` veto skips that hook, so replaying from `beforeUndo` would advance HyperFormula while
+  the tree remains detached. `afterRedoStackChange` releases the undo index-sync guard on that veto path
+  (DEV-138).
+- **An interrupted undo or redo must not leave the index-sync flags raised.** A detach redo raises the
+  redo flag in `beforeDetachChild` and `afterRedo` lowers it. When the detach throws between the two,
+  `UndoRedo` rethrows without firing `afterRedo`, and a raised flag makes the axis syncers skip every later
+  row and column move. `#releaseIndexSyncGuards()` lowers both flags at the head of `beforeUndo` and
+  `beforeRedo` and inside `#closeLeakedGuards()`, so such a leak lasts until the next undo, redo, or
+  structural reload at most. The same leak class existed for every action before DEV-138, when
+  `beforeRedo` raised the flag unconditionally.
 
 **`MoveCellsAction` is asymmetric, on purpose.** Its `undo` restores both regions with `restoreRegion`
 instead of replaying the move, so `afterMoveCells` — where the forward direction syncs — never fires; undo
@@ -102,6 +122,22 @@ Two performance rules and one mid-batch guard:
 
 `removeRows`/`removeColumns` spans are chunked, because an unbounded variadic argument spread could overflow
 the call stack.
+
+**Removed indexes are translated physically** (`AxisSyncer#setRemovedHfIndexes`). The engine holds trimmed
+rows too, and a NestedRows detach hands `beforeRemoveRow` the whole subtree, including a descendant trimmed
+by `trimRows`. A visual translation reported that row as `-1`, and `engine.removeRows()` threw in the middle
+of the detach (DEV-138).
+
+**`#onBeforeRemoveRow` relies on NestedRows expanding the removal list first.** NestedRows rewrites the
+`beforeRemoveRow` list by reference to cover the removed parent's whole subtree. It registers that listener
+with `orderIndex: -1`, so this plugin's listener (priority 260) sees the expanded list, and both the engine
+removal and the `isItPossibleToRemoveRows` veto cover every descendant. At the default order this listener
+ran first and read the parent alone, so the engine kept the descendants while the grid dropped them, and
+every reference below the subtree shifted by the number of rows the caller named instead of by the number
+actually removed (DEV-3092). The
+undo-only specs missed it because an undo lines both sides up again. Assert the engine sheet right after the
+removal (`tests/e2e/formulas-nested-rows-remove-parent.spec.ts`). Do not fix a similar ordering problem by
+expanding the list here: that couples this plugin to the tree.
 
 ## The `afterLoadData` listener runs first, at `orderIndex` -1 (DEV-2905)
 
@@ -293,6 +329,29 @@ Rules that keep it correct:
 Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, listener and scan throws,
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
+
+## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
+
+A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call
+`switchSheet()`, which `loadData()`s the engine sheet's serialized content into the grid. A caller
+that loads the sheet's data itself right after the update — the SheetsBar plugin, on every switch —
+paid two full loads (index maps, cell-meta reset, AutoColumnSize sweep, every host `afterLoadData`).
+The `@private` field `skipSheetSwitchLoad` makes `updatePlugin` bind the sheet with
+`#updateSheetNameAndSheetId()` instead, and the caller's `loadData()` then reaches `#onAfterLoadData`,
+which writes the loaded array into the bound sheet — the same final state the double load reached.
+Three rules. A name the engine does not know still goes through `switchSheet()`, so the error is
+reported. The flag is set and reset by the caller around the one `updateSettings()` call, in a
+`finally`, and must never stay on: a host's own `updateSettings({ formulas: { sheetName } })` relies on
+`switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
+`hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
+With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
+anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
+that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
+"loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
+while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas switch
+load and min padding working after a switch threw mid-update" pins the `finally` reset through a
+SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
+SheetsBar, so it only pins the flag's default.
 
 ## The engine's sheet size is not the grid's axis length, in either direction
 

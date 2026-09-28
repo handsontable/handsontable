@@ -3,6 +3,7 @@ import type { HotInstance } from '../../../core/types';
 import { clipRemovalRange } from '../../../utils/removalRange';
 import { settleOnRemoveHook, type SettleCallback } from '../utils';
 import { BaseAction } from './_base';
+import { NESTED_ROWS_DETACH_SOURCE } from './nestedRowsDetachSource';
 import { FIXED_ROW_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
 /**
@@ -54,6 +55,10 @@ export class CreateRowAction extends BaseAction {
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {
+      if (source === NESTED_ROWS_DETACH_SOURCE) {
+        return;
+      }
+
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
         () => new CreateRowAction({ index, amount }), source
       );

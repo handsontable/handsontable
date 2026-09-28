@@ -5,6 +5,11 @@ import {
 } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
+/**
+ * Checks that inserting a column to the left and one to the right through the context menu renders both new
+ * columns in the bottom table of the two-tables demo, and leaves the top table as it was. Owned by
+ * DEV-2981.
+ */
 visualTest('Test columns add/remove', {
   themes: [CLASSIC],
   browsers: CROSS_BROWSERS,

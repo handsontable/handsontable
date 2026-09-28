@@ -6,6 +6,10 @@ import {
   scrollTableToTheBottom,
 } from '../../../../../src/page-helpers';
 
+/**
+ * Checks that, in RTL, the date editor's picker opens inside the viewport from a cell near each corner of a
+ * grid scrolled to its bottom and inline end. One capture per corner. Owned by DEV-2981.
+ */
 visualTest(__filename, {
   themes: JS_VARIANTS,
   browsers: ['chromium'],

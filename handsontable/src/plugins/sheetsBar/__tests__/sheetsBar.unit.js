@@ -13,6 +13,11 @@ import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { NestedRows } from '../../nestedRows/nestedRows';
 import { TrimRows } from '../../trimRows/trimRows';
 import { UndoRedo } from '../../undoRedo/undoRedo';
+import { Filters } from '../../filters/filters';
+import { MergeCells } from '../../mergeCells/mergeCells';
+import { DropdownMenu } from '../../dropdownMenu/dropdownMenu';
+import { registerCellType } from '../../../cellTypes/registry';
+import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 import { SheetsBarMenus } from '../ui/menus';
 import { Menu } from '../../contextMenu/menu';
 import { SheetsBarUI } from '../ui/bar';
@@ -102,6 +107,10 @@ describe('SheetsBar plugin', () => {
     registerPlugin(NestedRows);
     registerPlugin(TrimRows);
     registerPlugin(UndoRedo);
+    registerPlugin(DropdownMenu);
+    registerCellType(CheckboxCellType);
+    registerPlugin(Filters);
+    registerPlugin(MergeCells);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -476,6 +485,117 @@ describe('SheetsBar plugin', () => {
     expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Nested Rows plugin requires'));
   });
 
+  it('keeps each sheet\'s collapsed `nestedRows` parents across a switch away and back', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'A',
+            data: [
+              { a: 'A1', __children: [{ a: 'A1.1', __children: [{ a: 'A1.1.1' }] }, { a: 'A1.2' }] },
+              { a: 'A2', __children: [{ a: 'A2.1' }] },
+            ],
+          },
+          {
+            name: 'B',
+            data: [
+              { a: 'B1', __children: [{ a: 'B1.1' }] },
+              { a: 'B2', __children: [{ a: 'B2.1' }] },
+            ],
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+    const collapseSpy = jest.fn();
+
+    nestedRows.collapsingUI.toggleCollapsedRows([1, 4], 'collapse');
+    sheetsBar.setActiveSheet('B');
+    nestedRows.collapsingUI.toggleCollapsedRows([2], 'collapse');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['B1', 'B1.1', 'B2']);
+
+    hot.addHook('beforeRowCollapse', collapseSpy);
+    hot.addHook('afterRowCollapse', collapseSpy);
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['A1', 'A1.1', 'A1.2', 'A2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([1, 4]);
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['B1', 'B1.1', 'B2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([2]);
+    expect(collapseSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps a hidden child of a collapsed parent hidden across a switch away and back', () => {
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      hiddenRows: true,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Tree',
+            data: [
+              { a: 'P1', __children: [{ a: 'P1.1' }, { a: 'P1.2' }, { a: 'P1.3' }] },
+              { a: 'P2', __children: [{ a: 'P2.1' }] },
+            ],
+          },
+          { name: 'Other', data: [{ a: 'x' }] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+    const hiddenRows = hot.getPlugin('hiddenRows');
+
+    hiddenRows.hideRows([2]);
+    nestedRows.collapsingUI.toggleCollapsedRows([0], 'collapse');
+    sheetsBar.setActiveSheet('Other');
+    sheetsBar.setActiveSheet('Tree');
+
+    expect(nestedRows.getCollapsedParents()).toEqual([0]);
+
+    nestedRows.collapsingUI.toggleCollapsedRows([0], 'expand');
+
+    expect(hiddenRows.getHiddenRows().map(row => hot.toPhysicalRow(row))).toEqual([2]);
+    expect(hot.getData().map(row => row[0])).toEqual(['P1', 'P1.1', 'P1.2', 'P1.3', 'P2', 'P2.1']);
+    expect(hiddenRows.isHidden(2)).toBe(true);
+  });
+
+  it('collapses the same parent again after its sheet gained a child row under an earlier sibling', () => {
+    const treeData = [
+      { a: 'P1', __children: [{ a: 'P1.1' }] },
+      { a: 'P2', __children: [{ a: 'P2.1' }] },
+    ];
+
+    hot = new Handsontable(container, {
+      nestedRows: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Tree', data: treeData },
+          { name: 'Other', data: [{ a: 'x' }] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const nestedRows = hot.getPlugin('nestedRows');
+
+    nestedRows.collapsingUI.toggleCollapsedRows([2], 'collapse');
+    sheetsBar.setActiveSheet('Other');
+    treeData[0].__children.push({ a: 'P1.2' });
+    sheetsBar.setActiveSheet('Tree');
+
+    expect(hot.getData().map(row => row[0])).toEqual(['P1', 'P1.1', 'P1.2', 'P2']);
+    expect(nestedRows.collapsingUI.getCollapsedParents()).toEqual([3]);
+  });
+
   it('leaves the row order alone when the sheet data changed size while it was away', () => {
     const data = [['a'], ['b']];
 
@@ -701,6 +821,308 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(150, 1).className).toBe('marked');
     expect(hot.getCellMetaTransient(150, 1).className).toBe('marked');
     expect(hot.getCellMeta(1, 0).readOnly).not.toBe(true);
+  });
+
+  describe('tracked cell meta across structural changes', () => {
+    /**
+     * Creates a two-sheet grid whose first sheet is `rows` x `cols`, with `readOnly` tracked on
+     * the given visual cells.
+     *
+     * @param {number} rows The number of rows on the first sheet.
+     * @param {number} cols The number of columns on the first sheet.
+     * @param {number[][]} cells The `[row, col]` cells to mark read-only.
+     * @returns {Handsontable}
+     */
+    function createGridWithReadOnlyCells(rows, cols, cells) {
+      const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (__, c) => `${r}:${c}`));
+      const instance = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      cells.forEach(([row, col]) => instance.setCellMeta(row, col, 'readOnly', true));
+
+      return instance;
+    }
+
+    /**
+     * Returns the data of every cell whose meta reads `readOnly: true`.
+     *
+     * @param {Handsontable} instance The grid to scan.
+     * @returns {string[]}
+     */
+    function getReadOnlyCellValues(instance) {
+      const values = [];
+
+      for (let row = 0; row < instance.countRows(); row += 1) {
+        for (let col = 0; col < instance.countCols(); col += 1) {
+          if (instance.getCellMeta(row, col).readOnly === true) {
+            values.push(instance.getDataAtCell(row, col));
+          }
+        }
+      }
+
+      return values;
+    }
+
+    /**
+     * Switches away from the first sheet and back, so the tracked meta is captured and served
+     * again from the sheet's view state.
+     *
+     * @param {Handsontable} instance The grid to switch.
+     */
+    function roundTrip(instance) {
+      instance.getPlugin('sheetsBar').setActiveSheet('B');
+      instance.getPlugin('sheetsBar').setActiveSheet('A');
+    }
+
+    it('moves a tracked property up with its cell when a row above it is removed', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[5, 0]]);
+
+      hot.alter('remove_row', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:0']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:0']);
+    });
+
+    it('drops the tracked properties of a removed row', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[2, 0], [5, 1]]);
+      const sheetId = hot.getPlugin('sheetsBar').getSheets()[0].id;
+      let captured = null;
+
+      hot.addHook('afterSheetTabStateCapture', (id, viewState) => {
+        if (id === sheetId) {
+          captured = viewState;
+        }
+      });
+
+      hot.alter('remove_row', 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:1']);
+
+      roundTrip(hot);
+
+      expect(captured.cellMeta).toEqual([{ row: 4, col: 1, key: 'readOnly', value: true }]);
+      expect(getReadOnlyCellValues(hot)).toEqual(['5:1']);
+    });
+
+    it('re-keys tracked properties across a non-contiguous row removal', () => {
+      hot = createGridWithReadOnlyCells(10, 1, [[1, 0], [4, 0], [6, 0], [9, 0]]);
+
+      hot.alter('remove_row', [[0, 1], [3, 2], [7, 1]]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '6:0', '9:0']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '6:0', '9:0']);
+    });
+
+    it('moves a tracked property down with its cell when rows are inserted above it', () => {
+      hot = createGridWithReadOnlyCells(8, 2, [[1, 0], [5, 1]]);
+
+      hot.alter('insert_row_above', 3, 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '5:1']);
+      expect(hot.getCellMeta(7, 1).readOnly).toBe(true);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '5:1']);
+    });
+
+    it('keeps a tracked property on its cell when a row is inserted below it', () => {
+      hot = createGridWithReadOnlyCells(8, 1, [[3, 0]]);
+
+      hot.alter('insert_row_below', 3);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['3:0']);
+      expect(hot.getCellMeta(3, 0).readOnly).toBe(true);
+    });
+
+    it('moves a tracked property left with its cell when a column before it is removed', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 3]]);
+
+      hot.alter('remove_col', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:3']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:3']);
+    });
+
+    it('drops the tracked properties of a removed column', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[0, 1], [2, 3]]);
+
+      hot.alter('remove_col', 1);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['2:3']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['2:3']);
+    });
+
+    it('moves a tracked property right with its cell when columns are inserted before it', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
+
+      hot.alter('insert_col_start', 0, 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+      expect(hot.getCellMeta(1, 4).readOnly).toBe(true);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+    });
+
+    it('keeps a tracked property on its cell when a column is inserted after it', () => {
+      hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
+
+      hot.alter('insert_col_end', 2);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
+      expect(hot.getCellMeta(1, 2).readOnly).toBe(true);
+    });
+
+    it('does not re-key the arriving sheet for the `auto` rows the switch creates', () => {
+      const tallData = Array.from({ length: 30 }, (_, r) => [`a${r}`]);
+      const shortData = Array.from({ length: 5 }, (_, r) => [`b${r}`]);
+      const paddedData = Array.from({ length: 8 }, (_, r) => [`c${r}`]);
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: tallData, settings: { minSpareRows: 1 } },
+            { name: 'B', data: shortData },
+            { name: 'C', data: paddedData, settings: { minRows: 12 } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      hot.setCellMeta(10, 0, 'readOnly', true);
+      sheetsBar.setActiveSheet('B');
+      sheetsBar.setActiveSheet('A');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['a10']);
+
+      sheetsBar.setActiveSheet('C');
+      hot.setCellMeta(6, 0, 'readOnly', true);
+      sheetsBar.setActiveSheet('B');
+      sheetsBar.setActiveSheet('C');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['c6']);
+    });
+
+    it('re-keys the arriving sheet for a row the host inserts from `afterSheetTabStateRestore`', () => {
+      hot = createGridWithReadOnlyCells(4, 1, [[1, 0]]);
+      const sheetsBar = hot.getPlugin('sheetsBar');
+      let insertOnRestore = false;
+
+      hot.addHook('afterSheetTabStateRestore', () => {
+        if (insertOnRestore) {
+          insertOnRestore = false;
+          hot.alter('insert_row_above', 0);
+        }
+      });
+
+      sheetsBar.setActiveSheet('B');
+      insertOnRestore = true;
+      sheetsBar.setActiveSheet('A');
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['1:0']);
+      expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+    });
+
+    it('forgets the tracked properties when the host loads a new dataset', () => {
+      hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
+
+      hot.loadData([['n0', 'n0'], ['n1', 'n1'], ['n2', 'n2']]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+    });
+
+    it('keeps the tracked properties when the host updates the dataset in place', () => {
+      hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
+
+      hot.updateData([['u0', 'u0'], ['u1', 'u1'], ['u2', 'u2']]);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['u1']);
+
+      roundTrip(hot);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['u1']);
+    });
+
+    it('shifts a key left past the end by an in-place shrink the way core shifts its meta', () => {
+      hot = createGridWithReadOnlyCells(4, 1, [[3, 0]]);
+
+      hot.updateData([['u0'], ['u1']]);
+      hot.alter('insert_row_below', 1);
+      hot.alter('insert_row_below', 2);
+
+      expect(hot.countRows()).toBe(4);
+      expect(getReadOnlyCellValues(hot)).toEqual([]);
+    });
+
+    it('keeps a key between two removed physical rows that sorting made visually adjacent', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['b'], ['x'], ['a'], ['y'], ['z']] },
+            { name: 'B', data: [['q']] },
+          ],
+        },
+        columnSorting: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.setCellMeta(0, 0, 'readOnly', true);
+      hot.setCellMeta(4, 0, 'readOnly', true);
+      hot.alter('remove_row', 2, 2);
+
+      expect(getReadOnlyCellValues(hot).sort()).toEqual(['a', 'z']);
+
+      roundTrip(hot);
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(getReadOnlyCellValues(hot).sort()).toEqual(['a', 'z']);
+    });
+
+    it('re-keys against physical indexes when the rows are sorted', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['c'], ['a'], ['d'], ['b']] },
+            { name: 'B', data: [['x']] },
+          ],
+        },
+        columnSorting: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.setCellMeta(3, 0, 'readOnly', true);
+      hot.alter('remove_row', 0);
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['d']);
+
+      roundTrip(hot);
+      hot.getPlugin('columnSorting').clearSort();
+
+      expect(getReadOnlyCellValues(hot)).toEqual(['d']);
+    });
   });
 
   it('starts a reconfigured workbook from the grid settings, not from the old baseline', () => {
@@ -1198,6 +1620,352 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });
 
+  it('loads the grid once per switch between sheets sharing a formula engine', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const loadSources = [];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const formulas = hot.getPlugin('formulas');
+
+    loadSources.length = 0;
+
+    expect(sheetsBar.setActiveSheet('Rates')).toBe(true);
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
+    expect(formulas.sheetName).toBe('Rates');
+    expect(hot.getDataAtCell(0, 0)).toBe(0.23);
+
+    loadSources.length = 0;
+
+    expect(sheetsBar.setActiveSheet('Budget')).toBe(true);
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
+    expect(formulas.sheetName).toBe('Budget');
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Rates!A1');
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+    expect(formulas.skipSheetSwitchLoad).toBe(false);
+  });
+
+  it('keeps the formula engine in step with a sheet edited before the switch away', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Rates');
+    hot.setDataAtCell(0, 0, 0.5);
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.getDataAtCell(0, 1)).toBe(50);
+    expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[0.5]]);
+
+    sheetsBar.setActiveSheet('Rates');
+
+    expect(hot.getDataAtCell(0, 0)).toBe(0.5);
+  });
+
+  it('still loads the engine sheet when the host switches the Formulas sheet itself', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    engine.addSheet('Rates');
+    engine.setSheetContent(engine.getSheetId('Rates'), [[0.23]]);
+
+    const loadSources = [];
+
+    hot = new Handsontable(container, {
+      data: [[100]],
+      formulas: { engine, sheetName: 'Budget' },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    loadSources.length = 0;
+    hot.updateSettings({ formulas: { engine, sheetName: 'Rates' } });
+
+    expect(loadSources).toEqual(['Formulas.switchSheet']);
+    expect(hot.getDataAtCell(0, 0)).toBe(0.23);
+  });
+
+  it('does not pad a formula sheet\'s data with the min rows of the sheet it switches to', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const budgetData = [[1], [2], [3], [4], [5]];
+    const loadSources = [];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: budgetData,
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' }, minRows: 20 },
+          },
+        ],
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    loadSources.length = 0;
+    sheetsBar.setActiveSheet('Rates');
+
+    expect(loadSources).toEqual(['SheetsBar.api.switch']);
+    expect(hot.countRows()).toBe(20);
+    expect(budgetData).toHaveLength(5);
+
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(budgetData).toHaveLength(5);
+    expect(hot.countRows()).toBe(5);
+    expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[1], [2], [3], [4], [5]]);
+  });
+
+  it('does not pad a sheet\'s data with the min rows of the sheet it switches to without formulas', () => {
+    const firstData = [['a'], ['b'], ['c']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'First', data: firstData },
+          { name: 'Second', data: [['x']], settings: { minRows: 10, minSpareCols: 2 } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Second');
+
+    expect(hot.countRows()).toBe(10);
+    expect(hot.countCols()).toBe(3);
+    expect(firstData).toEqual([['a'], ['b'], ['c']]);
+
+    sheetsBar.setActiveSheet('First');
+
+    expect(hot.countRows()).toBe(3);
+    expect(firstData).toEqual([['a'], ['b'], ['c']]);
+  });
+
+  it('does not pad a sheet\'s data with the min rows of an empty formula sheet it switches to', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const budgetData = [[1], [2], [3]];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: budgetData,
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Notes',
+            data: [],
+            settings: { formulas: { engine, sheetName: 'Notes' }, minRows: 8 },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Notes');
+
+    expect(hot.countRows()).toBe(8);
+    expect(budgetData).toEqual([[1], [2], [3]]);
+
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.countRows()).toBe(3);
+    expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[1], [2], [3]]);
+  });
+
+  it('leaves the Formulas switch load and min padding working after a switch threw mid-update', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const loadSources = [];
+    let throwOnUpdate = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      afterUpdateSettings() {
+        if (throwOnUpdate) {
+          throwOnUpdate = false;
+          throw new Error('update failed');
+        }
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        loadSources.push(source);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const formulas = hot.getPlugin('formulas');
+
+    throwOnUpdate = true;
+
+    expect(() => hot.getPlugin('sheetsBar').setActiveSheet('Rates')).toThrow('update failed');
+    expect(formulas.skipSheetSwitchLoad).toBe(false);
+    expect(formulas.sheetName).toBe('Rates');
+
+    loadSources.length = 0;
+    hot.updateSettings({ formulas: { engine, sheetName: 'Budget' } });
+
+    expect(loadSources).toEqual(['Formulas.switchSheet']);
+    expect(formulas.sheetName).toBe('Budget');
+
+    hot.updateSettings({ minRows: 4 });
+
+    expect(hot.countRows()).toBe(4);
+  });
+
+  it('does not pad a sheet\'s data with a grid-level min cols setting its columns hid', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const budgetData = [[1, 2, 3], [4, 5, 6]];
+
+    hot = new Handsontable(container, {
+      minCols: 5,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: budgetData,
+            settings: { formulas: { engine, sheetName: 'Budget' }, columns: [{}, {}, {}] },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Rates');
+
+    expect(hot.countCols()).toBe(5);
+    expect(budgetData).toEqual([[1, 2, 3], [4, 5, 6]]);
+
+    sheetsBar.setActiveSheet('Budget');
+
+    expect(hot.countCols()).toBe(3);
+    expect(budgetData).toEqual([[1, 2, 3], [4, 5, 6]]);
+  });
+
+  it('pads the arriving sheet before its afterLoadData, with one settings update per switch', () => {
+    const counts = { afterUpdateSettings: 0 };
+    let rowsAtLoad = null;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'First', data: [['a']] },
+          { name: 'Second', data: [['x']], settings: { minRows: 4 } },
+        ],
+      },
+      afterUpdateSettings() {
+        counts.afterUpdateSettings += 1;
+      },
+      afterLoadData(sourceData, initialLoad, source) {
+        if (source.endsWith('.switch')) {
+          rowsAtLoad = sourceData.length;
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    counts.afterUpdateSettings = 0;
+    sheetsBar.setActiveSheet('Second');
+
+    expect(counts.afterUpdateSettings).toBe(1);
+    expect(rowsAtLoad).toBe(4);
+
+    counts.afterUpdateSettings = 0;
+    sheetsBar.setActiveSheet('First');
+
+    expect(counts.afterUpdateSettings).toBe(1);
+    expect(rowsAtLoad).toBe(1);
+  });
+
+  it('reports an unknown Formulas sheet name even while the switch load is skipped', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [[100]],
+      formulas: { engine, sheetName: 'Budget' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const formulas = hot.getPlugin('formulas');
+
+    formulas.skipSheetSwitchLoad = true;
+    hot.updateSettings({ formulas: { engine, sheetName: 'Missing' } });
+    formulas.skipSheetSwitchLoad = false;
+
+    expect(errorSpy).toHaveBeenCalledWith('The sheet named `Missing` does not exist, switch aborted.');
+    expect(formulas.sheetName).toBe('Budget');
+    expect(engine.doesSheetExist('Missing')).toBe(false);
+
+    errorSpy.mockRestore();
+  });
+
   it('binds a runtime-added sheet to the workbook\'s shared engine under its own name', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
@@ -1316,6 +2084,144 @@ describe('SheetsBar plugin', () => {
 
     expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Fees!A1');
     expect(hot.getDataAtCell(0, 1)).toBe(23);
+  });
+
+  it('keeps the restored sort off the undo stack after a sheet round-trip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      columnSorting: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+  });
+
+  it('records a cell edit made after a sheet round-trip on the undo stack', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      columnSorting: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    hot.setDataAtCell(0, 0, 9);
+
+    expect(undoRedo.ignoreNewActions).toBe(false);
+    expect(undoRedo.isUndoAvailable()).toBe(true);
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+  });
+
+  it('keeps the restored filter and merge off the undo stack after a sheet round-trip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1, 'x', 'a'], [2, 'y', 'b'], [3, 'x', 'c']] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      filters: true,
+      mergeCells: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(1, 'eq', ['x']);
+    filters.filter();
+    hot.getPlugin('mergeCells').merge(0, 1, 0, 2);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 3]);
+    expect(hot.getCellMeta(0, 1).colspan).toBe(2);
+  });
+
+  it('runs no filter pass on a switch between two sheets that were never filtered', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['a']] },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const beforeFilter = jest.fn();
+
+    hot.addHook('beforeFilter', beforeFilter);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeFilter).not.toHaveBeenCalled();
+  });
+
+  it('still clears a filter when switching to a sheet that has none', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['x'], ['y'], ['x']] },
+          { name: 'Beta', data: [['x'], ['y'], ['x']] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'eq', ['x']);
+    filters.filter();
+
+    expect(hot.countRows()).toBe(2);
+
+    sheetsBar.setActiveSheet(beta.id);
+
+    expect(hot.countRows()).toBe(3);
+    expect(filters.exportConditions()).toEqual([]);
   });
 
   it('renames the engine sheet with the tab and rewrites the references to it', () => {

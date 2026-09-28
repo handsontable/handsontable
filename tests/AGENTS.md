@@ -386,8 +386,11 @@ artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
 runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
 outcome (failed, then passed on retry) reaches the ledger only because
 `failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
-The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
-in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+`.github/scripts/__tests__/playwright-flake-settings.test.mjs` pins all three
+settings (`failOnFlakyTests`, `retries`, and `forbidOnly`) as text in the root
+`test:tooling` gate, and fails with this reason if one moves. The report path
+is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
+`.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
 
 ## Quarantine
@@ -395,8 +398,12 @@ all three places.
 `failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
 fixing the flake is the answer. Quarantine is the narrow, expiring, capped
 exception for a *known* flake that would otherwise redden every unrelated pull
-request until the fix lands — and it exists in this tier only. The frozen
-Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+request until the fix lands. The mechanism below is this tier's only. The visual
+suite parks a flaky capture with the same limits (owner, 30-day expiry, cap of
+six) through `visual-tests/visual-quarantine.json`, whose checks import
+`lib/quarantine-policy.mjs`; its rules are `visual-tests/AGENTS.md`, Guardrails
+(G5). The frozen Jasmine suite has no quarantine: a flaky legacy spec migrates
+here instead.
 
 - **Tag through the helper, never by hand.**
   `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
@@ -430,4 +437,8 @@ The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
 `lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
 proves the exit codes end to end by running synthetic projects in a child
 process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
-policy module; change them there and in this section together.
+policy module; change them there, in this section, in the G5 bullet of
+`visual-tests/AGENTS.md`, and in `visual-tests/visual-quarantine.json`'s
+`$comment` together. The visual quarantine imports them, and
+`visual-tests/lib/__tests__/visual-quarantine.test.mjs` pins 6 and 30, so it
+fails until you do.

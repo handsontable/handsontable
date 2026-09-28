@@ -78,6 +78,34 @@ test('a failed refresh of the base branch is a warning, not a red job', () => {
   );
 });
 
+test('the visual-tests job runs the lint config self-test after the lint, under the same scope', () => {
+  // `visual-tests/test/__tests__/determinism-lint.test.mjs` is the only proof that the capture-adjacency
+  // rule matches anything: a selector esquery cannot use lints green. It imports ESLint, so this job — which
+  // has the workspace installed — is its only runner, and dropping the step switches the proof off silently.
+  const visual = jobsOf(source).find(job => job.name === 'visual-tests');
+
+  assert.ok(visual, 'lint.yml has no `visual-tests` job');
+  assert.match(visual.body, /\n\s+if: inputs\.run-visual\n/, 'the visual-tests job lost its scope gate');
+
+  // Each step as a block anchored at its own indentation, so a commented-out step does not count, and a
+  // step that is switched off by its own `if:` or made advisory by `continue-on-error:` is caught — a
+  // substring match over the job body stayed green in all three shapes.
+  const stepOf = name => visual.body.match(new RegExp(`^ {6}- name: ${name}\\n((?: {8}.*\\n)+)`, 'm'));
+  const lint = stepOf('Lint');
+  const selfTest = stepOf('Lint config self-test');
+
+  assert.ok(lint, 'the visual-tests job no longer has its `Lint` step');
+  assert.ok(selfTest, 'the visual-tests job no longer has its `Lint config self-test` step');
+  assert.match(lint[1], /^ {8}run: npm run in visual-tests lint$/m);
+  assert.match(selfTest[1], /^ {8}run: npm run in visual-tests test:lint-config$/m);
+
+  for (const [name, step] of [['Lint', lint], ['Lint config self-test', selfTest]]) {
+    assert.doesNotMatch(step[1], /^ {8}(if|continue-on-error):/m,
+      `the \`${name}\` step carries its own if: or continue-on-error:, so it can be skipped or ignored`);
+  }
+  assert.ok(lint.index < selfTest.index, 'the self-test must run after the lint it proves');
+});
+
 test('the core checkout has the history the merge-base needs exactly when the ratchet runs', () => {
   // A one-commit clone cannot reach the fork point; a full clone on every lint
   // run pays for a pack close to a gigabyte. The checkout depth carries the
