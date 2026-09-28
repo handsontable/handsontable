@@ -6,11 +6,19 @@
  *
  * Why a subset. The whole `.reg/` tree holds the tier's golden set twice (`expected/` and `actual/`): 110 MB
  * for #13577's pr-tier run (480 records, 28 changed), of which this subset is 24.5 MB, and a full-tier run
- * holds 3.5 times the records. A reviewer needs neither copy of the screenshots that passed. What the report shows for a difference is the expected, actual, and diff image of a changed item,
- * the actual image of a new one, and the expected image of a deleted one. Both comparison paths write the
- * same layout (`reg-suit compare` on the credentialed path, `compare-fork.mjs` through `reg-cli` on the
- * other), and `index.html` addresses its images relative to itself, so the subset opens as the same report.
- * The passing items are still listed there, without their images.
+ * holds 3.5 times the records. A reviewer needs neither copy of the screenshots that passed. What the report
+ * shows for a difference is the expected, actual, and diff image of a changed item, the actual image of a new
+ * one, and the expected image of a deleted one. Both comparison paths write the same layout (`reg-suit
+ * compare` on the credentialed path, `compare-fork.mjs` through `reg-cli` on the other), and `index.html`
+ * addresses its images relative to itself, so the subset opens as the same report. The passing items are
+ * still listed there, without their images.
+ *
+ * The directories in `out.json` are relative to it on both paths, whatever `compare-fork.mjs` passes on the
+ * command line: reg-cli stores `<urlPrefix><path relative to out.json>`, so reg-suit writes `actual` and the
+ * reg-cli CLI, whose URL prefix defaults to `./`, writes `./actual` (measured by running it the way
+ * `compare-fork.mjs` does, with absolute arguments). An absolute directory could only come from an absolute
+ * URL prefix, which `index.html` shares, so its images would not open from a downloaded artifact either. It
+ * is refused like any other path that leaves `.reg/`, and the script warns.
  */
 
 /**

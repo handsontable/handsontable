@@ -63,8 +63,9 @@ on your pull request is rewritten to name them, so it stops asking for a review 
 Two cases worth knowing:
 
 - **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets and publish no
-  report, so the `visual-diff-report` artifact on the run holds the images and the job summary carries
-  the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
+  report, so the `visual-diff-report` artifact on the run holds the report and the images of every
+  changed, new, and deleted screenshot (the passing ones are listed without images), and the job summary
+  carries the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
 - **A visual change merged into the branch you target.** The golden records always come from that branch's
   latest build, so once someone else's intentional change lands, your next run inherits their differences
   as well as yours. **Rebase** — approving would also approve any real regression of your own that the same

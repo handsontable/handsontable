@@ -80,6 +80,25 @@ test('the directories come from the report, so the staged tree matches the paths
   assert.deepEqual(reviewFiles(bare).files, reviewFiles(report()).files);
 });
 
+test('the fork path\'s `./` directories are inside the working directory, not refused', () => {
+  // `compare-fork.mjs` runs the reg-cli CLI with absolute arguments, and reg-cli stores each directory as its
+  // URL prefix (`./` by default on the CLI) plus the path relative to out.json. Measured: `./actual`,
+  // `./expected`, `./diff`. The credentialed path's reg-suit writes the bare names.
+  const fork = report({ actualDir: './actual', expectedDir: './expected', diffDir: './diff' });
+  const { files, refused } = reviewFiles(fork);
+
+  assert.deepEqual(refused, []);
+  assert.deepEqual(files, [
+    'index.html',
+    'out.json',
+    `./expected/${CHANGED}`,
+    `./actual/${CHANGED}`,
+    `./diff/${CHANGED}`,
+    `./actual/${ADDED}`,
+    `./expected/${DELETED}`,
+  ]);
+});
+
 test('the diff image is the one reg-cli lists, not one derived from the item name', () => {
   // reg-cli swaps the extension for `.png`; listing what it wrote keeps that rule in reg-cli.
   const { files } = reviewFiles(report({ failedItems: ['js/a/b.jpg'], diffItems: ['js/a/b.png'] }));
@@ -182,6 +201,22 @@ test('the script copies exactly the review set, byte for byte, and leaves the pa
     assert.deepEqual(JSON.parse(readFileSync(join(destination, 'out.json'), 'utf8')), report());
     assert.doesNotMatch(result.stdout, /::warning/);
     assert.match(result.stdout, /Visual diff report: 7 file\(s\), 0\.0 MB, staged in /);
+  } finally {
+    rmSync(dirname(regDir), { recursive: true, force: true });
+  }
+});
+
+test('a fork-path report stages the same tree as a reg-suit one', () => {
+  // The same files under `./actual`-style names: the copy normalizes the prefix away, so the staged tree
+  // matches the paths index.html uses (`./actual/…` and `actual/…` are one file to a browser).
+  const fork = report({ actualDir: './actual', expectedDir: './expected', diffDir: './diff' });
+  const { regDir, destination } = workspace(fork);
+  const result = stage(regDir, [destination]);
+
+  try {
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(tree(destination), [...reviewFiles(report()).files].sort());
+    assert.doesNotMatch(result.stdout, /::warning/);
   } finally {
     rmSync(dirname(regDir), { recursive: true, force: true });
   }
