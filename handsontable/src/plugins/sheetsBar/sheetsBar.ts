@@ -7,6 +7,7 @@ import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
   clearMergedCells,
+  forgetMergedCells,
   resetViewState,
   restoreViewState,
   restoreViewport,
@@ -1018,6 +1019,8 @@ export class SheetsBar extends BasePlugin {
       // its own empty state.
       if (!viewState) {
         resetViewState(this.hot, this.#neutralFixedColumnsStart);
+      } else {
+        clearMergedCells(this.hot);
       }
 
       this.#applySheet(newSheet, source, viewState !== undefined);
@@ -1100,13 +1103,14 @@ export class SheetsBar extends BasePlugin {
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
    * the arriving sheet's data before its `afterLoadData`.
    *
-   * With `clearsMerges` set, the merged cells are dropped between the settings update and the
-   * load: a sheet that returns with a stored view state restores its own merges, and the update
-   * has just regenerated every merge declared in the settings, which would otherwise outlive
-   * the load and win over the ones the user changed. The departing data is still loaded at that
-   * point, so the clear addresses rows that exist.
+   * With `restoresMerges` set, the merged cells the settings update regenerated are dropped
+   * right after the load: a sheet that returns with a stored view state restores its own
+   * merges, and every merge declared in the settings would otherwise outlive the load and win
+   * over the ones the user changed. They are dropped from the collection only, because the load
+   * has reset the cell meta, and the update may have trimmed or remapped the departing grid
+   * under them, so their coordinates can address rows that no longer exist.
    */
-  #applySheet(sheet: Sheet, source: string, clearsMerges = false) {
+  #applySheet(sheet: Sheet, source: string, restoresMerges = false) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
@@ -1115,10 +1119,11 @@ export class SheetsBar extends BasePlugin {
           this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
         });
       }
-      if (clearsMerges) {
-        clearMergedCells(this.hot);
-      }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (restoresMerges) {
+        forgetMergedCells(this.hot);
+      }
     };
 
     if (this.hot.view) {

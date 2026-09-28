@@ -2297,6 +2297,34 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
   });
 
+  it('switches to a sheet whose settings trim the rows a departing merge covers', () => {
+    const grid = () => Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: grid() },
+          { name: 'Beta', data: grid(), settings: { trimRows: [4, 5] } },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+
+    hot.getPlugin('mergeCells').merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(() => sheetsBar.setActiveSheet(beta.id)).not.toThrow();
+    expect(sheetsBar.getSheets()[1].isActive).toBe(true);
+    expect(() => sheetsBar.setActiveSheet(alpha.id)).not.toThrow();
+    expect(hot.getCellMeta(4, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(4, 0).colspan).toBe(2);
+  });
+
   it('keeps the merges the user changed over the ones a sheet declares in its settings', () => {
     const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
 

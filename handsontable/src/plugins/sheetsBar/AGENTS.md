@@ -196,16 +196,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
   and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
-  `Expecting an unsigned number`. For a sheet with a stored state, `#applySheet` therefore calls
-  `clearMergedCells()` between its `updateSettings()` and its `loadData()` (the neutral reset
-  clears them otherwise, before the apply). The position is load-bearing on both sides. Before
-  the update is too early: `mergeCells` rides on every switch's payload once any sheet declares
-  it (the baseline carries it too), and `MergeCells#updatePlugin` regenerates the declared
-  merges, so they would outlive the load and win over the ones the user unmerged or moved.
-  After the load is too late: the regenerated merges were validated against the departing
-  sheet's size and can address rows the arriving one lacks. The restore then drops a stored
-  merge that no longer fits (the data is the host's and can shrink while the sheet is away), and
-  one that would overlap a merge already on screen — the stored list keeps a merge whose rows
+  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
+  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
+  while the departing merges still match the grid (the neutral reset does it otherwise). And
+  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
+  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
+  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
+  load and win over the ones the user unmerged or moved. That second pass empties the
+  collection only, never the meta: the load has already reset the cell meta, and the same
+  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
+  may sit at visual rows the loaded data lacks, and a meta reset there throws. The restore then
+  drops a stored merge that no longer fits (the data is the host's and can shrink while the
+  sheet is away), and one that would overlap a merge already on screen — the stored list keeps a merge whose rows
   were all trimmed at its last visual position, and the automatic path skips the overlap check.
   The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
   declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
