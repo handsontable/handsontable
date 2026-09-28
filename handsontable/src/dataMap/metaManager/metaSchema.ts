@@ -5116,6 +5116,8 @@ export default (): Record<string, unknown> => {
      * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
      * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
      * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5189,6 +5191,8 @@ export default (): Record<string, unknown> => {
      * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
      * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
      * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *

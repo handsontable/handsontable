@@ -258,6 +258,35 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.getSourceData()).toEqual([['A1'], [null], [null], [null], [null]]);
     });
 
+    it('should size a trimmed grid by its visible rows, the way the option filled it', () => {
+      // `minRows` counts the rows on screen, so with two rows trimmed the grid grew to 12 to show 10. Lowering it
+      // leaves what a grid built with the lower value would have: one visible data row and four added rows.
+      createGrid({ data: [['A1'], ['A2'], ['A3']], minRows: 10, trimRows: [1, 2] });
+
+      expect(hot.countSourceRows()).toBe(12);
+
+      hot.updateSettings({ minRows: 5 });
+
+      expect(hot.countRows()).toBe(5);
+      expect(hot.countSourceRows()).toBe(7);
+      expect(hot.getSourceData().slice(0, 3)).toEqual([['A1'], ['A2'], ['A3']]);
+    });
+
+    it('should leave the added rows a trimming map hides, and not come back for them later', () => {
+      // A known limit, the mirror of how the option fills the grid: both read the visible rows, and neither runs
+      // again when the trim changes. The five rows on screen already meet the new value, so nothing goes.
+      createGrid({ data: [['A1'], ['A2'], ['A3']], minRows: 10, trimRows: true });
+      hot.getPlugin('trimRows').trimRows([5, 6, 7, 8, 9]);
+
+      hot.updateSettings({ minRows: 5 });
+
+      expect(hot.countSourceRows()).toBe(10);
+
+      hot.getPlugin('trimRows').untrimAll();
+
+      expect(hot.countRows()).toBe(10);
+    });
+
     it('should not remove rows that a write past the last row created', () => {
       createGrid({ data: [['A1']], minRows: 10 });
 
