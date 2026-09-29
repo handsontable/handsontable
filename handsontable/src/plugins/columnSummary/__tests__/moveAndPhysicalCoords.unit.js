@@ -4,6 +4,7 @@ import {
   registerPlugin,
   ColumnSummary,
   Formulas,
+  NestedRows,
   ManualColumnMove,
   ManualRowMove,
   TrimRows,
@@ -14,6 +15,7 @@ import { registerAllCellTypes } from 'handsontable/registry';
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
 registerPlugin(Formulas);
+registerPlugin(NestedRows);
 registerPlugin(ManualColumnMove);
 registerPlugin(ManualRowMove);
 registerPlugin(TrimRows);
@@ -300,6 +302,21 @@ describe('ColumnSummary with moved columns and rows', () => {
       expect(hot.getCellMeta(3, 2).readOnly).toBe(false);
     });
 
+    it('re-applies the result styling of a settings function after `updateSettings({ columns })`', () => {
+      hot = createGrid({
+        data: [[3, 6], [2, 7], [5, 3], [null, null]],
+        columnSummary() {
+          return [{ destinationRow: 3, destinationColumn: 1, ranges: [[0, 2]], type: 'sum' }];
+        },
+      });
+
+      // The function form leaves the parsed endpoints unset, which made this call throw a `TypeError`.
+      hot.updateSettings({ columns: [{}, {}] });
+
+      expect(summaryColumnsInRow(3)).toEqual([1]);
+      expect(hot.getCellMeta(3, 1).readOnly).toBe(true);
+    });
+
     it('keeps following the column when a column is inserted after it with `insert_col_end`', () => {
       hot = createReportedGrid();
 
@@ -508,6 +525,33 @@ describe('ColumnSummary with moved columns and rows', () => {
   });
 
   describe('structure alteration without a move', () => {
+    it('shifts correctly when NestedRows adds a child below a collapsed group', () => {
+      hot = createGrid({
+        data: [
+          { a: 1, __children: [{ a: 2 }, { a: 3 }] },
+          { a: 10, __children: [{ a: 20 }] },
+          { a: null },
+        ],
+        columns: [{ data: 'a' }],
+        rowHeaders: true,
+        nestedRows: true,
+        columnSummary: [{ destinationRow: 5, destinationColumn: 0, ranges: [[0, 4]], type: 'sum' }],
+      });
+
+      const nestedRows = hot.getPlugin('nestedRows');
+
+      nestedRows.collapsingUI.collapseChildren(0);
+
+      // `addChild()` reports a physical index to `afterCreateRow`. Its `beforeAddChild` expands the collapsed
+      // groups for the duration, so translating that index through the visual space still lands on it.
+      nestedRows.dataManager.addChild(nestedRows.dataManager.getDataObject(3));
+      nestedRows.collapsingUI.expandChildren(0);
+
+      expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).destinationRow).toBe(6);
+      expect(Array.from({ length: hot.countRows() }, (_, row) => hot.getDataAtCell(row, 0)))
+        .toEqual([1, 2, 3, 10, 20, null, 36]);
+    });
+
     it('moves a removed range start onto the next row, not the previous record', () => {
       hot = createGrid({
         data: [[1, 10], [2, 20], [3, 30], [4, 40], [null, null]],
@@ -536,6 +580,21 @@ describe('ColumnSummary with moved columns and rows', () => {
       // `[2]` used to become `[1]` and count the record 2 instead.
       expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges).toEqual([[0]]);
       expect(hot.getDataAtCell(3, 0)).toBe(1);
+    });
+
+    it('keeps a range configured backwards when a row is inserted', () => {
+      hot = createGrid({
+        data: [[1], [2], [3], [4], [null]],
+        columnSummary: [{ destinationRow: 4, destinationColumn: 0, ranges: [[3, 1]], type: 'sum' }],
+      });
+
+      // A backwards range sums only its second bound (`getPartialSum` starts there and stops at once).
+      expect(hot.getDataAtCell(4, 0)).toBe(2);
+
+      hot.alter('insert_row_above', 0);
+
+      expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges).toEqual([[4, 2]]);
+      expect(hot.getDataAtCell(5, 0)).toBe(2);
     });
 
     it('drops a range whose rows are all removed', () => {

@@ -677,7 +677,8 @@ class Endpoints {
     // recorded as user-defined, so an `updateSettings` cache reset clears them and they are re-applied
     // for the current endpoints. `_setCellMetaDeclarative` does not fire `beforeSetCellMeta`/
     // `afterSetCellMeta` and cannot be vetoed - matching the previous direct-write behavior.
-    this.endpoints.forEach((endpoint: EndpointConfig) => {
+    // `getAllEndpoints()`, not `this.endpoints`: the function form leaves that array unset.
+    this.getAllEndpoints().forEach((endpoint: EndpointConfig) => {
       const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
       const destinationVisualColumn = this.hot.toVisualColumn(endpoint.destinationColumn!);
 
@@ -786,7 +787,8 @@ class Endpoints {
 
   /**
    * Shifts row ranges through a structure alteration and drops the ones whose rows were all removed. A
-   * single-row range (`[row]`) keeps its one-element form.
+   * single-row range (`[row]`) keeps its one-element form, and a range configured backwards is shifted
+   * but never dropped.
    *
    * @param {number[][]} ranges The ranges to shift.
    * @param {Function} shiftIndex Maps a physical index from before the alteration to the one it holds after it.
@@ -797,11 +799,13 @@ class Endpoints {
 
     arrayEach(ranges, (range: number[]) => {
       const isSingleRow = range.length < 2;
+      const originalEnd = isSingleRow ? range[0] : range[1];
       const start = shiftIndex(range[0], true);
-      const end = shiftIndex(isSingleRow ? range[0] : range[1]);
+      const end = shiftIndex(originalEnd);
 
-      // Every row of the range was removed.
-      if (end < start) {
+      // Every row of the range was removed. A range that was already backwards (`[5, 2]`) is kept as it
+      // was configured: only a removal can turn a valid range backwards.
+      if (end < start && originalEnd >= range[0]) {
         return;
       }
 

@@ -83,8 +83,9 @@ Three things not to "fix" on top of it:
 The guide documents all four coordinates as physical, and the plugin stores them that way. Every call that
 touches a cell takes **visual** coordinates, so each one translates first: `getCellValue` (`getDataAtCell`,
 `getCellMetaTransient`), `setEndpointValue` and `refreshCellMetas` (`getCellMetaTransient`,
-`_setCellMetaDeclarative`, `setDataAtCell`), `resetEndpointValue`, the DEV-144 re-derive block, and the
-Formulas listener (`columnAxisSyncer.getHfIndexFromVisualIndex`). The other direction matters too:
+`_setCellMetaDeclarative`, `setDataAtCell`), `resetEndpointValue`, and the DEV-144 re-derive block. The
+Formulas listener is the exception: it passes the physical `sourceColumn` straight to
+`columnAxisSyncer.getHfIndexFromPhysicalIndex()`. The other direction matters too:
 `refreshChangedEndpoints` gets a `prop` from `afterChange`, and `propToCol()` answers with a VISUAL column,
 so it goes through `toPhysicalColumn()` before it is compared with `sourceColumn`.
 
@@ -124,8 +125,11 @@ Three rules follow:
 `afterCreateRow`/`afterCreateCol` report the VISUAL index of the first inserted row or column, and
 `afterRemoveRow`/`afterRemoveCol` report the physical indexes they took out. One caller breaks the first
 rule: NestedRows' `addChild()` and the parent branch of `addChildAtIndex()` (`nestedRows/data/dataManager.ts`)
-run `afterCreateRow` with a physical index. It is harmless while the grid has no other trimming map, since
-the two coincide there, and wrong when another trimmer (Filters) is active. Comparing a physical endpoint
+run `afterCreateRow` with a physical index. Its own collapsed groups do not make that wrong:
+`beforeAddChild` opens the collapsed-rows stash, so every group is expanded while the hook runs and the
+two indexes coincide (measured: all rows untrimmed, `toPhysicalRow(index) === index`, pinned in
+`moveAndPhysicalCoords.unit.js`). It is wrong only when ANOTHER trimmer (Filters) is active at the same
+time. Comparing a physical endpoint
 against that visual index is right only for the identity order, so `#createPhysicalIndexShift()` works in the
 physical space instead:
 
