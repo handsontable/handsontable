@@ -16,8 +16,12 @@
  *   VISUAL_BUDGET_FILE the budget file (default: `visual-tests/visual-budget.json`)
  *   VISUAL_PR_BODY_FILE     the LIVE description, written by the workflow's github-script step
  *   VISUAL_PR_BODY          the event payload's description, used only when the live read failed
- *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it, which is what makes "did this
- *                           pull request raise it" answerable
+ *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it NOW, which says which way a stale
+ *                           comparison is stale: the base moved, or its seed is behind
+ *   VISUAL_BUDGET_BUILT_ON_FILE the budget file at the base commit this run's merge ref was built on,
+ *                           which makes "did this pull request raise it" and "are these goldens the set
+ *                           this build was made for" answerable. Unset, the growth check falls back to the
+ *                           base file; set but unreadable, it says so
  *   GITHUB_EVENT_NAME       whether a marker can be asked for at all
  *
  * Exits 1 on a violation. A missing `out.json` — the bootstrap path, where there is no comparison —
@@ -60,15 +64,47 @@ if (process.env.VISUAL_PR_BODY_FILE) {
   }
 }
 
+/**
+ * A budget file another commit wrote, or null when it is absent, empty, not JSON, or has no `prefixes`.
+ * The workflow's `git show … > file` creates the file before `git show` runs, so a path missing at that
+ * commit leaves an empty file rather than none, and a shape this script does not know would otherwise
+ * crash the judgement instead of being reported.
+ *
+ * @param {string} file The path the workflow wrote.
+ * @returns {Promise<object|null>} The parsed file, or null.
+ */
+async function readBudgetFile(file) {
+  try {
+    const parsed = JSON.parse(await readFile(file, 'utf-8'));
+
+    return parsed && typeof parsed.prefixes === 'object' && parsed.prefixes !== null ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 // The base branch's budget file. Absent means the growth question cannot be answered, which the verdict
 // reports rather than passing over — see evaluateBudget().
 let baseBudget = null;
 
 if (process.env.VISUAL_BUDGET_BASE_FILE) {
-  try {
-    baseBudget = JSON.parse(await readFile(process.env.VISUAL_BUDGET_BASE_FILE, 'utf-8'));
-  } catch {
+  baseBudget = await readBudgetFile(process.env.VISUAL_BUDGET_BASE_FILE);
+
+  if (baseBudget === null) {
     console.log('No base-branch budget file on disk; the growth check will report that it did not run.');
+  }
+}
+
+// The base commit this run's merge ref was built on. `undefined` when nobody asked (a local run), `null`
+// when the workflow asked and the file could not be read: the verdict reports the second and not the first.
+let builtOnBudget;
+
+if (process.env.VISUAL_BUDGET_BUILT_ON_FILE) {
+  builtOnBudget = await readBudgetFile(process.env.VISUAL_BUDGET_BUILT_ON_FILE);
+
+  if (builtOnBudget === null) {
+    console.log('No budget file for the base commit this run was built on; the growth check compares '
+      + 'against the base branch as it is now.');
   }
 }
 
@@ -77,6 +113,7 @@ const verdict = evaluateBudget({
   budget,
   body,
   baseBudget,
+  builtOnBudget,
   isPullRequest: process.env.GITHUB_EVENT_NAME === 'pull_request',
 });
 

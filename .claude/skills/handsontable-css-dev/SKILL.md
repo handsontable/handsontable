@@ -68,6 +68,48 @@ focus, dropdown selection, the offscreen `.htGhostTable`) uses
 `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
 is off the scroll path.
 
+## Text-bearing UI spans declare their own text metrics
+
+Any `<span>` (or other inline element) the grid renders with visible text must declare `font-size`,
+`line-height`, `font-weight`, `letter-spacing`, and `font-family` itself. Inheritance from
+`.handsontable` is not enough: a host page rule on the bare element (`span { font-size: 20px }`) has
+specificity (0,0,1) and beats any inherited value. This bit headers first (`span.colHeader`, #11306),
+then the pagination labels and the multiselect chips (DEV-75). The five-property `inherit` form is the
+target for new spans. The older guards cover two properties only: `span.colHeader`/`span.rowHeader`
+declare `font-size` and `line-height` as tokens in `_base.scss`, and `.htCheckboxRendererLabel` and
+`.ht-sheets-bar__tab-label` declare the same two as `inherit`. Their `font-weight`, `letter-spacing`,
+and `font-family` still leak.
+
+Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token
+(`font-size: var(--ht-font-size)`); every text-bearing span below it declares the five properties as
+`inherit`. `inherit` wins over the host's element selector and still follows a user's override on the
+root, as long as that override beats the root's own rule on specificity. Do not count on source order:
+the grid injects its core stylesheet into `<head>` at init, so it often loads after the user's CSS. Core's
+cell rule `.handsontable :where(...) > td` is (0,1,1), so a user's `.handsontable td` ties it and loses
+on order; `.handsontable tbody td` (0,1,2) wins. The bar's `.handsontable.ht-pagination` is (0,2,0), so
+`div.handsontable.ht-pagination` (0,2,1) wins. Three limits to state in a PR:
+
+- A user rule on the guarded class itself at lower specificity than the guard now loses where it used to
+  win: `.ht-multi-select-chip { font-size: 16px }` (guard (0,2,0)), and
+  `.ht-page-navigation-section__label { font-weight: 600 }` or even
+  `.handsontable .ht-page-navigation-section__label` (guard `.handsontable.ht-pagination ...` (0,3,0)).
+- A bare `.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule, so
+  it neither worked before nor works now.
+- Offsets computed from the `--ht-line-height` token (the multiselect and autocomplete arrow `top`, the
+  chip's end padding) do not follow a user's `td` `line-height` override. The chip grows with the
+  override, the arrow stays at the token offset. Autocomplete cells already behaved this way.
+
+Do **not** add a blanket `.handsontable span { ... }` rule – its specificity (0,1,1) would override a
+user's own `.my-class` on spans inside custom cell renderers.
+
+`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a
+hostile `span {}` rule and asserts the guarded spans against their cascade parent. The user-override
+tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`), so an override that only
+wins on source order fails. Add any new text-bearing span to that spec. The fixture loads the compiled
+`handsontable/styles/*.min.css` files, and the `dist/` bundle it loads injects the core stylesheet again at
+init. After an SCSS edit, run the full `npm --prefix handsontable run build` before trusting a spec run.
+`build:styles` and `build:styles.min` alone leave the bundle's copy stale, so a reverted guard still passes.
+
 ## Browser Compatibility
 
 All CSS features must work in browsers listed in `browser-targets.js` (latest 2 major versions of Chrome, Firefox, Safari, Edge). The `eslint-plugin-compat` rule enforces this.
