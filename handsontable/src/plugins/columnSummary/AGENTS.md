@@ -8,8 +8,9 @@ The plugin is unusual in two ways, and both are the source of most of its bugs:
 
 1. **It writes into the grid's own data.** The result is a real cell value, put there with `setDataAtCell`
    under the source `'ColumnSummary.set'` (or `'ColumnSummary.reset'` for a batch).
-2. **Endpoint coordinates are PHYSICAL.** `destinationRow`, `sourceColumn` and every range bound are
-   physical indexes.
+2. **Endpoint coordinates are PHYSICAL.** `destinationRow`, `destinationColumn`, `sourceColumn` and every
+   range bound are physical indexes, on both axes, and every Handsontable call that reads or writes a cell
+   takes a visual one. See "Translate at every call" below.
 
 ## Never compare an endpoint row against `countRows()`
 
@@ -77,6 +78,84 @@ Three things not to "fix" on top of it:
   It also throws on an empty cell when `suppressDataTypeErrors` is `false`. It is the opt-in
   "parse a number out of text" path, not the reference implementation.
 
+## Translate at every call: the endpoints are physical, the API is visual (DEV-145)
+
+The guide documents all four coordinates as physical, and the plugin stores them that way. Every call that
+touches a cell takes **visual** coordinates, so each one translates first: `getCellValue` (`getDataAtCell`,
+`getCellMetaTransient`), `setEndpointValue` and `refreshCellMetas` (`getCellMetaTransient`,
+`_setCellMetaDeclarative`, `setDataAtCell`), `resetEndpointValue`, and the DEV-144 re-derive block. The
+Formulas listener is the exception: it passes the physical `sourceColumn` straight to
+`columnAxisSyncer.getHfIndexFromPhysicalIndex()`. The other direction matters too:
+`refreshChangedEndpoints` gets a `prop` from `afterChange`, and `propToCol()` answers with a VISUAL column,
+so it goes through `toPhysicalColumn()` before it is compared with `sourceColumn`.
+
+Until DEV-145 the columns were passed through raw, so they acted as visual indexes while the result value
+and its meta (both physical-keyed) travelled with the column on a move. The endpoint then pointed at a
+different column than its own result. Editing the moved column left its summary stale, and editing the
+column that moved into the old position wrote a second summary there.
+
+Three rules follow:
+
+- **`getSourceDataAtCell(row, column)` takes a PHYSICAL row and a VISUAL column.** It resolves the column
+  through `colToProp()`, so the trimmed-row fallback in `getCellValue` and the DEV-144 removal check both pass
+  `toVisualColumn(physicalColumn)`. `isSummaryDestination()` is keyed by physical coordinates and takes the
+  physical column unchanged.
+- **A move needs no coordinate update, and no column-move hook exists on purpose.** The data and the meta
+  are physical-keyed, so an index permutation (ManualColumnMove, ManualRowMove, sorting, undo of a move)
+  leaves every endpoint pointing at the same column and the same records. `afterRowMove` still recalculates
+  whenever `orderChanged` is set, for NestedRows (below) and for a `custom` function that reads the row
+  order. Do not narrow it to `custom` endpoints to save the no-op undo step the rewrite costs: that broke
+  the NestedRows "moving rows between groups" spec. Before
+  DEV-145 that hook rewrote the ranges through `extendEndpointRanges()` + `recreatePhysicalRanges()`,
+  which re-read the already-physical ranges as visual ones and corrupted them on every move after the
+  first. Do not bring back a range rewrite: a row moved out of a range still counts, and one moved into it
+  does not, because a range names records, not visual positions.
+- **NestedRows is the exception: its row move is a data splice, not a permutation.**
+  `nestedRows/utils/rowMoveController.ts` moves the record through `dataManager.moveRow` and
+  `spliceCellsMeta`, so the physical indexes themselves shift. Under NestedRows a fixed physical range
+  therefore behaves like a fixed visual one (a record dragged out stops counting, and the next one slides
+  in), and a dragged summary row carries its stale result and class away while the destination index
+  receives whatever record lands there. That was true before DEV-145 as well. The guide's NestedRows
+  example uses the function form, which re-reads its settings and is not affected.
+- **A column that has no visual index is skipped, not guessed.** Every translation checks for `null`,
+  the same way a trimmed destination row is skipped.
+
+## Structure alterations shift in the physical space (DEV-145)
+
+`afterCreateRow`/`afterCreateCol` report the VISUAL index of the first inserted row or column, and
+`afterRemoveRow`/`afterRemoveCol` report the physical indexes they took out. One caller breaks the first
+rule: NestedRows' `addChild()` and the parent branch of `addChildAtIndex()` (`nestedRows/data/dataManager.ts`)
+run `afterCreateRow` with a physical index. Its own collapsed groups do not make that wrong:
+`beforeAddChild` opens the collapsed-rows stash, so every group is expanded while the hook runs and the
+two indexes coincide (measured: all rows untrimmed, `toPhysicalRow(index) === index`, pinned in
+`moveAndPhysicalCoords.unit.js`). It is wrong only when ANOTHER trimmer (Filters) is active at the same
+time. Comparing a physical endpoint
+against that visual index is right only for the identity order, so `#createPhysicalIndexShift()` works in the
+physical space instead:
+
+- An insertion translates the reported index back with `toPhysicalRow()`/`toPhysicalColumn()` (which, after
+  the insert, is the first inserted physical index) and moves every index at or past it.
+- A removal moves an index down by the number of removed physical indexes at or before it. A **range
+  start** counts only the removed indexes strictly before it, so a start whose own row was removed lands on
+  the next surviving row instead of pulling the range onto the previous record. A range whose rows were
+  all removed (its shifted end falls below its shifted start) is dropped, and a single-row range `[row]`
+  is treated as `[row, row]` for that test.
+
+With the identity order both rules give exactly what the old visual comparison gave. `shiftEndpointCoordinates()`
+applies the shift to **each coordinate on its own** (the destination, `sourceColumn`, and every range bound),
+because they can sit on different sides of the alteration. Before, the source column and the ranges only
+moved together with the destination, so a summary placed ABOVE its range kept the old range bounds when a row
+was inserted inside it, and a source column on the far side of an insertion was shifted onto another
+column. `alterRowOffset`/`alterColumnOffset` still carry the destination's shift into `resetAllEndpoints()`,
+which clears the old result and runs the bounds gate. The function-form settings path is unchanged: it
+re-reads the settings function on the next render instead.
+
+Known residuals, both identical to what the visual comparison gave before:
+
+- Removing an endpoint's own `sourceColumn` or `destinationColumn` collapses it onto the preceding index, so
+  the summary silently moves to (or sums) the previous column.
+- Removing the destination row makes the reset clear, and the refresh overwrite, the preceding row's cell.
+
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
 
 `readOnly` and the `columnSummaryResult` class are written through `hot._setCellMetaDeclarative()`. That is
@@ -90,6 +169,62 @@ DOM write it replaced.
 
 `refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state.
 
+## A read-only summary cell is locked by a `beforeSetCellMeta` veto (DEV-148)
+
+The plugin owns the `readOnly` state of a destination whose endpoint is `readOnly` (the default), and
+nothing else may clear it. `#onBeforeSetCellMeta` vetoes every `setCellMeta(row, col, 'readOnly', falsy)`
+on such a cell, and `#onBeforeRemoveCellMeta` vetoes `removeCellMeta(row, col, 'readOnly')`, which unlocks
+it just the same. `isLockedSummaryCell(visualRow, visualColumn)` is the predicate, backed by
+`Endpoints#isReadOnlyDestination()`, which reads the same per-pass `#summaryDestinations` cache as
+`isSummaryDestination()`. The cache now maps each destination column to its endpoint's `readOnly` flag.
+
+Why a veto, and not just a smarter menu item: the menu click is only one of four write paths that
+unlocked the cell. The other three:
+
+- **Undo of a column toggle.** `ReadOnlyToggleAction.undo` writes `Boolean(stateBefore[row]?.[col])` over
+  the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled cell
+  was writable), so undo wrote `false` onto the summary.
+- **Redo** writes the toggle's value over the whole range.
+- **A direct `setCellMeta` or `removeCellMeta` call.** It held until that endpoint was next
+  recalculated (a change in its source column), which re-applied `readOnly`. That is the "comes back
+  after a reload" symptom in the ticket, and it can last indefinitely.
+
+Known limit, inherited rather than introduced: under `manualColumnMove` the lock's cache and the
+declarative meta it protects can name different cells until the endpoint's next refresh. There is no
+`afterColumnMove` refresh, the declarative meta stays on its physical column (`metaManager` stores it
+that way, translation-invariant), and `destinationColumn` is read as a visual index by the meta writers
+but as a physical one by `resetEndpointValue`. Concretely: `getPlugin('manualColumnMove').moveColumn(1,
+0)` on a summary configured `destinationColumn: 1` moves that physical column - and its `readOnly` +
+`columnSummaryResult` meta with it - to visual column 0, while the cache still names column 1 as locked,
+until the next recalculation re-stamps column 1 per the writers' own (also stale) convention.
+
+`isLockedSummaryCell()` confirms a cache hit against the cell's own current `readOnly` flag and
+`columnSummaryResult` class before trusting it, which closes the half of this that is a usability
+regression: a plain cell that moved into the stale cached column is never reported as locked, because it
+carries neither signal. It does **not** close the other half - immediately after such a move and before
+any recalculation, the real summary (now sitting at the moved-to column) has no cache entry for that
+column at all, so the menu can unlock it in that narrow window. Fixing that fully belongs to column-move
+support for the plugin as a whole, not to the lock; a live-meta-only redesign (dropping the cache and
+keying off `readOnly` + `columnSummaryResult` alone) was considered and rejected, because a
+`readOnly: false` endpoint's cell also carries the class, and a user manually toggling it to `readOnly:
+true` through the very menu item this file exists to fix would then read as permanently locked.
+
+Three rules the lock follows:
+
+- **It never blocks the plugin itself.** Its own writes go through `_setCellMetaDeclarative`, which fires
+  no hooks. That includes the vacated-cell `readOnly: false` reset in the `reversedRowCoords` re-derive.
+- **An endpoint configured `readOnly: false` is not locked.** Its cell toggles like any other, as before.
+- **The column is passed as is**, the same way `refreshCellMetas` and `setEndpointValue` address
+  `destinationColumn` when they write the meta. Do not "fix" it to a physical column in the predicate
+  alone, or the lock and the meta it protects land on different cells.
+
+The "Read only" menu item (`contextMenu/predefinedItems/readOnly.ts`) asks
+`getPlugin('columnSummary').isLockedSummaryCell()` too. It leaves locked cells out of its mark, its
+direction check, and its write loop, and it hides itself when nothing in the selection can be toggled.
+Its "make writable" undo snapshot records a locked cell as it really is (read-only), so that undo
+writes `true` back; the "make read-only" snapshot is empty, and undo's `false` for the summary is what
+the veto stops. The veto is the safety net for everything the item itself cannot reach. See `../contextMenu/AGENTS.md`.
+
 ## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
 
 `reversedRowCoords: true` means the destination is counted from the **bottom** of the table, so
@@ -99,15 +234,15 @@ DOM write it replaced.
 offset-from-the-bottom is otherwise lost. It is preserved on `endpoint.reversedRowOffset` for exactly this
 reason.
 
-The array-form `resetSetupAfterStructureAlteration()` shift is a gated shift: it moves an endpoint only
-when the alteration index sits **at or below** its destination. That is correct for a fixed (non-reversed)
-endpoint, and it happens to be correct for a reversed one when a row is inserted *above* the anchor. It is
-**wrong** for a row appended *below* the anchor — `2 >= 3` is false for an append past the last row — which
-left the summary parked on the old last row instead of moving down (DEV-144). So after the generic
-shift, every reversed **row** endpoint re-derives `destinationRow` from `countAddressableRows()` and its
-stored offset. The generic `resetAllEndpoints()` pass already ran first and cleared the old destination
-cell's **value** (its `alterRowOffset` is 0 for a below-anchor alteration, so it clears the pre-move
-position); the refresh afterwards writes the value onto the new anchor.
+The array-form `resetSetupAfterStructureAlteration()` shift moves an index only when the alteration sits
+**at or before** it (see "Structure alterations shift in the physical space" below). That is correct for a
+fixed (non-reversed) endpoint, and it happens to be correct for a reversed one when a row is inserted
+*above* the anchor. It is **wrong** for a row appended *below* the anchor, because an append past the last
+row sits after every index. That left the summary parked on the old last row instead of moving down
+(DEV-144). So after the generic shift, every reversed **row** endpoint re-derives `destinationRow` from
+`countAddressableRows()` and its stored offset. The generic `resetAllEndpoints()` pass already ran first
+and cleared the old destination cell's **value** (its `alterRowOffset` is 0 for a below-anchor alteration,
+so it clears the pre-move position); the refresh afterwards writes the value onto the new anchor.
 
 `reversedRowOffset` is the caller's original offset-from-the-bottom, kept because `assignSetting()` resolves
 the reversed destination into an absolute index and would otherwise lose it. It is an **internal** field:
