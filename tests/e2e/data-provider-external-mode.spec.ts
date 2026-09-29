@@ -9,18 +9,9 @@ test.describe('Pagination follows a dataProvider enabled after init', () => {
     await grid.goto();
   });
 
-  test('the pager switches to the server total and back', async() => {
+  test('the pager switches to the server total and back, and a dataProvider added again does not reuse the old total', async() => {
     expect(await grid.totalPages()).toBe(3);
 
-    await grid.enableProvider();
-    await expect.poll(() => grid.totalPages()).toBe(5);
-
-    await grid.disableProvider();
-    await grid.page.evaluate(() => window.hot.loadData([[1], [2], [3]]));
-    await expect.poll(() => grid.totalPages()).toBe(1);
-  });
-
-  test('a dataProvider added again does not reuse the previous server total', async() => {
     await grid.enableProvider();
     await expect.poll(() => grid.totalPages()).toBe(5);
 

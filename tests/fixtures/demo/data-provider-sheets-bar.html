@@ -202,7 +202,6 @@
         const request = {
           prefix,
           params,
-          signal,
           settle: () => {
             if (server.failNext.has(prefix)) {
               server.failNext.delete(prefix);

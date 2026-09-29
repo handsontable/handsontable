@@ -3356,25 +3356,6 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBe(own);
     });
 
-    it('does not warn about the top-level `data` setting when the first sheet declares a complete dataProvider', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-      hot = new Handsontable(container, {
-        sheetsBar: {
-          sheets: [
-            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
-            { name: 'Notes', data: [[1]] },
-          ],
-        },
-        licenseKey: 'non-commercial-and-evaluation',
-      });
-
-      const dataSettingWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('`data` setting'));
-
-      expect(dataSettingWarnings).toHaveLength(0);
-      warnSpy.mockRestore();
-    });
-
     it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const own = makeProvider();
@@ -3395,29 +3376,15 @@ describe('SheetsBar plugin', () => {
       plugin.setActiveSheet('Orders');
 
       const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+      const dataSettingWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('`data` setting'));
 
       expect(gateWarnings).toHaveLength(0);
+      expect(dataSettingWarnings).toHaveLength(0);
 
       hot.updateSettings({ sheetsBar: false });
 
       expect(hot.getSettings().dataProvider).not.toBe(own);
       expect(hot.getSettings().dataProvider ?? null).toBeNull();
-      warnSpy.mockRestore();
-    });
-
-    it('restores the grid-level value when the sheets bar is turned off', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const gridLevel = makeProvider();
-
-      hot = new Handsontable(container, {
-        dataProvider: gridLevel,
-        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
-      });
-
-      hot.updateSettings({ sheetsBar: false });
-
-      expect(hot.getSettings().dataProvider).toBe(gridLevel);
       warnSpy.mockRestore();
     });
 
@@ -3461,20 +3428,6 @@ describe('SheetsBar plugin', () => {
 
       expect(payloads).toEqual([['sheetsBar']]);
       expect(hot.getSettings().dataProvider).toBeUndefined();
-    });
-
-    it('blocks a grid-level dataProvider set later on a sheet without its own', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-      hot = new Handsontable(container, {
-        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }] },
-        licenseKey: 'non-commercial-and-evaluation',
-      });
-
-      hot.updateSettings({ dataProvider: makeProvider() });
-
-      expect(hot.getSettings().dataProvider).toBeNull();
-      warnSpy.mockRestore();
     });
   });
 

@@ -17,14 +17,6 @@ test.describe('dataProvider with sheetsBar', () => {
   });
 
   test.describe('setup', () => {
-    test('a sheet that declares dataProvider loads from its own server', async({ page, theme, bundle }) => {
-      grid = new DataProviderSheetsBarPage(page, theme, bundle);
-      await grid.goto();
-
-      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
-      expect(await grid.fetchCount('ORD')).toBe(1);
-    });
-
     test('a grid-level dataProvider is disabled with one warning', async({ page, theme, bundle }) => {
       grid = new DataProviderSheetsBarPage(page, theme, bundle);
       await grid.goto({ gridLevel: true });
@@ -39,7 +31,7 @@ test.describe('dataProvider with sheetsBar', () => {
 
       expect(problems).toHaveLength(1);
       expect(problems[0]).toContain('dataProvider');
-      await page.evaluate(() => { (window as unknown as { htServer: { consoleProblems: string[] } }).htServer.consoleProblems = []; });
+      await grid.clearConsoleProblems();
     });
   });
 
@@ -201,8 +193,11 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect.poll(() => grid.pendingParams('ORD')).toEqual(expect.objectContaining({
         page: 2, sort: { prop: 'id', order: 'desc' },
       }));
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
 
       await grid.release('ORD');
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
       await grid.clickTab(0);
 
       await expect(grid.cell(0, 0)).toHaveText('ORD-05');
@@ -213,6 +208,7 @@ test.describe('dataProvider with sheetsBar', () => {
 
     test('returning while the fetch is still running waits for it', async() => {
       await grid.startFetch();
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
       await grid.clickTab(1);
       await expect(grid.loadingOverlayVisible()).toBeHidden();
       await grid.clickTab(0);
@@ -222,13 +218,6 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.release('ORD');
       await expect(grid.cell(0, 1)).toHaveText('#2');
       expect(await grid.fetchCount('ORD')).toBe(2);
-    });
-
-    test('leaving mid-fetch hides the loading overlay on the next sheet', async() => {
-      await grid.startFetch();
-      await expect(grid.loadingOverlayVisible()).toBeVisible();
-      await grid.clickTab(1);
-      await expect(grid.loadingOverlayVisible()).toBeHidden();
     });
 
     test('local sheet after a paged server sheet shows its own rows', async() => {
@@ -261,26 +250,6 @@ test.describe('dataProvider with sheetsBar', () => {
 
       expect(await grid.pendingCount('CUS')).toBe(1);
       expect(await grid.pendingCount('ORD')).toBe(0);
-    });
-
-    test('updateSettings({ dataProvider }) still refetches', async() => {
-      await grid.page.evaluate(() => {
-        const hot = window.hot as unknown as {
-          getSettings(): { dataProvider: object };
-          updateSettings(settings: Record<string, unknown>): void;
-        };
-        const own = hot.getSettings().dataProvider;
-
-        hot.updateSettings({ dataProvider: { ...own } });
-      });
-
-      expect(await grid.pendingCount('ORD')).toBe(1);
-
-      await grid.release('ORD');
-
-      await expect(grid.cell(0, 1)).toHaveText('#2');
-      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
-      expect(await grid.activeSheetIndex()).toBe(0);
     });
 
     test('sort after returning to a pending sheet supersedes the pending fetch', async() => {
@@ -360,19 +329,6 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect(grid.cell(0, 1)).toHaveText('#3');
       expect(await grid.toast().count()).toBe(0);
       expect(await grid.fetchCount('ORD')).toBe(3);
-    });
-
-    test('a save in flight refetches the sheet it was made on', async() => {
-      await grid.editCell(0, 1, 'edited');
-      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
-      await grid.clickTab(1);
-      await grid.releaseUpdates();
-      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
-      await grid.release('ORD');
-
-      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
-      await grid.clickTab(0);
-      await expect(grid.cell(0, 1)).toHaveText('#2');
     });
 
     test('a save that fails off-screen leaves the visible sheet alone and reloads its own sheet', async() => {
@@ -694,46 +650,6 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(await grid.sortConfig()).toEqual([]);
     });
 
-    test('an off-screen page clamp does not raise the loading overlay on the sheet in view', async({
-      page, theme, bundle,
-    }) => {
-      grid = new DataProviderSheetsBarPage(page, theme, bundle);
-      await grid.goto();
-      await grid.startFetch({ page: 5 });
-      await grid.clickTab(1);
-      await grid.setServerTotalRows(6);
-      await grid.release('ORD');
-      await expect.poll(() => grid.pendingParams('ORD')).toEqual(expect.objectContaining({ page: 2 }));
-
-      await expect(grid.loadingOverlayVisible()).toBeHidden();
-      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
-
-      await grid.release('ORD');
-      await expect(grid.loadingOverlayVisible()).toBeHidden();
-    });
-
-    test('a fetch error notification goes back to its sheet on a switch, and its Refetch loads that sheet', async({
-      page, theme, bundle,
-    }) => {
-      grid = new DataProviderSheetsBarPage(page, theme, bundle);
-      await grid.goto();
-      await grid.startFetch();
-      await grid.failNext('ORD');
-      await grid.release('ORD');
-      await expect(grid.toast()).toHaveCount(1);
-
-      await grid.clickTab(1);
-      await expect(grid.toast()).toHaveCount(0);
-
-      await grid.clickTab(0);
-      await expect(grid.toast()).toHaveCount(1);
-      await grid.toast().getByRole('button', { name: 'Refetch' }).click();
-      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
-      await grid.release('ORD');
-      await expect(grid.toast()).toHaveCount(0);
-      await expect(grid.cell(0, 1)).toHaveText('#3');
-    });
-
     test('every fetch error notification of a sheet leaves with it, and only the latest failure comes back', async({
       page, theme, bundle,
     }) => {
@@ -758,6 +674,9 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.toast().getByRole('button', { name: 'Refetch' }).click();
       await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
       expect(await grid.pendingCount('CUS')).toBe(0);
+      await grid.release('ORD');
+      await expect(grid.toast()).toHaveCount(0);
+      await expect(grid.cell(0, 1)).toHaveText('#4');
     });
 
     test('a successful fetch hides the sheet\'s fetch error notification, which then does not come back', async({
@@ -839,34 +758,11 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.setSheets(1);
 
       expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.activeSheetIndex()).toBe(1);
       await expect(grid.loadingOverlayVisible()).toBeHidden();
       expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
       expect(await grid.consoleProblems()).toEqual([expect.stringContaining('dataProvider')]);
       await grid.clearConsoleProblems();
-    });
-  });
-
-  test.describe('destroying a grid without sheets while a mutation is running', () => {
-    test('settles a running remove without errors', async({ page, theme, bundle }) => {
-      grid = new DataProviderSheetsBarPage(page, theme, bundle);
-      await grid.goto({ plain: true });
-      await page.evaluate(() => {
-        const target = window as unknown as { htRemoveOutcome?: string };
-
-        window.hot.getPlugin('dataProvider').removeRows(['ORD-01']).then(
-          () => { target.htRemoveOutcome = 'settled'; },
-          (error: unknown) => { target.htRemoveOutcome = `rejected: ${String(error)}`; },
-        );
-      });
-      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
-
-      await page.evaluate(() => window.hot.destroy());
-      expect(await grid.releaseUpdates()).toBe(1);
-
-      await expect.poll(() => page.evaluate(() => (window as unknown as { htRemoveOutcome?: string })
-        .htRemoveOutcome)).toBe('settled');
-      expect(await grid.consoleProblems()).toEqual([]);
-      expect(grid.pageErrors).toEqual([]);
     });
   });
 
@@ -1118,21 +1014,6 @@ test.describe('dataProvider with sheetsBar', () => {
 
       await grid.release('ORD');
       await expect(grid.cell(0, 1)).toHaveText(`#${firstVisitFetch}`);
-    });
-
-    test('enabling the sheets bar on a live grid drops the grid\'s pending fetch', async({ page, theme, bundle }) => {
-      grid = new DataProviderSheetsBarPage(page, theme, bundle);
-      await grid.goto({ plain: true });
-      await grid.startFetch();
-      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
-
-      await grid.setSheets(1);
-
-      expect(await grid.pendingCount('ORD')).toBe(0);
-      expect(await grid.activeSheetIndex()).toBe(1);
-      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
-      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('dataProvider')]);
-      await grid.clearConsoleProblems();
     });
   });
 

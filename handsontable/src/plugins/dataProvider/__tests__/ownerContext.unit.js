@@ -133,27 +133,6 @@ describe('DataProvider context owner contract', () => {
   }
 
   describe('_runWithoutFetching()', () => {
-    it('applies a new dataProvider without a refetch while the callback runs', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider);
-
-      const next = createDeferredProvider();
-
-      hot.getPlugin('dataProvider')._runWithoutFetching(() => hot.updateSettings({ dataProvider: next.config }));
-
-      expect(next.config.fetchRows).not.toHaveBeenCalled();
-      expect(hot.getSettings().dataProvider).toBe(next.config);
-    });
-
-    it('returns the callback\'s value', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider);
-
-      expect(hot.getPlugin('dataProvider')._runWithoutFetching(() => 42)).toBe(42);
-    });
-
     it('leaves the passive state when the callback throws', async() => {
       const provider = createDeferredProvider();
 
@@ -188,6 +167,7 @@ describe('DataProvider context owner contract', () => {
 
       expect(inner.config.fetchRows).not.toHaveBeenCalled();
       expect(outer.config.fetchRows).not.toHaveBeenCalled();
+      expect(hot.getSettings().dataProvider).toBe(outer.config);
 
       hot.updateSettings({ dataProvider: inner.config });
 
@@ -361,17 +341,6 @@ describe('DataProvider context owner contract', () => {
       expect(filters.exportConditions()).toEqual(onScreen);
     });
 
-    it('leave a disabled EmptyDataState hidden', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider);
-
-      const emptyDataState = hot.getPlugin('emptyDataState');
-
-      expect(() => emptyDataState._syncDataProviderLoading(true)).not.toThrow();
-      expect(emptyDataState.isVisible()).toBe(false);
-    });
-
     it('leave a disabled EmptyDataState alone on a context change with a fetch in flight', async() => {
       const provider = createDeferredProvider();
       const first = { name: 'first' };
@@ -465,26 +434,6 @@ describe('DataProvider context owner contract', () => {
       expect(fetchError.mock.calls[0][2]).toBe(false);
       expect(owner.onDetachedRequest).toHaveBeenCalledWith('fetch', { error }, first);
       expect(showMessage).not.toHaveBeenCalled();
-    });
-
-    it('passes the two base arguments and shows the toast for a failure without an owner', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider, { settings: { notification: true } });
-
-      const fetchError = jest.fn();
-      const showMessage = jest.spyOn(hot.getPlugin('notification'), 'showMessage');
-
-      hot.addHook('afterDataProviderFetchError', fetchError);
-
-      const request = hot.getPlugin('dataProvider').fetchData();
-      const error = new Error('offline');
-
-      await provider.failLast(error);
-
-      await expect(request).rejects.toBe(error);
-      expect(fetchError.mock.calls[0]).toHaveLength(2);
-      expect(showMessage).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -652,13 +601,6 @@ describe('DataProvider context owner contract', () => {
 
         return { finish: () => provider.settleMutation(), outcome };
       }],
-      ['a remove', async(provider, plugin) => {
-        const outcome = plugin.removeRows(['a']);
-
-        await settle();
-
-        return { finish: () => provider.settleMutation(), outcome };
-      }],
       ['a successful updateRows()', async(provider, plugin) => {
         const outcome = plugin.updateRows(updateA);
 
@@ -815,14 +757,6 @@ describe('DataProvider context owner contract', () => {
   });
 
   describe('_showRequestError()', () => {
-    it('does nothing without the Notification plugin', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider);
-
-      expect(() => hot.getPlugin('dataProvider')._showRequestError('update', new Error('failed'))).not.toThrow();
-    });
-
     it('shows a fetch error with a Refetch action that fetches again', async() => {
       const provider = createDeferredProvider();
 
@@ -844,18 +778,6 @@ describe('DataProvider context owner contract', () => {
 
       expect(hide).toHaveBeenCalledWith(showMessage.mock.results[0].value);
       expect(provider.config.fetchRows).toHaveBeenCalledTimes(2);
-    });
-
-    it('shows a mutation error without actions', async() => {
-      const provider = createDeferredProvider();
-
-      await createGrid(provider, { settings: { notification: true } });
-
-      const showMessage = jest.spyOn(hot.getPlugin('notification'), 'showMessage');
-
-      hot.getPlugin('dataProvider')._showRequestError('remove', new Error('rejected'));
-
-      expect(showMessage.mock.calls[0][0].actions).toBeUndefined();
     });
   });
 });

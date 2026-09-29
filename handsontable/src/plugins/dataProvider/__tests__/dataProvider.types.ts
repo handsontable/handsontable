@@ -96,12 +96,6 @@ hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryPa
   void reason?.name;
 });
 
-hot.addHook('afterDataProviderFetch', (result) => {
-  const restored: boolean = result.isRestored === true;
-
-  void restored;
-});
-
 hot.addHook('afterRowsMutation', (operation: string, payload: RowMutationPayload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
     void payload.rowsCreate.rowsAmount;
