@@ -1,4 +1,4 @@
-import { CAPABILITIES, DroppedFeatures } from '../capabilities';
+import { CAPABILITIES, DROPPED_FEATURES, DroppedFeatures } from '../capabilities';
 import * as consoleHelpers from '../../../helpers/console';
 
 describe('CAPABILITIES', () => {
@@ -28,6 +28,16 @@ describe('CAPABILITIES', () => {
       compressionLevel: false,
       readFormats: ['xlsx'],
     });
+  });
+});
+
+describe('DROPPED_FEATURES', () => {
+  it('should name a dropped VBA project `vbaProject`, the public key the import guide documents', () => {
+    expect(DROPPED_FEATURES.vbaProject).toBe('vbaProject');
+  });
+
+  it('should name a dropped over-long formula `formula:tooLong`, the public key the import guide documents', () => {
+    expect(DROPPED_FEATURES.formulaTooLong).toBe('formula:tooLong');
   });
 });
 

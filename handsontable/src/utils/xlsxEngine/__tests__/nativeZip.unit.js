@@ -216,6 +216,33 @@ describe('readZip', () => {
     await expect(readZip(new Uint8Array([1, 2, 3]).buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
   });
 
+  it('should name a Compound File (legacy .xls or a password-protected workbook) instead of the EOCD scan', async() => {
+    // An `.xls` and an encrypted `.xlsx` are both OLE Compound Files, not ZIP archives, and were
+    // refused with "no ZIP end-of-central-directory record" - true, and useless to the user.
+    const cfb = new Uint8Array(4096);
+
+    cfb.set([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
+
+    await expect(readZip(cfb.buffer)).rejects.toThrow(
+      'the file is a legacy Excel 97-2003 workbook (.xls) or a password-protected workbook, '
+      + 'which the built-in engine does not read. Save it as an unprotected .xlsx.'
+    );
+    await expect(readZip(cfb.buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should keep the end-of-central-directory refusal for bytes that are neither ZIP nor Compound File', async() => {
+    // Seven of the eight signature bytes are not the signature: only the whole signature at
+    // offset 0 is a Compound File.
+    const almost = new Uint8Array(4096);
+
+    almost.set([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0x00]);
+
+    const random = new Uint8Array(4096).map((_, i) => ((i * 7919) + 13) % 251);
+
+    await expect(readZip(almost.buffer)).rejects.toThrow(/no ZIP end-of-central-directory record/);
+    await expect(readZip(random.buffer)).rejects.toThrow(/no ZIP end-of-central-directory record/);
+  });
+
   it('should reject an entry whose declared inflated size is above the cap', async() => {
     const zip = await writeZip([{ name: 'big.bin', data: new Uint8Array(10) }], true);
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
@@ -270,6 +297,26 @@ describe('readZip', () => {
 
     await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
       .rejects.toThrow(/compression method 12/);
+  });
+
+  it('should refuse an encrypted entry by name, before its bytes are touched', async() => {
+    // General-purpose flag bit 0 is ZipCrypto and bit 6 is strong encryption; the data behind
+    // either is not the entry's bytes. Unread, the flag let a ZipCrypto entry reach the inflater
+    // and fail as corrupt data (or, stored, read back as ciphertext). Both headers carry the
+    // field; the central one is what the reader reads, and the local one is patched for a
+    // consistent archive.
+    const encrypted = [0x0001, 0x0040].map(flag => patchedArchive((view, zip, central) => {
+      view.setUint16(central + 8, flag | view.getUint16(central + 8, true), true); // eslint-disable-line no-bitwise
+      view.setUint16(6, flag | view.getUint16(6, true), true); // eslint-disable-line no-bitwise
+    }));
+
+    for (const pending of encrypted) {
+      const buffer = await pending;
+
+      await expect(readZip(buffer))
+        .rejects.toThrow('The ZIP entry "x.bin" is encrypted, which this reader does not accept.');
+      await expect(readZip(buffer)).rejects.toMatchObject({ cause: { handsontable: true } });
+    }
   });
 
   it('should refuse an archive that declares the same entry name twice', async() => {
@@ -375,5 +422,23 @@ describe('readZip', () => {
 
     await expect(archive.text('x.bin')).rejects.toThrow(/The ZIP entry "x.bin" runs past the end of the file/);
     await expect(archive.text('x.bin')).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+});
+
+describe('writeZip: the fields the classic ZIP format can declare', () => {
+  it('should refuse more entries than the end record can count', async() => {
+    // The entry count is a 16-bit field; a 65536th entry would wrap it to zero and the archive
+    // would open as empty. 65536 empty stored entries are a few megabytes and take well under a
+    // second, so the guard is exercised for real rather than through a synthetic count.
+    const entries = [];
+
+    for (let i = 0; i <= 0xFFFF; i++) {
+      entries.push({ name: `e${i}`, data: new Uint8Array(0) });
+    }
+
+    await expect(writeZip(entries, false))
+      .rejects.toThrow('The archive would hold 65536 entries, above the 65535 the ZIP format can declare.');
+    await expect(writeZip(entries, false)).rejects.toMatchObject({ cause: { handsontable: true } });
+    await expect(writeZip(entries.slice(1), false)).resolves.toBeInstanceOf(Uint8Array);
   });
 });

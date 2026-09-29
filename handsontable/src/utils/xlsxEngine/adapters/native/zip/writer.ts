@@ -1,5 +1,8 @@
+import { throwWithCause } from '../../../../../helpers/errors';
 import { crc32 } from './crc32';
-import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
+import {
+  CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE, MAX_ENTRY_COUNT, MAX_FIELD_VALUE,
+} from './layout';
 import { deflateRaw } from './streams';
 
 /**
@@ -101,11 +104,31 @@ class ByteWriter {
 }
 
 /**
+ * Refuses a size or offset the classic record cannot carry. `ByteWriter#u32` truncates silently
+ * (`>>> 0`), so without this an entry past 4 GB, or an archive whose directory starts past 4 GB,
+ * wrote wrapped numbers into headers that then described some other region of the file.
+ */
+function assertFieldFits(what: string, value: number): void {
+  if (value > MAX_FIELD_VALUE) {
+    throwWithCause(`The ${what} is ${value} bytes, above the ${MAX_FIELD_VALUE} bytes `
+      + 'a ZIP record without ZIP64 can declare.');
+  }
+}
+
+/**
  * Packs entries into a ZIP archive. `compress` selects DEFLATE for every entry; `false` stores
  * them. The Web `CompressionStream` has no level parameter, so a numeric level maps to the
  * platform default.
+ *
+ * Only the classic format is written: an archive past 65535 entries or 4 GB in any size or offset
+ * needs ZIP64 and is refused rather than written with wrapped header fields.
  */
 export async function writeZip(entries: ZipEntryInput[], compress: boolean): Promise<Uint8Array> {
+  if (entries.length > MAX_ENTRY_COUNT) {
+    throwWithCause(`The archive would hold ${entries.length} entries, above the ${MAX_ENTRY_COUNT} `
+      + 'the ZIP format can declare.');
+  }
+
   const encoder = new TextEncoder();
   const prepared: PreparedEntry[] = [];
   let localOffset = 0;
@@ -119,6 +142,9 @@ export async function writeZip(entries: ZipEntryInput[], compress: boolean): Pro
     const data = compress ? await deflateRaw(entry.data) : entry.data;
     const nameBytes = encoder.encode(entry.name);
 
+    assertFieldFits(`entry "${entry.name}"`, entry.data.byteLength);
+    assertFieldFits(`compressed entry "${entry.name}"`, data.byteLength);
+    assertFieldFits(`local offset of the entry "${entry.name}"`, localOffset);
     prepared.push({
       nameBytes,
       data,
@@ -131,6 +157,10 @@ export async function writeZip(entries: ZipEntryInput[], compress: boolean): Pro
   }
 
   const centralSize = prepared.reduce((sum, e) => sum + CENTRAL_HEADER_SIZE + e.nameBytes.byteLength, 0);
+
+  assertFieldFits('central directory offset', localOffset);
+  assertFieldFits('central directory size', centralSize);
+
   const writer = new ByteWriter(localOffset + centralSize + END_RECORD_SIZE);
 
   prepared.forEach((entry) => {

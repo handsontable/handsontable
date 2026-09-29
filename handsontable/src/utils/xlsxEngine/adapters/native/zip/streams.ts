@@ -2,11 +2,34 @@ import { throwWithCause } from '../../../../../helpers/errors';
 import { throwLimitExceeded } from '../../../limits';
 
 /**
- * Copies bytes into a fresh view over its own `ArrayBuffer`. The stream writer accepts only
- * `BufferSource` (a view over `ArrayBuffer`, not `ArrayBufferLike`), and handing the transform a
- * private copy keeps the caller's buffer out of the stream's ownership.
+ * How many input bytes one `writer.write()` hands the transform. The read loop's cap can only act
+ * between output chunks, and a browser's DEFLATE transform inflates one written chunk entirely
+ * inside one `transform()` call, enqueuing every output buffer before the loop reads the first, so
+ * the whole entry was in memory before the cap ran. Writing the input in slices bounds the queue to
+ * one slice's output (16 KB × the 1032:1 DEFLATE ceiling ≈ 16 MB) at most.
  */
-function ownedCopy(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+export const STREAM_WRITE_CHUNK_BYTES = 16 * 1024;
+
+/**
+ * Whether a view sits over a plain `ArrayBuffer`, which is the only backing the stream writer's
+ * `BufferSource` parameter accepts - a `SharedArrayBuffer` view is typed out of it.
+ */
+function isArrayBufferBacked(bytes: Uint8Array): bytes is Uint8Array<ArrayBuffer> {
+  return bytes.buffer instanceof ArrayBuffer;
+}
+
+/**
+ * The input as a view the stream writer accepts. Both production callers already hand over such a
+ * view - the reader slices the caller's `ArrayBuffer` and the writer passes a fresh `TextEncoder`
+ * buffer - so this is the input itself, and no byte is copied; a transform never mutates or
+ * detaches what is written to it. Only a view over a `SharedArrayBuffer` (nothing in this engine
+ * makes one) is copied, because that is the one backing the parameter's type excludes.
+ */
+function asBufferSource(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  if (isArrayBufferBacked(bytes)) {
+    return bytes;
+  }
+
   const copy = new Uint8Array(bytes.byteLength);
 
   copy.set(bytes);
@@ -41,9 +64,39 @@ function refuseAboveCeiling(maxBytes: number): () => never {
 }
 
 /**
+ * Writes `bytes` to the transform one slice at a time, then closes the writable. Each write is
+ * awaited before the next starts, so at most one slice is inside the transform at once; a cancel
+ * from the read loop rejects the pending write, which the caller's `catch` absorbs.
+ */
+async function writeSliced(
+  writer: WritableStreamDefaultWriter<BufferSource>,
+  bytes: Uint8Array<ArrayBuffer>
+): Promise<void> {
+  for (let offset = 0; offset < bytes.byteLength; offset += STREAM_WRITE_CHUNK_BYTES) {
+    // The next slice must not be queued before this one has been taken: a transform inflates a
+    // whole written chunk at once, so the queue would hold every slice's output at the same time.
+    // eslint-disable-next-line no-await-in-loop -- one slice in flight at a time, by design.
+    await writer.write(bytes.subarray(offset, offset + STREAM_WRITE_CHUNK_BYTES));
+  }
+
+  await writer.close();
+}
+
+/**
  * Pushes `bytes` through a transform stream and hands each output chunk to `onChunk`, refusing to
  * produce more than `maxBytes`. The write side is started and left running while the read loop
  * drains the readable, which is what keeps a transform with backpressure from deadlocking.
+ *
+ * The input goes in as `STREAM_WRITE_CHUNK_BYTES` slices, one in flight at a time, and that is
+ * what makes `maxBytes` a bound on memory rather than only on the output handed to `onChunk`. The
+ * cap is checked between output chunks, but a browser's DEFLATE transform inflates one written
+ * chunk entirely inside one `transform()` call and enqueues every output buffer before the read
+ * loop sees the first: written whole, a 65 KB entry of 64 MB of zeros put 64 MB on the queue
+ * before the first read (measured in headless Chrome), and the cancel came too late. With sliced
+ * writes the queue holds at most one slice's output, so the overshoot past `maxBytes` is bounded by
+ * a slice times DEFLATE's 1032:1 ceiling - about 16 MB - instead of by the entry. Node's transform
+ * honors its writable high-water mark, so Jest cannot observe the browser queue; the unit test pins
+ * the shape of the writes instead.
  *
  * The caller decides what to do with a chunk: collecting them costs the whole output twice (the
  * chunk list and the joined copy), which a text reader avoids by decoding each chunk as it arrives.
@@ -64,8 +117,7 @@ async function drain(
   let total = 0;
   let writeError: unknown = null;
 
-  const writing = writer.write(ownedCopy(bytes))
-    .then(() => writer.close())
+  const writing = writeSliced(writer, asBufferSource(bytes))
     .catch((error: unknown) => {
       writeError = error;
     });

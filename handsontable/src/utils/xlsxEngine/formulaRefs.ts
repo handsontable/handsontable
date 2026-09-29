@@ -50,6 +50,10 @@ export interface MappedReference {
  * whole-row span. A qualified reference points at another sheet, and a header band added to or
  * removed from THIS sheet moves nothing there, so its cell part is left alone along with the name.
  * The range form is captured whole because the reference after the `:` inherits the qualifier.
+ * The bare name is bounded at `MAX_QUALIFIER_LENGTH` characters: unbounded, the `+` run backtracks
+ * once per starting position on a long run of letters with no `!` after it, which is quadratic
+ * in the formula's length, and the formula is the file's own text. A sheet name is at most 31
+ * characters, so the bound changes no match a workbook can produce.
  *
  * The next alternative is the cell reference itself: an optional `$` before each component, one to
  * three column letters, then up to seven row digits, matched case-insensitively because
@@ -65,11 +69,12 @@ export interface MappedReference {
  * `null` on the open axis. They come after the cell alternative so `A1:B2` is read as two cells,
  * never as a column span starting at `A`.
  */
+const MAX_QUALIFIER_LENGTH = 255;
 const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
 const COLUMN_SPAN_PATTERN = String.raw`\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])`;
 const ROW_SPAN_PATTERN = String.raw`\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}])`;
 const REFERENCE_REGEX = new RegExp(
-  String.raw`(?<literal>"(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]+)!` +
+  String.raw`(?<literal>"(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]{1,${MAX_QUALIFIER_LENGTH}})!` +
   String.raw`(?:${CELL_PATTERN}(?::${CELL_PATTERN})?|${COLUMN_SPAN_PATTERN}|${ROW_SPAN_PATTERN}))` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})(?![\d(])` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])` +

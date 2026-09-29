@@ -4,9 +4,10 @@ import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
 
 /**
- * Number formats Excel keeps in its built-in table. A code that matches one reuses the id and
- * is not written to `<numFmts>`. Ids 5–8 (currency) and the locale ids are Excel-internal and
- * absent on purpose; a currency code is always custom.
+ * Number formats Excel keeps in its built-in table, in BOTH directions: a code that matches one
+ * reuses the id and is not written to `<numFmts>`, and a cell pointing at the id reads back as
+ * the code. Ids 5–8 (currency) are Excel-internal and absent on purpose; a currency code is
+ * always custom. The locale ids live in `LOCALE_NUM_FMTS`, which is read-only.
  */
 export const BUILT_IN_NUM_FMTS: Record<number, string> = {
   0: 'General',
@@ -39,6 +40,41 @@ export const BUILT_IN_NUM_FMTS: Record<number, string> = {
   49: '@',
 };
 
+/**
+ * The locale-specific date and time ids (ECMA-376 §18.8.30: 27–36 and 50–58, defined for ja-JP,
+ * zh-CN, zh-TW and ko-KR), resolved on READ ONLY. Excel renders each of them from the install's
+ * locale (id 27 is `[$-411]ge.m.d`, a Japanese era date, on a ja-JP install), so no single code
+ * is right; what matters here is that a cell carrying one reads back as a date or a time rather
+ * than as a bare serial with `numFmt: null`, which neither the import's type inference nor the
+ * reader's `date1904` shift treated as temporal. The stand-ins are chosen from the ja-JP column,
+ * the locale the ids were introduced for: 32 and 33 are clock times in every locale that defines
+ * them, 30 is a short date everywhere, and the rest are calendar dates there — 34, 35, 52, 53, 55
+ * and 56 are `上午/下午 h"時"mm"分"` clock times in zh-TW and zh-CN, so a serial under one of
+ * those imports as a date on such a workbook. Never handed to the writer: `builtInNumFmtId`
+ * ignores this table, so a snapshot asking for `yyyy/m/d` gets a custom id, not slot 27.
+ */
+export const LOCALE_NUM_FMTS: Record<number, string> = {
+  27: 'yyyy/m/d',
+  28: 'yyyy/m/d',
+  29: 'yyyy/m/d',
+  30: 'm/d/yy',
+  31: 'yyyy/m/d',
+  32: 'h:mm',
+  33: 'h:mm:ss',
+  34: 'yyyy/m/d',
+  35: 'yyyy/m/d',
+  36: 'yyyy/m/d',
+  50: 'yyyy/m/d',
+  51: 'yyyy/m/d',
+  52: 'yyyy/m/d',
+  53: 'yyyy/m/d',
+  54: 'yyyy/m/d',
+  55: 'yyyy/m/d',
+  56: 'yyyy/m/d',
+  57: 'yyyy/m/d',
+  58: 'yyyy/m/d',
+};
+
 const BUILT_IN_BY_CODE = new Map<string, number>(
   Object.entries(BUILT_IN_NUM_FMTS).map(([id, code]) => [code, Number(id)]),
 );
@@ -53,30 +89,30 @@ export function builtInNumFmtId(code: string): number | undefined {
 }
 
 /**
- * Escapes a literal space in a CUSTOM format code with a backslash, the way Excel itself writes
- * one, so it survives serialization the way `parseStyles` reads it back:
- * `formatCode.replace(/\\(.)/g, '$1')` unescapes `\ ` to a plain space on read, and without this
- * the writer emitted that plain space verbatim — `0.0\ %` came back from `#numFmtId` as `0.0 %`
- * and was then written out unescaped, so a native round trip lost the backslash and the two
- * engines disagreed on the format code for the same file. A space inside a quoted string literal
- * (`"kr "`) is left alone: the quotes already make it literal there.
+ * `JSON.stringify` with object keys in sorted order at every depth, so two objects that carry the
+ * same values in a different property order serialize identically. Arrays keep their order, and
+ * an `undefined` property is skipped as `JSON.stringify` skips it. Every key and value takes part,
+ * whether or not the style model declares it.
  */
-function escapeNumFmtCode(code: string): string {
-  let inQuotes = false;
-  let escaped = '';
-
-  for (const ch of code) {
-    if (ch === '"') {
-      inQuotes = !inQuotes;
-      escaped += ch;
-    } else if (ch === ' ' && !inQuotes) {
-      escaped += '\\ ';
-    } else {
-      escaped += ch;
-    }
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value) ?? 'undefined';
   }
 
-  return escaped;
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(',')}]`;
+  }
+
+  const record = value as Record<string, unknown>;
+  const parts: string[] = [];
+
+  Object.keys(record).sort().forEach((key) => {
+    if (record[key] !== undefined) {
+      parts.push(`${JSON.stringify(key)}:${stableStringify(record[key])}`);
+    }
+  });
+
+  return `{${parts.join(',')}}`;
 }
 
 /**
@@ -189,7 +225,15 @@ function writeBorder(w: XmlWriter, border: Border): void {
 }
 
 /**
- * A deduplicating list keyed by JSON.
+ * A deduplicating list keyed by a property-order-insensitive serialization: `{ horizontal,
+ * vertical }` and `{ vertical, horizontal }` are one entry. `JSON.stringify` alone keyed on
+ * insertion order and wrote one `<xf>` per spelling.
+ *
+ * The order-insensitive key is the SLOW path. `add` runs once per styled cell, and
+ * `stableStringify` costs about 6x `JSON.stringify` (2M calls: 0.8 s against 4.9 s), so every
+ * spelling seen is remembered under its plain `JSON.stringify` and a repeat of it costs what the
+ * insertion-order key always cost. For the plain data a style is, equal `JSON.stringify` output
+ * implies an equal sorted key, so the alias never merges two entries the sorted key keeps apart.
  */
 class KeyedList<T> {
   /**
@@ -198,9 +242,14 @@ class KeyedList<T> {
   readonly items: T[] = [];
 
   /**
-   * Index by serialized key.
+   * Index by order-insensitive key.
    */
   #index = new Map<string, number>();
+
+  /**
+   * Index by `JSON.stringify` spelling, filled as spellings are met.
+   */
+  #bySpelling = new Map<string, number>();
 
   /**
    * Seeds the list with fixed entries.
@@ -213,17 +262,25 @@ class KeyedList<T> {
    * Adds an item, returning its index (existing or new).
    */
   add(item: T): number {
-    const key = JSON.stringify(item);
-    const existing = this.#index.get(key);
+    const spelling = JSON.stringify(item) ?? 'undefined';
+    const known = this.#bySpelling.get(spelling);
 
-    if (existing !== undefined) {
-      return existing;
+    if (known !== undefined) {
+      return known;
     }
 
-    this.items.push(item);
-    this.#index.set(key, this.items.length - 1);
+    const key = stableStringify(item);
+    let index = this.#index.get(key);
 
-    return this.items.length - 1;
+    if (index === undefined) {
+      this.items.push(item);
+      index = this.items.length - 1;
+      this.#index.set(key, index);
+    }
+
+    this.#bySpelling.set(spelling, index);
+
+    return index;
   }
 }
 
@@ -285,7 +342,7 @@ function writeDxf(w: XmlWriter, dxf: DxfStyle): void {
   // Child order inside `<dxf>` is font, numFmt, fill, border. Both halves must be present:
   // a format code with no registered id cannot be referenced.
   if (dxf.numFmt !== undefined && dxf.numFmtId !== undefined) {
-    w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: escapeNumFmtCode(dxf.numFmt) });
+    w.leaf('numFmt', { numFmtId: dxf.numFmtId, formatCode: dxf.numFmt });
   }
 
   if (dxf.fill && (dxf.fill.fgColor || dxf.fill.bgColor)) {
@@ -407,7 +464,11 @@ export class StyleTable {
   }
 
   /**
-   * Writes `<numFmts>`, which a workbook using only built-in codes does not have at all.
+   * Writes `<numFmts>`, which a workbook using only built-in codes does not have at all. The code
+   * is written VERBATIM (the attribute escaper handles `"`, `&` and `<`): a backslash in it is
+   * Excel's own literal escape (`\ ` a literal space, `\%` a literal percent sign that does not
+   * scale), and ExcelJS hands codes through untouched too, so any transform here makes the two
+   * engines disagree on the same file.
    */
   #writeNumFmts(w: XmlWriter): void {
     if (this.#numFmts.size === 0) {
@@ -415,7 +476,7 @@ export class StyleTable {
     }
 
     w.open('numFmts', { count: this.#numFmts.size });
-    this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: escapeNumFmtCode(code) }));
+    this.#numFmts.forEach((id, code) => w.leaf('numFmt', { numFmtId: id, formatCode: code }));
     w.close();
   }
 
@@ -781,14 +842,17 @@ class StylesParser {
   }
 
   /**
-   * Opens a `<numFmt>`, which belongs either to the workbook's table or to a `<dxf>`.
+   * Opens a `<numFmt>`, which belongs either to the workbook's table or to a `<dxf>`. The code is
+   * kept verbatim: stripping `\x` escapes turned `0.0\%` (a literal percent sign) into `0.0%` (a
+   * scaling one, 12.5 shown as 1250.0%) and `0\d` into `0d`, which the import then typed as a
+   * date, while the ExcelJS adapter handed the same file's code through untouched.
    */
   #openNumFmt(attrs: XmlAttributes): void {
     if (attrs.formatCode === undefined) {
       return;
     }
 
-    const formatCode = attrs.formatCode.replace(/\\(.)/g, '$1');
+    const { formatCode } = attrs;
 
     // A `<numFmt>` inside a `<dxf>` belongs to that rule's style, not to the workbook's
     // table, so it must not shadow an id the cell formats resolve against.
@@ -1035,7 +1099,8 @@ class StylesParser {
 
     const numFmt = xf.numFmtId === 0
       ? null
-      : this.#customNumFmts.get(xf.numFmtId) ?? BUILT_IN_NUM_FMTS[xf.numFmtId] ?? null;
+      : this.#customNumFmts.get(xf.numFmtId) ?? BUILT_IN_NUM_FMTS[xf.numFmtId]
+        ?? LOCALE_NUM_FMTS[xf.numFmtId] ?? null;
     const resolvedFont = this.#fonts[xf.fontId] ?? null;
     const resolvedFill = this.#fills[xf.fillId] ?? null;
     const resolvedBorder = this.#borders[xf.borderId] ?? null;

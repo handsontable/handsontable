@@ -16,6 +16,8 @@ import { StyleTable, parseStyles, EMPTY_STYLES } from '../adapters/native/parts/
 import { hashSheetPassword, SHEET_PASSWORD_SPIN_COUNT } from '../adapters/native/parts/protection';
 import { worksheetXml } from '../adapters/native/parts/worksheetWriter';
 import { parseWorksheet, assertSheetFits } from '../adapters/native/parts/worksheetReader';
+import { XmlWriter } from '../adapters/native/xml/writer';
+import { escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes } from '../adapters/native/xml/escapes';
 import { DroppedFeatures } from '../capabilities';
 import { SheetBuilder } from '../builder';
 import { MAX_SHEET_CELLS, MAX_WORKBOOK_CELLS } from '../limits';
@@ -410,6 +412,82 @@ describe('hashSheetPassword', () => {
     expect(a.saltValue).not.toBe(b.saltValue);
     expect(Buffer.from(a.saltValue, 'base64').byteLength).toBe(16);
   });
+
+  it('should name the secure-context requirement when crypto.subtle is missing', async() => {
+    // A page served over plain http (not localhost) has `crypto` but no `crypto.subtle`; the
+    // instance property shadows the prototype getter for the duration of the test.
+    Object.defineProperty(globalThis.crypto, 'subtle', { value: undefined, configurable: true });
+
+    try {
+      await expect(hashSheetPassword('x', new Uint8Array(16), 1))
+        .rejects.toThrow(/crypto\.subtle.*secure context \(https or localhost\)/);
+    } finally {
+      delete globalThis.crypto.subtle;
+    }
+
+    expect(globalThis.crypto.subtle).toBeDefined();
+  });
+});
+
+describe('XmlWriter buffering', () => {
+  it('should emit the same bytes as one flat join across the flush boundary', () => {
+    const w = new XmlWriter(false).open('root');
+    let expected = '<root>';
+
+    for (let i = 0; i < 10000; i++) {
+      w.leaf('c', { r: i }, String(i));
+      expected += `<c r="${i}">${i}</c>`;
+    }
+
+    w.close();
+    expected += '</root>';
+
+    expect(w.toString()).toBe(expected);
+  });
+
+  it('should still collapse an element opened and closed right after a flush, and close one opened before it', () => {
+    const w = new XmlWriter(false).open('outer');
+
+    for (let i = 0; i < 4096; i++) {
+      w.leaf('x');
+    }
+
+    w.open('empty').close();
+    w.open('inner');
+
+    for (let i = 0; i < 4096; i++) {
+      w.leaf('y');
+    }
+
+    w.close().close();
+
+    const xml = w.toString();
+
+    expect(xml.startsWith('<outer><x/>')).toBe(true);
+    expect(xml).toContain('<x/><empty/><inner><y/>');
+    expect(xml.endsWith('<y/></inner></outer>')).toBe(true);
+    expect(xml.length).toBe('<outer>'.length + (4096 * 4) + '<empty/>'.length + '<inner>'.length
+      + (4096 * 4) + '</inner>'.length + '</outer>'.length);
+  });
+});
+
+describe('escapes outside the XML character range', () => {
+  it('should encode U+FFFE and U+FFFF the _xHHHH_ way in text and strip them from attributes', () => {
+    // Both are outside XML 1.0's `Char` production; written raw they trigger Excel's repair dialog.
+    expect(escapeXmlText('a\uFFFEb\uFFFFc')).toBe('a_xFFFE_b_xFFFF_c');
+    expect(decodeOoxmlEscapes('a_xFFFE_b_xFFFF_c')).toBe('a\uFFFEb\uFFFFc');
+    expect(escapeXmlAttr('a\uFFFEb\uFFFFc')).toBe('abc');
+  });
+
+  it('should hand text back unchanged when nothing in it needs escaping', () => {
+    const plain = 'Plain text 123 ąę 日本';
+
+    expect(escapeXmlText(plain)).toBe(plain);
+    expect(escapeXmlAttr(plain)).toBe(plain);
+    // An underscore alone is not an escape; only a `_xHHHH_` run is.
+    expect(escapeXmlText('snake_case')).toBe('snake_case');
+    expect(escapeXmlText('FILE_x0041_TEST')).toBe('FILE_x005F_x0041_TEST');
+  });
 });
 
 /**
@@ -576,6 +654,85 @@ describe('worksheetXml', () => {
 
   it('should not write a legacyDrawing when no cell has a comment', () => {
     expect(writeSheet((b) => { b.cell(1, 1).value = 1; }).xml).not.toContain('legacyDrawing');
+  });
+
+  it('should serialize every cell shape byte-identically to the pinned part', () => {
+    // Captured from the writer BEFORE the per-cell hot path was flattened into one string per
+    // `<c>` and `XmlWriter` grew its bounded buffer; the refactor must not move a byte. Covers
+    // shared strings with markup, a number, both booleans, a non-finite number demoted to text,
+    // formulas with every cached-result type, a styled empty cell, a locked cell, a height-only
+    // row and a control character in a shared string.
+    const { xml, strings } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a<b&"c"';
+      b.cell(1, 2).value = 42.5;
+      b.cell(1, 3).value = true;
+      b.cell(1, 4).value = false;
+      b.cell(1, 5).value = Infinity;
+      b.cell(2, 1).formula = { text: 'SUM(B1:B1)' };
+      b.cell(2, 2).formula = { text: 'B1*2', result: 85 };
+      b.cell(2, 3).formula = { text: 'A1&"!"', result: 'x!' };
+      b.cell(2, 4).formula = { text: 'B1>0', result: true };
+      b.cell(2, 5).formula = { text: '1/0', result: NaN };
+      b.cell(3, 1).value = 7;
+      b.cell(3, 1).numFmt = '0.00';
+      b.cell(3, 2).style = { alignment: null, font: { bold: true }, fill: null, border: null };
+      b.cell(3, 3).value = 'styled';
+      b.cell(3, 3).style = { alignment: { horizontal: 'center' }, font: null, fill: null, border: null };
+      b.cell(3, 3).locked = false;
+      b.cell(5, 2).value = 'tab\there\u0001x';
+      b.setRowHeight(4, 20);
+    });
+
+    expect(xml).toBe(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+      + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+      + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+      + '<dimension ref="A1:E5"/><sheetViews><sheetView workbookViewId="0"/></sheetViews>'
+      + '<sheetFormatPr defaultRowHeight="15"/><sheetData>'
+      + '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>42.5</v></c><c r="C1" t="b"><v>1</v></c>'
+      + '<c r="D1" t="b"><v>0</v></c><c r="E1" t="s"><v>1</v></c></row>'
+      + '<row r="2"><c r="A2"><f>SUM(B1:B1)</f></c><c r="B2"><f>B1*2</f><v>85</v></c>'
+      + '<c r="C2" t="str"><f>A1&amp;&quot;!&quot;</f><v>x!</v></c><c r="D2" t="b"><f>B1&gt;0</f><v>1</v></c>'
+      + '<c r="E2" t="str"><f>1/0</f><v>NaN</v></c></row>'
+      + '<row r="3"><c r="A3" s="1"><v>7</v></c><c r="B3" s="2"/><c r="C3" s="3" t="s"><v>2</v></c></row>'
+      + '<row r="4" ht="20" customHeight="1"/>'
+      + '<row r="5"><c r="B5" t="s"><v>3</v></c></row></sheetData>'
+      + '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>',
+    );
+    expect(strings.toXml()).toBe(
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+      + '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="4" uniqueCount="4">'
+      + '<si><t>a&lt;b&amp;&quot;c&quot;</t></si><si><t>Infinity</t></si><si><t>styled</t></si>'
+      + '<si><t>tab\there_x0001_x</t></si></sst>',
+    );
+  });
+
+  it('should write every cell of a merge-free sheet and keep dropping covered cells with merges', () => {
+    // The covered-cell lookup is skipped entirely when the sheet has no merge (no `${row}:${col}`
+    // key is allocated per cell); the merge path must still hide the covered members.
+    const plain = writeSheet((b) => {
+      b.cell(1, 1).value = 1;
+      b.cell(1, 2).value = 2;
+      b.cell(2, 1).value = 3;
+      b.cell(2, 2).value = 4;
+    });
+
+    expect(plain.xml).toContain(
+      '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c><c r="B2"><v>4</v></c></row>',
+    );
+
+    const merged = writeSheet((b) => {
+      b.cell(1, 1).value = 1;
+      b.cell(1, 2).value = 2;
+      b.cell(2, 1).value = 3;
+      b.cell(2, 2).value = 4;
+      b.merge(1, 1, 2, 2);
+    });
+
+    expect(merged.xml).toContain('<row r="1"><c r="A1"><v>1</v></c></row>');
+    expect(merged.xml).not.toContain('<c r="B1"');
+    expect(merged.xml).not.toContain('<row r="2">');
   });
 });
 

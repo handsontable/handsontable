@@ -124,23 +124,149 @@ describe('StyleTable', () => {
     );
   });
 
-  it('should escape a literal space in a custom format code on write, matching what the reader unescapes', () => {
+  it('should write a custom format code verbatim, XML-attribute-escaped only, and read it back unchanged', () => {
     const table = new StyleTable();
 
-    table.xfIndex({ numFmt: '0.0 %', style: null, locked: null });
-    table.dxfIndex({ font: { bold: true }, numFmt: '#,##0 "kr"' });
+    // A backslash in a format code is Excel's own literal escape (`\ ` a literal space, `\%` a
+    // literal percent sign that does NOT scale by 100). The writer must not add a second layer of
+    // backslashes and the reader must not strip the user's own.
+    table.xfIndex({ numFmt: '0.0\\ %', style: null, locked: null });
+    table.xfIndex({ numFmt: '#,##0 "kr"', style: null, locked: null });
+    table.dxfIndex({ font: { bold: true }, numFmt: '0.0\\%' });
 
     const xml = table.toXml();
 
     expect(xml).toContain('<numFmt numFmtId="164" formatCode="0.0\\ %"/>');
-    // The space INSIDE the quoted "kr" literal is left alone; only the one outside it is escaped.
-    expect(xml).toContain('<numFmt numFmtId="165" formatCode="#,##0\\ &quot;kr&quot;"/>');
+    expect(xml).toContain('<numFmt numFmtId="165" formatCode="#,##0 &quot;kr&quot;"/>');
+    expect(xml).toContain('<dxf><font><b/></font><numFmt numFmtId="166" formatCode="0.0\\%"/></dxf>');
 
-    // Full round trip: what the writer escapes, the reader must unescape back to the original.
     const { cellXfs, dxfs } = parseStyles(xml);
 
-    expect(cellXfs[1].numFmt).toBe('0.0 %');
-    expect(dxfs[0].numFmt).toBe('#,##0 "kr"');
+    expect(cellXfs[1].numFmt).toBe('0.0\\ %');
+    expect(cellXfs[2].numFmt).toBe('#,##0 "kr"');
+    expect(dxfs[0].numFmt).toBe('0.0\\%');
+  });
+
+  it('should round-trip an accounting format code with its `* ` fill and `_` padding byte-identical', () => {
+    const codes = [
+      '_-* #,##0_-',
+      '_($* #,##0.00_);_($* \\(#,##0.00\\);_($* "-"??_);_(@_)',
+      '#,##0.00 [$EUR]',
+    ];
+
+    codes.forEach((code) => {
+      const table = new StyleTable();
+
+      table.xfIndex({ numFmt: code, style: null, locked: null });
+
+      const xml = table.toXml();
+      const written = xml.match(/formatCode="([^"]*)"/)[1].replace(/&quot;/g, '"');
+
+      expect(written).toBe(code);
+      expect(parseStyles(xml).cellXfs[1].numFmt).toBe(code);
+    });
+  });
+
+  it('should share one xf between two requests that differ only in property order', () => {
+    const table = new StyleTable();
+
+    const a = table.xfIndex({
+      numFmt: null,
+      style: { alignment: { horizontal: 'center', vertical: 'middle' }, font: null, fill: null, border: null },
+      locked: null,
+    });
+    const b = table.xfIndex({
+      numFmt: null,
+      style: { alignment: { vertical: 'middle', horizontal: 'center' }, font: null, fill: null, border: null },
+      locked: null,
+    });
+    const c = table.xfIndex({
+      numFmt: null,
+      style: {
+        border: { top: { color: { argb: 'FF0000FF' }, style: 'thin' } }, fill: null, font: null, alignment: null,
+      },
+      locked: null,
+    });
+    const d = table.xfIndex({
+      numFmt: null,
+      style: {
+        alignment: null, font: null, fill: null, border: { top: { style: 'thin', color: { argb: 'FF0000FF' } } },
+      },
+      locked: null,
+    });
+
+    expect(a).toBe(1);
+    expect(b).toBe(1);
+    expect(c).toBe(2);
+    expect(d).toBe(2);
+    expect(table.toXml()).toContain('<cellXfs count="3">');
+    expect(table.toXml()).toContain('<borders count="2">');
+  });
+
+  it('should key font, fill, border and alignment on content at every depth, whatever the property order', () => {
+    const table = new StyleTable();
+    const style = {
+      font: { bold: true, italic: true, color: { argb: 'FF112233' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFAABBCC' } },
+      border: {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'medium', color: { argb: 'FF00FF00' } },
+      },
+      alignment: { horizontal: 'left', vertical: 'top' },
+    };
+    const reordered = {
+      alignment: { vertical: 'top', horizontal: 'left' },
+      border: {
+        left: { color: { argb: 'FF00FF00' }, style: 'medium' },
+        top: { color: { argb: 'FF000000' }, style: 'thin' },
+      },
+      fill: { fgColor: { argb: 'FFAABBCC' }, pattern: 'solid', type: 'pattern' },
+      font: { color: { argb: 'FF112233' }, italic: true, bold: true },
+    };
+    // Interleaved, so the second spelling is met both before and after the first one repeats.
+    const ids = [style, reordered, style, reordered].map(s => table.xfIndex({
+      numFmt: '0.00', style: s, locked: false,
+    }));
+
+    expect(ids).toEqual([1, 1, 1, 1]);
+
+    const xml = table.toXml();
+
+    expect(xml).toContain('<fonts count="2">');
+    expect(xml).toContain('<fills count="3">');
+    expect(xml).toContain('<borders count="2">');
+    expect(xml).toContain('<cellXfs count="2">');
+  });
+
+  it('should keep two styles apart when they differ only in one nested leaf, known or unknown', () => {
+    const table = new StyleTable();
+    const request = font => ({
+      numFmt: null,
+      style: { font, fill: null, border: null, alignment: null },
+      locked: null,
+    });
+
+    const base = table.xfIndex(request({ bold: true, color: { argb: 'FF000000' } }));
+    const otherColor = table.xfIndex(request({ color: { argb: 'FF000001' }, bold: true }));
+    // A property the snapshot type does not declare still takes part in the key, so a richer
+    // style never collapses onto a plainer one.
+    const extraA = table.xfIndex(request({ bold: true, color: { argb: 'FF000000', theme: 1 } }));
+    const extraB = table.xfIndex(request({ bold: true, color: { argb: 'FF000000', theme: 2 } }));
+    const extraAReordered = table.xfIndex(request({ color: { theme: 1, argb: 'FF000000' }, bold: true }));
+
+    expect([base, otherColor, extraA, extraB, extraAReordered]).toEqual([1, 2, 3, 4, 3]);
+    expect(table.toXml()).toContain('<fonts count="5">');
+  });
+
+  it('should share one dxf between two conditional-format styles that differ only in property order', () => {
+    const table = new StyleTable();
+
+    const red = { argb: 'FFFF0000' };
+    const a = table.dxfIndex({ font: { bold: true, color: red }, fill: { bgColor: { argb: 'FF00FF00' } } });
+    const b = table.dxfIndex({ fill: { bgColor: { argb: 'FF00FF00' } }, font: { color: red, bold: true } });
+    const c = table.dxfIndex({ fill: { bgColor: { argb: 'FF00FF01' } }, font: { color: red, bold: true } });
+
+    expect([a, b, c]).toEqual([0, 0, 1]);
   });
 });
 
@@ -189,13 +315,55 @@ describe('parseStyles', () => {
     expect(cellXfs[4]).toEqual({ numFmt: null, style: null, locked: null });
   });
 
-  it('should unescape backslashes in a custom format code', () => {
+  it('should keep the backslashes of a custom format code, which are Excel literal escapes', () => {
     const { cellXfs } = parseStyles(
-      '<styleSheet><numFmts><numFmt numFmtId="165" formatCode="0.0\\ %"/></numFmts>'
-      + '<cellXfs><xf numFmtId="165"/></cellXfs></styleSheet>',
+      '<styleSheet><numFmts>'
+      + '<numFmt numFmtId="165" formatCode="0.0\\ %"/>'
+      + '<numFmt numFmtId="166" formatCode="0\\d"/>'
+      + '</numFmts>'
+      + '<cellXfs><xf numFmtId="165"/><xf numFmtId="166"/></cellXfs></styleSheet>',
     );
 
-    expect(cellXfs[0].numFmt).toBe('0.0 %');
+    // Stripping `\ ` to a space turned `0.0\ %` into a scaling percent (12.5 shown as 1250.0 %),
+    // and `0\d` into `0d`, which the import then typed as a date.
+    expect(cellXfs[0].numFmt).toBe('0.0\\ %');
+    expect(cellXfs[1].numFmt).toBe('0\\d');
+  });
+
+  it('should resolve the locale date and time ids (27-36, 50-58) to a temporal stand-in code', () => {
+    const ids = [27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 50, 51, 52, 53, 54, 55, 56, 57, 58];
+    const { cellXfs } = parseStyles(
+      `<styleSheet><cellXfs>${ids.map(id => `<xf numFmtId="${id}"/>`).join('')}</cellXfs></styleSheet>`,
+    );
+
+    ids.forEach((id, index) => {
+      const { numFmt } = cellXfs[index];
+
+      // A bare serial with `numFmt: null` was the previous answer, so neither the import's type
+      // inference nor the reader's `date1904` shift treated the cell as a date.
+      expect(numFmt).toEqual(expect.any(String));
+      expect(/[ymdhs]/.test(numFmt)).toBe(true);
+    });
+
+    // 32 and 33 are clock times in every locale that defines them; the rest are dates.
+    expect(cellXfs[ids.indexOf(32)].numFmt).toBe('h:mm');
+    expect(cellXfs[ids.indexOf(33)].numFmt).toBe('h:mm:ss');
+    expect(cellXfs[ids.indexOf(30)].numFmt).toBe('m/d/yy');
+    expect(cellXfs[ids.indexOf(27)].numFmt).toBe('yyyy/m/d');
+  });
+
+  it('should never hand a locale id out to the writer for the stand-in code', () => {
+    // Excel renders id 27 as a Japanese era date on a ja-JP install; a workbook that asks for
+    // `yyyy/m/d` must get a custom id, never the locale slot.
+    expect(builtInNumFmtId('yyyy/m/d')).toBeUndefined();
+    expect(builtInNumFmtId('h:mm')).toBe(20);
+    expect(builtInNumFmtId('m/d/yy')).toBeUndefined();
+
+    const table = new StyleTable();
+
+    table.xfIndex({ numFmt: 'yyyy/m/d', style: null, locked: null });
+
+    expect(table.toXml()).toContain('<numFmt numFmtId="164" formatCode="yyyy/m/d"/>');
   });
 
   it('should expose dxfs in the ExcelJS style shape for conditional formatting', () => {

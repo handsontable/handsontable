@@ -14,13 +14,18 @@ export interface XmlHandlers {
   text?(text: string): void;
 }
 
-const NAMED_ENTITIES: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: '\'',
-};
+/**
+ * The five XML named entities. A `Map`, not an object literal: the entity name comes from the file,
+ * and an object lookup resolved `&constructor;` through `Object.prototype` to the source text of
+ * `Object`.
+ */
+const NAMED_ENTITIES = new Map<string, string>([
+  ['amp', '&'],
+  ['lt', '<'],
+  ['gt', '>'],
+  ['quot', '"'],
+  ['apos', '\''],
+]);
 
 /**
  * The highest code point `String.fromCodePoint` accepts. A reference above it is malformed.
@@ -71,7 +76,7 @@ export function decodeXmlEntities(text: string): string {
       return isDecodableCodePoint(code) ? String.fromCodePoint(code) : match;
     }
 
-    return NAMED_ENTITIES[body] ?? match;
+    return NAMED_ENTITIES.get(body) ?? match;
   });
 }
 

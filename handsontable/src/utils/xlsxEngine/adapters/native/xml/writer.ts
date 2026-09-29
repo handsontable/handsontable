@@ -14,13 +14,31 @@ export type XmlAttributeMap = Record<string, XmlAttributeValue>;
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
 
 /**
+ * How many pending parts the writer holds before it joins them into one chunk. A million-cell
+ * sheet pushed millions of small strings into one array before a single `join('')`; joining every
+ * few thousand keeps the array short and lets the engine free the small strings as it goes.
+ */
+export const XML_WRITER_FLUSH_THRESHOLD = 4096;
+
+/**
  * Builds an XML document as a string. Every text and attribute value goes through the escapers.
  */
 export class XmlWriter {
   /**
-   * Output chunks, joined on `toString()`.
+   * Joined chunks of everything written before the pending parts, in order.
+   */
+  #chunks: string[] = [];
+
+  /**
+   * Pending parts not yet joined into `#chunks`.
    */
   #parts: string[] = [];
+
+  /**
+   * How many parts have been joined into `#chunks` so far; `#flushed + #parts.length` is the
+   * global index of the next part.
+   */
+  #flushed = 0;
 
   /**
    * Open element names, innermost last.
@@ -28,7 +46,7 @@ export class XmlWriter {
   #stack: string[] = [];
 
   /**
-   * Index in `#parts` of each open element's start tag, parallel to `#stack`.
+   * Global index of each open element's start tag, parallel to `#stack`.
    */
   #openIndex: number[] = [];
 
@@ -37,7 +55,7 @@ export class XmlWriter {
    */
   constructor(withDeclaration = true) {
     if (withDeclaration) {
-      this.#parts.push(XML_DECLARATION);
+      this.#push(XML_DECLARATION);
     }
   }
 
@@ -45,8 +63,8 @@ export class XmlWriter {
    * Opens an element.
    */
   open(name: string, attrs?: XmlAttributeMap): this {
-    this.#openIndex.push(this.#parts.length);
-    this.#parts.push(`<${name}${this.#attributes(attrs)}>`);
+    this.#push(`<${name}${this.#attributes(attrs)}>`);
+    this.#openIndex.push(this.#flushed + this.#parts.length - 1);
     this.#stack.push(name);
 
     return this;
@@ -64,12 +82,15 @@ export class XmlWriter {
       throwWithCause('XmlWriter#close was called with nothing open.');
     }
 
-    if (openAt === this.#parts.length - 1) {
-      const tag = this.#parts[openAt];
+    // A start tag that was flushed always has something after it (`#push` flushes BEFORE it
+    // appends), so only a start tag still pending can be the last part written.
+    if (openAt === this.#flushed + this.#parts.length - 1) {
+      const local = openAt - this.#flushed;
+      const tag = this.#parts[local];
 
-      this.#parts[openAt] = `${tag.slice(0, -1)}/>`;
+      this.#parts[local] = `${tag.slice(0, -1)}/>`;
     } else {
-      this.#parts.push(`</${name}>`);
+      this.#push(`</${name}>`);
     }
 
     return this;
@@ -80,9 +101,9 @@ export class XmlWriter {
    */
   leaf(name: string, attrs?: XmlAttributeMap, text?: string): this {
     if (text === undefined) {
-      this.#parts.push(`<${name}${this.#attributes(attrs)}/>`);
+      this.#push(`<${name}${this.#attributes(attrs)}/>`);
     } else {
-      this.#parts.push(`<${name}${this.#attributes(attrs)}>${escapeXmlText(text)}</${name}>`);
+      this.#push(`<${name}${this.#attributes(attrs)}>${escapeXmlText(text)}</${name}>`);
     }
 
     return this;
@@ -92,7 +113,7 @@ export class XmlWriter {
    * Writes text inside the open element.
    */
   text(text: string): this {
-    this.#parts.push(escapeXmlText(text));
+    this.#push(escapeXmlText(text));
 
     return this;
   }
@@ -103,7 +124,7 @@ export class XmlWriter {
   raw(xml: string): this {
     // An empty chunk would keep `close()` from collapsing an otherwise empty element to `<x/>`.
     if (xml !== '') {
-      this.#parts.push(xml);
+      this.#push(xml);
     }
 
     return this;
@@ -113,7 +134,22 @@ export class XmlWriter {
    * The document so far.
    */
   toString(): string {
-    return this.#parts.join('');
+    return this.#chunks.join('') + this.#parts.join('');
+  }
+
+  /**
+   * Appends one part, joining the pending parts into a chunk first once there are enough of them.
+   * The flush runs BEFORE the append so the newest part is always pending — which is what lets
+   * `close()` collapse an empty element by looking at the pending parts alone.
+   */
+  #push(part: string): void {
+    if (this.#parts.length >= XML_WRITER_FLUSH_THRESHOLD) {
+      this.#chunks.push(this.#parts.join(''));
+      this.#flushed += this.#parts.length;
+      this.#parts = [];
+    }
+
+    this.#parts.push(part);
   }
 
   /**

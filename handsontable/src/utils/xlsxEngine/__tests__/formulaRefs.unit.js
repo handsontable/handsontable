@@ -75,6 +75,17 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('Data!A1+B2', -1, -1)).toBe('Data!A1+A1');
   });
 
+  it('should leave a bare qualifier longer than the 255-character bound untouched, like a shorter one', () => {
+    // The bare-qualifier run is bounded so a long run of letters with no `!` after it cannot make
+    // the regex backtrack quadratically over the file's own formula text. A sheet name is at most
+    // 31 characters, so the bound changes no match a workbook can produce - and a longer one still
+    // reads as a qualifier, because the bounded run matches its tail and the `!` after it.
+    const long = 'a'.repeat(300);
+
+    expect(shiftFormulaReferences(`${long}!A1+B2`, 1, 1)).toBe(`${long}!A1+C3`);
+    expect(shiftFormulaReferences('a'.repeat(20000), 1, 1)).toBe('a'.repeat(20000));
+  });
+
   it('should not touch a reference-shaped string literal', () => {
     expect(shiftFormulaReferences('"A1"', 1, 1)).toBe('"A1"');
     expect(shiftFormulaReferences('CONCAT("A1",A1)', 1, 1)).toBe('CONCAT("A1",B2)');

@@ -1,6 +1,8 @@
 /**
  * @jest-environment node
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { tokenizeXml, decodeXmlEntities } from '../adapters/native/xml/tokenizer';
 import {
   escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes, needsSpacePreserve,
@@ -95,6 +97,14 @@ describe('decodeXmlEntities', () => {
     // The code points on either side of the range still decode.
     expect(decodeXmlEntities('&#xD7FF;&#xE000;')).toBe('\uD7FF\uE000');
   });
+
+  it('should leave a reference named after an Object.prototype member as written', () => {
+    // A plain-object entity table resolved `&constructor;` through the prototype chain and put the
+    // source text of `Object` into the cell.
+    expect(decodeXmlEntities('&constructor;|&toString;|&valueOf;|&hasOwnProperty;|&isPrototypeOf;'))
+      .toBe('&constructor;|&toString;|&valueOf;|&hasOwnProperty;|&isPrototypeOf;');
+    expect(decodeXmlEntities('&amp;constructor;')).toBe('&constructor;');
+  });
 });
 
 describe('XmlWriter', () => {
@@ -147,5 +157,25 @@ describe('escaping', () => {
     expect(needsSpacePreserve('a ')).toBe(true);
     expect(needsSpacePreserve('a\nb')).toBe(true);
     expect(needsSpacePreserve('a b')).toBe(false);
+  });
+
+  it('should treat U+FFFE and U+FFFF as illegal but leave the Latin-1 characters their UTF-8 bytes spell alone', () => {
+    // Raw U+FFFE / U+FFFF in the source are the bytes EF BF BE / EF BF BF. Decoded as Latin-1 (a
+    // page served without a UTF-8 charset) those read as the letters below, so a class spelled
+    // with raw bytes would escape or strip ordinary text.
+    const latin1 = '\u00BF\u00EF\u00BE';
+
+    expect(escapeXmlText(latin1)).toBe(latin1);
+    expect(escapeXmlAttr(latin1)).toBe(latin1);
+    expect(escapeXmlText('a\uFFFEb\uFFFFc')).not.toMatch(/[\uFFFE\uFFFF]/);
+    expect(escapeXmlAttr('a\uFFFEb\uFFFFc')).toBe('abc');
+  });
+
+  it('should spell escapes.ts in 7-bit ASCII so no bundle depends on the page charset', () => {
+    // ESLint's non-ASCII selectors cover identifiers and tagged templates, not regex literals.
+    const source = readFileSync(join(__dirname, '../adapters/native/xml/escapes.ts'));
+    const offenders = [...source.entries()].filter(([, byte]) => byte >= 0x80).map(([offset]) => offset);
+
+    expect(offenders).toEqual([]);
   });
 });

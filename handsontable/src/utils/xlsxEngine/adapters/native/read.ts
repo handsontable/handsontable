@@ -1,12 +1,13 @@
 import { throwWithCause } from '../../../../helpers/errors';
 import { localeLowerCase } from '../../../../helpers/string';
-import type { DroppedFeatures } from '../../capabilities';
+import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
 import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
 import { parseComments } from './parts/comments';
 import {
-  CONTENT_TYPES, contentTypeOf, type ContentTypes, parseContentTypes, parseRels, parseWorkbook, resolvePartPath,
-  REL_TYPES, type Relationship,
+  BINARY_WORKBOOK_CONTENT_TYPE, CONTENT_TYPES, contentTypeOf, type ContentTypes, parseContentTypes, parseRels,
+  parseWorkbook, resolvePartPath, REL_TYPES, type Relationship, SPREADSHEET_MAIN_CONTENT_TYPES,
+  type WorkbookSheetEntry,
 } from './parts/package';
 import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStrings';
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
@@ -99,6 +100,7 @@ interface OpenedPackage {
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;
   packageParts: Set<string>;
+  hasVbaProject: boolean;
 }
 
 /**
@@ -131,6 +133,47 @@ function isWorksheetPart(opened: OpenedPackage, partPath: string): boolean {
 }
 
 /**
+ * The archive path a VBA project is stored under by every writer that stores one.
+ */
+const VBA_PROJECT_PART = 'xl/vbaProject.bin';
+
+/**
+ * The generic XML media types, lower-cased. A main part typed only by one of these — in practice
+ * the `<Default Extension="xml" ContentType="application/xml"/>` every package declares — has no
+ * kind declared at all, so it is treated like an undeclared one.
+ */
+const GENERIC_XML_CONTENT_TYPES: ReadonlySet<string> = new Set(['application/xml', 'text/xml']);
+
+/**
+ * Refuses a main part this reader cannot read, before a byte of it is tokenized.
+ *
+ * Acceptance used to be a ZIP with a workbook part at the officeDocument target, and the part's
+ * declared type was never read: an `.xlsb` — the same package layout, BIFF12 records in place of
+ * XML — tokenized to nothing and came back as a workbook with zero sheets, and any other OOXML
+ * document moved into the layout read the same way. An `.xlsb` is named for what it is, by its
+ * type or, where the package declares none, by its `.bin` main part. Any declared type outside
+ * the five spreadsheet kinds is refused by name. A package that declares NO type for its main part
+ * (or carries no `[Content_Types].xml` at all) still reads, as it always has — and so does one whose
+ * only word on it is the generic XML `<Default>` every package carries for `.xml`, which says the
+ * part is XML and nothing about which kind.
+ */
+function assertSpreadsheetMainPart(contentTypes: ContentTypes, workbookPath: string): void {
+  const declared = contentTypeOf(contentTypes, workbookPath);
+  const normalized = declared === undefined ? undefined : localeLowerCase(declared.trim());
+
+  if (normalized === BINARY_WORKBOOK_CONTENT_TYPE || localeLowerCase(workbookPath).endsWith('.bin')) {
+    throwWithCause('the file is an Excel Binary Workbook (.xlsb), which the built-in engine does not read. '
+      + 'Save it as .xlsx.');
+  }
+
+  if (normalized !== undefined && !GENERIC_XML_CONTENT_TYPES.has(normalized)
+    && !SPREADSHEET_MAIN_CONTENT_TYPES.has(normalized)) {
+    throwWithCause(`the main part "${workbookPath}" is declared as "${declared}", `
+      + 'which is not a spreadsheet workbook.');
+  }
+}
+
+/**
  * Opens the archive and the workbook-level parts. Any failure here means the bytes are not a
  * workbook this reader understands.
  */
@@ -138,6 +181,11 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
   const archive = await readZip(buffer);
   const rootRels = archive.has('_rels/.rels') ? parseRels(await archive.text('_rels/.rels')) : [];
   const workbookPath = targetOf(rootRels, REL_TYPES.officeDocument, '') ?? 'xl/workbook.xml';
+  const contentTypes: ContentTypes = archive.has(CONTENT_TYPES_PART)
+    ? parseContentTypes(await archive.text(CONTENT_TYPES_PART))
+    : { overrides: new Map<string, string>(), defaults: new Map<string, string>() };
+
+  assertSpreadsheetMainPart(contentTypes, workbookPath);
 
   if (!archive.has(workbookPath)) {
     throwWithCause(`The archive has no workbook part at "${workbookPath}".`);
@@ -162,9 +210,9 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
     sheets,
     date1904,
     packageParts,
-    contentTypes: archive.has(CONTENT_TYPES_PART)
-      ? parseContentTypes(await archive.text(CONTENT_TYPES_PART))
-      : { overrides: new Map<string, string>(), defaults: new Map<string, string>() },
+    contentTypes,
+    // Detected from the package's own index only: the project is binary and is never inflated.
+    hasVbaProject: workbookRels.some(rel => rel.type === REL_TYPES.vbaProject) || archive.has(VBA_PROJECT_PART),
     styles: stylesPath && archive.has(stylesPath) ? parseStyles(await archive.text(stylesPath)) : EMPTY_STYLES,
     sharedStrings: stringsPath && archive.has(stringsPath)
       ? parseSharedStrings(await archive.text(stringsPath))
@@ -173,8 +221,76 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
 }
 
 /**
+ * The sheet kinds a `<sheet>` may resolve to besides a worksheet, by relationship type, each with
+ * the name it is dropped under. The model holds worksheets and nothing else, so such a sheet is
+ * skipped and recorded; the sheets around it keep their order. A `<sheet>` of any of these kinds
+ * used to refuse the WHOLE workbook with `the sheet "Chart1" has no part`, because the lookup
+ * asked for a worksheet relationship and found none.
+ */
+const NON_WORKSHEET_SHEET_TYPES = new Map<string, DroppedFeatureName>([
+  [REL_TYPES.chartsheet, DROPPED_FEATURES.chartSheets],
+  [REL_TYPES.dialogsheet, DROPPED_FEATURES.dialogSheets],
+  [REL_TYPES.macrosheet, DROPPED_FEATURES.macroSheets],
+  [REL_TYPES.intlMacrosheet, DROPPED_FEATURES.macroSheets],
+]);
+
+/**
+ * Reads one worksheet into the snapshot. The sheet's relationship is the one its `r:id` resolved
+ * to, or `undefined` when the workbook declares none — which is refused here, as is a part the
+ * archive does not hold.
+ */
+async function readSheet(
+  opened: OpenedPackage,
+  entry: WorkbookSheetEntry,
+  sheetRel: Relationship | undefined,
+  snapshot: WorkbookSnapshot,
+  budget: WorkbookBudget,
+  dropped: DroppedFeatures
+): Promise<void> {
+  const sheetPath = targetOf(sheetRel ? [sheetRel] : [], REL_TYPES.worksheet, opened.workbookPath);
+
+  if (sheetPath === null || !opened.archive.has(sheetPath)) {
+    throwWithCause('The workbook could not be parsed by the native engine: '
+      + `the sheet "${entry.name}" has no part.`);
+  }
+
+  if (!isWorksheetPart(opened, sheetPath)) {
+    throwWithCause('The workbook could not be parsed by the native engine: '
+      + `the sheet "${entry.name}" has no worksheet part.`);
+  }
+
+  const sheetRels = await relsOf(opened.archive, sheetPath);
+  const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
+  const comments = commentsPath && opened.archive.has(commentsPath)
+    ? parseComments(await opened.archive.text(commentsPath))
+    : new Map<string, string>();
+
+  try {
+    const xml = await opened.archive.text(sheetPath);
+
+    snapshot.sheets.push(parseWorksheet(xml, {
+      name: entry.name,
+      state: entry.state,
+      styles: opened.styles,
+      sharedStrings: opened.sharedStrings,
+      comments,
+      date1904: opened.date1904,
+      dropped,
+      budget,
+    }));
+  } catch (error) {
+    if (isLimitError(error)) {
+      throw error;
+    }
+
+    throwWithCause(`The workbook could not be parsed by the native engine: ${(error as Error).message}`);
+  }
+}
+
+/**
  * Reads every sheet the workbook declares, in order, into the snapshot. Sheets are read one at a
- * time so the cell caps can refuse a workbook before the next one is allocated.
+ * time so the cell caps can refuse a workbook before the next one is allocated. A sheet that is
+ * not a worksheet (a chart, dialog or macro sheet) is skipped and recorded as dropped.
  */
 async function readSheets(
   opened: OpenedPackage,
@@ -186,46 +302,13 @@ async function readSheets(
 
   for (const entry of opened.sheets) {
     const sheetRel = workbookRelsById.get(entry.relId);
-    const sheetPath = targetOf(sheetRel ? [sheetRel] : [], REL_TYPES.worksheet, opened.workbookPath);
+    const skippedAs = sheetRel === undefined ? undefined : NON_WORKSHEET_SHEET_TYPES.get(sheetRel.type);
 
-    if (sheetPath === null || !opened.archive.has(sheetPath)) {
-      throwWithCause('The workbook could not be parsed by the native engine: '
-        + `the sheet "${entry.name}" has no part.`);
-    }
-
-    if (!isWorksheetPart(opened, sheetPath)) {
-      throwWithCause('The workbook could not be parsed by the native engine: '
-        + `the sheet "${entry.name}" has no worksheet part.`);
-    }
-
-    // eslint-disable-next-line no-await-in-loop -- the per-sheet sequencing this function's JSDoc states.
-    const sheetRels = await relsOf(opened.archive, sheetPath);
-    const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
-    const comments = commentsPath && opened.archive.has(commentsPath)
-      // eslint-disable-next-line no-await-in-loop -- same per-sheet sequencing as above.
-      ? parseComments(await opened.archive.text(commentsPath))
-      : new Map<string, string>();
-
-    try {
-      // eslint-disable-next-line no-await-in-loop -- same per-sheet sequencing as above.
-      const xml = await opened.archive.text(sheetPath);
-
-      snapshot.sheets.push(parseWorksheet(xml, {
-        name: entry.name,
-        state: entry.state,
-        styles: opened.styles,
-        sharedStrings: opened.sharedStrings,
-        comments,
-        date1904: opened.date1904,
-        dropped,
-        budget,
-      }));
-    } catch (error) {
-      if (isLimitError(error)) {
-        throw error;
-      }
-
-      throwWithCause(`The workbook could not be parsed by the native engine: ${(error as Error).message}`);
+    if (skippedAs !== undefined) {
+      dropped.record(skippedAs);
+    } else {
+      // eslint-disable-next-line no-await-in-loop -- the per-sheet sequencing this function's JSDoc states.
+      await readSheet(opened, entry, sheetRel, snapshot, budget, dropped);
     }
   }
 }
@@ -256,6 +339,10 @@ export async function readWorkbook(buffer: ArrayBuffer, dropped: DroppedFeatures
 
   const snapshot = createWorkbookSnapshot();
   const budget: WorkbookBudget = { declaredCells: 0 };
+
+  if (opened.hasVbaProject) {
+    dropped.record(DROPPED_FEATURES.vbaProject);
+  }
 
   try {
     await readSheets(opened, snapshot, budget, dropped);

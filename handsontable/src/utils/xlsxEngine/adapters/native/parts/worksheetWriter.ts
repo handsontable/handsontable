@@ -1,6 +1,7 @@
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
 import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
+import { escapeXmlText } from '../xml/escapes';
 import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
@@ -104,14 +105,29 @@ function formulaResultText(result: CellValue | undefined): string {
 }
 
 /**
- * Writes a `<c>` element holding a formula, with its cached result when the snapshot carries one.
+ * The start tag of one `<c>`, without its `>`. The cell path is the writer's hot loop, so the tag
+ * is built by hand rather than through `XmlWriter#open`: `ref` is an A1 address and `s` a number,
+ * neither of which the attribute escaper could change, and `t` is one of three literals.
  */
-function writeFormulaCell(
-  w: XmlWriter,
-  ref: string,
-  styleAttr: number | undefined,
-  formula: CellFormula,
-): void {
+function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 's' | 'str' | undefined): string {
+  let tag = `<c r="${ref}"`;
+
+  if (styleAttr !== undefined) {
+    tag += ` s="${styleAttr}"`;
+  }
+
+  if (t !== undefined) {
+    tag += ` t="${t}"`;
+  }
+
+  return tag;
+}
+
+/**
+ * One `<c>` element holding a formula, with its cached result when the snapshot carries one. The
+ * formula text and a string result go through the text escaper like any other element text.
+ */
+function formulaCellXml(ref: string, styleAttr: number | undefined, formula: CellFormula): string {
   const { text } = formula;
   const cached = formula.result;
   // A cached result is written into `<v>` just like a plain value, so a non-finite number is
@@ -126,38 +142,38 @@ function writeFormulaCell(
     t = 'b';
   }
 
-  w.open('c', { r: ref, s: styleAttr, t }).leaf('f', undefined, text);
+  const value = hasResult ? `<v>${escapeXmlText(formulaResultText(result))}</v>` : '';
 
-  if (hasResult) {
-    w.leaf('v', undefined, formulaResultText(result));
-  }
-
-  w.close();
+  return `${cellStartTag(ref, styleAttr, t)}><f>${escapeXmlText(text)}</f>${value}</c>`;
 }
 
 /**
- * Writes a `<c>` element holding a plain value, typed by the shape the value has.
+ * One `<c>` element holding a plain value, typed by the shape the value has. The `<v>` text is a
+ * shared-string index, a number or a boolean digit, none of which needs escaping; the string
+ * itself is escaped where it is written, in `xl/sharedStrings.xml`.
  */
-function writeValueCell(
-  w: XmlWriter,
+function valueCellXml(
   ref: string,
   styleAttr: number | undefined,
   value: CellValue,
   strings: SharedStringTable,
-): void {
+): string {
   const asString = stringCellText(value);
 
   if (asString !== null) {
-    w.open('c', { r: ref, s: styleAttr, t: 's' }).leaf('v', undefined, String(strings.add(asString))).close();
-  } else if (typeof value === 'boolean') {
-    w.open('c', { r: ref, s: styleAttr, t: 'b' }).leaf('v', undefined, value ? '1' : '0').close();
-  } else {
-    w.open('c', { r: ref, s: styleAttr }).leaf('v', undefined, String(value)).close();
+    return `${cellStartTag(ref, styleAttr, 's')}><v>${strings.add(asString)}</v></c>`;
   }
+
+  if (typeof value === 'boolean') {
+    return `${cellStartTag(ref, styleAttr, 'b')}><v>${value ? '1' : '0'}</v></c>`;
+  }
+
+  return `${cellStartTag(ref, styleAttr, undefined)}><v>${String(value)}</v></c>`;
 }
 
 /**
- * Writes one `<c>` element. A covered merge cell keeps its style and loses its content.
+ * Writes one `<c>` element as ONE string — the writer's array held three per cell before, which
+ * was most of an export's peak memory. A covered merge cell keeps its style and loses its content.
  */
 function writeCell(
   w: XmlWriter,
@@ -172,19 +188,19 @@ function writeCell(
 
   if (isCovered || (cell.value === null && cell.formula === null)) {
     if (styleAttr !== undefined) {
-      w.leaf('c', { r: ref, s: styleAttr });
+      w.raw(`${cellStartTag(ref, styleAttr, undefined)}/>`);
     }
 
     return false;
   }
 
   if (cell.formula !== null) {
-    writeFormulaCell(w, ref, styleAttr, cell.formula);
+    w.raw(formulaCellXml(ref, styleAttr, cell.formula));
 
     return true;
   }
 
-  writeValueCell(w, ref, styleAttr, cell.value, strings);
+  w.raw(valueCellXml(ref, styleAttr, cell.value, strings));
 
   return false;
 }
@@ -203,6 +219,7 @@ interface SheetExtent {
 interface SheetDataContext {
   sheet: SheetSnapshot;
   rowCount: number;
+  colCount: number;
   hiddenRows: Set<number>;
   covered: Set<string>;
   styles: StyleTable;
@@ -329,11 +346,15 @@ function rowAttributes(rowIndex: number, height: number | null, hidden: boolean)
 function writeRowCells(
   w: XmlWriter,
   context: SheetDataContext,
+  columnLetters: string[],
   rowIndex: number,
   row: Array<CellSnapshot | null>,
   collected: SheetDataResult,
 ): void {
   const { covered, styles, strings } = context;
+  // A `${row}:${col}` key per cell is only worth allocating when a merge can match it.
+  const hasMerges = covered.size > 0;
+  const rowNumber = rowIndex + 1;
 
   for (let c = 0; c < row.length; c++) {
     const cell = row[c];
@@ -342,9 +363,10 @@ function writeRowCells(
       continue;
     }
 
-    const ref = address(rowIndex, c);
+    const ref = `${columnLetters[c] ?? colIndexToLetter(c + 1)}${rowNumber}`;
+    const isCovered = hasMerges && covered.has(`${rowIndex}:${c}`);
 
-    if (writeCell(w, ref, cell, covered.has(`${rowIndex}:${c}`), styles, strings)) {
+    if (writeCell(w, ref, cell, isCovered, styles, strings)) {
       collected.wroteFormula = true;
     }
 
@@ -362,8 +384,11 @@ function writeRowCells(
  * Writes `<sheetData>`. A row with no cell, no height and no hidden flag is written not at all.
  */
 function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
-  const { sheet, rowCount, hiddenRows } = context;
+  const { sheet, rowCount, colCount, hiddenRows } = context;
   const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
+  // The column letters once per sheet rather than once per cell: `colIndexToLetter` is a loop
+  // and a string build, and every row repeats the same first `colCount` answers.
+  const columnLetters = Array.from({ length: colCount }, (_unused, c) => colIndexToLetter(c + 1));
 
   w.open('sheetData');
 
@@ -378,7 +403,7 @@ function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResul
     }
 
     w.open('row', rowAttributes(r, height, hidden));
-    writeRowCells(w, context, r, row, collected);
+    writeRowCells(w, context, columnLetters, r, row, collected);
     w.close();
   }
 
@@ -471,7 +496,7 @@ export function worksheetXml(
   writeCols(w, sheet, hiddenCols, colCount);
 
   const { comments, validations, wroteFormula } = writeSheetData(w, {
-    sheet, rowCount, hiddenRows, covered, styles, strings,
+    sheet, rowCount, colCount, hiddenRows, covered, styles, strings,
   });
 
   writeSheetProtection(w, sheet, passwordHash);

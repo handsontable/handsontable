@@ -77,9 +77,9 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
     const index = i + 1;
     const password = sheet.protection?.enabled ? sheet.protection.password : null;
     // The hash is the one async step of the sheet write, so it runs here and the sheet writer
-    // stays synchronous. 100000 SHA-512 rounds take roughly 100–300 ms per protected sheet, one
-    // sheet at a time; the hashes are independent, but sequencing them keeps peak memory flat and
-    // the ordering deterministic.
+    // stays synchronous. 100000 awaited SHA-512 digests take about 0.8–0.9 s per protected sheet
+    // in Node (measured) and seconds in a browser, one sheet at a time; the hashes are
+    // independent, but sequencing them keeps peak memory flat and the ordering deterministic.
     // eslint-disable-next-line no-await-in-loop -- see the comment above.
     const passwordHash = password === null ? null : await hashSheetPassword(password);
     const result = worksheetXml(sheet, styles, strings, dropped, passwordHash);

@@ -14,18 +14,34 @@ import { createLocalName, type XmlAttributes, type XmlHandlers } from './tokeniz
  * the tokenize, which is how a reader enforces a cap on the entries it has collected so far.
  *
  * Element names are normalized against the part's root prefix, so the handlers may not be reused
- * across two parts: build one set per `tokenizeXml` call.
+ * across two parts: build one set per `tokenizeXml` call. A caller that forwards events from a
+ * state machine of its own (the worksheet reader, for an inline string) passes names it has
+ * already normalized, and the normalizer then strips nothing.
+ *
+ * A SELF-CLOSING container (`<si/>`, an empty shared string) fires no close event from the
+ * tokenizer, so it is closed right here with the empty text — otherwise the entry was never
+ * reported and every later shared-string index pointed one entry early.
  */
 export function collectRichTextRuns(
   container: string,
   onOpen: (attrs: XmlAttributes) => void,
   onClose: (text: string, isRich: boolean) => void,
-): XmlHandlers {
+): Required<XmlHandlers> {
   const localName = createLocalName();
   let parts: string[] | null = null;
   let isRich = false;
   let inText = false;
   let inPhonetic = false;
+
+  /**
+   * Reports the container just closed, with its runs joined and its escapes decoded.
+   */
+  const finishContainer = (): void => {
+    const text = decodeOoxmlEscapes((parts ?? []).join(''));
+
+    parts = null;
+    onClose(text, isRich);
+  };
 
   return {
     open(rawName, attrs, selfClosing) {
@@ -35,6 +51,10 @@ export function collectRichTextRuns(
         parts = [];
         isRich = false;
         onOpen(attrs);
+
+        if (selfClosing) {
+          finishContainer();
+        }
       } else if (name === 'r') {
         isRich = true;
       } else if (name === 'rPh') {
@@ -56,10 +76,7 @@ export function collectRichTextRuns(
       } else if (name === 'rPh') {
         inPhonetic = false;
       } else if (name === container && parts !== null) {
-        const text = decodeOoxmlEscapes(parts.join(''));
-
-        parts = null;
-        onClose(text, isRich);
+        finishContainer();
       }
     },
   };

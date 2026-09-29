@@ -6,7 +6,10 @@ import { DroppedFeatures } from '../capabilities';
 import {
   MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, MAX_WORKBOOK_SHEETS,
 } from '../limits';
+import { SheetBuilder } from '../builder';
+import { createWorkbookSnapshot } from '../model';
 import { assertSheetFits } from '../adapters/native/parts/worksheetReader';
+import { writeWorkbook } from '../adapters/native/write';
 import { crc32 } from '../adapters/native/zip/crc32';
 import { readZip } from '../adapters/native/zip/reader';
 import { writeZip } from '../adapters/native/zip/writer';
@@ -155,9 +158,10 @@ describe('native reader hardening: the workbook sheet count', () => {
         new RegExp(`declares more than ${MAX_WORKBOOK_SHEETS} sheets, above the limit this reader accepts`)
       );
 
-      // Exactly the two parts read before the sheet list exists: `_rels/.rels` and
-      // `xl/workbook.xml`. No worksheet part, no styles, no shared strings.
-      expect(inflates.count()).toBe(2);
+      // Exactly the three parts read before the sheet list exists: `_rels/.rels`,
+      // `[Content_Types].xml` (the main part's declared type is checked before the part is
+      // tokenized) and `xl/workbook.xml`. No worksheet part, no styles, no shared strings.
+      expect(inflates.count()).toBe(3);
     } finally {
       inflates.restore();
     }
@@ -200,15 +204,60 @@ describe('native reader hardening: the workbook sheet count', () => {
 });
 
 describe('native reader hardening: the inflated-bytes budget', () => {
+  it('should read back what the built-in writer wrote for 120 000 x 20 cells, charging each part once', async() => {
+    // The budget charged a text part its produced bytes AND its decoded string (2 bytes per code
+    // unit) on top, while the bytes are decoded as they stream and never held: the same live memory
+    // counted twice. A 120 000 x 20 sheet - 2.4 M cells, inside every cell cap - written by this
+    // engine inflates to about 104 MB of XML and was charged about 312 MB, above the 256 MB total,
+    // so the engine could not read its own export back.
+    const rows = 120_000;
+    const builder = new SheetBuilder('Big');
+
+    for (let row = 1; row <= rows; row++) {
+      for (let col = 1; col <= 20; col++) {
+        builder.cell(row, col).value = col % 3 === 0 ? `row ${row} col ${col}` : row * col;
+      }
+    }
+
+    const written = createWorkbookSnapshot();
+
+    written.sheets.push(builder.toSnapshot());
+    written.compression = 6;
+
+    const bytes = await writeWorkbook(written, new DroppedFeatures());
+    const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    const names = (await readZip(buffer)).names();
+    let inflated = 0;
+
+    for (const name of names) {
+      // eslint-disable-next-line no-await-in-loop -- a fresh archive per part, so no budget is shared.
+      inflated += encoder.encode(await (await readZip(buffer)).text(name)).byteLength;
+    }
+
+    // The shape the test needs: the old charge (bytes + 2 bytes per character) is over the budget,
+    // the new one (the larger of the two, for an ASCII part 2 bytes per character) is under it.
+    expect(inflated * 3).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
+    expect(inflated * 2).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
+
+    const snapshot = await read(bytes);
+    const last = snapshot.sheets[0].rows[rows - 1];
+
+    expect(snapshot.sheets[0].rows.length).toBe(rows);
+    expect(last.length).toBe(20);
+    expect(last[2].value).toBe(`row ${rows} col 3`);
+    expect(last[19].value).toBe(rows * 20);
+  }, 60_000);
+
   it('should refuse a workbook whose parts really inflate above the total budget', async() => {
     // A part that REALLY inflates past the budget, not one that merely declares it: the charge is
     // what the entry produced, so a padded part is the only thing the total can refuse. A decoded
-    // part costs its bytes plus its UTF-16 string, which is why 90 MB of padding is over a 256 MB
-    // budget, and the archive itself stays a few hundred kilobytes.
-    const padding = 90 * 1024 * 1024;
+    // part costs the larger of its bytes and its UTF-16 string - for ASCII padding, two bytes per
+    // character - which is why 130 MB of padding is over a 256 MB budget, and the archive itself
+    // stays a few hundred kilobytes.
+    const padding = 130 * 1024 * 1024;
 
     expect(padding).toBeLessThan(MAX_INFLATED_ENTRY_BYTES);
-    expect(padding * 3).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
+    expect(padding * 2).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
 
     const bytes = await repack('values', (part, text) => (
       part === 'xl/styles.xml' ? `<!--${' '.repeat(padding)}-->${text}` : text
@@ -243,13 +292,13 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     // with `MAX_INFLATED_TOTAL_BYTES + 1` — a number that is no declared cap of this reader's — and
     // named no entry. A part declaring 400 MB (inside the per-entry cap) that really inflates far
     // past what the budget still allows is exactly the hostile case that message was written for.
-    const almostTheBudget = 84 * 1024 * 1024;
+    const almostTheBudget = 126 * 1024 * 1024;
     const overTheRemainder = 8 * 1024 * 1024;
 
-    // A part costs its bytes plus its UTF-16 string, so the first one spends three times its size
-    // and leaves the budget less than the second one produces.
-    expect(almostTheBudget * 3).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
-    expect(MAX_INFLATED_TOTAL_BYTES - (almostTheBudget * 3)).toBeLessThan(overTheRemainder);
+    // An ASCII part costs its UTF-16 string, two bytes per character, so the first one spends
+    // twice its size and leaves the budget less than the second one produces.
+    expect(almostTheBudget * 2).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
+    expect(MAX_INFLATED_TOTAL_BYTES - (almostTheBudget * 2)).toBeLessThan(overTheRemainder);
 
     let bytes = await repack('values', (part, text) => {
       if (part === 'xl/styles.xml') {
@@ -538,10 +587,11 @@ describe('native reader hardening: central-directory aliases', () => {
 
   it('should charge every alias the memo cannot collapse, and refuse them by the total budget', async() => {
     // Aliases the memo CANNOT collapse: one region, one offset, but a different declared size each,
-    // so every one of them is a distinct read. Each costs its bytes plus its decoded string, so a
-    // 1.5 MB region reached over 64 such records is charged past the 256 MB budget — which is the
-    // point: the charge now follows what the archive produced, so the cache cannot outgrow it.
-    const region = encoder.encode('<worksheet/>'.padEnd(1_500_000, ' '));
+    // so every one of them is a distinct read. Each costs its decoded string (two bytes per
+    // character, more than its bytes), so a 2.5 MB region reached over 64 such records is charged
+    // past the 256 MB budget — which is the point: the charge follows what the archive produced,
+    // so the cache cannot outgrow it.
+    const region = encoder.encode('<worksheet/>'.padEnd(2_500_000, ' '));
     const aliases = [];
 
     for (let i = 0; i < 64; i++) {
@@ -598,8 +648,8 @@ const WORKSHEET_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.sp
 
 /**
  * Repacks the fixture with a `[Content_Types].xml` that types EVERY `.xml` part as a worksheet
- * through one `<Default>` and declares no `<Override>` at all, optionally pointing the workbook's
- * sheet relationship at another part of the package.
+ * through one `<Default>` and declares no `<Override>` but the main part's, optionally pointing
+ * the workbook's sheet relationship at another part of the package.
  *
  * @param {string|null} target The sheet relationship's target, or `null` to leave it alone.
  * @returns {Promise<Uint8Array>}
@@ -611,6 +661,11 @@ function repackWithWorksheetDefault(target) {
         + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
         + `<Default Extension="xml" ContentType="${WORKSHEET_CONTENT_TYPE}"/>`
+        // The main part keeps its own type: without it the `<Default>` would type the workbook as
+        // a worksheet too, and the main-part check refuses the package before any sheet is looked
+        // at - which is not the path these tests pin.
+        + '<Override PartName="/xl/workbook.xml" '
+        + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
         + '</Types>';
     }
 
@@ -664,5 +719,167 @@ describe('native reader hardening: a package that types every .xml part as a wor
     ));
 
     expect((await read(bytes)).sheets.length).toBe(1);
+  });
+});
+
+/**
+ * Builds a STORED archive by hand, with two local-header shapes `writeZip` never writes: a local
+ * header carrying general-purpose bit 3 with its CRC and sizes zeroed and a 16-byte data descriptor
+ * after the data, and a local header with an `extra` field the central record does not repeat.
+ * Both shapes are legal, both are written by real tools (streaming writers, and archivers that put
+ * a timestamp extra field on the local record only), and both are the reason the reader takes an
+ * entry's sizes from the central directory and the data's start from the LOCAL header's own lengths.
+ *
+ * @param {Array<{ name: string, data: Uint8Array }>} entries The parts to store.
+ * @param {object} shape The local-header shape.
+ * @param {boolean} [shape.dataDescriptor=false] Set bit 3 and trail each entry with a descriptor.
+ * @param {Uint8Array} [shape.localExtra] An extra field written on the local header only.
+ * @returns {ArrayBuffer}
+ */
+function craftStoredArchive(entries, { dataDescriptor = false, localExtra = new Uint8Array(0) } = {}) {
+  const DESCRIPTOR_SIZE = 16;
+  const prepared = entries.map(entry => ({ ...entry, nameBytes: encoder.encode(entry.name), crc: crc32(entry.data) }));
+  const localSize = prepared.reduce((sum, e) => sum + 30 + e.nameBytes.byteLength + localExtra.byteLength
+    + e.data.byteLength + (dataDescriptor ? DESCRIPTOR_SIZE : 0), 0);
+  const centralSize = prepared.reduce((sum, e) => sum + 46 + e.nameBytes.byteLength, 0);
+  const out = new Uint8Array(localSize + centralSize + 22);
+  const view = new DataView(out.buffer);
+  const flags = dataDescriptor ? 0x0008 : 0;
+  const localOffsets = [];
+  let offset = 0;
+
+  prepared.forEach((entry) => {
+    localOffsets.push(offset);
+    view.setUint32(offset, 0x04034b50, true);
+    view.setUint16(offset + 4, 20, true);
+    view.setUint16(offset + 6, flags, true);
+    // With bit 3 set the local header's CRC and sizes are zero and the descriptor carries them.
+    view.setUint32(offset + 14, dataDescriptor ? 0 : entry.crc, true);
+    view.setUint32(offset + 18, dataDescriptor ? 0 : entry.data.byteLength, true);
+    view.setUint32(offset + 22, dataDescriptor ? 0 : entry.data.byteLength, true);
+    view.setUint16(offset + 26, entry.nameBytes.byteLength, true);
+    view.setUint16(offset + 28, localExtra.byteLength, true);
+    out.set(entry.nameBytes, offset + 30);
+    offset += 30 + entry.nameBytes.byteLength;
+    out.set(localExtra, offset);
+    offset += localExtra.byteLength;
+    out.set(entry.data, offset);
+    offset += entry.data.byteLength;
+
+    if (dataDescriptor) {
+      view.setUint32(offset, 0x08074b50, true);
+      view.setUint32(offset + 4, entry.crc, true);
+      view.setUint32(offset + 8, entry.data.byteLength, true);
+      view.setUint32(offset + 12, entry.data.byteLength, true);
+      offset += DESCRIPTOR_SIZE;
+    }
+  });
+
+  const centralOffset = offset;
+
+  prepared.forEach((entry, index) => {
+    view.setUint32(offset, 0x02014b50, true);
+    view.setUint16(offset + 4, 20, true);
+    view.setUint16(offset + 6, 20, true);
+    view.setUint16(offset + 8, flags, true);
+    view.setUint32(offset + 16, entry.crc, true);
+    view.setUint32(offset + 20, entry.data.byteLength, true);
+    view.setUint32(offset + 24, entry.data.byteLength, true);
+    view.setUint16(offset + 28, entry.nameBytes.byteLength, true);
+    view.setUint32(offset + 42, localOffsets[index], true);
+    out.set(entry.nameBytes, offset + 46);
+    offset += 46 + entry.nameBytes.byteLength;
+  });
+
+  view.setUint32(offset, 0x06054b50, true);
+  view.setUint16(offset + 8, prepared.length, true);
+  view.setUint16(offset + 10, prepared.length, true);
+  view.setUint32(offset + 12, centralSize, true);
+  view.setUint32(offset + 16, centralOffset, true);
+
+  return out.buffer;
+}
+
+/**
+ * The parts of a fixture as `writeZip` input, so a hand-crafted archive holds a real workbook.
+ *
+ * @param {string} name The fixture name.
+ * @returns {Promise<Array<{ name: string, data: Uint8Array }>>}
+ */
+async function fixtureParts(name) {
+  const zip = await readZip(loadFixture(name));
+  const entries = [];
+
+  for (const partName of zip.names()) {
+    // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+    entries.push({ name: partName, data: encoder.encode(await zip.text(partName)) });
+  }
+
+  return entries;
+}
+
+describe('native reader hardening: the local header is not where the sizes come from', () => {
+  it('should read an archive whose local headers defer their sizes to a data descriptor', async() => {
+    // A streaming writer does not know an entry's sizes when it writes the local header, so it
+    // sets bit 3, writes zeros, and trails the data with a descriptor. The central directory is the
+    // only record that carries the real sizes, and a reader that took them from the local header
+    // would slice zero bytes from every entry.
+    const parts = await fixtureParts('values');
+    const baseline = await nativeAdapter.read(craftStoredArchive(parts), undefined, new DroppedFeatures());
+    const snapshot = await nativeAdapter.read(
+      craftStoredArchive(parts, { dataDescriptor: true }), undefined, new DroppedFeatures()
+    );
+
+    expect(baseline.sheets[0].rows.length).toBeGreaterThan(0);
+    expect(snapshot.sheets).toEqual(baseline.sheets);
+  });
+
+  it('should read an archive whose local extra field is longer than the central record\'s', async() => {
+    // The two records' extra fields are independent by the spec (a local-only timestamp field is
+    // common). The data starts after the LOCAL header's name and extra lengths, so a reader that
+    // walked past the central record's lengths instead would start every entry twelve bytes early.
+    const parts = await fixtureParts('values');
+    const baseline = await nativeAdapter.read(craftStoredArchive(parts), undefined, new DroppedFeatures());
+    const snapshot = await nativeAdapter.read(
+      craftStoredArchive(parts, { localExtra: new Uint8Array(12).fill(0xAB) }), undefined, new DroppedFeatures()
+    );
+
+    expect(snapshot.sheets).toEqual(baseline.sheets);
+  });
+});
+
+describe('native reader hardening: a relationship id declared twice', () => {
+  it('should refuse a sheet whose r:id is declared twice in the workbook relationships', async() => {
+    // An id is unique per part by the OPC spec. The first relationship carrying it wins and is
+    // then type-filtered, so a styles relationship reusing the sheet's `rId4` ahead of the
+    // worksheet one leaves the sheet without a part — refused, where scanning every relationship
+    // with that id used to read the sheet from a file that lied about which part it names.
+    const bytes = await repack('values', (part, text) => (
+      part === 'xl/_rels/workbook.xml.rels'
+        ? text.replace(
+          '<Relationship Id="rId4"',
+          '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"'
+            + ' Target="styles.xml"/><Relationship Id="rId4"'
+        )
+        : text
+    ));
+
+    await expect(read(bytes)).rejects.toThrow(/the sheet "Values" has no part\./);
+    await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+});
+
+describe('native reader hardening: an entry declaring zero inflated bytes', () => {
+  it('should refuse a DEFLATE entry that declares zero bytes but produces some, by name', async() => {
+    // The declared size is the inflate's ceiling, so a declaration of zero over a part that
+    // inflates to anything at all is refused with the per-entry sentence, before the part is read.
+    let bytes = await repack('values', (part, text) => text);
+
+    bytes = declareInflatedSize(bytes, 'xl/styles.xml', 0);
+
+    await expect(read(bytes)).rejects.toThrow(
+      'The ZIP entry "xl/styles.xml" inflates above the 0-byte limit this reader accepts.'
+    );
+    await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true, limit: true } });
   });
 });

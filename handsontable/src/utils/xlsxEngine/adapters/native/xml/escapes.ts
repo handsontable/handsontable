@@ -4,9 +4,24 @@
  * than beside the writer because every reader of this adapter decodes what the writer encoded.
  */
 
-// C0 controls other than tab, newline and carriage return, plus DEL: illegal in XML 1.0.
+// C0 controls other than tab, newline and carriage return, plus DEL, plus the two non-characters
+// U+FFFE and U+FFFF: all outside XML 1.0's `Char` production, and Excel offers to "repair" a file
+// that carries one raw.
 // eslint-disable-next-line no-control-regex -- the control characters ARE what this class selects.
-const ILLEGAL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const ILLEGAL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/g;
+
+// The five markup characters `escapeMarkup` rewrites.
+const MARKUP_CHARS = /[&<>"']/;
+
+// Whatever `escapeXmlText` could change: markup, an illegal character, or the underscore that
+// starts a `_xHHHH_` lookalike. A string with none of them is returned as it came in, which is the
+// case for every number and most cell text, and skips the seven replace passes below.
+// eslint-disable-next-line no-control-regex -- the control characters ARE what this class selects.
+const NEEDS_TEXT_ESCAPE = /[&<>"'_\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/;
+
+// Whatever `escapeXmlAttr` could change: markup or an illegal character.
+// eslint-disable-next-line no-control-regex -- the control characters ARE what this class selects.
+const NEEDS_ATTR_ESCAPE = /[&<>"'\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/;
 
 // A literal `_xHHHH_`-shaped run already present in the text, which `decodeOoxmlEscapes` would
 // otherwise mistake for one of ITS OWN escapes on the next read.
@@ -16,6 +31,10 @@ const OOXML_ESCAPE_LOOKALIKE = /_x([0-9A-F]{4})_/g;
  * Escapes the five markup characters.
  */
 function escapeMarkup(text: string): string {
+  if (!MARKUP_CHARS.test(text)) {
+    return text;
+  }
+
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -25,13 +44,18 @@ function escapeMarkup(text: string): string {
 }
 
 /**
- * Escapes element text. A control character XML 1.0 forbids is written the way spreadsheet
- * applications do, as `_xHHHH_`, so a reader that knows the convention gets it back. A literal
- * `_xHHHH_`-shaped run already in the text is escaped first, by escaping its own leading
- * underscore as `_x005F_` (the OOXML convention Excel itself follows) so `decodeOoxmlEscapes`
- * reads it back unchanged on import instead of corrupting it into a control character.
+ * Escapes element text. A character XML 1.0 forbids (a C0 control, DEL, U+FFFE, U+FFFF) is
+ * written the way spreadsheet applications do, as `_xHHHH_`, so a reader that knows the
+ * convention gets it back. A literal `_xHHHH_`-shaped run already in the text is escaped first,
+ * by escaping its own leading underscore as `_x005F_` (the OOXML convention Excel itself follows)
+ * so `decodeOoxmlEscapes` reads it back unchanged on import instead of corrupting it into a
+ * control character. Text that needs none of this is returned as it came in.
  */
 export function escapeXmlText(text: string): string {
+  if (!NEEDS_TEXT_ESCAPE.test(text)) {
+    return text;
+  }
+
   const withoutLookalikes = escapeMarkup(text).replace(OOXML_ESCAPE_LOOKALIKE, '_x005F_x$1_');
 
   return withoutLookalikes.replace(ILLEGAL_CHARS, (ch) => {
@@ -42,10 +66,14 @@ export function escapeXmlText(text: string): string {
 }
 
 /**
- * Escapes an attribute value. Control characters are dropped: an attribute never carries user
+ * Escapes an attribute value. Illegal characters are dropped: an attribute never carries user
  * text that a round trip has to preserve.
  */
 export function escapeXmlAttr(text: string): string {
+  if (!NEEDS_ATTR_ESCAPE.test(text)) {
+    return text;
+  }
+
   return escapeMarkup(text.replace(ILLEGAL_CHARS, ''));
 }
 

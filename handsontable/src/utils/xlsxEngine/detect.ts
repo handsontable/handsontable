@@ -69,14 +69,17 @@ export function resolveEngineOverride(override: unknown, configured: unknown): u
 }
 
 /**
- * Detects which xlsx engine was injected. Duck-typed, never version-based. `undefined` selects the
- * built-in engine; any other value must duck-type to a known engine or the call throws. Retries once
- * on `injected.default` for ESM/CJS interop before giving up. `optionName` names the plugin option
- * the error message tells the user to configure, and is required so this shared helper never carries
- * one plugin's name as a default the other plugin inherits by accident.
+ * Detects which xlsx engine was injected. Duck-typed, never version-based. A nullish value –
+ * `undefined` or `null` – selects the built-in engine; any other value must duck-type to a known
+ * engine or the call throws. `null` is read as "no engine" here, and nowhere else, so an
+ * `engines: { xlsx: null }` entry (what `xlsx: useExcelJs ? ExcelJS : null` writes) means the same
+ * thing as an absent key to the `supports*Format` predicates, the export and the import alike.
+ * Retries once on `injected.default` for ESM/CJS interop before giving up. `optionName` names the
+ * plugin option the error message tells the user to configure, and is required so this shared helper
+ * never carries one plugin's name as a default the other plugin inherits by accident.
  */
 export function detectXlsxEngine(injected: unknown, optionName: string): DetectedXlsxEngine {
-  if (injected === undefined) {
+  if (injected === undefined || injected === null) {
     return nativeDetected();
   }
 

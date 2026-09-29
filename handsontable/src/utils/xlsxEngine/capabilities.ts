@@ -67,6 +67,18 @@ export const DROPPED_FEATURES = {
   richText: 'richText',
   sheetProtectionPassword: 'sheetProtection:password',
   tables: 'tables',
+  // Raised by the native reader only: a `<sheet>` whose relationship is not a worksheet. The
+  // model holds worksheets and nothing else, so the sheet is skipped and the others keep their
+  // order — refusing the whole workbook over one chart tab is what this replaced.
+  chartSheets: 'chartSheets',
+  dialogSheets: 'dialogSheets',
+  macroSheets: 'macroSheets',
+  // Raised by the native reader only: the package holds a VBA project (an `.xlsm` or `.xltm`). The
+  // part is binary and is never opened; the worksheets read as they would without it.
+  vbaProject: 'vbaProject',
+  // Raised by the native reader only: an `<f>` longer than `MAX_FORMULA_LENGTH`. The formula is
+  // dropped and the cell keeps its cached value; the rest of the workbook reads as usual.
+  formulaTooLong: 'formula:tooLong',
   // Raised by the native writer only: ExcelJS honors a compression level, and it hands its own
   // conditional-formatting descriptors straight to its writer without judging them.
   compressionLevel: 'compressionLevel',

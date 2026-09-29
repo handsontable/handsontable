@@ -1,3 +1,4 @@
+import { throwWithCause } from '../../../../../helpers/errors';
 import type { SheetProtectionOptionName } from '../../../model';
 
 /**
@@ -86,6 +87,21 @@ async function sha512(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayB
 }
 
 /**
+ * Refuses to hash where `crypto.subtle` is missing. Browsers expose it in a secure context only,
+ * so a page served over plain http (other than localhost) has `crypto.getRandomValues` but no
+ * `subtle`, and the bare `TypeError` ("Cannot read properties of undefined (reading 'digest')")
+ * named neither the cause nor the way out.
+ */
+function assertSubtleCryptoAvailable(): void {
+  if (typeof crypto === 'undefined' || crypto.subtle === undefined) {
+    throwWithCause(
+      'Sheet password hashing needs crypto.subtle, which is only available in a secure context '
+      + '(https or localhost).',
+    );
+  }
+}
+
+/**
  * Hashes a sheet password the way Excel and ExcelJS do: `H0 = SHA-512(salt ‖ UTF-16LE(password))`,
  * then `H(i+1) = SHA-512(H(i) ‖ uint32LE(i))` for `i` from `0` to `spinCount - 1`. The iterator
  * suffix is what keeps this off `PBKDF2`. This is a UI gate, not encryption: the cells stay plain
@@ -96,6 +112,8 @@ export async function hashSheetPassword(
   salt: Uint8Array = crypto.getRandomValues(new Uint8Array(16)),
   spinCount: number = SHEET_PASSWORD_SPIN_COUNT,
 ): Promise<ProtectionHash> {
+  assertSubtleCryptoAvailable();
+
   let key = await sha512(concat(salt, utf16le(password)));
   const iterator = new Uint8Array(4);
   const view = new DataView(iterator.buffer);

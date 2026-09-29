@@ -18,3 +18,14 @@ export const CENTRAL_HEADER_SIZE = 46;
  * whole archive can be.
  */
 export const END_RECORD_SIZE = 22;
+
+/**
+ * The most entries the end record can count: its entry-count fields are 16-bit.
+ */
+export const MAX_ENTRY_COUNT = 0xFFFF;
+
+/**
+ * The largest size or offset a classic (non-ZIP64) record can carry: those fields are 32-bit, and
+ * `0xFFFFFFFF` itself is the marker that says "read the ZIP64 extra field instead".
+ */
+export const MAX_FIELD_VALUE = 0xFFFFFFFE;

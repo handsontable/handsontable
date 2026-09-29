@@ -4,14 +4,15 @@ import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRe
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../../../dates';
 import { translateSharedFormula } from '../../../formulaRefs';
 import {
-  MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS, throwCellLimit,
-  throwColumnLimit, throwLimitExceeded, throwRowLimit,
+  MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_TRANSLATED_FORMULA_CHARS,
+  MAX_WORKBOOK_CELLS, throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../../../limits';
 import {
   createCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot, type CellValue,
   type SheetProtectionOptions, type SheetSnapshot,
 } from '../../../model';
 import { decodeOoxmlEscapes } from '../xml/escapes';
+import { collectRichTextRuns } from '../xml/richText';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { cfRuleFromXml } from './conditionalFormatting';
 import { PROTECTION_INVERTED_OPTIONS } from './protection';
@@ -19,10 +20,19 @@ import type { ParsedSharedStrings } from './sharedStrings';
 import type { DxfStyle, ParsedStyles } from './styles';
 
 /**
- * Cells declared so far across the workbook, so many small sheets cannot slip under the per-sheet cap.
+ * What the workbook read has spent so far across its sheets, so many small sheets cannot slip
+ * under a per-sheet cap together.
  */
 export interface WorkbookBudget {
+  /**
+   * Cells declared so far, charged by `assertSheetFits`.
+   */
   declaredCells: number;
+  /**
+   * Formula characters the shared-formula translation has run over so far, the master's length
+   * charged once per slave. Absent reads as zero.
+   */
+  translatedFormulaChars?: number;
 }
 
 /**
@@ -47,13 +57,18 @@ const DATE_1904_OFFSET = 1462;
 /**
  * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
  * import's own heuristic loosely (any of the temporal codes outside quotes and brackets).
+ *
+ * The bracket pattern refuses to cross a `[`: `\[[^\]]*\]` re-scanned to the end from every `[`
+ * of a run that no `]` ever closes, quadratic in the run, and it ran once per numeric cell of a
+ * 1904 workbook — 40 000 brackets cost ~550 ms per cell. A well-formed section reads the same
+ * either way, because a section never holds a `[`.
  */
 function isTemporalFormat(numFmt: string | null): boolean {
   if (numFmt === null) {
     return false;
   }
 
-  const stripped = numFmt.replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"/g, '');
+  const stripped = numFmt.replace(/\[[^[\]]*\]/g, '').replace(/"[^"]*"/g, '');
 
   return /[ymdhs]/i.test(stripped);
 }
@@ -152,18 +167,30 @@ function toNumber(text: string): CellValue {
 }
 
 /**
- * The state of the `<c>` being read.
+ * The state of the `<c>` being read. `row` and `col` are 0-based, resolved from `r` or, when the
+ * file writes none, from the cell's position in its row.
  */
 interface CellState {
-  ref: string;
   row: number;
   col: number;
   type: string | undefined;
   styleIndex: number;
   formulaAttrs: XmlAttributes | null;
   formulaText: string;
+  /**
+   * Whether the `<f>` text crossed `MAX_FORMULA_LENGTH`. The text collected so far is discarded
+   * and nothing more is appended, so the formula is dropped and the cached value kept.
+   */
+  formulaTooLong: boolean;
   valueText: string | null;
-  inlineText: string[];
+  /**
+   * The joined, escape-decoded text of an inline string's `<is>`, or `null` while none has closed.
+   */
+  inlineText: string | null;
+  /**
+   * Whether the inline string held `<r>` runs, which the model cannot carry.
+   */
+  inlineRich: boolean;
 }
 
 /**
@@ -206,7 +233,19 @@ interface CfState {
 /**
  * The elements the cell state machine owns.
  */
-const CELL_ELEMENTS = new Set(['c', 'f', 'v', 't']);
+const CELL_ELEMENTS = new Set(['c', 'f', 'v']);
+
+/**
+ * The elements of an inline string, forwarded to the same rich-text collector the shared-string
+ * table is read with — so a `<rPh>` phonetic run is skipped and an `<r>` run is reported on both
+ * paths. Only matched while the open `<c>` is typed `inlineStr`.
+ */
+const INLINE_STRING_ELEMENTS = new Set(['is', 'r', 'rPh', 't']);
+
+/**
+ * A zone designator at the end of an ISO 8601 date-time: `Z`, or an offset such as `+02:00`.
+ */
+const ZONED_DATE_TIME = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 
 /**
  * The elements the conditional-formatting state machine owns.
@@ -231,9 +270,16 @@ const DROPPED_ON_OPEN = new Map<string, DroppedFeatureName>([
 
 /**
  * Reads an ISO date cell (`t="d"`) as a 1900-system serial number.
+ *
+ * A date-time with no zone designator is read as UTC. `Date.parse` reads such a value as LOCAL
+ * time (a date-only value it already reads as UTC), so the serial moved with the machine's zone:
+ * `2024-01-15T12:00:00` read as 45306.458 in New York and 45306.5 in London. A serial has no zone
+ * and OOXML writes the value without one, so `Z` is what the file means.
  */
 function dateSerial(rawText: string): CellValue {
-  const ms = Date.parse(rawText);
+  const text = rawText.trim();
+  const iso = text.includes('T') && !ZONED_DATE_TIME.test(text) ? `${text}Z` : text;
+  const ms = Date.parse(iso);
 
   return Number.isNaN(ms) ? null : (ms / MS_PER_DAY) + EXCEL_EPOCH_OFFSET;
 }
@@ -322,9 +368,35 @@ class WorksheetParser {
   #inFormula = false;
 
   /**
-   * Whether the text arriving belongs to an inline string's `<t>`.
+   * The 0-based index of the `<row>` being read, or `null` outside one — before the first row and
+   * after every `</row>`. A `<c>` with no `r` lands in this row, so one outside any row is ignored.
    */
-  #inInlineText = false;
+  #currentRow: number | null = null;
+
+  /**
+   * The 0-based index of the last `<row>` opened, or `null` before the first one. A `<row>` with
+   * no `r` is the row after this one. Kept apart from `#currentRow`, which `</row>` clears.
+   */
+  #lastRow: number | null = null;
+
+  /**
+   * The 0-based column a `<c>` with no `r` lands in: the one after the previous cell of the row,
+   * column A at the start of a row. ECMA-376 makes `r` optional on both elements, and a reader
+   * that dropped such a cell lost its value silently.
+   */
+  #nextCol = 0;
+
+  /**
+   * The rich-text collector an inline string's elements are forwarded to. One per parser, because
+   * one `<is>` is open at a time; the names it receives are already normalized, so its own
+   * normalizer strips nothing.
+   */
+  #inlineRuns = collectRichTextRuns('is', () => {}, (text, isRich) => {
+    if (this.#cell !== null) {
+      this.#cell.inlineText = text;
+      this.#cell.inlineRich = isRich;
+    }
+  });
 
   /**
    * The `<dataValidation>` being read.
@@ -455,6 +527,12 @@ class WorksheetParser {
   #open(rawName: string, attrs: XmlAttributes, selfClosing: boolean): void {
     const name = this.#localName(rawName);
 
+    if (this.#isInlineStringElement(name)) {
+      this.#inlineRuns.open(name, attrs, selfClosing);
+
+      return;
+    }
+
     if (CELL_ELEMENTS.has(name)) {
       this.#openCellElement(name, attrs, selfClosing);
 
@@ -481,13 +559,13 @@ class WorksheetParser {
       return;
     }
 
-    this.#openSheetElement(name, attrs);
+    this.#openSheetElement(name, attrs, selfClosing);
   }
 
   /**
    * Handles an open element that describes the sheet itself rather than one of its state machines.
    */
-  #openSheetElement(name: string, attrs: XmlAttributes): void {
+  #openSheetElement(name: string, attrs: XmlAttributes, selfClosing: boolean): void {
     if (name === 'dimension') {
       this.#openDimension(attrs);
     } else if (name === 'sheetView') {
@@ -497,7 +575,7 @@ class WorksheetParser {
     } else if (name === 'col') {
       this.#openCol(attrs);
     } else if (name === 'row') {
-      this.#openRow(attrs);
+      this.#openRow(attrs, selfClosing);
     } else if (name === 'mergeCell') {
       this.#openMergeCell(attrs);
     } else if (name === 'sheetProtection') {
@@ -580,27 +658,46 @@ class WorksheetParser {
   }
 
   /**
-   * Reads one `<row>`'s own attributes. Its cells arrive as separate elements.
+   * The 0-based row a `<row>` declares: from its `r`, or the row after the previous one when the
+   * file writes none (the first such row is row 1). An `r` that is not a positive number is
+   * ignored, as before, and answers `null`.
    */
-  #openRow(attrs: XmlAttributes): void {
-    const r = Number(attrs.r);
+  #resolveRowIndex(r: string | undefined): number | null {
+    if (r === undefined) {
+      return this.#lastRow === null ? 0 : this.#lastRow + 1;
+    }
 
-    if (!Number.isFinite(r) || r < 1) {
+    const declared = Number(r);
+
+    return Number.isFinite(declared) && declared >= 1 ? declared - 1 : null;
+  }
+
+  /**
+   * Reads one `<row>`'s own attributes. Its cells arrive as separate elements; a self-closing row
+   * has none, so it is closed right here, because no close event will arrive for it.
+   */
+  #openRow(attrs: XmlAttributes, selfClosing: boolean): void {
+    const rowIndex = this.#resolveRowIndex(attrs.r);
+
+    if (rowIndex === null) {
       return;
     }
 
-    this.#ensureRow(r - 1);
+    this.#lastRow = rowIndex;
+    this.#currentRow = selfClosing ? null : rowIndex;
+    this.#nextCol = 0;
+    this.#ensureRow(rowIndex);
 
     if (attrs.ht !== undefined && Number.isFinite(Number(attrs.ht))) {
-      while (this.#sheet.rowHeights.length < r) {
+      while (this.#sheet.rowHeights.length <= rowIndex) {
         this.#sheet.rowHeights.push(null);
       }
 
-      this.#sheet.rowHeights[r - 1] = Number(attrs.ht);
+      this.#sheet.rowHeights[rowIndex] = Number(attrs.ht);
     }
 
     if (attrs.hidden === '1' || attrs.hidden === 'true') {
-      this.#hiddenRowSet.add(r - 1);
+      this.#hiddenRowSet.add(rowIndex);
     }
   }
 
@@ -675,9 +772,20 @@ class WorksheetParser {
     } else if (name === 'v') {
       cell.valueText = '';
       this.#inValue = !selfClosing;
-    } else if (name === 't' && cell.type === 'inlineStr') {
-      this.#inInlineText = !selfClosing;
     }
+  }
+
+  /**
+   * The 0-based coordinates a `<c>` declares: from its `r`, or the column after the previous cell
+   * of the current row when the file writes none. A `<c>` with no `r` outside any `<row>` has no
+   * row to land in and is ignored, like one whose `r` does not parse.
+   */
+  #resolveCellAddress(r: string | undefined): { row: number; col: number } | null {
+    if (r !== undefined) {
+      return decodeAddress(r);
+    }
+
+    return this.#currentRow === null ? null : { row: this.#currentRow, col: this.#nextCol };
   }
 
   /**
@@ -685,30 +793,39 @@ class WorksheetParser {
    * because no close event will arrive for it.
    */
   #openCell(attrs: XmlAttributes, selfClosing: boolean): void {
-    const decoded = attrs.r === undefined ? null : decodeAddress(attrs.r);
+    const address = this.#resolveCellAddress(attrs.r);
 
-    if (decoded === null) {
+    if (address === null) {
       return;
     }
 
     const cell: CellState = {
-      ref: attrs.r as string,
-      row: decoded.row,
-      col: decoded.col,
+      row: address.row,
+      col: address.col,
       type: attrs.t,
       styleIndex: Number(attrs.s ?? 0),
       formulaAttrs: null,
       formulaText: '',
+      formulaTooLong: false,
       valueText: null,
-      inlineText: [],
+      inlineText: null,
+      inlineRich: false,
     };
 
+    this.#nextCol = address.col + 1;
     this.#cell = cell;
 
     if (selfClosing) {
       this.#finishCell(cell);
       this.#cell = null;
     }
+  }
+
+  /**
+   * Whether an element belongs to the inline string of the open `<c>`.
+   */
+  #isInlineStringElement(name: string): boolean {
+    return this.#cell !== null && this.#cell.type === 'inlineStr' && INLINE_STRING_ELEMENTS.has(name);
   }
 
   /**
@@ -763,6 +880,44 @@ class WorksheetParser {
   }
 
   /**
+   * Appends a piece of `<f>` text, dropping the formula as soon as it crosses the cap. The check
+   * sits here, where the text is collected, so no regex ever runs over an unbounded formula (the
+   * shared-formula translation below and the import's reference shift both would) and the text
+   * held stays bounded: once the cap is crossed the collected text is discarded and every later
+   * piece of the same `<f>` is ignored. The cell keeps its cached value.
+   */
+  #appendFormulaText(cell: CellState, text: string): void {
+    if (cell.formulaTooLong) {
+      return;
+    }
+
+    if (cell.formulaText.length + text.length > MAX_FORMULA_LENGTH) {
+      cell.formulaText = '';
+      cell.formulaTooLong = true;
+
+      return;
+    }
+
+    cell.formulaText += text;
+  }
+
+  /**
+   * Charges one shared-formula translation against the workbook budget, refusing the workbook
+   * once the sum crosses `MAX_TRANSLATED_FORMULA_CHARS`. Charged before the translation runs, so
+   * the refusal lands before the work it bounds.
+   */
+  #chargeTranslation(length: number): void {
+    const { budget } = this.#ctx;
+
+    budget.translatedFormulaChars = (budget.translatedFormulaChars ?? 0) + length;
+
+    if (budget.translatedFormulaChars > MAX_TRANSLATED_FORMULA_CHARS) {
+      throwLimitExceeded('The workbook\'s shared formulas translate to more than '
+        + `${MAX_TRANSLATED_FORMULA_CHARS} characters, above the limit this reader accepts.`);
+    }
+  }
+
+  /**
    * Accumulates character data into whichever element is collecting it.
    */
   #text(text: string): void {
@@ -771,9 +926,9 @@ class WorksheetParser {
     if (cell && this.#inValue) {
       cell.valueText = (cell.valueText ?? '') + text;
     } else if (cell && this.#inFormula) {
-      cell.formulaText += text;
-    } else if (cell && this.#inInlineText) {
-      cell.inlineText.push(text);
+      this.#appendFormulaText(cell, text);
+    } else if (cell && cell.type === 'inlineStr') {
+      this.#inlineRuns.text(text);
     } else if (this.#validationFormula) {
       this.#validationFormula.push(text);
     } else if (this.#cfFormula) {
@@ -787,12 +942,17 @@ class WorksheetParser {
   #close(rawName: string): void {
     const name = this.#localName(rawName);
 
-    if (CELL_ELEMENTS.has(name)) {
+    if (this.#isInlineStringElement(name)) {
+      this.#inlineRuns.close(name);
+    } else if (CELL_ELEMENTS.has(name)) {
       this.#closeCellElement(name);
     } else if (CF_ELEMENTS.has(name)) {
       this.#closeCfElement(name);
     } else if (VALIDATION_ELEMENTS.has(name)) {
       this.#closeValidationElement(name);
+    } else if (name === 'row') {
+      // A `<c>` with no `r` after this belongs to no row, like one before the first.
+      this.#currentRow = null;
     }
   }
 
@@ -804,8 +964,6 @@ class WorksheetParser {
       this.#inValue = false;
     } else if (name === 'f') {
       this.#inFormula = false;
-    } else if (name === 't') {
-      this.#inInlineText = false;
     } else {
       this.#closeCell();
     }
@@ -945,14 +1103,26 @@ class WorksheetParser {
 
   /**
    * Decodes a cell's text by the `t` attribute that types it.
+   *
+   * An empty `<v/>` or `<v></v>` holds no value and reads as an empty cell: `Number('')` is `0`,
+   * so it used to read as shared string 0 or as the number 0. The two string kinds are the
+   * exception, because an empty string IS their value — `<c t="str"><f>""</f><v></v></c>` is how
+   * Excel stores a formula that evaluates to the empty string. An inline string arrives already
+   * decoded by the rich-text collector, so it is not decoded a second time (`_x005F_x0041_` would
+   * otherwise collapse to `A`).
    */
   #decodeValue(state: CellState, rawText: string, numFmt: string | null): CellValue {
+    if (rawText === '' && state.type !== 'str' && state.type !== 'inlineStr') {
+      return null;
+    }
+
     switch (state.type) {
       case 's':
         return this.#sharedString(Number(rawText));
       case 'str':
-      case 'inlineStr':
         return decodeOoxmlEscapes(rawText);
+      case 'inlineStr':
+        return rawText;
       case 'b':
         return rawText === '1' || rawText === 'true';
       case 'e':
@@ -984,6 +1154,8 @@ class WorksheetParser {
     }
 
     if (master) {
+      this.#chargeTranslation(master.text.length);
+
       return translateSharedFormula(master.text, state.row - master.row, state.col - master.col);
     }
 
@@ -996,11 +1168,17 @@ class WorksheetParser {
   #finishCell(state: CellState): void {
     const { cellXfs } = this.#ctx.styles;
     const xf = cellXfs[state.styleIndex] ?? cellXfs[0];
-    const rawText = state.type === 'inlineStr' ? state.inlineText.join('') : state.valueText;
+    const rawText = state.type === 'inlineStr' ? state.inlineText : state.valueText;
     let value: CellValue = rawText === null ? null : this.#decodeValue(state, rawText, xf.numFmt);
     let formula: CellSnapshot['formula'] = null;
 
-    if (state.formulaAttrs !== null) {
+    if (state.inlineRich) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.richText);
+    }
+
+    if (state.formulaTooLong) {
+      this.#ctx.dropped.record(DROPPED_FEATURES.formulaTooLong);
+    } else if (state.formulaAttrs !== null) {
       const text = this.#readFormula(state, state.formulaAttrs);
 
       if (text !== null && text !== '') {

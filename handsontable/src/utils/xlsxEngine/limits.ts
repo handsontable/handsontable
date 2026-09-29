@@ -63,6 +63,32 @@ export const MAX_WORKBOOK_SHEETS = 2048;
 export const MAX_INFLATED_TOTAL_BYTES = 2 * MAX_INPUT_BYTES;
 
 /**
+ * The longest formula text (`<f>`) the reader keeps, in characters. A longer formula is DROPPED —
+ * the cell keeps its cached `<v>` as a plain value and `formula:tooLong` is recorded — rather than
+ * refusing the workbook. The cap is four times Excel's 8192-character limit because that limit
+ * counts what the formula bar shows, and the file holds more: Excel writes `_xlfn.`, `_xlws.` and
+ * `_xlpm.` prefixes into `<f>` (`_xlpm.` on every `LET`/`LAMBDA` parameter reference), so a
+ * formula at Excel's limit is longer in the file. Something must still bound the text: it is the
+ * file's own, and the reference regex the shared-formula translation and the import's reference
+ * shift both run over it costs about 0.5 µs per character, so the reader stops collecting a
+ * formula's text as soon as it crosses the cap.
+ */
+export const MAX_FORMULA_LENGTH = 32768;
+
+/**
+ * The largest number of formula characters the reader may run the shared-formula translation over
+ * across one workbook read. Each slave cell of a shared formula re-translates its master's whole
+ * text, so a sheet of 5 million slaves under a master at `MAX_FORMULA_LENGTH` was 160 billion
+ * characters of synchronous regex work that no other cap bounded: `MAX_FORMULA_LENGTH` bounds one
+ * formula and `MAX_WORKBOOK_CELLS` the slave count, but not their product. Every translation
+ * charges the master's length. 64 Mi characters is room for about 640 000 slaves of a
+ * 100-character formula, or two and a half million of a 26-character one. The translation costs
+ * about 0.3-0.5 us per character, so the budget bounds the worst case to roughly 30 s of blocking
+ * work - the same order as a sheet at `MAX_SHEET_CELLS`.
+ */
+export const MAX_TRANSLATED_FORMULA_CHARS = 64 * 1024 * 1024;
+
+/**
  * Throws the refusal every cap in this module reports, tagging the error so a caller can tell a
  * declared limit apart from a parse failure without matching on the message text.
  *

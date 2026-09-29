@@ -35,15 +35,30 @@ export interface WorkbookSheetEntry {
 const OFFICE_REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 const PACKAGE_REL = 'http://schemas.openxmlformats.org/package/2006/relationships';
 
+/**
+ * The namespace Excel's "Strict Open XML Spreadsheet" writes every office relationship type under.
+ * The tail after it is the same as under `OFFICE_REL`, so a strict type is read by rewriting its
+ * prefix to the transitional one and comparing against `REL_TYPES` as usual. The package
+ * relationship types (core properties) keep their namespace in a strict file and need no rewrite.
+ */
+const STRICT_OFFICE_REL = 'http://purl.oclc.org/ooxml/officeDocument/relationships';
+
 export const REL_TYPES = {
   officeDocument: `${OFFICE_REL}/officeDocument`,
   worksheet: `${OFFICE_REL}/worksheet`,
+  chartsheet: `${OFFICE_REL}/chartsheet`,
+  dialogsheet: `${OFFICE_REL}/dialogsheet`,
+  macrosheet: `${OFFICE_REL}/xlMacrosheet`,
+  intlMacrosheet: `${OFFICE_REL}/xlIntlMacrosheet`,
   styles: `${OFFICE_REL}/styles`,
   sharedStrings: `${OFFICE_REL}/sharedStrings`,
   comments: `${OFFICE_REL}/comments`,
   vmlDrawing: `${OFFICE_REL}/vmlDrawing`,
   coreProperties: 'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties',
   extendedProperties: `${OFFICE_REL}/extended-properties`,
+  // Microsoft's own namespace, not the office one: a strict package keeps it as it is, so
+  // `normalizeRelType()` has nothing to rewrite here.
+  vbaProject: 'http://schemas.microsoft.com/office/2006/relationships/vbaProject',
 } as const;
 
 export const MAIN_NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
@@ -61,6 +76,27 @@ export const CONTENT_TYPES = {
   core: 'application/vnd.openxmlformats-package.core-properties+xml',
   app: 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
 };
+
+/**
+ * The main-part content types of the five SpreadsheetML workbook kinds this reader reads: `.xlsx`,
+ * `.xlsm`, `.xltx`, `.xltm` and the `.xlam` add-in. They share one XML schema — a template, an
+ * add-in or a macro-enabled workbook differs only in what else the package carries — so each reads
+ * the same way, and the VBA project an add-in carries is recorded as `vbaProject` like an `.xlsm`'s. Lower-cased, because
+ * OPC compares a media type's type and subtype case-insensitively.
+ */
+export const SPREADSHEET_MAIN_CONTENT_TYPES: ReadonlySet<string> = new Set([
+  CONTENT_TYPES.workbook,
+  'application/vnd.ms-excel.sheet.macroEnabled.main+xml',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml',
+  'application/vnd.ms-excel.template.macroEnabled.main+xml',
+  'application/vnd.ms-excel.addin.macroEnabled.main+xml',
+].map(type => localeLowerCase(type)));
+
+/**
+ * The main-part content type of an Excel Binary Workbook (`.xlsb`), lower-cased. Its package has the
+ * same layout as an `.xlsx`, but every part is BIFF12 records rather than XML.
+ */
+export const BINARY_WORKBOOK_CONTENT_TYPE = localeLowerCase('application/vnd.ms-excel.sheet.binary.macroEnabled.main');
 
 /**
  * Serializes `[Content_Types].xml`. The `vml` default is written only when some sheet carries
@@ -303,7 +339,16 @@ export function contentTypeOf(types: ContentTypes, partPath: string): string | u
 }
 
 /**
- * Parses a `.rels` part.
+ * Rewrites a Strict Open XML relationship type to its transitional spelling, so every lookup
+ * compares against `REL_TYPES` alone. A transitional type is returned as it is.
+ */
+export function normalizeRelType(type: string): string {
+  return type.startsWith(STRICT_OFFICE_REL) ? `${OFFICE_REL}${type.slice(STRICT_OFFICE_REL.length)}` : type;
+}
+
+/**
+ * Parses a `.rels` part. The type is normalized to its transitional spelling on the way in, which
+ * is what lets a strict package resolve its workbook, sheets, styles and shared strings.
  */
 export function parseRels(xml: string): Relationship[] {
   const rels: Relationship[] = [];
@@ -312,7 +357,7 @@ export function parseRels(xml: string): Relationship[] {
   tokenizeXml(xml, {
     open(rawName, attrs) {
       if (localName(rawName) === 'Relationship') {
-        rels.push({ id: attrs.Id ?? '', type: attrs.Type ?? '', target: attrs.Target ?? '' });
+        rels.push({ id: attrs.Id ?? '', type: normalizeRelType(attrs.Type ?? ''), target: attrs.Target ?? '' });
       }
     },
   });

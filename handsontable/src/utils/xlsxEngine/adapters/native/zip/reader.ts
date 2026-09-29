@@ -35,6 +35,27 @@ const CENTRAL_HEADER_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const MAX_COMMENT_LENGTH = 0xFFFF;
 const ZIP64_MARKER = 0xFFFFFFFF;
+// General-purpose flag bits 0 (ZipCrypto) and 6 (strong encryption): the region behind either is
+// ciphertext, not the entry's bytes, so such an entry is refused by name rather than inflated as
+// corrupt data or, stored, read back as ciphertext.
+const FLAG_ENCRYPTED = 0x0001;
+const FLAG_STRONG_ENCRYPTION = 0x0040;
+
+/**
+ * The first eight bytes of an OLE Compound File. A legacy `.xls` is one, and so is an `.xlsx` that
+ * Excel saved with a password to open: the encrypted package is stored inside a Compound File, not
+ * a ZIP. Neither has an end-of-central-directory record, so the scan's own refusal was true and
+ * told the user nothing about what to do.
+ */
+const COMPOUND_FILE_SIGNATURE = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+
+/**
+ * Whether the bytes start with the Compound File signature.
+ */
+function isCompoundFile(bytes: Uint8Array): boolean {
+  return bytes.byteLength >= COMPOUND_FILE_SIGNATURE.length
+    && COMPOUND_FILE_SIGNATURE.every((byte, index) => bytes[index] === byte);
+}
 
 /**
  * Finds the end-of-central-directory record, scanning backwards over a possible archive comment.
@@ -72,6 +93,7 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
       throwWithCause(`The ZIP central directory record ${i} is malformed.`);
     }
 
+    const flags = view.getUint16(offset + 8, true);
     const method = view.getUint16(offset + 10, true);
     const compressedSize = view.getUint32(offset + 20, true);
     const uncompressedSize = view.getUint32(offset + 24, true);
@@ -86,6 +108,11 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
 
     const nameStart = offset + CENTRAL_HEADER_SIZE;
     const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLength));
+
+    // eslint-disable-next-line no-bitwise -- the flag word is a bit field.
+    if ((flags & (FLAG_ENCRYPTED | FLAG_STRONG_ENCRYPTION)) !== 0) {
+      throwWithCause(`The ZIP entry "${name}" is encrypted, which this reader does not accept.`);
+    }
 
     if (method !== 0 && method !== 8) {
       throwWithCause(`The ZIP entry "${name}" uses compression method ${method}; `
@@ -121,6 +148,11 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
 export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   const bytes = new Uint8Array(buffer);
   const view = new DataView(buffer);
+
+  if (isCompoundFile(bytes)) {
+    throwWithCause('the file is a legacy Excel 97-2003 workbook (.xls) or a password-protected workbook, '
+      + 'which the built-in engine does not read. Save it as an unprotected .xlsx.');
+  }
 
   if (bytes.byteLength < END_RECORD_SIZE) {
     throwWithCause('The file has no ZIP end-of-central-directory record.');
@@ -204,19 +236,24 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   /**
-   * Reads one entry as text, charging the budget for the bytes it really produced.
+   * Reads one entry as text, charging the budget for the bytes it really produced, and returns the
+   * text with that byte count so `text()` can charge the decoded string on top of it only as far as
+   * the string outweighs the bytes.
    *
    * A STORED entry is its own inflated form, so a well-formed ZIP declares its two sizes equal and
    * one that does not is refused: the reader returns `compressedSize` bytes for it, so a record
    * declaring one uncompressed byte beside a thirty-megabyte compressed size was charged a single
    * byte for thirty megabytes of output, and the whole archive budget was bypassed by it.
    *
-   * A DEFLATE entry is bounded BEFORE its bytes exist, by the smallest of three ceilings: its own
-   * declared size, the per-entry cap, and what the total budget still allows. `inflateCeiling()`
-   * hands the stream the refusal that goes with the ceiling it picked, so a part stopped by the
-   * budget is refused in the budget's own words.
+   * A DEFLATE entry is bounded by the smallest of three ceilings: its own declared size, the
+   * per-entry cap, and what the total budget still allows. `inflateCeiling()` hands the stream the
+   * refusal that goes with the ceiling it picked, so a part stopped by the budget is refused in the
+   * budget's own words. The ceiling is enforced as the output streams, not before it exists: the
+   * stream writes the input in `STREAM_WRITE_CHUNK_BYTES` slices, so what can exist past the
+   * ceiling before the cancel lands is one slice's output at most (about 16 MB at DEFLATE's
+   * 1032:1), never the whole entry.
    */
-  async function entryText(name: string): Promise<string> {
+  async function entryText(name: string): Promise<{ text: string; byteLength: number }> {
     const entry = entries.get(name);
 
     if (entry === undefined) {
@@ -238,7 +275,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
       chargeInflated(name, data.byteLength);
 
-      return decoder.decode(data);
+      return { text: decoder.decode(data), byteLength: data.byteLength };
     }
 
     const { maxBytes, refuse } = inflateCeiling(name, entry);
@@ -246,7 +283,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
 
     chargeInflated(name, inflated.byteLength);
 
-    return inflated.text;
+    return inflated;
   }
 
   /**
@@ -258,6 +295,14 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * process outright. The cached string is charged against the same budget as the bytes it came
    * from (UTF-16 code units, two bytes each - the worst case; V8 stores a Latin-1 string in one),
    * so the cache can never hold more than the archive was allowed to cost however it was obtained.
+   *
+   * An entry is charged ONCE, as the larger of its produced bytes and its decoded string - never
+   * the two summed. Nothing holds both: a DEFLATE part is decoded chunk by chunk as it inflates, so
+   * its bytes are never materialized, and a stored part's bytes are a view over the input the
+   * caller already holds. Summing them billed an ASCII part three times its size for memory worth
+   * two at most, and refused the engine's own 120 000 x 20 export (104 MB of XML, charged 312 MB).
+   * The bytes are still charged first, by `entryText()`, while the part is produced; the string's
+   * excess over them is charged here, before the memo retains it.
    *
    * EVERY declared field is in the key, the two sizes included, because the fast path sits in front
    * of the checks `entryText()` makes on them. Keying on the region alone let a crafted directory
@@ -277,9 +322,13 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       return cached;
     }
 
-    const decoded = await entryText(name);
+    const { text: decoded, byteLength } = await entryText(name);
+    const stringExcess = (decoded.length * 2) - byteLength;
 
-    chargeInflated(name, decoded.length * 2);
+    if (stringExcess > 0) {
+      chargeInflated(name, stringExcess);
+    }
+
     texts.set(key, decoded);
 
     return decoded;
