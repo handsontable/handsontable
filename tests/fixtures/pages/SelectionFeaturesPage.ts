@@ -1532,4 +1532,16 @@ export class SelectionFeaturesPage {
       return !!hit && hit.classList.contains('wtBorder') && !hit.classList.contains('corner');
     }, [row, col] as const);
   }
+
+  /**
+   * Registers a `modifyGetCellCoords` hook that ignores `source` and answers every call with a
+   * short `[row, column]` result - a shape the setting's own type documents as legal
+   * (`core/settings.ts`). Used to prove a plain cell's fill handle does not depend on a hook that
+   * has nothing to do with it (DEV-143 follow-up).
+   */
+  async addNaiveModifyGetCellCoordsHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('modifyGetCellCoords', (row: number, col: number) => [row, col]);
+    });
+  }
 }

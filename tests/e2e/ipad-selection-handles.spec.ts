@@ -189,4 +189,14 @@ test.describe('iPadOS range handles on a merged cell across the freeze lines', (
 
     await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_master']);
   });
+
+  test('keeps a plain cell\'s bottom handle when an unrelated hook answers with a short result', async () => {
+    // budnix review on #13667: a `modifyGetCellCoords` hook indifferent to `source` may legally
+    // answer this fix's own lookup with a short `[row, column]` result, and reading it as a merge
+    // extent hid the mobile handle of every cell, merged or not.
+    await grid.addNaiveModifyGetCellCoordsHook();
+    await grid.selectRange(4, 4, 4, 4);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_master']);
+  });
 });

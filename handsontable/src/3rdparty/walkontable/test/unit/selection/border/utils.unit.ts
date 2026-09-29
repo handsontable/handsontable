@@ -4,6 +4,7 @@ import {
   isHeaderPlaceholder,
   lookupSelectionHeader,
   measureHeaderSelectionBox,
+  resolveBlockExtent,
   resolveHeaderLevel,
 } from 'walkontable/selection/border/utils';
 
@@ -279,5 +280,32 @@ describe('getEdgesInsideBlock', () => {
   it('should report the start edge as interior when the block starts before the band', () => {
     expect(getEdgesInsideBlock([0, 3, 0, 6], { firstRow: 0, lastRow: 9, firstColumn: 5, lastColumn: 12 }))
       .toEqual({ ...NONE, start: true });
+  });
+});
+
+describe('resolveBlockExtent', () => {
+  it('should return the extent for a well-formed 4-number result', () => {
+    expect(resolveBlockExtent([0, 0, 2, 2])).toEqual([0, 0, 2, 2]);
+  });
+
+  it('should return null for a non-array result', () => {
+    expect(resolveBlockExtent(undefined)).toBeNull();
+    expect(resolveBlockExtent(null)).toBeNull();
+  });
+
+  it('should return null for a short `[row, column]` result', () => {
+    // DEV-143 follow-up: `modifyGetCellCoords` is documented to allow this shape, and
+    // `TableView`'s adapter turns it into `[row, column, undefined, undefined]`.
+    expect(resolveBlockExtent([3, 4])).toBeNull();
+    expect(resolveBlockExtent([3, 4, undefined, undefined])).toBeNull();
+  });
+
+  it('should return null when only one of the extent slots is a number', () => {
+    expect(resolveBlockExtent([3, 4, 5, undefined])).toBeNull();
+    expect(resolveBlockExtent([3, 4, undefined, 5])).toBeNull();
+  });
+
+  it('should accept a negative (header) extent', () => {
+    expect(resolveBlockExtent([-1, -1, 2, 2])).toEqual([-1, -1, 2, 2]);
   });
 });

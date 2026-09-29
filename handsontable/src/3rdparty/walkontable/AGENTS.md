@@ -173,14 +173,32 @@ seam) and its own fill handle and mobile bottom handle.
   master's and the other clones' copies sit under it.
 - **A block whose scrollable part is scrolled behind a pane shows an outline open at the seam and no
   fill handle**, like a multi-cell range in the same state; before, the frozen slice drew a closed
-  box with a handle on the seam.
+  box with a handle on the seam. Checked against `functional continuity`: an ordinary (non-merged)
+  drag-selection whose real bottom-end is scrolled out of the rendered band already showed no fill
+  handle either, on develop before this fix - `toRow`/`toColumn` are clamped to the rendered band
+  before `resolveMergedBlockEdges` runs, and `isSouthEastOfAreaSelection` compares that clamped value
+  against the selection's real (unclamped) corner, which then disagrees. A stray handle on the freeze
+  line only ever showed for a merge that is also a SINGLE selected cell (`cellRange` null), where
+  `isSouthEastOfAreaSelection` returns `true` unconditionally without checking the corner at all -
+  the same shape that produced the 4-handle bug this section opens with. So this case loses no
+  behavior the rest of the grid guarantees; it extends the one general rule.
+- **`resolveBlockExtent` (`selection/border/utils.ts`) is what makes `resolveMergedBlockEdges` safe
+  for a cell that never touches MergeCells.** `modifyGetCellCoords` is documented to return either
+  `[row, column]` or a full `[row, column, row2, column2]` extent, and a hook indifferent to `source`
+  legitimately answers even this fix's own `'render'`-sourced lookup with the short form (found in
+  review on #13667: a custom hook returning `[row, column]` hid every plain cell's fill handle and
+  mobile handle, not only a merged one's). `TableView`'s adapter turns a short result into a 4-element
+  array whose last two slots are `null`, and `Number.isInteger` is what tells that apart from a real
+  extent - `undefined`/`null` fail it, so does a partial 3-element result. Read `blockExtent[2]`/`[3]`
+  only after that check passes.
 
 Not covered: a block crossing the `fixedRowsBottom` line. MergeCells renders that block wrongly on
 its own (before and after this fix), and no overlay draws a reachable handle there.
 
 Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (both MergeCells modes, hit-tested: one
 reachable handle on the block's corner, no visible edge inside the block, the outline on every track
-of every side), the merged-cell case in `tests/e2e/ipad-selection-handles.spec.ts`, and
+of every side, and a plain cell keeping its handle against a naive `modifyGetCellCoords` hook), the
+merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, and
 `test/unit/selection/border/utils.unit.ts`.
 
 ## Custom border `width: 0` is a real value (DEV-1137)

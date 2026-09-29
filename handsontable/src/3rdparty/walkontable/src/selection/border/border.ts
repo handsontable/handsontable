@@ -16,6 +16,7 @@ import {
   getCornerStyle,
   getEdgesInsideBlock,
   lookupSelectionHeader,
+  resolveBlockExtent,
   measureHeaderSelectionBox,
   resolveHeaderLevel,
   standsBelowColumnHeader,
@@ -1478,7 +1479,8 @@ class Border {
    * `onModifyGetCellCoords` setting reports the block's extent, and every edge the block reaches past
    * this overlay's band is interior: the overlay that renders the block's outline there draws it.
    * The same answer moves the fill-handle check onto the block's bottom-end corner. Not a layout
-   * read, so `appear()` may ask it before its style writes.
+   * read, so `appear()` may ask it before its style writes. See {@link resolveBlockExtent} for what
+   * counts as a usable extent - a plain cell must not lose its handle to an unrelated hook.
    *
    * @param {number} toRow The box's bottom row, clamped to this overlay's band.
    * @param {number} toColumn The box's end column, clamped to this overlay's band.
@@ -1489,12 +1491,11 @@ class Border {
    */
   resolveMergedBlockEdges(toRow: number, toColumn: number, isMultiple: boolean, band: RenderedBand) {
     const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
+    const blockExtent = resolveBlockExtent(hookResult);
 
-    if (!hookResult || !Array.isArray(hookResult)) {
+    if (!blockExtent) {
       return { checkRow: toRow, checkCol: toColumn, interiorEdges: null };
     }
-
-    const blockExtent = hookResult as number[];
 
     return {
       checkRow: blockExtent[2],

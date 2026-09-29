@@ -172,4 +172,18 @@ test.describe('selection of a merged cell across the frozen panes', () => {
       .toEqual(fullOutline(3, 3));
     expect((await grid.mergedBlockSelection(0, 0)).edgesInside).toEqual([]);
   });
+
+  test('keeps a plain cell\'s fill handle when an unrelated hook answers with a short result', async () => {
+    // budnix review on #13667: `modifyGetCellCoords` may legally return `[row, column]` (no area),
+    // and a hook indifferent to `source` answers even this fix's own `'render'`-sourced lookup with
+    // that shape. Reading its 3rd/4th slots as a merge extent then made every plain cell's own
+    // fill handle disappear, since nothing crossing a freeze line is even involved here.
+    await grid.initGrid({});
+    await grid.addNaiveModifyGetCellCoordsHook();
+    await grid.selectCells(2, 2, 2, 2);
+
+    await expect.poll(async () => (await grid.mergedBlockSelection(2, 2)).fillHandles).toEqual([
+      expect.objectContaining({ overlay: 'ht_master' }),
+    ]);
+  });
 });

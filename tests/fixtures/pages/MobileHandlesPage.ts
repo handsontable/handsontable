@@ -225,6 +225,18 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Registers a `modifyGetCellCoords` hook that ignores `source` and answers every call with a
+   * short `[row, column]` result - a shape the setting's own type documents as legal
+   * (`core/settings.ts`). Used to prove a plain cell's mobile bottom handle does not depend on a
+   * hook that has nothing to do with it (DEV-143 follow-up).
+   */
+  async addNaiveModifyGetCellCoordsHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.addHook('modifyGetCellCoords', (row: number, col: number) => [row, col]);
+    });
+  }
+
+  /**
    * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
    * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
    * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`

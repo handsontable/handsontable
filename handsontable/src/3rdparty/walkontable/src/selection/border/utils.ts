@@ -235,3 +235,31 @@ export const getEdgesInsideBlock = (blockExtent: number[], band: RenderedBand): 
     end: toColumn > band.lastColumn,
   };
 };
+
+/**
+ * Resolves a `modifyGetCellCoords` result (as `Walkontable#getSetting('onModifyGetCellCoords', ...)`
+ * returns it) into a merged block's extent, or `null` when the result carries no full extent.
+ *
+ * `modifyGetCellCoords` is documented to return either `[row, column]` or a full
+ * `[row, column, row2, column2]` extent (`core/settings.ts`), and a hook indifferent to `source`
+ * legitimately answers every call - including a `'render'`-sourced one from `Border` - with the
+ * short form. `TableView`'s adapter (`tableView.ts`) turns a short result into a 4-element array
+ * whose last two slots stay `undefined`, and nothing that compares them (`<=`, `getEdgesInsideBlock`)
+ * can ever read that as "in range" - so treating it as an extent hides a plain cell's fill handle and
+ * mobile handle, cells that have nothing to do with the hook that returned it (DEV-143 follow-up).
+ * Callers fold that check in here instead of re-deriving it.
+ *
+ * @param {unknown} hookResult What the `'render'`-sourced `onModifyGetCellCoords` call returned.
+ * @returns {number[] | null}
+ */
+export const resolveBlockExtent = (hookResult: unknown): number[] | null => {
+  if (
+    !Array.isArray(hookResult) ||
+    !Number.isInteger(hookResult[2]) ||
+    !Number.isInteger(hookResult[3])
+  ) {
+    return null;
+  }
+
+  return hookResult as number[];
+};
