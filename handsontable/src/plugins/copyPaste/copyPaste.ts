@@ -532,9 +532,9 @@ export class CopyPaste extends BasePlugin {
           rowSet.push(this.hot.getColHeader(column, row));
 
         } else {
-          // The raw value, not `getCopyableData()`'s string: the copy and cut hooks hand consumers
+          // The raw value, not `getCopyableCellText()`'s string: the copy and cut hooks hand consumers
           // the values as they are stored, and `SheetClip.stringify()` reads an object through
-          // `valueOf()`, which `getCopyableData()` does not.
+          // `valueOf()`, which `getCopyableCellText()` does not.
           let copyableCellData =
             useSourceData ?
               this.hot.getCopyableSourceData(row, column) :

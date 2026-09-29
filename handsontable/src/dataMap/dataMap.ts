@@ -1226,7 +1226,7 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
-   * The value is returned as it is stored, so it can be of any type. `Core#getCopyableData()`
+   * The value is returned as it is stored, so it can be of any type. `Core#getCopyableCellText()`
    * converts it to a string; the clipboard and Autofill consume it raw.
    *
    * @param {number} row Visual row index.

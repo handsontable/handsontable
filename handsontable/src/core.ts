@@ -4353,12 +4353,12 @@ export default function Core(
    * clipboard reads such an object through `valueOf()` first.
    *
    * @memberof Core#
-   * @function getCopyableData
+   * @function getCopyableCellText
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @returns {string}
    */
-  this.getCopyableData = function(row: number, column: number) {
+  this.getCopyableCellText = function(row: number, column: number) {
     return stringify(datamap.getCopyable(row, colToPropOrIndex(instance, column)));
   };
 
