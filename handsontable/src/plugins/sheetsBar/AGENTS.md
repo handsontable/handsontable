@@ -29,9 +29,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   nor restored: DataProvider answers a page change with a fetch, and the result would load into
   whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
   focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
-  of that paint, and a `beforePageChange` veto keeps the clamped page. A restored selection is
-  followed to its page; a selection carried over from the previous sheet, or one the follow could
-  not reach, is deselected rather than left on a hidden row.
+  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
+  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
+  one `setPage()` to the page estimated from the shown page's span, then refined, so a gap of
+  many pages fires the page hooks once instead of once per page; a selection carried over from
+  the previous sheet, or one the follow could not reach, is deselected rather than left on a
+  hidden row.
   The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
   of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
   and so are the ranges handed to the import, or the stored state would become the live
@@ -43,7 +46,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
   which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
   layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
-  layer, the step core answers with those classes and hooks. A plain cell selection goes through
+  layer, the step core answers with those classes and hooks — and since that step makes the last
+  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
+  plain cell selection goes through
   `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
   order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
   read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`

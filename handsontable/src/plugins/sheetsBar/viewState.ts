@@ -70,8 +70,6 @@ interface PaginationPlugin {
   getCurrentPageSize: () => number | 'auto';
   setPage: (page: number) => void;
   setPageSize: (pageSize: number | 'auto') => void;
-  nextPage: () => void;
-  prevPage: () => void;
   getSetting: (name: string) => unknown;
   getPaginationData: () => { totalPages: number, firstVisibleRowIndex: number, lastVisibleRowIndex: number };
 }
@@ -424,6 +422,8 @@ function replaySingleLayer(hot: HotInstance, state: SelectionState): boolean {
  * selection. The import runs no selection hooks and leaves the grid's row/column selection
  * classes as they were, so the last layer's end is set once more and the selection finished:
  * that is the step core answers with the classes, `afterSelection`, and `afterSelectionEnd`.
+ * Setting that end makes the last layer the active one, so the captured focus and active layer
+ * are put back afterwards.
  */
 function importLayers(hot: HotInstance, state: SelectionState): void {
   const ranges = state.ranges.map(range => range.clone());
@@ -432,6 +432,7 @@ function importLayers(hot: HotInstance, state: SelectionState): void {
   hot.selection.importSelection({ ...state, ranges, activeRange });
   hot.selection.setRangeEnd(ranges[ranges.length - 1].to.clone());
   hot.selection.finish();
+  hot.selection.setRangeFocus(activeRange.highlight.clone(), state.activeSelectionLayer);
 }
 
 /**
@@ -796,9 +797,23 @@ function isRowOnPage(pagination: PaginationPlugin, row: number): boolean {
 }
 
 /**
- * Pages towards a row until it is on the shown page, and returns whether it got there. Stops
- * when a page change does not happen — a `beforePageChange` listener vetoed it — and after one
- * pass over the page count.
+ * Returns the page a row is estimated to sit on, from how many shown-page spans it lies away from
+ * the current page's first row. Hidden rows make it an estimate, which {@link followRow} refines.
+ */
+function estimatePageOfRow(pagination: PaginationPlugin, row: number): number {
+  const { totalPages, firstVisibleRowIndex, lastVisibleRowIndex } = pagination.getPaginationData();
+  const rowsPerPage = Math.max(lastVisibleRowIndex - firstVisibleRowIndex + 1, 1);
+  const offset = Math.floor((row - firstVisibleRowIndex) / rowsPerPage);
+  const step = offset === 0 ? Math.sign(row - firstVisibleRowIndex) : offset;
+
+  return clamp(pagination.getCurrentPage() + step, 1, Math.max(totalPages, 1));
+}
+
+/**
+ * Opens the page a row sits on and returns whether it got there. It jumps to the estimated page
+ * rather than paging one step at a time, so a gap of many pages fires the page hooks once, and
+ * refines from there. Stops when a page change does not happen — a `beforePageChange` listener
+ * vetoed it — and after one pass over the page count.
  */
 function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number): boolean {
   const { totalPages } = pagination.getPaginationData();
@@ -806,11 +821,7 @@ function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number):
   for (let step = 0; step < totalPages && !isRowOnPage(pagination, row); step++) {
     const page = pagination.getCurrentPage();
 
-    if (row < pagination.getPaginationData().firstVisibleRowIndex) {
-      pagination.prevPage();
-    } else {
-      pagination.nextPage();
-    }
+    pagination.setPage(estimatePageOfRow(pagination, row));
 
     if (pagination.getCurrentPage() === page) {
       break;

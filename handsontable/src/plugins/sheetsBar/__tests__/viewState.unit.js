@@ -513,6 +513,55 @@ describe('SheetsBar view state', () => {
     expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
   });
 
+  it('jumps to the page of a far-away restored selection with a single page change', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const afterPageChange = jest.fn();
+
+    pagination.setPage(16);
+    hot.selectCell(154, 0);
+    pagination.setPage(1);
+    hot.addHook('afterPageChange', afterPageChange);
+
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(16);
+    expect(afterPageChange).toHaveBeenCalledTimes(1);
+    expect(hot.getSelectedLast()).toEqual([154, 0, 154, 0]);
+  });
+
+  it('keeps the restored selection on the shown page when a listener refuses the page size', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Short', data: Array.from({ length: 15 }, (_, row) => [`Short row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    pagination.setPageSize(20);
+    pagination.setPage(4);
+    hot.selectCell(64, 0);
+    sheetsBar.setActiveSheet('Short');
+    hot.addHook('beforePageSizeChange', () => false);
+    sheetsBar.setActiveSheet('Long');
+
+    expect(pagination.getCurrentPageSize()).toBe(10);
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
   it('drops a carried-over selection that is not on the shown page instead of following it', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
@@ -636,6 +685,43 @@ describe('SheetsBar view state', () => {
     expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
     expect(afterSelectionEnd).toHaveBeenCalled();
     expect(hot.rootElement.classList.contains('ht__selection--rows')).toBe(true);
+  });
+
+  it('keeps the focus on the layer that held it when several row layers come back', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(2);
+
+    const firstLayer = hot.selection.exportSelection();
+
+    hot.selectRows(6);
+
+    const secondLayer = hot.selection.exportSelection();
+
+    hot.selection.importSelection({
+      ...firstLayer,
+      ranges: [firstLayer.ranges[0], secondLayer.ranges[0]],
+      selectedByRowHeader: [0, 1],
+      columnExtentSpansGrid: [0, 1],
+      activeRange: firstLayer.ranges[0],
+      activeSelectionLayer: 0,
+    });
+
+    expect(hot.selection.getActiveSelectionLayerIndex()).toBe(0);
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
+    expect(hot.selection.getActiveSelectionLayerIndex()).toBe(0);
+    expect(hot.selection.getActiveSelectedRange().highlight.row).toBe(2);
   });
 
   it('keeps copies of the selection, so later selection work cannot change a captured one', () => {
