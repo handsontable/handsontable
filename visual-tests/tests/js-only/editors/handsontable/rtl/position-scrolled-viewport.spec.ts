@@ -11,8 +11,10 @@ import {
  * from the top-left corner (below the cell) and the bottom-right corner (flipped above it), which
  * between them show both horizontal and both vertical branches mirrored. Where the list opens is
  * asserted from DOM rects in `tests/e2e/handsontable-editor-list-position.spec.ts` for a sized RTL
- * grid, on all six theme and bundle legs; these captures are a check of how the mirrored list looks.
- * `main` only, for the reason `../position-scrolled-viewport.spec.ts` gives. Owned by DEV-3139.
+ * grid, on an RTL and on an LTR page, on all six theme and bundle legs; these captures are a check of
+ * how the mirrored list looks. `main` only: the mirror does not depend on the theme, and
+ * `../position-scrolled-viewport.spec.ts` photographs the list itself on all five js variants. Owned
+ * by DEV-3139.
  */
 visualTest(__filename, {
   themes: ['main'],

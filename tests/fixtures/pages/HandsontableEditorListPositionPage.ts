@@ -8,6 +8,35 @@ import { awaitBundle } from '../bundle';
 export type Layout = 'window' | 'sized';
 
 /**
+ * Which editor opens the list: `handsontable` (a nested grid as wide as its own columns) or `dropdown`
+ * (the same flip, but `AutocompleteEditor#updateDropdownDimensions` sizes the list, trimmed to the
+ * cell's width by default).
+ */
+export type EditorType = 'handsontable' | 'dropdown';
+
+/**
+ * One way to lay the fixture out.
+ */
+export interface Variant {
+  /**
+   * The grid's `layoutDirection`.
+   */
+  dir: 'ltr' | 'rtl';
+  /**
+   * Which box scrolls.
+   */
+  layout: Layout;
+  /**
+   * The document's direction; the grid's when omitted, as on a real RTL page.
+   */
+  doc?: 'ltr' | 'rtl';
+  /**
+   * The editor under test; `handsontable` when omitted.
+   */
+  type?: EditorType;
+}
+
+/**
  * A box in viewport coordinates, as `getBoundingClientRect()` reports it.
  */
 export interface Box {
@@ -28,13 +57,13 @@ export interface ListGeometry {
 
 /**
  * Where the list opened, in words a failure message can carry: which edge of the edited cell it is
- * aligned to (and so which way it extends), whether it sits below or above the cell, and whether it
- * is on screen.
+ * aligned to (and so which way it extends, or `cell width` for a list trimmed to the cell), whether it
+ * sits below or above the cell, and whether it is on screen (`yes`, or the boxes that say why not).
  */
 export interface ListPlacement {
   aligned: string;
   side: string;
-  inViewport: boolean;
+  inViewport: string;
 }
 
 /**
@@ -50,11 +79,18 @@ export interface ListPlacement {
 export const EDGE_TOLERANCE_PX = 0.5;
 
 /**
- * Names a placement from its boxes. A list that matches neither expected edge is reported with the
- * measured distances, so a regression says what it did.
+ * How far short of the cell's inline end a list trimmed to the cell may stop. Measured on all three
+ * themes in both directions: the dropdown's trimmed list meets the cell's inline end on `main` and
+ * `classic` and stops 2 px short of it on `horizon`, whose editor input is 2 px narrower.
+ */
+export const TRIMMED_SHORTFALL_PX = 2;
+
+/**
+ * Names a placement from its boxes. A list that matches no expected edge, or leaves the viewport, is
+ * reported with the measured boxes, so a regression says what it did.
  *
  * @param {ListGeometry} geometry The boxes.
- * @param {'ltr' | 'rtl'} dir The layout direction, which decides which edge carries the 1 px.
+ * @param {'ltr' | 'rtl'} dir The grid's layout direction, which decides which edge carries the 1 px.
  * @returns {ListPlacement} The placement.
  */
 export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPlacement {
@@ -67,9 +103,17 @@ export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPla
   let aligned: string;
   let side: string;
 
-  // Aligned to the cell's left edge, the list extends to the right; aligned to its right edge, to
-  // the left. Which one is the default depends on the layout direction.
-  if (meets(list.left, leftEdge) && list.right > cell.right) {
+  // A list trimmed to the cell (the dropdown's default) starts at the cell's inline start and ends at,
+  // or up to TRIMMED_SHORTFALL_PX short of, its inline end, so no flip moves it. A wider one is aligned
+  // to the cell's left edge and extends right, or to its right edge and extends left; which of those
+  // two is the default depends on the layout direction.
+  const startsAtInlineStart = dir === 'rtl' ? meets(list.right, rightEdge) : meets(list.left, leftEdge);
+  const inlineEndShortfall = dir === 'rtl' ? list.left - cell.left : cell.right - list.right;
+
+  if (startsAtInlineStart && inlineEndShortfall >= -EDGE_TOLERANCE_PX
+    && inlineEndShortfall <= TRIMMED_SHORTFALL_PX + EDGE_TOLERANCE_PX) {
+    aligned = 'cell width';
+  } else if (meets(list.left, leftEdge) && list.right > cell.right) {
     aligned = 'left edge';
   } else if (meets(list.right, rightEdge) && list.left < cell.left) {
     aligned = 'right edge';
@@ -85,16 +129,20 @@ export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPla
     side = `detached: list ${round(list.top)}–${round(list.bottom)}, cell ${round(cell.top)}–${round(cell.bottom)}`;
   }
 
-  const inViewport = list.left >= 0 && list.top >= 0 && list.right <= viewport.width
-    && list.bottom <= viewport.height;
+  // The same tolerance as the edges: a list placed flush with the viewport's edge after a flip can end
+  // a sub-pixel past it.
+  const inside = list.left >= -EDGE_TOLERANCE_PX && list.top >= -EDGE_TOLERANCE_PX
+    && list.right <= viewport.width + EDGE_TOLERANCE_PX && list.bottom <= viewport.height + EDGE_TOLERANCE_PX;
+  const inViewport = inside ? 'yes' : `no: list ${round(list.left)}–${round(list.right)} × `
+    + `${round(list.top)}–${round(list.bottom)} in a ${viewport.width} × ${viewport.height} viewport`;
 
   return { aligned, side, inViewport };
 }
 
 /**
- * Page Object for the list-position fixture of the `handsontable` editor, in either layout: a grid
- * the WINDOW scrolls, whose list has to fit the viewport, and a sized grid that scrolls its own
- * holder, whose list's horizontal flip measures the grid.
+ * Page Object for the list-position fixture of the `handsontable` and `dropdown` editors, in either
+ * layout: a grid the WINDOW scrolls, whose list has to fit the viewport, and a sized grid that scrolls
+ * its own holder, whose list's horizontal flip measures the grid.
  *
  * Cells are picked by a point, not by index, because which cell sits under a point after a scroll
  * depends on the theme's row height. The point is an offset from the edges of the box that scrolls
@@ -107,38 +155,43 @@ export class HandsontableEditorListPositionPage {
   readonly theme: string;
   readonly bundle: string;
   readonly dir: 'ltr' | 'rtl';
+  readonly doc: 'ltr' | 'rtl';
   readonly layout: Layout;
+  readonly type: EditorType;
   readonly grid: Locator;
   readonly list: Locator;
 
   /**
-   * Builds the page object for one theme, bundle, layout direction, and layout.
+   * Builds the page object for one theme, bundle, and layout of the fixture.
    *
    * @param {Page} page The Playwright page.
    * @param {string} theme The active theme.
    * @param {string} bundle The active bundle.
-   * @param {'ltr' | 'rtl'} dir The layout direction of the grid and the page.
-   * @param {Layout} layout Which box scrolls.
+   * @param {Variant} variant The grid's direction, the layout, and optionally the document's direction
+   * and the editor type.
    */
-  constructor(page: Page, theme = 'main', bundle = 'umd', dir: 'ltr' | 'rtl' = 'ltr', layout: Layout = 'window') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', variant: Variant = { dir: 'ltr', layout: 'window' }) {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.dir = dir;
-    this.layout = layout;
+    this.dir = variant.dir;
+    this.doc = variant.doc ?? variant.dir;
+    this.layout = variant.layout;
+    this.type = variant.type ?? 'handsontable';
     this.grid = page.getByTestId('grid');
     // The editor's own container, which holds the nested grid that is the list.
     this.list = page.locator('.handsontableEditor');
   }
 
   /**
-   * Navigate to the fixture and wait for the grid. Theme, bundle, direction, and layout travel as
-   * query params, so the fixture loads the matching stylesheet and build and lays the page out that
-   * way.
+   * Navigate to the fixture and wait for the grid. Theme, bundle, both directions, layout, and editor
+   * type travel as query params, so the fixture loads the matching stylesheet and build and lays the
+   * page out that way.
    */
   async goto(): Promise<void> {
     await this.page.goto('/tests/fixtures/demo/handsontable-editor-list-position.html'
-      + `?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&layout=${this.layout}`);
+      + `?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&doc=${this.doc}`
+      + `&layout=${this.layout}&type=${this.type}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -165,7 +218,8 @@ export class HandsontableEditorListPositionPage {
   /**
    * Scrolls whatever scrolls to its bottom and inline end, and waits until the grid's last cell is
    * rendered, which is the render state that scroll produces. The window's inline end is on the right
-   * in LTR and on the left in RTL, where `scrollX` runs from 0 down to a negative value.
+   * in an LTR document and on the left in an RTL one, where `scrollX` runs from 0 down to a negative
+   * value.
    */
   async scrollToEnd(): Promise<void> {
     if (this.layout === 'window') {
@@ -173,7 +227,7 @@ export class HandsontableEditorListPositionPage {
         const { scrollWidth, scrollHeight } = document.documentElement;
 
         window.scrollTo(rtl ? -scrollWidth : scrollWidth, scrollHeight);
-      }, this.dir === 'rtl');
+      }, this.doc === 'rtl');
     } else {
       await this.page.evaluate(() => {
         const { hot } = window as unknown as {

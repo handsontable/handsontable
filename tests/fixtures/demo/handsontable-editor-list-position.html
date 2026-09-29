@@ -5,9 +5,10 @@
   <title>Handsontable editor list position e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
-    // Theme, bundle, direction, and layout come from the ?theme=/?bundle=/?dir=/?layout= query params,
-    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
-    // document — no XSS. An ABSENT param keeps the default (main / plain UMD / ltr / window) so the
+    // Theme, bundle, grid direction, document direction, layout, and editor type come from the
+    // ?theme=/?bundle=/?dir=/?doc=/?layout=/?type= query params, mapped through fixed allowlists to
+    // LITERALS so a crafted param can never be reflected into the document — no XSS. An ABSENT param
+    // keeps the default (main / plain UMD / ltr / the grid's direction / window / handsontable) so the
     // fixture stays browsable by hand; an unknown value THROWS instead of falling back — a typo in the
     // project config must be one red leg, never a silently mislabeled green one (nothing else asserts
     // which file loaded).
@@ -18,6 +19,7 @@
     const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
     const htLayouts = Object.assign(Object.create(null), { window: 'window', sized: 'sized' });
+    const htTypes = Object.assign(Object.create(null), { handsontable: 'handsontable', dropdown: 'dropdown' });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
@@ -35,20 +37,32 @@
     if (!window.htDirection) {
       throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
     }
-    // The PAGE takes the direction too, so an RTL grid sits in an RTL document the way it does on a
-    // real RTL page: the window then scrolls toward the inline end with a NEGATIVE `scrollX`, which is
-    // the arithmetic the editor's window-scroll branch has to get right.
-    document.documentElement.setAttribute('dir', window.htDirection);
+    // The DOCUMENT's direction. By default the page takes the grid's, so an RTL grid sits in an RTL
+    // document the way it does on a real RTL page: the window then scrolls toward the inline end with
+    // a NEGATIVE `scrollX`, which is the arithmetic the editor's window-scroll branch has to get right.
+    // `?doc=` sets it on its own, for a grid whose direction differs from its page's (an RTL grid on an
+    // LTR page is a real setup: only the grid is RTL).
+    window.htDocDirection = htDirections[htParams.get('doc') ?? window.htDirection];
+    if (!window.htDocDirection) {
+      throw new Error('Unknown ?doc= value: ' + JSON.stringify(htParams.get('doc')));
+    }
+    document.documentElement.setAttribute('dir', window.htDocDirection);
     window.htLayout = htLayouts[htParams.get('layout') ?? 'window'];
     if (!window.htLayout) {
       throw new Error('Unknown ?layout= value: ' + JSON.stringify(htParams.get('layout')));
+    }
+    window.htType = htTypes[htParams.get('type') ?? 'handsontable'];
+    if (!window.htType) {
+      throw new Error('Unknown ?type= value: ' + JSON.stringify(htParams.get('type')));
     }
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
 <body>
   <!--
-    Where the `handsontable` editor's list opens, in the two layouts its horizontal flip
+    Where the `handsontable` editor's list opens (or the `dropdown` editor's, with `?type=dropdown`:
+    it extends the handsontable editor and flips the same way, but sizes its list itself, in
+    `AutocompleteEditor#updateDropdownDimensions`), in the two layouts its horizontal flip
     (`HandsontableEditor#flipDropdownHorizontallyIfNeeded`,
     `handsontable/src/editors/handsontableEditor/handsontableEditor.ts`) measures differently.
 
@@ -94,21 +108,31 @@
         colWidths: 100,
         rowHeaders: true,
         colHeaders: true,
-        type: 'handsontable',
         renderer: testIdRenderer,
-        // The list the visual demo opened, so the list is as wide and as tall as it was there.
-        handsontable: {
-          colHeaders: ['Marque', 'Country', 'Parent company'],
-          autoColumnSize: true,
-          data: [
-            { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
-            { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
-            { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
-            { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
-            { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
-            { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
+        ...(window.htType === 'dropdown' ? {
+          type: 'dropdown',
+          // The options the visual demo's dropdown opened, so the list is as tall as it was there.
+          source: [
+            'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness',
+            'Books & Literature', 'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure',
+            'Art & Collectibles',
           ],
-        },
+        } : {
+          type: 'handsontable',
+          // The list the visual demo opened, so the list is as wide and as tall as it was there.
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            autoColumnSize: true,
+            data: [
+              { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+              { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+              { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+              { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+              { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+              { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
+            ],
+          },
+        }),
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {

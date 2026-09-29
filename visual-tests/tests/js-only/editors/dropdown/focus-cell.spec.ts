@@ -9,9 +9,10 @@ import {
 /**
  * Checks that, in a grid scrolled to its bottom and inline end, the dropdown editor keeps its full list
  * when a letter is typed (the dropdown type sets `filter: false`): it bolds the typed "a" in each option,
- * highlights the first match, and shows the hover state of the third option under the pointer. It is
- * the one capture of an editor's `.listbox` list on every js variant, so the handsontable editor's
- * look checks lean on it too. Owned by DEV-3139.
+ * highlights the first match, and shows the hover state of the third option under the pointer, on
+ * every js variant: the one-column list with its focus and hover tokens. The handsontable editor's
+ * list, which has columns and a header row, has its own capture on every variant in
+ * `editors/handsontable/position-scrolled-viewport`. Owned by DEV-3139.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,

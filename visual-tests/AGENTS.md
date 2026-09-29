@@ -180,7 +180,7 @@ core inlines the main theme stylesheet — plus the four themes), every multi-fr
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
 renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
-the look checks of the menu and editor families render on `main` alone, so the js variants no longer
+most look checks of the menu and editor families render on `main` alone, so the js variants no longer
 render the same count (`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement
 trim). The
 bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
@@ -647,10 +647,13 @@ does for you):
   one capture of an open submenu on every js variant, which guards the seam and border between a menu
   and its submenu on each theme, and four on `main` in the single-theme shape
   [Variant declaration](#variant-declaration) describes. The editors family follows the same rule:
-  where the `handsontable` editor's list opens, in a sized grid and on a page the window scrolls, is asserted in
-  `tests/e2e/handsontable-editor-list-position.spec.ts`, and what stays under `tests/js-only/editors/`
-  is 9 captures, 14 goldens. The native date picker is the browser's, so one capture of it on `main`
-  and `main-dark` proves only that it opens themed.
+  where the `handsontable` and `dropdown` editors' lists open, in a sized grid (with the page in either
+  direction) and on a page the window scrolls, is asserted in
+  `tests/e2e/handsontable-editor-list-position.spec.ts`. What stays under `tests/js-only/editors/` is one
+  capture of each list on every js variant (the handsontable list's columns and header row, and the
+  dropdown's focus and hover tokens) and the RTL mirror of each on `main`. The native date picker is the
+  browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on every js
+  variant, which waits on the input's `:open` state before it photographs.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
