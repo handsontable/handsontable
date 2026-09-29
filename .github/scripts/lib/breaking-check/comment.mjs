@@ -71,10 +71,21 @@ export function renderComment(result) {
     lines.push('');
   }
 
+  if ((result.removedRegistryAdded?.length ?? 0) > 0) {
+    lines.push('Entries added to the removed-hooks and removed-options lists:', '');
+    lines.push(...result.removedRegistryAdded.map((a) => `- ${codeSpan(a.name)} added to \`${a.registry}\``), '');
+  }
+
   const unscored = result.unscoredNames?.length ?? 0;
 
   if (unscored > 0) {
-    lines.push(`${unscored} more removed names were not scored.`, '');
+    lines.push(`${unscored} removed ${unscored === 1 ? 'name was' : 'names were'} not scored.`, '');
+  }
+
+  const unchecked = result.uncheckedCount ?? 0;
+
+  if (unchecked > 0) {
+    lines.push(`${unchecked} more removed ${unchecked === 1 ? 'name was' : 'names were'} not checked.`, '');
   }
 
   if (result.defaultsTouched) {

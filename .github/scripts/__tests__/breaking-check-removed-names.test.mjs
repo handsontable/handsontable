@@ -76,28 +76,37 @@ test('a name counts once, at its first occurrence', () => {
   assert.equal(found[0].file, 'handsontable/src/a.scss');
 });
 
-test('stillPresent: exit 1 is absent, other errors throw, and the grep arguments are the calibrated ones', () => {
+test('stillPresent: exit 1 is absent, other errors throw, and the exclusions mirror requiresChangelog', () => {
   const seen = [];
   const absent = (args) => { seen.push(args); throw Object.assign(new Error('no match'), { status: 1 }); };
 
   assert.equal(stillPresent(absent, 'abc', 'foo'), false);
-  assert.deepEqual(seen[0].slice(0, 6), ['grep', '-q', '-F', '-w', '-e', 'foo']);
-  assert.equal(seen[0][6], 'abc');
-  assert.ok(seen[0].includes(':(exclude)**/__tests__/**'));
-  assert.ok(seen[0].includes(':(exclude)**/*.md'));
+  assert.deepEqual(seen[0].slice(0, 7), ['grep', '-q', '-F', '-w', '-e', 'foo', 'abc']);
+
+  for (const glob of ['__tests__/**', 'test/**', 'test-helpers/**', 'spec/**', '*.spec.*', '*.unit.*', '*.types.ts', '*.md']) {
+    assert.ok(seen[0].includes(`:(exclude)**/${glob}`), glob);
+  }
 
   assert.equal(stillPresent(() => '', 'abc', 'foo'), true);
 
   const broken = () => { throw Object.assign(new Error('bad ref'), { status: 128 }); };
 
   assert.throws(() => stillPresent(broken, 'abc', 'foo'), /bad ref/);
+});
 
-  // A css variable starts with `--`, so it is matched without `-w`.
-  stillPresent(() => '', 'abc', '--ht-x');
+test('stillPresent matches a hyphenated name with an extended regex that needs a non-name character each side', () => {
   const args = [];
 
-  stillPresent((a) => { args.push(a); return ''; }, 'abc', '--ht-x');
-  assert.deepEqual(args[0].slice(0, 5), ['grep', '-q', '-F', '-e', '--ht-x']);
+  stillPresent((a) => { args.push(a); return ''; }, 'abc', '--ht-a.b');
+  assert.deepEqual(args[0].slice(0, 5), ['grep', '-q', '-E', '-e', '(^|[^A-Za-z0-9_-])--ht-a\\.b([^A-Za-z0-9_-]|$)']);
+
+  const regex = new RegExp(args[0][4]);
+
+  assert.ok(regex.test('  --ht-a.b: 1;'));
+  assert.ok(regex.test('var(--ht-a.b)'));
+  assert.ok(!regex.test('--ht-a.b-0: 1;'));
+  assert.ok(!regex.test('--ht-a.bx'));
+  assert.ok(!regex.test('x--ht-a.b'));
 });
 
 test('goneCandidates keeps only names absent at the ref, most public kinds first', () => {
@@ -114,8 +123,9 @@ test('goneCandidates keeps only names absent at the ref, most public kinds first
     }
     throw Object.assign(new Error('no match'), { status: 1 });
   };
-  const gone = goneCandidates({ scope, git, ref: 'HEAD' });
+  const { gone, uncheckedCount } = goneCandidates({ scope, git, ref: 'HEAD' });
 
+  assert.equal(uncheckedCount, 0);
   assert.deepEqual(gone.map((c) => c.name), ['goneExport', 'gone']);
 });
 
@@ -127,9 +137,10 @@ test('goneCandidates checks at most 300 candidates, highest priority first', () 
   const scope = [fileDiff('handsontable/src/a.scss', ['  --ht-late: 1;']), fileDiff('handsontable/src/a.ts', removed)];
   let calls = 0;
   const git = () => { calls += 1; throw Object.assign(new Error('no match'), { status: 1 }); };
-  const gone = goneCandidates({ scope, git, ref: 'HEAD' });
+  const { gone, uncheckedCount } = goneCandidates({ scope, git, ref: 'HEAD' });
 
   assert.equal(calls, 300);
+  assert.equal(uncheckedCount, 51);
   assert.equal(gone[0].name, '--ht-late');
 });
 
@@ -145,4 +156,36 @@ test('buildPublicNameRequest asks one question per name, capped at 40, and escap
   assert.equal(questions.c0.type, 'noul');
   assert.equal(state.removedNames[0].line, 'a &lt;b> c');
   assert.match(state.note, /untrusted data/);
+});
+
+test('matches modifiers, generics, and return types on a one-line signature', () => {
+  const scope = [fileDiff('handsontable/src/plugins/p/p.ts', [
+    '  getSetting<T = any>(key: string): T {',
+    '  override enablePlugin(): void {',
+    '  protected static readonly hidden(): void {',
+  ])];
+
+  assert.deepEqual(kinds(scope), { getSetting: 'method', enablePlugin: 'method', hidden: 'method' });
+});
+
+test('matches a signature split across lines, but not a call that spans lines', () => {
+  const split = [fileDiff('handsontable/src/plugins/p/p.ts', [
+    '  calculateColumnsWidth(',
+    '    from: number,',
+    '    to: number,',
+    '  ): number {',
+    '    return 1;',
+    '  }',
+    '  runQueue(',
+    '    task,',
+    '  );',
+  ])];
+
+  assert.deepEqual(kinds(split), { calculateColumnsWidth: 'method' });
+  assert.deepEqual(kinds([fileDiff('handsontable/src/plugins/p/p.ts', ['  generic<T>(', '  ): void {'])]), { generic: 'method' });
+});
+
+test('a removed `/* ... */` line is a comment', () => {
+  assert.deepEqual(kinds([fileDiff('handsontable/src/a.scss', ['/* uses --ht-old-var */'])]), {});
+  assert.deepEqual(kinds([fileDiff('handsontable/src/a.ts', ['/* export function x() { */'])]), {});
 });

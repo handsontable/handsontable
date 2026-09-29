@@ -3,13 +3,17 @@
  * finder (`removed-names.mjs`), Jev's judgement of which names are public, and
  * the declared-signal detectors (`declared.mjs`) into one result.
  *
- * A pull request is flagged when a removed name looks public to Jev, or when
- * it deletes a non-comment line of `metaSchema` (an option default changed).
+ * A pull request is flagged when a removed name looks public to Jev, when it
+ * deletes a non-comment line of `metaSchema` (an option default changed), or
+ * when it adds an entry to `REMOVED_HOOKS`/`REMOVED_OPTIONS` (the policy's way
+ * of removing a hook or option, which keeps its name in source).
  * Jev is an optional filter: with no client, or when it fails, every gone
  * candidate counts, because at the threshold below Jev almost never rejects one.
  * A single missing or non-numeric answer counts the same way (flag generously).
  * Only the first 40 gone candidates are scored, as calibrated; the rest are
- * reported as `unscoredNames`.
+ * reported as `unscoredNames` and count as flagged with a `null` score too. Jev
+ * is not called at all when the changelog entry already declares the break,
+ * because the comment is suppressed whatever it would answer.
  */
 import { filterScope } from './chunk.mjs';
 import { declaredSignals } from './declared.mjs';
@@ -45,20 +49,22 @@ async function scoreNames(jevClient, request) {
  * @param {{ ask: Function } | null} input.jevClient `null` for the code-only fallback.
  * @returns {Promise<{
  *   removedNames: { name: string, kind: string, file: string, line: string, publicScore: number | null }[],
+ *   removedRegistryAdded: { name: string, registry: string }[],
  *   defaultsTouched: boolean, defaultsEvidence: string | null,
  *   declared: { breakingEntry: boolean, removedRegistryTouched: boolean, deprecationWarnAdded: boolean },
  *   flagged: boolean, jevUsed: boolean, candidateCount: number, sentToJev: number,
- *   unscoredNames: { name: string, kind: string, file: string, line: string }[]
+ *   unscoredNames: { name: string, kind: string, file: string, line: string }[],
+ *   uncheckedCount: number
  * }>}
  */
 export async function detect({ allFiles, git, ref, jevClient }) {
   const scope = filterScope(allFiles);
-  const gone = goneCandidates({ scope, git, ref });
+  const { gone, uncheckedCount } = goneCandidates({ scope, git, ref });
   const signals = declaredSignals(allFiles);
   const request = buildPublicNameRequest(gone);
   let scores = null;
 
-  if (request && jevClient) {
+  if (request && jevClient && !signals.breakingEntry) {
     try {
       scores = await scoreNames(jevClient, request);
     } catch (error) {
@@ -66,15 +72,18 @@ export async function detect({ allFiles, git, ref, jevClient }) {
     }
   }
 
+  const unscoredNames = scores ? gone.slice(scores.length) : [];
   const removedNames = scores
     ? gone
       .slice(0, scores.length)
       .map((c, i) => ({ ...c, publicScore: scores[i] }))
       .filter((c) => c.publicScore === null || c.publicScore >= PUBLIC_NAME_THRESHOLD)
+      .concat(unscoredNames.map((c) => ({ ...c, publicScore: null })))
     : gone.map((c) => ({ ...c, publicScore: null }));
 
   return {
     removedNames,
+    removedRegistryAdded: signals.removedRegistryAdded,
     defaultsTouched: signals.defaultsTouched,
     defaultsEvidence: signals.evidence.defaultsTouched,
     declared: {
@@ -82,10 +91,11 @@ export async function detect({ allFiles, git, ref, jevClient }) {
       removedRegistryTouched: signals.removedRegistryTouched,
       deprecationWarnAdded: signals.deprecationWarnAdded,
     },
-    flagged: removedNames.length > 0 || signals.defaultsTouched,
+    flagged: removedNames.length > 0 || signals.removedRegistryAdded.length > 0 || signals.defaultsTouched,
     jevUsed: scores !== null,
     candidateCount: gone.length,
-    sentToJev: request ? Object.keys(request.questions).length : 0,
-    unscoredNames: scores ? gone.slice(scores.length) : [],
+    sentToJev: scores ? scores.length : 0,
+    unscoredNames,
+    uncheckedCount,
   };
 }

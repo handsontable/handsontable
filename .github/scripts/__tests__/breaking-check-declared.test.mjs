@@ -5,6 +5,7 @@ import {
   detectBreakingEntry,
   detectDefaultsTouched,
   detectDeprecationWarnAdded,
+  detectRemovedRegistryAdded,
   detectRemovedRegistryTouched,
 } from '../lib/breaking-check/declared.mjs';
 
@@ -254,4 +255,43 @@ test('declaredSignals combines all four detectors with their evidence', () => {
   assert.ok(result.evidence.breakingEntry);
   assert.ok(result.evidence.defaultsTouched);
   assert.equal(result.evidence.removedRegistryTouched, null);
+});
+
+// --- detectRemovedRegistryAdded ---
+
+test('detectRemovedRegistryAdded: finds an added REMOVED_HOOKS entry and ignores deprecated-hook messages', () => {
+  const files = [
+    fileDiff('handsontable/src/core/hooks/constants.ts', [
+      '@@ -4280,2 +4280,4 @@',
+      "+  ['afterGone', '19.0.0'],",
+      "+  ['beforeOld', 'The plugin hook \"beforeOld\" is deprecated.'],",
+    ]),
+  ];
+
+  assert.deepEqual(detectRemovedRegistryAdded(files).removedRegistryAdded, [{ name: 'afterGone', registry: 'REMOVED_HOOKS' }]);
+});
+
+test('detectRemovedRegistryAdded: finds an added REMOVED_OPTIONS entry only when it is added whole', () => {
+  const entry = [
+    '@@ -190,2 +190,6 @@',
+    '+  {',
+    "+    name: 'oldOption',",
+    "+    version: '19.0.0',",
+    "+    migrationUrl: 'https://example.test',",
+    '+  },',
+  ];
+  const lone = ['@@ -50,2 +50,3 @@', "+    name: 'unrelated',"];
+
+  assert.deepEqual(
+    detectRemovedRegistryAdded([fileDiff('handsontable/src/core.ts', entry)]).removedRegistryAdded,
+    [{ name: 'oldOption', registry: 'REMOVED_OPTIONS' }],
+  );
+  assert.deepEqual(detectRemovedRegistryAdded([fileDiff('handsontable/src/core.ts', lone)]).removedRegistryAdded, []);
+  assert.equal(detectRemovedRegistryAdded([]).evidence, null);
+});
+
+test('detectDefaultsTouched: a removed `/* ... */` comment line does not count', () => {
+  const files = [fileDiff('handsontable/src/dataMap/metaManager/metaSchema.ts', ['@@ -1,2 +1,1 @@', '-  /* old note */'])];
+
+  assert.equal(detectDefaultsTouched(files).defaultsTouched, false);
 });

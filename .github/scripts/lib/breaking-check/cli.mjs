@@ -111,6 +111,10 @@ export function summarize(result) {
     lines.push(`  - ${item.name} (${item.kind}) ${item.file}${score}`);
   }
 
+  if ((result.removedRegistryAdded?.length ?? 0) > 0) {
+    lines.push(`Added to removed lists: ${result.removedRegistryAdded.map((a) => `${a.name} (${a.registry})`).join(', ')}`);
+  }
+
   lines.push(`Option default changed: ${result.defaultsTouched ? `yes, ${result.defaultsEvidence}` : 'no'}`);
 
   return lines.join('\n');

@@ -1,10 +1,36 @@
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  mkdirSync, mkdtempSync, rmSync, writeFileSync,
+} from 'node:fs';
+import { devNull, tmpdir } from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
+
+// A git hook exports GIT_DIR and a developer's global config can sign commits or set core.hooksPath;
+// either would make the fixture depend on the machine (same isolation as lint-ratchet-cli).
+const GIT_ENV = {
+  ...process.env,
+  GIT_CONFIG_GLOBAL: devNull,
+  GIT_CONFIG_NOSYSTEM: '1',
+  GIT_AUTHOR_NAME: 'breaking-check test',
+  GIT_AUTHOR_EMAIL: 'breaking-check@test.invalid',
+  GIT_COMMITTER_NAME: 'breaking-check test',
+  GIT_COMMITTER_EMAIL: 'breaking-check@test.invalid',
+};
+
+delete GIT_ENV.GIT_DIR;
+delete GIT_ENV.GIT_WORK_TREE;
+delete GIT_ENV.GIT_INDEX_FILE;
+
+const repos = [];
+
+after(() => {
+  for (const dir of repos) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 const script = path.join(repoRoot(), '.github/scripts/breaking-check.mjs');
 
@@ -15,14 +41,19 @@ const script = path.join(repoRoot(), '.github/scripts/breaking-check.mjs');
  */
 function buildRepo() {
   const dir = mkdtempSync(path.join(tmpdir(), 'breaking-check-repo-'));
-  const git = (...args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+
+  repos.push(dir);
+
+  const git = (...args) => execFileSync('git', args, {
+    cwd: dir, env: GIT_ENV, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+  });
   const write = (rel, text) => {
     mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
     writeFileSync(path.join(dir, rel), text);
   };
   const commit = (message) => {
     git('add', '-A');
-    git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', message);
+    git('commit', '-q', '-m', message);
   };
   const methods = (names) => `export class P {\n${names.map((n) => `  ${n}() {\n  }\n`).join('')}}\n`;
 
@@ -39,12 +70,12 @@ function buildRepo() {
   write('handsontable/src/plugins/q/q.ts', methods(['baseGoneLate', 'qStays']));
   commit('base moves 1');
   git('checkout', '-q', 'feature');
-  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-edit', 'main');
+  git('merge', '-q', '--no-edit', 'main');
   git('checkout', '-q', 'main');
   write('handsontable/src/plugins/q/q.ts', methods(['qStays']));
   commit('base moves 2');
   git('checkout', '-q', '-b', 'pr-merge');
-  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-ff', '--no-edit', 'feature');
+  git('merge', '-q', '--no-ff', '--no-edit', 'feature');
 
   return dir;
 }
@@ -52,7 +83,7 @@ function buildRepo() {
 const runCli = (dir, ...args) => JSON.parse(execFileSync(
   process.execPath,
   [script, '--cwd', dir, '--no-jev', '--json', ...args],
-  { encoding: 'utf8', env: { PATH: process.env.PATH } },
+  { encoding: 'utf8', env: GIT_ENV },
 ));
 
 test('--merge-parent reports only the pull request own removals, not base commits merged in either side', () => {
@@ -73,7 +104,7 @@ test('a name that survives only under __tests__ or in a .md file counts as gone'
 
 test('--merge-parent on a non-merge commit reports no findings', () => {
   const dir = buildRepo();
-  const git = (...args) => execFileSync('git', args, { cwd: dir, stdio: 'ignore' });
+  const git = (...args) => execFileSync('git', args, { cwd: dir, env: GIT_ENV, stdio: 'ignore' });
 
   git('checkout', '-q', 'feature~1');
 

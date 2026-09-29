@@ -87,10 +87,24 @@ test('text from a diff cannot break out of a code span', () => {
   assert.match(text, /appears to change: ``- `tick`: 1, next line``/);
 });
 
-test('says how many removed names were not scored', () => {
-  assert.match(
-    renderComment(result({ unscoredNames: [{ name: 'a' }, { name: 'b' }] })),
-    /2 more removed names were not scored\./,
-  );
+test('says how many removed names were not scored, singular and plural', () => {
+  assert.match(renderComment(result({ unscoredNames: [{ name: 'a' }, { name: 'b' }] })), /2 removed names were not scored\./);
+  assert.match(renderComment(result({ unscoredNames: [{ name: 'a' }] })), /1 removed name was not scored\./);
   assert.doesNotMatch(renderComment(result({ unscoredNames: [] })), /not scored/);
+});
+
+test('says how many removed names were beyond the check cap', () => {
+  assert.match(renderComment(result({ uncheckedCount: 7 })), /7 more removed names were not checked\./);
+  assert.match(renderComment(result({ uncheckedCount: 1 })), /1 more removed name was not checked\./);
+  assert.doesNotMatch(renderComment(result({ uncheckedCount: 0 })), /not checked\./);
+});
+
+test('lists entries added to the removed-hooks and removed-options lists', () => {
+  const text = renderComment(result({
+    removedNames: [],
+    removedRegistryAdded: [{ name: 'afterGone', registry: 'REMOVED_HOOKS' }, { name: 'oldOption', registry: 'REMOVED_OPTIONS' }],
+  }));
+
+  assert.match(text, /- `afterGone` added to `REMOVED_HOOKS`/);
+  assert.match(text, /- `oldOption` added to `REMOVED_OPTIONS`/);
 });

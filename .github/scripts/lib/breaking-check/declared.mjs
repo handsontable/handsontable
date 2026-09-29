@@ -10,9 +10,9 @@
  * heuristic over the diff, not a semantic check, and each documents its own
  * blind spots below.
  *
- * `detect.mjs` acts on two of the four: `breakingEntry` suppresses the advisory
- * comment, and `defaultsTouched` flags a pull request. `removedRegistryTouched`
- * and `deprecationWarnAdded` are informational only: they are reported in the
+ * `detect.mjs` acts on three: `breakingEntry` suppresses the advisory comment,
+ * and `defaultsTouched` and `removedRegistryAdded` flag a pull request.
+ * `removedRegistryTouched` and `deprecationWarnAdded` are informational only: they are reported in the
  * result but change no decision.
  */
 
@@ -162,7 +162,7 @@ export function detectDeprecationWarnAdded(files) {
  * that is not a comment. Only removals count: changing an existing default
  * always removes its old line, while adding a new option only adds lines, and a
  * new option is not a breaking change. A comment line is one whose content (after the +/- marker,
- * trimmed) starts with `*`, `/**`, or `//` -- the deliberately simple rule used here,
+ * trimmed) starts with `*`, `/*`, or `//` -- the deliberately simple rule used here,
  * not a real comment-aware lexer (unlike
  * `presence-gate.mjs`'s `isCommentOnlyChange`), so a line like
  * `+  someCode(); // trailing comment` still counts as code, and a block
@@ -190,7 +190,7 @@ export function detectDefaultsTouched(files) {
 
     const content = line.slice(1).trimStart();
 
-    if (content === '' || content.startsWith('*') || content.startsWith('/**') || content.startsWith('//')) {
+    if (content === '' || content.startsWith('*') || content.startsWith('/*') || content.startsWith('//')) {
       continue;
     }
 
@@ -201,6 +201,54 @@ export function detectDefaultsTouched(files) {
 }
 
 /**
+ * Entries the diff ADDS to `REMOVED_OPTIONS` (`handsontable/src/core.ts`) or
+ * `REMOVED_HOOKS` (`handsontable/src/core/hooks/constants.ts`): the policy's
+ * way of removing an option or hook once its deprecation ends. The name stays
+ * in the file, so the removed-name search never sees it; this is the signal
+ * that does.
+ *
+ * A hook entry is an added `['name', 'X.Y.Z']` line. An option entry is an
+ * added `name: 'x'` line in a hunk that also adds a `version:` line, because
+ * an entry is added whole. Deprecated-hook entries carry a message, not a
+ * version, so they do not match.
+ *
+ * @param {{ path: string, text: string }[]} files
+ * @returns {{ removedRegistryAdded: { name: string, registry: string }[], evidence: string | null }}
+ */
+export function detectRemovedRegistryAdded(files) {
+  const added = [];
+  const hooks = files.find((f) => f.path === 'handsontable/src/core/hooks/constants.ts');
+  const core = files.find((f) => f.path === 'handsontable/src/core.ts');
+
+  for (const line of hooks ? changedLines(hooks.text, '+') : []) {
+    const m = line.match(/^\+\s*\['([A-Za-z]\w*)',\s*'\d+\.\d+\.\d+'\]/);
+
+    if (m) {
+      added.push({ name: m[1], registry: 'REMOVED_HOOKS' });
+    }
+  }
+
+  for (const hunk of core ? hunkTexts(core.text) : []) {
+    const lines = changedLines(hunk, '+');
+
+    if (lines.some((line) => /^\+\s*version:/.test(line))) {
+      for (const line of lines) {
+        const m = line.match(/^\+\s*name:\s*'([A-Za-z]\w*)'/);
+
+        if (m) {
+          added.push({ name: m[1], registry: 'REMOVED_OPTIONS' });
+        }
+      }
+    }
+  }
+
+  return {
+    removedRegistryAdded: added,
+    evidence: added.length > 0 ? added.map((a) => `${a.name} -> ${a.registry}`).join(', ') : null,
+  };
+}
+
+/**
  * Run every declared-signal detector over one commit's per-file diff.
  *
  * @param {{ path: string, text: string }[]} files `splitDiffByFile()` output,
@@ -208,6 +256,7 @@ export function detectDefaultsTouched(files) {
  * @returns {{
  *   breakingEntry: boolean, removedRegistryTouched: boolean,
  *   deprecationWarnAdded: boolean, defaultsTouched: boolean,
+ *   removedRegistryAdded: { name: string, registry: string }[],
  *   evidence: Record<string, string | null>
  * }}
  */
@@ -216,8 +265,10 @@ export function declaredSignals(files) {
   const removedRegistryTouched = detectRemovedRegistryTouched(files);
   const deprecationWarnAdded = detectDeprecationWarnAdded(files);
   const defaultsTouched = detectDefaultsTouched(files);
+  const removedRegistryAdded = detectRemovedRegistryAdded(files);
 
   return {
+    removedRegistryAdded: removedRegistryAdded.removedRegistryAdded,
     breakingEntry: breakingEntry.breakingEntry,
     removedRegistryTouched: removedRegistryTouched.removedRegistryTouched,
     deprecationWarnAdded: deprecationWarnAdded.deprecationWarnAdded,
@@ -227,6 +278,7 @@ export function declaredSignals(files) {
       removedRegistryTouched: removedRegistryTouched.evidence,
       deprecationWarnAdded: deprecationWarnAdded.evidence,
       defaultsTouched: defaultsTouched.evidence,
+      removedRegistryAdded: removedRegistryAdded.evidence,
     },
   };
 }

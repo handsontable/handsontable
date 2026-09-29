@@ -34,6 +34,9 @@ test('triggers on pull requests touching shippable source or the check itself', 
     '.github/scripts/lib/breaking-check/**',
     '.github/scripts/lib/docs-sync/github.mjs',
     '.github/scripts/lib/changelog-gate.mjs',
+    '.github/scripts/lib/presence-gate.mjs',
+    '.github/scripts/lib/strip-html-comments.mjs',
+    '.github/scripts/lib/repo-root.mjs',
     '.github/workflows/breaking-check.yml',
   ]) {
     assert.ok(source.includes(`- '${glob}'`), `missing path filter ${glob}`);
@@ -100,5 +103,31 @@ test('no other workflow references the check, so it cannot become a CI Gate inpu
       /breaking-check/,
       `${file} references breaking-check; the check must stay advisory and standalone`,
     );
+  }
+});
+
+test('paths cover every module the entry point imports, transitively', () => {
+  const scripts = path.join(repoRoot(), '.github/scripts');
+  const seen = new Set();
+  const walk = (file) => {
+    if (seen.has(file)) {
+      return;
+    }
+    seen.add(file);
+
+    for (const match of readFileSync(file, 'utf8').matchAll(/from\s+'(\.[^']+)'/g)) {
+      walk(path.resolve(path.dirname(file), match[1]));
+    }
+  };
+
+  walk(path.join(scripts, 'breaking-check.mjs'));
+
+  for (const file of seen) {
+    const rel = path.relative(repoRoot(), file).split(path.sep).join('/');
+    const covered = rel.startsWith('.github/scripts/lib/breaking-check/')
+      ? source.includes("'.github/scripts/lib/breaking-check/**'")
+      : source.includes(`'${rel}'`);
+
+    assert.ok(covered, `${rel} is imported by the check but missing from the workflow paths`);
   }
 });

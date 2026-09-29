@@ -16,6 +16,9 @@ on:
       - '.github/scripts/lib/breaking-check/**'
       - '.github/scripts/lib/docs-sync/github.mjs'
       - '.github/scripts/lib/changelog-gate.mjs'
+      - '.github/scripts/lib/presence-gate.mjs'
+      - '.github/scripts/lib/strip-html-comments.mjs'
+      - '.github/scripts/lib/repo-root.mjs'
       - '.github/workflows/breaking-check.yml'
 
 permissions:
