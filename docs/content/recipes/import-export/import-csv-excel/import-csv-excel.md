@@ -1,7 +1,7 @@
 ---
 title: Import from CSV or Excel
 metaTitle: Import CSV or Excel - JavaScript Data Grid | Handsontable
-description: Load CSV or XLSX files into Handsontable with PapaParse and SheetJS, preview headers, and handle errors in the browser.
+description: Load CSV or XLSX files into Handsontable with PapaParse and read-excel-file, preview headers, and handle errors in the browser.
 permalink: /recipes/import-export/import-csv-excel
 canonicalUrl: /recipes/import-export/import-csv-excel
 tags:
@@ -21,7 +21,7 @@ category: Import and Export
 type: how-to
 ---
 
-In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and SheetJS to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.
+In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and read-excel-file to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.
 
 [[toc]]
 
@@ -31,17 +31,17 @@ This recipe shows a small UI with:
 
 - A drag-and-drop zone and a hidden file input.
 - File type detection by extension (`.csv` vs `.xlsx`) and routing to the right parser.
-- [PapaParse](https://www.papaparse.com/) for CSV and [SheetJS](https://sheetjs.com/) (`xlsx`) for Excel workbooks.
+- [PapaParse](https://www.papaparse.com/) for CSV and [read-excel-file](https://www.npmjs.com/package/read-excel-file) for Excel workbooks.
 - A header preview before you commit data to the grid.
 - Clear error messages for wrong type, empty files, and malformed content.
 
 **Difficulty:** Intermediate  
 **Time:** ~20 minutes  
-**Libraries:** `papaparse`, `xlsx` (npm in the docs build; CDN scripts at runtime for your own HTML pages)
+**Libraries:** `papaparse`, `read-excel-file` (npm in the docs build; CDN scripts at runtime for your own HTML pages)
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps papaparse xlsx
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps papaparse read-excel-file
 
 @[code](@/content/recipes/import-export/import-csv-excel/javascript/example1.js)
 @[code](@/content/recipes/import-export/import-csv-excel/javascript/example1.ts)
@@ -65,7 +65,7 @@ This recipe shows a small UI with:
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse xlsx
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse read-excel-file
 
 @[code](@/content/recipes/import-export/import-csv-excel/angular/example1.ts)
 @[code](@/content/recipes/import-export/import-csv-excel/angular/example1.html)
@@ -81,10 +81,10 @@ For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versio
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js"></script>
 ```
 
-The live example imports `papaparse` and `xlsx` as modules for the docs preview, and loads the same URLs when `window.Papa` / `window.XLSX` are missing so the pattern matches a script-tag setup.
+The JavaScript and React examples load the same URLs on demand when `window.Papa` / `window.readXlsxFile` are missing, so the pattern matches a script-tag setup. The Angular example imports `papaparse` and `read-excel-file/browser` from npm instead.
 
 ## Step 1: Accept files and detect type
 
@@ -260,41 +260,36 @@ function parseCsvText(text, PapaRef) {
 - PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
 - Used when the user clicks **Load sample data** to parse a CSV string embedded in the script and feed it into the grid.
 
-## Step 3: Parse Excel with SheetJS
+## Step 3: Parse Excel with read-excel-file
 
-### Lazy-load SheetJS
+### Lazy-load read-excel-file
 
-The `ensureXlsx` function follows the same lazy-load pattern as `ensurePapa`:
+The `ensureReadExcelFile` function follows the same lazy-load pattern as `ensurePapa`:
 
 ```javascript
-async function ensureXlsx() {
-  if (typeof window.XLSX !== 'undefined') return window.XLSX;
-  await loadScript(CDN_XLSX);
-  if (typeof window.XLSX === 'undefined') throw new Error('SheetJS did not register on window.');
-  return window.XLSX;
+async function ensureReadExcelFile() {
+  if (typeof window.readXlsxFile !== 'undefined') return window.readXlsxFile;
+  await loadScript(CDN_READ_EXCEL_FILE);
+  if (typeof window.readXlsxFile === 'undefined') throw new Error('read-excel-file did not register on window.');
+  return window.readXlsxFile;
 }
 ```
 
 ### Parse an Excel file
 
 ```javascript
-function parseXlsxArrayBuffer(buf, XLSXRef) {
-  let workbook;
+async function parseXlsxFile(file, readXlsxFileRef) {
+  let sheets;
   try {
-    workbook = XLSXRef.read(buf, { type: 'array' });
+    sheets = await readXlsxFileRef(file);
   } catch {
     throw new Error('Could not read the Excel workbook. The file may be corrupted.');
   }
 
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw new Error('The workbook has no sheets.');
+  const firstSheet = sheets[0];
+  if (!firstSheet) throw new Error('The workbook has no sheets.');
 
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: null,
-    raw: true,
-  });
+  const matrix = firstSheet.data;
   if (!matrix.length) throw new Error('The sheet is empty.');
 
   const rawHeader = matrix[0].map((cell) => String(cell ?? '').trim());
@@ -317,6 +312,8 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
         obj[keys[c]] = null;
       } else if (typeof raw === 'number' || typeof raw === 'boolean') {
         obj[keys[c]] = raw;
+      } else if (raw instanceof Date) {
+        obj[keys[c]] = raw.toISOString().slice(0, 10);
       } else {
         const s = String(raw).trim();
         obj[keys[c]] = s === '' ? null : s;
@@ -331,13 +328,12 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
 ```
 
 **What's happening:**
-1. `file.arrayBuffer()` reads the binary content; `XLSX.read(buf, { type: 'array' })` parses the workbook. The call is wrapped in a `try/catch` to surface corrupted file errors.
-2. `workbook.SheetNames[0]` picks the first sheet. Multi-sheet workbooks are supported -- extend this if you need a sheet picker.
-3. `sheet_to_json(sheet, { header: 1 })` returns a two-dimensional array (matrix) instead of objects, so row 0 is the raw header line and rows 1+ are data.
-4. `defval: null` marks missing cells explicitly, while `raw: true` keeps native SheetJS value types.
-5. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...) to avoid unnamed keys.
-6. Rows that are entirely empty (all cells blank) are skipped -- common in Excel files with trailing blank rows.
-7. Native numbers and booleans are preserved, strings are trimmed, and blank cells become `null` for consistency with the CSV parser.
+1. `readXlsxFile(file)` reads the `File` and resolves to every sheet in the workbook, as `[{ sheet, data }]`. The call is wrapped in a `try/catch` to surface corrupted file errors.
+2. `sheets[0]` picks the first sheet. Multi-sheet workbooks are supported -- extend this if you need a sheet picker.
+3. `data` is a two-dimensional array (matrix), so row 0 is the raw header line and rows 1+ are data. Empty cells are `null`.
+4. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...) to avoid unnamed keys.
+5. Rows that are entirely empty (all cells blank) are skipped -- common in Excel files with blank rows between data.
+6. Native numbers and booleans are preserved, date cells become `YYYY-MM-DD` strings, other strings are trimmed, and blank cells become `null` for consistency with the CSV parser.
 
 ### Route to the right parser
 
@@ -349,9 +345,8 @@ async function parseFile(file) {
     return parseCsvFile(file, PapaRef);
   }
   if (ext === 'xlsx') {
-    const XLSXRef = await ensureXlsx();
-    const buf = await file.arrayBuffer();
-    return parseXlsxArrayBuffer(buf, XLSXRef);
+    const readXlsxFileRef = await ensureReadExcelFile();
+    return parseXlsxFile(file, readXlsxFileRef);
   }
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
 }
@@ -359,7 +354,7 @@ async function parseFile(file) {
 
 **What's happening:**
 - `extensionOf` extracts the lowercase extension. Only `.csv` and `.xlsx` are handled; anything else throws immediately before any network request is made.
-- The library is loaded on demand: PapaParse for CSV, SheetJS for Excel. If only CSV files are imported, SheetJS is never downloaded.
+- The library is loaded on demand: PapaParse for CSV, read-excel-file for Excel. If only CSV files are imported, read-excel-file is never downloaded.
 - Both parsers return the same shape: `{ headers: string[], rows: object[] }` -- the rest of the code does not need to know which parser ran.
 
 ## Step 4: Load parsed data into the grid
@@ -518,7 +513,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 1. **User picks or drops a file (or clicks Load sample data)** -- the `change`, `drop`, or sample button event fires and reaches `handleFile` / the sample handler.
 2. **File size check** -- zero-byte files are rejected immediately (file path only).
 3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand. The sample path always uses PapaParse via `parseCsvText`.
-4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel is read via SheetJS with `sheet_to_json` and row-0 as the header line.
+4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel is read via read-excel-file, which returns each sheet as a matrix with row 0 as the header line.
 5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
 6. **Grid population** -- `loadIntoGrid` creates the Handsontable instance on the first call (hiding the empty-state panel) or updates `colHeaders`, `columns`, and data on subsequent calls.
 7. **Grid renders** -- Handsontable re-renders with the new columns and data.
@@ -526,7 +521,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 ## What you learned
 
-- How to detect the file type by extension and route CSV files through PapaParse and Excel files through SheetJS with a single handler function.
+- How to detect the file type by extension and route CSV files through PapaParse and Excel files through read-excel-file with a single handler function.
 - How to ship a bundled CSV sample so users can demo the grid without uploading a file first.
 - How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step, and how to lazy-instantiate Handsontable behind an empty-state panel.
 - How to handle errors at each stage -- file size, parsing, and grid load -- and surface them in a dedicated error panel.

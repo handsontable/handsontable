@@ -2,7 +2,8 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import type readXlsxFile from 'read-excel-file/browser';
+import type { Sheet } from 'read-excel-file/browser';
 
 registerAllModules();
 
@@ -15,12 +16,12 @@ type ParsedCellValue = string | number | boolean | null;
 type ParsedRow = Record<string, ParsedCellValue>;
 
 const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
-const CDN_XLSX = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+const CDN_READ_EXCEL_FILE = 'https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js';
 
 declare global {
   interface Window {
     Papa?: typeof Papa;
-    XLSX?: typeof XLSX;
+    readXlsxFile?: typeof readXlsxFile;
   }
 }
 
@@ -82,18 +83,18 @@ async function ensurePapa(): Promise<typeof Papa> {
   return window.Papa;
 }
 
-async function ensureXlsx(): Promise<typeof XLSX> {
-  if (typeof window.XLSX !== 'undefined') {
-    return window.XLSX;
+async function ensureReadExcelFile(): Promise<typeof readXlsxFile> {
+  if (typeof window.readXlsxFile !== 'undefined') {
+    return window.readXlsxFile;
   }
 
-  await loadScript(CDN_XLSX);
+  await loadScript(CDN_READ_EXCEL_FILE);
 
-  if (typeof window.XLSX === 'undefined') {
-    throw new Error('SheetJS did not register on window.');
+  if (typeof window.readXlsxFile === 'undefined') {
+    throw new Error('read-excel-file did not register on window.');
   }
 
-  return window.XLSX;
+  return window.readXlsxFile;
 }
 
 function extensionOf(name: string): string {
@@ -127,6 +128,10 @@ function normalizeCellValue(value: unknown): ParsedCellValue {
 
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
   }
 
   const text = String(value).trim();
@@ -200,27 +205,22 @@ async function parseCsvFile(file: File, PapaRef: typeof Papa): Promise<ParsedPay
   });
 }
 
-function parseXlsxArrayBuffer(buf: ArrayBuffer, XLSXRef: typeof XLSX): ParsedPayload {
-  let workbook: XLSX.WorkBook;
+async function parseXlsxFile(file: File, readXlsxFileRef: typeof readXlsxFile): Promise<ParsedPayload> {
+  let sheets: Sheet[];
 
   try {
-    workbook = XLSXRef.read(buf, { type: 'array' });
+    sheets = await readXlsxFileRef(file);
   } catch {
     throw new Error('Could not read the Excel workbook. The file may be corrupted.');
   }
 
-  const sheetName = workbook.SheetNames[0];
+  const firstSheet = sheets[0];
 
-  if (!sheetName) {
+  if (!firstSheet) {
     throw new Error('The workbook has no sheets.');
   }
 
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: null,
-    raw: true,
-  }) as unknown[][];
+  const matrix: unknown[][] = firstSheet.data;
 
   if (!matrix.length) {
     throw new Error('The sheet is empty.');
@@ -273,10 +273,9 @@ async function parseFile(file: File): Promise<ParsedPayload> {
   }
 
   if (ext === 'xlsx') {
-    const XLSXRef = await ensureXlsx();
-    const buf = await file.arrayBuffer();
+    const readXlsxFileRef = await ensureReadExcelFile();
 
-    return parseXlsxArrayBuffer(buf, XLSXRef);
+    return parseXlsxFile(file, readXlsxFileRef);
   }
 
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
