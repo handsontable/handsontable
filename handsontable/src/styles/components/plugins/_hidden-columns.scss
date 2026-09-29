@@ -35,6 +35,10 @@
       // unlike every other icon slot.
       width: 10px !important;
       height: 10px !important;
+      // A font or ligature mapping (`.ht-icon--external`) sizes its glyph by `font-size`, which
+      // that rule sets to `--ht-icon-size`: without this the glyph overflowed the 10x10 box by
+      // about 6px and sat off-centre. A mask glyph ignores it.
+      font-size: 10px;
       transform: translateY(-50%);
       color: var(--ht-hidden-indicator-color);
     }

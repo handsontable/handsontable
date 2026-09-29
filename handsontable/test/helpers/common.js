@@ -2002,7 +2002,7 @@ class DataTransferObject {
 }
 
 /**
- * Returns the sort-direction indicator element (`<i class="ht-icon ht-sort-indicator">`, DEV-3003)
+ * Returns the sort-direction indicator element (`<i class="ht-icon ht-sort-indicator">`)
  * that belongs to a column header label, or `null` when the column carries no indicator.
  *
  * @param {HTMLElement} headerLabel The `.colHeader` label element of the header.
@@ -2010,4 +2010,25 @@ class DataTransferObject {
  */
 export function getSortIndicatorIcon(headerLabel) {
   return headerLabel.closest('.relative')?.querySelector('.ht-sort-indicator') ?? null;
+}
+
+/**
+ * Tells whether an icon element actually paints a mask glyph: it exists, its computed
+ * `mask-image` is a `url(...)` (the theme's `--ht-icon-<name>` variable resolved), and it has a
+ * non-zero box. An element that merely exists passes a presence check even when a CSS change
+ * blanks the glyph, which is what this guards against.
+ *
+ * @param {HTMLElement|null} icon The `<i class="ht-icon">` element.
+ * @returns {boolean}
+ */
+export function isIconPainted(icon) {
+  if (!icon) {
+    return false;
+  }
+
+  const style = window.getComputedStyle(icon);
+  const maskImage = style.getPropertyValue('mask-image') || style.getPropertyValue('-webkit-mask-image');
+  const rect = icon.getBoundingClientRect();
+
+  return /url\(/.test(maskImage) && rect.width > 0 && rect.height > 0;
 }

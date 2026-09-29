@@ -49,14 +49,6 @@ describe('ColumnSorting', () => {
     ['Robert', 'Evans', '07/24/2020', 30500, undefined]
   ];
 
-  /**
-   * Returns the sort-direction indicator icon for a header label, or `null` when the header shows
-   * none. DEV-3003: the indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
-   * label inside `.relative`, not a `::before` pseudo-element on the label.
-   *
-   * @param {HTMLElement} headerLabel The `span.colHeader`/`span.columnSorting` label element.
-   * @returns {HTMLElement|null}
-   */
   it('should sort table by first visible column', async() => {
     handsontable({
       data: [
@@ -233,6 +225,7 @@ describe('ColumnSorting', () => {
       const icon = getSortIndicatorIcon(sortedColumn);
 
       expect(icon).not.toBe(null);
+      expect(isIconPainted(icon)).toBe(true);
 
       // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
       // `_column-sorting.scss` against the header's `.relative` container with
@@ -2345,13 +2338,13 @@ describe('ColumnSorting', () => {
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     await spec().sortByClickOnColumnHeader(1);
 
@@ -2380,37 +2373,37 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
   });
 
   it('should change sorting indicator state when initial column sorting was provided', async() => {
@@ -2435,7 +2428,7 @@ describe('ColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort();
 
@@ -2447,13 +2440,13 @@ describe('ColumnSorting', () => {
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('columnSorting').sort();
 
@@ -3051,6 +3044,7 @@ describe('ColumnSorting', () => {
       const icon = getSortIndicatorIcon(label);
 
       expect(icon).not.toBe(null);
+      expect(isIconPainted(icon)).toBe(true);
 
       // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, so its box is read
       // straight off the element instead of derived from `::before` computed style.

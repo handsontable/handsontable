@@ -944,6 +944,33 @@ describe('ThemeManager', () => {
         expect(icon.getAttribute('aria-hidden')).toBe('true');
       });
 
+      it('falls back to the built-in glyph and warns once when a renderer callback throws', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const renderer = jest.fn((element) => {
+          element.textContent = 'partial';
+          throw new Error('broken renderer');
+        });
+        const manager = createThemeManager({
+          hot: hot(),
+          themeObject: createTheme(createValidThemeConfig({ name: 'throwing-renderer', icons: { menu: renderer } })),
+        });
+
+        let first;
+
+        expect(() => { first = manager.createIcon('menu', { className: 'slot' }); }).not.toThrow();
+        expect(() => manager.applyIcon(first, 'menu', { className: 'slot' })).not.toThrow();
+
+        expect(renderer).toHaveBeenCalledTimes(2);
+        expect(first.className).toBe('ht-icon ht-icon-menu slot');
+        expect(first.textContent).toBe('');
+        expect(first.getAttribute('aria-hidden')).toBe('true');
+
+        const rendererWarnings = warnSpy.mock.calls.filter(([message]) => /"menu" icon renderer threw/.test(message));
+
+        expect(rendererWarnings.length).toBe(1);
+        warnSpy.mockRestore();
+      });
+
       describe('getIconsRevision (DEV-3003)', () => {
         it('bumps the revision on every path that re-resolves icons, so `syncIcon()`\'s ' +
           'keep-path guard can never be bypassed by a re-resolve it does not know about', () => {

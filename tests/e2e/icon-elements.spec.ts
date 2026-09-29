@@ -2805,4 +2805,213 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(style.maskImage).toContain('linear-gradient');
     });
   });
+
+  test.describe('icons keep painting through theme changes and user markup', () => {
+    type Hot = { hot: any };
+
+    // A theme object builds a ThemeManager; `updateSettings({ theme: '<class name>' })` destroys
+    // it. Icons the manager built with a class-list mapping carry `ht-icon--external`, which turns
+    // the mask off, so a kept element would stay blank on the class-name theme.
+    test('switching from a theme object to a class-name theme puts kept icons back on their glyph', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler' });
+
+      const menuIcon = page.locator('.ht_clone_top th .changeType .ht-icon').first();
+      const nextIcon = page.locator('.ht-page-next .ht-icon');
+
+      await expect(menuIcon).toHaveClass(/ti-menu/);
+      await expect(nextIcon).toHaveClass(/ti-chevron-right/);
+
+      await page.evaluate((themeName) => {
+        (window as unknown as Hot).hot.updateSettings({ theme: `ht-theme-${themeName}` });
+      }, theme);
+
+      expect(await page.evaluate(() => (window as unknown as Hot).hot.themeManager)).toBeNull();
+
+      for (const icon of [menuIcon, nextIcon]) {
+        await expect(icon).toHaveCount(1);
+        await expect(icon).not.toHaveClass(/ht-icon--external/);
+        await expect(icon).not.toHaveClass(/\bti\b/);
+        expect(await grid.maskImage(icon)).toMatch(/url\(/);
+      }
+    });
+
+    // The caret is a child of the header `th`. A user `afterGetColHeader` hook runs after the
+    // plugin's, so one that rewrites `TH.innerHTML` removes it - a documented difference from the
+    // 18.1 pseudo-element. Writing into the header's `.colHeader` label keeps it.
+    test('a header hook that rewrites the th drops the caret, one that writes the label keeps it', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ hiddenColumns: true });
+
+      const state = await page.evaluate(() => {
+        const hot = (window as unknown as Hot).hot;
+
+        hot.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement) => {
+          if (column === 1) {
+            // eslint-disable-next-line no-param-reassign -- the user pattern under test
+            TH.innerHTML = '<div class="relative"><span class="colHeader">Rewritten</span></div>';
+          } else if (column === 3) {
+            const label = TH.querySelector('.colHeader');
+
+            if (label) {
+              label.textContent = 'Relabelled';
+            }
+          }
+        });
+        hot.render();
+
+        const rewritten = hot.getCell(-1, 1) as HTMLElement;
+        const relabelled = hot.getCell(-1, 3) as HTMLElement;
+
+        return {
+          rewrittenKeepsMarker: rewritten.classList.contains('beforeHiddenColumn'),
+          rewrittenCaret: rewritten.querySelectorAll('.ht-hidden-indicator-end').length,
+          relabelledText: relabelled.querySelector('.colHeader')?.textContent,
+          relabelledCaret: relabelled.querySelectorAll('.ht-hidden-indicator-start').length,
+        };
+      });
+
+      expect(state).toEqual({
+        rewrittenKeepsMarker: true,
+        rewrittenCaret: 0,
+        relabelledText: 'Relabelled',
+        relabelledCaret: 1,
+      });
+    });
+
+    // The collapse/expand gate matched the indicator only when it was the press target itself.
+    test('a press on renderer markup inside the collapse indicator still collapses the group', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', nestedHeaders: true });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler').params({
+          icons: {
+            collapseOff: (element: HTMLElement) => {
+              const glyph = document.createElement('span');
+
+              glyph.className = 'renderer-glyph';
+              glyph.textContent = '-';
+              glyph.style.cssText = 'display:inline-block;width:100%;height:100%;pointer-events:auto;';
+              element.replaceChildren(glyph);
+            },
+          },
+        });
+      });
+
+      const indicator = page.locator('.ht_clone_top .collapsibleIndicator');
+      const glyph = indicator.locator('.renderer-glyph');
+
+      await expect(glyph).toHaveCount(1);
+
+      const hitsGlyph = await glyph.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+
+        return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) === el;
+      });
+
+      expect(hitsGlyph).toBe(true);
+
+      await glyph.click();
+
+      await expect(indicator).toHaveClass(/collapsed/);
+    });
+
+    for (const dir of ['ltr', 'rtl'] as const) {
+      // The label is `width: 100%`, so flex shrank the input and the tick overlay, pulled back by
+      // its own width, landed off the checkbox box.
+      test(`the multi-select editor tick sits on its checkbox box (${dir})`, async({ page, theme, bundle }) => {
+        const grid = new IconElementsPage(page, theme, bundle);
+
+        await grid.goto({ multiSelect: true, ...(dir === 'rtl' ? { dir: 'rtl' as const } : {}) });
+
+        await page.evaluate(() => (window as unknown as Hot).hot.selectCell(0, 3));
+        await page.keyboard.press('Enter');
+
+        const dropdown = page.locator('.handsontableEditor.ht_editor_visible .ht-multi-select-editor');
+
+        await expect(dropdown).toBeVisible();
+
+        const offset = await dropdown.locator('input:checked').first().evaluate((input) => {
+          const size = parseFloat(getComputedStyle(input).getPropertyValue('--ht-checkbox-size'));
+          const before = getComputedStyle(input, '::before');
+          const inputRect = input.getBoundingClientRect();
+          // The `::before` box is anchored at `left: 0` of the input and is `--ht-checkbox-size`
+          // wide, whatever the direction.
+          const boxLeft = inputRect.left + parseFloat(before.left || '0');
+          const tick = input.nextElementSibling!.getBoundingClientRect();
+
+          return { size, dx: tick.left - boxLeft, width: tick.width };
+        });
+
+        expect(offset.size).toBeGreaterThan(0);
+        expect(Math.abs(offset.dx)).toBeLessThan(0.5);
+        expect(Math.abs(offset.width - offset.size)).toBeLessThan(0.5);
+      });
+    }
+
+    // `.ht-icon--external` sizes a font glyph with `font-size: var(--ht-icon-size)`; the carets
+    // are fixed 10x10 boxes, so a font mapping overflowed them.
+    test('a font-mapped hidden-column caret stays inside its 10x10 box', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ icons: 'tabler', hiddenColumns: true });
+
+      await page.evaluate(() => {
+        (window as unknown as { Handsontable: any }).Handsontable.themes.getTheme('icons-tabler')
+          .params({ icons: { caretHiddenLeft: 'ti ti-chevron-left', caretHiddenRight: 'ti ti-chevron-right' } });
+      });
+
+      const caret = page.locator('.ht_clone_top th.beforeHiddenColumn .ht-hidden-indicator-end').first();
+
+      await expect(caret).toHaveClass(/ht-icon--external/);
+      await expect(caret).toHaveCSS('font-size', '10px');
+
+      const box = await caret.boundingBox();
+
+      expect(box!.width).toBeLessThanOrEqual(10.5);
+      expect(box!.height).toBeLessThanOrEqual(10.5);
+    });
+
+    // A presence check passes even when a CSS change blanks a glyph: assert the mask resolves to
+    // the theme's glyph and the box has a size.
+    test('the sort arrow and the hidden column and row carets paint their glyph', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      const expectPainted = async(icon: import('@playwright/test').Locator) => {
+        await expect(icon).toHaveCount(1);
+        expect(await grid.maskImage(icon)).toMatch(/url\(/);
+
+        const box = await icon.boundingBox();
+
+        expect(box!.width).toBeGreaterThan(0);
+        expect(box!.height).toBeGreaterThan(0);
+      };
+
+      await grid.goto({ hiddenColumns: true });
+
+      const header = page.locator('.ht_clone_top th').nth(2);
+
+      await header.locator('.colHeader').click();
+      await expectPainted(header.locator('.ht-sort-indicator'));
+      await expectPainted(page.locator('.ht_clone_top th.beforeHiddenColumn .ht-hidden-indicator-end').first());
+      await expectPainted(page.locator('.ht_clone_top th.afterHiddenColumn .ht-hidden-indicator-start').first());
+
+      await grid.goto({ hiddenRows: true });
+
+      await expectPainted(page.locator('.ht_clone_inline_start th.beforeHiddenRow .ht-hidden-indicator-end').first());
+      await expectPainted(page.locator('.ht_clone_inline_start th.afterHiddenRow .ht-hidden-indicator-start').first());
+    });
+  });
 });

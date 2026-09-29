@@ -220,6 +220,7 @@ describe('MultiColumnSorting', () => {
     const icon = getSortIndicatorIcon(sortedColumn);
 
     expect(icon).not.toBe(null);
+    expect(isIconPainted(icon)).toBe(true);
 
     // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned against the
     // header's `.relative` container - assert its box sits inside that container instead of
@@ -2043,13 +2044,13 @@ describe('MultiColumnSorting', () => {
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     await spec().sortByClickOnColumnHeader(1);
 
@@ -2078,37 +2079,37 @@ describe('MultiColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
   });
 
   it('should change sorting indicator state when initial column sorting was provided', async() => {
@@ -2133,7 +2134,7 @@ describe('MultiColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort();
 
@@ -2145,13 +2146,13 @@ describe('MultiColumnSorting', () => {
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(getSortIndicatorIcon(sortedColumn)).not.toBe(null);
+    expect(isIconPainted(getSortIndicatorIcon(sortedColumn))).toBe(true);
 
     getPlugin('multiColumnSorting').sort();
 

@@ -24,7 +24,7 @@ const glyphRule = (name) => {
 export const iconStyles = (icons, scopeSelector) => {
   const names = Object.keys(icons);
   const variables = names
-    .map(name => `  --ht-icon-${kebab(name)}: url("${icons[name].replace(/"/g, '%22')}");`)
+    .map(name => `  --ht-icon-${kebab(name)}: url("${icons[name].replace(/\\/g, '%5C').replace(/"/g, '%22')}");`)
     .join('\n');
 
   return `${scopeSelector} {\n${variables}\n}\n\n${names.map(glyphRule).join('\n\n')}\n`;

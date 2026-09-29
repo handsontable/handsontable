@@ -30,6 +30,13 @@ test('falls back to a transparent mask when the icon variable is not declared', 
   assert.match(css, / mask-image: var\(--ht-icon-arrow-right, linear-gradient\(transparent, transparent\)\);/);
 });
 
+test('escapes a backslash inside a glyph URL, so it cannot escape the closing quote', () => {
+  const css = runtimeIconStyles({ a: 'data:x\\', b: 'data:y' }, ':root');
+
+  assert.match(css, /--ht-icon-a: url\("data:x%5C"\);/);
+  assert.match(css, /--ht-icon-b: url\("data:y"\);/);
+});
+
 test('escapes double quotes inside a glyph URL', () => {
   const css = runtimeIconStyles({ a: 'data:x"y' }, ':root');
 

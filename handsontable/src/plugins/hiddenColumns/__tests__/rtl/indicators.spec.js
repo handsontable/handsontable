@@ -48,6 +48,10 @@ describe('HiddenColumns (RTL mode)', () => {
           .toHaveClass('ht-icon-caret-hidden-right');
         expect(getCell(-1, 2).querySelector('.ht-hidden-indicator-end'))
           .toHaveClass('ht-icon-caret-hidden-left');
+        // The carets must actually paint, not merely exist: a CSS change that blanks the glyph
+        // would pass the class checks above.
+        expect(isIconPainted(getCell(-1, 2).querySelector('.ht-hidden-indicator-start'))).toBe(true);
+        expect(isIconPainted(getCell(-1, 2).querySelector('.ht-hidden-indicator-end'))).toBe(true);
         expect(getCell(-1, 3)).toBe(null);
         expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
         expect(getCell(-1, 4).querySelector('.ht-hidden-indicator-start'))

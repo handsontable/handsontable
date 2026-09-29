@@ -931,9 +931,11 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} coords Event coordinates.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
-    const target = eventTargetEl(event)!;
+    // Matched by ancestor, like every other icon host's gate: an icon renderer can put markup
+    // that takes pointer events inside the indicator, and a press on it must still toggle.
+    const target = eventTargetEl(event)?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-    if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
+    if (target) {
       if (hasClass(target, 'expanded')) {
         this.eventManager.fireEvent(target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'collapse');

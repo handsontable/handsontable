@@ -1,6 +1,6 @@
 import { iconStyles } from '../static/variables/helpers/iconStyles';
 import { throwWithCause } from '../../helpers/errors';
-import { warn } from '../../helpers/console';
+import { warn, warnOnce } from '../../helpers/console';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { flattenCssVariables } from './utils/cssVariables';
 import { validateColorScheme, validateDensityType } from './utils/validation';
@@ -456,7 +456,17 @@ export class ThemeManager {
     if (typeof external === 'string') {
       element.className += ` ${external.trim()}`;
     } else if (typeof external === 'function') {
-      external(element, name);
+      if (!this.#runIconRenderer(external, element, name)) {
+        // A throwing callback must not take the draw down with it: every header draw runs this,
+        // and on `syncIcon()`'s re-apply path the revision stamp is written only after this
+        // returns, so it would throw again on every render. Fall back to the built-in glyph.
+        element.className = classes.filter(className => className !== ICON_EXTERNAL_CLASS).join(' ');
+        element.textContent = '';
+        element.setAttribute('aria-hidden', 'true');
+
+        return;
+      }
+
       // The callback owns the element's content, not its identity or role. Re-add the grid's own
       // classes, so a renderer that assigned `className` cannot drop the `.ht-icon` sizing or the
       // slot class `syncIcon()` looks the element up by (losing it made every header draw append
@@ -466,6 +476,29 @@ export class ThemeManager {
       // class), and `classList.add()` throws on a token with a space in it.
       element.classList.add(...classes.join(' ').split(/\s+/).filter(Boolean));
       element.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /**
+   * Runs an icon renderer callback. A callback that throws is reported once per icon name for this
+   * manager, and the caller falls back to the built-in glyph.
+   *
+   * @param {Function} renderer The callback from the theme's `icons` config.
+   * @param {HTMLElement} element The `<i>` element.
+   * @param {string} name The icon slot name.
+   * @returns {boolean} `true` when the callback returned without throwing.
+   */
+  #runIconRenderer(renderer: (element: HTMLElement, name: IconKey) => void, element: HTMLElement,
+                   name: IconKey): boolean {
+    try {
+      renderer(element, name);
+
+      return true;
+    } catch (error) {
+      warnOnce(this, `icons.${name}`,
+        `The "${name}" icon renderer threw an error, so the built-in glyph is shown instead.`, error);
+
+      return false;
     }
   }
 

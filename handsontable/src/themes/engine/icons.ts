@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { IconKey } from '../types';
-import { ICON_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName } from './utils/icons';
+import { ICON_CLASS, ICON_EXTERNAL_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName } from './utils/icons';
 
 /**
  * Per-icon options for `createIcon`/`syncIcon`.
@@ -133,14 +133,30 @@ export function syncIcon(
     // into a full className rewrite per icon per draw (this runs on every header draw), so the
     // revision stamp lets a kept element skip the reapply until the mapping actually moved.
     const themeManager = resolveThemeManager(hot);
-    const revision = themeManager?.getIconsRevision();
+    const slotOptions = { ...options, className: [options.className, slotClass].filter(Boolean).join(' ') };
 
-    if (revision !== undefined && existing.dataset.htIconsRevision !== String(revision)) {
-      themeManager?.applyIcon(existing, name, {
-        ...options,
-        className: [options.className, slotClass].filter(Boolean).join(' '),
-      });
-      existing.dataset.htIconsRevision = String(revision);
+    if (!themeManager) {
+      // The grid moved from a theme object to a class-name theme, which destroys its manager. An
+      // element a manager built still carries that manager's class list or renderer markup under
+      // `ht-icon--external`, which turns the mask off, so it would paint nothing (or stale
+      // markup). Rebuild it through the plain-glyph fallback; an element that never had a
+      // manager has neither the stamp nor the class and is kept as is.
+      if (existing.dataset.htIconsRevision !== undefined || existing.classList.contains(ICON_EXTERNAL_CLASS)) {
+        const fallback = createIcon(hot, name, slotOptions);
+
+        existing.replaceWith(fallback);
+
+        return fallback;
+      }
+
+      return existing;
+    }
+
+    const revision = String(themeManager.getIconsRevision());
+
+    if (existing.dataset.htIconsRevision !== revision) {
+      themeManager.applyIcon(existing, name, slotOptions);
+      existing.dataset.htIconsRevision = revision;
     }
 
     return existing;

@@ -261,6 +261,45 @@ describe('createIcon / syncIcon', () => {
       expect(icon.className).toBe('ht-icon ht-icon-checkbox slot ht-icon--external ti ti-x');
     });
 
+    it('rebuilds a kept icon through the plain-glyph fallback once the grid has no theme manager ' +
+      '(a theme object replaced by a class-name theme)', () => {
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({
+          icons: {
+            ...mainIcons,
+            menu: 'ti ti-menu',
+            check: (element) => { element.textContent = 'done'; },
+          },
+        })),
+      });
+
+      const container = document.createElement('div');
+      const menu = syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' });
+      const check = syncIcon(hot, container, 'check-slot', 'check');
+
+      expect(menu.className).toContain('ti-menu');
+      expect(check.textContent).toBe('done');
+
+      // `updateSettings({ theme: 'ht-theme-main' })` destroys the manager, which nulls it.
+      hot.themeManager.destroy();
+      hot.themeManager = null;
+
+      const menuAfter = syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' });
+      const checkAfter = syncIcon(hot, container, 'check-slot', 'check');
+
+      expect(menuAfter.className).toBe('ht-icon ht-icon-menu site menu-slot');
+      expect(menuAfter.dataset.htIconsRevision).toBeUndefined();
+      expect(checkAfter.className).toBe('ht-icon ht-icon-check check-slot');
+      expect(checkAfter.textContent).toBe('');
+      expect(container.querySelectorAll('i').length).toBe(2);
+
+      // A fallback element is kept from then on - no rebuild on every draw.
+      expect(syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' })).toBe(menuAfter);
+    });
+
     it('keeps exactly one slot icon when a renderer callback assigns `className` ' +
       '(PR #13639 review)', () => {
       const hot = createMockHot();

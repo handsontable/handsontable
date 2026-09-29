@@ -55,6 +55,7 @@ describe('ColumnSorting (RTL)', () => {
       const icon = getSortIndicatorIcon(sortedColumn);
 
       expect(icon).not.toBe(null);
+      expect(isIconPainted(icon)).toBe(true);
 
       // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
       // `_column-sorting.scss` against the header's `.relative` container with
@@ -124,6 +125,7 @@ describe('ColumnSorting (RTL)', () => {
       const icon = getSortIndicatorIcon(label);
 
       expect(icon).not.toBe(null);
+      expect(isIconPainted(icon)).toBe(true);
 
       const container = label.closest('.relative');
       const containerStyle = window.getComputedStyle(container);
