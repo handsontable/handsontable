@@ -131,6 +131,39 @@ test.describe('undo of plugin state', () => {
     expect(await grid.columnWidth(1)).toBe(draggedWidth);
   });
 
+  // DEV-513: the double-click autosize is a resize a user makes, so it is undoable like a drag.
+  test('autosizing a column by double-clicking its resize handle is one step that an undo reverts', async () => {
+    await grid.initGrid({
+      data: [['a', 'a value much longer than the column is wide', 'c']],
+      manualColumnResize: [50, 50, 50],
+    });
+    const initialWidth = await grid.columnWidth(1);
+
+    await grid.doubleClickColumnResizeHandle(1);
+    await expect.poll(() => grid.columnWidth(1)).toBeGreaterThan(initialWidth);
+
+    expect(await grid.undoStackSize()).toBe(1);
+
+    await grid.undo();
+
+    expect(await grid.columnWidth(1)).toBe(initialWidth);
+  });
+
+  // DEV-2806 listed a row resize among the actions undo did not cover.
+  test('a row resize through the API is one step that an undo reverts', async () => {
+    await grid.initGrid({ manualRowResize: true });
+    const initialHeight = await grid.rowHeight(1);
+
+    await grid.resizeRow(1, 80);
+
+    expect(await grid.rowHeight(1)).toBe(80);
+    expect(await grid.undoStackSize()).toBe(1);
+
+    await grid.undo();
+
+    expect(await grid.rowHeight(1)).toBe(initialHeight);
+  });
+
   test('collapsing a header group is one step, and an undo expands it and its button again', async () => {
     await grid.initGrid({
       nestedHeaders: [

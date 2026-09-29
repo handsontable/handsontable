@@ -90,6 +90,9 @@ export interface FixtureHotInstance {
   getPlugin(name: 'manualColumnResize'): {
     setManualSize(column: number, width: number): void,
   };
+  getPlugin(name: 'manualRowResize'): {
+    setManualSize(row: number, height: number): void,
+  };
   getPlugin(name: 'collapsibleColumns'): {
     collapseSection(coords: { row: number, col: number }): void,
     expandSection(coords: { row: number, col: number }): void,

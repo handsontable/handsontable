@@ -1,6 +1,11 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
-import { dragResizeHandle } from '../gestures';
+import { dragFillHandle, dragResizeHandle } from '../gestures';
+
+/**
+ * The summary types `initSummaryGrid()` can build.
+ */
+export type SummaryType = 'sum' | 'min' | 'custom';
 
 /**
  * Page Object for the undo and redo fixture
@@ -38,6 +43,44 @@ export class UndoGridPage {
   async initGrid(overrides: Record<string, unknown> = {}): Promise<void> {
     await this.page.evaluate(settings => window.initUndoGrid(settings), overrides);
     await expect(this.page.getByTestId('cell-0-0')).toBeVisible();
+  }
+
+  /**
+   * Rebuild the grid with a ColumnSummary of the first column, written into the last row (row 4). The
+   * grid is built in the page, because a summary's `customFunction` and a cell validator are functions.
+   *
+   * @param type The summary type. `custom` writes the text `computed`.
+   * @param options.numeric Makes the first column `numeric`.
+   * @param options.validator Gives the first column a custom validator that accepts every value.
+   */
+  async initSummaryGrid(
+    type: SummaryType, { numeric = false, validator = false }: { numeric?: boolean, validator?: boolean } = {}
+  ): Promise<void> {
+    await this.page.evaluate(([summaryType, isNumeric, hasValidator]) => {
+      const firstColumn: Record<string, unknown> = {};
+
+      if (isNumeric) {
+        firstColumn.type = 'numeric';
+      }
+
+      if (hasValidator) {
+        firstColumn.validator = (value: unknown, callback: (valid: boolean) => void) => callback(true);
+      }
+
+      window.initUndoGrid({
+        data: [[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd'], [null, null]],
+        columns: [firstColumn, {}],
+        columnSummary: [{
+          sourceColumn: 0,
+          destinationRow: 4,
+          destinationColumn: 0,
+          type: summaryType,
+          forceNumeric: true,
+          customFunction: () => 'computed',
+        }],
+      });
+    }, [type, numeric, validator] as const);
+    await expect(this.grid.locator('.ht_master tbody td').first()).toBeVisible();
   }
 
   /**
@@ -141,6 +184,47 @@ export class UndoGridPage {
     await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
     await expect(handle).toBeVisible();
     await dragResizeHandle(this.page, handle, { x: deltaX });
+  }
+
+  /**
+   * Autosize a column the way a user does: hover its header, then double-click the resize handle.
+   * The autosize runs from a timer after the second press, so wait for the width to change.
+   */
+  async doubleClickColumnResizeHandle(visualColumn: number): Promise<void> {
+    const handle = this.grid.locator('.manualColumnResizer');
+
+    await this.page.mouse.move(0, 0);
+    // `nth(column + 1)` skips the corner cell.
+    await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
+    await expect(handle).toBeVisible();
+    await handle.dblclick();
+  }
+
+  /**
+   * Set a row height through the ManualRowResize plugin API.
+   */
+  async resizeRow(visualRow: number, height: number): Promise<void> {
+    await this.page.evaluate(([row, newHeight]) => {
+      window.hot.getPlugin('manualRowResize').setManualSize(row, newHeight);
+      window.hot.render();
+    }, [visualRow, height]);
+  }
+
+  /**
+   * The height of a visual row, or `undefined` when nothing sets it.
+   */
+  async rowHeight(visualRow: number): Promise<number | undefined> {
+    return this.page.evaluate(row => window.hot.getRowHeight(row), visualRow);
+  }
+
+  /**
+   * Select a range and drag the fill handle onto a cell, the way a user drag-fills.
+   */
+  async fillSelectionTo(range: [number, number, number, number], visualRow: number, visualColumn: number): Promise<void> {
+    await this.page.evaluate((cellRange) => {
+      window.hot.selectCells([cellRange]);
+    }, range);
+    await dragFillHandle(this.page, this.grid.locator('.ht_master .wtBorder.corner:visible'), this.cell(visualRow, visualColumn));
   }
 
   /**
@@ -332,6 +416,20 @@ export class UndoGridPage {
    */
   async undoWithKeyboard(): Promise<void> {
     await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
+   * The value of a cell, by its visual coordinates.
+   */
+  async cellValue(visualRow: number, visualColumn: number): Promise<CellValue> {
+    return this.page.evaluate(([row, column]) => window.hot.getDataAtCell(row, column), [visualRow, visualColumn]);
+  }
+
+  /**
+   * Whether the undo stack holds a step.
+   */
+  async isUndoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isUndoAvailable());
   }
 
   /**

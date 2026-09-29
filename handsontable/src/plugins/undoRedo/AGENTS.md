@@ -205,5 +205,10 @@ runs the old callback protocol (`#undoCustomAction`), including `canUndo`/`canRe
 - `npm run test:e2e --prefix handsontable -- --testPathPattern=plugins/undoRedo`
 - Playwright: `tests/e2e/undo-index-transformations.spec.ts` (the headline index-transformation
   cases), `tests/e2e/undo-plugin-state.spec.ts` (one step per plugin action: hiding, trimming,
-  freezing, resizing - the drag included -, collapsing, borders, comments, pages), plus the
-  per-feature `*-undo.spec.ts` files.
+  freezing, resizing - the drag and the double-click included -, collapsing, borders, comments, pages),
+  plus the per-feature `*-undo.spec.ts` files.
+- **Reported bugs, one case each, named by their ClickUp id:** `__tests__/reportedIssues.unit.js` for
+  what the API can drive, and `tests/e2e/undo-reported-issues.spec.ts` for what needs a browser
+  (ColumnSummary only calculates on the first visible render, so a jsdom summary test passes with
+  nothing calculated; autofill is a drag). Every case there fails on the 18.x implementation. Add a
+  case when a reported undo bug is closed.
