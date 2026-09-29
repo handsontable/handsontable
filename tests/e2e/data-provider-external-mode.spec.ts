@@ -19,6 +19,21 @@ test.describe('Pagination follows a dataProvider enabled after init', () => {
     await grid.page.evaluate(() => window.hot.loadData([[1], [2], [3]]));
     await expect.poll(() => grid.totalPages()).toBe(1);
   });
+
+  test('a dataProvider added again does not reuse the previous server total', async() => {
+    await grid.enableProvider();
+    await expect.poll(() => grid.totalPages()).toBe(5);
+
+    await grid.disableProvider();
+    await grid.page.evaluate(() => window.hot.loadData([[1], [2], [3]]));
+    await expect.poll(() => grid.totalPages()).toBe(1);
+
+    await grid.enableProvider({ failFetch: true });
+    await expect.poll(() => grid.fetchCount()).toBe(2);
+    await grid.refreshPager();
+
+    expect(await grid.totalPages()).toBe(1);
+  });
 });
 
 test.describe('a dataProvider blocked by a conflicting option', () => {

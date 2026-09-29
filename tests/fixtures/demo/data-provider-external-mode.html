@@ -41,7 +41,7 @@
     `?blocked=<option>` builds the grid with a complete `dataProvider` from the start, next to an option that
     blocks the DataProvider plugin through its hard conflicts (`trimRows`, `manualRowMove`, `manualColumnMove`, or
     `multiColumnSorting`), so a spec can pin how Pagination and Filters behave for such a grid.
-    `window.htFetchCount` counts the `fetchRows` calls.
+    `window.htFetchCount` counts the `fetchRows` calls; setting `window.htFailNextFetch` makes the next one reject.
   -->
   <div data-testid="status">idle</div>
   <div data-testid="grid"></div>
@@ -67,11 +67,17 @@
     })[blockedBy ?? ''];
 
     window.htFetchCount = 0;
+    window.htFailNextFetch = false;
 
     const makeProvider = () => ({
       rowId: row => row[0],
       fetchRows: async() => {
         window.htFetchCount += 1;
+
+        if (window.htFailNextFetch) {
+          window.htFailNextFetch = false;
+          throw new Error('fetch failed');
+        }
 
         return { rows: [[101], [102]], totalRows: 42 };
       },

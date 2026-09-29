@@ -99,9 +99,34 @@ export class DataProviderExternalModePage {
   /**
    * Adds a `dataProvider` to the grid through `updateSettings()`, the way a SheetsBar switch to
    * a server sheet does.
+   *
+   * @param {object} [options] `failFetch` makes the `fetchRows` call the new provider starts reject.
    */
-  async enableProvider(): Promise<void> {
-    await this.page.evaluate(() => (window as unknown as { htEnableProvider(): void }).htEnableProvider());
+  async enableProvider(options: { failFetch?: boolean } = {}): Promise<void> {
+    await this.page.evaluate((failFetch) => {
+      const fixture = window as unknown as { htFailNextFetch: boolean, htEnableProvider(): void };
+
+      fixture.htFailNextFetch = failFetch;
+      fixture.htEnableProvider();
+    }, options.failFetch ?? false);
+  }
+
+  /**
+   * How many `fetchRows` calls ran so far.
+   */
+  async fetchCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htFetchCount: number }).htFetchCount);
+  }
+
+  /**
+   * Makes Pagination compute its state again without changing the page, through `setPage()` on the current page.
+   */
+  async refreshPager(): Promise<void> {
+    await this.page.evaluate(() => {
+      const pagination = window.hot.getPlugin('pagination');
+
+      pagination.setPage(pagination.getPaginationData().currentPage);
+    });
   }
 
   /**

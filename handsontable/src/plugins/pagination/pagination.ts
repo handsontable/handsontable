@@ -222,6 +222,7 @@ export class Pagination extends BasePlugin {
   #internalRenderCall = false;
   /**
    * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
+   * Dropped whenever the state is computed with no DataProvider backing the grid.
    *
    * @type {number|null}
    */
@@ -853,6 +854,11 @@ export class Pagination extends BasePlugin {
     const { stylesHandler } = this.hot;
 
     const externalPagedMode = this.#isDataProviderActive();
+
+    if (!externalPagedMode) {
+      this.#serverSideTotalCount = null;
+    }
+
     const totalItems = externalPagedMode
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;
