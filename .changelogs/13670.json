@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the \"Read only\" item of the context menu and the column menu unlocking a read-only column summary cell. The item no longer appears for a summary cell, and toggling a column that holds one leaves the summary read-only, including after undo. Calling `setCellMeta()` or `removeCellMeta()` to make a read-only summary cell editable has no effect either; set the column summary's `readOnly` option to `false` instead.",
+  "title": "Fixed the \"Read only\" item of the context menu and the column menu unlocking a read-only column summary cell. The item no longer appears when the selection is only summary cells, and toggling a wider selection, such as a whole column, leaves a summary cell read-only, including after undo. Calling `setCellMeta()` or `removeCellMeta()` to make a read-only summary cell editable has no effect either; set the column summary's `readOnly` option to `false` instead.",
   "type": "fixed",
   "issueOrPR": 13670,
   "breaking": false,

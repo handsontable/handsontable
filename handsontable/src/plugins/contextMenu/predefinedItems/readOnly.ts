@@ -70,18 +70,39 @@ export default function readOnlyItem() {
       // A locked cell is left out of the whole click (DEV-148). A read-only summary cell would
       // otherwise make every selection that holds it "at least one read-only", so a column with a
       // summary could never be made read-only, and the loop below would unlock the summary.
+      //
+      // `hasLockedCell` rides this same walk for free - `isLocked()` is already called for every
+      // cell it visits, so tracking it costs no extra `getCellMetaTransient` read. That matters: a
+      // plain selection (no summary plugin, or nothing locked in it) must keep reading exactly as
+      // many cells as before - a pre-existing DEV-136 test pins the count for the no-match walk.
       const isLocked = getLockedCellCheck(this);
-      const isReadOnlyCell = (row: number, col: number) => !isLocked(row, col) &&
-        Boolean(this.getCellMetaTransient(row, col).readOnly);
+      let hasLockedCell = false;
+      const isReadOnlyCell = (row: number, col: number) => {
+        if (isLocked(row, col)) {
+          hasLockedCell = true;
+
+          return false;
+        }
+
+        return Boolean(this.getCellMetaTransient(row, col).readOnly);
+      };
       const atLeastOneReadOnly = checkSelectionConsistency(ranges, isReadOnlyCell);
       const readOnly = !atLeastOneReadOnly;
 
       // Reached through `executeCommand()`, which gates on `disabled` and not on `hidden`: with
-      // nothing toggleable, do not record an undo step that changes nothing.
-      const isToggleable = (row: number, col: number) => !isLocked(row, col);
+      // nothing toggleable, do not record an undo step that changes nothing. Only worth asking when
+      // the walk above actually found a locked cell - `hasLockedCell` is false whenever ColumnSummary
+      // is absent or nothing in the selection is locked, and then this can never trigger. Matches
+      // `hidden()`'s own definition of toggleable below - a hidden cell under a merge is excluded
+      // there too, or a selection of only a locked summary block (its hidden covered cells included)
+      // would pass this check on the covered cells alone and still write to them.
+      if (hasLockedCell && !atLeastOneReadOnly) {
+        const isToggleable = (row: number, col: number) => !isLocked(row, col) &&
+          !this.getCellMetaTransient(row, col).hidden;
 
-      if (!atLeastOneReadOnly && !checkSelectionConsistency(ranges, isToggleable)) {
-        return;
+        if (!checkSelectionConsistency(ranges, isToggleable)) {
+          return;
+        }
       }
 
       // Making the selection read-only: `checkSelectionConsistency()` above found no match, which

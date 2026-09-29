@@ -388,6 +388,20 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
       expect(hot.setCellMeta).not.toHaveBeenCalled();
     });
 
+    it('should record no undo step over a locked cell and its own hidden covered cell', () => {
+      // The same selection `hidden()` reports as nothing-to-toggle below: a locked summary as a
+      // merge's top-left, plus its own hidden covered cell. The early return's own notion of
+      // "toggleable" must agree with `hidden()`'s - otherwise the hidden covered cell reads as
+      // toggleable on its own, the guard lets the click through, and it gets written to and
+      // recorded in an undo step despite the item being hidden for this exact selection.
+      const hot = createSummaryHotStub({ readOnly: true }, { hidden: true }, [0]);
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.runHooks).not.toHaveBeenCalled();
+      expect(hot.setCellMeta).not.toHaveBeenCalled();
+    });
+
     it('should hide the item only when every selected cell is locked', () => {
       expect(readOnlyItem().hidden.call(createSummaryHotStub({ readOnly: true }, { readOnly: true }, [0, 1])))
         .toBe(true);

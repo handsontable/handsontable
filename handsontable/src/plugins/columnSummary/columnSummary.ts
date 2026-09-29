@@ -4,6 +4,7 @@ import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { holdsNoNumber } from './utils';
 import { throwWithCause } from '../../helpers/errors';
+import { normalizeClassNames } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -553,6 +554,11 @@ export class ColumnSummary extends BasePlugin {
    * nothing else may clear it. The "Read only" menu item leaves these cells out, and a `setCellMeta`
    * that would make one writable, or a `removeCellMeta` of its `readOnly` key, is vetoed.
    *
+   * A cache hit alone is not enough: it is keyed by the endpoint's `destinationColumn` as configured
+   * and is not re-keyed when a column moves (see the `manualColumnMove` limit in `AGENTS.md`), so it
+   * can still name a column a plain cell has since moved into. The cell's own current meta - the
+   * `readOnly` flag and the `columnSummaryResult` class the plugin itself writes - confirms the hit.
+   *
    * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
@@ -563,16 +569,39 @@ export class ColumnSummary extends BasePlugin {
       return false;
     }
 
-    const physicalRow = this.hot.toPhysicalRow(row);
+    // Matches how `setCellMeta`/`_setCellMetaDeclarative` resolve `row` in `core.ts`: below the
+    // current row count it is a visual index to translate, at or past it it is already physical
+    // (a trimmed or otherwise out-of-range row addressed by its physical index directly). Reading
+    // `toPhysicalRow(row)` unconditionally instead answers `null` for such a row - which is `false`
+    // by construction below - and a locked, trimmed summary row loses its lock while trimmed.
+    const physicalRow = row < this.hot.countRows() ? this.hot.toPhysicalRow(row) : row;
 
-    // The column is used as is: the plugin addresses every destination column the same way when it
-    // writes the cell's `readOnly` and class (see `Endpoints#refreshCellMetas`).
-    return physicalRow !== null && this.endpoints.isReadOnlyDestination(physicalRow, column);
+    if (physicalRow === null || !this.endpoints.isReadOnlyDestination(physicalRow, column)) {
+      return false;
+    }
+
+    // The cache above is keyed by `destinationColumn` as configured, and nothing re-keys it when a
+    // column moves (the plugin has no `afterColumnMove` refresh - see `AGENTS.md`). A cell that
+    // merely moved into that column position, and was never the plugin's own destination, must not
+    // be reported as locked just because a stale cache entry still names its column. The cell the
+    // plugin actually wrote to still carries the class and the flag it wrote, whatever the cache
+    // says, so confirming both against the CURRENT meta - the same signal `getCellValue()` uses to
+    // recognize a result - rules out a plain cell the cache alone cannot tell apart from the summary.
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
+
+    return Boolean(cellMeta.readOnly) &&
+      normalizeClassNames(cellMeta.className as string | string[]).includes('columnSummaryResult');
   }
 
   /**
-   * `beforeSetCellMeta` hook callback. Vetoes a write that would make a read-only summary cell
-   * writable: from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
+   * `beforeSetCellMeta` hook callback. Vetoes any public write to the `readOnly` key of a locked
+   * summary cell: from the "Read only" menu item, its undo or redo, or a direct `setCellMeta` call.
+   *
+   * Every value is vetoed, not only a falsy one that would unlock the cell. Redo replays a "make
+   * read-only" toggle by writing `true` over its whole captured range, including a cell that was
+   * already locked - and unlike `_setCellMetaDeclarative`, the public `setCellMeta` records that as
+   * user-defined meta. Left unblocked, that write would survive a later `updateSettings` that moves
+   * the summary elsewhere, permanently pinning `readOnly` on a cell the plugin no longer tracks.
    *
    * The plugin's own writes go through `_setCellMetaDeclarative`, which fires no hooks, so they are
    * never vetoed here.
@@ -580,11 +609,10 @@ export class ColumnSummary extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {string} key The cell meta key.
-   * @param {*} value The value to set.
    * @returns {boolean|undefined} `false` to veto the write.
    */
-  #onBeforeSetCellMeta = (row: number, column: number, key: string, value: unknown) => {
-    if (key === 'readOnly' && !value && this.isLockedSummaryCell(row, column)) {
+  #onBeforeSetCellMeta = (row: number, column: number, key: string) => {
+    if (key === 'readOnly' && this.isLockedSummaryCell(row, column)) {
       return false;
     }
   };

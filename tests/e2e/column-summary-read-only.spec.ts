@@ -80,6 +80,9 @@ test.describe('column summary read-only lock', () => {
 
     expect(await grid.columnReadOnly(0)).toEqual([false, false, false, false, true]);
 
+    // The undo step above is what proves the fix: on unfixed code the summary comes back
+    // `false` too. Redo restoring the whole column to `true` passes either way - it is here for
+    // completeness, not as evidence of the fix.
     await grid.redo();
 
     expect(await grid.columnReadOnly(0)).toEqual([true, true, true, true, true]);

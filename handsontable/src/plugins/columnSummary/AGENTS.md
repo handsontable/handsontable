@@ -110,11 +110,25 @@ unlocked the cell. The other three:
   recalculated (a change in its source column), which re-applied `readOnly`. That is the "comes back
   after a reload" symptom in the ticket, and it can last indefinitely.
 
-Known limit, inherited rather than introduced: under `manualColumnMove` the lock and the meta it
-protects can land on different cells until the endpoint's next refresh. There is no `afterColumnMove`
-refresh, the declarative meta moves with its physical column, and `destinationColumn` is read as a
-visual index by the meta writers but as a physical one by `resetEndpointValue`. Fixing that belongs to
-column-move support for the plugin as a whole, not to the lock.
+Known limit, inherited rather than introduced: under `manualColumnMove` the lock's cache and the
+declarative meta it protects can name different cells until the endpoint's next refresh. There is no
+`afterColumnMove` refresh, the declarative meta stays on its physical column (`metaManager` stores it
+that way, translation-invariant), and `destinationColumn` is read as a visual index by the meta writers
+but as a physical one by `resetEndpointValue`. Concretely: `getPlugin('manualColumnMove').moveColumn(1,
+0)` on a summary configured `destinationColumn: 1` moves that physical column - and its `readOnly` +
+`columnSummaryResult` meta with it - to visual column 0, while the cache still names column 1 as locked,
+until the next recalculation re-stamps column 1 per the writers' own (also stale) convention.
+
+`isLockedSummaryCell()` confirms a cache hit against the cell's own current `readOnly` flag and
+`columnSummaryResult` class before trusting it, which closes the half of this that is a usability
+regression: a plain cell that moved into the stale cached column is never reported as locked, because it
+carries neither signal. It does **not** close the other half - immediately after such a move and before
+any recalculation, the real summary (now sitting at the moved-to column) has no cache entry for that
+column at all, so the menu can unlock it in that narrow window. Fixing that fully belongs to column-move
+support for the plugin as a whole, not to the lock; a live-meta-only redesign (dropping the cache and
+keying off `readOnly` + `columnSummaryResult` alone) was considered and rejected, because a
+`readOnly: false` endpoint's cell also carries the class, and a user manually toggling it to `readOnly:
+true` through the very menu item this file exists to fix would then read as permanently locked.
 
 Three rules the lock follows:
 
