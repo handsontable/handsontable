@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T07:27:21.021Z",
+  "generatedAt": "2026-09-29T07:41:10.359Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1619
+    "entries": 1620
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 5,
-      "count30": 19,
-      "countAll": 19,
+      "count7": 6,
+      "count30": 20,
+      "countAll": 20,
       "runs30": 11,
       "flakyRuns30": 11,
       "branches30": 10,
@@ -42,8 +42,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-29T07:26:29Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36533809111",
+        "seenAt": "2026-09-29T07:40:21Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36533809111/attempts/2",
         "branch": "feature/DEV-145_ColumnSummary-physical-move",
         "leg": "e2e-horizon",
         "status": "flaky",
