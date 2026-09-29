@@ -177,6 +177,6 @@ module.exports = {
     },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular', 'vue'] },
     { title: 'Platforms and embedding', path: 'platforms', children: platformsItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular', 'vue'] },
   ],
 };

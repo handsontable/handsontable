@@ -35,6 +35,8 @@ Recipes in this section cover common use cases and demonstrate best practices fo
 
 Current recipes:
 
+::: only-for javascript react angular
+
 <div class="boxes-list">
 
 - [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
@@ -45,5 +47,17 @@ Current recipes:
 - [Handsontable with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
 
 </div>
+
+:::
+
+::: only-for vue
+
+<div class="boxes-list">
+
+- [Handsontable with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
+
+</div>
+
+:::
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.
