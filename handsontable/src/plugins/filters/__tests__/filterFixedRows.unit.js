@@ -6,6 +6,7 @@ import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { TrimRows } from 'handsontable/plugins/trimRows';
 import { ColumnSorting } from 'handsontable/plugins/columnSorting';
+import { NestedRows } from 'handsontable/plugins/nestedRows';
 
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
@@ -13,6 +14,7 @@ registerPlugin(DropdownMenu);
 registerPlugin(HiddenRows);
 registerPlugin(TrimRows);
 registerPlugin(ColumnSorting);
+registerPlugin(NestedRows);
 registerPlugin(Filters);
 
 /**
@@ -447,6 +449,41 @@ describe('Filters -> filterFixedRows', () => {
 
         expect(writeSpy).toHaveBeenCalledTimes(1);
         expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Date']);
+      });
+
+      it('should re-apply after turning NestedRows off shrinks the rows', () => {
+        // The toggle resizes through `fitToLength()` and raises no row hook of any kind. The
+        // flattened tree is `Header, Apple, Banana, Date, Cherry, Total`; turned off, the grid holds
+        // the four top-level rows, and the trimming map keeps the first four states of the tree -
+        // which would show `Date` (Green) and hide `Cherry` (Red) and the frozen `Total`.
+        hot = new Handsontable(container, {
+          data: [
+            {
+              name: 'Header',
+              color: 'Gold',
+              __children: [{ name: 'Apple', color: 'Red' }, { name: 'Banana', color: 'Green' }],
+            },
+            { name: 'Date', color: 'Green' },
+            { name: 'Cherry', color: 'Red' },
+            { name: 'Total', color: 'Silver' },
+          ],
+          columns: [{ data: 'name' }, { data: 'color' }],
+          nestedRows: true,
+          filters: { filterFixedRows: false },
+          fixedRowsTop: 1,
+          fixedRowsBottom: 1,
+          licenseKey: 'non-commercial-and-evaluation',
+        });
+
+        const filters = hot.getPlugin('filters');
+
+        filters.addCondition(1, 'eq', ['Red']);
+        filters.filter();
+        expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+
+        hot.updateSettings({ nestedRows: false });
+
+        expect(hot.getDataAtCol(0)).toEqual(['Header', 'Cherry', 'Total']);
       });
 
       it('should not re-apply after a same-size updateData()', () => {
