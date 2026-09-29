@@ -2,10 +2,10 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /**
- * The four text-metric properties a host `span {}` rule can push into the grid's own spans.
+ * The text properties a host `span {}` rule can push into the grid's own spans.
  * Kebab-case, as `toHaveCSS()` and `getPropertyValue()` expect.
  */
-export const TEXT_PROPERTIES = ['font-size', 'line-height', 'font-weight', 'letter-spacing'] as const;
+export const TEXT_PROPERTIES = ['font-size', 'line-height', 'font-weight', 'letter-spacing', 'font-family'] as const;
 
 export type TextProperty = typeof TEXT_PROPERTIES[number];
 export type TextMetrics = Record<TextProperty, string>;
@@ -20,6 +20,7 @@ export const HOST_SPAN_STYLES: TextMetrics = {
   'line-height': '41px',
   'font-weight': '700',
   'letter-spacing': '3px',
+  'font-family': 'serif',
 };
 
 /**
@@ -50,6 +51,7 @@ export class HostSpanStylesPage {
    * First multiselect cell (a td). Cascade parent of the chips.
    */
   readonly multiselectCell: Locator;
+  readonly arrow: Locator;
   readonly chip: Locator;
   readonly chipLabel: Locator;
   readonly chipRemove: Locator;
@@ -75,6 +77,7 @@ export class HostSpanStylesPage {
 
     // `.ht_master` scopes to the main table; the clone overlays render the same cells again.
     this.multiselectCell = page.locator('.ht_master tbody tr').first().locator('td').nth(1);
+    this.arrow = this.multiselectCell.locator('.ht-multi-select-arrow');
     this.chip = this.multiselectCell.locator('.ht-multi-select-chip').first();
     this.chipLabel = this.chip.locator('.ht-multi-select-chip-label');
     this.chipRemove = this.chip.locator('.ht-multi-select-chip-remove');
@@ -105,6 +108,22 @@ export class HostSpanStylesPage {
     // The overflow indicator only renders when the chips do not fit; its presence pins the fixture
     // geometry (column 200px, four values) so a later width change cannot silently drop it.
     await expect(this.overflow, errorMessage).toBeVisible();
+  }
+
+  /**
+   * Adds a user stylesheet as the first child of `<head>`, ahead of the core and theme stylesheets.
+   * A rule that wins from there wins by specificity, not by source order, which is how a user's CSS
+   * loaded before the grid behaves in a real app.
+   *
+   * @param {string} css The rules to add.
+   */
+  async prependUserStyles(css: string): Promise<void> {
+    await this.page.evaluate((content) => {
+      const style = document.createElement('style');
+
+      style.textContent = content;
+      document.head.prepend(style);
+    }, css);
   }
 
   /**

@@ -29,8 +29,8 @@
     /*
      * DEV-75. A host page that styles bare <span> elements. The values are deliberately odd so no
      * shipped theme token can coincide with them (main/horizon/classic use 12-14px sizes, 20-22px
-     * line heights, weight 400, letter-spacing 0). The spec asserts the grid's own spans do NOT
-     * compute to these. Keep these values in sync with HOST_SPAN_STYLES in
+     * line heights, weight 400, letter-spacing 0, and a `--ht-font-family` stack). The spec asserts
+     * the grid's own spans do NOT compute to these. Keep these values in sync with HOST_SPAN_STYLES in
      * tests/fixtures/pages/HostSpanStylesPage.ts.
      */
     span {
@@ -38,6 +38,7 @@
       line-height: 41px;
       font-weight: 700;
       letter-spacing: 3px;
+      font-family: serif;
     }
   </style>
 </head>

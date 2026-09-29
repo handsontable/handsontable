@@ -20,6 +20,12 @@
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
       margin-inline-end: 1px;
+      // DEV-75. A span too. `font-size: 0` above stays; the rest follow the cell so a host `span`
+      // rule cannot reach it. See `.ht-multi-select-chip`.
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
 
       &::after {
         @include mixins.pseudo;
@@ -58,6 +64,7 @@
       line-height: inherit;
       font-weight: inherit;
       letter-spacing: inherit;
+      font-family: inherit;
     }
 
     .ht-multi-select-chip-label {
@@ -65,12 +72,13 @@
       text-overflow: ellipsis;
       color: var(--ht-foreground-color);
       font-style: normal;
-      // DEV-75. All four text metrics follow the cell through the chip, so a host `span` rule cannot
+      // DEV-75. All the text properties follow the cell through the chip, so a host `span` rule cannot
       // reach them and a user's own `td` override still does. See `.ht-multi-select-chip`.
       font-size: inherit;
       font-weight: inherit;
       line-height: inherit;
       letter-spacing: inherit;
+      font-family: inherit;
       padding: 0 var(--ht-chip-gap);
     }
 
@@ -93,6 +101,7 @@
       line-height: inherit;
       font-weight: inherit;
       letter-spacing: inherit;
+      font-family: inherit;
 
       &::before {
         @include mixins.pseudo;
@@ -122,6 +131,7 @@
       line-height: inherit;
       font-weight: inherit;
       letter-spacing: inherit;
+      font-family: inherit;
     }
   }
 

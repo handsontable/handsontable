@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where a host page style rule targeting `span` elements changed the font size, weight, and spacing of the pagination labels and the multiselect cell chips.",
+  "title": "Fixed a bug where a host page style rule targeting `span` elements changed the font family, size, weight, and spacing of the pagination labels and the multiselect cell chips.",
   "type": "fixed",
   "issueOrPR": 13571,
   "breaking": false,
