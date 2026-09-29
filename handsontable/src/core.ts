@@ -4359,7 +4359,9 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return stringify(datamap.getCopyable(row, colToPropOrIndex(instance, column)));
+    const prop = colToPropOrIndex(instance, column);
+
+    return stringify(datamap.getCopyable(row, prop));
   };
 
   /**
