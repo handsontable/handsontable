@@ -1381,6 +1381,22 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Imports filter conditions and records them as the fallback that a {@link Filters#filter} call
+   * canceled by a `beforeFilter` listener restores. Nothing is filtered. {@link Filters#importConditions}
+   * leaves that fallback at the conditions of the previous filter pass, which is right for a change
+   * to the same dataset, and wrong for a caller that swaps the dataset along with its filter state:
+   * a canceled pass would land the other dataset's conditions on it. With the DataProvider plugin
+   * active, a canceled pass keeps the imported conditions instead, so the fallback is not used.
+   *
+   * @private
+   * @param {Array} conditions Array of conditions keyed by physical column indexes.
+   */
+  importBaselineConditions(conditions: ColumnConditions[]): void {
+    this.importConditions(conditions);
+    this.#previousConditionStack = this.exportConditions();
+  }
+
+  /**
    * Exports filter conditions for all columns from the plugin.
    * The array represents the filter state for each column and uses physical column indexes in each `column` property.
    * For example:

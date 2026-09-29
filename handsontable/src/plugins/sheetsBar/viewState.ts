@@ -81,6 +81,7 @@ function getSortingPlugin(hot: HotInstance) {
  */
 interface SortingPlugin {
   sort: (config: unknown) => void;
+  setSortConfig: (config: unknown) => void;
   getSortConfig: () => unknown;
   indexesSequenceCache: { getValues: () => number[] } | null;
 }
@@ -327,14 +328,19 @@ function restoreHiddenState(hot: HotInstance, state: ViewState) {
  * Writes a stored index order into a mapper, unless the data changed size while the sheet was
  * away. A sheet's data array is the caller's own, and rows added or removed while another
  * sheet was in front would leave the stored order describing a grid that no longer exists.
+ * Returns whether the order was written.
  */
 function restoreSequence(
   mapper: { setIndexesSequence: (sequence: number[]) => void, getNumberOfIndexes: () => number },
   sequence: number[],
-) {
-  if (sequence.length === mapper.getNumberOfIndexes()) {
-    mapper.setIndexesSequence(sequence);
+): boolean {
+  if (sequence.length !== mapper.getNumberOfIndexes()) {
+    return false;
   }
+
+  mapper.setIndexesSequence(sequence);
+
+  return true;
 }
 
 /**
@@ -344,6 +350,10 @@ function restoreSequence(
  * the states the previous sheet left behind), the unsorted order is handed back, the sort is
  * re-applied on top of it, and only then the exact live order — which may carry manual moves
  * made after the sort — is written last.
+ *
+ * A `beforeColumnSort` listener can cancel either `sort()` call. The rows still land in the
+ * captured order, which is written directly, so `restoreCanceledSortStates()` puts the sort
+ * states back to match them.
  */
 function restoreAxisState(hot: HotInstance, state: ViewState) {
   const sorting = getSortingPlugin(hot);
@@ -363,7 +373,37 @@ function restoreAxisState(hot: HotInstance, state: ViewState) {
     }
   }
 
-  restoreSequence(hot.rowIndexMapper, state.rowSequence);
+  const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);
+
+  if (sorting && hasSortConfig && isRowOrderRestored) {
+    restoreCanceledSortStates(sorting, state.sortConfig);
+  }
+}
+
+/**
+ * Writes the captured sort states back after a `beforeColumnSort` listener canceled the restore's
+ * `sort()`. A canceled call returns before the plugin records the states, and `loadData` has
+ * already cleared them, so the header indicators and `getSortConfig()` would describe an unsorted
+ * grid over the sorted rows. It goes through `setSortConfig()`, the pattern the sorting plugin
+ * documents for a canceled sort. The caller runs it only once the captured row order is back: when
+ * the sheet's data changed size while it was away, the order is skipped, the rows stay in the
+ * `loadData` order, and an indicator would claim a sort they do not have.
+ *
+ * Nothing is written when the states are no longer empty: the sort ran, or the listener that
+ * canceled it set a config of its own, which stays. Nothing is written either while the plugin
+ * holds no pre-sort row cache. It builds that cache only inside a `sort()` that starts from empty
+ * states, so states written without one make the next `sort()` throw. The cache is missing after
+ * the plugin was disabled and enabled again, which a sheet declaring `columnSorting: false` does
+ * on every switch.
+ */
+function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: unknown) {
+  const currentStates = sorting.getSortConfig() as unknown[];
+
+  if (sorting.indexesSequenceCache === null || currentStates.length > 0) {
+    return;
+  }
+
+  sorting.setSortConfig(sortConfig);
 }
 
 /**
@@ -398,10 +438,24 @@ function restoreSizes(hot: HotInstance, state: ViewState) {
 /**
  * Restores filter conditions and re-applies the filter. Skipped when there is nothing to apply
  * and nothing to clear, so a switch between two unfiltered sheets does not run a filter pass.
+ *
+ * A `beforeFilter` listener can cancel the pass, and a canceled pass puts back the conditions of
+ * the previous pass, which ran on the departing sheet. A pass that ran fires `afterFilter` and a
+ * canceled one does not, so that hook is the signal; comparing conditions would also fire when an
+ * `afterFilter` listener edited them, and the re-import would then undo that edit. After a canceled
+ * pass the arriving sheet's conditions go back in through the Filters plugin's baseline import,
+ * which also makes them the fallback for any later canceled pass on this sheet. The rows stay
+ * unfiltered while the menu shows those conditions: whether the sheet is filtered is the
+ * listener's call, and with DataProvider it is the server that filters. The skipped case sets an empty baseline for
+ * the same reason: without it, the first canceled pass on an unfiltered sheet, and the undo of
+ * its first filter, would bring back the departing sheet's conditions. The pass itself imports
+ * the conditions the plain way, so `beforeFilter` still receives the departing sheet's conditions
+ * as the previous stack.
  */
 function restoreFilterConditions(hot: HotInstance, state: ViewState) {
   const filters = getEnabledPlugin(hot, 'filters') as {
     importConditions: (conditions: unknown[]) => void,
+    importBaselineConditions: (conditions: unknown[]) => void,
     exportConditions: () => unknown[],
     filter: () => void,
   } | undefined;
@@ -411,11 +465,39 @@ function restoreFilterConditions(hot: HotInstance, state: ViewState) {
   }
 
   if (state.filterConditions.length === 0 && filters.exportConditions().length === 0) {
+    filters.importBaselineConditions([]);
+
     return;
   }
 
   filters.importConditions(state.filterConditions);
-  filters.filter();
+
+  if (!runFilterPass(hot, filters)) {
+    filters.importBaselineConditions(state.filterConditions);
+  }
+}
+
+/**
+ * Runs one filter pass and returns whether it ran, which a canceled one does not. It listens for
+ * `afterFilter`, which the Filters plugin fires only for a pass no `beforeFilter` listener
+ * canceled, and removes the listener in a `finally`, because the pass runs host code that can
+ * throw.
+ */
+function runFilterPass(hot: HotInstance, filters: { filter: () => void }): boolean {
+  let hasRun = false;
+  const onAfterFilter = () => {
+    hasRun = true;
+  };
+
+  hot.addHook('afterFilter', onAfterFilter);
+
+  try {
+    filters.filter();
+  } finally {
+    hot.removeHook('afterFilter', onAfterFilter);
+  }
+
+  return hasRun;
 }
 
 /**
