@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T11:33:33.542Z",
+  "generatedAt": "2026-09-29T13:23:06.549Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 291,
+    "tests": 303,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1628
+    "entries": 1700
   },
   "rows": [
     {
@@ -306,6 +306,462 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › bounds the holder by the grid's own width once `updateSettings()` sets `height: 'auto'`",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 309,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › bounds the holder by the grid's own width once `updateSettings()` sets `height: 'auto'`",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › follows the grid's own width through `updateSettings({ width })` in a padded parent",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 276,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › follows the grid's own width through `updateSettings({ width })` in a padded parent",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › keeps a half-width grid inside its own box in an `overflow: hidden` parent",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 293,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › keeps a half-width grid inside its own box in an `overflow: hidden` parent",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in a padded `overflow: hidden` parent (ltr)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 211,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in a padded `overflow: hidden` parent (ltr)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in a padded `overflow: hidden` parent (rtl)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 211,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in a padded `overflow: hidden` parent (rtl)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in an `overflow: hidden` parent around a padded wrapper (ltr)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 211,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in an `overflow: hidden` parent around a padded wrapper (ltr)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in an `overflow: hidden` parent around a padded wrapper (rtl)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 211,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › scrolls the last column fully into view in an `overflow: hidden` parent around a padded wrapper (rtl)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded `overflow: hidden` parent (ltr)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 189,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded `overflow: hidden` parent (ltr)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded `overflow: hidden` parent (rtl)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 189,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded `overflow: hidden` parent (rtl)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded parent that clips the horizontal axis only",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 232,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in a padded parent that clips the horizontal axis only",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in an `overflow: hidden` parent around a padded wrapper (ltr)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 189,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in an `overflow: hidden` parent around a padded wrapper (ltr)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/root-size-options.spec.ts|root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in an `overflow: hidden` parent around a padded wrapper (rtl)",
+      "tier": "playwright",
+      "file": "e2e/root-size-options.spec.ts",
+      "line": 189,
+      "title": "root size options › `height: \"auto\"` › inside a parent that clips the grid and insets it (DEV-3107) › stretches the columns to the grid's own width in an `overflow: hidden` parent around a padded wrapper (rtl)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T13:22:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36572519853",
+        "branch": "feature/DEV-3107_Holder-width-in-padded-overflow-parent",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
