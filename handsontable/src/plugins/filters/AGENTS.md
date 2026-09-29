@@ -120,8 +120,10 @@ captured when the plugin is enabled.
   compares equal. (3) **Resolve afresh, never through the memo** — `filter()` renders while its pass
   is open, and the memo there IS the applied set, so a move made from `afterFilter` compared equal to
   itself. (4) **The comparison runs after the cheap gates**, because resolving the set walks the whole
-  row sequence. `filter()` clears the pending flag on entry (its pass answers it) and leaves one
-  queued DURING it, such as that `afterFilter` move, for the render at its end. Observable
+  row sequence. The pending flag is cleared only where the map is WRITTEN (`#writeTrimmedRows()`),
+  never on entry to `filter()`: a `filter()` that `beforeFilter` vetoes leaves the map as it was, so
+  clearing on entry lost a check a row change had queued. A check queued after the write, such as
+  that `afterFilter` move, stays pending for the render that ends `filter()`. Observable
   consequence: on an opted-in grid a sort used to re-apply the conditions to rows edited since the
   last `filter()`; now only a change of frozen rows re-evaluates them, which is still more than a
   grid without the option ever does.

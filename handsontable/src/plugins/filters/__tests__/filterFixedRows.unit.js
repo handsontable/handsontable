@@ -378,6 +378,20 @@ describe('Filters -> filterFixedRows', () => {
         expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry', 'Total']);
       });
 
+      it('should keep a queued re-apply when beforeFilter vetoes the filter', () => {
+        // A vetoed `filter()` leaves the trimming map as it was, so it has not answered a check that
+        // a row change queued before it. The next full render must still run that check.
+        const filters = buildFilteredGrid();
+
+        hot.rowIndexMapper.moveIndexes([1], 0);
+        hot.addHook('beforeFilter', () => false);
+        filters.filter();
+        hot.render();
+
+        // `Apple` is the top frozen row now, so `Header` (Gold) stops being exempt.
+        expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry', 'Total']);
+      });
+
       it('should re-apply on an insert even when the pinned row NUMBERS did not change', () => {
         // With only a top frozen row, the pinned set is `{0}` before AND after `insert_row_above`
         // at 0 - but physical row 0 is now the new row, and `Header` has moved to physical 1. A

@@ -559,7 +559,10 @@ export class Filters extends BasePlugin {
       this.filtersRowsMap?.setValues(trimmedRowsState);
     }, true);
 
+    // This write answers every check queued so far. One queued after it - a row move made from
+    // `afterFilter` - stays pending for the render that ends `filter()`.
     this.#appliedPinnedRows = pinnedRows;
+    this.#isPinnedRowCheckPending = false;
 
     // The visible rows are the matches plus the pinned rows, so an empty match list no longer
     // means an empty grid.
@@ -1419,11 +1422,9 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
-    // This pass applies the exemption from scratch, so a check queued before it is answered by it.
-    // One queued DURING it - a row move made from `afterFilter` - stays pending for the render at
-    // the end of the pass.
+    // The queued check is answered only where the map is written (`#writeTrimmedRows()`): a pass
+    // that `beforeFilter` vetoes leaves the map, and so the check, as they were.
     this.#appliedPinnedRows = undefined;
-    this.#isPinnedRowCheckPending = false;
 
     this.#runTrimmingPass(() => this.#filterInternal(navigableHeaders, needToFilter, conditions));
   }
