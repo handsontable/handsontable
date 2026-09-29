@@ -53,7 +53,7 @@ export function parseCli(argv) {
 }
 
 // Fixed flags so a user's git config (`diff.external`, `diff.noprefix`, ...) cannot change what is parsed.
-const DIFF_FLAGS = ['--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/', '--unified=3'];
+const DIFF_FLAGS = ['--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/', '--unified=25'];
 
 /**
  * The diff command and the ref to grep for a range. Runs git only through the

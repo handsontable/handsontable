@@ -24,23 +24,11 @@ function stepText(name) {
   return source.slice(start, next === -1 ? undefined : next);
 }
 
-test('triggers on pull requests touching shippable source or the check itself', () => {
+test('triggers on every pull request update, with no path filter that could skip a clearing run', () => {
   assert.match(source, /on:\n {2}pull_request:\n {4}types: \[opened, synchronize, reopened, ready_for_review\]/);
-
-  for (const glob of [
-    'handsontable/src/**',
-    'wrappers/**',
-    '.github/scripts/breaking-check.mjs',
-    '.github/scripts/lib/breaking-check/**',
-    '.github/scripts/lib/docs-sync/github.mjs',
-    '.github/scripts/lib/changelog-gate.mjs',
-    '.github/scripts/lib/presence-gate.mjs',
-    '.github/scripts/lib/strip-html-comments.mjs',
-    '.github/scripts/lib/repo-root.mjs',
-    '.github/workflows/breaking-check.yml',
-  ]) {
-    assert.ok(source.includes(`- '${glob}'`), `missing path filter ${glob}`);
-  }
+  // A path filter matches the whole PR diff, so a push that drops every in-scope change would never
+  // run and never clear a stale comment.
+  assert.doesNotMatch(source, /^\s*paths(-ignore)?:/m);
 });
 
 test('declares least-privilege permissions and a per-PR cancelling concurrency group', () => {
@@ -103,31 +91,5 @@ test('no other workflow references the check, so it cannot become a CI Gate inpu
       /breaking-check/,
       `${file} references breaking-check; the check must stay advisory and standalone`,
     );
-  }
-});
-
-test('paths cover every module the entry point imports, transitively', () => {
-  const scripts = path.join(repoRoot(), '.github/scripts');
-  const seen = new Set();
-  const walk = (file) => {
-    if (seen.has(file)) {
-      return;
-    }
-    seen.add(file);
-
-    for (const match of readFileSync(file, 'utf8').matchAll(/from\s+'(\.[^']+)'/g)) {
-      walk(path.resolve(path.dirname(file), match[1]));
-    }
-  };
-
-  walk(path.join(scripts, 'breaking-check.mjs'));
-
-  for (const file of seen) {
-    const rel = path.relative(repoRoot(), file).split(path.sep).join('/');
-    const covered = rel.startsWith('.github/scripts/lib/breaking-check/')
-      ? source.includes("'.github/scripts/lib/breaking-check/**'")
-      : source.includes(`'${rel}'`);
-
-    assert.ok(covered, `${rel} is imported by the check but missing from the workflow paths`);
   }
 });

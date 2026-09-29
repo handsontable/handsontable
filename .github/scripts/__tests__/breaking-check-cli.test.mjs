@@ -23,7 +23,7 @@ test('parseCli reads each flag and rejects contradictory ranges', () => {
   assert.throws(() => parseCli(['--nope']));
 });
 
-const FLAGS = ['--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/', '--unified=3'];
+const FLAGS = ['--no-color', '--no-ext-diff', '--src-prefix=a/', '--dst-prefix=b/', '--unified=25'];
 
 test('resolveRange: commit, merge-parent, merge-base, and no-merge-base, all with fixed diff flags', () => {
   const never = () => { throw new Error('git should not run'); };

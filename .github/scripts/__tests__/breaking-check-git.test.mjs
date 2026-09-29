@@ -23,6 +23,11 @@ const GIT_ENV = {
 delete GIT_ENV.GIT_DIR;
 delete GIT_ENV.GIT_WORK_TREE;
 delete GIT_ENV.GIT_INDEX_FILE;
+// The CLI appends to a step summary, reads Jev credentials, and posts with a token when they are set.
+delete GIT_ENV.GITHUB_STEP_SUMMARY;
+delete GIT_ENV.LITELLM_BASE_URL;
+delete GIT_ENV.LITELLM_API_KEY;
+delete GIT_ENV.GH_TOKEN;
 
 const repos = [];
 

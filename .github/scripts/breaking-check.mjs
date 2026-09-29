@@ -1,6 +1,6 @@
 // Advisory breaking-change check (DEV-3030). Flags a diff that removes or
-// renames a public name, or changes a `metaSchema` option default, and can post
-// one PR comment. Never blocks: exits 0 whatever it finds.
+// renames a public name, changes a `metaSchema` option default, or adds a hook
+// or option to `REMOVED_HOOKS`/`REMOVED_OPTIONS`, and can post one PR comment. Never blocks: exits 0 whatever it finds.
 //
 // Usage:
 //   node .github/scripts/breaking-check.mjs                       # HEAD vs merge-base with origin/develop

@@ -1,25 +1,18 @@
 name: Breaking change check
 
 # Advisory only (DEV-3030): flags a pull request that removes or renames a
-# public name, or changes a `metaSchema` option default, and posts one sticky
-# comment. It is deliberately standalone: no other workflow references it and
+# public name, changes a `metaSchema` option default, or adds a hook or option
+# to `REMOVED_HOOKS`/`REMOVED_OPTIONS`, and posts one sticky comment. It is deliberately standalone: no other workflow references it and
 # `CI Gate` does not `needs` it, so it can never block a merge. Both steps are
-# `continue-on-error` for the same reason.
+# `continue-on-error` for the same reason. There is no `paths:` filter on purpose:
+# GitHub matches it against the whole pull request diff, so a later push that
+# drops every in-scope change would start no run and never clear a stale comment.
+# The script scopes itself (`filterScope`), and a diff with nothing in scope only
+# clears the comment.
 # Script: .github/scripts/breaking-check.mjs (run it locally with --render).
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - 'handsontable/src/**'
-      - 'wrappers/**'
-      - '.github/scripts/breaking-check.mjs'
-      - '.github/scripts/lib/breaking-check/**'
-      - '.github/scripts/lib/docs-sync/github.mjs'
-      - '.github/scripts/lib/changelog-gate.mjs'
-      - '.github/scripts/lib/presence-gate.mjs'
-      - '.github/scripts/lib/strip-html-comments.mjs'
-      - '.github/scripts/lib/repo-root.mjs'
-      - '.github/workflows/breaking-check.yml'
 
 permissions:
   contents: read

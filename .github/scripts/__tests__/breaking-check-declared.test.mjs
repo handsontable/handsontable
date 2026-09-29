@@ -295,3 +295,14 @@ test('detectDefaultsTouched: a removed `/* ... */` comment line does not count',
 
   assert.equal(detectDefaultsTouched(files).defaultsTouched, false);
 });
+
+test('the signals read only +/- lines, so the wider diff context changes nothing', () => {
+  const context = Array.from({ length: 25 }, (_, i) => `   undo${i}: true,`);
+  const files = [
+    fileDiff('handsontable/src/dataMap/metaManager/metaSchema.ts', ['@@ -1,50 +1,51 @@', ...context, '+  added: 1,', ...context]),
+    fileDiff('handsontable/src/core.ts', ['@@ -1,50 +1,51 @@', ...context, "+  name: 'notRegistry',", ...context]),
+  ];
+
+  assert.equal(detectDefaultsTouched(files).defaultsTouched, false);
+  assert.deepEqual(detectRemovedRegistryAdded(files).removedRegistryAdded, []);
+});

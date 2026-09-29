@@ -8,14 +8,16 @@ export const MARKER = '<!-- breaking-check -->';
 const MAX_LISTED = 15;
 
 /**
- * Comment only when the check flagged something the author has not already
- * declared with a `breaking: true` changelog entry.
+ * Comment when the check flagged something the author has not already
+ * declared. A `breaking: true` changelog entry declares a removed name or a
+ * removed-list entry, but never a default change: changing a default is
+ * forbidden whatever the changelog says.
  *
- * @param {{ flagged: boolean, declared: { breakingEntry: boolean } }} result
+ * @param {{ flagged: boolean, defaultsTouched: boolean, declared: { breakingEntry: boolean } }} result
  * @returns {boolean}
  */
 export function shouldComment(result) {
-  return result.flagged && !result.declared.breakingEntry;
+  return result.defaultsTouched || (result.flagged && !result.declared.breakingEntry);
 }
 
 /**
@@ -49,11 +51,22 @@ function renderName(item) {
   return `- ${codeSpan(item.name)} (${item.kind}) in ${codeSpan(item.file)}${note}`;
 }
 
+const ADVICE = {
+  names: '**Removed or renamed public names.** Keep the old name working as a deprecated alias that prints a one-time warning, as `.ai/BREAKING-CHANGES.md` requires. Mark the changelog entry `"breaking": true` only if it is removed in a major release. If a name is internal, ignore it.',
+  defaults: '**Default change.** Changing a default is strictly forbidden by `.ai/BREAKING-CHANGES.md`. Revert it. If the line is not a default change, ignore this.',
+  registry: '**Removed hook or option.** Confirm this is the major release that ends the deprecation, then mark the changelog entry `"breaking": true`.',
+};
+
 /**
  * @param {object} result A `detect()` result.
  * @returns {string} Markdown, without the marker.
  */
 export function renderComment(result) {
+  // A `breaking: true` entry declares names and removed-list entries, so they are neither listed
+  // nor advised on; a default change is never declared away.
+  const declared = result.declared.breakingEntry;
+  const names = declared ? [] : result.removedNames;
+  const registry = declared ? [] : (result.removedRegistryAdded ?? []);
   const lines = [
     '### Possible breaking change',
     '',
@@ -61,28 +74,28 @@ export function renderComment(result) {
     '',
   ];
 
-  if (result.removedNames.length > 0) {
+  if (names.length > 0) {
     lines.push('Public names this pull request appears to remove or rename:', '');
-    lines.push(...result.removedNames.slice(0, MAX_LISTED).map(renderName));
+    lines.push(...names.slice(0, MAX_LISTED).map(renderName));
 
-    if (result.removedNames.length > MAX_LISTED) {
-      lines.push(`- and ${result.removedNames.length - MAX_LISTED} more`);
+    if (names.length > MAX_LISTED) {
+      lines.push(`- and ${names.length - MAX_LISTED} more`);
     }
     lines.push('');
   }
 
-  if ((result.removedRegistryAdded?.length ?? 0) > 0) {
+  if (registry.length > 0) {
     lines.push('Entries added to the removed-hooks and removed-options lists:', '');
-    lines.push(...result.removedRegistryAdded.map((a) => `- ${codeSpan(a.name)} added to \`${a.registry}\``), '');
+    lines.push(...registry.map((a) => `- ${codeSpan(a.name)} added to \`${a.registry}\``), '');
   }
 
-  const unscored = result.unscoredNames?.length ?? 0;
+  const unscored = declared ? 0 : (result.unscoredNames?.length ?? 0);
 
   if (unscored > 0) {
     lines.push(`${unscored} removed ${unscored === 1 ? 'name was' : 'names were'} not scored.`, '');
   }
 
-  const unchecked = result.uncheckedCount ?? 0;
+  const unchecked = declared ? 0 : (result.uncheckedCount ?? 0);
 
   if (unchecked > 0) {
     lines.push(`${unchecked} more removed ${unchecked === 1 ? 'name was' : 'names were'} not checked.`, '');
@@ -92,12 +105,20 @@ export function renderComment(result) {
     lines.push(`An option default in \`metaSchema\` appears to change: ${codeSpan(result.defaultsEvidence)}`, '');
   }
 
+  if (names.length > 0) {
+    lines.push(ADVICE.names, '');
+  }
+  if (result.defaultsTouched) {
+    lines.push(ADVICE.defaults, '');
+  }
+  if (registry.length > 0) {
+    lines.push(ADVICE.registry, '');
+  }
+
   lines.push(
-    '**What to do.** If the change is intentional, mark the changelog entry `"breaking": true` and follow the deprecation checklist in `.ai/BREAKING-CHANGES.md`. Keep the old name working, as the policy requires. If it is not a breaking change, ignore this comment.',
+    '**Scope.** The check only looks at removed or renamed public names, `metaSchema` default changes, and hooks or options added to `REMOVED_HOOKS` or `REMOVED_OPTIONS`. It does not check behavior, DOM structure, or CSS property or value changes, so no comment is not an all-clear.',
     '',
-    '**Scope.** The check only looks at removed or renamed public names and at `metaSchema` default changes. It does not check behavior, DOM structure, or CSS property or value changes, so no comment is not an all-clear.',
-    '',
-    'On past pull requests, about 1 in 7 of these comments pointed at a real break.',
+    'On 250 past pull requests, this check flagged 14 (6%); most of those were not real breaking changes.',
   );
 
   return lines.join('\n');
@@ -106,11 +127,11 @@ export function renderComment(result) {
 /**
  * The text that replaces a comment the check no longer stands behind.
  *
- * @param {{ declared: { breakingEntry: boolean } }} result The current `detect()` result.
+ * @param {{ flagged: boolean, declared: { breakingEntry: boolean } }} result The current `detect()` result.
  * @returns {string} Markdown, without the marker.
  */
 export function renderCleared(result) {
-  const reason = result.declared.breakingEntry
+  const reason = result.declared.breakingEntry && result.flagged
     ? 'The changelog entry now declares this breaking change.'
     : 'A later push no longer triggers the check.';
 

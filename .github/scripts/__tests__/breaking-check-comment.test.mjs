@@ -20,10 +20,53 @@ test('the marker is the HTML comment the sticky comment is found by', () => {
   assert.equal(MARKER, '<!-- breaking-check -->');
 });
 
-test('shouldComment needs a flag and no declared breaking entry', () => {
+test('shouldComment needs a flag; a declared breaking entry silences names and registry entries', () => {
   assert.equal(shouldComment(result()), true);
   assert.equal(shouldComment(result({ flagged: false })), false);
   assert.equal(shouldComment(result({ declared: { breakingEntry: true } })), false);
+});
+
+test('a declared breaking entry never silences a default change', () => {
+  const declaredDefault = result({
+    removedNames: [], defaultsTouched: true, defaultsEvidence: '-  a: 1,', declared: { breakingEntry: true },
+  });
+
+  assert.equal(shouldComment(declaredDefault), true);
+
+  const text = renderComment(declaredDefault);
+
+  assert.match(text, /appears to change/);
+  assert.match(text, /strictly forbidden/);
+  assert.doesNotMatch(text, /deprecated alias/);
+});
+
+test('with a declared entry and a default change, the declared names are neither listed nor advised on', () => {
+  const text = renderComment(result({
+    defaultsTouched: true, defaultsEvidence: '-  a: 1,', declared: { breakingEntry: true },
+    removedRegistryAdded: [{ name: 'afterGone', registry: 'REMOVED_HOOKS' }],
+  }));
+
+  assert.doesNotMatch(text, /forRoot|afterGone|Removed or renamed public names|Removed hook or option/);
+});
+
+test('each signal gets its own advice', () => {
+  const names = renderComment(result());
+
+  assert.match(names, /deprecated alias that prints a one-time warning/);
+  assert.match(names, /only if it is removed in a major release/);
+  assert.doesNotMatch(names, /strictly forbidden|ends the deprecation/);
+
+  const defaults = renderComment(result({ removedNames: [], defaultsTouched: true, defaultsEvidence: '-  a: 1,' }));
+
+  assert.match(defaults, /Changing a default is strictly forbidden .*Revert it\./);
+  assert.doesNotMatch(defaults, /deprecated alias|ends the deprecation/);
+
+  const registry = renderComment(result({
+    removedNames: [], removedRegistryAdded: [{ name: 'afterGone', registry: 'REMOVED_HOOKS' }],
+  }));
+
+  assert.match(registry, /Confirm this is the major release that ends the deprecation, then mark the changelog entry `"breaking": true`/);
+  assert.doesNotMatch(registry, /deprecated alias|Revert it/);
 });
 
 test('the comment is advisory, lists the name with kind and file but no raw score, and states its scope', () => {
@@ -34,11 +77,12 @@ test('the comment is advisory, lists the name with kind and file but no raw scor
   assert.match(text, /can be wrong/);
   assert.match(text, /`forRoot` \(method\) in `wrappers\/angular-wrapper\/x\.ts`$/m);
   assert.doesNotMatch(text, /0\.21|Jev score/);
-  assert.match(text, /"breaking": true/);
   assert.match(text, /\.ai\/BREAKING-CHANGES\.md/);
+  assert.match(text, /hooks or options added to `REMOVED_HOOKS` or `REMOVED_OPTIONS`/);
   assert.match(text, /does not check behavior, DOM structure, or CSS property or value changes/);
   assert.match(text, /no comment is not an all-clear/);
-  assert.match(text, /1 in 7/);
+  assert.match(text, /On 250 past pull requests, this check flagged 14 \(6%\); most of those were not real breaking changes\./);
+  assert.doesNotMatch(text, /1 in 7/);
   assert.doesNotMatch(text, /\u2014/);
 });
 
@@ -69,6 +113,7 @@ test('lists at most 15 names and counts the rest', () => {
 });
 
 test('the cleared text names why: a later push, or a declared break', () => {
+  assert.match(renderCleared(result({ flagged: false, declared: { breakingEntry: true } })), /A later push/);
   assert.match(renderCleared(result()), /A later push no longer triggers the check\./);
   assert.match(
     renderCleared(result({ declared: { breakingEntry: true } })),

@@ -231,3 +231,123 @@ test('a removed `/* ... */` line is a comment', () => {
   assert.deepEqual(kinds([fileDiff('handsontable/src/a.scss', ['/* uses --ht-old-var */'])]), {});
   assert.deepEqual(kinds([fileDiff('handsontable/src/a.ts', ['/* export function x() { */'])]), {});
 });
+
+/**
+ * A diff where `-`, `+`, and context (` `) lines are given verbatim, as git prints them.
+ */
+const rawDiff = (filePath, lines) => ({
+  path: filePath,
+  text: ['diff --git a/x b/x', '--- a/x', '+++ b/x', '@@ -1,9 +1,9 @@', ...lines].join('\n'),
+});
+const methodNames = (lines) => Object.keys(kinds([rawDiff('handsontable/src/plugins/p/p.ts', lines)]));
+
+test('one-line signatures with `)` in a default, `{` in the return type, an empty body, or a trailing comment', () => {
+  assert.deepEqual(methodNames(['-  mergeSelection(cellRange = this.hot.getSelectedRangeActive()): void {']), ['mergeSelection']);
+  assert.deepEqual(
+    methodNames(['-  getSelectedColumn(): { physicalIndex: number, visualIndex: number } | null {']),
+    ['getSelectedColumn'],
+  );
+  assert.deepEqual(methodNames(['-  onFocus(): void {}']), ['onFocus']);
+  assert.deepEqual(methodNames(['-  focus() { }']), ['focus']);
+  assert.deepEqual(methodNames(['-  init(): void { // set up']), ['init']);
+});
+
+test('statements that only look like declarations are not candidates', () => {
+  assert.deepEqual(methodNames(['-  if (isReady(a)) {', '-  foo(a);', '-  x = foo(a) {', '-  while (more()) {']), []);
+  assert.deepEqual(methodNames(['-  runQueue(', '-    task,', '-  );']), []);
+});
+
+test('a split signature is recognized with the closer on the last parameter line', () => {
+  assert.deepEqual(
+    methodNames([
+      '-  getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,',
+      '-    fromVisualIndex2: number, searchDirection: 1 | -1 = 1): number | null {',
+    ]),
+    ['getFirstNotHiddenIndex'],
+  );
+  assert.deepEqual(
+    methodNames(['-  calculate(', '-    a: number,', '-  ): void {']),
+    ['calculate'],
+  );
+});
+
+test('a rename that changes only the name line still finds the closer in unchanged context', () => {
+  const lines = [
+    '-  calculateColumnsWidth(',
+    '+  computeColumnsWidth(',
+    '     from: number,',
+    '     to: number,',
+    '     force: boolean,',
+    '   ): void {',
+  ];
+
+  assert.deepEqual(methodNames(lines), ['calculateColumnsWidth']);
+  // A closer beyond the next hunk header is not read.
+  assert.deepEqual(methodNames(['-  calculateColumnsWidth(', '@@ -50,3 +50,3 @@', '   ): void {']), []);
+});
+
+test('the closer is found up to 25 old-side lines away', () => {
+  const params = Array.from({ length: 22 }, (_, i) => `     p${i}: number,`);
+
+  assert.deepEqual(methodNames(['-  farAway(', ...params, '   ): void {']), ['farAway']);
+  assert.deepEqual(methodNames(['-  tooFar(', ...params, ...params, '   ): void {']), []);
+});
+
+test('parentheses inside strings and comments do not unbalance a signature', () => {
+  assert.deepEqual(methodNames(["-  label(text = ')' /* ( */): string { // ("]), ['label']);
+});
+
+test('Core arrow assignments count alongside `= function`', () => {
+  const scope = [rawDiff('handsontable/src/core.ts', [
+    '-  this.toTableElement = () => {',
+    '-  this.useTheme = async (name) => {',
+    '-  this.getWidth = (a: number): number =>',
+    '-  this.plain = (a || b);',
+    '-  instance.legacyMethod = function() {',
+  ])];
+
+  assert.deepEqual(kinds(scope), {
+    toTableElement: 'method', useTheme: 'method', getWidth: 'method', legacyMethod: 'method',
+  });
+  assert.deepEqual(kinds(scope, { coreStyle: false }), {});
+});
+
+test('exports: abstract and declare classes, and export specifiers with aliases', () => {
+  assert.deepEqual(
+    kinds([rawDiff('handsontable/src/x.ts', [
+      '-export abstract class HotCellEditorComponent {',
+      '-export declare abstract class DeclaredBase {',
+      "-export { CELL_TYPE as MULTISELECT_TYPE } from './multiSelectType';",
+      '-export { registerPhraseFormatter, type SheetsBarTrackedCellMeta };',
+      '-export * as helpers from "./helpers";',
+    ])]),
+    {
+      HotCellEditorComponent: 'export',
+      DeclaredBase: 'export',
+      MULTISELECT_TYPE: 'export',
+      registerPhraseFormatter: 'export',
+      SheetsBarTrackedCellMeta: 'export',
+      helpers: 'export',
+    },
+  );
+});
+
+test('a multi-line export specifier list yields every exported name', () => {
+  assert.deepEqual(
+    Object.keys(kinds([rawDiff('handsontable/src/x.ts', [
+      '-export {',
+      '-  FirstName,',
+      '-  Second as ThirdName,',
+      "-} from './y';",
+    ])])),
+    ['FirstName', 'ThirdName'],
+  );
+});
+
+test('plugin sub-options and class fields are a known gap and yield no candidate', () => {
+  assert.deepEqual(methodNames([
+    '-  searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;',
+    '-      searchResultClass: string,',
+    '-    syncLimit: 50,',
+  ]), []);
+});
