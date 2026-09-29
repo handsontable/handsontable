@@ -649,6 +649,7 @@ describe('exportFile XLSX type — cell types', () => {
     // `numericFormat: { style: 'currency', currency: 'USD' }` and `locale: 'en-US'`,
     // open the XLSX in Excel for Mac, select a numeric cell,
     // press ⌘1 — Category shows "Custom" instead of "Currency".
+    // eslint-disable-next-line handsontable/no-skipped-test -- DEV-2204: waits for the built-in currency numFmtId post-processing
     xit('should render currency cells in the "Currency" format category (not "Custom") in Excel', async() => {
       // OOXML built-in format IDs that Excel maps to the "Currency" category:
       // 5 → $#,##0_);($#,##0)    6 → $#,##0_);[Red]($#,##0)
