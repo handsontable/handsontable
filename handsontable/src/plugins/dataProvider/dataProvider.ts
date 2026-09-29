@@ -367,6 +367,13 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
+   * `true` while `_restoreFetchResult()` replays a kept response, so the page and page size that Pagination takes
+   * from it are not read as a user's change that asks for a fetch.
+   *
+   * @type {boolean}
+   */
+  #isRestoringFetchResult = false;
+  /**
    * Serializes create/update/remove mutations so they run one after another.
    *
    * @type {{ tail: Promise<void> }}
@@ -760,7 +767,8 @@ export class DataProvider extends BasePlugin {
    * the grid shows, not rows from `result` (so the grid must already show the rows the response returned), and the
    * ColumnSorting and Filters states that match the query, mapped through the columns the grid has now. Does
    * nothing while the plugin is disabled. Once the replayed conditions are on screen, Filters takes them as the
-   * ones a failed server fetch rolls back to. Internal: part of the context owner contract; not public API.
+   * ones a failed server fetch rolls back to. The page and page size Pagination takes from the replay fetch
+   * nothing. Internal: part of the context owner contract; not public API.
    *
    * @private
    * @param {object} result The kept response: `{ totalRows, queryParameters }`; its `rows`, if any, are ignored.
@@ -779,7 +787,14 @@ export class DataProvider extends BasePlugin {
     const payload = this.#buildFetchResult({ ...result, rows }, rows, totalRows, this.#snapshotQueryParameters(query));
 
     this.#queryParameters = this.#snapshotQueryParameters(query);
-    this.hot.runHooks('afterDataProviderFetch', { ...payload, isRestored: true });
+    this.#isRestoringFetchResult = true;
+
+    try {
+      this.hot.runHooks('afterDataProviderFetch', { ...payload, isRestored: true });
+    } finally {
+      this.#isRestoringFetchResult = false;
+    }
+
     this.hot.getPlugin('filters')?._resetDataProviderRollback();
     this.hot.render();
   }
@@ -1663,6 +1678,10 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterPageChangeExternalPagination = (oldPage: number, newPage: number) => {
+    if (this.#isRestoringFetchResult) {
+      return;
+    }
+
     handleAfterPageChangeExternalPagination(
       {
         hot: this.hot,
@@ -1685,6 +1704,10 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterPageSizeChangeExternalPagination = (oldPageSize: number | 'auto', newPageSize: number | 'auto') => {
+    if (this.#isRestoringFetchResult) {
+      return;
+    }
+
     handleAfterPageSizeChangeExternalPagination(
       {
         hot: this.hot,

@@ -1007,6 +1007,24 @@ describe('DataProvider context owner contract', () => {
       }));
     });
 
+    it('fetches nothing when the replayed page and page size differ from the pager\'s', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider, { settings: { pagination: { pageSize: 25 } } });
+
+      const queryParameters = { page: 3, pageSize: 10, sort: null, filters: null };
+
+      hot.getPlugin('dataProvider')._restoreFetchResult({ totalRows: 100, queryParameters });
+      await settle();
+
+      const pagination = hot.getPlugin('pagination').getPaginationData();
+
+      expect(provider.config.fetchRows).toHaveBeenCalledTimes(1);
+      expect(pagination.currentPage).toBe(3);
+      expect(pagination.pageSize).toBe(10);
+      expect(hot.getPlugin('dataProvider').getQueryParameters()).toEqual(queryParameters);
+    });
+
     it('does nothing while the plugin is disabled', async() => {
       const provider = createDeferredProvider();
 
