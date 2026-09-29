@@ -84,4 +84,31 @@ test.describe('`mergeCells` is updated while the filters hide every merged row',
       await expect(grid.cell(1, 1)).toHaveText('Beta');
       expect(grid.pageErrors).toEqual([]);
     });
+
+  test('sending the same merges again while a filter leaves fewer rows than the merge spans keeps it',
+    async({ page, theme, bundle }) => {
+      const grid = new MergeCellsFilteredOutClearPage(page, theme, bundle);
+
+      await grid.goto();
+      // One row stays on screen, and it is not one of the merged rows. The merge's area, 2 rows from
+      // the top, reaches past it, so the area cannot be applied to the rows on screen.
+      await grid.filterRegionTo(['West']);
+
+      await expect.poll(() => grid.visibleRowCount()).toBe(1);
+
+      await grid.resendMerges();
+
+      await expect(grid.cell(0, 0)).toHaveText('West');
+      await expect(grid.cell(0, 0)).not.toHaveAttribute('rowspan');
+
+      await grid.restoreEveryValue('Region');
+
+      await expect.poll(() => grid.visibleRowCount()).toBe(5);
+      await expect(grid.cell(0, 0)).toHaveAttribute('rowspan', '2');
+      await expect(grid.cell(0, 0)).toHaveText('North');
+      await grid.expectCoveredByMerge(1, 0);
+      await expect(grid.cell(1, 1)).toHaveText('Beta');
+      await expect(grid.cell(3, 0)).toHaveText('West');
+      expect(grid.pageErrors).toEqual([]);
+    });
 });

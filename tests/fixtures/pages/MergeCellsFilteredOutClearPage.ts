@@ -6,6 +6,7 @@ import './windowTypes';
 interface FixtureWindow extends Window {
   htClearMerges(): void;
   htResendMerges(): void;
+  htFilterRegionTo(values: string[]): void;
   htClearFilters(): void;
 }
 
@@ -85,6 +86,18 @@ export class MergeCellsFilteredOutClearPage {
     await this.filters.openMenu(headerLabel);
     await this.filters.clearAllValues();
     await this.filters.confirmMenu();
+  }
+
+  /**
+   * Keeps only the rows whose "Region" holds one of the given values, through the plugin API.
+   *
+   * @param {string[]} values The values to keep.
+   */
+  async filterRegionTo(values: string[]): Promise<void> {
+    await this.page.evaluate(
+      keptValues => (window as unknown as FixtureWindow).htFilterRegionTo(keptValues),
+      values,
+    );
   }
 
   /**

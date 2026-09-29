@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the MergeCells plugin throwing \"Expecting an unsigned number\" when the merges are cleared or updated while the Filters plugin hides every merged row, and moving or dropping merges when the same `mergeCells` settings are sent again while rows are filtered.",
+  "title": "Fixed MergeCells throwing an error, or dropping merged cells, when `mergeCells` was updated while a filter hid the merged rows.",
   "type": "fixed",
   "issueOrPR": 13660,
   "breaking": false,

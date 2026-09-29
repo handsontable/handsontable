@@ -87,6 +87,16 @@
     };
 
     /**
+     * Keeps only the rows whose "Region" holds one of the given values.
+     */
+    window.htFilterRegionTo = (values) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    };
+
+    /**
      * Removes every filter condition and re-filters, so all rows are visible again.
      */
     window.htClearFilters = () => {

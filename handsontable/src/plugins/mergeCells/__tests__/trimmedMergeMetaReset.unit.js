@@ -85,15 +85,38 @@ describe('MergeCells with trimmed or reordered rows', () => {
       expect(() => hot.updateSettings({ mergeCells: [] })).not.toThrow();
     });
 
-    it('should not throw when the plugin is disabled while every row is filtered out', () => {
+    it('should clear the merge meta when the plugin is disabled while every row is filtered out', () => {
       createGrid({
         filters: true,
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
       });
 
+      expect(hot.getCellMeta(1, 0).hidden).toBe(true);
+
       filterOutEveryRow();
 
       expect(() => hot.updateSettings({ mergeCells: false })).not.toThrow();
+
+      clearFilters();
+
+      expectNoMergeMeta([0, 1], [0]);
+    });
+
+    it('should fire the remove-meta hooks the same number of times as before for a plain merge', () => {
+      let removeCount = 0;
+
+      createGrid({
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
+      });
+
+      // Stores the span keys on the top-left cell, the way a render does.
+      expect(hot.getCellMeta(0, 0).rowspan).toBe(3);
+
+      hot.addHook('afterRemoveCellMeta', () => { removeCount += 1; });
+      hot.updateSettings({ mergeCells: [] });
+
+      // `hidden` and `copyable` on each of the 6 covered cells, and the 3 span keys on the top-left.
+      expect(removeCount).toBe(15);
     });
 
     it('should clear the merge meta of the trimmed rows once they are visible again', () => {
@@ -176,43 +199,79 @@ describe('MergeCells with trimmed or reordered rows', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it('should keep the merge whole when it is sent again while its top row is filtered out', () => {
-      const mergeCells = [{ row: 0, col: 0, rowspan: 3, colspan: 1 }];
+    it('should keep a merge whose area reaches past the rows a filter leaves visible', () => {
+      const mergeCells = [{ row: 3, col: 0, rowspan: 2, colspan: 1 }];
+      const warnSpy = spyOn(console, 'warn');
 
       createGrid({ filters: true, mergeCells });
-      // Trims physical row 0, the top row of the merge.
-      filterColumnC(['C2', 'C3', 'C4', 'C5', 'C6']);
+      // Keeps physical rows 0 to 2 only, so the area's rows 3 and 4 do not exist in the view.
+      filterColumnC(['C1', 'C2', 'C3']);
+
+      hot.updateSettings({ mergeCells });
+      clearFilters();
+
+      expect(mergeGeometry()).toEqual([[3, 0, 2, 1]]);
+      expect(hot.getCellMeta(4, 0).hidden).toBe(true);
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', null, 'A6']);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should apply an area that fits the visible rows to those rows, as before', () => {
+      // An application that computes its merges from the rows on screen sends the same areas after
+      // filtering, and they must land on the rows it now shows.
+      const mergeCells = [
+        { row: 0, col: 0, rowspan: 2, colspan: 1 },
+        { row: 2, col: 0, rowspan: 2, colspan: 1 },
+      ];
+
+      createGrid({ filters: true, mergeCells });
+      // Trims physical rows 0 and 1.
+      filterColumnC(['C3', 'C4', 'C5', 'C6']);
 
       hot.updateSettings({ mergeCells });
 
-      expect(mergeGeometry()).toEqual([[0, 0, 2, 1]]);
-
-      clearFilters();
-
-      expect(mergeGeometry()).toEqual([[0, 0, 3, 1]]);
-      expect(hot.getCellMeta(0, 0).rowspan).toBe(3);
+      expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
       expect(hot.getCellMeta(1, 0).hidden).toBe(true);
-      expect(hot.getCellMeta(2, 0).hidden).toBe(true);
-      expect(hot.getCellMeta(3, 0).hidden).toBeUndefined();
-      expect(hot.getDataAtCell(3, 0)).toBe('A4');
+      expect(hot.getCellMeta(2, 0).rowspan).toBe(2);
+      expect(hot.getCellMeta(3, 0).hidden).toBe(true);
     });
 
-    it('should not merge or clear the records a filter slid onto the merge\'s position', () => {
+    it('should not let a kept merge whose rows are all filtered out block a new area', () => {
+      const kept = { row: 2, col: 0, rowspan: 2, colspan: 1 };
+      const warnSpy = spyOn(console, 'warn');
+      const filters = () => hot.getPlugin('filters');
+
+      createGrid({ filters: true, mergeCells: [kept] });
+      // Draws the merge at the visual rows 0 and 1...
+      filterColumnC(['C3', 'C4', 'C5', 'C6']);
+      // ...then trims both of its rows in one step, which leaves it purged with those coordinates.
+      filters().removeConditions(2);
+      filters().addCondition(2, 'by_value', [['C5', 'C6']]);
+      filters().filter();
+
+      hot.updateSettings({ mergeCells: [kept, { row: 0, col: 0, rowspan: 2, colspan: 1 }] });
+      clearFilters();
+
+      expect(mergeGeometry().sort((a, b) => a[0] - b[0])).toEqual([[2, 0, 2, 1], [4, 0, 2, 1]]);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not keep a merge that a row insert moved off the area it was created from', () => {
       const mergeCells = [{ row: 0, col: 0, rowspan: 2, colspan: 1 }];
 
       createGrid({ filters: true, mergeCells });
-      // Keeps only physical rows 4 and 5, at the visual rows 0 and 1 the settings name.
-      filterColumnC(['C5', 'C6']);
+      hot.alter('insert_row_above', 0);
 
+      expect(mergeGeometry()).toEqual([[1, 0, 2, 1]]);
+
+      spyOn(console, 'warn');
+      filterOutEveryRow();
       hot.updateSettings({ mergeCells });
-
-      expect(hot.getSourceDataAtCell(4, 0)).toBe('A5');
-      expect(hot.getSourceDataAtCell(5, 0)).toBe('A6');
-      expect(hot.getCellMeta(1, 0).hidden).toBeUndefined();
-
       clearFilters();
 
-      expect(mergeGeometry()).toEqual([[0, 0, 2, 1]]);
+      // The area no longer describes the merge, so it is applied like any other area: it does not
+      // fit an empty view, and the merge at rows 1 and 2 is not kept either.
+      expect(mergeGeometry()).toEqual([]);
     });
 
     it('should not run the merge hooks or write any data for a merge it keeps', () => {
@@ -220,7 +279,7 @@ describe('MergeCells with trimmed or reordered rows', () => {
       const calls = [];
 
       createGrid({ filters: true, mergeCells });
-      filterColumnC(['C2', 'C3', 'C4', 'C5', 'C6']);
+      filterOutEveryRow();
 
       ['afterMergeCells', 'beforeChange', 'afterRemoveCellMeta'].forEach((hookName) => {
         hot.addHook(hookName, () => calls.push(hookName));
@@ -276,6 +335,7 @@ describe('MergeCells with trimmed or reordered rows', () => {
       createGrid({
         data: [[1, 'a'], [4, 'b'], [2, 'c'], [3, 'd'], [5, 'e'], [6, 'f']],
         columnSorting: true,
+        trimRows: true,
         mergeCells: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }],
       });
 
@@ -298,6 +358,17 @@ describe('MergeCells with trimmed or reordered rows', () => {
 
       hot.getPlugin('mergeCells').unmerge(0, 1, 1, 1);
 
+      expectNoMergeMeta([0, 1, 3], [1]);
+    });
+
+    it('should clear the merge meta of a row the merge drew once a trim hides all of its own rows', () => {
+      createSortedGrid();
+
+      hot.getPlugin('trimRows').trimRows([0, 1]);
+      hot.updateSettings({ mergeCells: [] });
+      hot.getPlugin('trimRows').untrimAll();
+
+      // Physical row 2, the record the merge drew over, sits at the visual row 1 again.
       expectNoMergeMeta([0, 1, 3], [1]);
     });
   });
