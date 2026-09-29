@@ -615,8 +615,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateData: (sourceData, firstTime, source) => {},
-  afterDataProviderFetch: (result) => {},
-  afterDataProviderFetchError: (error, queryParameters) => {},
+  afterDataProviderFetch: (result) => {
+    const restored: boolean | undefined = result.isRestored;
+
+    void restored;
+  },
+  afterDataProviderFetchError: (error, queryParameters, isVisible) => {},
   afterDataProviderFetchAbort: (queryParameters, reason) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},

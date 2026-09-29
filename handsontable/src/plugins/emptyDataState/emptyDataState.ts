@@ -340,7 +340,7 @@ export class EmptyDataState extends BasePlugin {
       }
     });
     this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
-    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     super.enablePlugin();
 
@@ -405,6 +405,28 @@ export class EmptyDataState extends BasePlugin {
     this.eventManager.addEventListener(this.#ui!.getElement()!, 'wheel', (event) => {
       this.#onMouseWheel(event as WheelEvent);
     });
+  }
+
+  /**
+   * Shows or hides the loading overlay to match whether the DataProvider plugin is waiting for a `fetchRows`
+   * response that shows loading. The DataProvider plugin calls it when the view the grid shows changes, because
+   * no fetch hook fires then: a fetch left running for another view must not keep the overlay up, and a view
+   * whose fetch is still running must show it again. Does nothing while this plugin is disabled. Internal; not
+   * public API.
+   *
+   * @private
+   * @param {boolean} isLoading Whether the grid waits for a fetch that shows loading.
+   */
+  _syncDataProviderLoading(isLoading: boolean): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    if (isLoading) {
+      this.#setLoadingActive();
+    } else {
+      this.#clearLoadingActive();
+    }
   }
 
   /**
@@ -715,6 +737,22 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for fails. A failed fetch made for a view the grid no longer
+   * shows (`isVisible` is `false`) leaves the overlay alone: the overlay belongs to the view on screen, which may
+   * still be waiting for its own fetch.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible !== false) {
+      this.#clearLoadingActive();
     }
   };
 

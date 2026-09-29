@@ -2139,12 +2139,19 @@ export default (): Record<string, unknown> => {
      * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * Set it to `null` to turn server-backed loading off again, for example through
+     * [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
+     * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
+     * each sheet that loads from a server instead.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 17.1.0
      * @memberof Options#
-     * @type {object}
+     * @type {object|null}
      * @default undefined
      * @category Core
      * @configScope grid

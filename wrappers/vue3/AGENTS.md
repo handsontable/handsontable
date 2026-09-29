@@ -54,5 +54,6 @@
 | Pitfall | What to do instead |
 |---|---|
 | `arr.push(...largeArray)` with large arrays | Causes stack overflow with 10k+ elements. Use `forEach` loop instead. |
+| Passing `dataProvider` together with `sheetsBar` | A grid-level `dataProvider` is ignored while the sheets bar is on. Put `dataProvider` in each server sheet's `settings`, and keep every `sheets[i].data` reference, and each sheet's `dataProvider` object with its callbacks, referentially stable across re-renders: sheet settings are compared structurally and functions by identity, so a new data array or an inline callback rebuilds the workbook and drops each sheet's cached server state (rows, sort, filters, page). |
 
 For detailed guidance: use skill `vue-wrapper-dev`

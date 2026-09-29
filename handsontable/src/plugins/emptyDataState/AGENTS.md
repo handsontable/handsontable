@@ -136,6 +136,8 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
   `../notification/AGENTS.md`, `../loading/AGENTS.md`.
+- A failed DataProvider fetch hides the loading overlay only when the hook's third argument, `isVisible`, is not `false`. A request made for a view the grid no longer shows can fail while the view on screen still waits for its own fetch; clearing on that failure dropped the overlay mid-fetch.
+- **This plugin knows nothing about the view that changed.** When DataProvider's owner changes the view the grid shows, no fetch hook fires, so DataProvider calls the internal `_syncDataProviderLoading(isLoading)` (`@private`, not API) with its own `isFetching()`, also after releasing a context (an aborted fetch fires no hook). It does nothing while this plugin is disabled — the default — because `#show()` activates a focus scope that only exists while the plugin is enabled. The call exists because a fetch left running for another view must not keep the overlay up, and a view whose fetch still runs must show it again. Never listen to an owner plugin's hooks here; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if this directory's source names the owner plugin or its hooks.
 - Where the message usually comes from on a server-backed grid: `../dataProvider/AGENTS.md`.
 - Layout slots vs fixed internal elements: `../../core/layout/`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

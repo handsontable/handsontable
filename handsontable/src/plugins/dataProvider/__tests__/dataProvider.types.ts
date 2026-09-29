@@ -83,9 +83,23 @@ hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataP
   }
 });
 
+const onFetchError = (error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean) => {
+  const visible: boolean = isVisible !== false;
+
+  void visible;
+};
+
+hot.addHook('afterDataProviderFetchError', onFetchError);
+
 hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryParameters, reason?: Error) => {
   void queryParameters.page;
   void reason?.name;
+});
+
+hot.addHook('afterDataProviderFetch', (result) => {
+  const restored: boolean = result.isRestored === true;
+
+  void restored;
 });
 
 hot.addHook('afterRowsMutation', (operation: string, payload: RowMutationPayload) => {
@@ -105,6 +119,10 @@ const dataProviderPlugin = hot.getPlugin('dataProvider');
 if (dataProviderPlugin) {
   void dataProviderPlugin.getQueryParameters();
   void dataProviderPlugin.fetchData({ skipLoading: true });
+
+  const fetching: boolean = dataProviderPlugin.isFetching();
+
+  void fetching;
 }
 
 void minimalConfig;

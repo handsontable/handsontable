@@ -221,13 +221,7 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Whether settings include a complete `dataProvider` configuration (server-backed rows).
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
-   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive` is true.
+   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
    *
    * @type {number|null}
    */
@@ -276,7 +270,6 @@ export class Pagination extends BasePlugin {
       this.#pageSize = this.getSetting<number | 'auto'>('pageSize')!;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
@@ -347,7 +340,7 @@ export class Pagination extends BasePlugin {
     queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown };
     totalRows?: number;
   }) => {
-    if (!this.#isDataProviderActive) {
+    if (!this.#isDataProviderActive()) {
       return;
     }
 
@@ -364,7 +357,7 @@ export class Pagination extends BasePlugin {
       this.#setPageSizeValue(pageSize);
     }
 
-    if (this.#isDataProviderActive && typeof totalRows === 'number' && totalRows >= 0) {
+    if (this.#isDataProviderActive() && typeof totalRows === 'number' && totalRows >= 0) {
       this.#serverSideTotalCount = totalRows;
     }
 
@@ -395,6 +388,34 @@ export class Pagination extends BasePlugin {
   #setPageSizeValue(pageSize: number | 'auto') {
     this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
     this.#pageSize = pageSize;
+  }
+
+  /**
+   * Forgets the row total the last DataProvider response reported. The DataProvider plugin calls it when the view
+   * the grid shows is about to change, because that total described the view being left: a view that is shown
+   * again brings its own total back through {@link Hooks#afterDataProviderFetch}, and one fetching for the first
+   * time counts its own rows until its response lands. Does nothing while this plugin is disabled. Internal; not
+   * public API.
+   *
+   * @private
+   */
+  _resetDataProviderTotal(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#serverSideTotalCount = null;
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
   }
 
   /**
@@ -506,7 +527,7 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       const countRows = this.hot.countRows();
 
       if (countRows > 0) {
@@ -831,7 +852,7 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
-    const externalPagedMode = this.#isDataProviderActive;
+    const externalPagedMode = this.#isDataProviderActive();
     const totalItems = externalPagedMode
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;

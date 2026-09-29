@@ -280,7 +280,7 @@ export interface GridSettings {
   customBorders?: boolean | object[];
   customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
-  dataProvider?: DataProviderConfig;
+  dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
@@ -567,9 +567,11 @@ export interface GridSettings {
   afterUpdateSettings?: (newSettings: Partial<GridSettings>) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number,
     source: ChangeSource) => void | boolean;
-  afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
+  afterDataProviderFetch?: (result: DataProviderFetchResult & { isRestored?: boolean }) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
-  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchError?: (
+    error: Error, queryParameters: DataProviderQueryParameters, isVisible?: boolean
+  ) => void;
   afterViewportColumnCalculatorOverride?: (calc: {
     startColumn: number; endColumn: number; [key: string]: unknown;
   }) => void;
