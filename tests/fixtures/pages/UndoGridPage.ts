@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
 import { dragFillHandle, dragResizeHandle } from '../gestures';
+import { awaitBundle } from '../bundle';
 
 /**
  * The summary types `initSummaryGrid()` can build.
@@ -33,6 +34,9 @@ export class UndoGridPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/undo-grid.html?theme=${this.theme}&bundle=${this.bundle}`);
+    // A cold server under parallel workers can take longer than the 10s `expect` timeout to deliver
+    // the bundle; `awaitBundle()` polls against the test budget instead.
+    await awaitBundle(this.page);
     await expect(this.page.getByTestId('cell-0-0')).toBeVisible();
   }
 
