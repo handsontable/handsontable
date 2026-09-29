@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T08:59:54.960Z",
+  "generatedAt": "2026-09-29T11:11:23.359Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 290,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1625
+    "entries": 1626
   },
   "rows": [
     {
@@ -172,14 +172,14 @@
       "file": "e2e/iframe-cross-realm-scroll.spec.ts",
       "line": 100,
       "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 1,
-      "count30": 7,
-      "countAll": 7,
-      "runs30": 6,
-      "flakyRuns30": 6,
-      "branches30": 5,
+      "count7": 2,
+      "count30": 8,
+      "countAll": 8,
+      "runs30": 7,
+      "flakyRuns30": 7,
+      "branches30": 6,
       "nightlyRuns30": 0,
-      "openBranches30": 5,
+      "openBranches30": 6,
       "legs": [
         "e2e-classic-min",
         "e2e-horizon",
@@ -192,10 +192,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-29T07:59:58Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36537262433",
-        "branch": "develop",
-        "leg": "e2e-horizon-min",
+        "seenAt": "2026-09-29T11:10:35Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36556292654",
+        "branch": "feature/dependabot-lockfile-fixes",
+        "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
