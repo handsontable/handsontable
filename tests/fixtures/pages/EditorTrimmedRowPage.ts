@@ -528,6 +528,7 @@ export class EditorTrimmedRowPage {
    * Selects a cell, removes a row, and from inside that removal's `afterRemoveRow` runs the steps
    * `nested` names, in this order: another `alter()`, a write into the spare row (which appends a
    * new one through `adjustRowsAndCols()`, a count change with no `alter()` scope of its own), a
+   * write one row past the last (which `applyChanges()` creates first - the same kind of change), a
    * fresh `selectCell()`, and a throw. `spareRows` sets `minSpareRows` first, `inBatch` runs the
    * whole removal inside `hot.batch()`, and `throwOnSelection` makes every `afterSelection` throw
    * from then on - the hook a shift's write fires. Returns the selection, the value under its highlight, and the message of
@@ -539,6 +540,7 @@ export class EditorTrimmedRowPage {
     nested: {
       alter?: [string, number, number],
       writeSpareRow?: boolean,
+      writePastLastRow?: boolean,
       selectCell?: [number, number],
       throwMessage?: string,
     },
@@ -567,6 +569,10 @@ export class EditorTrimmedRowPage {
 
         if (steps.writeSpareRow) {
           hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+        }
+
+        if (steps.writePastLastRow) {
+          hot.setDataAtCell(hot.countRows(), 0, 'APPENDED');
         }
 
         if (steps.selectCell) {
@@ -611,30 +617,75 @@ export class EditorTrimmedRowPage {
   /**
    * Selects a cell and removes several row groups in one `alter()`. From inside the
    * `beforeRemoveRow` of the group numbered `nestedBeforeGroup` (counting from 1), a nested
-   * `alter()` removes `nestedIndex` - so that change lands BEFORE the group's own. Returns the
-   * selection and the value under its highlight afterwards.
+   * `alter()` removes `nestedIndex` - so that change lands BEFORE the group's own. With
+   * `writeSpareRow`, the grid gets `minSpareRows: 1` first, and the same hook writes into the spare
+   * row just before the nested call, which appends a new one - a count change no `alter()` owns.
+   * Returns the selection and the value under its highlight afterwards.
    */
   async removeRowGroupsNestingFromBeforeRemoveRow(
     select: [number, number], groups: number[][], nestedBeforeGroup: number, nestedIndex: number,
+    writeSpareRow = false,
   ): Promise<{ selected: number[][] | undefined, value: unknown }> {
-    return this.page.evaluate(([target, removed, groupNumber, nestedTarget]) => {
+    return this.page.evaluate(([target, removed, groupNumber, nestedTarget, spareWrite]) => {
       const hot = (window as Window & { hot: HandsontableFixture }).hot;
       let calls = 0;
+
+      if (spareWrite) {
+        hot.updateSettings({ minSpareRows: 1 });
+      }
 
       hot.selectCells([[target[0], target[1]]]);
       hot.addHook('beforeRemoveRow', () => {
         calls += 1;
 
-        if (calls === groupNumber) {
-          hot.alter('remove_row', nestedTarget, 1);
+        if (calls !== groupNumber) {
+          return;
         }
+
+        if (spareWrite) {
+          hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+        }
+
+        hot.alter('remove_row', nestedTarget, 1);
       });
       hot.alter('remove_row', removed as unknown as number, 1);
 
       const selected = hot.getSelected();
 
       return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
-    }, [select, groups, nestedBeforeGroup, nestedIndex] as [[number, number], number[][], number, number]);
+    }, [select, groups, nestedBeforeGroup, nestedIndex, writeSpareRow] as [
+      [number, number], number[][], number, number, boolean,
+    ]);
+  }
+
+  /**
+   * Sets `minSpareRows: 1`, selects a cell, and writes into the spare row, so `adjustRowsAndCols()`
+   * appends a new one. From that append's `afterCreateRow`, inserts a row above the first one and
+   * reads the selection back at once. Returns what the hook read and the final selection.
+   */
+  async insertRowFromSpareRowAppend(select: [number, number]): Promise<{
+    seenInHook: number[][] | undefined, selected: number[][] | undefined,
+  }> {
+    return this.page.evaluate((target) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+      let seenInHook: number[][] | undefined;
+
+      hot.updateSettings({ minSpareRows: 1 });
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('afterCreateRow', (...args: unknown[]) => {
+        if (fired || args[2] !== 'auto') {
+          return;
+        }
+
+        fired = true;
+        hot.alter('insert_row_above', 0, 1);
+        seenInHook = hot.getSelected();
+      });
+      hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+
+      return { seenInHook, selected: hot.getSelected() };
+    }, select);
   }
 
   /**

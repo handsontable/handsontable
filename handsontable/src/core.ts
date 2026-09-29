@@ -1331,18 +1331,7 @@ export default function Core(
       //
       // The action itself is split out so this closes on every exit, the action's own early returns
       // and a throwing hook included. A scope left open stops the selection repairing at all.
-      selection.suspendShifts();
-
-      let isCompleted = false;
-
-      try {
-        grid.runAlter(action, index, amount, source, keepEmptyRows);
-        isCompleted = true;
-      } finally {
-        // On a throw the held shifts are dropped, not written: writing them runs the selection
-        // hooks, and one that throws there would replace the error already on its way out.
-        selection.resumeShifts(isCompleted);
-      }
+      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
     },
 
     /**
@@ -1469,10 +1458,6 @@ export default function Core(
 
                 const totalRowsBefore = instance.countRows();
 
-                // Each group's change stamps the scope again when it lands, so a call nested before it -
-                // from this group's own `beforeRemoveRow` - sorts ahead of this group's shift.
-                selection.rearmStructuralIndexChange();
-
                 // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeRow breaks the removing functionality.
                 const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
@@ -1586,9 +1571,6 @@ export default function Core(
                   groupIndex = Math.max(groupIndex - offset, 0);
                 }
 
-                // The column half of the re-arm in the `remove_row` branch above.
-                selection.rearmStructuralIndexChange();
-
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.
                 const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
@@ -1682,84 +1664,87 @@ export default function Core(
      * @private
      */
     adjustRowsAndCols() {
-      const minRows = tableMeta.minRows;
+      // The rows and columns appended here are not an `alter()`'s own change - see `runInShiftScope()`.
+      runInShiftScope(() => {
+        const minRows = tableMeta.minRows;
 
-      const minSpareRows = tableMeta.minSpareRows;
+        const minSpareRows = tableMeta.minSpareRows;
 
-      const minCols = tableMeta.minCols;
+        const minCols = tableMeta.minCols;
 
-      const minSpareCols = tableMeta.minSpareCols;
+        const minSpareCols = tableMeta.minSpareCols;
 
-      if (minRows) {
-        // should I add empty rows to data source to meet minRows?
+        if (minRows) {
+          // should I add empty rows to data source to meet minRows?
 
-        const nrOfRows = instance.countRows();
+          const nrOfRows = instance.countRows();
 
-        if (nrOfRows < minRows) {
-          // The synchronization with cell meta is not desired here. For `minRows` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto' });
-        }
-      }
-      if (minSpareRows) {
-        const emptyRows = instance.countEmptyRows(true);
-
-        // should I add empty rows to meet minSpareRows?
-        if (emptyRows < minSpareRows) {
-          const emptyRowsMissing = minSpareRows - emptyRows;
-          const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
-
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto' });
-        }
-      }
-      {
-        let emptyCols = 0;
-        const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
-
-        // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
-        // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
-        // scans every row of that column, and this method runs after every change batch - an
-        // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
-        // per edit and also ran when only `minCols` was set, where the result was never used.
-        if (canCreateSpareCols) {
-          for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
-            if (!instance.isEmptyCol(visualIndex)) {
-              break;
-            }
-
-            emptyCols += 1;
-
-            if (emptyCols >= minSpareCols) {
-              break;
-            }
+          if (nrOfRows < minRows) {
+            // The synchronization with cell meta is not desired here. For `minRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto' });
           }
         }
+        if (minSpareRows) {
+          const emptyRows = instance.countEmptyRows(true);
 
-        let nrOfColumns = instance.countCols();
+          // should I add empty rows to meet minSpareRows?
+          if (emptyRows < minSpareRows) {
+            const emptyRowsMissing = minSpareRows - emptyRows;
+            const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
 
-        // should I add empty cols to meet minCols?
-        if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
-          // The synchronization with cell meta is not desired here. For `minCols` option,
-          // we don't want to touch/shift cell meta objects.
-          const colsToCreate = minCols - nrOfColumns;
-
-          emptyCols += colsToCreate;
-
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto' });
+          }
         }
-        // should I add empty cols to meet minSpareCols?
-        if (canCreateSpareCols && emptyCols < minSpareCols) {
-          nrOfColumns = instance.countCols();
-          const emptyColsMissing = minSpareCols - emptyCols;
-          const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+        {
+          let emptyCols = 0;
+          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
 
-          // The synchronization with cell meta is not desired here. For `minSpareCols` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
+          // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
+          // scans every row of that column, and this method runs after every change batch - an
+          // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
+          // per edit and also ran when only `minCols` was set, where the result was never used.
+          if (canCreateSpareCols) {
+            for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
+              if (!instance.isEmptyCol(visualIndex)) {
+                break;
+              }
+
+              emptyCols += 1;
+
+              if (emptyCols >= minSpareCols) {
+                break;
+              }
+            }
+          }
+
+          let nrOfColumns = instance.countCols();
+
+          // should I add empty cols to meet minCols?
+          if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+            // The synchronization with cell meta is not desired here. For `minCols` option,
+            // we don't want to touch/shift cell meta objects.
+            const colsToCreate = minCols - nrOfColumns;
+
+            emptyCols += colsToCreate;
+
+            datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          }
+          // should I add empty cols to meet minSpareCols?
+          if (canCreateSpareCols && emptyCols < minSpareCols) {
+            nrOfColumns = instance.countCols();
+            const emptyColsMissing = minSpareCols - emptyCols;
+            const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+
+            // The synchronization with cell meta is not desired here. For `minSpareCols` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          }
         }
-      }
+      }, false);
     },
 
     /**
@@ -2600,15 +2585,38 @@ export default function Core(
   }
 
   /**
-   * Internal function to apply changes. Called after validateChanges.
+   * Runs `action` inside a structural-change scope that closes on every exit. On a throw the held
+   * shifts are dropped rather than written: writing them runs the selection hooks, and one that
+   * throws there would replace the error already on its way out.
+   *
+   * A scope that does not own its count changes (`ownsIndexChange: false`) is for the rows and
+   * columns Handsontable appends by itself. It is never stamped, so such an append is not read as an
+   * enclosing `alter()`'s own change landing - which, from a `before*` hook, it may land before.
+   *
+   * @private
+   * @param {Function} action The work to run inside the scope.
+   * @param {boolean} [ownsIndexChange=true] Whether the count changes `action` makes are its own.
+   */
+  function runInShiftScope(action: () => void, ownsIndexChange = true) {
+    selection.suspendShifts(ownsIndexChange);
+
+    let isCompleted = false;
+
+    try {
+      action();
+      isCompleted = true;
+    } finally {
+      selection.resumeShifts(isCompleted);
+    }
+  }
+
+  /**
+   * Writes the changes into the data source, creating the rows and columns a change needs first.
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
-   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
-   * @fires Hooks#beforeChangeRender
-   * @fires Hooks#afterChange
    */
-  function applyChanges(changes: CellChange[], source: string | undefined) {
+  function writeChangesToData(changes: CellChange[]) {
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -2663,6 +2671,21 @@ export default function Core(
 
       datamap.set(changes[i][0], changes[i][1] as string | number, changes[i][3]);
     }
+  }
+
+  /**
+   * Internal function to apply changes. Called after validateChanges.
+   *
+   * @private
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @fires Hooks#beforeChangeRender
+   * @fires Hooks#afterChange
+   */
+  function applyChanges(changes: CellChange[], source: string | undefined) {
+    // The rows and columns created to fit the changes are not an `alter()`'s own change - see
+    // `runInShiftScope()`.
+    runInShiftScope(() => writeChangesToData(changes), false);
 
     const hasChanges = changes.length > 0;
     const activeEditor = editorManager.getActiveEditor();

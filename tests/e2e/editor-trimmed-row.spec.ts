@@ -1506,8 +1506,8 @@ test.describe('the order held shifts are folded in', () => {
 
   /**
    * A spare row appended by `setDataAtCell()` changes the row count with no `alter()` of its own, so
-   * it lands while the OUTER scope is the innermost one. That must not re-stamp the outer scope as
-   * if its own change had landed again - the nested shift would then sort first.
+   * it lands while the OUTER scope is the innermost one. The append is not the outer call's change,
+   * so it must not stamp the outer scope - the nested shift would then sort first.
    */
   test('keeps the landing order when a spare row is appended after the nested removal',
     async({ page, theme, bundle }) => {
@@ -1546,6 +1546,62 @@ test.describe('the order held shifts are folded in', () => {
       expect(result.selected).toEqual([[1, 0, 1, 0]]);
       expect(result.value).toBe('A3');
     });
+
+  /**
+   * The mirror of the spare-row case above: the spare row is appended from a `before*` hook, BEFORE
+   * the outer removal lands. Stamped as the outer call's change, it made the outer scope look landed,
+   * so the nested removal that follows was held and folded after the outer shift although its change
+   * landed first. Two things now keep it in order: the append does not stamp the outer scope, and
+   * the outer call's own landing stamps it again. `A0` goes with the nested call; the outer call then
+   * removes row 3 - by then `A4`.
+   */
+  test('keeps the landing order when a spare row is appended before the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowGroupsNestingFromBeforeRemoveRow([3, 0], [[3, 1]], 1, 0, true);
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The spare-row case through the other path that adds rows by itself: a write one row past the
+   * last makes `applyChanges()` create that row before it writes. It is not the outer call's change
+   * either, so it must not stamp the outer scope.
+   */
+  test('keeps the landing order when a write past the last row adds one after the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+        writePastLastRow: true,
+      });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The scope a spare-row append runs in does not own that append, so it never holds a shift back:
+   * an `alter()` fired from the append's own `afterCreateRow` repairs the selection at once, as it
+   * did before the scopes existed, and reads the moved selection back inside the hook.
+   */
+  test('lets an alter fired from a spare-row append repair the selection at once', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.insertRowFromSpareRowAppend([3, 0]);
+
+    expect(result.seenInHook).toEqual([[4, 0, 4, 0]]);
+    expect(result.selected).toEqual([[4, 0, 4, 0]]);
+  });
 
   /**
    * The nested call is on the OTHER axis, so its column shift is held while the outer call's own

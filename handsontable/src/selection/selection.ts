@@ -301,9 +301,13 @@ class Selection {
    * A scope with no data change of its own - an amount-0 `alter()` - is stamped when it asks for its
    * shift instead, which puts it after whatever had already changed by then.
    *
+   * A scope that does not OWN its count changes (`ownsIndexChange: false`) is never stamped. `Core`
+   * opens one around the spare rows and columns it appends by itself, so such an append is never
+   * read as the enclosing `alter()`'s own change landing.
+   *
    * @type {Array}
    */
-  #shiftScopes: Array<{ sequence: number | null }> = [];
+  #shiftScopes: Array<{ sequence: number | null, ownsIndexChange: boolean }> = [];
   /**
    * Hands out the scope sequence numbers.
    *
@@ -1056,9 +1060,13 @@ class Selection {
    * Before that data change there is nothing owed and nothing to compose, so a nested call there
    * repairs the selection immediately, exactly as it did before this scope existed. That is the
    * ordinary shape of an `alter()` fired from `beforeAlter` or `beforeRemoveRow`.
+   *
+   * @param {boolean} [ownsIndexChange=true] `false` opens a scope whose count changes are not its
+   * own - the rows and columns `Core` appends to keep `minSpareRows` and the like. Such a scope is
+   * never stamped and never holds anything back; an `alter()` fired inside it opens its own scope.
    */
-  suspendShifts() {
-    this.#shiftScopes.push({ sequence: null });
+  suspendShifts(ownsIndexChange = true) {
+    this.#shiftScopes.push({ sequence: null, ownsIndexChange });
   }
 
   /**
@@ -1116,6 +1124,11 @@ class Selection {
    * Writes every held shift on both axes.
    */
   #flushShifts() {
+    // The common case - a scope closes with nothing held - allocates nothing.
+    if (this.#pendingRowShifts.length === 0 && this.#pendingColumnShifts.length === 0) {
+      return;
+    }
+
     // BOTH axes are taken and cleared before EITHER is written. `#applyRowShifts()` ends in
     // `setRangeEnd()`, whose `afterSelectionEnd` consumers can throw, and a column shift still
     // queued at that moment would otherwise be applied by the next `alter()` against a grid it was
@@ -1138,30 +1151,20 @@ class Selection {
    * renumbering and BEFORE the public cache-update hook - so an `alter()` a consumer of that hook
    * fires already sees this scope as owing a repair, while one fired from a `before*` hook does not.
    *
-   * Only the FIRST count change stamps. The handler also fires for count changes no `alter()` owns -
-   * a spare row `setDataAtCell()` appends through `adjustRowsAndCols()` - and re-stamping on one of
-   * those would sort this scope's shift behind shifts that landed after it.
+   * A multi-group `alter()` lands several changes and re-stamps on each, so a shift asked for after
+   * a group sorts behind anything nested before it.
+   *
+   * Only a change the scope OWNS stamps it. The handler also fires for count changes no `alter()`
+   * makes - a spare row `setDataAtCell()` appends - and when it lands decides nothing: a `before*`
+   * hook runs inside the same data call as the enclosing change, so such an append can land on
+   * either side of it. `Core` runs those appends in a scope that does not own them.
    */
   markStructuralIndexChange() {
     const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
 
-    if (scope && scope.sequence === null) {
+    if (scope && scope.ownsIndexChange) {
       this.#shiftSequence += 1;
       scope.sequence = this.#shiftSequence;
-    }
-  }
-
-  /**
-   * Clears the innermost scope's stamp before `alter()` removes its next group, so that group's
-   * change stamps again when it lands. A shift asked for after the group then sorts behind anything
-   * nested before it - including a call fired from the group's own `beforeRemoveRow`, which lands
-   * first.
-   */
-  rearmStructuralIndexChange() {
-    const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
-
-    if (scope) {
-      scope.sequence = null;
     }
   }
 
