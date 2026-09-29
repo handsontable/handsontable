@@ -136,14 +136,16 @@ select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — 
 ## Styling: the label spans declare their own text metrics
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
-`font-size`, `line-height`, `font-weight`, and `letter-spacing` as `inherit` in `_pagination.scss`
-(DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`, and a host
-page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
+`font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` as `inherit` in
+`_pagination.scss` (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`,
+and a host page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
 rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
-`font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather
-than the token keeps a user's own `.ht-pagination` override working. Any new text-bearing span
-added to the bar needs the same four lines; `tests/e2e/host-span-styles.spec.ts` pins the
-existing ones.
+`font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather than the
+token keeps a user's own override on the bar working – one that beats the bar's
+`.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
+sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
+`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
+added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
 
 ## Where to look next
 
