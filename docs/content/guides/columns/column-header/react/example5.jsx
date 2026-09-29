@@ -27,10 +27,7 @@ const ExampleComponent = () => {
     >
       <HotColumn headerClassName="italic-text" />
       <HotColumn headerClassName="bold-text italic-text" />
-      <HotColumn
-        headerClassName="htRight bold-text italic-text"
-        type="numeric"
-      />
+      <HotColumn headerClassName="htRight bold-text italic-text" type="numeric" />
       <HotColumn
         type="numeric"
         numericFormat={{ minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false }}
