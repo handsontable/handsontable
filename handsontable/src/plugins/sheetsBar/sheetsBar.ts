@@ -6,6 +6,8 @@ import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearMergedCells,
+  forgetMergedCells,
   keepSelectionOnPage,
   resetViewState,
   resetViewport,
@@ -1024,9 +1026,11 @@ export class SheetsBar extends BasePlugin {
       // its own empty state.
       if (!viewState) {
         resetViewState(this.hot, this.#neutralFixedColumnsStart);
+      } else {
+        clearMergedCells(this.hot);
       }
 
-      this.#applySheet(newSheet, source);
+      this.#applySheet(newSheet, source, { restoresMerges: viewState !== undefined });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
@@ -1114,8 +1118,15 @@ export class SheetsBar extends BasePlugin {
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
    * the arriving sheet's data before its `afterLoadData`.
+   *
+   * With `restoresMerges` set, the merged cells the settings update regenerated are dropped
+   * right after the load: a sheet that returns with a stored view state restores its own
+   * merges, and every merge declared in the settings would otherwise outlive the load and win
+   * over the ones the user changed. They are dropped from the collection only, because the load
+   * has reset the cell meta, and the update may have trimmed or remapped the departing grid
+   * under them, so their coordinates can address rows that no longer exist.
    */
-  #applySheet(sheet: Sheet, source: string) {
+  #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
@@ -1125,6 +1136,10 @@ export class SheetsBar extends BasePlugin {
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (restoresMerges) {
+        forgetMergedCells(this.hot);
+      }
     };
 
     if (this.hot.view) {

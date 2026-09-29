@@ -35,6 +35,8 @@ function createHotStub(cellMeta = {}) {
   return {
     getSelectedRange: () => [singleCellRange()],
     getCellMetaTransient: () => cellMeta,
+    // No plugin is registered, as in a build without ColumnSummary.
+    getPlugin: () => undefined,
     // Deliberately no `getCellMeta`. Every one of these factories must read transiently - they
     // walk the whole selection on each menu draw - so a regression back to the materializing read
     // throws here instead of passing silently. Returning the same object from both would make the
@@ -167,10 +169,36 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
         },
       }],
       getCellMetaTransient: (row, col) => (col === 0 ? firstMeta : secondMeta),
+      getPlugin: () => undefined,
       getTranslatedPhrase: phrase => phrase,
       // The click groups its writes into one undo step; the grouping itself is not under test.
       runOperation: (name, source, callback) => callback(),
       _getOperationScope: () => ({ describe() {} }),
+    };
+  }
+
+  /**
+   * A two-cell stub whose ColumnSummary plugin reports the listed columns of row 0 as locked
+   * summary cells (DEV-148).
+   *
+   * @param {object} firstMeta The meta of cell (0, 0).
+   * @param {object} secondMeta The meta of cell (0, 1).
+   * @param {number[]} lockedColumns The columns whose cell is a read-only summary.
+   * @param {boolean} [enabled=true] Whether the plugin is enabled.
+   * @returns {object}
+   */
+  function createSummaryHotStub(firstMeta, secondMeta, lockedColumns, enabled = true) {
+    const setCellMeta = jest.fn();
+
+    return {
+      ...createTwoCellHotStub(firstMeta, secondMeta),
+      getPlugin: name => (name === 'columnSummary' ? {
+        enabled,
+        isLockedSummaryCell: (row, col) => lockedColumns.includes(col),
+      } : undefined),
+      setCellMeta,
+      runHooks: jest.fn(),
+      render: jest.fn(),
     };
   }
 
@@ -325,6 +353,76 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
         .toEqual([[0, 0, { readOnly: true }]]);
       expect(clickCommentItem({ comment: { value: 'a note' } }, { hidden: true, comment: { value: 'x' } }))
         .toEqual([[0, 0, { readOnly: true }]]);
+    });
+  });
+
+  describe('a read-only column summary cell (DEV-148)', () => {
+    it('should leave a locked summary cell out of the mark', () => {
+      const hot = createSummaryHotStub({ readOnly: false }, { readOnly: true }, [1]);
+
+      // Without the exclusion this reads as mixed, although nothing the user can toggle is on.
+      expect(getItemCheckedState(readOnlyItem(), hot)).toBe(false);
+    });
+
+    it('should make the rest read-only and leave the locked cell alone', () => {
+      const hot = createSummaryHotStub({ readOnly: false }, { readOnly: true }, [1]);
+
+      readOnlyItem().callback.call(hot);
+
+      // The summary is always read-only, so counting it would always pick "make writable".
+      expect(hot.setCellMeta.mock.calls).toEqual([[0, 0, 'readOnly', true]]);
+      expect(hot.runHooks).toHaveBeenCalledWith('beforeReadOnlyToggle', {}, expect.any(Array), true);
+    });
+
+    it('should snapshot the locked cell as it is, so undo puts it back read-only', () => {
+      const hot = createSummaryHotStub({ readOnly: true }, { readOnly: true }, [1]);
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.setCellMeta.mock.calls).toEqual([[0, 0, 'readOnly', false]]);
+      expect(hot.runHooks.mock.calls[0][1]).toEqual({ 0: [true, true] });
+    });
+
+    it('should record no undo step when run over locked cells only', () => {
+      // `executeCommand()` gates on `disabled`, not `hidden`, so the click is still reachable.
+      const hot = createSummaryHotStub({ readOnly: true }, { readOnly: true }, [0, 1]);
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.runHooks).not.toHaveBeenCalled();
+      expect(hot.setCellMeta).not.toHaveBeenCalled();
+    });
+
+    it('should record no undo step over a locked cell and its own hidden covered cell', () => {
+      // The same selection `hidden()` reports as nothing-to-toggle below: a locked summary as a
+      // merge's top-left, plus its own hidden covered cell. The early return's own notion of
+      // "toggleable" must agree with `hidden()`'s - otherwise the hidden covered cell reads as
+      // toggleable on its own, the guard lets the click through, and it gets written to and
+      // recorded in an undo step despite the item being hidden for this exact selection.
+      const hot = createSummaryHotStub({ readOnly: true }, { hidden: true }, [0]);
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.runHooks).not.toHaveBeenCalled();
+      expect(hot.setCellMeta).not.toHaveBeenCalled();
+    });
+
+    it('should hide the item only when every selected cell is locked', () => {
+      expect(readOnlyItem().hidden.call(createSummaryHotStub({ readOnly: true }, { readOnly: true }, [0, 1])))
+        .toBe(true);
+      expect(readOnlyItem().hidden.call(createSummaryHotStub({ readOnly: false }, { readOnly: true }, [1])))
+        .toBe(false);
+      // A locked cell next to a hidden cell under a merged block leaves nothing to toggle either.
+      expect(readOnlyItem().hidden.call(createSummaryHotStub({ readOnly: true }, { hidden: true }, [0])))
+        .toBe(true);
+    });
+
+    it('should behave as before when ColumnSummary is disabled or absent', () => {
+      const disabled = createSummaryHotStub({ readOnly: false }, { readOnly: true }, [1], false);
+
+      expect(getItemCheckedState(readOnlyItem(), disabled)).toBe(MENU_ITEM_MIXED);
+      expect(readOnlyItem().hidden.call(disabled)).toBe(false);
+      expect(readOnlyItem().hidden.call(createTwoCellHotStub({ readOnly: true }, { readOnly: true }))).toBe(false);
     });
   });
 
