@@ -16,6 +16,29 @@ export interface RootInlineSize {
 }
 
 /**
+ * Inline extents of the grid root, the master holder and the master table, in viewport x
+ * coordinates, plus the holder's inline width and scroll extents.
+ */
+export interface HorizontalSizes {
+  /**
+   * How far the master table's inline-end edge (the right edge in LTR, the left edge in RTL) passes
+   * the grid root's inline-end edge; `0` or less when it stays inside the root.
+   */
+  tableInlineEndOverflow: number;
+  rootLeft: number;
+  rootRight: number;
+  rootWidth: number;
+  holderLeft: number;
+  holderRight: number;
+  holderWidth: number;
+  holderInlineWidth: string;
+  holderClientWidth: number;
+  holderScrollWidth: number;
+  tableLeft: number;
+  tableRight: number;
+}
+
+/**
  * Page Object for the root size options fixture: one grid rebuilt per case
  * through `initRootSizeGrid()`. Encapsulates the rebuild, the inline-style and
  * axis-owner reads, the two scroll drivers, and the console warning collector.
@@ -68,10 +91,15 @@ export class RootSizeOptionsPage {
 
   /**
    * Rebuilds the grid with the given settings on top of the fixture defaults.
-   * `containerClass` picks a parent layout declared in the fixture.
+   * `containerClass` picks a parent layout declared in the fixture, and a
+   * non-empty `wrapperClass` puts a `<div>` with that class between the parent
+   * and the grid.
    */
-  async rebuild(settings: Record<string, unknown>, containerClass = ''): Promise<void> {
-    await this.page.evaluate(([s, c]) => window.initRootSizeGrid(s, c), [settings, containerClass] as const);
+  async rebuild(settings: Record<string, unknown>, containerClass = '', wrapperClass = ''): Promise<void> {
+    await this.page.evaluate(
+      ([s, c, w]) => window.initRootSizeGrid(s, c, w),
+      [settings, containerClass, wrapperClass] as const,
+    );
     await this.waitForRender();
   }
 
@@ -195,6 +223,87 @@ export class RootSizeOptionsPage {
         tableHeight: table.offsetHeight,
       };
     });
+  }
+
+  /**
+   * Rebuilds the grid like `rebuild()` and returns the master table's width as the constructor's own
+   * render left it, read in the same task, before any animation frame could redraw the grid.
+   */
+  async rebuildAndMeasureFirstRender(
+    settings: Record<string, unknown>,
+    containerClass = '',
+    wrapperClass = '',
+  ): Promise<number> {
+    const tableWidth = await this.page.evaluate(([s, c, w]) => {
+      window.initRootSizeGrid(s, c, w);
+
+      const table = window.hot.rootElement.querySelector<HTMLElement>('.ht_master table.htCore');
+
+      if (!table) {
+        throw new Error('table is not rendered');
+      }
+
+      return table.getBoundingClientRect().width;
+    }, [settings, containerClass, wrapperClass] as const);
+
+    await this.waitForRender();
+
+    return tableWidth;
+  }
+
+  /**
+   * Inline extents of the grid root (`hot.rootElement`), the master holder and the master table,
+   * read in one evaluation.
+   */
+  async horizontalSizes(): Promise<HorizontalSizes> {
+    return this.page.evaluate(() => {
+      const root = window.hot.rootElement;
+      const holder = root.querySelector<HTMLElement>('.ht_master .wtHolder');
+      const table = root.querySelector<HTMLElement>('.ht_master table.htCore');
+
+      if (!holder || !table) {
+        throw new Error('holder or table is not rendered');
+      }
+
+      const rootRect = root.getBoundingClientRect();
+      const holderRect = holder.getBoundingClientRect();
+      const tableRect = table.getBoundingClientRect();
+      const isRtl = getComputedStyle(holder).direction === 'rtl';
+
+      return {
+        tableInlineEndOverflow: isRtl ? rootRect.left - tableRect.left : tableRect.right - rootRect.right,
+        rootLeft: rootRect.left,
+        rootRight: rootRect.right,
+        rootWidth: rootRect.width,
+        holderLeft: holderRect.left,
+        holderRight: holderRect.right,
+        holderWidth: holderRect.width,
+        holderInlineWidth: holder.style.width,
+        holderClientWidth: holder.clientWidth,
+        holderScrollWidth: holder.scrollWidth,
+        tableLeft: tableRect.left,
+        tableRight: tableRect.right,
+      };
+    });
+  }
+
+  /**
+   * Scrolls the master holder to its inline end (the right edge in LTR, the left edge in RTL, where
+   * `scrollLeft` counts down from 0) and waits for a cell of `lastColumn` to render. The redraw is
+   * batched into an animation frame, so the wait is on the cell, not on `scrollLeft`.
+   */
+  async scrollHolderToInlineEnd(lastColumn: number): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = window.hot.rootElement.querySelector<HTMLElement>('.ht_master .wtHolder');
+
+      if (!holder) {
+        throw new Error('holder is not rendered');
+      }
+
+      // The browser clamps the offset to the scroll range, so the full scroll width reaches the end.
+      holder.scrollLeft = (getComputedStyle(holder).direction === 'rtl' ? -1 : 1) * holder.scrollWidth;
+    });
+    await expect(this.cell(0, lastColumn)).toBeVisible();
   }
 
   /** Scrolls the master holder horizontally and waits two frames. */

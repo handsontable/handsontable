@@ -168,6 +168,165 @@ test.describe('root size options', () => {
       });
     }
 
+    test.describe('inside a parent that clips the grid and insets it (DEV-3107)', () => {
+      // The parent owns both axes, but the grid's own box is narrower than the parent's: padding, or
+      // a padded wrapper, sits between the parent's edge and the grid. A holder sized to the parent
+      // overflows the grid by that inset, and the parent then clips the grid's inline-end edge.
+      const layouts = [
+        { label: 'a padded `overflow: hidden` parent', containerClass: 'padded-hidden', wrapperClass: '' },
+        {
+          label: 'an `overflow: hidden` parent around a padded wrapper',
+          containerClass: 'clip-outer',
+          wrapperClass: 'inset',
+        },
+      ];
+      const elements = [['H', 'Hydrogen', 'Nonmetal'], ['He', 'Helium', 'Noble gas']];
+      const wideData = Array.from({ length: 5 }, (_, r) =>
+        Array.from({ length: 12 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+      for (const { label, containerClass, wrapperClass } of layouts) {
+        for (const layoutDirection of ['ltr', 'rtl']) {
+          test(`stretches the columns to the grid's own width in ${label} (${layoutDirection})`, async () => {
+            await grid.rebuild({
+              data: elements,
+              colWidths: undefined,
+              stretchH: 'all',
+              width: '100%',
+              height: 'auto',
+              layoutDirection,
+            }, containerClass, wrapperClass);
+
+            const sizes = await grid.horizontalSizes();
+
+            expect(sizes.rootWidth).toBe(688);
+            expect(sizes.holderWidth).toBe(sizes.rootWidth);
+            expect(sizes.tableLeft).toBeGreaterThanOrEqual(sizes.rootLeft);
+            expect(sizes.tableRight).toBeLessThanOrEqual(sizes.rootRight);
+            // The columns stretch to the holder and no further, so nothing is left to scroll.
+            expect(sizes.holderScrollWidth).toBeLessThanOrEqual(sizes.holderClientWidth);
+            // The last column, border included, is not cut by the parent's clip.
+            await expect(grid.cell(0, 2)).toBeInViewport({ ratio: 1 });
+          });
+
+          test(`scrolls the last column fully into view in ${label} (${layoutDirection})`, async () => {
+            await grid.rebuild({ data: wideData, width: '100%', height: 'auto', layoutDirection }, containerClass, wrapperClass);
+
+            const sizes = await grid.horizontalSizes();
+
+            expect(sizes.rootWidth).toBe(688);
+            expect(sizes.holderWidth).toBe(sizes.rootWidth);
+            expect(sizes.holderLeft).toBeGreaterThanOrEqual(sizes.rootLeft);
+            expect(sizes.holderRight).toBeLessThanOrEqual(sizes.rootRight);
+            expect(sizes.holderScrollWidth).toBeGreaterThan(sizes.holderClientWidth);
+
+            await grid.scrollHolderToInlineEnd(11);
+
+            // At the end of the scroll range the table's inline-end edge is the holder's, inside the
+            // grid. Its inline-start edge is not: the columns scrolled out on that side stay rendered.
+            await expect.poll(async () => (await grid.horizontalSizes()).tableInlineEndOverflow).toBeLessThanOrEqual(0);
+            await expect(grid.cell(0, 11)).toBeInViewport({ ratio: 1 });
+          });
+        }
+      }
+
+      test('stretches the columns to the grid\'s own width in a padded parent that clips the horizontal axis only', async () => {
+        // `overflow-x: clip` leaves the vertical axis to the window, so the two axes have different
+        // owners: the parent scrolls nothing, it only clips the columns.
+        await grid.rebuild({
+          data: elements,
+          colWidths: undefined,
+          stretchH: 'all',
+          width: '100%',
+          height: 'auto',
+        }, 'padded-clip-x');
+
+        const owners = await grid.axisOwners();
+        const sizes = await grid.horizontalSizes();
+
+        expect(owners.horizontalByWindow).toBe(false);
+        expect(owners.verticalByWindow).toBe(true);
+        expect(sizes.rootWidth).toBe(688);
+        expect(sizes.holderWidth).toBe(sizes.rootWidth);
+        expect(sizes.tableRight).toBeLessThanOrEqual(sizes.rootRight);
+        expect(sizes.holderScrollWidth).toBeLessThanOrEqual(sizes.holderClientWidth);
+        await expect(grid.cell(0, 2)).toBeInViewport({ ratio: 1 });
+      });
+
+      test('keeps a grid that is as wide as its content visible in an `overflow: hidden` flex row', async () => {
+        // The grid is a flex item without `flex-grow`, so its root is only as wide as what is inside
+        // it, and before the first draw that is nothing: a 0px root must not bound the holder, or the
+        // grid renders at no width at all, nor the columns, or the first frame stretches them to 0px.
+        const firstRenderTableWidth = await grid.rebuildAndMeasureFirstRender({
+          data: elements,
+          colWidths: undefined,
+          stretchH: 'all',
+          height: 'auto',
+        }, 'flex-row-hidden');
+
+        expect(firstRenderTableWidth).toBe(688);
+
+        const sizes = await grid.horizontalSizes();
+
+        expect(sizes.holderWidth).toBe(688);
+        expect(sizes.rootWidth).toBe(sizes.holderWidth);
+        expect(sizes.tableRight).toBeLessThanOrEqual(sizes.rootRight);
+        await expect(grid.cell(0, 2)).toBeInViewport({ ratio: 1 });
+      });
+
+      test('follows the grid\'s own width through `updateSettings({ width })` in a padded parent', async () => {
+        // Neither the parent's box nor the columns move when the grid narrows inside it, so only the
+        // grid's own width can tell the engine that the holder it sized before no longer fits.
+        await grid.rebuild({ data: wideData, width: '100%', height: 'auto' }, 'padded-hidden');
+
+        expect((await grid.horizontalSizes()).holderWidth).toBe(688);
+
+        await grid.updateSettings({ width: '50%' });
+
+        await expect.poll(async () => (await grid.horizontalSizes()).holderWidth).toBe(344);
+
+        const sizes = await grid.horizontalSizes();
+
+        expect(sizes.rootWidth).toBe(344);
+        expect(sizes.holderRight).toBeLessThanOrEqual(sizes.rootRight);
+      });
+
+      test('keeps a half-width grid inside its own box in an `overflow: hidden` parent', async () => {
+        await grid.rebuild({
+          data: elements,
+          colWidths: undefined,
+          stretchH: 'all',
+          width: '50%',
+          height: 'auto',
+        }, 'narrow-hidden');
+
+        const sizes = await grid.horizontalSizes();
+
+        expect(sizes.rootWidth).toBe(344);
+        expect(sizes.holderWidth).toBe(sizes.rootWidth);
+        expect(sizes.tableRight).toBeLessThanOrEqual(sizes.rootRight);
+      });
+
+      test('bounds the holder by the grid\'s own width once `updateSettings()` sets `height: \'auto\'`', async () => {
+        // The padded parent has a height of its own, so moving the grid between an unset height and
+        // `'auto'` resizes nothing: only the setting itself can tell the engine to re-measure.
+        await grid.rebuild({ data: elements, colWidths: undefined, stretchH: 'all', width: '100%' }, 'padded-bounded');
+
+        await grid.updateSettings({ height: 'auto' });
+
+        await expect.poll(async () => {
+          const { holderWidth, rootWidth } = await grid.horizontalSizes();
+
+          return holderWidth - rootWidth;
+        }).toBe(0);
+
+        const sizes = await grid.horizontalSizes();
+
+        expect(sizes.rootWidth).toBe(688);
+        expect(sizes.tableRight).toBeLessThanOrEqual(sizes.rootRight);
+        await expect(grid.cell(0, 2)).toBeInViewport({ ratio: 1 });
+      });
+    });
+
     test('flips the clip and the scroll owner both ways through `updateSettings()`', async () => {
       await grid.rebuild({ height: 300 });
 

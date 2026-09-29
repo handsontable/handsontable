@@ -40,6 +40,20 @@
        (DEV-3062). */
     #container.heightless-hidden { overflow: hidden; }
     #container.heightless-auto { overflow: auto; }
+    /* Parents that clip the grid and inset it, so the parent's box is wider than the grid's own:
+       padding on the clipping parent, the docs layout (the clip on an outer element, the padding on
+       an inner wrapper), the same padded parent with a height of its own, a padded parent that clips
+       the horizontal axis only (the window scrolls the rows), and a grid half as wide as its clipping
+       parent (DEV-3107). Each leaves the grid root 688px wide, or 344px for the half. */
+    #container.padded-hidden { overflow: hidden; padding: 16px; width: 688px; }
+    #container.padded-bounded { overflow: hidden; padding: 16px; width: 688px; height: 300px; }
+    #container.clip-outer { overflow: hidden; width: 720px; }
+    #container.clip-outer > .inset { padding: 16px; }
+    #container.padded-clip-x { overflow-x: clip; padding: 16px; width: 688px; }
+    #container.narrow-hidden { overflow: hidden; width: 688px; }
+    /* A flex row that clips: the grid is a flex item without `flex-grow`, so it is as wide as its
+       content and its root is exactly as wide as the holder inside it. */
+    #container.flex-row-hidden { overflow: hidden; display: flex; width: 688px; }
   </style>
 </head>
 <body>
@@ -70,23 +84,35 @@
     /**
      * Builds (or rebuilds) the grid. `containerClass` picks one of the parent
      * layouts declared in the stylesheet above (`css-host`, `bounded`,
-     * `half-var`, `heightless-hidden`, `heightless-auto`); an empty string
-     * leaves the parent unstyled.
+     * `half-var`, `heightless-hidden`, `heightless-auto`, `padded-hidden`,
+     * `padded-bounded`, `clip-outer`, `padded-clip-x`, `narrow-hidden`,
+     * `flex-row-hidden`); an empty string leaves the parent unstyled. A non-empty `wrapperClass` puts a `<div>` with that
+     * class between the parent and the grid (`inset` for `clip-outer`).
      */
-    window.initRootSizeGrid = function(overrides = {}, containerClass = '') {
+    window.initRootSizeGrid = function(overrides = {}, containerClass = '', wrapperClass = '') {
       if (window.hot) {
         window.hot.destroy();
       }
 
       const container = document.getElementById('container');
-      const oldGrid = document.getElementById('grid');
       const grid = document.createElement('div');
 
       grid.id = 'grid';
       grid.setAttribute('data-testid', 'grid');
       grid.className = `ht-theme-${window.htTheme}`;
       container.className = containerClass;
-      oldGrid.replaceWith(grid);
+
+      if (wrapperClass) {
+        const wrapper = document.createElement('div');
+
+        wrapper.className = wrapperClass;
+        wrapper.appendChild(grid);
+        container.replaceChildren(wrapper);
+      } else {
+        // Replaces a wrapper left by the previous build too, not only the grid.
+        container.replaceChildren(grid);
+      }
+
       window.scrollTo(0, 0);
 
       window.hot = new Handsontable(grid, {
