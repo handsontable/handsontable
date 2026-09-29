@@ -279,18 +279,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
   and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
-  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
-  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
-  while the departing merges still match the grid (the neutral reset does it otherwise). And
-  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
-  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
-  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
-  load and win over the ones the user unmerged or moved. That second pass empties the
-  collection only, never the meta: the load has already reset the cell meta, and the same
-  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
-  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
-  leaves MergeCells' own record of applied declared areas alone, so its next settings update
-  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
+  `#applySheet`, while the departing merges still match the grid (the neutral reset does it
+  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
+  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  once any sheet declares it (the baseline carries it too), and that update runs while the grid
+  still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
+  validated the arriving sheet's areas against the departing sheet's size (dropping one that did
+  not fit it with an out-of-bounds warning) and wrote its clearing `null`s into the departing
+  sheet's array, which the host holds by reference. On the init build, where no view exists yet,
+  it threw `Cannot read properties of undefined (reading '_wt')`. So `#applySheet` runs the update
+  under `#withoutMergeCellsSettingsPass`, which sets MergeCells' `@private` `deferSettingsPass`
+  flag (duck-typed, like `#withoutFormulasSwitchLoad`): `updatePlugin()` then rebuilds the plugin
+  and keeps its record of applied areas, but builds nothing. After `loadData()`,
+  `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
+  declared merges against the arriving data; a sheet with a stored state passes `false` and
+  builds none, because it restores its own merges and the declared ones would win over the ones
+  the user unmerged or moved. Skipping the build also writes no cell, so a value the user typed
+  into a formerly merged cell survives a round trip. Without a view (the init build) the bar runs
+  nothing, and MergeCells' own `afterInit` builds the merges against the loaded sheet and clears
+  the pending pass. The pass must run before the view-state restore: it sets MergeCells'
+  `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
   keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
   are all trimmed stays in the collection's list at its last visual position, and restored
   there it came back as a visible merge over unrelated rows, or won over a live merge,
