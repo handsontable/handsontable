@@ -351,7 +351,9 @@ export function toVisibleCells(hot: HotInstance, cells: RestoredCell[]): Array<[
 
   cells.forEach(({ physicalRow, prop }) => {
     const visualRow = toVisualRow(hot, physicalRow);
-    const visualColumn = typeof prop === 'function' ? null : hot.propToCol(prop);
+    // The column cache is keyed by the `columns[].data` value itself, so an accessor function resolves
+    // to its column too - and its cells are re-validated like any other.
+    const visualColumn = hot.propToCol(prop as string | number);
     const key = `${visualRow}:${visualColumn}`;
 
     if (

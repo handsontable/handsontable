@@ -67,7 +67,9 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
    - **Plugin states the step did not change are put back to their pre-restore value** when the replay
      reset the order (`forceOrder`) - a replayed removal shifts merges it never touched.
 5. **A veto** of any replayed row or column change reverts the replay and puts the grid back; the step
-   stays on its stack, `beforeUndo` has fired and `afterUndo` does not.
+   stays on its stack, `beforeUndo` has fired and `afterUndo` does not. The stack hooks had already
+   announced the pop, so the step goes back through a before/after pair of its own (`#putBackStep`):
+   the last stack a listener was told about is always the stack as it is.
 6. **A full render when the batch ends** (`hot.render()` inside the batch only flags one). A step that
    changed only cell meta - a comment, a border, a `className` - asks for no render itself, and the
    draw that ends the batch is a fast one, which keeps every cell as it was painted.
@@ -185,7 +187,9 @@ the settings `alter()` changes needs no adapter - it only has to run its mutator
 
 `done(wrappedAction, source)` still stacks a custom action with `undo(hot, cb)`/`redo(hot, cb)`. It
 runs the old callback protocol (`#undoCustomAction`), including `canUndo`/`canRedo` and the
-`ignoreNewActions` flag. Keep it working: it is public API.
+`ignoreNewActions` flag. Keep it working: it is public API. An action that settles with
+`{ wasUndone: false }` or `{ wasRedone: false }` is put back the way a vetoed replay is - with its own
+stack hook pair, and with no `afterUndo`/`afterRedo`.
 
 ## Known gaps
 

@@ -409,7 +409,12 @@ export class UndoRedo extends BasePlugin {
     // step goes back where it came from.
     const wasUndone = this.#restore(record, 'undo');
 
-    (wasUndone ? this.undoneActions : this.doneActions).push(step);
+    if (wasUndone) {
+      this.undoneActions.push(step);
+    } else {
+      this.#putBackStep(this.doneActions, step, 'beforeUndoStackChange', 'afterUndoStackChange');
+    }
+
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
     if (wasUndone) {
@@ -459,7 +464,12 @@ export class UndoRedo extends BasePlugin {
 
     const wasRedone = this.#restore(record, 'redo');
 
-    (wasRedone ? this.doneActions : this.undoneActions).push(step);
+    if (wasRedone) {
+      this.doneActions.push(step);
+    } else {
+      this.#putBackStep(this.undoneActions, step, 'beforeRedoStackChange', 'afterRedoStackChange');
+    }
+
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
     if (wasRedone) {
@@ -509,6 +519,28 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks(beforeHook, stackCopy);
     stack.pop();
+    this.hot.runHooks(afterHook, stackCopy, stack.slice());
+  }
+
+  /**
+   * Puts a step that could not be restored back on the stack `#takeStep()` took it from, announced
+   * through the same two hooks, so a listener of the stack hooks is never told the step left for good.
+   *
+   * @param {Array} stack The stack.
+   * @param {*} step The step.
+   * @param {string} beforeHook The hook fired before the change.
+   * @param {string} afterHook The hook fired after the change.
+   */
+  #putBackStep(
+    stack: unknown[],
+    step: unknown,
+    beforeHook: 'beforeUndoStackChange' | 'beforeRedoStackChange',
+    afterHook: 'afterUndoStackChange' | 'afterRedoStackChange',
+  ) {
+    const stackCopy = stack.slice();
+
+    this.hot.runHooks(beforeHook, stackCopy);
+    stack.push(step);
     this.hot.runHooks(afterHook, stackCopy, stack.slice());
   }
 
@@ -788,7 +820,7 @@ export class UndoRedo extends BasePlugin {
         if (wasUndone) {
           this.undoneActions.push(pendingAction);
         } else {
-          this.doneActions.push(pendingAction);
+          this.#putBackStep(this.doneActions, pendingAction, 'beforeUndoStackChange', 'afterUndoStackChange');
         }
       });
     } catch (error) {
@@ -832,14 +864,17 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
+    let wasRedone = true;
+
     try {
       pendingAction.redo(this.hot, (result) => {
         this.#ignoreNewActions = false;
+        wasRedone = result?.wasRedone !== false;
 
-        if (result?.wasRedone === false) {
-          this.undoneActions.push(pendingAction);
-        } else {
+        if (wasRedone) {
           this.doneActions.push(pendingAction);
+        } else {
+          this.#putBackStep(this.undoneActions, pendingAction, 'beforeRedoStackChange', 'afterRedoStackChange');
         }
       });
     } catch (error) {
@@ -850,7 +885,11 @@ export class UndoRedo extends BasePlugin {
     }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
-    this.hot.runHooks('afterRedo', actionClone);
+
+    // As for an undo, an action that reports it could not redo is not announced as redone.
+    if (wasRedone) {
+      this.hot.runHooks('afterRedo', actionClone);
+    }
   }
 
   /**

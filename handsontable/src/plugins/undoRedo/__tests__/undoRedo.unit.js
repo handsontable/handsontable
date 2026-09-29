@@ -397,6 +397,65 @@ describe('UndoRedo plugin', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
     });
 
+    // The pop was announced through the stack hooks, so the put-back is too: the last stack a
+    // listener was told about is the stack as it is.
+    it('should announce a step put back after a vetoed replay, on both stacks', () => {
+      const afterUndoStackChange = jest.fn();
+      const afterRedoStackChange = jest.fn();
+      const veto = () => false;
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3']],
+        undo: true,
+        afterUndoStackChange,
+        afterRedoStackChange,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.alter('insert_row_above', 1, 1);
+      hot.addHook('beforeRemoveRow', veto);
+      plugin.undo();
+      hot.removeHook('beforeRemoveRow', veto);
+
+      expect(plugin.doneActions.length).toBe(1);
+      expect(afterUndoStackChange.mock.calls.at(-1)[1]).toHaveLength(1);
+
+      plugin.undo();
+      hot.addHook('beforeCreateRow', veto);
+      plugin.redo();
+      hot.removeHook('beforeCreateRow', veto);
+
+      expect(plugin.undoneActions.length).toBe(1);
+      expect(afterRedoStackChange.mock.calls.at(-1)[1]).toHaveLength(1);
+    });
+
+    it('should put back a `done()` action that reports it could not redo, with no `afterRedo`', () => {
+      const afterRedo = jest.fn();
+      const afterRedoStackChange = jest.fn();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1']],
+        undo: true,
+        afterRedo,
+        afterRedoStackChange,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      plugin.done(() => ({
+        actionType: 'custom',
+        undo: (instance, callback) => callback(),
+        redo: (instance, callback) => callback({ wasRedone: false }),
+      }));
+      plugin.undo();
+      plugin.redo();
+
+      expect(afterRedo).not.toHaveBeenCalled();
+      expect(plugin.undoneActions.length).toBe(1);
+      expect(afterRedoStackChange.mock.calls.at(-1)[1]).toHaveLength(1);
+    });
+
     it('should not leave the settle listener armed when the removal throws', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
@@ -633,6 +692,45 @@ describe('UndoRedo plugin', () => {
       plugin.undo();
 
       expect(hot.getDataAtCell(0, 1)).toBe('B1');
+    });
+  });
+
+  describe('the cells a restore re-validates', () => {
+    it('should re-validate a cell of a column whose `data` is an accessor function', async() => {
+      const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+
+      /**
+       * Reads and writes the `name` key of a row.
+       *
+       * @param {object} row The row.
+       * @param {*} [value] The value to write.
+       * @returns {*}
+       */
+      function name(row, value) {
+        if (value !== undefined) {
+          row.name = value;
+        }
+
+        return row.name;
+      }
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [{ name: 'good' }],
+        columns: [{ data: name, validator: (value, callback) => callback(value !== 'bad') }],
+        undo: true,
+      });
+
+      hot.setDataAtCell(0, 0, 'bad');
+      await tick();
+
+      expect(hot.getCellMeta(0, 0).valid).toBe(false);
+
+      hot.getPlugin('undoRedo').undo();
+      await tick();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('good');
+      expect(hot.getCellMeta(0, 0).valid).toBe(true);
     });
   });
 
