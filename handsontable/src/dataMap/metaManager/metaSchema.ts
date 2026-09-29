@@ -5699,6 +5699,9 @@ export default (): Record<string, unknown> => {
      * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection/selection.md)  |
      * | A function       | A function that takes the click event target and returns a boolean                                       |
      *
+     * A click on the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md) doesn't count as a click
+     * outside of the grid: it keeps the current selection and saves a cell you are editing, whatever this option is set to.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *

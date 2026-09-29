@@ -70,6 +70,8 @@
       licenseKey: 'non-commercial-and-evaluation',
     });
 
+    window.hot = hot;
+
     document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
       hot.alter('insert_row_below', hot.countRows() - 1);
     });
