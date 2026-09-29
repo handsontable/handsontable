@@ -48,6 +48,19 @@ const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
 const CURRENCY_SYMBOLS = Object.keys(CURRENCY_SYMBOL_TO_CODE).sort((a, b) => b.length - a.length);
 
 /**
+ * Maps a currency symbol read from a number format to its ISO 4217 code, or `null` for a symbol the
+ * table does not own. The symbol comes from the file, so the lookup is an own-property check: a
+ * plain index resolved `[$constructor-409]` through `Object.prototype` to the `Object` function,
+ * which reached `Intl.NumberFormat` as the currency and made every later render throw.
+ *
+ * @param {string} symbol The symbol as written in the format code.
+ * @returns {string|null}
+ */
+function currencyForSymbol(symbol: string): string | null {
+  return Object.hasOwn(CURRENCY_SYMBOL_TO_CODE, symbol) ? CURRENCY_SYMBOL_TO_CODE[symbol] : null;
+}
+
+/**
  * Matches Excel's locale-tagged currency token, `[$<symbol>-<LCID>]` or `[$<symbol>]`.
  */
 const CURRENCY_TOKEN_REGEX = /\[\$([^\]-]*)(?:-[^\]]*)?\]/;
@@ -82,7 +95,7 @@ const BARE_CURRENCY_REGEX = /^([A-Z]{1,3}\$|[A-Z]{3}) ?(?=[#0])|(?<=[#0%]) ?([A-
  */
 function bareMarkerToCode(marker: string): string | null {
   if (marker.endsWith('$')) {
-    return DOLLAR_COMPOSITE_TO_CODE[marker] ?? null;
+    return Object.hasOwn(DOLLAR_COMPOSITE_TO_CODE, marker) ? DOLLAR_COMPOSITE_TO_CODE[marker] : null;
   }
 
   return marker;
@@ -288,7 +301,7 @@ function captureCurrency(numFmt: string): CurrencyCapture {
 
   if (token) {
     return {
-      currency: CURRENCY_SYMBOL_TO_CODE[token[1].trim()] ?? null,
+      currency: currencyForSymbol(token[1].trim()),
       rest: numFmt.replace(CURRENCY_TOKEN_REGEX, ''),
     };
   }
@@ -297,11 +310,11 @@ function captureCurrency(numFmt: string): CurrencyCapture {
 
   for (const symbol of CURRENCY_SYMBOLS) {
     if (trimmed.startsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: trimmed.slice(symbol.length) };
+      return { currency: currencyForSymbol(symbol), rest: trimmed.slice(symbol.length) };
     }
 
     if (trimmed.endsWith(symbol)) {
-      return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: trimmed.slice(0, -symbol.length) };
+      return { currency: currencyForSymbol(symbol), rest: trimmed.slice(0, -symbol.length) };
     }
   }
 

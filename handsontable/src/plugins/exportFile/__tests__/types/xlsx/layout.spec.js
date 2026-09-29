@@ -312,6 +312,66 @@ describe('exportFile XLSX type — layout', () => {
     });
   });
 
+  describe('frozen panes with hidden indexes', () => {
+    it('should not count an excluded hidden column inside the frozen band in xSplit', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 5),
+        fixedColumnsStart: 2,
+        hiddenColumns: { columns: [0] },
+        exportFile: true,
+      });
+
+      const ws = await parseXlsx();
+
+      // Only column B is frozen on screen; column A is hidden and not exported.
+      expect(ws.getRow(1).getCell(1).value).toBe('B1');
+      expect(ws.views[0]).toEqual(jasmine.objectContaining({
+        state: 'frozen',
+        xSplit: 1,
+      }));
+    });
+
+    it('should not count an excluded hidden row inside the frozen band in ySplit', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        fixedRowsTop: 3,
+        hiddenRows: { rows: [1] },
+        exportFile: true,
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      // 2 exported frozen data rows + 1 header row = ySplit 3
+      expect(ws.views[0].ySplit).toBe(3);
+    });
+
+    it('should keep a hidden column in xSplit when `exportHiddenColumns` is `true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 5),
+        fixedColumnsStart: 2,
+        hiddenColumns: { columns: [0] },
+        exportFile: true,
+      });
+
+      const ws = await parseXlsx({ exportHiddenColumns: true });
+
+      expect(ws.views[0].xSplit).toBe(2);
+    });
+
+    it('should not count frozen columns before the start of the export range in xSplit', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 5),
+        fixedColumnsStart: 3,
+        exportFile: true,
+      });
+
+      const ws = await parseXlsx({ range: [0, 1, 2, 4] });
+
+      expect(ws.views[0].xSplit).toBe(2);
+    });
+  });
+
   describe('frozen rows and columns combined', () => {
     it('should set both xSplit and ySplit', async() => {
       handsontable({

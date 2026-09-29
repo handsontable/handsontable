@@ -234,9 +234,10 @@ export interface ExportOptions {
 export interface ExportFileSettings {
   /**
    * Optional map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
-   * built-in engine writes `.xlsx`.
+   * built-in engine writes `.xlsx`. An entry that is absent or `null` selects the built-in engine
+   * too; an entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object>;
+  engines?: Record<string, object | null>;
 }
 
 /**

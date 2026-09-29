@@ -1,3 +1,5 @@
+import Handsontable from 'handsontable/base';
+import { registerPlugin } from 'handsontable/plugins';
 import { ExportFile } from '../exportFile';
 import DataProvider from '../dataProvider';
 import BaseType from '../types/_base';
@@ -41,6 +43,12 @@ describe('ExportFile#supportsExportFormat', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: ExcelJS } }), 'xlsx')).toBe(true);
   });
 
+  it('should return true for xlsx when the configured engine entry is null, through the built-in engine', () => {
+    // `engines: { xlsx: null }` is what `xlsx: useExcelJs ? ExcelJS : null` writes. A nullish entry
+    // is "no engine", the same as an absent key, and the export and the import read it that way.
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: null } }), 'xlsx')).toBe(true);
+  });
+
   it('should return false for xlsx when the configured engine does not duck-type', () => {
     // The export would reject such a configuration with `Invalid xlsx engine module.`, so the
     // predicate has to answer `false` for it — which is what `supportsImportFormat` already does.
@@ -58,8 +66,7 @@ describe('ExportFile#_createTypeFormatter engine resolution', () => {
   // The exporter resolves what it was handed exactly as `Xlsx#export` does, so the kind this
   // reports is the engine the export would have run on.
   const resolvedKind = (exportFileSettings, options) => detectXlsxEngine(
-    ExportFile.prototype._createTypeFormatter.call(fakeCtx(exportFileSettings), 'xlsx', options).options.engine
-      ?? undefined,
+    ExportFile.prototype._createTypeFormatter.call(fakeCtx(exportFileSettings), 'xlsx', options).options.engine,
     'exportFile'
   ).kind;
 
@@ -86,6 +93,65 @@ describe('ExportFile#_createTypeFormatter engine resolution', () => {
     expect(resolvedKind({ engines: {} }, {})).toBe('native');
     expect(resolvedKind({ engines: { csv: ExcelJS } }, {})).toBe('native');
     expect(resolvedKind({ engines: {} }, { engine: null })).toBe('native');
+  });
+
+  it('should fall back to the built-in engine when the configured entry is null', () => {
+    expect(resolvedKind({ engines: { xlsx: null } }, {})).toBe('native');
+    expect(resolvedKind({ engines: { xlsx: null } }, { engine: null })).toBe('native');
+    expect(resolvedKind({ engines: { xlsx: null } }, { engine: undefined })).toBe('native');
+  });
+});
+
+describe('ExportFile export with a null engine entry', () => {
+  let container;
+  let hot;
+
+  beforeAll(() => {
+    registerPlugin(ExportFile);
+  });
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  it('should write the file through the built-in engine when `engines.xlsx` is null', async() => {
+    hot = new Handsontable(container, {
+      data: [['a', 1]],
+      exportFile: { engines: { xlsx: null } },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const plugin = hot.getPlugin('exportFile');
+
+    // The predicate, the formatter and the export all have to give the same answer for this
+    // configuration: a nullish entry selects the built-in engine.
+    expect(plugin.supportsExportFormat('xlsx')).toBe(true);
+
+    const buffer = await plugin._createTypeFormatter('xlsx').export();
+
+    // A zip local file header starts with "PK".
+    expect(buffer instanceof Uint8Array).toBe(true);
+    expect(Array.from(buffer.subarray(0, 2))).toEqual([0x50, 0x4B]);
+  });
+
+  it('should still reject an entry that is present and does not duck-type', async() => {
+    hot = new Handsontable(container, {
+      data: [['a', 1]],
+      exportFile: { engines: { xlsx: {} } },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const plugin = hot.getPlugin('exportFile');
+
+    expect(plugin.supportsExportFormat('xlsx')).toBe(false);
+    await expect(plugin._createTypeFormatter('xlsx').export()).rejects.toThrow(/^Invalid xlsx engine module\./);
   });
 });
 

@@ -1,4 +1,4 @@
-import { isDefined, stringify } from '../../../helpers/mixed';
+import { isDefined, isEmpty, stringify } from '../../../helpers/mixed';
 import { isKeyValueObject } from '../../../helpers/object';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
@@ -307,7 +307,9 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
-    const detected = detectXlsxEngine(this.options.engine ?? undefined, 'exportFile');
+    // A nullish `engine` (the option's own default, or a resolved `engines: { xlsx: null }`) is
+    // read as the built-in engine by `detectXlsxEngine` itself, so nothing is mapped here.
+    const detected = detectXlsxEngine(this.options.engine, 'exportFile');
 
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
@@ -684,7 +686,7 @@ class Xlsx extends BaseType {
    *    formula's `result`.
    * 3. Date cells (ISO 8601 string → serial number).
    * 4. Time cells (time string → fractional day serial).
-   * 5. Checkbox cells (boolean from `checkedTemplate` comparison).
+   * 5. Checkbox cells (boolean from `checkedTemplate` comparison; an empty value stays empty).
    * 6. Multiselect cells (comma-separated string).
    * 7. All other cells (numeric-aware or stringified).
    *
@@ -800,14 +802,28 @@ class Xlsx extends BaseType {
   /**
    * Returns the boolean export value for a checkbox cell.
    *
+   * A value matching `checkedTemplate` exports as `true` and one matching `uncheckedTemplate` as
+   * `false`. An empty value (`null`, `undefined` or `''`) that matches neither template exports as
+   * an empty cell, the same as the checkbox renderer's "no value" state, so a round trip does not
+   * turn it into an unchecked box. Any other value keeps exporting as `false`.
+   *
    * @param {*} value Raw cell value.
    * @param {object} meta Cell meta object.
-   * @returns {boolean}
+   * @returns {boolean|null}
    */
-  #getCheckboxValue(value: unknown, meta: CellMeta): boolean {
+  #getCheckboxValue(value: unknown, meta: CellMeta): boolean | null {
     const checkedTemplate = meta.checkedTemplate ?? true;
+    const uncheckedTemplate = meta.uncheckedTemplate ?? false;
 
-    return value === checkedTemplate;
+    if (value === checkedTemplate) {
+      return true;
+    }
+
+    if (value !== uncheckedTemplate && isEmpty(value)) {
+      return null;
+    }
+
+    return false;
   }
 
   /**

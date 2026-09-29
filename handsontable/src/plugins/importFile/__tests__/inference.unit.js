@@ -61,6 +61,27 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 0.1, numFmt: 'h:mm' })).type).toBe('time');
   });
 
+  it('should read a backslash-escaped literal as decoration, matching what the ExcelJS path hands over', () => {
+    // Both engines now hand the format code over verbatim, so `\%` is a literal percent sign (no
+    // scaling by 100) and `\d` a literal letter, never a date code. The native reader used to
+    // strip the backslashes, which made `0.0\%` a scaling percent and `0\d` a date.
+    expect(inferCellType(cell({ value: 12.5, numFmt: '0.0\\%' }))).toEqual({
+      type: 'numeric',
+      numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false },
+    });
+    // `\ ` escapes only the space; the `%` after it still scales, so this one IS a percent.
+    expect(inferCellType(cell({ value: 0.125, numFmt: '0.0\\ %' }))).toEqual({
+      type: 'numeric',
+      numericFormat: {
+        style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false,
+      },
+    });
+    expect(inferCellType(cell({ value: 7, numFmt: '0\\d' }))).toEqual({
+      type: 'numeric',
+      numericFormat: { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false },
+    });
+  });
+
   it('should keep numeric-looking formats with letters as numeric', () => {
     expect(inferCellType(cell({ value: 42, numFmt: '0.00E+00' })).type).toBe('numeric');
     expect(inferCellType(cell({ value: 42, numFmt: '"Total: "0.00' })).type).toBe('numeric');
@@ -104,6 +125,21 @@ describe('inferCellType', () => {
     // A real time code next to a currency-looking prefix stays a time.
     expect(inferCellType(cell({ value: 0.5, numFmt: 'h:mm' })).type).toBe('time');
     expect(inferCellType(cell({ value: 0.5, numFmt: '[$-409]h:mm:ss AM/PM' })).type).toBe('time');
+  });
+
+  it('should read a currency token naming an Object.prototype member as no currency', () => {
+    // A plain-object symbol table resolved `[$constructor-409]` to the `Object` function, which then
+    // reached `Intl.NumberFormat` as the currency code and made every later render throw.
+    ['[$constructor-409]#,##0.00', '[$toString]0.00', '[$__proto__-409]0.00', 'constructor#,##0', '#,##0valueOf']
+      .forEach((numFmt) => {
+        const inferred = inferCellType(cell({ value: 12.5, numFmt }));
+
+        expect(inferred.numericFormat?.currency).toBeUndefined();
+        expect(inferred.numericFormat?.style).not.toBe('currency');
+      });
+
+    expect(inferCellType(cell({ value: 12.5, numFmt: '[$€-407]#,##0.00' })).numericFormat)
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'EUR' }));
   });
 
   it('should map numeric formats, including the export\'s own, to Intl.NumberFormat options', () => {

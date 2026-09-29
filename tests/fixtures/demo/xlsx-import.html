@@ -28,9 +28,9 @@
     }
 
     // Which xlsx engine the two grids use. `native` is the built-in engine (`importFile: true`,
-    // `exportFile: true`); `exceljs` injects the ExcelJS module the way 19.0 required. The ExcelJS
-    // script is loaded on both legs because the styles round trip reads the re-exported blob back
-    // with it as an oracle.
+    // `exportFile: true`); `exceljs` injects the ExcelJS module as the alternative engine
+    // (`engines: { xlsx: ExcelJS }`). The ExcelJS script is loaded on both legs because the styles
+    // round trip reads the re-exported blob back with it as an oracle.
     window.htEngine = ({ exceljs: 'exceljs', native: 'native' })[htParams.get('engine') ?? 'exceljs'];
     if (!window.htEngine) {
       throw new Error('Unknown ?engine= value: ' + JSON.stringify(htParams.get('engine')));

@@ -11,6 +11,10 @@ new Handsontable(document.createElement('div'), { importFile: true });
 new Handsontable(document.createElement('div'), { importFile: false });
 
 const settings: ImportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ImportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { importFile: nullEngineSettings });
 const hot = new Handsontable(document.createElement('div'), {});
 const plugin = hot.getPlugin('importFile');
 

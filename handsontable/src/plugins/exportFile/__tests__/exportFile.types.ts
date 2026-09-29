@@ -16,6 +16,10 @@ new Handsontable(document.createElement('div'), {
 
 // Settings object is assignable to ExportFileSettings.
 const settings: ExportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ExportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { exportFile: nullEngineSettings });
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});

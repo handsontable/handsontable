@@ -514,21 +514,65 @@ class DataProvider {
   }
 
   /**
-   * Gets the number of frozen rows (`fixedRowsTop` setting).
+   * Gets the number of exported rows that sit in the frozen band (`fixedRowsTop` setting).
+   *
+   * Counts only the rows among the first `fixedRowsTop` visual rows that the export writes:
+   * rows outside the `range` option are skipped, and so are hidden rows when
+   * `exportHiddenRows` is `false`. This keeps the sheet's frozen pane on the same rows
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenRows() {
-    return this.hot.getSettings().fixedRowsTop || 0;
+    const { startRow, endRow } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedRowsTop || 0, startRow, endRow,
+      (row: number) => this.options.exportHiddenRows !== false || !this._isHiddenRow(row)
+    );
   }
 
   /**
-   * Gets the number of frozen columns (`fixedColumnsStart` setting).
+   * Gets the number of exported columns that sit in the frozen band (`fixedColumnsStart` setting).
+   *
+   * Counts only the columns among the first `fixedColumnsStart` visual columns that the export
+   * writes: columns outside the `range` option are skipped, and so are hidden columns when
+   * `exportHiddenColumns` is `false`. This keeps the sheet's frozen pane on the same columns
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenColumns() {
-    return this.hot.getSettings().fixedColumnsStart || 0;
+    const { startCol, endCol } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedColumnsStart || 0, startCol, endCol,
+      (column: number) => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(column)
+    );
+  }
+
+  /**
+   * Counts the exported indexes inside a frozen band that starts at visual index 0.
+   *
+   * @param {number} frozenCount Size of the frozen band, in visual indexes.
+   * @param {number} start First visual index of the export range.
+   * @param {number} end Last visual index of the export range.
+   * @param {Function} isExported Returns `true` when the visual index is written to the file.
+   * @returns {number}
+   */
+  #countExportedInFrozenBand(
+    frozenCount: number, start: number, end: number, isExported: (index: number) => boolean
+  ): number {
+    const bandEnd = Math.min(frozenCount - 1, end);
+    let count = 0;
+
+    for (let index = start; index <= bandEnd; index++) {
+      if (isExported(index)) {
+        count += 1;
+      }
+    }
+
+    return count;
   }
 
   /**

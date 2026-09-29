@@ -135,6 +135,11 @@ describe('ImportFile#supportsImportFormat', () => {
     expect(supports({ engines: { xlsx: ExcelJS } }, 'csv')).toBe(false);
   });
 
+  it('should answer true for xlsx when the configured entry is null, through the built-in engine', () => {
+    // A nullish entry is "no engine", the same as an absent key, and the import reads it that way.
+    expect(supports({ engines: { xlsx: null } }, 'xlsx')).toBe(true);
+  });
+
   it('should return false, not throw, for an engine of unknown shape', () => {
     expect(supports({ engines: { xlsx: {} } }, 'xlsx')).toBe(false);
   });
@@ -255,6 +260,18 @@ describe('ImportFile#importFromArrayBuffer', () => {
 
     // `engines` is keyed by format, so a map without `xlsx` leaves xlsx uninjected — the same
     // configuration `exportFile` falls back on, and the one the engine table documents.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should import through the built-in engine when the engines entry for the format is null', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: { xlsx: null } }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: null } });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // `engines: { xlsx: null }` is what `xlsx: useExcelJs ? ExcelJS : null` writes. A nullish entry
+    // is "no engine", the same as an absent key — and `exportFile` reads the same map the same way.
     expect(supports).toBe(true);
     expect(result.engine.kind).toBe('native');
     expect(result.data[0][0]).toBe('Ana García');

@@ -114,9 +114,21 @@ Other rules:
   native engine on `downloadFileAsync('xlsx', { engine: null })`, against the `ExportOptions.engine`
   JSDoc. `null` and `undefined` mean "no override" on both sides now, through
   `resolveEngineOverride(override, configured)` in `../../utils/xlsxEngine/detect.ts`, which `importFile`
-  uses too — change one plugin's resolution and you have re-opened the drift. `types/xlsx.ts` still maps a
-  RESOLVED `null`/`undefined` to native, which is the `engines`-names-no-xlsx fallback the engine table
-  documents.
+  uses too — change one plugin's resolution and you have re-opened the drift. A RESOLVED `null`/`undefined`
+  is then read as the built-in engine by `detectXlsxEngine` itself, so `types/xlsx.ts` maps nothing.
+- **A configured `engines: { xlsx: null }` means the built-in engine, everywhere, and `detect.ts` is the one
+  place that says so.** It is what `xlsx: useExcelJs ? ExcelJS : null` writes, and it used to get three
+  answers: `supportsExportFormat('xlsx')` answered `false` (the predicate reached `detectXlsxEngine(null)`,
+  which threw), the export SUCCEEDED (`types/xlsx.ts` mapped the resolved `null` to native, since `null` is
+  the option's own default), and `importFile` threw `Invalid xlsx engine module.` `detectXlsxEngine` now
+  reads a nullish value — `undefined` or `null` — as "no engine, so the built-in one", the same as an absent
+  key, and nothing else maps `null` on the way there. The refusal that stays is an entry that is present,
+  NON-nullish and does not duck-type (`{}`, `42`, `false`). Do not restore a `?? undefined` in
+  `types/xlsx.ts` or a `null` branch in either plugin: the predicate, the export and the import all have to
+  reach the same answer through the same code, and `exportFile.unit.js` ("export with a null engine entry")
+  and `importFile.unit.js` pin it on both sides.
+  The type is `engines?: Record<string, object | null>` in both plugins so the documented pattern compiles
+  under `strictNullChecks`; `exportFile.types.ts` and `importFile.types.ts` pin `{ xlsx: null }`.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet
@@ -250,6 +262,22 @@ Other rules:
   `result: toPrimitiveResult(cellValue)`, the way the ColumnSummary branch already did, so Excel,
   LibreOffice and non-formula readers see the computed value.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
+- **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
+  `DataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
+  (`0 … fixed - 1`) that fall inside the `range` option and are written to the file: a hidden index is
+  skipped when `exportHiddenColumns`/`exportHiddenRows` is `false`, and kept for `true` and `'hide'`
+  (it is still a column of the sheet). Returning the raw setting froze one column too many for every
+  hidden column in the band, and froze columns that a `range` starting inside or after the band never
+  exported. The header row and the row-header column are added later, in `#applyWorksheetViews`
+  (`types/xlsx.ts`) — never add them in the data provider. Pinned by `dataProviderFrozenPanes.unit.js`
+  and the "frozen panes with hidden indexes" block in `layout.spec.js`.
+- **An empty checkbox exports as an empty cell.** `#getCheckboxValue` returns `true` for
+  `checkedTemplate`, `false` for `uncheckedTemplate`, `null` for an empty value (`isEmpty`: `null`,
+  `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
+  else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
+  Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 22 of the 18.1 → 19.0
+  migration guide, together with the frozen-pane change above.
 - **`types/xlsx.ts` builds a `WorkbookSnapshot` (`src/utils/xlsxEngine/model.ts`) through a 1-based
   `SheetBuilder` and hands it to the detected engine's `write`.** No ExcelJS call is allowed in this
   plugin any more; the ExcelJS-shaped interfaces live in `src/utils/xlsxEngine/adapters/exceljs.ts`. The

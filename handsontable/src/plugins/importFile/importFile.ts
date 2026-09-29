@@ -19,9 +19,10 @@ export const PLUGIN_PRIORITY = 245;
 export interface ImportFileSettings {
   /**
    * Optional map of import engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it, or
-   * with a map that names no engine for the format, the built-in engine reads `.xlsx`.
+   * with a map whose entry for the format is absent or `null`, the built-in engine reads `.xlsx`.
+   * An entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object>;
+  engines?: Record<string, object | null>;
 }
 
 /**
@@ -267,7 +268,7 @@ function getPluginSettings(settings: unknown): ImportFileSettings | undefined {
  * The engine module configured for `format` under `engines`, keyed by format name the way the
  * option is documented and the way `exportFile` reads its own `engines`.
  */
-function configuredEngine(hot: HotInstance, format: string): object | undefined {
+function configuredEngine(hot: HotInstance, format: string): object | null | undefined {
   return getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines?.[format];
 }
 
@@ -281,10 +282,11 @@ function tryDetectEngine(hot: HotInstance, override: object | undefined, format:
 
 /**
  * Detects the engine from the per-call override or the plugin settings and checks it can read the
- * given format. An `engines` map that names no engine for `format` falls back to the built-in
- * engine, which is what `supportsImportFormat` predicts and what `exportFile` does for the same
- * configuration. Throws a Handsontable error when the injected value does not duck-type to a known
- * engine, or when the detected engine cannot read the format.
+ * given format. An `engines` map that names no engine for `format`, or names `null`, falls back to
+ * the built-in engine – `detectXlsxEngine` reads both the same way – which is what
+ * `supportsImportFormat` predicts and what `exportFile` does for the same configuration. Throws a
+ * Handsontable error when the injected value does not duck-type to a known engine, or when the
+ * detected engine cannot read the format.
  */
 function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
   const injected = resolveEngineOverride(override, configuredEngine(hot, format));

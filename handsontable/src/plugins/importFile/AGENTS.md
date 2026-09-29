@@ -19,6 +19,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Traps
 
+- **Never index a lookup table with a string that came from the file.** A number-format code is
+  file data, and `CURRENCY_SYMBOL_TO_CODE[symbol]` resolved `[$constructor-409]#,##0.00` through
+  `Object.prototype` to the `Object` function. It reached `Intl.NumberFormat` as the currency, the
+  import threw `Invalid currency code`, and every later `render()` threw the same error, because the
+  settings were already applied. Use `currencyForSymbol()`, `lookup()` (`styles.ts`) or another
+  `Object.hasOwn` check, or a `Map`. Pinned by `inference.unit.js` ("Object.prototype member").
 - **`requireEngine` never refuses a MISSING `engines` entry, and `supportsImportFormat` is why.** An
   `engines` map that names no engine for the format leaves the format uninjected, so it falls back to the
   built-in engine — the row `../../utils/xlsxEngine/AGENTS.md` documents, and what `exportFile` does for
@@ -27,8 +33,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   always threw: a caller gating on the predicate got a false green, and mutating the throw's
   `Object.keys(engines).length > 0` term survived the whole suite. Both entry points now resolve the
   override through `resolveEngineOverride(override, configured)` from `../../utils/xlsxEngine/detect.ts`,
-  so `engine: null` per call also means "no override" rather than "built-in engine". The two refusals that
-  remain are an entry that IS present and does not duck-type (`Invalid xlsx engine module.`) and an engine
+  so `engine: null` per call also means "no override" rather than "built-in engine". A configured
+  `engines: { xlsx: null }` (what `xlsx: useExcelJs ? ExcelJS : null` writes; typed `object | null`, pinned in
+  `importFile.types.ts`) is read as the built-in
+  engine too — by `detectXlsxEngine` itself, which treats `null` like `undefined`, so the predicate, this
+  plugin and `exportFile` cannot answer it differently; `requireEngine` used to throw
+  `Invalid xlsx engine module.` for it while `exportFile` exported. The two refusals that remain are an
+  entry that IS present, NON-nullish and does not duck-type (`Invalid xlsx engine module.`) and an engine
   that cannot read the format.
 - **The adapter refuses a sheet before it allocates one.** `src/utils/xlsxEngine/limits.ts` caps a sheet at
   1,048,576 rows, 16,384 columns and 5,000,000 cells, and `readSheet` asserts all three from the DECLARED
