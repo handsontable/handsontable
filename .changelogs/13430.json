@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an open editor committing its edit to the wrong row when a hook called `alter()` from inside another `alter()`.",
+  "type": "fixed",
+  "issueOrPR": 13430,
+  "breaking": false,
+  "framework": "none"
+}
