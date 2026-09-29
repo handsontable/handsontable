@@ -185,6 +185,48 @@ test('matches a signature split across lines, but not a call that spans lines', 
   assert.deepEqual(kinds([fileDiff('handsontable/src/plugins/p/p.ts', ['  generic<T>(', '  ): void {'])]), { generic: 'method' });
 });
 
+test('a renamed split signature is caught when its closing line is unchanged context', () => {
+  const filePath = 'handsontable/src/plugins/p/p.ts';
+  const scope = [{
+    path: filePath,
+    text: [
+      `diff --git a/${filePath} b/${filePath}`,
+      `--- a/${filePath}`,
+      `+++ b/${filePath}`,
+      '@@ -10,4 +10,4 @@',
+      '-  calculateColumnsWidth(',
+      '+  computeColumnWidths(',
+      '     from: number,',
+      '   ): number {',
+      '@@ -40,2 +40,2 @@',
+      '-  runQueue(',
+      '+  drainQueue(',
+      '   ): number {',
+    ].join('\n'),
+  }];
+
+  assert.deepEqual(kinds(scope), { calculateColumnsWidth: 'method', runQueue: 'method' });
+});
+
+test('a split signature is not closed by a line from the next hunk', () => {
+  const filePath = 'handsontable/src/plugins/p/p.ts';
+  const scope = [{
+    path: filePath,
+    text: [
+      `diff --git a/${filePath} b/${filePath}`,
+      `--- a/${filePath}`,
+      `+++ b/${filePath}`,
+      '@@ -10,2 +10,2 @@',
+      '-  runQueue(',
+      '     task,',
+      '@@ -90,1 +90,1 @@',
+      '   ): number {',
+    ].join('\n'),
+  }];
+
+  assert.deepEqual(kinds(scope), {});
+});
+
 test('a removed `/* ... */` line is a comment', () => {
   assert.deepEqual(kinds([fileDiff('handsontable/src/a.scss', ['/* uses --ht-old-var */'])]), {});
   assert.deepEqual(kinds([fileDiff('handsontable/src/a.ts', ['/* export function x() { */'])]), {});

@@ -45,10 +45,12 @@ function isComment(content) {
 }
 
 /**
- * A file's added and removed content lines, excluding the `+++`/`---` headers.
+ * A file's hunk lines, excluding the `+++`/`---` headers: added (`+`), removed (`-`), and
+ * unchanged context (` `) lines, plus an `@` marker at each `@@` hunk header. Context lines are
+ * kept so a split signature can be closed by an unchanged line (see `closesSignature`).
  *
  * @param {{ text: string }} file
- * @returns {{ sign: '+' | '-', content: string }[]}
+ * @returns {{ sign: '+' | '-' | ' ' | '@', content: string }[]}
  */
 function changedLines(file) {
   const out = [];
@@ -57,7 +59,9 @@ function changedLines(file) {
     if (line.startsWith('+++') || line.startsWith('---')) {
       continue;
     }
-    if (line[0] === '+' || line[0] === '-') {
+    if (line.startsWith('@@')) {
+      out.push({ sign: '@', content: '' });
+    } else if (line[0] === '+' || line[0] === '-' || line[0] === ' ') {
       out.push({ sign: line[0], content: line.slice(1) });
     }
   }
@@ -66,18 +70,30 @@ function changedLines(file) {
 }
 
 /**
- * Whether a later removed line closes a split signature as `) ... {`.
+ * Whether the old version of the file closes a split signature as `) ... {` within the same
+ * hunk. It reads the old side (removed and context lines), because a rename changes only the
+ * `name(` line and leaves the closing line as unchanged context.
  *
- * @param {{ sign: string, content: string }[]} lines A file's changed lines.
- * @param {number} index The line that opened the signature with `name(`.
+ * @param {{ sign: string, content: string }[]} lines A file's hunk lines from `changedLines`.
+ * @param {number} index The removed line that opened the signature with `name(`.
  * @returns {boolean}
  */
 function closesSignature(lines, index) {
-  return lines
-    .slice(index + 1)
-    .filter(({ sign }) => sign === '-')
-    .slice(0, SIGNATURE_LOOKAHEAD)
-    .some(({ content }) => SIGNATURE_CLOSE_RE.test(content.trim()));
+  const oldSide = [];
+
+  for (const { sign, content } of lines.slice(index + 1)) {
+    if (sign === '@') {
+      break;
+    }
+    if (sign === '-' || sign === ' ') {
+      oldSide.push(content);
+    }
+    if (oldSide.length >= SIGNATURE_LOOKAHEAD) {
+      break;
+    }
+  }
+
+  return oldSide.some((content) => SIGNATURE_CLOSE_RE.test(content.trim()));
 }
 
 /**
