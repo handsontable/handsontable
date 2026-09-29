@@ -8,10 +8,11 @@ import { join } from 'node:path';
 import execa from 'execa';
 import chalk from 'chalk';
 import { REFERENCE_FRAMEWORK, WRAPPERS } from '../src/config.mjs';
-import { findBuildProblems } from '../lib/local-builds.mjs';
+import { findBuildProblems, preflightOptions } from '../lib/local-builds.mjs';
 import { getTier } from './utils/utils.mjs';
 
 const ALL_FRAMEWORKS = [REFERENCE_FRAMEWORK, ...WRAPPERS];
+const REPO_ROOT = join(import.meta.dirname, '..', '..');
 
 const dirs = {
   monorepoRoot: '..',
@@ -23,32 +24,11 @@ const dirs = {
 const tier = getTier();
 const frameworksToTest = tier.frameworks;
 
-// The preflight. Without it a first local run looks like it works: the linker skips a package whose local
-// build is missing, so every demo installs, builds, and renders the registry's handsontable, and nothing fails
-// (lib/local-builds.mjs has the measurement). Checked before the installs, so a missing build costs a line
-// rather than the two minutes of an Angular install. The age check is off on CI: the render job composes
-// handsontable/tmp for the commit it checked out, and the Build artifact it extracts carries that job's
-// modification times, which are older than this checkout's.
-const checkAge = process.env.CI !== 'true';
-const problems = findBuildProblems({
-  repoRoot: join(import.meta.dirname, '..', '..'),
-  wrappers: frameworksToTest.filter(framework => framework !== REFERENCE_FRAMEWORK),
-  checkAge,
-});
-
-if (problems.length > 0) {
-  console.error(chalk.red(`Visual tier "${tier.name}" cannot build its demos yet:`));
-
-  problems.forEach(({ summary, detail, remedy }) => {
-    console.error(chalk.red(`\n- ${summary}`));
-    detail.forEach(line => console.error(`  ${line}`));
-    console.error(`  ${remedy}`);
-  });
-
-  console.error('\nRun the commands from the repository root. See visual-tests/AGENTS.md (Local builds).');
-  process.exitCode = 1;
-} else {
-  console.log(chalk.green(`The local builds are in place${checkAge ? ', and the core build is current' : ''}.`));
+/**
+ * Installs and builds the tier's demos. Called only when the preflight found nothing, so no install can run
+ * after a refusal.
+ */
+async function installAndBuild() {
   console.log(chalk.green(`Visual tier "${tier.name}": installing and building `
     + `${frameworksToTest.join(', ')} examples...`));
 
@@ -103,4 +83,34 @@ if (problems.length > 0) {
   }
 
   console.log(chalk.green('Done.'));
+}
+
+// The preflight. Without it a first local run of the js demo looks like it works: the linker skips a package
+// whose local build is missing, so the demo installs, builds, and renders the registry's handsontable, and
+// nothing fails (lib/local-builds.mjs has the measurement). Checked before the installs, so a missing build
+// costs a line rather than the two minutes of an Angular install. `preflightOptions()` says why the age check
+// is off on CI.
+const options = preflightOptions({
+  env: process.env,
+  frameworks: frameworksToTest,
+  referenceFramework: REFERENCE_FRAMEWORK,
+});
+const problems = findBuildProblems({ repoRoot: REPO_ROOT, ...options });
+
+if (problems.length > 0) {
+  console.error(chalk.red(`Visual tier "${tier.name}" cannot build its demos yet:`));
+
+  problems.forEach(({ summary, detail, remedy }) => {
+    console.error(chalk.red(`\n- ${summary}`));
+    detail.forEach(line => console.error(`  ${line}`));
+    console.error(`  ${remedy}`);
+  });
+
+  console.error('\nRun the commands from the repository root. See visual-tests/AGENTS.md (Local builds).');
+  process.exitCode = 1;
+} else {
+  console.log(chalk.green('The local builds are in place'
+    + `${options.checkAge ? ', and the core build is current' : ''}.`));
+
+  await installAndBuild();
 }

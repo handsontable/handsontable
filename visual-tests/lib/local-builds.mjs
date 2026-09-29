@@ -11,15 +11,19 @@
  * on 2026-09-29: both paths left `handsontable` 18.1.0 from the registry where the local build was 18.1.1.
  *
  * Two checks close it, both built on this module. `scripts/check-linked-packages.mjs` runs first in every demo's
- * `build` script, so each way of building a demo runs it (`scripts/build.mjs`, and the cross-browser leg and the
- * stability matrix that build the js demo directly). It refuses unless every monorepo package the demo declares
+ * `build` script, so every way of building a demo runs it: `scripts/build.mjs`; the cross-browser leg of
+ * `visual.yml` and the `visual-stability.yml` matrix, which build the js demo directly; and `npm run all build`
+ * (the `build-all.yml` legs on Ubuntu, macOS, and Windows) and the release cut in `publish.yml`, which build
+ * every example through `examples:build next`. It refuses unless every monorepo package the demo declares
  * resolves to the local build. `scripts/build.mjs` runs `findBuildProblems()` before it installs anything: the
- * core must be built and no older than its sources, and each wrapper the tier renders must be built.
+ * core and each wrapper the tier renders must be built and linked into the `examples/` workspace, and the core
+ * build must be no older than its sources.
  *
  * Node built-ins only. The demo guard runs in whatever tree the demo's install left behind, and the tooling
  * tests run with no dependencies installed. See visual-tests/AGENTS.md (Local builds).
  */
-import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
 /**
@@ -29,9 +33,18 @@ const IGNORED_SOURCE_DIRS = new Set(['__tests__', 'test']);
 
 /**
  * Files under `src/` that the build does not compile: the Markdown beside the code (every plugin carries an
- * `AGENTS.md`, edited more often than the plugin) and test-only assets such as `walkontable.test.css`.
+ * `AGENTS.md`, edited more often than the plugin), test-only assets such as `walkontable.test.css`, and
+ * dotfiles such as the `.DS_Store` a file manager writes.
  */
-const IGNORED_SOURCE_FILE = /\.md$|\.test\.\w+$/;
+const IGNORED_SOURCE_FILE = /^\.|\.md$|\.test\.\w+$/;
+
+/**
+ * What the build itself writes under `src/`, all of it listed in `handsontable/.gitignore`: `build:styles`
+ * rewrites the two `handsontableStyles` files on every run, and `build:walkontable` writes `dist/`. Git keeps
+ * them out of the age check; these rules keep them out when git cannot list the sources.
+ */
+const GENERATED_SOURCE_DIRS = new Set(['dist']);
+const GENERATED_SOURCE_FILE = /^handsontableStyles\.(js|ts)$/;
 
 /**
  * Reads and parses a JSON file.
@@ -55,13 +68,29 @@ function display(repoRoot, path) {
 }
 
 /**
+ * Says whether a path is a symbolic link (or, on Windows, a junction), whether or not it resolves.
+ *
+ * @param {string} path The path.
+ * @returns {boolean} `true` for a link.
+ */
+function isLink(path) {
+  try {
+    return lstatSync(path).isSymbolicLink();
+  } catch {
+    // Nothing at that path, so no link either.
+    return false;
+  }
+}
+
+/**
  * Lists the monorepo's workspace packages and where each one's local build lives.
  *
  * The list is the root `package.json` `workspaces`, the one `examples/scripts/link-packages.mjs` reads, so this
  * checks exactly what the linker links. An entry is a directory or a directory followed by `/*`. The local
- * build is what pnpm links a workspace package to: its `publishConfig.directory` when `linkDirectory` is set
- * (`handsontable/tmp`, `wrappers/angular-wrapper/dist/hot-table`), and the package directory otherwise (the
- * React and Vue wrappers, whose builds land in `es/` and `commonjs/` beside their manifest).
+ * build is what pnpm links a workspace package to: its `publishConfig.directory`, unless `linkDirectory` is
+ * `false` (pnpm 10's rule; `handsontable/tmp` and `wrappers/angular-wrapper/dist/hot-table` today), and the
+ * package directory otherwise (the React and Vue wrappers, whose builds land in `es/` and `commonjs/` beside
+ * their manifest).
  *
  * @param {string} repoRoot The repository root.
  * @returns {Map<string, {dir: string, buildDir: string}>} Absolute directories, keyed by package name.
@@ -84,7 +113,7 @@ export function workspacePackages(repoRoot) {
 
   dirs.filter(dir => existsSync(join(dir, 'package.json'))).forEach((dir) => {
     const { name, publishConfig } = readJson(join(dir, 'package.json'));
-    const buildDir = publishConfig?.linkDirectory && publishConfig?.directory
+    const buildDir = typeof publishConfig?.directory === 'string' && publishConfig.linkDirectory !== false
       ? join(dir, publishConfig.directory)
       : dir;
 
@@ -148,42 +177,131 @@ export function buildCommand(repoRoot, pkg) {
 }
 
 /**
- * Finds the newest file in a tree, by modification time.
+ * Says whether the build compiles a file, judged by its path relative to the source directory.
  *
- * @param {string} dir The tree to walk.
+ * @param {string} path The file, relative to the source directory, with either separator.
  * @param {object} [options] Options.
- * @param {Set<string>} [options.ignoreDirs] Directory names to skip, at any depth.
- * @param {RegExp} [options.ignoreFile] File names to skip.
- * @returns {{path: string, mtimeMs: number}|null} The newest file, or `null` for an empty tree.
+ * @param {boolean} [options.skipGenerated] Whether to skip the build's own outputs too, for a list git did not
+ *   filter.
+ * @returns {boolean} `true` for a file the build compiles.
  */
-export function newestFile(dir, { ignoreDirs = new Set(), ignoreFile = null } = {}) {
-  return readdirSync(dir, { withFileTypes: true, recursive: true }).reduce((newest, entry) => {
-    const parent = entry.parentPath ?? entry.path;
-    const skipped = relative(dir, parent).split(/[\\/]/).some(segment => ignoreDirs.has(segment));
+export function isCompiledSource(path, { skipGenerated = false } = {}) {
+  const segments = path.split(/[\\/]/);
+  const name = segments.pop();
 
-    if (!entry.isFile() || skipped || ignoreFile?.test(entry.name)) {
+  if (IGNORED_SOURCE_FILE.test(name) || segments.some(segment => IGNORED_SOURCE_DIRS.has(segment))) {
+    return false;
+  }
+
+  return !skipGenerated
+    || (!GENERATED_SOURCE_FILE.test(name) && !segments.some(segment => GENERATED_SOURCE_DIRS.has(segment)));
+}
+
+/**
+ * Lists the files in a source directory that the build compiles. Git decides first: its tracked files plus the
+ * untracked ones no ignore rule covers, so a new source file counts and every generated file stays out whatever
+ * ignore rule names it. Without git (not a checkout, or no `git` on the path) a directory walk stands in, with
+ * the generated outputs this file knows about skipped by name.
+ *
+ * @param {string} repoRoot The repository root.
+ * @param {string} srcDir The source directory.
+ * @returns {string[]} Absolute paths.
+ */
+export function sourceFiles(repoRoot, srcDir) {
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--',
+    display(repoRoot, srcDir)], { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+
+  if (listed.status === 0) {
+    return listed.stdout.split('\0').filter(Boolean)
+      .filter(path => isCompiledSource(relative(srcDir, join(repoRoot, path))))
+      .map(path => join(repoRoot, path));
+  }
+
+  return readdirSync(srcDir, { withFileTypes: true, recursive: true })
+    .filter(entry => entry.isFile())
+    .map(entry => join(entry.parentPath ?? entry.path, entry.name))
+    .filter(path => isCompiledSource(relative(srcDir, path), { skipGenerated: true }));
+}
+
+/**
+ * Finds the most recently modified of a list of files.
+ *
+ * @param {string[]} files Absolute paths.
+ * @returns {{path: string, mtimeMs: number}|null} The newest file, or `null` when none exists.
+ */
+export function newestFile(files) {
+  return files.reduce((newest, path) => {
+    let mtimeMs;
+
+    try {
+      ({ mtimeMs } = statSync(path));
+    } catch {
+      // Git still lists a tracked file deleted from the working tree; there is no time to compare.
       return newest;
     }
-
-    const path = join(parent, entry.name);
-    const { mtimeMs } = statSync(path);
 
     return !newest || mtimeMs > newest.mtimeMs ? { path, mtimeMs } : newest;
   }, null);
 }
 
 /**
+ * The options `scripts/build.mjs` passes to `findBuildProblems()`, kept here so the tests can pin them.
+ *
+ * The wrappers are the tier's frameworks without the reference one. The age check is off on CI. It could not
+ * find anything there: the render job composes `handsontable/tmp` for the commit it checked out (its
+ * `postbuild:partial` rewrites the stamp after the Build artifact is extracted), and `build-all.yml` builds the
+ * core in the same job. Kept off, a later change to a job's step order cannot turn it into a false red.
+ *
+ * @param {object} options Options.
+ * @param {object} options.env The environment, `process.env` in the script.
+ * @param {string[]} options.frameworks The tier's frameworks.
+ * @param {string} options.referenceFramework The framework the wrappers are compared with (`js`).
+ * @returns {{wrappers: string[], checkAge: boolean}} The options.
+ */
+export function preflightOptions({ env, frameworks, referenceFramework }) {
+  return {
+    wrappers: frameworks.filter(framework => framework !== referenceFramework),
+    checkAge: env.CI !== 'true',
+  };
+}
+
+/**
+ * Checks that the linker's source for a package, its pnpm link in `examples/node_modules`, resolves to the
+ * package's local build. The linker copies its links from there, so without it every demo keeps its registry
+ * copy, and a reinstall of the demos cannot help.
+ *
+ * @param {string} repoRoot The repository root.
+ * @param {string} name The package name.
+ * @param {{buildDir: string}} pkg The package, from `workspacePackages()`.
+ * @returns {{summary: string, detail: string[], remedy: string}|null} The problem, or `null` when it resolves.
+ */
+function linkerSourceProblem(repoRoot, name, pkg) {
+  const source = join(repoRoot, 'examples', 'node_modules', ...name.split('/'));
+
+  if (existsSync(join(source, 'package.json')) && realpathSync(source) === realpathSync(pkg.buildDir)) {
+    return null;
+  }
+
+  return {
+    summary: `${display(repoRoot, source)} does not link to the local build ${display(repoRoot, pkg.buildDir)}.`,
+    detail: ['The linker copies its links from there, so every demo would keep the copy installed from the npm',
+      'registry, and reinstalling the demos cannot link them.'],
+    remedy: 'Recreate the workspace links: pnpm install',
+  };
+}
+
+/**
  * Finds what stops `scripts/build.mjs` from rendering the local builds, before it installs anything.
  *
- * Three checks. The core is built: `handsontable/tmp` holds its manifest and ES entry. The core build is no
- * older than its sources: the newest file under `handsontable/src` (tests and Markdown aside) is not newer than
- * `handsontable/tmp/package.json`, which `postbuild` writes when it composes the package. That stamp, rather
- * than the newest file in the tree, is deliberate: a partial rebuild (`build:styles` alone, or a task run
- * through `scripts/run.mjs`, which skips `postbuild`) leaves some output current and the rest stale, and the
- * full build is the one command that makes all of it current. And each wrapper the tier renders is built. The
- * age check reads modification times, and CI extracts `handsontable/tmp` from the Build job's artifact with the
- * times of that job, earlier than this job's checkout of the sources, so it is off on CI, where the render job
- * composes the tree for the commit it checked out. The wrappers' age is not checked.
+ * Four checks. The core is built: `handsontable/tmp` holds its manifest and ES entry. Each wrapper the tier
+ * renders is built. The linker has a source for each of them: pnpm's link in `examples/node_modules` resolves
+ * to the build. And the core build is no older than its sources: no file under `handsontable/src` that the
+ * build compiles (tests, Markdown, and the build's own outputs aside) is newer than `handsontable/tmp/package.json`,
+ * which `postbuild` and `postbuild:partial` write when they compose the package. That stamp, rather than the
+ * newest file in the tree, is deliberate: a rebuild of one task through `scripts/run.mjs` skips both steps and
+ * leaves some output current and the rest stale. The check reads modification times, so a checkout, rebase, or
+ * stash that rewrites a source also counts, whatever it wrote. It does not read the build's configuration
+ * (`browser-targets.js`, `handsontable/.config`, `handsontable/scripts`), nor the wrappers' age.
  *
  * @param {object} options Options.
  * @param {string} options.repoRoot The repository root.
@@ -213,11 +331,14 @@ export function findBuildProblems({ repoRoot: givenRoot, wrappers = [], checkAge
       detail: missingBuildEffect(core),
       remedy: `Build the core first: ${buildCommand(repoRoot, core)}`,
     });
-  } else if (checkAge) {
-    const source = newestFile(join(core.dir, 'src'), {
-      ignoreDirs: IGNORED_SOURCE_DIRS,
-      ignoreFile: IGNORED_SOURCE_FILE,
-    });
+  } else {
+    const unlinked = linkerSourceProblem(repoRoot, 'handsontable', core);
+
+    if (unlinked) {
+      problems.push(unlinked);
+    }
+
+    const source = checkAge ? newestFile(sourceFiles(repoRoot, join(core.dir, 'src'))) : null;
     const stamp = join(core.buildDir, 'package.json');
     const composedMs = statSync(stamp).mtimeMs;
 
@@ -228,7 +349,7 @@ export function findBuildProblems({ repoRoot: givenRoot, wrappers = [], checkAge
         detail: [
           `Newest source: ${display(repoRoot, source.path)} (${new Date(source.mtimeMs).toISOString()})`,
           `Build composed: ${display(repoRoot, stamp)} (${new Date(composedMs).toISOString()})`,
-          'The demos would render the previous build, not the sources in this checkout.',
+          'A source changed after the build, so the demos may render the previous one.',
         ],
         remedy: `Build the core first: ${buildCommand(repoRoot, core)}`,
       });
@@ -236,7 +357,7 @@ export function findBuildProblems({ repoRoot: givenRoot, wrappers = [], checkAge
   }
 
   wrappers.forEach((wrapper) => {
-    const pkg = [...packages.values()].find(({ dir }) => display(repoRoot, dir) === `wrappers/${wrapper}`);
+    const [name, pkg] = [...packages].find(([, { dir }]) => display(repoRoot, dir) === `wrappers/${wrapper}`) ?? [];
     const missing = pkg ? missingBuildFile(repoRoot, pkg) : `wrappers/${wrapper}/package.json`;
 
     if (missing) {
@@ -246,10 +367,39 @@ export function findBuildProblems({ repoRoot: givenRoot, wrappers = [], checkAge
           .concat(pkg ? missingBuildEffect(pkg) : []),
         remedy: `Build it first: npm --prefix wrappers/${wrapper} run build`,
       });
+    } else {
+      const unlinked = linkerSourceProblem(repoRoot, name, pkg);
+
+      if (unlinked) {
+        problems.push(unlinked);
+      }
     }
   });
 
   return problems;
+}
+
+/**
+ * Lists the `node_modules/<name>` paths a build in `fromDir` looks in, from `fromDir` up to and including
+ * `stopDir`, nearest first.
+ *
+ * @param {string} fromDir The directory the build runs in.
+ * @param {string} stopDir The last directory to look in.
+ * @param {string} name The package name, scoped or not.
+ * @returns {string[]} Absolute paths, whether or not anything is there.
+ */
+function candidatePaths(fromDir, stopDir, name) {
+  const candidates = [];
+
+  for (let dir = fromDir; ; dir = dirname(dir)) {
+    candidates.push(join(dir, 'node_modules', ...name.split('/')));
+
+    if (dir === stopDir || dir === dirname(dir)) {
+      break;
+    }
+  }
+
+  return candidates;
 }
 
 /**
@@ -264,39 +414,39 @@ export function findBuildProblems({ repoRoot: givenRoot, wrappers = [], checkAge
  * @returns {string[]} Absolute paths, nearest first.
  */
 export function packageCopies(fromDir, stopDir, name) {
-  const copies = [];
-
-  for (let dir = fromDir; ; dir = dirname(dir)) {
-    const candidate = join(dir, 'node_modules', ...name.split('/'));
-
-    // `existsSync` follows the link, so a dangling one is skipped the way the resolver skips it.
-    if (existsSync(join(candidate, 'package.json'))) {
-      copies.push(candidate);
-    }
-
-    if (dir === stopDir || dir === dirname(dir)) {
-      break;
-    }
-  }
-
-  return copies;
+  // `existsSync` follows the link, so a dangling one is skipped the way the resolver skips it.
+  return candidatePaths(fromDir, stopDir, name).filter(candidate => existsSync(join(candidate, 'package.json')));
 }
 
 /**
- * Checks that every monorepo package a demo declares resolves to its local build, the demo guard's judgement.
+ * Lists the links on the same path that point at nothing. The resolver passes over them, but a copy by path
+ * (the React demo's stylesheets, the js demo's copy plugin) does not, and it copies nothing without a message.
+ * The linker writes absolute links, so moving the checkout leaves them all dangling.
+ *
+ * @param {string} fromDir The directory the build runs in.
+ * @param {string} stopDir The last directory to look in.
+ * @param {string} name The package name, scoped or not.
+ * @returns {string[]} Absolute paths, nearest first.
+ */
+export function danglingLinks(fromDir, stopDir, name) {
+  return candidatePaths(fromDir, stopDir, name).filter(candidate => isLink(candidate) && !existsSync(candidate));
+}
+
+/**
+ * Checks that every monorepo package a demo declares resolves to its local build, the demo guard's judgment.
  *
  * The packages are the demo's `dependencies` and `devDependencies` named `handsontable` or `@handsontable/*`:
  * the core, and the wrapper for a wrapper demo. Each one must be a workspace package, since the linker links
  * nothing else; its local build must exist; the demo's tree must hold at least one copy (up to the `examples/`
- * workspace, where pnpm links the local builds and the linker reads them); and every such copy must resolve to
- * the local build. A demo outside `examples/next/` is skipped, since the linker links `next/` only and a
- * versioned copy is pinned to a published release on purpose.
+ * workspace, where pnpm links the local builds and the linker reads them); every such copy must resolve to the
+ * local build; and no link on the way may dangle. The check skips a demo outside `examples/next/`, since the
+ * linker links `next/` only and a versioned copy pins a published release on purpose.
  *
  * @param {object} options Options.
  * @param {string} options.repoRoot The repository root.
  * @param {string} options.demoDir The demo's directory.
- * @returns {{skipped: string|null, checked: Array<{name: string, buildDir: string}>, problems: Array<{summary:
- *   string, detail: string[], remedy: string}>}} What was checked and what is wrong.
+ * @returns {{demo: string, skipped: string|null, checked: Array<{name: string, buildDir: string}>,
+ *   problems: Array<{summary: string, detail: string[], remedy: string}>}} What was checked and what is wrong.
  */
 export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir }) {
   // Real paths throughout, so a symlinked checkout or temp directory cannot make the demo look like it sits
@@ -304,11 +454,12 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
   const repoRoot = realpathSync(givenRoot);
   const demoDir = realpathSync(givenDemoDir);
   const examplesDir = join(repoRoot, 'examples');
-  const demoPath = display(examplesDir, demoDir);
+  const demo = display(repoRoot, demoDir);
 
-  if (!demoPath.startsWith('next/')) {
+  if (!display(examplesDir, demoDir).startsWith('next/')) {
     return {
-      skipped: `${display(repoRoot, demoDir)} is not under examples/next/, and the linker links next/ only.`,
+      demo,
+      skipped: `${demo} is not under examples/next/, and the linker links next/ only.`,
       checked: [],
       problems: [],
     };
@@ -342,12 +493,6 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
 
     const buildDir = display(repoRoot, pkg.buildDir);
     const missing = missingBuildFile(repoRoot, pkg);
-    const expected = missing ? null : realpathSync(pkg.buildDir);
-    const copies = packageCopies(demoDir, examplesDir, name);
-    const strays = copies.filter(copy => realpathSync(copy) !== expected);
-    // The linker copies from here, so a stray at this spot survives a reinstall of the demo, and only the root
-    // install (which recreates the workspace link) removes it.
-    const linkerSource = join(examplesDir, 'node_modules', ...name.split('/'));
 
     checked.push({ name, buildDir });
 
@@ -357,32 +502,53 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
         detail: missingBuildEffect(pkg),
         remedy: `Build it, then relink the demo: ${buildCommand(repoRoot, pkg)} && ${install}`,
       });
-    } else if (copies.length === 0) {
-      // The walk ends at the linker's source, so finding nothing means that link is missing too, and a
-      // reinstall of the demo alone would have nothing to link from.
+
+      return;
+    }
+
+    const expected = realpathSync(pkg.buildDir);
+    const copies = packageCopies(demoDir, examplesDir, name);
+    const dangling = danglingLinks(demoDir, examplesDir, name);
+    const strays = copies.filter(copy => realpathSync(copy) !== expected);
+    // The linker copies its links from here. Unless this one resolves to the local build, reinstalling the demo
+    // has nothing to link from, and only the root install (which recreates the workspace link) helps.
+    const linkerSource = join(examplesDir, 'node_modules', ...name.split('/'));
+    const linkerSourceOk = copies.includes(linkerSource) && !strays.includes(linkerSource);
+    const remedy = linkerSourceOk
+      ? `Install and link the demo: ${install}`
+      : `Recreate the workspace links, then install and link the demo: pnpm install && ${install}`;
+
+    if (copies.length === 0) {
       problems.push({
         summary: `${name}: not installed for this demo.`,
-        detail: [`Expected a link to ${buildDir} in a node_modules directory above ${display(repoRoot, demoDir)}.`],
-        remedy: `Recreate the workspace links, then install and link the demo: pnpm install && ${install}`,
+        detail: [`Expected a link to ${buildDir} in a node_modules directory above ${demo}.`],
+        remedy,
       });
-    } else if (strays.length > 0) {
+    } else if (strays.length > 0 || dangling.length > 0) {
       problems.push({
-        summary: `${name}: resolves to a copy that is not the local build ${buildDir}.`,
-        detail: strays.map((copy) => {
-          const { version } = readJson(join(copy, 'package.json'));
+        summary: strays.length > 0
+          ? `${name}: resolves to a copy that is not the local build ${buildDir}.`
+          : `${name}: a link on the demo's path points at nothing, not at the local build ${buildDir}.`,
+        detail: [
+          ...strays.map((copy) => {
+            const { version } = readJson(join(copy, 'package.json'));
 
-          // A link here points somewhere other than the local build; a plain directory is what an install
-          // leaves behind when the linker does not replace it.
-          return lstatSync(copy).isSymbolicLink()
-            ? `${display(repoRoot, copy)} links to ${display(repoRoot, realpathSync(copy))} (version ${version}).`
-            : `${display(repoRoot, copy)} is a plain copy of version ${version}, not a link.`;
-        }).concat('An install without the linker leaves the registry copy in place; examples:install links it.'),
-        remedy: strays.includes(linkerSource)
-          ? `Recreate the workspace links, then relink the demo: pnpm install && ${install}`
-          : `Install and link the demo: ${install}`,
+            // A link here points somewhere other than the local build; a plain directory is what an install
+            // leaves behind when the linker does not replace it.
+            return isLink(copy)
+              ? `${display(repoRoot, copy)} links to ${display(repoRoot, realpathSync(copy))} (version ${version}).`
+              : `${display(repoRoot, copy)} is a plain copy of version ${version}, not a link.`;
+          }),
+          ...dangling.map(link => `${display(repoRoot, link)} links to ${readlinkSync(link)}, which does not exist.`),
+          linkerSourceOk
+            ? 'The linker replaces these with links to the local build when examples:install runs it.'
+            : `The linker copies its links from ${display(repoRoot, linkerSource)}, which does not resolve to `
+              + 'the local build either.',
+        ],
+        remedy,
       });
     }
   });
 
-  return { skipped: null, checked, problems };
+  return { demo, skipped: null, checked, problems };
 }

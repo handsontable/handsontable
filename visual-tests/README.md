@@ -222,11 +222,12 @@ First, prepare your local visual testing environment:
 1. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
 2. From the `./visual-tests/` directory, run `npm install`.
 3. From the repository root, build Handsontable: `npm --prefix handsontable run build`. The demos render this
-   local build, so build it again after you change the core. To render a wrapper demo, build that wrapper too,
-   for example `npm --prefix wrappers/react-wrapper run build`; a bare `npm run build` on a feature branch
-   renders all three. `npm run build` checks for these builds before it installs anything, and each demo's own
-   build refuses to run against a copy of Handsontable from the npm registry. Both messages end with the
-   command that fixes the problem.
+   local build, so build it again after you change the core, or after a checkout, pull, or rebase that changes
+   its sources. To render a wrapper demo, build that wrapper too, for example
+   `npm --prefix wrappers/react-wrapper run build`; a bare `npm run build` on a feature branch renders all
+   three. `npm run build` checks for these builds before it installs anything, and each demo's own build
+   refuses to run against a copy of Handsontable from the npm registry. Each problem they report ends with the
+   command that fixes it.
 4. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
    ```bash
    AWS_ACCESS_KEY_ID=xxx
