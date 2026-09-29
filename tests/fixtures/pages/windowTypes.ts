@@ -208,6 +208,7 @@ export interface FixtureHotInstance {
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
+  removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;

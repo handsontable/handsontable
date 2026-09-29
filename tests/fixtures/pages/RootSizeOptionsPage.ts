@@ -16,7 +16,7 @@ export interface RootInlineSize {
 }
 
 /**
- * Inline extents of the grid root, the master holder and the master table, in viewport x
+ * Inline extents of the grid root, the master holder, and the master table, in viewport x
  * coordinates, plus the holder's inline width and scroll extents.
  */
 export interface HorizontalSizes {
@@ -252,7 +252,64 @@ export class RootSizeOptionsPage {
   }
 
   /**
-   * Inline extents of the grid root (`hot.rootElement`), the master holder and the master table,
+   * Waits for the grid to stop redrawing, then redraws it once, so the engine's cached layout
+   * measurements describe the settled layout, as on a grid that has been on the page for a while. A
+   * fresh grid's resize observers drop that cache once on their first delivery, and a change made
+   * before then is re-measured whether the cache would have caught it or not.
+   */
+  async settleAndRedraw(): Promise<void> {
+    await expect.poll(async () => this.rendersOverFrames(5)).toBe(0);
+    // The redraw that fills the cache, counted: the positive control for the quiet frames above.
+    expect(await this.rendersOverFrames(1, true)).toBeGreaterThan(0);
+  }
+
+  /**
+   * Sets the padding of the wrapper `rebuild()` put between the parent and the grid (`wrapperClass`),
+   * the way a stylesheet change would: nothing tells the grid but the resize it causes.
+   */
+  async setWrapperPadding(padding: string): Promise<void> {
+    await this.page.evaluate((value) => {
+      const wrapper = document.querySelector<HTMLElement>('#container > div:not(#grid)');
+
+      if (!wrapper) {
+        throw new Error('the grid has no wrapper');
+      }
+
+      wrapper.style.padding = value;
+    }, padding);
+  }
+
+  /**
+   * Counts the grid's renders over the next `frames` animation frames. With `forceRender`, the count
+   * starts with a `render()` call, which is the positive control for a count expected to be 0: it
+   * proves the counter sees a render when there is one.
+   */
+  async rendersOverFrames(frames: number, forceRender = false): Promise<number> {
+    return this.page.evaluate(async([count, force]) => {
+      const { hot } = window;
+      let renders = 0;
+      const onRender = () => {
+        renders += 1;
+      };
+
+      hot.addHook('afterRender', onRender);
+
+      if (force) {
+        hot.render();
+      }
+
+      for (let frame = 0; frame < count; frame++) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      hot.removeHook('afterRender', onRender);
+
+      return renders;
+    }, [frames, forceRender] as const);
+  }
+
+  /**
+   * Inline extents of the grid root (`hot.rootElement`), the master holder, and the master table,
    * read in one evaluation.
    */
   async horizontalSizes(): Promise<HorizontalSizes> {

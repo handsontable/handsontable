@@ -4,8 +4,9 @@ import {
   isHTMLElement,
   isVisible,
 } from '../../../../../helpers/dom/element';
-import { resolveAxisOwner } from '../../overlay/axisOwner';
+import { resolveAxisOwner, resolveWidthBoundingRoot } from '../../overlay/axisOwner';
 import { subtractReservedHeight } from '../../viewport/layoutReservation';
+import { resolveRootWidthBound, type RootWidthBound } from '../../viewport/rootWidthBound';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -37,6 +38,20 @@ interface TrimmingContainerCache {
    * The `heightFollowsContent` setting the holder height was computed with.
    */
   heightFollowsContent: boolean;
+  /**
+   * The `offsetWidth` of the grid's root element when it bounds the holder width (see
+   * `resolveWidthBoundingRoot`), `-1` when the owner alone bounds it.
+   */
+  rootOffsetWidth: number;
+  /**
+   * The `scrollWidth` of the grid's root element when it bounds the holder width, `-1` otherwise.
+   */
+  rootScrollWidth: number;
+  /**
+   * The `clientWidth` of the element the grid's root sits in when the root bounds the holder width,
+   * `-1` otherwise.
+   */
+  rootContainerWidth: number;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -92,6 +107,53 @@ function measureIntrinsicHeight(geometryReader: GeometryReader, element: HTMLEle
 }
 
 /**
+ * Bounds the holder width the horizontal owner allows as `resolveRootWidthBound()` resolved it: by the
+ * element the grid's root sits in, and by the root itself while it is narrower than a container that
+ * does not follow the grid's content.
+ *
+ * @param {number} ownerWidth The holder width the owner allows.
+ * @param {RootWidthBound | null} bound The resolved bound, or `null` when there is none yet (the root
+ * has no container, or the container no width).
+ * @param {number} rootWidth The root's width, read like the owner's (the smaller of `offsetWidth` and
+ * `scrollWidth`).
+ * @returns {number}
+ */
+function boundHolderWidth(ownerWidth: number, bound: RootWidthBound | null, rootWidth: number): number {
+  if (bound === null) {
+    return ownerWidth;
+  }
+
+  const width = Math.min(ownerWidth, bound.containerWidth);
+
+  return bound.boundedByRoot ? Math.min(width, rootWidth) : width;
+}
+
+/**
+ * Measures the holder width an element that owns the horizontal axis allows: its box, clamped to its
+ * scroll width, and bounded by the grid's root element when that root bounds the width too
+ * (`boundHolderWidth`).
+ *
+ * @param {Table} table The master table.
+ * @param {HTMLElement} ownerX The owner of the horizontal axis.
+ * @param {HTMLElement | null} boundingRoot The grid's root element when it bounds the width, else `null`.
+ * @returns {number}
+ */
+function measureHolderWidth(table: Table, ownerX: HTMLElement, boundingRoot: HTMLElement | null): number {
+  const { geometryReader } = table.deps;
+  const width = Math.min(geometryReader.offsetWidth(ownerX), geometryReader.scrollWidth(ownerX));
+
+  if (boundingRoot === null) {
+    return width;
+  }
+
+  return boundHolderWidth(
+    width,
+    resolveRootWidthBound(geometryReader, table.wtRootElement, table.holder, boundingRoot),
+    Math.min(geometryReader.offsetWidth(boundingRoot), geometryReader.scrollWidth(boundingRoot)),
+  );
+}
+
+/**
  * Lays the holder out for split axis owners. An element-owned axis gets the owner's box on that
  * axis and the holder scrolls inside it; a window-owned axis is left to the DOM (block-fill width,
  * content height), and the window scrolls it. The holder's overflow is cleared so the stylesheet's
@@ -114,7 +176,12 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
   const holderStyle = table.holder.style;
 
   if (isHTMLElement(ownerX)) {
-    const width = Math.min(geometryReader.offsetWidth(ownerX), geometryReader.scrollWidth(ownerX));
+    const boundingRoot = resolveWidthBoundingRoot(
+      table.wtRootElement,
+      ownerX,
+      table.wtSettings.getSetting('widthFollowsRoot'),
+    );
+    const width = measureHolderWidth(table, ownerX, boundingRoot);
 
     holderStyle.width = `${width}px`;
     table.hasTableWidth = width > 0;
@@ -295,6 +362,20 @@ class MasterTable extends Table {
       // Part of the fingerprint: switching `height` between `'auto'` and unset moves no box, yet it
       // decides whether a heightless owner gets `auto` or 0px.
       const heightFollowsContent = this.wtSettings.getSetting('heightFollowsContent');
+      // Part of the fingerprint: the grid's root element bounds the holder width when the host sized
+      // the grid as a plain block. Its box, and the box of the element it sits in, can move while the
+      // owner's stays put (the padding of a wrapper between the two, a relative `width`), and switching
+      // the setting moves no box at all, so their widths are compared, `-1` while the owner alone
+      // bounds the width.
+      const widthBoundingRoot = resolveWidthBoundingRoot(
+        this.wtRootElement,
+        trimmingElement,
+        this.wtSettings.getSetting('widthFollowsRoot'),
+      );
+      const rootOffsetWidth = widthBoundingRoot ? geometryReader.offsetWidth(widthBoundingRoot) : -1;
+      const rootScrollWidth = widthBoundingRoot ? geometryReader.scrollWidth(widthBoundingRoot) : -1;
+      const rootContainer = widthBoundingRoot?.parentElement ?? null;
+      const rootContainerWidth = rootContainer ? geometryReader.clientWidth(rootContainer) : -1;
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -306,7 +387,10 @@ class MasterTable extends Table {
         && cache.hiderOffsetHeight === hiderOffsetHeight
         && cache.hiderOffsetWidth === hiderOffsetWidth
         && cache.reservedHeight === reservedHeight
-        && cache.heightFollowsContent === heightFollowsContent;
+        && cache.heightFollowsContent === heightFollowsContent
+        && cache.rootOffsetWidth === rootOffsetWidth
+        && cache.rootScrollWidth === rootScrollWidth
+        && cache.rootContainerWidth === rootContainerWidth;
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -388,6 +472,16 @@ class MasterTable extends Table {
         height = subtractReservedHeight(Math.min(height, trimmingScrollHeight), reservedHeight);
         width = Math.min(width, trimmingScrollWidth);
 
+        if (widthBoundingRoot) {
+          // The owner can be wider than the grid (its padding, a padded wrapper, a relative `width`):
+          // a holder as wide as the owner would overflow the grid and be cut at its inline end.
+          width = boundHolderWidth(
+            width,
+            resolveRootWidthBound(geometryReader, this.wtRootElement, this.holder, widthBoundingRoot),
+            Math.min(rootOffsetWidth, rootScrollWidth),
+          );
+        }
+
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
         const holderWidth = `${width}px`;
         const hasTableHeight = holderHeight === 'auto' ? true : height > 0;
@@ -417,6 +511,9 @@ class MasterTable extends Table {
             hiderOffsetWidth,
             reservedHeight,
             heightFollowsContent,
+            rootOffsetWidth,
+            rootScrollWidth,
+            rootContainerWidth,
             holderWidth,
             holderHeight,
             hasTableHeight,

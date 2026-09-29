@@ -51,9 +51,19 @@
     #container.clip-outer > .inset { padding: 16px; }
     #container.padded-clip-x { overflow-x: clip; padding: 16px; width: 688px; }
     #container.narrow-hidden { overflow: hidden; width: 688px; }
-    /* A flex row that clips: the grid is a flex item without `flex-grow`, so it is as wide as its
-       content and its root is exactly as wide as the holder inside it. */
+    /* Parents that clip and size the grid by its content: a flex item without `flex-grow` and an
+       inline block are as wide as what is inside them, so the grid root is exactly as wide as the
+       holder inside it. */
     #container.flex-row-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.inline-block-hidden { overflow: hidden; width: 688px; }
+    #container.inline-block-hidden > #grid { display: inline-block; }
+    /* Parents that clip and give the grid a share of their width next to a 100px column: a `flex: 1`
+       item and a `1fr` grid track. Both are 588px wide, and neither shrinks below its content. */
+    #container.flex-share-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.flex-share-hidden::before { content: ''; flex: none; width: 100px; }
+    #container.flex-share-hidden > #grid { flex: 1; }
+    #container.grid-track-hidden { overflow: hidden; display: grid; grid-template-columns: 100px 1fr; width: 688px; }
+    #container.grid-track-hidden::before { content: ''; }
   </style>
 </head>
 <body>
@@ -86,8 +96,10 @@
      * layouts declared in the stylesheet above (`css-host`, `bounded`,
      * `half-var`, `heightless-hidden`, `heightless-auto`, `padded-hidden`,
      * `padded-bounded`, `clip-outer`, `padded-clip-x`, `narrow-hidden`,
-     * `flex-row-hidden`); an empty string leaves the parent unstyled. A non-empty `wrapperClass` puts a `<div>` with that
-     * class between the parent and the grid (`inset` for `clip-outer`).
+     * `flex-row-hidden`, `inline-block-hidden`, `flex-share-hidden`,
+     * `grid-track-hidden`); an empty string leaves the parent unstyled. A
+     * non-empty `wrapperClass` puts a `<div>` with that class between the
+     * parent and the grid (`inset` for `clip-outer`).
      */
     window.initRootSizeGrid = function(overrides = {}, containerClass = '', wrapperClass = '') {
       if (window.hot) {

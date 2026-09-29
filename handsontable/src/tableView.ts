@@ -1012,6 +1012,10 @@ class TableView {
       preventOverflow: () => this.settings.preventOverflow,
       layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
       heightFollowsContent: () => this.#isHeightContentDriven(),
+      // The same `height: 'auto'` makes the grid a plain block whose width is its root element's. Before
+      // #13381 it also clipped the root, so the root sized the holder on both axes; now an ancestor that
+      // owns the horizontal axis sizes it, and the engine keeps it inside the root's own box.
+      widthFollowsRoot: () => this.#isHeightContentDriven(),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -2750,6 +2754,12 @@ class TableView {
    * writes on the root as inline `height: auto`. The engine reads it to keep the holder at `auto`
    * inside an ancestor that clips or scrolls but has no height of its own, where sizing the holder
    * to that ancestor collapses the grid to 0px (DEV-3062).
+   *
+   * It is also the answer to the engine's `widthFollowsRoot`. Without a definite `width`, such a root
+   * clips neither axis, so the nearest ancestor that clips or scrolls owns the horizontal axis, with or
+   * without a height of its own. That ancestor can be wider than the grid (its padding, a padded
+   * wrapper, a relative `width`), and a holder as wide as the ancestor was cut at the grid's
+   * inline-end edge (DEV-3107).
    *
    * @returns {boolean}
    */

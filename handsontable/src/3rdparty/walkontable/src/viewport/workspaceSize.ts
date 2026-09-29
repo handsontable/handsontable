@@ -13,6 +13,8 @@
  */
 import type { default as Viewport } from './viewport';
 import { subtractReservedHeight } from './layoutReservation';
+import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
+import { resolveRootWidthBound } from './rootWidthBound';
 
 /**
  * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
@@ -208,6 +210,26 @@ export function measureWorkspaceWidth(viewport: Viewport): number {
 
   } else {
     width = geometryReader.clientWidth(trimmingContainer as HTMLElement);
+
+    // The bound `MasterTable` puts on the holder width: an owner wider than the grid (its padding, a
+    // padded wrapper, a relative `width`) must not stretch or place the columns past the grid's own
+    // box when the host sized the grid as a plain block. Both resolve it through
+    // `resolveRootWidthBound()`, so the columns and the holder cannot disagree about it.
+    const { wtRootElement, holder } = viewport.wtTable;
+    const boundingRoot = resolveWidthBoundingRoot(
+      wtRootElement,
+      trimmingContainer,
+      viewport.wtSettings.getSetting('widthFollowsRoot'),
+    );
+    const bound = boundingRoot ? resolveRootWidthBound(geometryReader, wtRootElement, holder, boundingRoot) : null;
+
+    if (boundingRoot && bound) {
+      width = Math.min(width, bound.containerWidth);
+
+      if (bound.boundedByRoot) {
+        width = Math.min(width, geometryReader.clientWidth(boundingRoot));
+      }
+    }
   }
 
   return width;
