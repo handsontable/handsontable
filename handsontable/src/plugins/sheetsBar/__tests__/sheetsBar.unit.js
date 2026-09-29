@@ -2887,6 +2887,117 @@ describe('SheetsBar plugin', () => {
     uiHost.remove();
   });
 
+  describe('selection and presses on the bar', () => {
+    const twoSheets = () => [
+      { name: 'A', data: [['a1', 'a2'], ['a3', 'a4']] },
+      { name: 'B', data: [['b1', 'b2'], ['b3', 'b4']] },
+    ];
+    const press = (element) => {
+      element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true, button: 0 }));
+      element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, button: 0 }));
+    };
+
+    it('leaves no selection behind on a sheet that was never visited', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 0);
+      hot.getPlugin('sheetsBar').setActiveSheet('B');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(hot.getSelected()).toEqual([[1, 0, 1, 0]]);
+    });
+
+    it('saves an editor left open by an API switch into the sheet it leaves', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('B');
+      hot.selectCell(0, 0);
+      sheetsBar.setActiveSheet('A');
+      hot.selectCell(0, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('typed');
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('b1');
+
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed');
+    });
+
+    it('keeps the selection on a press on a bar rendered into a uiContainer', () => {
+      const uiHost = document.createElement('div');
+      const outside = document.createElement('div');
+
+      document.body.append(uiHost, outside);
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets(), uiContainer: uiHost },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 1);
+      press(uiHost.querySelector('.ht-sheets-bar__tab'));
+
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+
+      press(outside);
+
+      expect(hot.getSelected()).toBeUndefined();
+      uiHost.remove();
+      outside.remove();
+    });
+
+    it('stops exempting the bar from outside clicks once the plugin is disabled', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+
+      expect(hot.getFocusManager().isPathOutsideClickExempt([bar])).toBe(true);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getFocusManager().isPathOutsideClickExempt([bar])).toBe(false);
+    });
+
+    it('keeps a key typed in the bar from opening the cell editor', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const keyDown = element => element.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'q', keyCode: 81, bubbles: true, composed: true }),
+      );
+
+      hot.selectCell(0, 0);
+      hot.listen();
+      keyDown(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab'));
+
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+      keyDown(document.body);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+    });
+  });
+
   it('hides controls when `controls: false`', () => {
     hot = new Handsontable(container, {
       data: [['x']],

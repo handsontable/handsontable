@@ -709,6 +709,12 @@ class TableView {
       // function did not return until here, we have an outside click!
       this.#outsideClickHandled = true;
 
+      if (this.hot.getFocusManager().isPathOutsideClickExempt(eventPath)) {
+        this.hot.destroyEditor(false, false);
+
+        return;
+      }
+
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
         this.settings.outsideClickDeselects(originalTarget as HTMLElement) :
         this.settings.outsideClickDeselects;

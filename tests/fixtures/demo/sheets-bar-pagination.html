@@ -34,9 +34,6 @@
     A two-sheet workbook with Pagination on: 'Long' has 200 rows (20 pages of 10), 'Short' has 15
     rows (2 pages). Pagination keeps one current page for the whole grid and clamps it on every
     load, so the bar has to carry each sheet's page and page size across the switch itself.
-    `outsideClickDeselects` is off because a tab sits outside the grid: with the default, the
-    press on a tab deselects the grid before the bar captures the leaving sheet, so no selection
-    is left to carry, and these specs could not see whether one comes back.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -63,7 +60,6 @@
       columns: [{ renderer: testIdRenderer }],
       width: 500,
       height: 360,
-      outsideClickDeselects: false,
       pagination: { pageSize: 10 },
       sheetsBar: {
         sheets: [
