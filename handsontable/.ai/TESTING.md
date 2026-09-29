@@ -71,6 +71,8 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 
 The spec file is known because `test/e2e/index.js` records which `require.context` key added each top-level suite (`window.__hotSpecFiles`), and the bridge reporter stamps it on every result as `filePath`. A top-level `it()` outside any `describe`, and `MemoryLeakTest`, carry no file and are reported without a verdict. An uncaught page error still aborts the run as before; it now also gets its own annotation, and the specs that failed before it are still reported, without probing.
 
+**A throw inside a `describe` body is NOT reported, and it silently deletes every spec after it in that block.** Jasmine records the throw as a suite-level failure, but the `jasmineSuiteDone` binding in `run-puppeteer.mjs` ignores the suite's result, so the run stays green with fewer specs. `it.skip(...)` is the case that shipped: Jasmine has no `it.skip`, so in `nestedHeaders/__tests__/rowspan.spec.js` the first one threw a `TypeError` and five specs after it never ran, three of them failing ones, from the day the file was added. Only the spec count gives it away: compare it with the number of `it(` calls in the file.
+
 To reproduce a verdict locally, re-run one file alone against the same dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (`--spec=<pattern>` also exists, but it has to match the spec names as well as the file path). With a `--testPathPattern` baked into the dump, either parameter narrows it rather than replacing it. The helpers behind the report are pure and unit-tested with `node:test` (`test/scripts/lib/failed-specs.mjs`, `test/scripts/__tests__/`), part of the root `npm run test:tooling`.
 
 **Test Environment:**

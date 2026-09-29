@@ -42,12 +42,9 @@ describe('MemoryLeakTest', () => {
       }
     });
 
-    // Currently it's not possible to run it in the browser.
-    // `getEventListeners` is a non-standard function available only in Chrome DevTools and in the current Puppeteer setup.
-    if (typeof getEventListeners === 'undefined') {
-      xit('Available in command-line: "should not leave any event listeners attached to the HTML element after being destroyed"', () => { });
-
-    } else {
+    // `getEventListeners` is a non-standard function available only in Chrome DevTools and in the
+    // current Puppeteer setup, so the spec runs from the command line only.
+    if (typeof getEventListeners !== 'undefined') {
       it('should not leave any event listeners attached to the HTML element after being destroyed', async() => {
         const htmlListenersBefore = await getEventListeners('html');
         const bodyListenersBefore = await getEventListeners('body');
