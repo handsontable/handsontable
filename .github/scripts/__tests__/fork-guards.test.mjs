@@ -83,6 +83,8 @@ const GUARDED_SITES = [
   ['.github/workflows/docs.yml', 'name: Comment the docs visual verdict on the pull request'],
   ['.github/actions/docs-visual-run/action.yml', 'name: Publish the report'],
   ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
+  // The advisory breaking-change comment (DEV-3030).
+  ['.github/workflows/breaking-check.yml', 'name: Comment'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {
