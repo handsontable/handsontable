@@ -81,7 +81,7 @@ For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versio
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 ```
 
 The live example imports `papaparse` and `xlsx` as modules for the docs preview, and loads the same URLs when `window.Papa` / `window.XLSX` are missing so the pattern matches a script-tag setup.

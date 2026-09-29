@@ -70,7 +70,7 @@
     "starlight-theme-rapide": "^0.5.2",
     "unist-util-visit": "^5.0.0",
     "vuex": "^4.1.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@octokit/rest": "^21.1.1",
