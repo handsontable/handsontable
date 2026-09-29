@@ -804,7 +804,60 @@ which of these run locally and which only in CI.
   running a visual spec is never a hook. `visual-decision-rule.test.mjs` cross-checks the map's two hook
   claims against `scripts/lint-files.mjs` and `scripts/pre-push.mjs`.
 
+## Local builds the demos render
+
+The demos exist to photograph this checkout's code, and a copy of Handsontable from the npm registry renders
+without complaint. Two checks keep the one from standing in for the other.
+
+- **The demos install the registry's build first, and a missing link used to pass.** Each
+  `examples/next/visual-tests/<framework>/demo/package.json` declares `"handsontable": "latest"`, and the three
+  wrapper demos declare their `@handsontable/*` wrapper the same way. `npm run examples:install` installs those
+  from the framework's committed lockfile, then `examples/scripts/link-packages.mjs` replaces each copy with a
+  symlink to the local build: `handsontable/tmp`, `wrappers/angular-wrapper/dist/hot-table`, or the React and
+  Vue wrapper directories, the targets pnpm links those workspace packages to (a `publishConfig.directory` with
+  `linkDirectory`, or the package directory itself). Two paths skip that swap without a message, and both were
+  measured on 2026-09-29. An install run without the linker leaves the registry copy. So does the linker when
+  the local build is missing: it links only a source that exists, and the pnpm link to an unbuilt
+  `handsontable/tmp` points at nothing. Both left the registry's 18.1.0 where the local build was 18.1.1, and
+  the demo built and rendered it.
+- **Every demo's `build` script runs `scripts/check-linked-packages.mjs` first.** So does every way of building
+  a demo: `scripts/build.mjs`, and the cross-browser leg of `visual.yml` and the `visual-stability.yml` matrix,
+  which both build the js demo directly. The guard refuses unless each `handsontable` or `@handsontable/*`
+  package the demo declares resolves to its local build, at every `node_modules` level from the demo up to the
+  `examples/` workspace. More than the nearest level counts: the React demo copies its stylesheets from the
+  framework level by path, and the linker's own source is the `examples/node_modules` copy. The message ends
+  with the command that fixes it: build the missing package, run
+  `npm run examples:install next/visual-tests/<framework>`, or run `pnpm install` first when the stray copy is
+  the linker's source. A demo outside `examples/next/` is skipped, because the linker links `next/` only and a
+  versioned copy pins a release on purpose. Build a demo through `npm --prefix <demo> run build`, never
+  through its build tool, or the guard does not run.
+- **`scripts/build.mjs` checks the builds before it installs anything,** so a missing build costs one message
+  rather than the two minutes of an Angular install. The core must be built (`handsontable/tmp` holds its
+  manifest and its ES entry), each wrapper the tier renders must be built, and the core build must be no older
+  than its sources: the newest file under `handsontable/src`, tests and Markdown aside, may not be newer than
+  `handsontable/tmp/package.json`, which `postbuild` writes when it composes the package. So a partial rebuild
+  that skips `postbuild` (one task through `scripts/run.mjs`) still counts as stale, since the full build is
+  the one command that makes every output current. The age check is off on CI. The render job composes
+  `handsontable/tmp` for the commit it checked out, and the Build artifact it extracts keeps the modification
+  times of the job that built it, which are older than this job's checkout. The wrappers' age is not checked.
+- **Why not `"handsontable": "workspace:*"`.** The protocol resolves only inside the pnpm workspace, and the
+  demos are not in it: they are npm projects under four committed framework lockfiles, installed by
+  `examples/scripts/install-subpackages.mjs`. Making them members would put the React, Angular, and Vue demo
+  trees into `pnpm-lock.yaml` and into the root install every CI job runs through `setup-workspace`, take the
+  four `examples/next/visual-tests/<framework>/package-lock.json` files out of use along with the tooling built
+  on them (the Angular TypeScript alignment in `install-subpackages.mjs`, `example-lockfile-report.mjs`, the
+  release cut's `examples:install` in `publish.yml`), and change the demo build steps of `visual.yml` and
+  `visual-stability.yml`. The guard keeps the linker and makes its failures loud instead.
+
+`lib/__tests__/local-builds.test.mjs` pins both checks on throwaway repositories, one broken state per case,
+and pins the wiring: every demo's `build` starts with the guard, `build.mjs` refuses before its first install,
+and no workflow or action calls a demo's build tool directly.
+
 ## Run
+
+Build the core first (`npm --prefix handsontable run build`), and each wrapper the tier renders
+(`npm --prefix wrappers/<wrapper> run build`); `npm run build` refuses to start without them. See
+[Local builds the demos render](#local-builds-the-demos-render) for why.
 
 See `package.json` scripts for build, test, and comparison commands.
 
