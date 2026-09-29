@@ -4,19 +4,21 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['H', 'Nonmetal', 1],
+  ['He', 'Noble gas', 2],
+  ['Li', 'Alkali metal', 3],
+  ['Be', 'Alkaline earth metal', 4],
+  ['B', 'Metalloid', 5],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['H', 'Nonmetal', 1],
-        ['He', 'Noble gas', 2],
-        ['Li', 'Alkali metal', 3],
-        ['Be', 'Alkaline earth metal', 4],
-        ['B', 'Metalloid', 5],
-      ]}
+      data={data}
       width="100%"
       height="auto"
-      colHeaders={['Symbol', 'Category', 'Atomic Number']}
+      colHeaders={['Symbol', 'Category', 'No.']}
       rowHeaders={true}
       columns={[{ width: 90 }, {}, { width: 60 }]}
       modifyColWidth={(width, column) => {

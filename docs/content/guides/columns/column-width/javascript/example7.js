@@ -16,7 +16,7 @@ new Handsontable(container, {
   ],
   width: '100%',
   height: 'auto',
-  colHeaders: ['Symbol', 'Category', 'Atomic Number'],
+  colHeaders: ['Symbol', 'Category', 'No.'],
   rowHeaders: true,
   columns: [{ width: 90 }, {}, { width: 60 }],
   modifyColWidth(width, column) {

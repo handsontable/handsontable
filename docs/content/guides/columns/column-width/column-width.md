@@ -137,7 +137,7 @@ Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/au
 
 ## Set the column width using a function
 
-In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
+In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `60px` for each consecutive column.
 
 ::: only-for javascript
 
@@ -193,6 +193,8 @@ Don't set the top-level [`colWidths`](@/api/options.md#colwidths) option at all 
 You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
 
 ::: tip
+
+A few edge cases to keep in mind:
 
 - Auto-sized columns never go below 50px.
 - [`stretchH`](@/api/options.md#stretchh) runs after your hook and can widen columns beyond your cap.

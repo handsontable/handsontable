@@ -25,7 +25,7 @@ export class AppComponent {
   readonly hotSettings: GridSettings = {
     width: '100%',
     height: 'auto',
-    colHeaders: ['Symbol', 'Category', 'Atomic Number'],
+    colHeaders: ['Symbol', 'Category', 'No.'],
     rowHeaders: true,
     columns: [
       { width: 90 },

@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['H', 'Hydrogen', 'Nonmetal'],
+  ['He', 'Helium', 'Noble gas'],
+  ['Li', 'Lithium', 'Alkali metal'],
+  ['Be', 'Beryllium', 'Alkaline earth metal'],
+  ['B', 'Boron', 'Metalloid'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['H', 'Hydrogen', 'Nonmetal'],
-        ['He', 'Helium', 'Noble gas'],
-        ['Li', 'Lithium', 'Alkali metal'],
-        ['Be', 'Beryllium', 'Alkaline earth metal'],
-        ['B', 'Boron', 'Metalloid'],
-      ]}
+      data={data}
       width="100%"
       height="auto"
       colHeaders={['Symbol', 'Name', 'Category']}

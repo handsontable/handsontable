@@ -17,9 +17,16 @@ new Handsontable(container, {
   width: '100%',
   height: 'auto',
   colHeaders: ['Symbol', 'Atomic Number', 'Melting Point (°F)', 'Density (g/cm³)', 'Category'],
+  columns: [
+    {},
+    { type: 'numeric' },
+    { type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
+    { type: 'numeric' },
+    {},
+  ],
   rowHeaders: true,
   colWidths(index) {
-    return (index + 1) * 40;
+    return (index + 1) * 60;
   },
   manualColumnResize: true,
   autoWrapRow: true,
