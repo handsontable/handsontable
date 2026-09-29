@@ -31,42 +31,72 @@ Related, on the hook side: **`afterSetDataAtCell` carries visual rows while
 and silently suppresses whichever cell it collides with. `prop` needs no such care: `propToCol()` returns a
 visual column on both paths.
 
-## Undo/redo bypasses the change listeners — and that is the design
+## Undo/redo: the plugin observes, the engine's own stack is never used
+
+The grid restores its own state on undo and redo (see `../undoRedo/AGENTS.md`), and this plugin only
+brings the engine in line with the restored grid. It never calls `engine.undo()` or `engine.redo()`:
+the grid's stack holds steps the engine never saw (hiding, resizing, a sort in another grid on the same
+engine), so two stacks cannot be kept in step. HyperFormula still records its own undo entries for
+every call this plugin makes, and nothing reads them.
+
+Two source predicates split the work:
 
 ```js
-const isBlockedSource = (source) =>
-  source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+const isBlockedSource = source => source === 'auto';
+const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
 ```
 
-`#onAfterSetDataAtCell` and `#onAfterSetSourceDataAtCell` return early for those sources, because the engine
-reverts the change through **its own** undo stack (`beforeUndo` calls `engine.undo()`). The two stacks must
-stay in step — the number of actions in Handsontable and in HyperFormula has to match.
+- **The row and column hooks are passive for a restore source** - `before`/`after` of
+  `CreateRow`, `CreateCol`, `RemoveRow`, `RemoveCol`. Following a replayed row change one by one is
+  wrong in two ways: the engine shifts formula references a second time over formula text the
+  journal already restored, and a `#REF!` the engine wrote on the removal cannot be turned back into
+  the reference it replaced. The `before*` hooks are passive too, so a replay is never vetoed by an
+  engine that is about to be reloaded anyway.
+- **The cell writes of a restore are held, not applied** (`#restoredWrites`), in the
+  `afterSetSourceDataAtCell` format (physical rows). They reach the engine in `restoreState()`.
+- **`captureState()` returns two versions and, while the order is not physical, the engine's sheet.**
+  `structureVersion` changes on every row or column insert, removal, move, **and every sequence
+  change** (a sort included) and on a NestedRows detach; `dataVersion` on every cell write. UndoRedo
+  calls `restoreState(state)` whenever a step changed either of them. When the structure version
+  differs from the one the engine holds, the sheet is replaced and the held writes are dropped:
+  - **In physical order** the source data is authoritative: `#loadSourceDataIntoSheet()`, the same
+    path a data load takes. The write-back of engine-rewritten formulas (`#syncFormulasToSourceData`)
+    runs inside the forward operation, so the journal holds it and the undo reverses it.
+  - **Out of physical order** the source data cannot rebuild the engine: the write-back is skipped
+    there, and the engine's references depend on HOW the order was reached. `engine.moveRows` keeps
+    every reference on its data, while `engine.setRowOrder` - what the axis syncer sends for a sort
+    or a restored sequence - turns some of them into `#REF!` (measured: `setRowOrder([2, 3, 4, 0, 1])`
+    on a fresh sheet writes `=#REF!+1000` where the equivalent `moveRows` writes `=A5+1000`). So the
+    state carries `engine.getSheetSerialized()` plus both syncers' `getEngineOrder()`, and the restore
+    loads it with `setSheetContent()` and `adoptEngineOrder()` - nothing is sent to reorder it. Never
+    "simplify" this into reload-then-reorder; that reproduces the `#REF!`.
 
-So anything else those listeners would have done must be handled separately on the `afterUndo` / `afterRedo`
-path. That is how dependent formula cells kept a stale `valid` flag after undo (DEV-2036). Three rules for
-that path:
+  With the same structure version, the held writes are written into the engine in one
+  `engine.batch()`. The sheet snapshot is re-serialized on every step that writes data while the
+  grid is sorted or moved - an O(cells) cost per step on those grids only.
+- **Draw every new version from `#versionSeed`, never reuse one.** `restoreState()` sets the
+  current versions to the restored state's; a later change that reused a number would make a
+  different structure compare equal to a recorded one.
+- **`afterUndo` / `afterRedo` flush whatever is still held** - the writes of an action registered
+  through `done()`, which never reaches `restoreState()`.
+- **Dependents of a sheet replacement are validated after the restore, not inside it.**
+  `setSheetContent()` reports every recalculated cell, including the ones the restore wrote, which the
+  UndoRedo plugin validates itself. The plugin collects the restored cells from the `afterChange` the
+  restore fires (`#onAfterRestoredChange`) and validates the rest in `afterUndo`/`afterRedo`
+  (`#validateRestoredDependents`) - a cell validated twice is the DEV-2036 regression.
+- **There is no "restore in progress" gate on the axis syncer, on purpose.** The order changes a
+  restore makes still reach the engine through `setRowOrder`, and every one of them is overwritten:
+  a restore that changes the order changes `structureVersion`, so it ends in a full sheet replacement
+  that also resets or adopts the stored order. A flag set in `beforeUndo` would leak whenever a later
+  `beforeUndo` listener vetoes - the defect the old implementation had.
 
-- **Gate on whether the action wrote cell data, not on `actionType`.** Undoing an edit writes through
-  `setDataAtCell`; undoing a row or column removal restores data with `setSourceDataAtCell`
-  (`../undoRedo/actions/removeRow.ts`, `removeColumn.ts`). Both must be handled. Only actions that purely
-  reorder or hide (`row_move`, `col_sort`, `filter`, `merge_cells`) write nothing and can be skipped.
-- **Only `setDataAtCell` writes are validated by the Core.** `setSourceDataAtCell` runs `sourceDataValidator`
-  (`dataMap/sourceDataValidator.ts`), a separate mechanism that never touches the `valid` flag — so only the
-  former may be excluded from a validation pass, or the restored cells end up validated by nobody.
-- **`STRUCTURAL_ACTION_TYPES`** (`insert_row`, `insert_col`, `remove_row`, `remove_col`) are the only
-  actions that make HyperFormula rewrite formula references, so they are the only ones whose source data has
-  to be caught up in `afterUndo`/`afterRedo`. A reordering action leaves the source data's own reference
-  frame untouched and must **not** trigger the write-back.
+A move is covered the same way: the cells a move writes, and the formulas elsewhere the engine
+rewrote, are all journaled inside the move's own step, so an undo writes them back and `restoreState()`
+feeds them to the engine. `commitPendingMoveCells()` runs for a user's move only.
 
-**`MoveCellsAction` is asymmetric, on purpose.** Its `undo` restores both regions with `restoreRegion`
-instead of replaying the move, so `afterMoveCells` — where the forward direction syncs — never fires; undo
-has to cover it here. Redo *does* replay the move, so it must **not** be listed, or the sheet is scanned
-twice.
-
-**A nested `remove_row` undo can refuse to land.** `RemoveRowAction.canUndo()` runs the enabled and
-`beforeCreateRow` checks **before** `beforeUndo`, because this plugin always calls `engine.undo()`
-there. A late `{ wasUndone: false }` would leave HyperFormula restored and Handsontable empty.
-`UndoRedo.undo()` also skips `afterUndo` when the action reports that failure.
+`IndexSyncer` has no undo/redo flags any more. Restoring the row or column order fires the sequence
+change like any other, and the axis syncer sends the new order to the engine; a reload afterwards
+re-runs `setupSyncEndpoint()`.
 
 ## Sequence syncing
 
@@ -125,8 +155,9 @@ Four rules ride along.
   sequence. The two are the same only while the sheet covers the whole grid. Once it does not, storing the
   grid's sequence would name elements the engine never received, and every later order, being relative to
   what the engine holds, would move the wrong rows or columns for the rest of the session. The exception is
-  the paths where the engine changes itself: an insert, a removal, a move and an undo all leave it holding
-  the grid's new sequence, so the stored order follows it there.
+  the paths where the engine changes itself: an insert, a removal and a move all leave it holding the
+  grid's new sequence, so the stored order follows it there. An undo is not one of them any more - it
+  restores the grid's order, which reaches the engine as an ordinary order change.
 - **How the sheet was filled decides where its new rows go.** A sheet fed its content (at load, or by the
   engine's own insert) holds it in physical order; a sheet that reported `0x0` is filled through addresses
   the grid computes from its own sequence, so its first row is whichever row the grid showed first **at the

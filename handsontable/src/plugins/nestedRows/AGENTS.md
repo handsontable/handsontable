@@ -155,10 +155,9 @@ They are written in different places and can drift. Keep this in mind:
   row index. Measured on `getSimplerNestedData()`: `hot.alter('insert_row_above', 12, 1)` **appends**
   the new row at top-level position 3 (grid row 18), because `Array#splice` clamps 12 against a
   three-element array, while the cell meta and the index maps shift at row 12 — so the meta desyncs
-  from data that never moved. The context menu no longer reaches it *directly* (see the bullet above),
-  but **redo still does**: `CreateRowAction#redo()` replays the insert as
-  `hot.alter('insert_row_above', <the grid row afterCreateRow reported>, ...)`, so redoing a
-  context-menu insert next to a top-level row lands straight on this path. Fixing it means dropping
+  from data that never moved. Neither the context menu nor a redo reaches it any more (a redo
+  restores the recorded tree shape instead of inserting again), but a host calling
+  `alter('insert_row_above', ...)` next to a top-level row still does. Fixing it means dropping
   that short-circuit **and** the
   `[element]` re-wrap on the line below it (`elements` is already an array, so `spliceData` currently
   inserts `[row]` as the row object), which also makes the path inherit `spliceData`'s "the row above
@@ -228,12 +227,9 @@ They are written in different places and can drift. Keep this in mind:
   sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
   row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
   splice cannot leave a later one pointing at the wrong sibling.
-- **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
-  open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
-  so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
-  (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
-  still dropping `__children`. A two-level "no error" assertion is not enough — use
-  `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
+- **Undo restores the tree shape, not a list of rows.** See "UndoRedo" under How it interacts. A
+  two-level "no error" assertion is not enough — use `__tests__/integration/undoRedo.spec.js` plus
+  `tests/e2e/nested-rows-undo.spec.ts`.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
@@ -281,13 +277,12 @@ They are written in different places and can drift. Keep this in mind:
   or paste — and an editor opened on row 4 stayed open over a record that no longer existed. So the
   override discards an open editor with `cancelChanges()` (never a commit: the value would be written
   through coordinates the shrink has invalidated) and ends on `selection.refresh()`.
-  **The undo history cannot survive the toggle either.** `DataChangeAction` records `countSourceRows`
-  when the edit happens, and on undo `#collectCreatedRows()` removes every physical row past that
-  baseline as one the change created. After an enable the baseline is two and the grid has six, so one
-  Ctrl+Z deletes real records — measured: edit a cell, enable, undo, and A-3 and Root B are gone. The
-  override drops the history (`getPlugin('undoRedo')?.clear()`), which is what `loadData` does for the
-  same reason. The cost is that an edit made before the toggle stops being undoable, and that is the
-  right trade against deleting records.
+  **The undo history cannot survive the toggle either.** Every recorded step addresses rows by their
+  physical index in the numbering it was recorded in, and flattening the tree renumbers them - even
+  when the row count stays the same, which the undo stack cannot detect on its own. The override drops
+  the history (`getPlugin('undoRedo')?.clear()`), which is what `loadData` does for the same reason.
+  The cost is that an edit made before the toggle stops being undoable, and that is the right trade
+  against restoring values onto other records.
   **Source the `refresh()` as `updateData`, or the toggle scrolls the grid.** `Selection#refresh()`
   labels itself `refresh`, which is NOT in `core.ts`'s `ignoreScrollSources`, so the clamp scrolls the
   viewport onto the selected cell: measured, a grid scrolled to row 11 jumped back to the top on a
@@ -350,10 +345,10 @@ They are written in different places and can drift. Keep this in mind:
 - **So every visual index an insert computes is measured in the *expanded* space, and any listener
   that replays it later addresses a different row.** `beforeAddChild` opens the stash and
   `afterAddChild` closes it, which puts the whole of `addChildAtIndex()` and `addChild()` inside a
-  window where nothing is trimmed. `afterCreateRow` fires in there, so with a collapsed parent above
-  the insertion point `UndoRedo`'s `CreateRowAction` stores an expanded-space row and undoes with
-  `alter('remove_row', <that row>)` **after** `applyStash()` re-trimmed — deleting a row the user
-  never inserted. `selection.shiftRows()` in the top-level branch is measured the same way, so a
+  window where nothing is trimmed. `afterCreateRow` fires in there, so any listener that stores the
+  reported row and replays it after `applyStash()` re-trimmed addresses a row the user never
+  inserted. (UndoRedo no longer does: it restores the tree shape and the collapsed state from its
+  snapshot.) `selection.shiftRows()` in the top-level branch is measured the same way, so a
   selection between the collapsed-space and expanded-space insertion points does not follow the rows
   that moved. Both are pre-existing in class (the old top-level index was wrong in the collapsed
   space too) and both are still open: repairing them means expressing the index in the space the app
@@ -425,31 +420,24 @@ They are written in different places and can drift. Keep this in mind:
   its own `__children` restructuring, and then fires `afterRowMove` by hand. So a nested-rows move is
   a source-data change, not an index permutation — `IndexesSequence` is untouched, and visual and
   physical order never diverge because of a move. Only trimming makes them diverge.
-- **UndoRedo** deletes `__children` before storing undo data, because this plugin restores the tree
-  itself.
-- **Nested parent undo is a two-phase operation.** The `beforeRemoveRow` list must contain every
-  cached descendant, while `RemoveRowAction` captures the complete subtree before `filterData`
-  mutates the source. Undo restores the tree and physical row/meta slots first, then replays the
-  generic cell values and accessors. The snapshot must also carry every row-index-map value and the
-  collapsed-parent list – restoring only `IndexesSequence` moves trimming and hiding state onto the
-  wrong physical rows. MergeCells needs its physical row anchors restored after its visual geometry.
-  Do not send that geometry through `restoreMergedCells`: `merge()` populates non-corner cells with
-  `null`, and the generic `data` snapshot only holds the parent row. Skip the visual remesh and
-  reattach physical anchors only. A nested undo that cannot land (plugin disabled,
-  `beforeCreateRow` veto) must be refused before `beforeUndo`. Formulas always calls `engine.undo()`
-  there, so a late `{ wasUndone: false }` leaves HyperFormula restored and Handsontable empty.
-  The nested restore emits the normal `beforeCreateRow`/`afterCreateRow` pair with
-  `UndoRedo.undo` as the source. Do not fix this by widening `amount` while still dropping
-  `__children`. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
-  because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
-  Sibling roots go back in **ascending** `index` order: the live array is already compacted, and
-  inserting high indexes first writes past the remaining siblings (`A,B,C` minus `A` and `B`
-  becomes `A,C,B`). `row.index` is the position inside the parent – never use it as a visual-row
-  fallback for the probe hooks; a trimmed root would hand Formulas `0`. Context-menu removal
-  (`ContextMenu.removeRow`) never calls `selection.shiftRows`, so that undo path must not either
-  or the highlight lands below the restored subtree. The create-row probe asks **every** root
-  before deciding, otherwise a later veto leaves the earlier roots' `beforeCreateRow` unpaired
-  and the later root unasked.
+- **UndoRedo keeps the tree shape by reference, and the rows' values in its journal.**
+  `captureSourceStructure()` returns `DataManager#captureShape()`: the top-level rows and every row's
+  `__children` list, as references to the row objects themselves (copy-on-change, keyed by
+  `#shapeVersion`, which `rewriteCache()` advances). Never deep-clone the tree for it: a clone taken
+  before an edit brings the edited cell's old value back on an unrelated undo. `restoreShape()`
+  refills the host's own arrays in place and deletes a `__children` key a row did not have. The
+  collapsed parents travel in `captureState()`; the trimming map in the index-map snapshot.
+  Three things ride along:
+  - **Every hand-built tree operation runs in an operation** - `addChild`, `addChildAtIndex`
+    (`insert_row`) and `detachFromParent` (`detach_child`) - so each is one undo step.
+  - **The hand-built insert journals itself as a row insertion** (`shiftCellsMeta()` records
+    `insertRows`), so an undo reports the row it takes away through `beforeRemoveRow`/`afterRemoveRow`.
+    `moveCellsMeta()` records its meta shifts as `metaRows` entries.
+  - **A restore of a reshaped source asks `beforeCreateRow`/`beforeRemoveRow` itself** (with the
+    `UndoRedo.*` source), because the rows do not come back through `alter()`. A veto leaves the step
+    on its stack; a step whose shape this plugin recorded is refused outright once the plugin is
+    disabled. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
+    because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
 - **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
   here.** That method derives a width from the nesting depth alone
   (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in

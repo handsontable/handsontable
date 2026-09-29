@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import { safeBatch } from '../../utils/safeBatch';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
@@ -35,24 +36,6 @@ export interface ViewState {
   cellMeta: TrackedCellMeta[];
   selection: number[][] | undefined;
   scroll: { row: number, col: number };
-}
-
-/**
- * Runs an operation with rendering and index-cache recalculation suspended, resuming both in a
- * `finally` — `Core#batch` has no such guard, and the restore runs host code through the
- * filters and sorting plugins, whose hooks a listener can throw from. Left un-resumed, the
- * grid would silently skip every later render.
- */
-function safeBatch(hot: HotInstance, operations: () => void) {
-  hot.suspendRender();
-  hot.suspendExecution();
-
-  try {
-    operations();
-  } finally {
-    hot.resumeExecution();
-    hot.resumeRender();
-  }
 }
 
 /**

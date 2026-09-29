@@ -1,4 +1,5 @@
 import EventManager from '../../../eventManager';
+import { OperationScope } from '../../../core/operationScope';
 import { ResizeGesture } from '../resizeGesture';
 
 /**
@@ -34,7 +35,10 @@ describe('ResizeGesture', () => {
     const timeouts = [];
     const microtasks = [];
     const state = { rtl };
+    const operationScope = new OperationScope();
     const hot = {
+      _getOperationScope: () => operationScope,
+      runOperation: (name, source, callback) => operationScope.run(name, source, callback),
       rootDocument: document,
       rootWindow: window,
       rootElement,
@@ -60,7 +64,7 @@ describe('ResizeGesture', () => {
       },
     };
 
-    return { hot, th, state, timeouts, microtasks };
+    return { hot, th, state, timeouts, microtasks, operationScope };
   }
 
   function createAxis(orientation, overrides = {}) {
@@ -70,6 +74,8 @@ describe('ResizeGesture', () => {
       guideClassName: 'testResizerGuide',
       beforeResizeHook: 'beforeTestResize',
       afterResizeHook: 'afterTestResize',
+      operationName: 'resize_test',
+      operationSource: 'test.resize_test',
       getIndexMapper: () => ({ getVisualFromRenderableIndex: index => index }),
       getCoordsIndex: coords => (orientation === 'vertical' ? coords.row : coords.col),
       isSelectedByHeader: () => true,
@@ -137,6 +143,55 @@ describe('ResizeGesture', () => {
 
       expect(hot.runHooks).toHaveBeenCalledWith('beforeTestResize', 35, 2, false);
       expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 35, 2, false);
+    });
+
+    it('should record a whole drag as one undo step that the press opens and the release closes', () => {
+      const { th, owner, handle, operationScope } = createGesture();
+      const opened = jest.fn();
+      const settled = jest.fn();
+      // Whether the step was still open when each size was written.
+      const writesInsideStep = [];
+
+      operationScope.addOpenListener(opened);
+      operationScope.addSettleListener(settled);
+      owner.setManualSize.mockImplementation((_index, size) => {
+        writesInsideStep.push(opened.mock.calls.length === 1 && settled.mock.calls.length === 0);
+
+        return size;
+      });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+
+      // The press opens the step, so the state before the drag is the one an undo returns to.
+      expect(opened).toHaveBeenCalledTimes(1);
+      expect(settled).not.toHaveBeenCalled();
+
+      mouse('mousemove', window, { pageY: 20 });
+      mouse('mousemove', window, { pageY: 40 });
+
+      expect(settled).not.toHaveBeenCalled();
+
+      mouse('mouseup', window);
+
+      expect(opened).toHaveBeenCalledTimes(1);
+      expect(settled).toHaveBeenCalledTimes(1);
+      expect(settled.mock.calls[0][0].name).toBe('resize_test');
+      expect(writesInsideStep.every(Boolean)).toBe(true);
+    });
+
+    it('should end the undo step of a drag the context menu aborts', () => {
+      const { th, handle, operationScope } = createGesture();
+      const settled = jest.fn();
+
+      operationScope.addSettleListener(settled);
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mousemove', window, { pageY: 40 });
+      mouse('contextmenu', handle());
+
+      expect(settled).toHaveBeenCalledTimes(1);
     });
 
     it('should resize every index of a header selection the drag starts in', () => {

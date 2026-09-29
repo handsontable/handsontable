@@ -206,6 +206,25 @@ and never writes to a cell without a comment. It used to flip each cell on its o
 mixed selection into the opposite mixed selection, and wrote value-less comment meta onto cells
 that had no comment.
 
+## Undo and redo
+
+A comment is cell meta, so UndoRedo restores it from the step's journal - the plugin has no state
+of its own to capture. What the plugin owns is how many steps a user action makes:
+
+- **Every comment write is one operation** (`'comment'`): `updateCommentMeta()` and
+  `removeComment()` run inside `runOperation()`, and so does each context menu item's loop over its
+  range. Drop the wrapper from a menu item and one click becomes one undo step per cell.
+- **The box size is never recorded.** `#onEditorResize()` writes the size under
+  `operationScope.suppress()`. The resize observer reports every frame of a drag, so a recorded
+  resize would push dozens of steps per drag, and the size is a view setting rather than content.
+- **Leaving the editor without a change records nothing.** A blur, and the Tab shortcut, save
+  through `#saveEditorComment()`, which compares the text with `#commentValueBeforeSave` (the text at
+  focus) and suppresses an unchanged save. The save itself still runs, so a new comment with no
+  text is created exactly as before; only its undo step is gone.
+- **An undo refreshes an open editor** (`#onAfterUndoRedo`). Otherwise the editor keeps the text
+  from before the undo, and the next blur writes it back as a new step. The editor is hidden when its
+  cell is gone.
+
 ## Where to look next
 
 - The menu the items land in: `../contextMenu/AGENTS.md`.

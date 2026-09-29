@@ -598,6 +598,77 @@ export class BasePlugin {
   }
 
   /**
+   * Runs one of the plugin's mutations as an operation, so everything it changes is recorded as a
+   * single user action (one undo step). Nested inside another operation, it joins it.
+   *
+   * @private
+   * @param {string} name The operation name. It becomes the undo step's `actionType` when the
+   * operation is the outermost one.
+   * @param {Function} callback The mutation.
+   * @param {object} [details] Public details of the action, handed to the undo hooks as fields of the undo step.
+   * @param {string} [source] The operation source. Defaults to `<PluginName>.<name>`.
+   * @returns {*} The value the callback returns.
+   */
+  runOperation<T>(name: string, callback: () => T, details?: Record<string, unknown>, source?: string): T {
+    const scope = this.hot._getOperationScope();
+
+    return scope.run(name, source ?? `${this.pluginName}.${name}`, () => {
+      if (details !== undefined) {
+        scope.describe(details);
+      }
+
+      return callback();
+    });
+  }
+
+  /**
+   * Returns the part of the plugin's state that lives outside its index maps and must be put back
+   * when an action is undone or redone (the index maps are captured by UndoRedo itself). A plugin
+   * without such state does not implement the method.
+   *
+   * The capture runs after every user action, so it must be cheap when nothing changed: return
+   * `previous` itself - the value this method returned last time - when the state did not change
+   * since then. Snapshots are shared between undo steps and must never be mutated afterwards.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned, or `undefined`.
+   * @returns {*} The captured state.
+   */
+  captureState?(previous: unknown): unknown;
+
+  /**
+   * Puts back a state returned by `captureState()`. It runs while UndoRedo restores a snapshot, with
+   * rendering and index recalculation suspended and after the index maps were restored, so the
+   * visual index space already is the restored one. It must not fire the hooks the original action
+   * fired: `afterUndo`/`afterRedo` tell listeners about the restore.
+   *
+   * @private
+   * @param {*} state The state to restore.
+   */
+  restoreState?(state: unknown): void;
+
+  /**
+   * Returns the shape of the source data, for a plugin that reshapes the source array itself (the
+   * NestedRows plugin moves rows inside its tree). UndoRedo then restores the source shape from this
+   * snapshot instead of replaying the recorded row insertions and removals. Same copy-on-change
+   * contract as `captureState()`.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned, or `undefined`.
+   * @returns {*} The captured source shape.
+   */
+  captureSourceStructure?(previous: unknown): unknown;
+
+  /**
+   * Puts back a source shape returned by `captureSourceStructure()`. Runs first in a restore, before
+   * any recorded data change is replayed.
+   *
+   * @private
+   * @param {*} state The source shape to restore.
+   */
+  restoreSourceStructure?(state: unknown): void;
+
+  /**
    * Destroy plugin.
    */
   destroy(): void {

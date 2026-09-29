@@ -388,10 +388,24 @@ export class ColumnSorting extends BasePlugin {
    * @fires Hooks#afterColumnSort
    */
   sort(sortConfig?: SortConfig | SortConfig[]): void {
+    this.runOperation('col_sort', () => this.#sort(sortConfig));
+  }
+
+  /**
+   * The body of `sort()`, run inside its operation.
+   *
+   * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration.
+   */
+  #sort(sortConfig?: SortConfig | SortConfig[]): void {
     const currentSortConfig = this.columnStatesManager!.getSortStates();
 
     // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
+
+    this.hot._getOperationScope().describe({
+      previousSortState: currentSortConfig,
+      nextSortState: destinationSortConfigs,
+    });
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);

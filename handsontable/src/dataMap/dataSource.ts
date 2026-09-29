@@ -315,23 +315,7 @@ class DataSource {
    * @returns {*} Value at the provided coordinates.
    */
   getAtPhysicalCell(row: number, column: number | string | DataAccessorFn, dataRow: unknown): unknown {
-    let result = null;
-
-    if (dataRow) {
-      if (typeof column === 'string') {
-        const { dataDotNotation } = this.hot!.getSettings();
-
-        result = dataDotNotation
-          ? getProperty(dataRow as Record<string, unknown>, column)
-          : (dataRow as Record<string, unknown>)[column];
-
-      } else if (typeof column === 'function') {
-        result = column(dataRow);
-
-      } else {
-        result = (dataRow as unknown[])[column];
-      }
-    }
+    let result = this.#readFromRow(column, dataRow);
 
     if (this.hot!.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
@@ -377,6 +361,51 @@ class DataSource {
    */
   getAtCellByProp(row: number, prop: number | string | DataAccessorFn, dataRow?: unknown): unknown {
     return this.getAtPhysicalCell(row, prop, dataRow === undefined ? this.modifyRowData(row) : dataRow);
+  }
+
+  /**
+   * Returns the value a cell stores, addressed by its property, without running the
+   * `modifySourceData` hook. The hook may project another value onto a read - the Formulas plugin
+   * reports the engine's formula there, and the engine already holds the NEW value while a change is
+   * being applied - so a caller that must know what the source really held (the change journal)
+   * reads through this method. The `modifyRowData` hook still runs: it decides which row object the
+   * physical index names.
+   *
+   * @param {number} row Physical row index.
+   * @param {number|string|Function} prop Property, physical column index, or a `columns[].data`
+   *   accessor function.
+   * @returns {*}
+   */
+  getRawAtCellByProp(row: number, prop: number | string | DataAccessorFn): unknown {
+    return this.#readFromRow(prop, this.modifyRowData(row));
+  }
+
+  /**
+   * Reads one value from a data row, honoring `dataDotNotation` for a prop name and calling an
+   * accessor function for a `columns[].data` accessor.
+   *
+   * @param {number|string|Function} column Physical column index, property, or accessor function.
+   * @param {Array|object} dataRow A representation of a data row.
+   * @returns {*}
+   */
+  #readFromRow(column: number | string | DataAccessorFn, dataRow: unknown): unknown {
+    if (!dataRow) {
+      return null;
+    }
+
+    if (typeof column === 'string') {
+      const { dataDotNotation } = this.hot!.getSettings();
+
+      return dataDotNotation
+        ? getProperty(dataRow as Record<string, unknown>, column)
+        : (dataRow as Record<string, unknown>)[column];
+    }
+
+    if (typeof column === 'function') {
+      return column(dataRow);
+    }
+
+    return (dataRow as unknown[])[column];
   }
 
   /**

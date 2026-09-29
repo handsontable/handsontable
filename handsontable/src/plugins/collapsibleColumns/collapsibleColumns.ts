@@ -32,6 +32,23 @@ const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
 const VISIBLE_WHEN_MAP_NAME = 'collapsibleColumns.visibleWhen';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
+/**
+ * The collapsed header groups, as `CollapsibleColumns#captureState()` records them.
+ */
+interface CollapsedGroupsState {
+  readonly groups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>;
+}
+
+/**
+ * Tells whether a value is a state `CollapsibleColumns#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isCollapsedGroupsState(value: unknown): value is CollapsedGroupsState {
+  return typeof value === 'object' && value !== null && 'groups' in value && Array.isArray(value.groups);
+}
+
 const actionDictionary = new Map([
   ['collapse', {
     hideColumn: true,
@@ -500,6 +517,58 @@ export class CollapsibleColumns extends BasePlugin {
    * @fires Hooks#afterColumnExpand
    */
   toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
+    this.runOperation(action === 'expand' ? 'expand_columns' : 'collapse_columns',
+      () => this.#toggleCollapsibleSection(coords, action));
+  }
+
+  /**
+   * Returns the collapsed header groups, for UndoRedo. The columns they hide are restored with the
+   * rest of the index maps. When the groups did not change since the previous capture, the previous
+   * state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.headerStateManager === null) {
+      return undefined;
+    }
+
+    const groups = this.headerStateManager.exportCollapsedGroups();
+
+    if (
+      isCollapsedGroupsState(previous) &&
+      previous.groups.length === groups.length &&
+      previous.groups.every((group, index) => group.headerLevel === groups[index].headerLevel &&
+        group.authoredColumnIndex === groups[index].authoredColumnIndex)
+    ) {
+      return previous;
+    }
+
+    return { groups };
+  }
+
+  /**
+   * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
+   * hooks fired when the user acted.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (this.headerStateManager !== null && isCollapsedGroupsState(state)) {
+      this.headerStateManager.importCollapsedGroups(state.groups);
+    }
+  }
+
+  /**
+   * The body of `toggleCollapsibleSection()`, run inside its operation.
+   *
+   * @param {Array} coords Array of coords - section coordinates.
+   * @param {string} [action] Action definition ('collapse' or 'expand').
+   */
+  #toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
     if (action === undefined || !actionDictionary.has(action)) {
       throwWithCause(`Unsupported action is passed (${action}).`);
     }

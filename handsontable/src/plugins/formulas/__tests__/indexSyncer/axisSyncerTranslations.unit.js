@@ -32,7 +32,6 @@ function createMockIndexSyncer() {
   return {
     getEngine: () => null,
     getSheetId: () => 0,
-    isPerformingUndoRedo: () => false,
     getPostponeAction: () => () => {},
   };
 }

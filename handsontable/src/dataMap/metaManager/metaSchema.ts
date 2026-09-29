@@ -7796,14 +7796,17 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `undo` option to one of the following:
      *
-     * | Setting | Description                                        |
-     * | ------- | -------------------------------------------------- |
-     * | `true`  | Enable the [`UndoRedo`](@/api/undoRedo.md) plugin  |
-     * | `false` | Disable the [`UndoRedo`](@/api/undoRedo.md) plugin |
+     * | Setting                    | Description                                                                 |
+     * | -------------------------- | --------------------------------------------------------------------------- |
+     * | `true`                     | Enable the [`UndoRedo`](@/api/undoRedo.md) plugin                           |
+     * | `false`                    | Disable the [`UndoRedo`](@/api/undoRedo.md) plugin                          |
+     * | `{ maxHistory: <number> }` | Enable the plugin, and keep at most `maxHistory` steps on the undo stack    |
      *
-     * By default, the `undo` option is set to `true`,
+     * By default, the `undo` option is set to `true`, and the undo stack has no size limit.
      * To disable the [`UndoRedo`](@/api/undoRedo.md) plugin completely,
      * set the `undo` option to `false`.
+     *
+     * With `maxHistory`, the oldest step is dropped once the stack grows past the limit.
      *
      * Read more:
      * - [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md)
@@ -7812,8 +7815,8 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {boolean}
-     * @default undefined
+     * @type {boolean|object}
+     * @default true
      * @category UndoRedo
      * @configScope grid
      *
@@ -7821,6 +7824,11 @@ export default (): Record<string, unknown> => {
      * ```js
      * // enable the `UndoRedo` plugin
      * undo: true,
+     *
+     * // enable the `UndoRedo` plugin, and keep the last 100 steps
+     * undo: {
+     *   maxHistory: 100,
+     * },
      * ```
      */
     undo: true,

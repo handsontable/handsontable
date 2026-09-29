@@ -214,6 +214,19 @@ Do not copy the workaround into a new plugin without checking whether you actual
 enable. The real fix — guaranteeing `hot.view` before `enablePlugin()` — is tracked in
 `../../../.ai/CONCERNS.md`.
 
+## Undo/redo: `runOperation()` and the snapshot contract
+
+Every public method that changes what the user sees runs its body in `this.runOperation(name, fn,
+details?, source?)` - the outermost operation becomes one undo step, named `name` (`actionType`), with
+`${pluginName}.${name}` as the default source. Nested calls join the open operation. `details` become
+fields of the step the undo hooks receive; put plain copies there, never live objects.
+
+State the undo stack cannot see on its own - neither an index map nor cell meta nor the settings
+`alter()` changes - is exposed through four optional methods (found by `typeof`, no default bodies):
+`captureState(previous)` / `restoreState(state)`, and for a plugin that reshapes the source array
+itself, `captureSourceStructure(previous)` / `restoreSourceStructure(state)`. Return `previous` by
+reference when nothing changed. Details and traps: `../undoRedo/AGENTS.md`.
+
 ## Where to look next
 
 - Full plugin-authoring workflow: the `handsontable-plugin-dev` skill.

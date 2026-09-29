@@ -19,6 +19,7 @@ import {
   shouldSkipResizeHandlePositioning,
 } from './utils';
 import type { ResizeAxis } from './axis';
+import type { OperationHold } from '../../core/operationScope';
 
 /**
  * A resize hook either axis fires.
@@ -38,7 +39,8 @@ export interface ResizeGestureOwner {
    */
   isActive(): boolean;
   /**
-   * Stores a size for a visual index and returns the size actually stored.
+   * Stores a size for a visual index and returns the size actually stored. The gesture records its
+   * own undo step, so this must not open one - a drag writes a size on every mousemove.
    */
   setManualSize(index: number, size: number): number;
 }
@@ -134,6 +136,11 @@ export class ResizeGesture {
    * Whether a drag is in progress.
    */
   #pressed = false;
+  /**
+   * The undo step a press opened and holds until the press ends, so the sizes a drag writes live
+   * and the size the release confirms are undone together, back to the size before the press.
+   */
+  #pendingStep: OperationHold | null = null;
   /**
    * Whether a context menu has just opened over the handle.
    */
@@ -288,16 +295,24 @@ export class ResizeGesture {
       // resets `#startSize` the way a completed autosize always did.
       this.#hideHandleAndGuide();
 
-      if (this.#newSize === this.#startSize) {
+      const endsPress = this.#newSize === this.#startSize;
+
+      if (endsPress) {
         this.#pressed = false;
       }
 
-      if (this.#selectedIndexes.length > 1) {
-        arrayEach(this.#selectedIndexes, index => resize(index));
-        render();
+      this.#runInStep(() => {
+        if (this.#selectedIndexes.length > 1) {
+          arrayEach(this.#selectedIndexes, index => resize(index));
+          render();
 
-      } else {
-        arrayEach(this.#selectedIndexes, index => resize(index, true));
+        } else {
+          arrayEach(this.#selectedIndexes, index => resize(index, true));
+        }
+      });
+
+      if (endsPress) {
+        this.#closeStep();
       }
     }
 
@@ -578,6 +593,7 @@ export class ResizeGesture {
       this.#setupHandlePosition(this.#currentTH);
       this.#setupGuidePosition();
       this.#pressed = true;
+      this.#openStep();
 
       if (this.#autoresizeTimeout === null) {
         this.#autoresizeTimeout = this.#hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
@@ -654,20 +670,61 @@ export class ResizeGesture {
     this.#hideHandleAndGuide();
     this.#pressed = false;
 
-    if (this.#newSize !== this.#startSize) {
-      if (this.#selectedIndexes.length > 1) {
-        arrayEach(this.#selectedIndexes, index => resize(index));
-        render();
+    this.#runInStep(() => {
+      if (this.#newSize !== this.#startSize) {
+        if (this.#selectedIndexes.length > 1) {
+          arrayEach(this.#selectedIndexes, index => resize(index));
+          render();
 
-      } else {
-        arrayEach(this.#selectedIndexes, index => resize(index, true));
+        } else {
+          arrayEach(this.#selectedIndexes, index => resize(index, true));
+        }
       }
-    }
+    });
+    this.#closeStep();
 
     if (this.#currentTH) {
       this.#setupHandlePosition(this.#currentTH);
     }
   };
+
+  /**
+   * Opens the undo step of a press and holds it until the press ends.
+   */
+  #openStep() {
+    if (this.#pendingStep !== null) {
+      return;
+    }
+
+    const scope = this.#hot._getOperationScope();
+
+    scope.run(this.#axis.operationName, this.#axis.operationSource, () => {
+      this.#pendingStep = scope.hold();
+    });
+  }
+
+  /**
+   * Runs a resize in the undo step of the press, or in a step of its own when no press holds one.
+   *
+   * @param {Function} callback The resize.
+   */
+  #runInStep(callback: () => void) {
+    if (this.#pendingStep !== null) {
+      this.#pendingStep.resume(callback);
+    } else {
+      this.#hot.runOperation(this.#axis.operationName, this.#axis.operationSource, callback);
+    }
+  }
+
+  /**
+   * Releases the undo step of a press, which records it.
+   */
+  #closeStep() {
+    const step = this.#pendingStep;
+
+    this.#pendingStep = null;
+    step?.release();
+  }
 
   /**
    * "contextmenu" listener on the handle – detaches the handle and guide and aborts any drag.
@@ -676,6 +733,8 @@ export class ResizeGesture {
     this.detach();
 
     this.#pressed = false;
+    // The drag ends here, so its step does too - with whatever sizes the drag already wrote.
+    this.#closeStep();
     this.#isTriggeredByRMB = true;
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle

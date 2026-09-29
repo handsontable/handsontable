@@ -4,16 +4,14 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ManualRowMove } from '../../manualRowMove';
-import { TrimRows } from '../../trimRows';
 
 /**
- * The plugin registered its redo-state reset on `afterUndo` (twice) instead of `afterRedo`, so
- * `setPerformRedo(false)` never ran after a redo and the flag leaked until the next undo — for
- * every action type. While leaked, `isPerformingUndoRedo()` stays `true`, which makes the plugin
- * treat subsequent operations as undo/redo replay (those paths skip engine work that normal
- * operations must perform).
+ * The Formulas plugin observes undo and redo instead of driving them: the grid restores its own
+ * state, and the plugin brings the engine in line with it - by writing the restored cells, or by
+ * reloading its sheet when the rows or columns changed. The engine's own undo stack is never used, so
+ * it cannot fall out of step with the grid's.
  */
-describe('Formulas redo state', () => {
+describe('Formulas as an undo/redo observer', () => {
   let container;
   let hot;
 
@@ -21,7 +19,6 @@ describe('Formulas redo state', () => {
     registerPlugin(Formulas);
     registerPlugin(UndoRedo);
     registerPlugin(ManualRowMove);
-    registerPlugin(TrimRows);
   });
 
   beforeEach(() => {
@@ -38,72 +35,97 @@ describe('Formulas redo state', () => {
   /**
    * Builds a small grid with the formulas and undoRedo plugins on.
    *
+   * @param {Array[]} [data] The data.
+   * @param {object} [settings] More settings.
    * @returns {object} The Handsontable instance.
    */
-  function build() {
+  function build(data = [[1, '=A1+10'], [2, null]], settings = {}) {
     hot = new Handsontable(container, {
-      data: [
-        [1, '=A1+10'],
-        [2, null],
-      ],
+      data,
       formulas: {
         engine: HyperFormula,
       },
       undoRedo: true,
       licenseKey: 'non-commercial-and-evaluation',
+      ...settings,
     });
 
     return hot;
   }
 
-  it('clears the undo/redo state after an undo', () => {
+  it('does not use the engine\'s own undo or redo', () => {
     build();
 
-    hot.setDataAtCell(1, 0, 5);
-    hot.getPlugin('undoRedo').undo();
+    const { engine } = hot.getPlugin('formulas');
+    const engineUndo = jest.spyOn(engine, 'undo');
+    const engineRedo = jest.spyOn(engine, 'redo');
 
-    expect(hot.getPlugin('formulas').indexSyncer.isPerformingUndoRedo()).toBe(false);
-  });
-
-  it('clears the undo/redo state after a redo', () => {
-    build();
-
-    hot.setDataAtCell(1, 0, 5);
+    hot.setDataAtCell(0, 0, 5);
     hot.getPlugin('undoRedo').undo();
     hot.getPlugin('undoRedo').redo();
 
-    expect(hot.getPlugin('formulas').indexSyncer.isPerformingUndoRedo()).toBe(false);
+    expect(engineUndo).not.toHaveBeenCalled();
+    expect(engineRedo).not.toHaveBeenCalled();
   });
 
-  it('redoes the data change correctly', () => {
-    // Sanity companion: the redo itself must still apply, in both the grid and the engine.
+  it('recalculates the dependent formulas after an undo and a redo of an edit', () => {
     build();
 
-    hot.setDataAtCell(1, 0, 5);
-    hot.getPlugin('undoRedo').undo();
-    hot.getPlugin('undoRedo').redo();
+    hot.setDataAtCell(0, 0, 5);
 
-    expect(hot.getDataAtCell(1, 0)).toBe(5);
+    expect(hot.getDataAtCell(0, 1)).toBe(15);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCell(0, 0)).toBe(1);
     expect(hot.getDataAtCell(0, 1)).toBe(11);
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getDataAtCell(0, 0)).toBe(5);
+    expect(hot.getDataAtCell(0, 1)).toBe(15);
+  });
+
+  it('restores a reference a row removal broke when the removal is undone', () => {
+    build([[1, '=A2+10'], [2, null], [3, null]]);
+
+    const { engine, sheetId } = hot.getPlugin('formulas');
+
+    hot.alter('remove_row', 1, 1);
+
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 1 })).toBe('=#REF!+10');
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 1 })).toBe('=A2+10');
+    expect(hot.getDataAtCell(0, 1)).toBe(12);
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A2+10');
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getSourceDataAtCol(0)).toEqual([1, 3]);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 1 })).toBe('=#REF!+10');
+  });
+
+  it('keeps the shifted references right when a row insertion is undone', () => {
+    build([[1, '=A3+10'], [2, null], [3, null]]);
+
+    const { engine, sheetId } = hot.getPlugin('formulas');
+
+    hot.alter('insert_row_above', 1, 1);
+
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 1 })).toBe('=A4+10');
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 1 })).toBe('=A3+10');
+    expect(hot.getDataAtCell(0, 1)).toBe(13);
   });
 
   it('keeps a row move performed right after a redo synchronized with the engine', () => {
-    // The behavioral consequence of the leaked flag: the axis syncer treats every operation
-    // between a redo and the next undo as undo/redo replay and skips syncing row moves to the
-    // engine, so a formula entered afterwards resolves its address against a stale row order.
-    hot = new Handsontable(container, {
-      data: [
-        [1, null],
-        [2, null],
-        [3, null],
-      ],
-      formulas: {
-        engine: HyperFormula,
-      },
-      undoRedo: true,
-      manualRowMove: true,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    build([[1, null], [2, null], [3, null]], { manualRowMove: true });
 
     hot.setDataAtCell(0, 1, 100);
     hot.getPlugin('undoRedo').undo();
@@ -119,94 +141,54 @@ describe('Formulas redo state', () => {
     expect(hot.getDataAtCell(1, 1)).toBe(3);
   });
 
-  it('clears the redo state after a redo cancelled by a beforeRedo listener', () => {
-    // A cancelled redo never fires `afterRedo`, so the reset must also happen on `afterUndo` —
-    // otherwise the flag set in `beforeRedo` would leak until the next successful redo.
-    build();
+  it('keeps the references a row move rewrote through an undo and a redo', () => {
+    build([
+      [1, 2],
+      ['=A1+10', '=B1+10'],
+      ['=A2+100', '=B2+100'],
+      ['=A3+1000', '=B3+1000'],
+      ['=A4+1000000', '=B4+1000000'],
+    ], { manualRowMove: true });
 
-    // Two done actions: the cancelled redo consumes one from the undone stack, and the final
-    // `undo()` must still be a REAL undo (its `afterUndo` hook performs the reset under test).
-    hot.setDataAtCell(1, 0, 5);
-    hot.setDataAtCell(1, 1, 9);
+    const { engine, sheetId } = hot.getPlugin('formulas');
+    const movedValues = [[1111, 1112], [1001111, 1001112], [1, 2], [11, 12], [111, 112]];
+
+    // The engine moves the rows and rewrites each reference so it keeps pointing at the same data.
+    hot.getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
+    hot.render();
+
+    expect(hot.getData()).toEqual(movedValues);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 0 })).toBe('=A5+1000');
+
     hot.getPlugin('undoRedo').undo();
 
-    hot.addHook('beforeRedo', () => false);
+    expect(hot.getData()).toEqual([[1, 2], [11, 12], [111, 112], [1111, 1112], [1001111, 1001112]]);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 3, col: 0 })).toBe('=A3+1000');
+
+    // Reapplying the order alone would break the references (`#REF!`): the redo has to bring back the
+    // engine as the move left it.
     hot.getPlugin('undoRedo').redo();
-    hot.getPlugin('undoRedo').undo();
 
-    expect(hot.getPlugin('formulas').indexSyncer.isPerformingUndoRedo()).toBe(false);
+    expect(hot.getData()).toEqual(movedValues);
+    expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 0 })).toBe('=A5+1000');
   });
 
-  // An undo or redo whose removal names no row any more changes nothing in Handsontable. It has to be
-  // refused before `beforeUndo` / `beforeRedo`, because this plugin steps HyperFormula in those hooks: a
-  // refusal found only after them left the engine one step away from the grid and the undo/redo flag set.
-  describe('an undo or redo that would remove no row', () => {
-    /**
-     * Builds a grid with a formula, so the engine records every row operation on its own undo stack.
-     *
-     * @returns {object} The Handsontable instance.
-     */
-    function buildWithTrimRows() {
-      hot = new Handsontable(container, {
-        data: [
-          [1, '=A1+10'],
-          [2, null],
-          [3, null],
-          [4, null],
-          [5, null],
-        ],
-        formulas: {
-          engine: HyperFormula,
-        },
-        undoRedo: true,
-        trimRows: true,
-        licenseKey: 'non-commercial-and-evaluation',
-      });
+  it('keeps the engine in step with a row move that is undone', () => {
+    build([[1, '=A1*2'], [2, '=A2*2'], [3, '=A3*2']], { manualRowMove: true });
 
-      return hot;
-    }
+    hot.getPlugin('manualRowMove').moveRow(2, 0);
+    hot.render();
 
-    it('does not step the engine when undoing a row insertion whose index no longer exists', () => {
-      buildWithTrimRows();
-      const { engine, indexSyncer } = hot.getPlugin('formulas');
-      const beforeUndo = jest.fn();
+    expect(hot.getDataAtCol(1)).toEqual([6, 2, 4]);
 
-      hot.alter('insert_row_above', 5, 1); // recorded at visual index 5
-      // A trim is not on the undo stack and does not touch the engine, so the index goes stale while the
-      // engine's own undo stack keeps the row insertion.
-      hot.getPlugin('trimRows').trimRows([0, 1, 2]);
-      hot.addHook('beforeUndo', beforeUndo);
+    hot.getPlugin('undoRedo').undo();
 
-      expect(engine.isThereSomethingToUndo()).toBe(true);
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+    expect(hot.getDataAtCol(1)).toEqual([2, 4, 6]);
 
-      hot.getPlugin('undoRedo').undo();
+    // A formula written after the undo addresses the rows in their restored order.
+    hot.setDataAtCell(0, 1, '=A3');
 
-      expect(beforeUndo).not.toHaveBeenCalled();
-      expect(engine.isThereSomethingToUndo()).toBe(true);
-      expect(indexSyncer.isPerformingUndoRedo()).toBe(false);
-    });
-
-    it('does not step the engine or delete another row when redoing a removal of a trimmed row', () => {
-      buildWithTrimRows();
-      const { engine, indexSyncer } = hot.getPlugin('formulas');
-      const beforeRedo = jest.fn();
-
-      hot.alter('remove_row', 1, 1); // records physical row 1
-      hot.getPlugin('undoRedo').undo();
-      // The recorded row is now trimmed, so `toVisualRow()` returns `null`, which `alter()` would read as
-      // "take the rows from the end".
-      hot.getPlugin('trimRows').trimRows([1]);
-      hot.addHook('beforeRedo', beforeRedo);
-
-      expect(engine.isThereSomethingToRedo()).toBe(true);
-
-      hot.getPlugin('undoRedo').redo();
-
-      expect(beforeRedo).not.toHaveBeenCalled();
-      expect(engine.isThereSomethingToRedo()).toBe(true);
-      expect(indexSyncer.isPerformingUndoRedo()).toBe(false);
-      // The last row is still there: nothing was removed from the end in place of the trimmed one.
-      expect(hot.getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
-    });
+    expect(hot.getDataAtCell(0, 1)).toBe(3);
   });
 });

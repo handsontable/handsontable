@@ -9,9 +9,9 @@ import { Formulas } from '../../formulas';
  * `Hooks.run` threads any non-`undefined` listener return value into the next listener's first
  * argument, and the global bucket runs before the local one. A global `beforeMoveCells` listener
  * returning a truthy non-CellRange therefore replaces `sourceRange` for the internal listeners
- * (UndoRedo's snapshotter, Formulas' engine prep) — which used to crash with
- * `TypeError: getTopStartCorner is not a function`. The internal listeners now shape-guard the
- * argument and veto the operation instead.
+ * (Formulas' engine prep) — which used to crash with `TypeError: getTopStartCorner is not a
+ * function`. The listeners shape-guard the argument, and the MoveCells plugin vetoes the move when
+ * the hook hands back anything but a range.
  */
 describe('MoveCells hook argument safety', () => {
   let container;

@@ -449,7 +449,7 @@ describe('Formulas', () => {
       ]);
     });
 
-    it('should not undo HyperFormula when a nested parent undo is vetoed', async() => {
+    it('should keep HyperFormula in line with the grid when a nested parent undo is vetoed', async() => {
       handsontable({
         data: [{
           col1: 'A1',
@@ -466,12 +466,14 @@ describe('Formulas', () => {
       await alter('remove_row', 0);
 
       const formulasPlugin = getPlugin('formulas');
-      const sheetAfterRemove = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
 
       getPlugin('undoRedo').undo();
 
+      // The veto leaves the grid without the removed subtree, and the engine holds exactly what the
+      // grid holds - no row the grid does not have.
       expect(countRows()).toBe(0);
-      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterRemove);
+      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([]);
     });
 
     it('should not undo HyperFormula when NestedRows is disabled before undo', async() => {

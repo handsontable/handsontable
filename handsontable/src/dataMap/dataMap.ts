@@ -20,6 +20,7 @@ import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
+import { recordRemovedColumns, recordRemovedRows } from './dataJournal';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -423,6 +424,12 @@ class DataMap {
 
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
+    if (numberOfCreatedRows > 0) {
+      this.hot!._getOperationScope().record({
+        type: 'insertRows', physicalIndex: physicalRowIndex, amount: numberOfCreatedRows,
+      });
+    }
+
     const newVisualRowIndex = this.hot!.toVisualRow(physicalRowIndex);
 
     // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
@@ -495,6 +502,12 @@ class DataMap {
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
       numberOfSourceRows, numberOfCreatedCols
     );
+
+    if (numberOfCreatedCols > 0) {
+      this.hot!._getOperationScope().record({
+        type: 'insertColumns', physicalIndex: firstNewPhysicalColumnIndex, amount: numberOfCreatedCols,
+      });
+    }
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -616,6 +629,9 @@ class DataMap {
     // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
     const numberOfRemovedIndexes = removedPhysicalIndexes.length;
 
+    // Journaled from the final list, after the hook widened it and before the rows go.
+    recordRemovedRows(this.hot!, removedPhysicalIndexes);
+
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     if (rowIndex < this.hot!.countRows()) {
@@ -677,6 +693,8 @@ class DataMap {
         isTableUniform = false;
       }
     }
+
+    recordRemovedColumns(this.hot!, data, removedPhysicalIndexes);
 
     this.#spliceRemovedColumns(data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount);
 

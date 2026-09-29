@@ -81,7 +81,7 @@ export class ManualRowResize extends BasePlugin {
 
     this.#gesture = new ResizeGesture(this.hot, ROW_RESIZE_AXIS, {
       isActive: () => this.enabled,
-      setManualSize: (row, height) => this.setManualSize(row, height),
+      setManualSize: (row, height) => this.#setManualSize(row, height),
     });
   }
 
@@ -230,6 +230,17 @@ export class ManualRowResize extends BasePlugin {
    * @returns {number} Returns new height.
    */
   setManualSize(row: number, height: number): number {
+    return this.runOperation('resize_row', () => this.#setManualSize(row, height));
+  }
+
+  /**
+   * The body of `setManualSize()`, run inside its operation.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} height Row height.
+   * @returns {number} Returns new height.
+   */
+  #setManualSize(row: number, height: number): number {
     const physicalRow = this.hot.toPhysicalRow(row);
     const newHeight = Math.max(height, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
 
@@ -292,6 +303,15 @@ export class ManualRowResize extends BasePlugin {
    * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
    */
   setManualSizes(sizes: Array<[number, number]>): void {
+    this.runOperation('resize_row', () => this.#setManualSizes(sizes));
+  }
+
+  /**
+   * The body of `setManualSizes()`, run inside its operation.
+   *
+   * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
+   */
+  #setManualSizes(sizes: Array<[number, number]>): void {
     if (!this.enabled) {
       return;
     }
@@ -324,6 +344,15 @@ export class ManualRowResize extends BasePlugin {
    * @param {number} row Visual row index.
    */
   clearManualSize(row: number): void {
+    this.runOperation('resize_row', () => this.#clearManualSize(row));
+  }
+
+  /**
+   * The body of `clearManualSize()`, run inside its operation.
+   *
+   * @param {number} row Visual row index.
+   */
+  #clearManualSize(row: number): void {
     // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
     if (!this.enabled) {
       return;
@@ -350,6 +379,13 @@ export class ManualRowResize extends BasePlugin {
    * ```
    */
   clearManualSizes(): void {
+    this.runOperation('resize_row', () => this.#clearManualSizes());
+  }
+
+  /**
+   * The body of `clearManualSizes()`, run inside its operation.
+   */
+  #clearManualSizes(): void {
     this.#config = [];
 
     // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.

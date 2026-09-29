@@ -448,6 +448,31 @@ class CollapsingUI extends BaseUI {
     shouldRunHooks = true,
     forceRender = true
   ): { performed: boolean, vetoed: boolean } {
+    // A user's collapse or expand is one undo step. A replay of a state chosen earlier (a settings
+    // update, a data reload) runs hook-silent and is not recorded.
+    if (!shouldRunHooks) {
+      return this.#applyCollapsedRowsChange(parents, action, false, forceRender);
+    }
+
+    return this.plugin.runOperation(action === 'collapse' ? 'collapse_rows' : 'expand_rows',
+      () => this.#applyCollapsedRowsChange(parents, action, true, forceRender));
+  }
+
+  /**
+   * The body of `applyCollapsedRowsChange()`.
+   *
+   * @param {number[]} parents Physical row indexes of the parents to act on.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @param {boolean} shouldRunHooks `false` skips both hooks.
+   * @param {boolean} forceRender `false` leaves the render to the caller.
+   * @returns {{performed: boolean, vetoed: boolean}}
+   */
+  #applyCollapsedRowsChange(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks: boolean,
+    forceRender: boolean
+  ): { performed: boolean, vetoed: boolean } {
     const actionTranslator = actionDictionary.get(action);
 
     if (!actionTranslator) {

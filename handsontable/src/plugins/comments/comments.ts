@@ -341,6 +341,8 @@ export class Comments extends BasePlugin {
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterUndo', this.#onAfterUndoRedo);
+    this.addHook('afterRedo', this.#onAfterUndoRedo);
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
@@ -448,7 +450,7 @@ export class Comments extends BasePlugin {
       callback: () => {
         this.#preventEditorSaveOnBlur = true;
         this.#editor?.setValue(this.#editor?.getValue());
-        this.setComment();
+        this.#saveEditorComment();
         this.hide();
         manager.setActiveContextName('grid');
       },
@@ -655,7 +657,7 @@ export class Comments extends BasePlugin {
 
     const { row, col } = this.#getRangeCoords();
 
-    this.hot.setCellMeta(row, col, META_COMMENT, undefined);
+    this.runOperation('comment', () => this.hot.setCellMeta(row, col, META_COMMENT, undefined));
 
     if (forceRender) {
       this.hot.render();
@@ -899,6 +901,17 @@ export class Comments extends BasePlugin {
    * @param {object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row: number, column: number, metaObject: Record<string, unknown>): void {
+    this.runOperation('comment', () => this.#updateCommentMeta(row, column, metaObject));
+  }
+
+  /**
+   * The body of `updateCommentMeta()`, run inside its operation.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} metaObject Object defining all additional parameters.
+   */
+  #updateCommentMeta(row: number, column: number, metaObject: Record<string, unknown>): void {
     const oldComment = this.hot.getCellMeta<{ [META_COMMENT]?: Record<string, unknown> }>(row, column)[META_COMMENT];
     let newComment;
 
@@ -1096,9 +1109,21 @@ export class Comments extends BasePlugin {
       return;
     }
 
+    this.#saveEditorComment();
     this.#commentValueBeforeSave = '';
     this.hot.getShortcutManager().setActiveContextName('grid');
-    this.setComment();
+  }
+
+  /**
+   * Saves the editor's text as the cell's comment. When the text is the one the editor was focused
+   * with, the save is not recorded, so leaving the editor without a change adds no undo step.
+   */
+  #saveEditorComment() {
+    if ((this.#editor?.getValue() ?? '') === this.#commentValueBeforeSave) {
+      this.hot._getOperationScope().suppress(() => this.setComment());
+    } else {
+      this.setComment();
+    }
   }
 
   /**
@@ -1138,9 +1163,11 @@ export class Comments extends BasePlugin {
   #onEditorResize(width: number, height: number) {
     const { row, col } = this.#getRangeCoords();
 
-    this.updateCommentMeta(row, col, {
+    // The box size is a view setting, and the observer reports every frame of a drag, so a resize
+    // is saved without being recorded as an undo step.
+    this.hot._getOperationScope().suppress(() => this.updateCommentMeta(row, col, {
       [META_STYLE]: { width, height }
-    });
+    }));
   }
 
   /**
@@ -1162,6 +1189,29 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
+  };
+
+  /**
+   * An undo or a redo can change the comment under an open editor. Show the comment the cell holds
+   * now, so a later save cannot write the text from before the undo back. The editor is hidden when
+   * its cell is gone.
+   */
+  #onAfterUndoRedo = () => {
+    if (!this.#editor?.isVisible() || !this.range.from) {
+      return;
+    }
+
+    const { row, col } = this.#getRangeCoords();
+
+    if (row >= this.hot.countRows() || col >= this.hot.countCols()) {
+      this.hide();
+
+      return;
+    }
+
+    this.#commentValueBeforeSave = this.getComment() ?? '';
+    this.#editor.setValue(this.#commentValueBeforeSave);
+    this.refreshEditor(true);
   };
 
   /**

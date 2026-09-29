@@ -18,6 +18,11 @@ absolute:
   meta key that was never written.
 - **Remove the meta first, too.** A blocked removal leaves the cell's `borders` meta in place; dropping the
   border from the model anyway leaves the two disagreeing.
+- **The one exception is an undo or a redo.** UndoRedo restores the `borders` meta from its journal
+  before it calls `restoreState()`, so `#rebuildModelFromMeta()` only fills the model
+  (`insertBorderIntoSettings()`) and writes no meta. Going through `prepareBorderFromCustomAdded()` there
+  fired the meta hooks once per bordered cell, and a listener that vetoes border writes on locked cells
+  dropped the border from the model while the meta kept it.
 - **A cell whose write is vetoed is skipped entirely**, so the model never gets ahead of the meta.
 - **Sample the veto flag *before* the write.** A `runOnce` veto listener removes itself the moment it fires,
   so probing afterwards reads `false` for a write that was in fact vetoed.

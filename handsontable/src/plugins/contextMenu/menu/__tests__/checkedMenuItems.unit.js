@@ -260,6 +260,8 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
       const plugin = {
         getCommentMeta: (row, col, key) => (col === 0 ? firstMeta : secondMeta).comment?.[key],
         updateCommentMeta,
+        // The click groups its writes into one undo step; the grouping itself is not under test.
+        runOperation: (name, callback) => callback(),
       };
 
       hot.getSelectedRangeActive = () => hot.getSelectedRange()[0];

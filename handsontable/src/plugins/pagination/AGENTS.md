@@ -94,6 +94,26 @@ twice — at enable and on a page-size change — because either path can introd
 Because the auto strategy computes a size *per page*, page boundaries are not uniform: never assume
 `page * pageSize` arithmetic works. Go through the strategy.
 
+## Undo and redo
+
+`setPage()` (`'set_page'`), `setPageSize()` (`'set_page_size'`) and `resetPagination()`
+(`'reset_pagination'`) each run as one operation, so every page change is one undo step - the pager
+buttons and the page-size select included, since they call the same methods.
+
+The page's hiding map is **not** part of the undo snapshot. It is listed in
+`DERIVED_INDEX_MAP_NAMES` (`../../translations/indexMapperSnapshot.ts`) as `'Pagination'` - the map is
+registered under `this.pluginName`, the capitalized registry name, not the `pagination` settings key,
+and a lowercase entry silently matches nothing (`gridState.unit.js` pins it). Like the size plugins' maps,
+because the plugin rebuilds it from the page, the page size and the other maps - and with
+`pageSize: 'auto'` it rebuilds it on every render. `captureState()` records the page and the page
+size instead, and `restoreState()` puts them back and runs `#computeAndApplyState()`. Two traps:
+
+- **Restoring the map from a snapshot would fight the plugin.** The plugin recomputes on every index
+  cache update (`#onIndexCacheUpdate`), which a restore of the other maps triggers, so a restored
+  page map would be overwritten with one computed from the page the grid was on before the undo.
+- **A grid paged by a data provider records nothing.** Its pages come from the server, so undoing a
+  page change would need a fetch. `captureState()` returns `undefined` there.
+
 ## Selection hooks it must intercept
 
 `beforeSelectAll`, `beforeSelectColumns`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`,

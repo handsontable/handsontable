@@ -67,6 +67,25 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 const FILTER_FIXED_ROWS_DEFAULT = true;
 
 /**
+ * The state `Filters#captureState()` returns: the applied conditions array itself (to tell whether it
+ * changed) and a detached copy of it (to restore).
+ */
+interface AppliedConditionsState {
+  applied: ColumnConditions[];
+  conditions: ColumnConditions[];
+}
+
+/**
+ * Tells whether a value is a state `Filters#captureState()` returned.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isAppliedConditionsState(value: unknown): value is AppliedConditionsState {
+  return typeof value === 'object' && value !== null && 'conditions' in value && Array.isArray(value.conditions);
+}
+
+/**
  * @plugin Filters
  * @class Filters
  *
@@ -1267,6 +1286,48 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter(): void {
+    this.runOperation('filter', () => this.#filterPass());
+  }
+
+  /**
+   * Returns the conditions the grid is filtered by - the ones the last `filter()` call applied, not
+   * the ones edited since. Undo and redo restore these, so undoing a filter also drops the conditions
+   * that were added for it.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const applied = this.#previousConditionStack;
+
+    if (isAppliedConditionsState(previous) && previous.applied === applied) {
+      return previous;
+    }
+
+    return { applied, conditions: deepClone(applied) };
+  }
+
+  /**
+   * Puts back the conditions a `captureState()` call recorded. The rows they trim are restored by
+   * UndoRedo with the rest of the index maps, so the grid is not filtered again.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isAppliedConditionsState(state)) {
+      return;
+    }
+
+    this.#previousConditionStack = deepClone(state.conditions);
+    this.importConditions(deepClone(state.conditions));
+  }
+
+  /**
+   * The body of `filter()`, run inside its operation.
+   */
+  #filterPass(): void {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
@@ -1298,6 +1359,11 @@ export class Filters extends BasePlugin {
     if (this.#isDataProviderActive) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
+
+    this.hot._getOperationScope().describe({
+      conditionsStack: conditions,
+      previousConditionsStack: this.#previousConditionStack,
+    });
 
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',

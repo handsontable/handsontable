@@ -68,6 +68,26 @@ export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
 /**
+ * The header group membership a column move left behind, as `NestedHeaders#captureState()` records it.
+ */
+interface MembershipState {
+  readonly version: number;
+  readonly overrides: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>;
+}
+
+/**
+ * Tells whether a value is a membership state `NestedHeaders#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isMembershipState(value: unknown): value is MembershipState {
+  return typeof value === 'object' && value !== null &&
+    'version' in value && typeof value.version === 'number' &&
+    'overrides' in value && Array.isArray(value.overrides);
+}
+
+/**
  * @plugin NestedHeaders
  * @class NestedHeaders
  *
@@ -502,6 +522,41 @@ export class NestedHeaders extends BasePlugin {
     this.ghostTable.clear();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Returns the header group membership column moves recorded, for UndoRedo. When it did not change
+   * since the previous capture, the previous state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const version = this.#stateManager.getMembershipOverridesVersion();
+
+    if (isMembershipState(previous) && previous.version === version) {
+      return previous;
+    }
+
+    return { version, overrides: this.#stateManager.exportMembershipOverrides() };
+  }
+
+  /**
+   * Puts back the header group membership a `captureState()` call recorded and derives the headers
+   * from it. The column order is already restored by then.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isMembershipState(state)) {
+      return;
+    }
+
+    this.#stateManager.importMembershipOverrides(state.overrides);
+    this.#stateManager.rebuildState();
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
   }
 
   /**
