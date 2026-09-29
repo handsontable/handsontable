@@ -8,7 +8,9 @@ import {
   captureViewState,
   clearMergedCells,
   forgetMergedCells,
+  keepSelectionOnPage,
   resetViewState,
+  resetViewport,
   restoreViewState,
   restoreViewport,
   type TrackedCellMeta,
@@ -1041,11 +1043,20 @@ export class SheetsBar extends BasePlugin {
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
     // hook has to see the sheet it is being told about.
-    if (viewState) {
-      if (this.hot.view) {
-        this.#batchRender(() => restoreViewport(this.hot, viewState));
-      }
+    if (this.hot.view) {
+      let selectionRestored = false;
 
+      this.#batchRender(() => {
+        if (viewState) {
+          selectionRestored = restoreViewport(this.hot, viewState);
+        } else {
+          resetViewport(this.hot);
+        }
+      });
+      keepSelectionOnPage(this.hot, selectionRestored);
+    }
+
+    if (viewState) {
       this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
     }
   }

@@ -1017,7 +1017,7 @@ describe('ColumnSummarySpec', () => {
       });
     });
 
-    it('should modify the calculation row range when a row was moved outside the range', async() => {
+    it('should keep summing the same records when a row was moved outside the range', async() => {
       handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -1035,11 +1035,18 @@ describe('ColumnSummarySpec', () => {
       });
 
       expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(getDataAtCell(7, 3)).toEqual(28);
+
       getPlugin('manualRowMove').moveRow(3, 10);
-      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
+
+      // The ranges are physical, so a move changes no range: the moved record still counts, wherever it is
+      // shown, and the result moved up one row together with its own record.
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(getDataAtCell(10, 3)).toEqual(4);
+      expect(getDataAtCell(6, 3)).toEqual(28);
     });
 
-    it('should modify the calculation row range when a row was moved into the range', async() => {
+    it('should keep summing the same records when a row was moved into the range', async() => {
       handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -1061,8 +1068,11 @@ describe('ColumnSummarySpec', () => {
 
       getPlugin('manualRowMove').moveRow(10, 3);
 
+      // The moved-in record is not one of the summarized ones, so it does not count.
       expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
-        .toEqual('[[0,2],[10,10],[3,6]]');
+        .toEqual('[[0,6]]');
+      expect(getDataAtCell(3, 3)).toEqual(11);
+      expect(getDataAtCell(8, 3)).toEqual(28);
     });
 
     it('should shift the visual calculation result position when a row ' +
@@ -1889,7 +1899,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(2, 2)).toBe(6);
     });
 
-    it('should sum the visual `sourceColumn` after a manual column move', async() => {
+    it('should keep summing the physical `sourceColumn` after a manual column move', async() => {
       handsontable({
         data: [
           [1, 100, 1000],
@@ -1913,16 +1923,22 @@ describe('ColumnSummarySpec', () => {
       // Initial: visual column 1 = [100, 200, 300] -> sum 600.
       expect(getDataAtCell(3, 1)).toBe(600);
 
-      // Move physical column 1 to visual position 0; visual column 1 now
-      // holds the original physical column 0 -> [1, 2, 3].
+      // Move physical column 1 to visual position 0. The summary travels with it.
       await getPlugin('manualColumnMove').moveColumn(1, 0);
       await render();
 
-      // Trigger a refresh on the (visual) sourceColumn so the summary recalculates.
+      expect(getDataAtCell(3, 0)).toBe(600);
+
+      // Editing the column that took the old position must not write a summary there.
       await setDataAtCell(0, 1, 10);
 
-      // Sum of visual column 1 = [10, 2, 3] = 15.
-      expect(getDataAtCell(3, 1)).toBe(15);
+      expect(getDataAtCell(3, 1)).toBe(null);
+      expect(getDataAtCell(3, 0)).toBe(600);
+
+      // Editing the summarized column itself updates its summary: [150, 200, 300] = 650.
+      await setDataAtCell(0, 0, 150);
+
+      expect(getDataAtCell(3, 0)).toBe(650);
     });
 
     it('should not recalculate endpoints when formulas updates only touch unrelated columns', async() => {

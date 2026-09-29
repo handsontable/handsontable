@@ -89,6 +89,69 @@ test.describe('sheets bar', () => {
     expect(span).toEqual([2, 2]);
   });
 
+  test('the sort indicator comes back with its sheet when beforeColumnSort cancels the restore', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    });
+
+    await bar.clickTab(1);
+    await expect(bar.sortLabel(0)).not.toHaveClass(/\bdescending\b/);
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.addHook('beforeColumnSort', () => false);
+    });
+
+    await bar.clickTab(0);
+
+    await bar.expectCell(0, 0, 'A3');
+    await expect(bar.sortLabel(0)).toHaveClass(/\bdescending\b/);
+  });
+
+  test('a sheet keeps its own filter when beforeFilter cancels the restore', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto({ filters: true });
+
+    await page.evaluate(() => {
+      const filters = (window as never as { hot: any }).hot.getPlugin('filters');
+
+      filters.addCondition(0, 'eq', ['A3']);
+      filters.filter();
+    });
+    await bar.expectCell(0, 0, 'A3');
+
+    await bar.clickTab(1);
+    await page.evaluate(() => {
+      const filters = (window as never as { hot: any }).hot.getPlugin('filters');
+
+      filters.addCondition(1, 'eq', ['B4']);
+      filters.filter();
+    });
+    await bar.expectCell(0, 1, 'B4');
+
+    await page.evaluate(() => {
+      (window as never as { hot: any }).hot.addHook('beforeFilter', () => false);
+    });
+
+    await bar.clickTab(0);
+
+    await expect(bar.columnHeader(0)).toHaveClass(/\bhtFiltersActive\b/);
+    await expect(bar.columnHeader(1)).not.toHaveClass(/\bhtFiltersActive\b/);
+    await bar.expectCell(0, 0, 'A1');
+
+    const conditions = await page.evaluate(
+      () => (window as never as { hot: any }).hot.getPlugin('filters').exportConditions(),
+    );
+
+    expect(conditions).toEqual([{ column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: ['a3'] }] }]);
+  });
+
   test('Ctrl+Z after a sheet round-trip does not undo the restored sort', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
