@@ -233,10 +233,18 @@ test('the presence job reads the live body on a step that cannot fail the job, a
   // `presence` — and through test.yml's needs, the CI Gate.
   assert.ok(step.some(line => /^\s*continue-on-error:\s*true\s*$/.test(line)), 'continue-on-error: true on the body step');
 
-  const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate \(warn\)/.test(line));
+  const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate\s*$/.test(line));
 
   assert.ok(gateStep > at, 'the gate runs after the body is read');
-  assert.ok(lines.slice(gateStep, gateStep + 8).some(line => /GATE_PR_BODY_FILE:/.test(line)), 'the gate gets the body file');
+
+  // The gate step's own lines, up to its sibling step (its `run:` block grew
+  // when it moved to the live base tip, so no fixed window fits).
+  const gateLines = [];
+
+  for (let i = gateStep + 1; i < lines.length && !/^\s*-\s+name:/.test(lines[i]); i += 1) {
+    gateLines.push(lines[i]);
+  }
+  assert.ok(gateLines.some(line => /GATE_PR_BODY_FILE:/.test(line)), 'the gate gets the body file');
 });
 
 // --- rtlCorrelation ---
@@ -403,12 +411,28 @@ test('visual-only coverage is silent when any non-visual coverage accompanies th
     { status: 'A', path: 'handsontable/src/plugins/filters/__tests__/x.unit.js' },
     { status: 'A', path: 'tests/e2e/filters.spec.ts' },
     { status: 'M', path: FROZEN_SPEC }, // a MODIFIED Jasmine spec is coverage to the gate
-    { status: 'A', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' },
     { status: 'A', path: 'handsontable/src/__tests__/core/x.types.ts' },
   ]) {
     assert.equal(isCoverage(coverage), true, `${coverage.path} is coverage to the gate`);
     assert.equal(visualOnlyCoverage([...VISUAL_ONLY_PR, coverage]), null, `${coverage.path} pairs the source change`);
   }
+});
+
+test('visual-only coverage is judged per package, like the gate', () => {
+  // Reported in review: core source + a visual spec + a React unit test stayed
+  // silent, while the gate itself treats the visual spec as core's only
+  // coverage (a React test covers only React).
+  const reactSpec = { status: 'A', path: 'wrappers/react-wrapper/test/hotColumn.spec.tsx' };
+  const reactSrc = { status: 'M', path: 'wrappers/react-wrapper/src/hotTableInner.tsx' };
+  const fired = visualOnlyCoverage([...VISUAL_ONLY_PR, reactSpec]);
+
+  assert.ok(fired, 'a React test does not pair a core source change');
+  assert.deepEqual(fired.sourceFiles, [VISUAL_SRC.path], 'the warning names the core file only');
+  assert.equal(visualOnlyCoverage([reactSrc, VISUAL_SPEC, reactSpec]), null, 'a React test pairs React source');
+
+  const both = visualOnlyCoverage([VISUAL_SRC, reactSrc, VISUAL_SPEC, reactSpec]);
+
+  assert.deepEqual(both?.sourceFiles, [VISUAL_SRC.path], 'only the package whose coverage is all screenshots');
 });
 
 test('visual-only coverage is silent with no source change — a visual spec alone, a helper, a demo, or the codemod shape', () => {
@@ -448,12 +472,11 @@ test('visual-only coverage fires on a modified or renamed visual spec and ignore
 
   const deletedSpec = { ...VISUAL_SPEC, status: 'D' };
 
-  // The gate quirk, documented next to the detector's choice: a deleted spec
-  // still satisfies the gate (COVERAGE_ANY_STATUS is status-independent), yet
-  // the detector does not count it — the message must never name a file that
-  // is gone. Fixing the gate itself changes verdicts and is not this detector's job.
-  assert.equal(isCoverage(deletedSpec), true, 'the gate accepts a deleted visual spec as coverage');
-  assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'the detector does not');
+  // A deleted spec is coverage to neither side (DEV-3066 made the gate agree
+  // with the detector): the message must never name a file that is gone, and a
+  // removed test proves nothing about the source change beside it.
+  assert.equal(isCoverage(deletedSpec), false, 'the gate does not accept a deleted visual spec as coverage');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'nor does the detector');
   assert.equal(visualOnlyCoverage([{ ...VISUAL_SRC, status: 'D' }, VISUAL_SPEC]), null,
     'a deleted source file needs no coverage');
 });
