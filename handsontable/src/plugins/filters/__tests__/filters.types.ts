@@ -1,8 +1,8 @@
 import Handsontable from 'handsontable';
 import type { AvailableConditions, AvailableConditionsRule } from 'handsontable/plugins/filters';
 
-// `availableConditions` rides inside the wide `filters` object, so the option itself checks nothing.
-// The exported types are what a user annotates a value with, and they DO check the shape.
+// `availableConditions` is checked at both levels: in `FiltersSettings` and in the per-column
+// `FiltersColumnSettings`. The exported types are what a user annotates a value with.
 const allowList: AvailableConditionsRule = ['eq', 'gt', '---------', 'between'];
 const exclusion: AvailableConditionsRule = { exclude: ['not_between'] };
 const perType: AvailableConditions = {
@@ -48,11 +48,8 @@ Handsontable(document.createElement('div'), {
   }
 });
 
-// Grid level. NOTE: `filters` is declared `boolean | object`, so nothing here checks the VALUE of a
-// sub-option - a planted `filterFixedRows: 'nope'` compiles. These pin the shape a user writes, not
-// its type. Making them able to fail means giving `filters` a real interface, which is a breaking
-// type change (an unknown key inside an object literal would stop compiling) and belongs in its own
-// task. The same already applies to `searchMode` above.
+// Grid level. Since 19.0 the object form is `FiltersSettings`, not a bare `object`, so the
+// sub-options are checked: each `@ts-expect-error` below fails the run if its error goes away.
 Handsontable(document.createElement('div'), {
   filters: {
     filterFixedRows: false,
@@ -66,9 +63,36 @@ Handsontable(document.createElement('div'), {
   }
 });
 
-// The per-column switch. This one DOES check the type: `ColumnSettings['filters']` is
-// `boolean | object | undefined`, so a wrong type is a compile error. At runtime, `false` hides the
-// filter UI and an object is read for `availableConditions` only - any other key in it warns.
+const filtersSettings: Handsontable.plugins.Filters.Settings = { searchMode: 'apply' };
+
+Handsontable(document.createElement('div'), { filters: filtersSettings });
+
+Handsontable(document.createElement('div'), {
+  // @ts-expect-error - `filterFixedRows` is a boolean
+  filters: { filterFixedRows: 'nope' },
+});
+
+Handsontable(document.createElement('div'), {
+  // @ts-expect-error - `searchMode` is `'show'` or `'apply'`
+  filters: { searchMode: 'hide' },
+});
+
+Handsontable(document.createElement('div'), {
+  // @ts-expect-error - an unknown key is rejected, so a misspelled option no longer compiles
+  filters: { filterFixedRow: false },
+});
+
+// A value read into a `string` is wider than the option accepts; `as const` is the documented fix
+// (migration guide 18.1 -> 19.0, section 23).
+const widenedConfig = { searchMode: 'apply' };
+const literalConfig = { searchMode: 'apply' } as const;
+
+// @ts-expect-error - `string` is not assignable to `'show' | 'apply'`
+Handsontable(document.createElement('div'), { filters: widenedConfig });
+Handsontable(document.createElement('div'), { filters: literalConfig });
+
+// The per-column switch. `false` hides the filter UI, and an object carries `availableConditions`
+// only, so the type is `boolean | FiltersColumnSettings`.
 Handsontable(document.createElement('div'), {
   columns: [
     { filters: false },
@@ -76,6 +100,39 @@ Handsontable(document.createElement('div'), {
     {},
   ],
 });
+
+Handsontable(document.createElement('div'), {
+  columns: [
+    // @ts-expect-error - the grid-level object is ignored per column, so it does not compile there
+    { filters: { filterFixedRows: false } },
+  ],
+});
+
+Handsontable(document.createElement('div'), {
+  columns: [
+    // @ts-expect-error - a wrong type is rejected per column as well
+    { filters: 12345 },
+  ],
+});
+
+Handsontable(document.createElement('div'), {
+  columns: [
+    // @ts-expect-error - a per-column `availableConditions` is checked like the grid-level one
+    { filters: { availableConditions: 'eq' } },
+  ],
+});
+
+const columnFilters: Handsontable.plugins.Filters.ColumnSettings = { availableConditions: ['eq'] };
+
+Handsontable(document.createElement('div'), { columns: [{ filters: columnFilters }] });
+
+// Reading is wider than writing: cell meta inherits the grid-level object through the prototype
+// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean.
+const cellFilters = hot.getCellMeta(0, 0).filters;
+
+if (typeof cellFilters === 'object') {
+  const cellSearchMode: 'show' | 'apply' | undefined = cellFilters.searchMode;
+}
 
 // `filterValueComparator` orders the "Filter by value" list. It cascades like any other option:
 // set once for every column at the grid level, or per column inside `columns`.

@@ -394,8 +394,10 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright from 20.0.0 on (it was deprecated in
+     * 19.0.0). See that method, which owns the rule; `setDataAtRowProp()` is not affected, because the property you
+     * pass names the field to write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -3492,12 +3494,16 @@ export default (): Record<string, unknown> => {
      * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
      * active: filtering then happens on the server, which knows nothing about frozen rows.
      *
-     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
-     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
-     * panes, so the exemption has to be worked out again. The
+     * With `filterFixedRows: false` and a filter applied, the grid works out again which rows are
+     * exempt when the rows change, on the next render. Inserting or removing a row (including through
+     * [`updateData()`](@/api/core.md#updatedata)) always does it. Moving a row, sorting, or changing
+     * `fixedRowsTop` or `fixedRowsBottom` does it only when a different row ends up frozen, so a sort
+     * that keeps the frozen rows in place (the [`columnSorting`](#columnsorting) default) costs
+     * nothing. This is not a new filter: the conditions stay the same, the
      * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
-     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
-     * a filter".
+     * hooks do not fire, the selection does not move, and no undo step is recorded. Inside a
+     * [`batch()`](@/api/core.md#batch), data read before the batch ends still reflects the previous
+     * frozen rows.
      *
      * **Inside `columns`:**
      *
@@ -3513,9 +3519,10 @@ export default (): Record<string, unknown> => {
      * leaves sorting through the API working.
      *
      * Inside `columns`, an object is read for `availableConditions` only. Any other key in it, such
-     * as `searchMode` or `filterFixedRows`, is **ignored**, and logs a warning once per grid.
-     * TypeScript does not reject it, because a column's settings are typed from the grid's, so treat
-     * the table above as the contract rather than the type.
+     * as `searchMode` or `filterFixedRows`, is **ignored**, and logs a warning once per grid. Since
+     * 19.0, TypeScript rejects it too: a column's `filters` is typed `boolean` or
+     * `{ availableConditions }`, and the grid-level object accepts only `searchMode`,
+     * `filterFixedRows`, and `availableConditions`.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3564,7 +3571,7 @@ export default (): Record<string, unknown> => {
      *   {},
      * ],
      *
-     * // WRONG: `filterFixedRows` is grid-level, so it is ignored here and warns
+     * // WRONG: `filterFixedRows` is grid-level, so it is ignored here, warns, and does not compile
      * columns: [
      *   { filters: { filterFixedRows: false } },
      * ],

@@ -19,6 +19,7 @@ vue:
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
+addedIn: "19.0.0"
 ---
 
 Render a tab bar above or below the grid and let users switch between the sheets of a multi-sheet workbook.

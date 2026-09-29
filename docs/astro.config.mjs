@@ -9,6 +9,7 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
+import { buildPageMarkdown } from './src/lib/added-in.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
@@ -587,19 +588,12 @@ function markdownRoutesIntegration(sidebars) {
   const publicMdDir = resolve(__dirname, 'public', '_md');
   const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
-  /**
-   * Assembles one output file: an H1 from the frontmatter title, then the body
-   * with its template variables resolved. Without the substitution a reader
-   * copying the Markdown of a page gets a literal `{{$examplesBranch}}` (or
-   * `{{$currentMinorVersion}}`) instead of a working link.
-   *
-   * @param {string} title The page title from frontmatter.
-   * @param {string} content The page body, frontmatter already stripped.
-   * @returns {string}
-   */
-  function buildMarkdown(title, content) {
-    return replaceTemplateVariables(`# ${title}\n\n${content.trim()}`);
-  }
+  // One output file = an H1 from the frontmatter title, the "Added in" sentence
+  // when the page has `addedIn` (DEV-2877), then the body with its template
+  // variables resolved -- without the substitution a reader copying the
+  // Markdown of a page gets a literal `{{$examplesBranch}}` instead of a
+  // working link. Assembled in src/lib/added-in.mjs so it is unit-tested.
+  const buildMarkdown = (data, content) => buildPageMarkdown(data, content, replaceTemplateVariables);
 
   function buildRouteMap() {
     const routeMap = new Map();
@@ -633,14 +627,14 @@ function markdownRoutesIntegration(sidebars) {
         const rel = relative(contentDir, full);
 
         if (rel === 'index.md') {
-          routeMap.set('index.md', buildMarkdown(data.title, content));
+          routeMap.set('index.md', buildMarkdown(data, content));
           continue;
         }
 
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = buildMarkdown(data.title, content);
+        const md = buildMarkdown(data, content);
 
         pageMeta.set(slug, { title: data.title, description: data.description || '' });
 

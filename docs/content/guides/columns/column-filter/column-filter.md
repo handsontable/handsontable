@@ -257,8 +257,8 @@ ignored and log a warning:
 columns: [{ filters: { filterFixedRows: false } }],
 ```
 
-TypeScript does not reject that, because a column's settings are typed from the grid's settings.
-Treat the table above as the contract rather than the type.
+TypeScript rejects that too: inside `columns`, `filters` is typed as a boolean or an object that
+holds only `availableConditions`.
 
 To change the *order* of the values in a column's **Filter by value** list, use the
 [`filterValueComparator`](@/api/options.md#filtervaluecomparator) option, which does work inside
@@ -1143,9 +1143,12 @@ value** list. This works for any number of rows frozen at either end.
 is a grid-level option, because [`fixedRowsTop`](@/api/options.md#fixedrowstop) and
 [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) freeze rows for the whole table.
 
-Which rows are exempt follows the rows on screen, so it keeps up as the grid changes: adding or
-removing a row at either end, moving rows, and sorting all re-apply the filter with the new frozen
-rows. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
+Which rows are exempt follows the rows on screen, so it keeps up as the grid changes. After you add
+or remove a row, the grid works out the exempt rows again on the next render. After you move rows,
+sort, or change `fixedRowsTop` or `fixedRowsBottom`, it does so only when a different row ends up
+frozen. The conditions stay the same, so this is not a new filter: the
+[`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter) hooks
+don't fire, and the selection doesn't move. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
 because filtering then happens on the server, which knows nothing about frozen rows.
 
 In the following demo, the first and the last row are frozen, and filtering doesn't affect them.
