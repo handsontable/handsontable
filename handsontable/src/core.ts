@@ -1133,6 +1133,14 @@ export default function Core(
 
     lastColumnIndexCount = indexCount;
 
+    // Stamped BEFORE the public hook, so an `alter()` a consumer of it fires sees this change as
+    // already landed and lets its own selection repair wait for ours. One fired from a `before*`
+    // hook runs before this line and correctly does not wait (DEV-2755 review).
+
+    if (isStructuralChange) {
+      this.selection.markStructuralIndexChange();
+    }
+
     // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
     // saves - so it must not run until `EditorManager` has discarded the editor whose record the
     // trim removed, which it does inside the hook above. In a `finally` because a consumer of that
@@ -1154,6 +1162,14 @@ export default function Core(
     const isStructuralChange = indexCount !== lastRowIndexCount;
 
     lastRowIndexCount = indexCount;
+
+    // Stamped BEFORE the public hook, so an `alter()` a consumer of it fires sees this change as
+    // already landed and lets its own selection repair wait for ours. One fired from a `before*`
+    // hook runs before this line and correctly does not wait (DEV-2755 review).
+
+    if (isStructuralChange) {
+      this.selection.markStructuralIndexChange();
+    }
 
     try {
       this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
@@ -1472,6 +1488,31 @@ export default function Core(
      * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
+      // The index space is renumbered before the selection is repaired, so an `alter()` a hook
+      // fires from inside that window works on a selection that is stale for THIS call too. Its own
+      // repair would then clamp the range back into the grid - doing this call's job - and the
+      // shift below would land one row further than the records moved (DEV-2755). The scope lets
+      // `Selection` hold the nested repair back and compose it with this one.
+      //
+      // The action itself is split out so this closes on every exit, the action's own early returns
+      // and a throwing hook included. A scope left open stops the selection repairing at all.
+      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
+    },
+
+    /**
+     * Performs one `alter()` action. Never call this directly - `alter()` owns the scope that keeps
+     * a nested call's selection repair from being applied twice.
+     *
+     * @private
+     * @param {string} action Possible values: "insert_row_above", "insert_row_below", "insert_col_start", "insert_col_end",
+     *                        "remove_row", "remove_col".
+     * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
+     * @param {number} [amount=1] Amount of rows or columns to remove.
+     * @param {string} [source] Optional. Source indicator passed to related hooks.
+     * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
+     */
+    runAlter(action: string, index: number | number[][] | undefined, amount = 1, source: string,
+             keepEmptyRows: boolean) {
       // A structural change strands an open editor between its cache update and its selection
       // repair (`shiftRows()`/`shiftColumns()` below); until this call's own tail, a reconcile
       // must tolerate the stranded editor rather than discard the pending edit. Depth-counted,
@@ -1645,6 +1686,8 @@ export default function Core(
                     .current()!
                     .setTo(lastSelection.to);
 
+                  // Before the refresh, which clamps against the grid every nested removal left.
+                  selection.flushHeldShifts();
                   selection.refresh();
 
                 } else {
@@ -1726,6 +1769,8 @@ export default function Core(
                     .current()!
                     .setTo(lastSelection.to);
 
+                  // The column half of the flush in the `remove_row` branch above.
+                  selection.flushHeldShifts();
                   selection.refresh();
 
                 } else {
@@ -1788,84 +1833,87 @@ export default function Core(
      * @private
      */
     adjustRowsAndCols() {
-      const minRows = tableMeta.minRows;
+      // The rows and columns appended here are not an `alter()`'s own change - see `runInShiftScope()`.
+      runInShiftScope(() => {
+        const minRows = tableMeta.minRows;
 
-      const minSpareRows = tableMeta.minSpareRows;
+        const minSpareRows = tableMeta.minSpareRows;
 
-      const minCols = tableMeta.minCols;
+        const minCols = tableMeta.minCols;
 
-      const minSpareCols = tableMeta.minSpareCols;
+        const minSpareCols = tableMeta.minSpareCols;
 
-      if (minRows) {
-        // should I add empty rows to data source to meet minRows?
+        if (minRows) {
+          // should I add empty rows to data source to meet minRows?
 
-        const nrOfRows = instance.countRows();
+          const nrOfRows = instance.countRows();
 
-        if (nrOfRows < minRows) {
-          // The synchronization with cell meta is not desired here. For `minRows` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto', fillsMinimumSize: true });
-        }
-      }
-      if (minSpareRows) {
-        const emptyRows = instance.countEmptyRows(true);
-
-        // should I add empty rows to meet minSpareRows?
-        if (emptyRows < minSpareRows) {
-          const emptyRowsMissing = minSpareRows - emptyRows;
-          const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
-
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto', fillsMinimumSize: true });
-        }
-      }
-      {
-        let emptyCols = 0;
-        const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
-
-        // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
-        // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
-        // scans every row of that column, and this method runs after every change batch - an
-        // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
-        // per edit and also ran when only `minCols` was set, where the result was never used.
-        if (canCreateSpareCols) {
-          for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
-            if (!instance.isEmptyCol(visualIndex)) {
-              break;
-            }
-
-            emptyCols += 1;
-
-            if (emptyCols >= minSpareCols) {
-              break;
-            }
+          if (nrOfRows < minRows) {
+            // The synchronization with cell meta is not desired here. For `minRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto', fillsMinimumSize: true });
           }
         }
+        if (minSpareRows) {
+          const emptyRows = instance.countEmptyRows(true);
 
-        let nrOfColumns = instance.countCols();
+          // should I add empty rows to meet minSpareRows?
+          if (emptyRows < minSpareRows) {
+            const emptyRowsMissing = minSpareRows - emptyRows;
+            const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
 
-        // should I add empty cols to meet minCols?
-        if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
-          // The synchronization with cell meta is not desired here. For `minCols` option,
-          // we don't want to touch/shift cell meta objects.
-          const colsToCreate = minCols - nrOfColumns;
-
-          emptyCols += colsToCreate;
-
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
+            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto', fillsMinimumSize: true });
+          }
         }
-        // should I add empty cols to meet minSpareCols?
-        if (canCreateSpareCols && emptyCols < minSpareCols) {
-          nrOfColumns = instance.countCols();
-          const emptyColsMissing = minSpareCols - emptyCols;
-          const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+        {
+          let emptyCols = 0;
+          const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
 
-          // The synchronization with cell meta is not desired here. For `minSpareCols` option,
-          // we don't want to touch/shift cell meta objects.
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
+          // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
+          // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
+          // scans every row of that column, and this method runs after every change batch - an
+          // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
+          // per edit and also ran when only `minCols` was set, where the result was never used.
+          if (canCreateSpareCols) {
+            for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
+              if (!instance.isEmptyCol(visualIndex)) {
+                break;
+              }
+
+              emptyCols += 1;
+
+              if (emptyCols >= minSpareCols) {
+                break;
+              }
+            }
+          }
+
+          let nrOfColumns = instance.countCols();
+
+          // should I add empty cols to meet minCols?
+          if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+            // The synchronization with cell meta is not desired here. For `minCols` option,
+            // we don't want to touch/shift cell meta objects.
+            const colsToCreate = minCols - nrOfColumns;
+
+            emptyCols += colsToCreate;
+
+            datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
+          }
+          // should I add empty cols to meet minSpareCols?
+          if (canCreateSpareCols && emptyCols < minSpareCols) {
+            nrOfColumns = instance.countCols();
+            const emptyColsMissing = minSpareCols - emptyCols;
+            const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+
+            // The synchronization with cell meta is not desired here. For `minSpareCols` option,
+            // we don't want to touch/shift cell meta objects.
+            datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
+          }
         }
-      }
+      }, false);
     },
 
     /**
@@ -2792,7 +2840,7 @@ export default function Core(
 
     datamap.set(visualRow, prop, value);
 
-    // `applyChanges()` writes its changes from the last one to the first.
+    // `writeChangesToData()` writes its changes from the last one to the first.
     recordCellChange(operationScope, {
       physicalRow,
       prop,
@@ -2802,15 +2850,38 @@ export default function Core(
   }
 
   /**
-   * Internal function to apply changes. Called after validateChanges.
+   * Runs `action` inside a structural-change scope that closes on every exit. On a throw the held
+   * shifts are dropped rather than written: writing them runs the selection hooks, and one that
+   * throws there would replace the error already on its way out.
+   *
+   * A scope that does not own its count changes (`ownsIndexChange: false`) is for the rows and
+   * columns Handsontable appends by itself. It is never stamped, so such an append is not read as an
+   * enclosing `alter()`'s own change landing - which, from a `before*` hook, it may land before.
+   *
+   * @private
+   * @param {Function} action The work to run inside the scope.
+   * @param {boolean} [ownsIndexChange=true] Whether the count changes `action` makes are its own.
+   */
+  function runInShiftScope(action: () => void, ownsIndexChange = true) {
+    selection.suspendShifts(ownsIndexChange);
+
+    let isCompleted = false;
+
+    try {
+      action();
+      isCompleted = true;
+    } finally {
+      selection.resumeShifts(isCompleted);
+    }
+  }
+
+  /**
+   * Writes the changes into the data source, creating the rows and columns a change needs first.
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
-   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
-   * @fires Hooks#beforeChangeRender
-   * @fires Hooks#afterChange
    */
-  function applyChanges(changes: CellChange[], source: string | undefined) {
+  function writeChangesToData(changes: CellChange[]) {
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -2873,6 +2944,21 @@ export default function Core(
 
       writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3]);
     }
+  }
+
+  /**
+   * Internal function to apply changes. Called after validateChanges.
+   *
+   * @private
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @fires Hooks#beforeChangeRender
+   * @fires Hooks#afterChange
+   */
+  function applyChanges(changes: CellChange[], source: string | undefined) {
+    // The rows and columns created to fit the changes are not an `alter()`'s own change - see
+    // `runInShiftScope()`.
+    runInShiftScope(() => writeChangesToData(changes), false);
 
     const hasChanges = changes.length > 0;
     const activeEditor = editorManager.getActiveEditor();

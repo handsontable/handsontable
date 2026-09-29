@@ -8,16 +8,16 @@ const container = document.querySelector('#example6')!;
 
 new Handsontable(container, {
   data: [
-    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
-    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
-    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
-    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', '215'],
-    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', '38'],
+    ['H', 'Hydrogen', 1, 'Gas'],
+    ['He', 'Helium', 2, 'Gas'],
+    ['Li', 'Lithium', 3, 'Solid'],
+    ['Be', 'Beryllium', 4, 'Solid'],
+    ['B', 'Boron', 5, 'Solid'],
   ],
   width: '100%',
   height: 'auto',
   colWidths: 80,
-  colHeaders: true,
+  colHeaders: ['Symbol', 'Name', 'Atomic Number', 'State'],
   rowHeaders: true,
   stretchH: 'last',
   contextMenu: true,
