@@ -705,8 +705,31 @@ which of these run locally and which only in CI.
   itself is not guarded by it; what guards develop is the declaration sweep in
   `lib/__tests__/visual-declarations.test.mjs`, which asserts the file EQUALS what the checked-in specs
   derive and runs in the tooling suite on every pull request. The marker keys on the file's diff against
-  the base branch rather than on reg-suit's new-versus-deleted counts: a rename nets those to zero while
-  the set grows, and a bootstrap build reports every record as new.
+  the base rather than on reg-suit's new-versus-deleted counts: a rename nets those to zero while
+  the set grows, and a bootstrap build reports every record as new. **"The base" is the commit the run's
+  merge ref was built on** (the merge commit's first parent, read with `git cat-file` because the checkout
+  is depth 1), not the base branch as it stands when Compare runs. GitHub builds the merge ref when the
+  run starts, and the goldens are fetched about twenty minutes later. On 2026-09-28 a trim (#13647, 1676
+  goldens to 1225) merged two minutes into #13642's run: it rendered the old specs against the new goldens
+  (496 new, 45 deleted), and the check, judging against the tip, asked for a marker the pull request had
+  no reason to add. Adding it would have re-allowed the 451 trimmed records. So the step reads the file
+  twice, and the check asks a fifth question: **are the goldens this build compared against the set the
+  built-on base describes?** It reads them from `out.json`'s `expectedItems`, which the comparison has
+  already pruned to the tier, and compares their per-prefix counts with the built-on budget. They match
+  whenever the seed has rendered that base, because the declaration sweep holds the budget file equal to
+  what the specs render. Measured 2026-09-29: `base/develop` held 1114 goldens matching develop's budget on
+  all eleven prefixes, and #13658's own report compared 1225, the budget of the base it was built on.
+  When they disagree the comparison is stale and the run fails, never asking for a marker. The tip
+  decides the advice: goldens that match the tip mean the base changed its golden set after the merge ref
+  was built (merge the base branch and push; a re-run replays the same merge ref), and goldens older than
+  a tip that still agrees with the built-on base mean its seed has not caught up (re-run once it has). The
+  first version compared the built-on budget with the tip instead, and review found three ways that was
+  wrong: it failed every run during the fifteen minutes between a budget-changing merge and its seed,
+  although those runs compared against the goldens their own specs describe (for a raise, a case the old
+  tip-only check passed); it failed on a change to a prefix the tier does not compare; and it missed a trim
+  that merged just before the run, before its seed. Goldens that changed without their counts changing (a
+  restyle, reconciled by the seed) are stale the same way and not detected here: counts are all the budget
+  records. That is the README's "A visual change merged into the branch you target" case.
   The marker is comment-stripped, so the PR template's documented example cannot authorise a growth.
   Three things are worth knowing before changing it. The ceiling is **per prefix**, never on the total: a
   `pr`-tier build renders two of the eleven, and its 480 records would clear a 1676 ceiling without

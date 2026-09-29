@@ -125,3 +125,70 @@ test('ensureLabels creates nothing when every label already exists', () => {
   assert.equal(calls.length, 3, 'each label is checked once and none is created');
   assert.ok(calls.every((call) => call[0] === 'api'), 'only lookup calls are made, no creates');
 });
+
+test('findComment returns the marked comment or null', () => {
+  const marker = '<!-- m -->';
+  const pages = JSON.stringify([[{ id: 1, body: 'unrelated' }], [{ id: 9, body: `${marker}\nold` }]]);
+  const { calls, run } = recorder([pages, '[[]]']);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  assert.deepEqual(gh.findComment(3, marker), { id: 9, body: `${marker}\nold` });
+  assert.deepEqual(calls[0], ['api', 'repos/o/r/issues/3/comments', '--paginate', '--slurp']);
+  assert.equal(gh.findComment(3, marker), null);
+});
+
+test('editComment edits only an existing marked comment and never posts', () => {
+  const marker = '<!-- m -->';
+  const { calls, run } = recorder([JSON.stringify([[{ id: 9, body: `${marker}\nold` }]]), '', '[[]]']);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  assert.equal(gh.editComment(3, marker, 'cleared'), true);
+  assert.deepEqual(calls[1], ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/9', '-f', `body=${marker}\ncleared`]);
+
+  assert.equal(gh.editComment(3, marker, 'cleared'), false);
+  assert.equal(calls.length, 3);
+});
+
+test('an author option limits findComment, editComment, and upsertComment to that login', () => {
+  const marker = '<!-- m -->';
+  const comments = JSON.stringify([[
+    { id: 1, body: `${marker}\nspoof`, user: { login: 'someone' } },
+    { id: 2, body: `${marker}\nold`, user: { login: 'github-actions[bot]' } },
+  ]]);
+  const { calls, run } = recorder([comments, comments, comments, '', comments, '']);
+  const gh = createGitHub({ repo: 'o/r', run });
+  const bot = { author: 'github-actions[bot]' };
+
+  assert.equal(gh.findComment(3, marker, bot).id, 2);
+  assert.equal(gh.findComment(3, marker).id, 1);
+
+  gh.editComment(3, marker, 'new', bot);
+  assert.deepEqual(calls.at(-1), ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/2', '-f', `body=${marker}\nnew`]);
+
+  gh.upsertComment(3, marker, 'new2', bot);
+  assert.deepEqual(calls.at(-1), ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/2', '-f', `body=${marker}\nnew2`]);
+});
+
+test('an author option that matches nothing makes upsertComment post and editComment do nothing', () => {
+  const marker = '<!-- m -->';
+  const spoof = JSON.stringify([[{ id: 1, body: `${marker}\nspoof`, user: { login: 'someone' } }]]);
+  const { calls, run } = recorder([spoof, spoof, '']);
+  const gh = createGitHub({ repo: 'o/r', run });
+  const bot = { author: 'github-actions[bot]' };
+
+  assert.equal(gh.editComment(3, marker, 'x', bot), false);
+  assert.equal(calls.length, 1);
+
+  gh.upsertComment(3, marker, 'x', bot);
+  assert.deepEqual(calls[2].slice(0, 3), ['api', '--method', 'POST']);
+});
+
+test('editComment does not PATCH when the body is already identical', () => {
+  const marker = '<!-- m -->';
+  const same = JSON.stringify([[{ id: 9, body: `${marker}\ncleared`, user: { login: 'b' } }]]);
+  const { calls, run } = recorder([same]);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  assert.equal(gh.editComment(3, marker, 'cleared'), true);
+  assert.equal(calls.length, 1);
+});

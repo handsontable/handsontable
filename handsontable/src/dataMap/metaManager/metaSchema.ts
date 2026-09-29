@@ -3460,12 +3460,16 @@ export default (): Record<string, unknown> => {
      * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
      * active: filtering then happens on the server, which knows nothing about frozen rows.
      *
-     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
-     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
-     * panes, so the exemption has to be worked out again. The
+     * With `filterFixedRows: false` and a filter applied, the grid works out again which rows are
+     * exempt when the rows change, on the next render. Inserting or removing a row (including through
+     * [`updateData()`](@/api/core.md#updatedata)) always does it. Moving a row, sorting, or changing
+     * `fixedRowsTop` or `fixedRowsBottom` does it only when a different row ends up frozen, so a sort
+     * that keeps the frozen rows in place (the [`columnSorting`](#columnsorting) default) costs
+     * nothing. This is not a new filter: the conditions stay the same, the
      * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
-     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
-     * a filter".
+     * hooks do not fire, the selection does not move, and no undo step is recorded. Inside a
+     * [`batch()`](@/api/core.md#batch), data read before the batch ends still reflects the previous
+     * frozen rows.
      *
      * **Inside `columns`:**
      *
@@ -3479,9 +3483,9 @@ export default (): Record<string, unknown> => {
      * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
      * leaves sorting through the API working.
      *
-     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
-     * does not reject it, because a column's settings are typed from the grid's, so treat the table
-     * above as the contract rather than the type.
+     * An object written inside `columns` is **ignored**, and logs a warning once per grid. Since 19.0,
+     * TypeScript rejects it too: a column's `filters` is typed `boolean`, and the grid-level object
+     * accepts only `searchMode` and `filterFixedRows`.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3516,7 +3520,7 @@ export default (): Record<string, unknown> => {
      *   { filters: false },
      * ],
      *
-     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * // WRONG: the sub-options are grid-level, so this object is ignored, warns, and does not compile
      * columns: [
      *   { filters: { filterFixedRows: false } },
      * ],
@@ -4989,6 +4993,11 @@ export default (): Record<string, unknown> => {
      * cleared on the next re-apply, as before. This assumes the clearing write reaches the data:
      * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
      * re-apply tries again.
+     *
+     * While a filter hides rows, a re-applied range that fits the rows on screen is applied to those
+     * rows. A range that reaches past them can't be applied, so if it was applied before and its
+     * merged cell still covers the rows it was merged on, that merged cell is kept, with its values,
+     * until the filter is cleared.
      *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)

@@ -20,6 +20,12 @@
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
       margin-inline-end: 1px;
+      // DEV-75. A span too. `font-size: 0` above stays; the rest follow the cell so a host `span`
+      // rule cannot reach it. See `.ht-multi-select-chip`.
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
 
       &::after {
         @include mixins.pseudo;
@@ -51,6 +57,14 @@
       flex-shrink: 0;
       max-width: 100px;
       box-sizing: border-box;
+      // DEV-75. The chip and everything inside it are spans. A host rule on bare `span` beats the
+      // inheritance they relied on, so the chips grew while the cell text kept the token. `inherit`
+      // (not the token) keeps a user's own `td` override in force.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
     }
 
     .ht-multi-select-chip-label {
@@ -58,9 +72,13 @@
       text-overflow: ellipsis;
       color: var(--ht-foreground-color);
       font-style: normal;
-      font-weight: var(--ht-font-weight);
-      line-height: var(--ht-line-height, 40px);
-      letter-spacing: var(--ht-letter-spacing, 0);
+      // DEV-75. All the text properties follow the cell through the chip, so a host `span` rule cannot
+      // reach them and a user's own `td` override still does. See `.ht-multi-select-chip`.
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
       padding: 0 var(--ht-chip-gap);
     }
 
@@ -78,6 +96,12 @@
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
+      // DEV-75. Icon-only, but still a span: a host `span` rule changed its line box. See `.ht-multi-select-chip`.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
 
       &::before {
         @include mixins.pseudo;
@@ -102,6 +126,12 @@
       color: var(--ht-foreground-color);
       white-space: nowrap;
       flex-shrink: 0;
+      // DEV-75. See `.ht-multi-select-chip`.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      font-family: inherit;
     }
   }
 

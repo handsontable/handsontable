@@ -264,6 +264,49 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # wrangler appends a `pages-deploy-detailed` entry, with this deploy's
+          # own URL, to this file; the next step reads it.
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+
+      # docs-visual-seed.yml seeds the docs golden records from this deploy. The
+      # branch alias (handsontable-docs-staging.pages.dev for develop,
+      # rc-<version>.… for a release) moves with the next deploy, possibly in the
+      # middle of a 13-minute seed: on 2026-09-18 a seed rendered from 12:08 to
+      # 12:20 while the next deploy took the alias at 12:18, and wrote a baseline
+      # mixed from two deploys. So the seed renders this deploy's own URL
+      # (https://<hash>.handsontable-docs-staging.pages.dev), which never changes,
+      # recorded here with the commit it was built from. Push and dispatch runs
+      # only: nothing seeds from a pull request's preview. No record is not a
+      # failed deploy, so this step does not fail the job; the seed then fails
+      # and says why.
+      - name: Record the deploy's own URL for the docs visual seed
+        id: deploy-record
+        if: ${{ steps.cf-pages-deploy.outcome == 'success' && github.event_name != 'pull_request' }}
+        env:
+          OUTPUT_FILE: ${{ runner.temp }}/wrangler-output.ndjson
+          RECORD_DIR: ${{ runner.temp }}/docs-staging-deploy
+          ALIAS: ${{ steps.cf-target.outputs.branch }}
+        run: |
+          url=$(jq -r 'select(.type == "pages-deploy-detailed") | .url // empty' "$OUTPUT_FILE" 2>/dev/null | tail -n 1 || true)
+
+          if [[ ! "$url" =~ ^https://[0-9a-f]{8}\.handsontable-docs-staging\.pages\.dev$ ]]; then
+            echo "::warning::wrangler reported no deploy URL (got '$url'), so the docs visual seed has no fixed URL to render and will fail."
+            exit 0
+          fi
+
+          mkdir -p "$RECORD_DIR"
+          jq -n --arg url "$url" --arg sha "$GITHUB_SHA" --arg ref "$GITHUB_REF_NAME" --arg alias "$ALIAS" \
+            '{url: $url, sha: $sha, ref: $ref, alias: $alias}' > "$RECORD_DIR/deploy.json"
+          cat "$RECORD_DIR/deploy.json"
+          echo "recorded=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the deploy record
+        if: ${{ steps.deploy-record.outputs.recorded == 'true' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: docs-staging-deploy
+          path: ${{ runner.temp }}/docs-staging-deploy/deploy.json
+          retention-days: 30
 
       # RC builds (release/x.y.z push) can resolve an open release PR via
       # resolve-pr, but they deploy to rc-<version>, not pr-<N>. Build the URL

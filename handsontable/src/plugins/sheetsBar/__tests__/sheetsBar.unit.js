@@ -8,6 +8,7 @@ import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { ColumnSorting } from '../../columnSorting/columnSorting';
+import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
 import { Formulas } from '../../formulas/formulas';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { NestedRows } from '../../nestedRows/nestedRows';
@@ -102,6 +103,7 @@ describe('SheetsBar plugin', () => {
     registerPlugin(Comments);
     registerPlugin(AutoColumnSize);
     registerPlugin(ColumnSorting);
+    registerPlugin(MultiColumnSorting);
     registerPlugin(Formulas);
     registerPlugin(HiddenRows);
     registerPlugin(NestedRows);
@@ -2198,6 +2200,274 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 1).colspan).toBe(2);
   });
 
+  it('switches back to a shorter sheet after restoring a merge below its last row', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Big', data: Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)) },
+          { name: 'Small', data: [['a']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [big, small] = sheetsBar.getSheets();
+
+    hot.getPlugin('mergeCells').merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(small.id);
+    sheetsBar.setActiveSheet(big.id);
+
+    expect(() => sheetsBar.setActiveSheet(small.id)).not.toThrow();
+    expect(sheetsBar.getSheets()[1].isActive).toBe(true);
+    expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
+
+    sheetsBar.setActiveSheet(big.id);
+
+    expect(hot.getCellMeta(4, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(4, 0).colspan).toBe(2);
+  });
+
+  it('drops a stored merge that no longer fits the sheet without a warning', () => {
+    const data = Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    mergeCells.merge(0, 0, 1, 1);
+    mergeCells.merge(2, 2, 2, 3);
+    mergeCells.merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    data.splice(4);
+    data.forEach(row => row.splice(3));
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
+      [row, col, rowspan, colspan]
+    ))).toEqual([[0, 0, 2, 2]]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+    expect(hot.getCellMeta(2, 2).colspan).toBeUndefined();
+  });
+
+  it('restores merges as automatic merges that write no data', () => {
+    const data = [['a', 'b', 'c'], [null, null, 'f']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const beforeMergeCells = jest.fn();
+    const afterMergeCells = jest.fn();
+    const afterChange = jest.fn();
+
+    hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    data[1][1] = 'kept';
+    hot.addHook('beforeMergeCells', beforeMergeCells);
+    hot.addHook('afterMergeCells', afterMergeCells);
+    hot.addHook('afterChange', afterChange);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeMergeCells).toHaveBeenCalledTimes(1);
+    expect(beforeMergeCells.mock.calls[0][1]).toBe(true);
+    expect(afterMergeCells).toHaveBeenCalledTimes(1);
+    expect(afterMergeCells.mock.calls[0][2]).toBe(true);
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'MergeCells')).toEqual([]);
+    expect(hot.getSourceDataAtCell(1, 1)).toBe('kept');
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+  });
+
+  it('switches to a sheet whose settings trim the rows a departing merge covers', () => {
+    const grid = () => Array.from({ length: 6 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: grid() },
+          { name: 'Beta', data: grid(), settings: { trimRows: [4, 5] } },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+
+    hot.getPlugin('mergeCells').merge(4, 0, 5, 1);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(() => sheetsBar.setActiveSheet(beta.id)).not.toThrow();
+    expect(sheetsBar.getSheets()[1].isActive).toBe(true);
+    expect(() => sheetsBar.setActiveSheet(alpha.id)).not.toThrow();
+    expect(hot.getCellMeta(4, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(4, 0).colspan).toBe(2);
+  });
+
+  it('keeps the merges the user changed over the ones a sheet declares in its settings', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: grid() },
+          { name: 'Declared', data: grid(), settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] } },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const merges = () => mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
+      [row, col, rowspan, colspan]
+    ));
+
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([[0, 0, 2, 2]]);
+
+    mergeCells.unmerge(0, 0, 1, 1);
+    sheetsBar.setActiveSheet(plain.id);
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([]);
+
+    mergeCells.merge(1, 1, 2, 2);
+    sheetsBar.setActiveSheet(plain.id);
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(merges()).toEqual([[1, 1, 2, 2]]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
+  });
+
+  it('does not restore a merge whose rows were all trimmed over another merge', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    mergeCells.merge(4, 1, 5, 2);
+    mergeCells.merge(2, 0, 3, 1);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    const visible = mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    expect(visible).toEqual([[2, 1, 2, 2]]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not restore a merge whose rows were all trimmed when nothing sits under it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const visible = () => mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    mergeCells.merge(2, 0, 3, 1);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+
+    expect(visible()).toEqual([]);
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(visible()).toEqual([]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+    expect(hot.getCellMeta(3, 1).hidden).toBeFalsy();
+  });
+
+  it('keeps the live merge over a fully trimmed one created before it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    mergeCells.merge(2, 0, 3, 1);
+    mergeCells.merge(4, 1, 5, 2);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    const visible = mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    expect(visible).toEqual([[2, 1, 2, 2]]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+  });
+
   it('runs no filter pass on a switch between two sheets that were never filtered', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
@@ -2246,6 +2516,347 @@ describe('SheetsBar plugin', () => {
 
     expect(hot.countRows()).toBe(3);
     expect(filters.exportConditions()).toEqual([]);
+  });
+
+  it('keeps the arriving sheet\'s own filter conditions when beforeFilter cancels the restore', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    vetoFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(filters.exportConditions()).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(hot.countRows()).toBe(4);
+  });
+
+  it('falls back to the arriving sheet\'s conditions when a later filter pass is canceled', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    vetoFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+
+    expect(filters.exportConditions()).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('keeps the arriving sheet\'s sort config when beforeColumnSort cancels the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a'], ['c'], ['b']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    columnSorting.sort({ column: 0, sortOrder: 'desc' });
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
+  });
+
+  it('keeps the sort config a canceling beforeColumnSort listener set during the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort(currentSortConfig, destinationSortConfigs) {
+        if (!vetoSort) {
+          return undefined;
+        }
+
+        if (destinationSortConfigs.length > 0) {
+          this.getPlugin('columnSorting').setSortConfig({ column: 0, sortOrder: 'desc' });
+        }
+
+        return false;
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+  });
+
+  it('sorts without throwing after a canceled restore on a grid whose sorting was re-enabled', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[3], [1], [2]] },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    hot.updateSettings({ columnSorting: false });
+    hot.updateSettings({ columnSorting: true });
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+    vetoSort = false;
+
+    expect(() => columnSorting.sort({ column: 0, sortOrder: 'desc' })).not.toThrow();
+    expect(hot.getDataAtCol(0)).toEqual([3, 2, 1]);
+  });
+
+  it('keeps an unfiltered arriving sheet unfiltered when a later filter pass on it is canceled', () => {
+    let vetoFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      beforeFilter: () => (vetoFilter ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    vetoFilter = true;
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+
+    expect(filters.exportConditions()).toEqual([]);
+  });
+
+  it('undoes the first filter on an unfiltered arriving sheet back to no filter', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'eq', [1]);
+    filters.filter();
+    hot.getPlugin('undoRedo').undo();
+
+    expect(filters.exportConditions()).toEqual([]);
+    expect(hot.countRows()).toBe(4);
+  });
+
+  it('keeps the conditions an afterFilter listener changed during the restore', () => {
+    let clearOnNextFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      afterFilter() {
+        if (clearOnNextFilter) {
+          clearOnNextFilter = false;
+          this.getPlugin('filters').clearConditions();
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    clearOnNextFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(filters.exportConditions()).toEqual([]);
+  });
+
+  it('shows no sort indicator after a canceled restore of a sheet whose row count changed', () => {
+    let vetoSort = false;
+    const alphaData = [[3], [1], [2]];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: alphaData },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    alphaData.push([0]);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getDataAtCol(0)).toEqual([3, 1, 2, 0]);
+    expect(columnSorting.getSortConfig()).toEqual([]);
+  });
+
+  it('keeps a multi-column sort config when beforeColumnSort cancels the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1, 'b'], [0, 'c'], [1, 'a'], [0, 'd']] },
+          { name: 'Beta', data: [['x', 'y']] },
+        ],
+      },
+      multiColumnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const multiColumnSorting = hot.getPlugin('multiColumnSorting');
+    const sortConfig = [{ column: 0, sortOrder: 'asc' }, { column: 1, sortOrder: 'desc' }];
+
+    multiColumnSorting.sort(sortConfig);
+    sheetsBar.setActiveSheet(beta.id);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(multiColumnSorting.getSortConfig()).toEqual(sortConfig);
+    expect(hot.getData()).toEqual([[0, 'd'], [0, 'c'], [1, 'b'], [1, 'a']]);
+  });
+
+  it('passes the departing sheet\'s conditions to beforeFilter as the previous stack on a restore', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+    const beforeFilter = jest.fn();
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    filters.addCondition(0, 'lt', [2]);
+    filters.filter();
+    hot.addHook('beforeFilter', beforeFilter);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(beforeFilter).toHaveBeenCalledTimes(1);
+    expect(beforeFilter.mock.calls[0][0]).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'gt', args: [2] }] },
+    ]);
+    expect(beforeFilter.mock.calls[0][1]).toEqual([
+      { column: 0, operation: 'conjunction', conditions: [{ name: 'lt', args: [2] }] },
+    ]);
   });
 
   it('renames the engine sheet with the tab and rewrites the references to it', () => {
