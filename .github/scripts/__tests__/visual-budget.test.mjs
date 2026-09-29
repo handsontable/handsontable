@@ -129,7 +129,8 @@ test('the growth check is also given the budget at the base this run was built o
   const budgetStep = workflow.slice(stepAt(workflow, 'Visual budget'), stepAt(workflow, 'Mirror the verdict'));
   const file = /\$\{\{ runner\.temp \}\}\/built-on-visual-budget\.json$/m;
 
-  assert.ok(baseStep.includes('git cat-file -p HEAD | awk \'/^parent /{ n++; if (n == 1) first = $2 } '
+  // Up to the blank line that ends the header, so no line of the commit message can count as a parent.
+  assert.ok(baseStep.includes('git cat-file -p HEAD | awk \'/^$/{ exit } /^parent /{ n++; if (n == 1) first = $2 } '
     + 'END { if (n == 2) print first }\''), 'the built-on base is the first parent of a two-parent merge, only of one');
   assert.match(baseStep, /EVENT_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
     'the payload\'s base sha is the fallback, passed through env like every context value');
@@ -143,6 +144,10 @@ test('the growth check is also given the budget at the base this run was built o
   assert.match(baseStep, /git show FETCH_HEAD:visual-tests\/visual-budget\.json > "\$BUILT_ON_BUDGET_FILE"/);
   assert.match(budgetStep, new RegExp(`^ {10}VISUAL_BUDGET_BUILT_ON_FILE: ${file.source}`, 'm'),
     'the budget step must be handed the same file the base step wrote');
+  // A failed tip read loses only the direction of the advice: staleness is judged from the goldens and the
+  // built-on base, so the warning must not claim the growth or staleness check went away.
+  assert.ok(baseStep.includes('::warning::Could not read visual-budget.json on $BASE_REF; a stale comparison is '
+    + 'still caught, but not told apart as a moved base or a seed that is behind.'));
   // The tip is still read: it is what tells a base that moved from one that did not.
   assert.match(budgetStep, /VISUAL_BUDGET_BASE_FILE: \$\{\{ runner\.temp \}\}\/base-visual-budget\.json/);
 });

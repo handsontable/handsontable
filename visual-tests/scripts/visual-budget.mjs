@@ -16,11 +16,12 @@
  *   VISUAL_BUDGET_FILE the budget file (default: `visual-tests/visual-budget.json`)
  *   VISUAL_PR_BODY_FILE     the LIVE description, written by the workflow's github-script step
  *   VISUAL_PR_BODY          the event payload's description, used only when the live read failed
- *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it NOW, which is what tells a base
- *                           that moved during the run from one that did not
+ *   VISUAL_BUDGET_BASE_FILE the budget file as the base branch has it NOW, which says which way a stale
+ *                           comparison is stale: the base moved, or its seed is behind
  *   VISUAL_BUDGET_BUILT_ON_FILE the budget file at the base commit this run's merge ref was built on,
- *                           which is what makes "did this pull request raise it" answerable. Unset, the
- *                           growth check falls back to the base file; set but unreadable, it says so
+ *                           which makes "did this pull request raise it" and "are these goldens the set
+ *                           this build was made for" answerable. Unset, the growth check falls back to the
+ *                           base file; set but unreadable, it says so
  *   GITHUB_EVENT_NAME       whether a marker can be asked for at all
  *
  * Exits 1 on a violation. A missing `out.json` — the bootstrap path, where there is no comparison —

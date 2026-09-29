@@ -70,10 +70,13 @@ Two cases worth knowing:
   latest build, so once someone else's intentional change lands, your next run inherits their differences
   as well as yours. **Merge the target branch into yours and push.** Approving would also approve any real
   regression of your own that the same build contains. Do not rebase and force-push a branch bound to a
-  pull request. If the change landed while your run was rendering, the run compared your render against
-  goldens newer than the code it built. When that change moved the golden budget, the `Visual budget`
-  section says so and fails the run. The same remedy applies: "Re-run jobs" replays the same merge
-  commit, so push instead. Do not add a `[visual budget: …]` marker for it.
+  pull request. Two timings make it worse, and when the change moved the golden set's counts the
+  `Visual budget` section tells them apart and fails the run. Do not add a `[visual budget: …]` marker for
+  either. If the change landed while your run was rendering, your render met goldens newer than the code
+  it built: merge and push, because "Re-run jobs" replays the same merge commit. If it landed just before
+  your run but its seed had not finished, your render met goldens older than the code it built: re-run
+  once `Visual seed` has finished for the target branch. A change that restyles without moving the counts
+  is caught by neither, and only merging the target branch keeps you clear of it.
 
 If the branch you target has no golden records yet, the check does not fail. The build promotes its own
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request

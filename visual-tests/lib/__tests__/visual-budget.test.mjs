@@ -10,8 +10,8 @@ import {
   countByStem,
   evaluateBudget,
   readMarker,
+  goldensDisagree,
   renderedItems,
-  samePrefixes,
 } from '../visual-budget.mjs';
 
 // The budget exists because a golden set grows one reasonable capture at a time and nobody is ever
@@ -254,122 +254,242 @@ test('an unreadable base budget is reported, not passed over', () => {
   assert.doesNotMatch(verdict.comment, /Under budget/);
 });
 
-test('a base that changed its budget during the run is told to merge, never to add a marker', () => {
-  // The race #13642's run 36392712913 lost: the merge ref was built on a base at the old budget, the
-  // base trimmed its goldens two minutes later, and the growth check, judged against the base TIP, read
-  // the pull request's untouched file as growth and asked for a marker. Adding it would have re-allowed
-  // every record the trim removed. Here the checked-out file is the built-on one (the pull request never
-  // touched it), and the tip is 25 records smaller.
+/**
+ * The golden records a comparison fetched: `expectedItems`, as many per prefix as `budget` holds. Only the
+ * prefixes named are fetched, the way `compare.mjs` prunes the goldens to the tier.
+ *
+ * @param {object} budget The budget whose counts the goldens have.
+ * @param {string[]} [prefixes] The prefixes the tier compares; all of them by default.
+ * @returns {string[]} The item paths.
+ */
+function goldensOf(budget, prefixes = Object.keys(budget.prefixes)) {
+  return prefixes.flatMap(prefix => Array.from({ length: budget.prefixes[prefix] },
+    (unused, index) => `${prefix}js-only/golden-${index}-1.png`));
+}
+
+/**
+ * The same budget with `by` records moved on one prefix: negative for a trim, positive for growth.
+ *
+ * @param {number} by The change.
+ * @param {string} [prefix] Which prefix.
+ * @returns {object} A budget file.
+ */
+function changedBy(by, prefix = 'js/chromium/') {
+  return { ...BUDGET, prefixes: { ...BUDGET.prefixes, [prefix]: BUDGET.prefixes[prefix] + by } };
+}
+
+test('the goldens are judged on the prefixes the build compared, and a bootstrap has none', () => {
+  assert.deepEqual(goldensDisagree({ expectedItems: goldensOf(BUDGET) }, BUDGET), []);
+  assert.deepEqual(goldensDisagree({ expectedItems: goldensOf(changedBy(-3)) }, BUDGET), ['js/chromium/']);
+  // A pr-tier comparison fetched two prefixes; the other nine cannot make it disagree.
+  const prTier = ['js/chromium-theme-main/', 'js/chromium-theme-main-dark/'];
+
+  const firefoxTrimmed = changedBy(-3, 'cross-browser/firefox/');
+
+  assert.deepEqual(goldensDisagree({ expectedItems: goldensOf(BUDGET, prTier) }, firefoxTrimmed), []);
+  assert.deepEqual(goldensDisagree({ expectedItems: [] }, changedBy(-3)), [], 'a bootstrap compared nothing');
+  assert.deepEqual(goldensDisagree({}, changedBy(-3)), []);
+});
+
+test('goldens that moved on after the merge ref was built: merge and push, never a marker', () => {
+  // Run 36392712913: the merge ref was built on a base at 1676, a trim to 1225 merged two minutes later,
+  // and its seed had rewritten the goldens by the time Compare ran. Here the base trims 25 on one prefix;
+  // the pull request never touched its budget file, so the checkout's file is the built-on one.
+  const trimmed = changedBy(-25);
   const stale = evaluateBudget({
-    report: reportWith(atBudget()),
+    report: reportWith(atBudget(), { expectedItems: goldensOf(trimmed) }),
     budget: BUDGET,
     builtOnBudget: BUDGET,
-    baseBudget: baseSmallerBy(25),
+    baseBudget: trimmed,
     body: 'Unrelated change.',
   });
   const text = stale.violations.join('\n');
 
-  assert.equal(stale.pass, false, 'a stale render must not reach the approval');
-  assert.match(text, new RegExp(`changed its golden budget from ${TOTAL} to ${TOTAL - 25} after this run's `
-    + 'merge ref was built'));
-  assert.match(text, /Merge the base branch into this branch and push\. Re-running the job replays the same/);
+  assert.equal(stale.pass, false, 'a stale comparison must not reach the approval');
+  assert.equal(stale.stale, true);
+  assert.match(text, new RegExp('not the set the base it was built on describes \\(`js/chromium/` '
+    + `${BUDGET.prefixes['js/chromium/'] - 25} compared, ${BUDGET.prefixes['js/chromium/']} budgeted\\)`));
+  assert.ok(text.includes('They match the base branch as it is now: the base changed its golden set after this '
+    + 'run\'s merge ref was built. Merge the base branch into this branch and push. Re-running the job replays the '
+    + 'same merge ref'));
   assert.doesNotMatch(text, /raises the golden budget/, 'the pull request raised nothing');
   assert.doesNotMatch(text, /why the set has to grow/, 'no marker may be asked for');
-  assert.ok(stale.comment.includes(stale.violations[0]), 'the comment must carry it, not just the log');
-  // The heading says what is wrong: nothing is over its number, the build is from before the change.
-  assert.equal(stale.stale, true);
-  assert.match(stale.comment, new RegExp('This build cannot be judged against the golden budget \\(full-tier '
-    + 'budget: \\d+\\): the base branch changed it while the build ran\\.'));
+  assert.match(stale.comment, new RegExp('This build cannot be judged against the golden budget \\(full-tier budget: '
+    + '\\d+\\): the golden records it compared against belong to another commit of the base branch\\.'));
   assert.doesNotMatch(stale.comment, /outside the golden budget/);
-  // And it does not claim the goldens were the new set: for about fifteen minutes after the merge the seed
-  // has not rewritten them yet.
-  assert.match(text, /may already be the new set/);
 
   // A marker does not make it pass: the comparison is stale whatever the description says.
-  const marked = evaluateBudget({
-    report: reportWith(atBudget()),
+  assert.equal(evaluateBudget({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(trimmed) }),
     budget: BUDGET,
     builtOnBudget: BUDGET,
-    baseBudget: baseSmallerBy(25),
+    baseBudget: trimmed,
     body: `[visual budget: ${TOTAL} — trying to get past it]`,
+  }).pass, false);
+});
+
+test('a base change whose seed has not landed yet leaves the comparison fresh, in either direction', () => {
+  // The fifteen minutes between a merge that moves the golden set and its seed: the tip's file has moved,
+  // the goldens have not, and they are the set this build's specs describe. The first version of this check
+  // compared the two budget files and failed every run in that window; the old check had failed only a trim.
+  [-25, +25].forEach((by) => {
+    const verdict = evaluateBudget({
+      report: reportWith(atBudget(), { expectedItems: goldensOf(BUDGET) }),
+      budget: BUDGET,
+      builtOnBudget: BUDGET,
+      baseBudget: changedBy(by),
+    });
+
+    assert.equal(verdict.pass, true, `a base that moved ${by} before its seed: ${verdict.violations.join('\n')}`);
+    assert.equal(verdict.stale, false);
+  });
+});
+
+test('a base change on a prefix this build did not compare cannot make it stale', () => {
+  // A pr-tier run compares two prefixes; a trim of Firefox goldens is nothing it saw.
+  const prTier = ['js/chromium-theme-main/', 'js/chromium-theme-main-dark/'];
+  const counts = Object.fromEntries(prTier.map(prefix => [prefix, BUDGET.prefixes[prefix]]));
+  const firefoxTrimmed = changedBy(-10, 'cross-browser/firefox/');
+  const verdict = evaluateBudget({
+    report: reportWith(counts, { expectedItems: goldensOf(firefoxTrimmed, prTier) }),
+    budget: BUDGET,
+    builtOnBudget: BUDGET,
+    baseBudget: firefoxTrimmed,
   });
 
-  assert.equal(marked.pass, false);
-  assert.match(marked.violations.join('\n'), /after this run's merge ref was built/);
+  assert.equal(verdict.stale, false);
+  assert.doesNotMatch(verdict.violations.join('\n'), /not the set the base it was built on describes/);
+});
+
+test('goldens older than the base the run was built on: re-run once the seed has landed', () => {
+  // The reverse window: a trim merged before this run started, so the merge ref, the built-on base and the
+  // tip all have the trimmed budget, but the seed has not rewritten the goldens yet. Budget files alone
+  // cannot see it; the goldens can.
+  const trimmed = changedBy(-25);
+  const verdict = evaluateBudget({
+    report: reportWith(trimmed.prefixes, { expectedItems: goldensOf(BUDGET) }),
+    budget: trimmed,
+    builtOnBudget: trimmed,
+    baseBudget: trimmed,
+  });
+  const text = verdict.violations.join('\n');
+
+  assert.equal(verdict.pass, false);
+  assert.equal(verdict.stale, true);
+  assert.ok(text.includes('The base branch still describes the set this run was built on, so its seed has not '
+    + 'written that set yet'));
+  assert.ok(text.includes('Re-run this job once the base\'s latest `Visual seed` has finished; nothing in this pull '
+    + 'request needs to change.'));
+  assert.doesNotMatch(text, /Merge the base branch into this branch and push\. Re-running/);
+});
+
+test('goldens that match neither base, or an unreadable tip, get both remedies in order', () => {
+  const neither = evaluateBudget({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(changedBy(-7)) }),
+    budget: BUDGET,
+    builtOnBudget: BUDGET,
+    baseBudget: changedBy(-25),
+  });
+
+  assert.equal(neither.stale, true);
+  assert.ok(neither.violations.join('\n').includes('Wait for the base\'s latest `Visual seed` to finish, then merge '
+    + 'the base branch into this branch and push.'));
+
+  // The tip could not be read: staleness is still detected from the built-on base, only its direction is not.
+  const noTip = evaluateBudget({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(changedBy(-7)) }),
+    budget: BUDGET,
+    builtOnBudget: BUDGET,
+    baseBudget: null,
+  });
+
+  assert.equal(noTip.stale, true);
+  assert.match(noTip.violations.join('\n'), /Wait for the base's latest `Visual seed` to finish/);
+  assert.ok(noTip.advisories.join('\n').includes('The growth and staleness checks used the base commit this run was '
+    + 'built on, so both still ran'));
+});
+
+test('a stale comparison with problems of its own keeps the usual heading, and is listed first', () => {
+  const trimmed = changedBy(-25);
+  const verdict = evaluateBudget({
+    report: reportWith({ ...atBudget(), 'js/chromium/': BUDGET.prefixes['js/chromium/'] + 2 },
+      { expectedItems: goldensOf(trimmed) }),
+    budget: BUDGET,
+    builtOnBudget: BUDGET,
+    baseBudget: trimmed,
+  });
+
+  assert.equal(verdict.stale, true);
+  assert.equal(verdict.violations.length, 2);
+  assert.match(verdict.violations[0], /not the set the base it was built on describes/);
+  assert.match(verdict.violations[1], /rendered \d+ record\(s\), budget \d+ \(\+2\)/);
+  assert.match(verdict.comment, /This build is outside the golden budget/);
+  assert.doesNotMatch(verdict.comment, /cannot be judged/);
 });
 
 test('growth is the pull request\'s own diff against the base it was built on', () => {
-  // Nothing moved: the built-on base and the tip agree, and a raise is judged exactly as before.
+  // Nothing moved: goldens, built-on base and tip agree, and a raise is judged exactly as before.
+  const base = changedBy(-10);
   const raised = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: baseSmallerBy(10), baseBudget: baseSmallerBy(10),
+    report: reportWith(atBudget(), { expectedItems: goldensOf(base) }),
+    budget: BUDGET,
+    builtOnBudget: base,
+    baseBudget: base,
   });
 
   assert.equal(raised.pass, false);
+  assert.equal(raised.stale, false);
   assert.match(raised.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 10} to ${TOTAL}`));
-  assert.doesNotMatch(raised.violations.join('\n'), /merge ref was built/);
-
-  // The base moved AND the pull request raised its file: both are true, so both are said, and the raise
-  // is measured from the built-on base, not from the tip (which would overstate it by the trim).
-  const both = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: baseSmallerBy(10), baseBudget: baseSmallerBy(40),
-  });
-  const text = both.violations.join('\n');
-
-  assert.match(text, new RegExp(`raises the golden budget from ${TOTAL - 10} to ${TOTAL}`));
-  assert.match(text, new RegExp(`changed its golden budget from ${TOTAL - 10} to ${TOTAL - 40}`));
-
-  // Nothing moved and nothing raised.
-  const fresh = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: BUDGET, baseBudget: BUDGET,
-  });
-
-  assert.equal(fresh.pass, true);
-  assert.equal(fresh.stale, false);
-  // A raise on a base that did not move keeps the old heading.
   assert.match(raised.comment, /This build is outside the golden budget/);
-});
 
-test('a base that moved between prefixes at the same total is still a moved base', () => {
-  // A total can hide a reshaped set: one variant down, another up by as much. The goldens changed either
-  // way, so the comparison is as stale as after a trim.
-  const shifted = {
-    ...BUDGET,
-    prefixes: {
-      ...BUDGET.prefixes,
-      'js/chromium/': BUDGET.prefixes['js/chromium/'] - 3,
-      'cross-browser/webkit/': BUDGET.prefixes['cross-browser/webkit/'] + 3,
-    },
-  };
-  const verdict = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: BUDGET, baseBudget: shifted,
+  // The tip trimmed further after the merge ref was built, and the seed has not landed: still the pull
+  // request's own raise, measured from the built-on base, not from the tip (which would overstate it).
+  const trimmedTip = evaluateBudget({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(base) }),
+    budget: BUDGET,
+    builtOnBudget: base,
+    baseBudget: changedBy(-40),
   });
 
-  assert.equal(verdict.pass, false);
-  assert.match(verdict.violations.join('\n'), new RegExp(`changed its per-prefix counts \\(a total of ${TOTAL} `
-    + 'either way\\) after this run\'s merge ref was built'));
+  assert.match(trimmedTip.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 10} to ${TOTAL}`));
+  assert.equal(trimmedTip.stale, false);
+
+  assert.equal(evaluateBudget({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(BUDGET) }),
+    budget: BUDGET,
+    builtOnBudget: BUDGET,
+    baseBudget: BUDGET,
+  }).pass, true);
 });
 
-test('either base file missing is reported, and the growth check uses the one that was read', () => {
-  // The built-on file could not be read: say so, and fall back to the tip, which is what the check did
-  // before it had a built-on base at all.
+test('an unreadable built-on base is reported, and a raise then names both possible causes', () => {
+  // Without the built-on base, a base that lowered its budget during the run and a pull request that
+  // raised it look the same: asking for the marker alone is the advice run 36392712913 got.
   const noBuiltOn = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: null, baseBudget: baseSmallerBy(10),
+    report: reportWith(atBudget(), { expectedItems: goldensOf(changedBy(-10)) }),
+    budget: BUDGET,
+    builtOnBudget: null,
+    baseBudget: changedBy(-10),
   });
+  const text = noBuiltOn.violations.join('\n');
 
   assert.match(noBuiltOn.advisories.join('\n'), /base commit this run was built on could not be read/);
-  assert.match(noBuiltOn.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 10}`));
-  assert.doesNotMatch(noBuiltOn.violations.join('\n'), /merge ref was built/, 'no staleness can be claimed');
+  assert.match(text, new RegExp(`visual-budget\\.json sums to ${TOTAL} and the base branch's to ${TOTAL - 10}`));
+  assert.match(text, /either this pull request raises the budget or the base branch lowered it during the run/);
+  assert.ok(text.includes('If it does not, merge the base branch and push instead: a marker would re-allow every '
+    + 'record the base removed.'));
+  assert.equal(noBuiltOn.stale, false, 'no staleness can be claimed without the built-on base');
 
-  // The tip could not be read: staleness is unknowable, but growth is still answerable from the built-on base.
-  const noTip = evaluateBudget({
-    report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: baseSmallerBy(10), baseBudget: null,
-  });
+  // A matching marker still passes: the author has said the raise is theirs.
+  assert.equal(evaluateBudget({
+    report: reportWith(atBudget()),
+    budget: BUDGET,
+    builtOnBudget: null,
+    baseBudget: changedBy(-10),
+    body: `[visual budget: ${TOTAL} — a new demo]`,
+  }).pass, true);
 
-  assert.match(noTip.advisories.join('\n'), /during this run would not be detected/);
-  assert.doesNotMatch(noTip.advisories.join('\n'), /the growth check did not run/);
-  assert.match(noTip.violations.join('\n'), new RegExp(`raises the golden budget from ${TOTAL - 10}`));
-
-  // Neither: the growth check did not run, as before.
+  // Neither file: the growth check did not run, as before.
   const neither = evaluateBudget({
     report: reportWith(atBudget()), budget: BUDGET, builtOnBudget: null, baseBudget: null,
   });
@@ -382,18 +502,6 @@ test('either base file missing is reported, and the growth check uses the one th
 
   assert.equal(omitted.pass, true);
   assert.deepEqual(omitted.advisories, []);
-});
-
-test('the same golden set means the same prefixes and counts, whatever the cap says', () => {
-  // A cap or an exception changed on the base does not change which golden records exist, so it cannot
-  // make a comparison stale.
-  assert.equal(samePrefixes(BUDGET, { ...BUDGET, captureCap: BUDGET.captureCap + 1, capExceptions: {} }), true);
-  assert.equal(samePrefixes(BUDGET, baseSmallerBy(1)), false);
-
-  const extra = { ...BUDGET, prefixes: { ...BUDGET.prefixes, 'js/chromium-theme-new/': 1 } };
-
-  assert.equal(samePrefixes(BUDGET, extra), false, 'a prefix added on one side is a different set');
-  assert.equal(samePrefixes(extra, BUDGET), false, 'in either direction');
 });
 
 test('the marker accepts whichever dash the author typed, and a commented one is inert', () => {
@@ -653,16 +761,26 @@ test('the wrapper judges growth against the built-on file, and says so when it c
   writeFileSync(baseFile, JSON.stringify(baseSmallerBy(25)));
   writeFileSync(builtOnFile, JSON.stringify(BUDGET));
 
+  // The race: the goldens compared are the tip's trimmed set, and the render is the built-on one.
   const stale = runBudgetCli({
-    report: reportWith(atBudget()),
+    report: reportWith(atBudget(), { expectedItems: goldensOf(baseSmallerBy(25)) }),
     comment: '## Visual tests\n',
     env: { VISUAL_BUDGET_BASE_FILE: baseFile, VISUAL_BUDGET_BUILT_ON_FILE: builtOnFile },
   });
 
   assert.equal(stale.status, 1, stale.stdout);
-  assert.match(stale.stdout, /after this run's merge ref was built/);
+  assert.match(stale.stdout, /the base changed its golden set after this run's merge ref was built/);
   assert.doesNotMatch(stale.stdout, /raises the golden budget/);
   assert.match(stale.comment, /Merge the base branch into this branch and push/);
+
+  // The same files with goldens the built-on base describes: the seed has not landed, and that is fresh.
+  const fresh = runBudgetCli({
+    report: reportWith(atBudget(), { expectedItems: goldensOf(BUDGET) }),
+    comment: '## Visual tests\n',
+    env: { VISUAL_BUDGET_BASE_FILE: baseFile, VISUAL_BUDGET_BUILT_ON_FILE: builtOnFile },
+  });
+
+  assert.equal(fresh.status, 0, fresh.stdout);
 
   const unreadable = runBudgetCli({
     report: reportWith(atBudget()),
@@ -672,8 +790,9 @@ test('the wrapper judges growth against the built-on file, and says so when it c
 
   assert.match(unreadable.stdout, /No budget file for the base commit this run was built on/);
   assert.match(unreadable.comment, /base commit this run was built on could not be read/);
-  // The fallback is the tip, so this is the pre-fix message: correct for a run whose base did not move.
-  assert.match(unreadable.stdout, /raises the golden budget/);
+  // Against the tip alone, a raise and a trimming base look alike, so the message names both.
+  assert.match(unreadable.stdout,
+    /either this pull request raises the budget or the base branch lowered it during the run/);
 
   // `git show … > file` creates the file before `git show` runs, so a budget missing at that commit
   // leaves it empty; and a file of another shape must be reported, not crash the judgement.

@@ -124,20 +124,24 @@ export function budgetTotal(budget) {
 }
 
 /**
- * Whether two budget files describe the same golden set: the same prefixes with the same counts.
+ * The prefixes where the golden records this build compared against disagree with a budget file.
  *
- * Only `prefixes` counts. A change to the cap or its exceptions on the base branch does not change which
- * golden records exist, so it cannot make this build's comparison stale.
+ * The goldens are reg-suit's `expectedItems`: what `compare.mjs` fetched from `base/<branch>` and pruned to
+ * the tier's prefixes before comparing (`compare-fork.mjs` downloads the same subset). Per prefix they equal
+ * the budget of whichever base commit the seed last rendered, because the seed renders exactly what the
+ * specs declare and `lib/__tests__/visual-declarations.test.mjs` holds the budget file equal to that. Only
+ * the prefixes this build compared are looked at, so a change to one it did not render cannot make it
+ * stale.
  *
- * @param {object} left A parsed `visual-budget.json`.
- * @param {object} right Another one.
- * @returns {boolean} `true` when every prefix and its count agree.
+ * @param {object} report The raw reg-suit `out.json`.
+ * @param {object} budget A parsed `visual-budget.json`.
+ * @returns {string[]} The disagreeing prefixes, sorted; empty when they agree, or when nothing was compared
+ * (a bootstrap has no goldens).
  */
-export function samePrefixes(left, right) {
-  const leftKeys = Object.keys(left.prefixes);
+export function goldensDisagree(report, budget) {
+  const goldens = countByPrefix(report?.expectedItems ?? []);
 
-  return leftKeys.length === Object.keys(right.prefixes).length
-    && leftKeys.every(prefix => right.prefixes[prefix] === left.prefixes[prefix]);
+  return [...goldens.keys()].filter(prefix => goldens.get(prefix) !== budget.prefixes[prefix]).sort();
 }
 
 /**
@@ -174,13 +178,25 @@ export function samePrefixes(left, right) {
  * marker. The pull request had never touched the file, and adding the marker would have re-allowed the
  * 451 records the trim removed. So there is a fifth question:
  *
- * 5. did the base branch change its budget after the merge ref was built? Then the comparison is stale
- *    whatever this pull request did, and the only remedy is a new merge ref: merge the base branch and
- *    push. It fails, because a stale render must never reach the approval, and it says so instead of
- *    asking for a marker. A re-run replays the same merge ref, so it fails the same way.
+ * 5. are the golden records this build compared against the set the base it was built on describes?
+ *    When they are not, the comparison is stale whatever this pull request did, and the differences it
+ *    reports include the base's own. It fails, because a stale comparison must never reach the approval,
+ *    and it says which way it is stale instead of asking for a marker. Goldens that match the base TIP
+ *    mean the base changed its golden set after the merge ref was built: merge the base branch and push
+ *    (a re-run replays the same merge ref). Goldens that match neither the built-on base nor a moved tip
+ *    mean the seed has not caught up with a change this run was built on: re-run once it has.
  *
- * A base branch whose goldens changed without its budget changing (a restyle, reconciled by the seed) is
- * stale in the same way, and this cannot see it: the counts are what the file records. That is the
+ * It compares the goldens (`goldensDisagree()`), not two budget files. A budget-file comparison was the
+ * first version, and review found it wrong three ways. The tip's file changes the moment a merge lands,
+ * and the seed rewrites the goldens about fifteen minutes later, so a Compare in between was flagged
+ * although it compared against the very goldens its specs describe. A change to a prefix this tier does
+ * not render was flagged although the comparison never saw it. And a trim that merged just before the
+ * run, before its seed, was missed: the built-on base and the tip agree, while the goldens are the old
+ * set. Measured on 2026-09-29: `base/develop` held 1114 goldens matching develop's budget on all eleven
+ * prefixes, and #13658's report compared 1225, matching the budget of the base it was built on.
+ *
+ * A base branch whose goldens changed without their counts changing (a restyle, reconciled by the seed)
+ * is stale in the same way, and this cannot see it: counts are all the budget records. That is the
  * README's "A visual change merged into the branch you target" case.
  *
  * Shrinking is never a violation: a trim, and a spec that stops declaring a variant, both legitimately
@@ -202,8 +218,8 @@ export function samePrefixes(left, right) {
  * built on. Omitted, the growth question falls back to `baseBudget`, as before this parameter existed;
  * null, it could not be read, which is reported, and the fallback is the same.
  * @returns {{pass: boolean, stale: boolean, violations: string[], notes: string[], comment: string,
- * summary: string}} The verdict, whether the base moved during the run, the reasons, and the section to
- * prepend to the gate's comment.
+ * summary: string}} The verdict, whether the comparison was stale, the reasons, and the section to prepend
+ * to the gate's comment.
  */
 export function evaluateBudget({
   report, budget, body = '', isPullRequest = true, baseBudget = null, builtOnBudget,
@@ -286,32 +302,58 @@ export function evaluateBudget({
     const baseTotal = budgetTotal(ownBase);
 
     if (builtOnBudget === null) {
-      advisories.push('The budget file at the base commit this run was built on could not be read, so a '
-        + 'base branch that changed its budget during the run cannot be told apart from this pull request '
-        + 'raising it. The growth check compared against the base branch as it is now.');
-    } else if (builtOnBudget && baseBudget === null) {
-      advisories.push('The budget file on the base branch could not be read, so a base branch that changed '
-        + 'its budget during this run would not be detected. The growth check compared against the base '
-        + 'commit this run was built on.');
-    } else if (builtOnBudget && !samePrefixes(builtOnBudget, baseBudget)) {
-      const nowTotal = budgetTotal(baseBudget);
-      const change = nowTotal === baseTotal
-        ? `its per-prefix counts (a total of ${nowTotal} either way)`
-        : `its golden budget from ${baseTotal} to ${nowTotal}`;
+      advisories.push('The budget file at the base commit this run was built on could not be read, so this '
+        + 'build cannot tell whether the golden records it compared against are the set its specs describe, '
+        + 'nor whether a raise is this pull request\'s own. The growth check compared against the base branch '
+        + 'as it is now.');
+    } else if (baseBudget === null) {
+      advisories.push('The budget file on the base branch could not be read. The growth and staleness checks '
+        + 'used the base commit this run was built on, so both still ran; only the advice for a stale '
+        + 'comparison cannot say whether the base moved or its seed is behind.');
+    }
+
+    const offBuiltOn = builtOnBudget ? goldensDisagree(report, builtOnBudget) : [];
+
+    if (offBuiltOn.length > 0) {
+      const goldens = countByPrefix(report.expectedItems);
+      const detail = offBuiltOn.slice(0, 3)
+        .map(prefix => `\`${prefix}\` ${goldens.get(prefix)} compared, ${builtOnBudget.prefixes[prefix] ?? 0} budgeted`)
+        .join('; ') + (offBuiltOn.length > 3 ? `; and ${offBuiltOn.length - 3} more` : '');
+      const matchesTip = baseBudget !== null && goldensDisagree(report, baseBudget).length === 0;
+      const tipMoved = baseBudget !== null
+        && offBuiltOn.some(prefix => baseBudget.prefixes[prefix] !== builtOnBudget.prefixes[prefix]);
+      const opening = 'The golden records this build compared against are not the set the base it was built on '
+        + `describes (${detail}).`;
+      let remedy;
+
+      if (matchesTip) {
+        remedy = 'They match the base branch as it is now: the base changed its golden set after this run\'s merge ref '
+          + 'was built. Merge the base branch into this branch and push. Re-running the job replays the same merge '
+          + 'ref and fails the same way.';
+      } else if (baseBudget !== null && !tipMoved) {
+        remedy = 'The base branch still describes the set this run was built on, so its seed has not written that set '
+          + 'yet, as happens for about fifteen minutes after a change to the golden set merges. Re-run this job '
+          + 'once the base\'s latest `Visual seed` has finished; nothing in this pull request needs to change.';
+      } else {
+        remedy = 'Wait for the base\'s latest `Visual seed` to finish, then merge the base branch into this branch '
+          + 'and push.';
+      }
 
       stale = true;
-      // "May": the tip's file changes the moment the merge lands, and the seed rewrites the golden records
-      // about fifteen minutes later. A Compare in between compared against the old goldens and is fresh in
-      // fact; it still fails, which costs one push, and the remedy is the same either way.
-      violations.push(`The base branch changed ${change} after this run's merge ref was built. This build `
-        + 'rendered the specs as they were before that change, and the golden records it compared against '
-        + 'may already be the new set, so the differences below can include ones that are not this pull '
-        + 'request\'s. Merge the base branch into this branch and push. Re-running the job replays the same '
-        + 'merge ref and fails the same way, and no `[visual budget: …]` marker is needed for this.');
+      violations.unshift(`${opening} The differences below include the base's own, not only this pull request's. `
+        + `${remedy} No \`[visual budget: …]\` marker is needed for this.`);
     }
 
     if (total > baseTotal) {
-      if (!marker) {
+      if (!marker && builtOnBudget === null) {
+        // Run 36392712913's trap, one layer down: without the built-on base, a base that lowered its budget
+        // during the run and a pull request that raised it look the same from here.
+        violations.push(`This pull request's visual-budget.json sums to ${total} and the base branch's to `
+          + `${baseTotal}. The base commit this run was built on could not be read, so either this pull request `
+          + 'raises the budget or the base branch lowered it during the run. If this pull request changes '
+          + `visual-budget.json, say so with \`${MARKER_TEMPLATE}\`, where N is ${total}. If it does not, merge the `
+          + 'base branch and push instead: a marker would re-allow every record the base removed.');
+      } else if (!marker) {
         violations.push(`This pull request raises the golden budget from ${baseTotal} to ${total}. `
           + `Say so in the description with \`${MARKER_TEMPLATE}\`, where N is ${total}. Every record is `
           + 'rendered, stored and compared on every build from now on, so the number is worth typing by '
@@ -360,7 +402,7 @@ export function evaluateBudget({
  * @param {string[]} verdict.advisories Checks that could not run, which is not the same as passing.
  * @param {string[]} verdict.items Everything rendered.
  * @param {number} verdict.total The full-tier total the file describes.
- * @param {boolean} verdict.stale Whether the base branch changed its budget during the run.
+ * @param {boolean} verdict.stale Whether the goldens compared are not the set the built-on base describes.
  * @returns {string} Markdown, ending in a blank line — the gate's own heading follows it directly, and
  * a heading without a blank line before it is not a heading.
  */
@@ -370,11 +412,12 @@ function renderComment({ pass, violations, notes, advisories, items, total, stal
   if (pass) {
     lines.push(`${items.length} record(s) rendered. The full-tier budget is ${total}.`, '');
   } else {
-    // A stale build is not over anything: "outside the golden budget" would send the reader to the
-    // numbers, when the problem is when this build was made.
-    lines.push(stale
-      ? `This build cannot be judged against the golden budget (full-tier budget: ${total}): the base `
-        + 'branch changed it while the build ran.'
+    // A build whose only problem is a stale comparison is not over anything: "outside the golden budget"
+    // would send the reader to the numbers. With problems of its own as well, the usual heading stands,
+    // and the stale item is listed first.
+    lines.push(stale && violations.length === 1
+      ? `This build cannot be judged against the golden budget (full-tier budget: ${total}): the golden `
+        + 'records it compared against belong to another commit of the base branch.'
       : `This build is outside the golden budget (full-tier budget: ${total}).`, '');
     violations.forEach(violation => lines.push(`- ${violation}`));
 
