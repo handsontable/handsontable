@@ -149,7 +149,11 @@ test.describe('selection of a merged cell across the frozen panes', () => {
     await grid.selectCells(1, 1, 1, 1);
     await grid.scrollToRow(12);
 
-    await expect.poll(() => grid.isSelectionEdgeOnFrozenRowsLine(1)).toBe(false);
+    // Proves the redraw landed and the block's outline is actually on screen, so the two checks
+    // below cannot pass merely because nothing was drawn at all.
+    await expect.poll(() => grid.isSelectionEdgeAtColumnStart(12, 1)).toBe(true);
+
+    expect(await grid.isSelectionEdgeOnFrozenRowsLine(1)).toBe(false);
     expect(await grid.isSelectionEdgeOnFrozenRowsLine(2)).toBe(false);
   });
 

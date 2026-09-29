@@ -1510,7 +1510,26 @@ export class SelectionFeaturesPage {
       const column = hot.getCell(-1, targetCol, true)!.getBoundingClientRect();
       const hit = document.elementFromPoint(column.left + (column.width / 2), line - 0.5);
 
-      return !!hit && hit.classList.contains('wtBorder');
+      return !!hit && hit.classList.contains('wtBorder') && !hit.classList.contains('corner');
     }, col);
+  }
+
+  /**
+   * Whether a selection edge is drawn at the start (left, LTR) boundary of a column, at the middle
+   * of the given row. A positive control for {@link isSelectionEdgeOnFrozenRowsLine}: that method
+   * only ever asserts an edge's ABSENCE, so a check for "no edge on the freeze line" would pass just
+   * as well if the whole outline failed to draw, or if it ran before a pending redraw landed. Poll
+   * this for `true` first, to prove the outline the test expects is actually on screen before
+   * checking that the seam inside it is gone.
+   */
+  async isSelectionEdgeAtColumnStart(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([targetRow, targetCol]) => {
+      const { hot } = window;
+      const rowRect = hot.getCell(targetRow, -1, true)!.getBoundingClientRect();
+      const columnRect = hot.getCell(-1, targetCol, true)!.getBoundingClientRect();
+      const hit = document.elementFromPoint(columnRect.left + 0.5, rowRect.top + (rowRect.height / 2));
+
+      return !!hit && hit.classList.contains('wtBorder') && !hit.classList.contains('corner');
+    }, [row, col] as const);
   }
 }
