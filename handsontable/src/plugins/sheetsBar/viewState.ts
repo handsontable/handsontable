@@ -70,6 +70,8 @@ interface PaginationPlugin {
   getCurrentPageSize: () => number | 'auto';
   setPage: (page: number) => void;
   setPageSize: (pageSize: number | 'auto') => void;
+  nextPage: () => void;
+  prevPage: () => void;
   getSetting: (name: string) => unknown;
   getPaginationData: () => { totalPages: number, firstVisibleRowIndex: number, lastVisibleRowIndex: number };
 }
@@ -797,33 +799,54 @@ function isRowOnPage(pagination: PaginationPlugin, row: number): boolean {
 }
 
 /**
- * Returns the page a row is estimated to sit on, from how many shown-page spans it lies away from
- * the current page's first row. Hidden rows make it an estimate, which {@link followRow} refines.
+ * Returns the page a row is estimated to sit on, from how many pages it lies away from the current
+ * page's first row. A number page size is the page length; `'auto'` falls back to the shown page's
+ * span. Hidden rows, a short last page, and `'auto'` pages of other lengths make it an estimate,
+ * which {@link followRow} refines one page at a time.
  */
 function estimatePageOfRow(pagination: PaginationPlugin, row: number): number {
   const { totalPages, firstVisibleRowIndex, lastVisibleRowIndex } = pagination.getPaginationData();
-  const rowsPerPage = Math.max(lastVisibleRowIndex - firstVisibleRowIndex + 1, 1);
+  const pageSize = pagination.getCurrentPageSize();
+  const rowsPerPage = typeof pageSize === 'number' ?
+    Math.max(pageSize, 1) :
+    Math.max(lastVisibleRowIndex - firstVisibleRowIndex + 1, 1);
   const offset = Math.floor((row - firstVisibleRowIndex) / rowsPerPage);
-  const step = offset === 0 ? Math.sign(row - firstVisibleRowIndex) : offset;
 
-  return clamp(pagination.getCurrentPage() + step, 1, Math.max(totalPages, 1));
+  return clamp(pagination.getCurrentPage() + offset, 1, Math.max(totalPages, 1));
 }
 
 /**
- * Opens the page a row sits on and returns whether it got there. It jumps to the estimated page
- * rather than paging one step at a time, so a gap of many pages fires the page hooks once, and
- * refines from there. Stops when a page change does not happen — a `beforePageChange` listener
- * vetoed it — and after one pass over the page count.
+ * Pages one step towards a row and returns whether the page changed — `false` when there is no
+ * further page that way, or a `beforePageChange` listener vetoed the change.
+ */
+function stepTowardsRow(pagination: PaginationPlugin, row: number): boolean {
+  const page = pagination.getCurrentPage();
+
+  if (row < pagination.getPaginationData().firstVisibleRowIndex) {
+    pagination.prevPage();
+  } else {
+    pagination.nextPage();
+  }
+
+  return pagination.getCurrentPage() !== page;
+}
+
+/**
+ * Opens the page a row sits on and returns whether it got there. It jumps once to the estimated
+ * page, so a gap of many pages fires the page hooks once, and then walks one page at a time: a walk
+ * cannot overshoot, where repeated estimates from pages of different lengths can bounce past the
+ * row for ever. Stops when a step does not move the page, and after one pass over the page count.
  */
 function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number): boolean {
   const { totalPages } = pagination.getPaginationData();
+  const estimate = estimatePageOfRow(pagination, row);
+
+  if (estimate !== pagination.getCurrentPage()) {
+    pagination.setPage(estimate);
+  }
 
   for (let step = 0; step < totalPages && !isRowOnPage(pagination, row); step++) {
-    const page = pagination.getCurrentPage();
-
-    pagination.setPage(estimatePageOfRow(pagination, row));
-
-    if (pagination.getCurrentPage() === page) {
+    if (!stepTowardsRow(pagination, row)) {
       break;
     }
   }

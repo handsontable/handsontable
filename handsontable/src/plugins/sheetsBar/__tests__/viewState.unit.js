@@ -535,6 +535,52 @@ describe('SheetsBar view state', () => {
     expect(hot.getSelectedLast()).toEqual([154, 0, 154, 0]);
   });
 
+  it('reaches a restored selection from a short last page with a single page change', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 195 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const afterPageChange = jest.fn();
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+    pagination.setPage(20);
+
+    expect(pagination.getPaginationData().lastVisibleRowIndex).toBe(194);
+
+    hot.addHook('afterPageChange', afterPageChange);
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(afterPageChange).toHaveBeenCalledTimes(1);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('walks the last pages to a restored selection when hidden rows throw the estimate off', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      hiddenRows: { rows: Array.from({ length: 50 }, (_, index) => 100 + index) },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(13);
+    hot.selectCell(170, 0);
+
+    expect(pagination.getPaginationData().firstVisibleRowIndex).toBe(170);
+
+    pagination.setPage(1);
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(13);
+    expect(hot.getSelectedLast()).toEqual([170, 0, 170, 0]);
+  });
+
   it('keeps the restored selection on the shown page when a listener refuses the page size', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

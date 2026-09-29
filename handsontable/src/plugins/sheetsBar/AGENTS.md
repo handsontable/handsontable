@@ -31,8 +31,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
   of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
   `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
-  one `setPage()` to the page estimated from the shown page's span, then refined, so a gap of
-  many pages fires the page hooks once instead of once per page; a selection carried over from
+  one `setPage()` to the estimated page (the number page size as the page length, the shown
+  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
+  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
+  lengths make repeated estimates bounce past the row; a selection carried over from
   the previous sheet, or one the follow could not reach, is deselected rather than left on a
   hidden row.
   The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
