@@ -18,11 +18,56 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
-  longer matches the data is skipped. Manual sizes are stored as sparse
-  `[physicalIndex, size]` pairs read and written through the resize plugins'
-  `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its height) and
-  cleared through their bulk `clearManualSizes()`.
+  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
+  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
+  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
+  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
+  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
+  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
+  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
+  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
+  nor restored: DataProvider answers a page change with a fetch, and the result would load into
+  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
+  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
+  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
+  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
+  one `setPage()` to the estimated page (the number page size as the page length, the shown
+  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
+  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
+  lengths make repeated estimates bounce past the row; a selection carried over from
+  the previous sheet, or one the follow could not reach, is deselected rather than left on a
+  hidden row.
+  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
+  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
+  and so are the ranges handed to the import, or the stored state would become the live
+  selection). A selection made from a header or spanning a whole axis (any header or
+  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
+  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
+  while a whole column on page 2 or later has none — Pagination moves its start to the page's
+  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
+  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
+  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
+  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
+  layer, the step core answers with those classes and hooks — and since that step makes the last
+  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
+  plain cell selection goes through
+  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
+  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
+  read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
+  count — are dropped one by one before `trimRows()`, which rejects the whole list when any
+  index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical
+  position, not the record, after the host changed the sheet's data while it was away.
+  Manual sizes are stored as sparse `[physicalIndex, size]` pairs read and written through the
+  resize plugins' `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its
+  height) and cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
+  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
+  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
+  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
+  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
+  visual space its stored index is mapped through. For the same reason the hidden rows are
+  captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
+  the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
+  `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -98,11 +143,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (130k on a validated 5,000-row sheet: +42% switch time, +126 MB over ten switches). The
   serve hook runs on the hottest read path: keep the `size === 0` bail-out first and only
   write differing values. `valid` is not tracked at all (`UNTRACKED_META_KEYS`) — the next
-  validation recomputes it, and it is what made the map balloon. Entries are stored with
+  validation recomputes it, and it is what made the map balloon. Neither are MergeCells' `hidden`
+  and `spanned`: the switch restores merges itself, and MergeCells removes those keys from a
+  trimmed row without `afterRemoveCellMeta`, so a tracked copy came back after an unmerge (DEV-3135). Entries are stored with
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
   `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the
-  host removed.
+  host removed. Physical keys are not stable across `alter()`: an insert or remove renumbers
+  every physical index after it, and core's `MetaManager` shifts its own cell meta to match.
+  The `afterCreateRow`/`afterRemoveRow`/`afterCreateCol`/`afterRemoveCol` handlers re-key the
+  map the same way (drop the removed indexes, shift the rest; an `auto` insert shifts nothing,
+  because `DataMap` does not shift core meta for it either), and a host `loadData` clears
+  it, because `loadData` clears core's cell meta. Any new code path that renumbers physical
+  indexes must re-key it too, or the serve hook paints a cell's meta onto its neighbor. The
+  `auto` skip also covers the rows a switch creates for `minRows` or `minSpareRows` while the
+  arriving sheet's map sits over the outgoing sheet's data, so the re-key needs no
+  `#isSwitching` guard, and must not take one: a host `alter()` from
+  `afterSheetTabStateRestore` runs inside the switch and has to re-key. The four listeners
+  register at `orderIndex` -1, so the map is shifted before a host listener on the same hook
+  reads meta, the way core shifts `MetaManager` before it fires. The map follows whatever indexes the hooks
+  report, so the NestedRows tree operations, which fire `afterCreateRow`/`afterRemoveRow` with
+  computed indexes (and fire nothing on a tree row move), can still drift from core meta.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
   after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
   filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
@@ -169,27 +230,110 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   so the bar sits after the last row. A layout where the bar covers a row, is clipped, or overshoots
   the declared height is a core/layout bug, not a plugin one (`tests/e2e/bottom-slot-sizing.spec.ts`,
   DEV-2848).
+- **A `dblclick` on the chevron is two menu clicks, never a rename (DEV-3086).** The tab's
+  `dblclick` handler skips the chevron on every tab, not only the active one: on another tab
+  the first click switches sheets and repaints, so the pair's `dblclick` lands on a chevron that
+  is active by then. Without the guard the rename input opened on top of the menu the second
+  click had just opened. The reverse order needs no guard — opening the menu moves the focus,
+  the input blurs, and the blur commits the rename first.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
+- **A listener can cancel the restore's `filter()` and `sort()`, and the restore must survive it.**
+  `beforeFilter` and `beforeColumnSort` are cancelable, and DataProvider cancels both on purpose
+  (server-side mode), so the restore never forces them through. A canceled `filter()` puts back the
+  conditions of the previous pass, which ran on the departing sheet. `restoreFilterConditions`
+  imports the plain way, so `beforeFilter` still gets the departing sheet's conditions as the
+  previous stack. A canceled pass is recognized by `afterFilter` not firing (`runFilterPass()`), not
+  by comparing conditions, which also fired when an `afterFilter` listener edited them and then
+  undid the edit. After a canceled pass it re-imports the sheet's own through the Filters plugin's
+  `@private` `importBaselineConditions()`, which also makes them the fallback for later canceled
+  passes. The skipped branch (nothing to apply, nothing to clear) sets
+  an empty baseline too. `loadData` empties the condition collection but not the fallback, so
+  without that, a canceled pass or the first undo on an unfiltered sheet brought back the departing
+  sheet's filter. A canceled filter leaves the rows unfiltered while the menu shows the sheet's own
+  conditions: that is the listener's decision, not the restore's. A canceled `sort()` returns
+  before the sort states are written, while `restoreSequence()` still writes the sorted rows, so
+  `restoreCanceledSortStates()` writes them back through `setSortConfig()`, and only once
+  `restoreSequence()` reports the captured row order written: a sheet whose data changed size keeps
+  the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
+  the states are no longer empty (the listener set its own config) or while the plugin has no
+  `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
+  without it made the next `sort()` throw. The cache is missing after the plugin was disabled and
+  enabled again, which a sheet declaring `columnSorting: false` does on every switch.
 - **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
   `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
-  restore runs after it and goes through the public `sort()`, `filter()` and `merge()`, whose
-  UndoRedo actions register on `beforeColumnSort`/`beforeFilter`/`beforeMergeCells`. Without the
+  restore runs after it and goes through the public `sort()` and `filter()`, whose UndoRedo
+  actions register on `beforeColumnSort`/`beforeFilter`. Without the
   guard they land on the fresh stack, and the first Ctrl+Z after a switch took back the arriving
   sheet's own sort. `restoreFilterConditions` also skips `filter()` when neither the stored state
   nor the grid has a condition — the neutral state's `filterConditions: []` is truthy, so every
   switch used to run a filter pass.
+- **Merges are cleared before `loadData()` and restored on the automatic path.**
+  MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
+  and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
+  shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
+  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
+  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
+  while the departing merges still match the grid (the neutral reset does it otherwise). And
+  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
+  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
+  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
+  load and win over the ones the user unmerged or moved. That second pass empties the
+  collection only, never the meta: the load has already reset the cell meta, and the same
+  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
+  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
+  leaves MergeCells' own record of applied declared areas alone, so its next settings update
+  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
+  are all trimmed stays in the collection's list at its last visual position, and restored
+  there it came back as a visible merge over unrelated rows, or won over a live merge,
+  depending on list order. Such a merge is therefore gone after a round trip, even once its
+  rows are untrimmed. The restore then drops a stored merge that no longer fits (the data is
+  the host's and can shrink while the sheet is away), and one that would overlap a merge
+  already on screen, which only a host listener adding merges during the load can produce,
+  since the automatic path skips the overlap check.
+  The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
+  declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
+  `auto: true` (UndoRedo records nothing for that), and no cell is written, where the public
+  `merge()` rewrote every covered cell with `null`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
-- **A switch runs `loadData()` once or twice, and AutoColumnSize sweeps every column on each
-  (DEV-2905).** `#applySheet` first applies the sheet's settings (declared, or inherited formula
-  settings for a runtime-added sheet) through `updateSettings()`; when that changes the Formulas
-  plugin's `sheetName` and the engine sheet holds content, `Formulas#switchSheet` runs a `loadData()`
-  of the engine's serialized content (`source: 'Formulas.switchSheet'`) before the bar's own
-  `loadData()` — a blank engine sheet skips it. Each `loadData()` nulls the width map, so the
-  AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
+- **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
+  (DEV-2905, DEV-3040).** `#applySheet` first applies the sheet's settings (declared, or inherited
+  formula settings for a runtime-added sheet) through `updateSettings()`; when that changes the
+  Formulas plugin's `sheetName`, `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of
+  the engine's serialized content (`source: 'Formulas.switchSheet'`), right before the bar's own
+  `loadData()` overwrote it. `#withoutFormulasSwitchLoad` sets the Formulas plugin's `@private`
+  `skipSheetSwitchLoad` flag around that `updateSettings()` (duck-typed through `getPlugin`, like
+  `#withoutUndoEntry` does for UndoRedo), so Formulas only binds the sheet and the bar's load — whose
+  Formulas `afterLoadData` writes the array into that sheet — is the one load. Between the two calls
+  the grid still holds the departing sheet's data while bound to the arriving sheet. The switch is
+  render-suspended and the binding clears the owed resync, so Formulas writes nothing into the engine;
+  a read in that window (another plugin's `updatePlugin`, a host `afterUpdateSettings` listener)
+  answers from the arriving engine sheet at the departing grid's coordinates, until the load replaces
+  the data. **Core does write in that window**: `updateSettings()` ends in `adjustRowsAndCols()`,
+  which pads the array the grid holds — the departing sheet's own `data`, by reference — up to the
+  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols` — and a grid-level one does the
+  same whenever the update changes what the padding reads (a baseline restoring `columns: null`
+  opens the `minCols` branch; an arriving `trimRows` lowers `countRows()`). So `#applySheet` runs
+  that update under `#withoutAutoPadding`, and `#onBeforeAutoCreate` (registered on
+  `beforeCreateRow`/`beforeCreateCol` at the top of `enablePlugin`, so the init build is covered
+  too) vetoes every create with source `auto` while it is set. The `loadData()` that follows pads
+  the arriving sheet's data inside its own `adjustRowsAndCols()`, before `afterLoadData`, exactly as
+  a plain load does, so host listeners, the AutoColumnSize sweep and the Formulas engine write all
+  see the padded size. Do not replace the veto with a zero-then-reapply of the `min*` keys: that
+  missed grid-level keys, ran a second `updateSettings()` (a second Formulas `setSheetContent` and
+  engine undo entry per switch, and a second host `afterUpdateSettings`), and moved the padding
+  after `afterLoadData`. The listener returns `undefined` rather than `true` when it does not veto,
+  so it never overrides another listener's `false`. Before this, only a formula switch onto a
+  non-empty engine sheet was safe (`switchSheet()` loaded a throwaway copy first); a workbook without
+  Formulas and a switch onto an empty engine sheet padded the departing sheet. Pinned in
+  `sheetsBar.unit.js`: "loads the grid once per switch", the four "does not pad a … sheet's data …"
+  tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch",
+  and "leaves the Formulas switch load and min padding working after a switch threw mid-update". The
+  `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before
   the Formulas `afterLoadData` fed the new data to the engine, and the engine's `valuesUpdated` batch
@@ -197,8 +341,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `orderIndex` -1, and `tests/e2e/sheet-switch-autosize.spec.ts` pins the count. What remains is
   O(rows × cols) per `loadData()` by design — the `syncLimit` contract is "first paint exact" — so a
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
-  double load and the Formulas `afterCellMetaReset` scan of the *outgoing* sheet that the
-  `updateSettings()` triggers are the remaining per-switch costs, both outside this plugin.
+  Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
+  triggers is the remaining per-switch cost outside this plugin.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

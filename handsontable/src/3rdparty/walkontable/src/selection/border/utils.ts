@@ -188,3 +188,78 @@ export const standsBelowColumnHeader = (cellElement: HTMLElement): boolean => {
 
   return sectionSibling?.nodeName === 'THEAD' && sectionSibling.hasChildNodes();
 };
+
+/**
+ * The inclusive index range an overlay renders on both axes (renderable indexes).
+ */
+export interface RenderedBand {
+  firstRow: number;
+  lastRow: number;
+  firstColumn: number;
+  lastColumn: number;
+}
+
+/**
+ * The edges of a selection box that fall inside a merged block rather than on its outline.
+ */
+export interface InteriorEdges {
+  top: boolean;
+  bottom: boolean;
+  start: boolean;
+  end: boolean;
+}
+
+/**
+ * Tells which edges of a merged block's box, as one overlay draws it, lie inside the block.
+ *
+ * A merged block that crosses a freeze line is rendered once per overlay, and each overlay shows only
+ * the part of the block its own band covers: with `mergeCells.virtualized` MergeCells clamps the
+ * `rowspan`/`colspan` to the band (`clampToVirtualViewport`), and without it the browser truncates the
+ * span at the edge of the overlay's table. The box `Border#appear` measures from that cell therefore
+ * ends on the freeze line wherever the block continues into another overlay. An edge is interior when
+ * the block reaches past this overlay's band on that side: another overlay draws the block's real
+ * edge there, and drawing this one puts a line through the middle of the merged cell (DEV-143).
+ *
+ * @param {number[]} blockExtent The block's `[fromRow, fromColumn, toRow, toColumn]`, as the
+ *   `onModifyGetCellCoords` setting reports it (renderable indexes).
+ * @param {RenderedBand} band The overlay's rendered band.
+ * @returns {InteriorEdges}
+ */
+export const getEdgesInsideBlock = (blockExtent: number[], band: RenderedBand): InteriorEdges => {
+  const [fromRow, fromColumn, toRow, toColumn] = blockExtent;
+
+  return {
+    top: fromRow < band.firstRow,
+    bottom: toRow > band.lastRow,
+    start: fromColumn < band.firstColumn,
+    end: toColumn > band.lastColumn,
+  };
+};
+
+/**
+ * Resolves a `modifyGetCellCoords` result (as `Walkontable#getSetting('onModifyGetCellCoords', ...)`
+ * returns it) into a merged block's extent, or `null` when the result carries no full extent.
+ *
+ * `modifyGetCellCoords` is documented to return either `[row, column]` or a full
+ * `[row, column, row2, column2]` extent (`core/settings.ts`), and a hook indifferent to `source`
+ * legitimately answers every call - including a `'render'`-sourced one from `Border` - with the
+ * short form. `TableView`'s adapter (`tableView.ts`) turns a short result into a 4-element array
+ * whose last two slots stay `undefined`, and nothing that compares them (`<=`, `getEdgesInsideBlock`)
+ * can ever read that as "in range" - so treating it as an extent hides a plain cell's fill handle and
+ * mobile handle, cells that have nothing to do with the hook that returned it (DEV-143 follow-up).
+ * Callers fold that check in here instead of re-deriving it.
+ *
+ * @param {unknown} hookResult What the `'render'`-sourced `onModifyGetCellCoords` call returned.
+ * @returns {number[] | null}
+ */
+export const resolveBlockExtent = (hookResult: unknown): number[] | null => {
+  if (
+    !Array.isArray(hookResult) ||
+    !Number.isInteger(hookResult[2]) ||
+    !Number.isInteger(hookResult[3])
+  ) {
+    return null;
+  }
+
+  return hookResult as number[];
+};

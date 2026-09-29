@@ -394,8 +394,10 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright from 20.0.0 on (it was deprecated in
+     * 19.0.0). See that method, which owns the rule; `setDataAtRowProp()` is not affected, because the property you
+     * pass names the field to write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -2081,6 +2083,14 @@ export default (): Record<string, unknown> => {
      *
      * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
      *
+     * Unless you set the [`columns`](#columns) or [`dataSchema`](#dataSchema) option, Handsontable reads the number
+     * of columns from the first row of `data`. If that row has no fields (for example, `[{}]`, `[null]`, or
+     * `[[], [1, 2]]`), the grid displays rows with no cells, and values in later rows are not displayed. For such data,
+     * Handsontable logs a console warning. Two cases log no warning: an empty `data: []`, and an array of empty arrays
+     * (`[[]]`) while [`allowInsertColumn`](#allowInsertColumn) is on, because writing to it creates the columns. The check
+     * runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later
+     * update (for example, from a column component rendered after the grid) can come too late to stop the warning.
+     *
      * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
      * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.
      * In this context, `data` is not the full dataset but a column accessor string.
@@ -3457,12 +3467,16 @@ export default (): Record<string, unknown> => {
      * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
      * active: filtering then happens on the server, which knows nothing about frozen rows.
      *
-     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
-     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
-     * panes, so the exemption has to be worked out again. The
+     * With `filterFixedRows: false` and a filter applied, the grid works out again which rows are
+     * exempt when the rows change, on the next render. Inserting or removing a row (including through
+     * [`updateData()`](@/api/core.md#updatedata)) always does it. Moving a row, sorting, or changing
+     * `fixedRowsTop` or `fixedRowsBottom` does it only when a different row ends up frozen, so a sort
+     * that keeps the frozen rows in place (the [`columnSorting`](#columnsorting) default) costs
+     * nothing. This is not a new filter: the conditions stay the same, the
      * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
-     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
-     * a filter".
+     * hooks do not fire, the selection does not move, and no undo step is recorded. Inside a
+     * [`batch()`](@/api/core.md#batch), data read before the batch ends still reflects the previous
+     * frozen rows.
      *
      * **Inside `columns`:**
      *
@@ -3476,9 +3490,9 @@ export default (): Record<string, unknown> => {
      * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
      * leaves sorting through the API working.
      *
-     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
-     * does not reject it, because a column's settings are typed from the grid's, so treat the table
-     * above as the contract rather than the type.
+     * An object written inside `columns` is **ignored**, and logs a warning once per grid. Since 19.0,
+     * TypeScript rejects it too: a column's `filters` is typed `boolean`, and the grid-level object
+     * accepts only `searchMode` and `filterFixedRows`.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3513,7 +3527,7 @@ export default (): Record<string, unknown> => {
      *   { filters: false },
      * ],
      *
-     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * // WRONG: the sub-options are grid-level, so this object is ignored, warns, and does not compile
      * columns: [
      *   { filters: { filterFixedRows: false } },
      * ],
@@ -4258,7 +4272,10 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
-      const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+      // A column index that names no column has no schema entry to compare against. Every value
+      // read from it is empty anyway, so the comparisons below are never reached in that case.
+      const schemaDefault = prop === null ?
+        undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
@@ -4322,7 +4339,9 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
-          const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+          // See `isEmptyCol()` — a column index that names no column has no schema entry.
+          const schemaDefault = prop === null ?
+            undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
@@ -4982,6 +5001,11 @@ export default (): Record<string, unknown> => {
      * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
      * re-apply tries again.
      *
+     * While a filter hides rows, a re-applied range that fits the rows on screen is applied to those
+     * rows. A range that reaches past them can't be applied, so if it was applied before and its
+     * merged cell still covers the rows it was merged on, that merged cell is kept, with its values,
+     * until the filter is cleared.
+     *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
      *
@@ -5031,6 +5055,14 @@ export default (): Record<string, unknown> => {
      * - At initialization: if the `minCols` value is higher than the initial number of columns,
      * Handsontable adds empty columns to the right.
      * - At runtime: for example, when removing columns.
+     *
+     * When you lower the `minCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you added
+     * yourself. Nothing is removed while [`maxCols`](#maxCols) hides part of the grid.
+     * The removal fires the [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) and
+     * [`afterRemoveCol`](@/api/hooks.md#afterremovecol) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveCol` keeps the columns.
      *
      * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects),
@@ -5100,6 +5132,16 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty rows at the bottom.
      * - At runtime: for example, when removing rows.
      *
+     * When you lower the `minRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you added
+     * yourself. Nothing is removed while [`maxRows`](#maxRows) hides part of the grid.
+     * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
+     * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5123,6 +5165,14 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty columns at the grid's right-hand end,
      * they are counted into the `minSpareCols` value.
+     *
+     * When you lower the `minSpareCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you added
+     * yourself. Nothing is removed while [`maxCols`](#maxCols) hides part of the grid.
+     * The removal fires the [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) and
+     * [`afterRemoveCol`](@/api/hooks.md#afterremovecol) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveCol` keeps the columns.
      *
      * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
      *
@@ -5156,6 +5206,16 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty rows at the bottom,
      * they are counted into the `minSpareRows` value.
+     *
+     * When you lower the `minSpareRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you added
+     * yourself. Nothing is removed while [`maxRows`](#maxRows) hides part of the grid.
+     * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
+     * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *

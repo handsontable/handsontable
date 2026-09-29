@@ -29,22 +29,23 @@ test.describe('AutoColumnSize on a formula sheet switch', () => {
     await expect.poll(() => grid.measuredColumnsSettled()).toBe(columnCount * 2);
   });
 
-  test('a switch to a data-holding sheet sweeps it once per loadData, plus the visible walk', async () => {
+  test('a switch to a data-holding sheet sweeps it once, plus the visible walk', async () => {
     const departingColumns = await grid.columnCount();
 
     await grid.resetMeasuredColumns();
     await grid.clickTab(1);
     await expect(grid.cell(0, 3)).toHaveText(/Big total$/);
 
-    // The switch runs `loadData()` twice (the Formulas plugin's `switchSheet` and then the bar's
-    // own load, see the fixture), and each sweeps every column of the arriving sheet. The resume
+    // The switch runs `loadData()` once (the bar's own load; the Formulas plugin only binds the
+    // engine sheet, DEV-3040), and it sweeps every column of the arriving sheet. The resume
     // render's visible walk covers the viewport range, which the departing sheet's columns still
     // define at that point (all of them visible) - a rendering-engine change that resets the
     // rendered range on `loadData()` would legitimately turn that term into `arrivingColumns`.
-    // Anything on top of the sum is the stale-engine rescan this spec guards against.
+    // A second `arrivingColumns` term is the double load; anything else on top of the sum is the
+    // stale-engine rescan this spec guards against.
     const arrivingColumns = await grid.columnCount();
 
-    await expect.poll(() => grid.measuredColumnsSettled()).toBe(arrivingColumns * 2 + departingColumns);
+    await expect.poll(() => grid.measuredColumnsSettled()).toBe(arrivingColumns + departingColumns);
   });
 
   test('widths measured after a switch match the widths measured at init', async () => {

@@ -636,6 +636,7 @@ export class EmptyDataState extends BasePlugin {
 
     this.#ui?.show();
     this.#isVisible = true;
+    this.#updateLayout();
 
     this.#selectionState = this.hot.selection.exportSelection();
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
@@ -654,6 +655,22 @@ export class EmptyDataState extends BasePlugin {
     } else {
       this.#ui?.updateContent(this.#getMessage(SOURCE.UNKNOWN), false);
     }
+  }
+
+  /**
+   * Fits the visible overlay to the current grid layout.
+   *
+   * It runs after every render, and also when the overlay is shown between renders – a DataProvider
+   * fetch starting, for example. Without that the overlay keeps the size it had the last time it was on
+   * screen, and can spill over the pager or the sheets bar.
+   */
+  #updateLayout() {
+    if (!this.#ui?.getElement() || !this.isVisible() || !this.hot.view?._wt) {
+      return;
+    }
+
+    this.#ui.updateSize(this.hot.view, this.#loadingActive);
+    this.#ui.updateClassNames(this.hot.view);
   }
 
   /**
@@ -720,10 +737,7 @@ export class EmptyDataState extends BasePlugin {
    * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender = () => {
-    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
-      this.#ui.updateSize(this.hot.view, this.#loadingActive);
-      this.#ui.updateClassNames(this.hot.view);
-    }
+    this.#updateLayout();
   };
 
   /**

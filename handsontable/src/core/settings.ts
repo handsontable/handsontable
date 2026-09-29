@@ -11,7 +11,7 @@ import type {
   CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
-import type { ColumnConditions } from '../plugins/filters';
+import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
@@ -284,7 +284,7 @@ export interface GridSettings {
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
-  filters?: boolean | object;
+  filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
   formulas?: boolean | {
     engine: unknown;
@@ -417,7 +417,9 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
+  afterDetachChild?: (
+    parent: RowObject, element: RowObject, finalElementPosition: number | null, source?: string
+  ) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -615,7 +617,7 @@ export interface GridSettings {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
-  beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+  beforeDetachChild?: (parent: RowObject, element: RowObject, source?: string) => void;
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
@@ -756,7 +758,7 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

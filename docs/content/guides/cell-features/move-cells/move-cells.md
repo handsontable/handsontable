@@ -20,6 +20,7 @@ vue:
 searchCategory: Guides
 category: Cell features
 menuTag: new
+addedIn: "18.1.0"
 ---
 Move or copy a selected range of cells by dragging its border, the same way you would in a spreadsheet application.
 

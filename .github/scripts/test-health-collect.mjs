@@ -4,8 +4,9 @@
  * Collects one workflow run's flaky and failed tests into the cross-run ledger.
  *
  * Reads the run's downloaded artifacts (one directory per artifact), extracts
- * every flaky or failed test from the Playwright JSON reports and the Puppeteer
- * failed-specs records, merges them into the ledger checked out from `gh-pages`,
+ * every flaky or failed test from the Playwright JSON reports, the Puppeteer
+ * failed-specs records, and the visual compare records, merges them into the
+ * ledger checked out from `gh-pages`,
  * and writes the ledger, the per-test summary and the page next to it. Prints
  * the step-summary Markdown to stdout.
  *

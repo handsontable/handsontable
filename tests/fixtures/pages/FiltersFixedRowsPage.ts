@@ -158,6 +158,49 @@ export class FiltersFixedRowsPage {
   }
 
   /**
+   * Insert empty rows above a visual row through the API, the way a host application's own
+   * "add row" button would.
+   */
+  async insertRowAbove(row: number): Promise<void> {
+    await this.page.evaluate(visualRow => window.hot.alter('insert_row_above', visualRow), row);
+  }
+
+  /**
+   * Select one cell through the API.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col]);
+  }
+
+  /**
+   * The last selection layer as `[startRow, startCol, endRow, endCol]`, or `null` with nothing selected.
+   */
+  async selectedLast(): Promise<number[] | null> {
+    return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
+   * Starts counting `afterFilter` calls; read the count back with `afterFilterCalls()`.
+   */
+  async countAfterFilterCalls(): Promise<void> {
+    await this.page.evaluate(() => {
+      const counter = window as { afterFilterCalls?: number };
+
+      counter.afterFilterCalls = 0;
+      window.hot.addHook('afterFilter', () => {
+        counter.afterFilterCalls = (counter.afterFilterCalls ?? 0) + 1;
+      });
+    });
+  }
+
+  /**
+   * How many times `afterFilter` fired since `countAfterFilterCalls()`.
+   */
+  async afterFilterCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as { afterFilterCalls?: number }).afterFilterCalls ?? 0);
+  }
+
+  /**
    * Open the dropdown menu of the column with the given header label.
    *
    * Waits only for the menu itself, never for a filter item: a column that opted out of filtering

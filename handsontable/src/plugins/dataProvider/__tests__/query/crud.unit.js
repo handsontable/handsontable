@@ -67,6 +67,23 @@ describe('dataProvider crud', () => {
 
       expect(filterChangesForBatchedServerUpdate(hot, changes)).toEqual([[0, 'ok', 1, 2]]);
     });
+
+    it('should keep a change written past the last column, as the grid still applies it', () => {
+      const pastLastColumnHot = {
+        // A numeric property past the last column names no column.
+        propToCol: prop => (prop === 'name' ? 0 : null),
+        getCellMetaTransient: () => ({}),
+      };
+      const changes = [
+        [0, 'name', 'a', 'b'],
+        [0, 5, null, 'x'],
+      ];
+
+      expect(filterChangesForBatchedServerUpdate(pastLastColumnHot, changes)).toEqual([
+        [0, 'name', 'a', 'b'],
+        [0, 5, null, 'x'],
+      ]);
+    });
   });
 
   describe('commitRowsUpdate', () => {

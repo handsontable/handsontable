@@ -180,18 +180,6 @@ export async function selectEditor() {
 }
 
 /**
- * Triggers the arrow keys events.
- *
- */
-export async function tryToEscapeFromTheComponentsFocus() {
-  // try to select another menu item using arrow keys (it should not be possible)
-  await getPageInstance().keyboard.press('ArrowDown');
-  await getPageInstance().keyboard.press('ArrowUp');
-  await getPageInstance().keyboard.press('ArrowRight');
-  await getPageInstance().keyboard.press('ArrowLeft');
-}
-
-/**
  * Create a selection from one cell to another.
  *
  * @param {Locator} cellFrom Start cell.
@@ -642,8 +630,9 @@ export async function filterByCondition(
     // (`filters/component/condition.ts`, the `index === 0` branch), and the click focuses it too — so
     // an assertion placed after the click passes on its first poll and waits for nothing, leaving the
     // timer free to fire mid-typing. Waiting for the hand-off first is what makes the state
-    // deterministic; the click then only places the caret. `accepting-by-enter.spec.ts` waits the
-    // same way. The second input has no such timer (the engine defers only the first).
+    // deterministic; the click then only places the caret. The filters visual spec
+    // `tab-navigation-through-condition-components` waits the same way. The second input has no such
+    // timer (the engine defers only the first).
     await expect(valueInput).toBeFocused();
     await valueInput.click();
     await valueInput.pressSequentially(value);
@@ -967,21 +956,32 @@ export async function scrollWindowTo(x: number, y: number) {
 }
 
 /**
+ * The class suffix a menu gives a submenu's container: the item's display label with every character
+ * outside A-Z, a-z, and 0-9 turned into an underscore, as `Menu#createContainer()` builds it.
+ *
+ * @param {string} label The item's display label.
+ * @returns {string} The suffix after `htContextMenuSub_` or `htDropdownMenuSub_`.
+ */
+function submenuClassSuffix(label: string) {
+  return label.replace(/[^A-Za-z0-9]/g, '_');
+}
+
+/**
  * Waits for the context submenu to appear on the page.
  *
- * @param {string} submenuName The name of the submenu.
+ * @param {string} submenuName The item's display label.
  */
 export async function waitForContextSubmenuToAppear(submenuName: string) {
-  await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuName}`);
+  await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
 /**
  * Waits for the dropdown submenu to appear on the page.
  *
- * @param {string} submenuName The name of the submenu.
+ * @param {string} submenuName The item's display label.
  */
 export async function waitForDropdownSubmenuToAppear(submenuName: string) {
-  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
+  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuClassSuffix(submenuName)}`);
 }
 
 /**

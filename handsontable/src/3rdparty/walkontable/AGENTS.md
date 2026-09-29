@@ -30,6 +30,177 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Each adjust handle has exactly one owning overlay (DEV-3084)
+
+A selection that crosses a freeze line is drawn once per overlay. `appear()` runs in the master and in
+every clone, and each run clamps the corners to what that overlay renders. So a slice drawn by
+`inline_start`, for example, ends on the freeze line. When each slice placed its own full set of
+`adjustHandles`, handles showed up on the freeze line in the middle of the selection, and the top and
+bottom edges got one pair per slice.
+
+The rules now live in `selection/border/adjustHandlesOwnership.ts`. They are pure functions over a
+per-axis layout, unit-tested table-driven in `test/unit/selection/border/adjustHandlesOwnership.unit.ts`.
+`getHandleOwnership` gives each handle to exactly one overlay. `Border#planAdjustHandles` resolves the
+inputs and `Border#applyAdjustHandles` writes the result.
+
+- **One snapshot per draw.** The clones render their selections inside `wtOverlays.refresh()`, and
+  the master renders its own afterwards. In between, `createVisibleCalculators()` can run again, when a
+  frozen-derived row height changed. Read live, the clones and the master could decide on different
+  ranges and draw a handle twice or not at all. So `snapshotSelectionVisibleRange` (`table/drawCycle.ts`)
+  stores the master's visible ranges on `Overlays#selectionVisibleRange` right before each `refresh()`.
+  Every overlay reads that snapshot through `cloneSource`. A master draw that never reaches `refresh()`
+  keeps the previous snapshot, which is also what the clones last drew with.
+- **Visible, not rendered.** The master renders more tracks than the user can see:
+  - the rendering offset (`viewport*RenderingOffset: 'auto'`) adds one track on each side;
+  - the directional overscan adds more;
+  - `renderAllRows` and `renderAllColumns` render everything.
+
+  Those extra tracks sit behind a frozen pane or outside the holder. The visible calculators leave the
+  frozen panes out.
+- **Fully visible decides the center, and edges are checked per side.** A few pixels of a scrollable
+  column past the pane count as "partially visible". If that were enough to make the scrollable part
+  own the centered handles, they would be drawn on the sliver, behind the pane. So:
+  - `getCenterSegment` asks for a *fully* visible track of the selection's scrollable part.
+  - `isTrackEdgeVisible` checks each edge separately. The first partially visible track has lost its
+    start edge but keeps its end edge, and the last one the other way round. So a sliver's end handle
+    is still drawn, and can still be grabbed.
+- **On the handle's own axis,** the overlay's segment must contain the edge. Each overlay has a
+  segment on each axis: frozen `start`, scrollable `main`, or frozen `end`. The overlay must also
+  render the edge unclamped, and in `main` the edge must be on screen. An edge clamped to the
+  rendered band lies inside the selection.
+- **On the cross axis,** where the handle is centered, only the segment `getCenterSegment` picks may
+  draw it. Without the frozen fallback, the top and bottom handles vanish once the scrollable part is
+  scrolled away.
+- **The midpoint comes from the owner's visible segment** (`getHandlesSpan`, then
+  `Border#getAdjustHandlesBox`), not from the clamped box. At a scroll offset of 0 the master and the
+  scroll-synced clones render the frozen rows or columns at the start of their band, underneath the
+  frozen overlays. At any offset they render overscan tracks. So a handle centered on the whole box can
+  land on the freeze line, behind a pane, or outside the holder. As a result, a crossing selection's
+  top and bottom handles are **not** centered on the whole range. That is deliberate.
+- **The geometry is read before `appear()` writes any style.** `appear()` calls `planAdjustHandles`
+  before its first style write. A read after the writes would force a second synchronous layout per
+  border on every draw, including scroll frames. The reads cover the reference cell and the new edge
+  cell, and only for an edge the narrowing actually moves.
+- **Merged cells need care.** `getCell` resolves a covered coordinate to the merge's root, so the
+  edge it finds can be the whole block's, not the track's.
+  - `measureTrackEdgeDelta` walks the selection's other axis until it finds a cell whose own block
+    (`getCoords` plus the span on that axis) starts or ends on the track.
+  - When every cell on the track belongs to such a merge, it sums the master's size caches instead
+    (`measureTrackEdgeDeltaFromSizes`). It reads `PositionCache#getOffset` without `ensureBuilt()`,
+    because a build mid-draw skips a recalculation the draw cycle still owes.
+  - Skipping the narrowing is not safe: a merge crossing the freeze line then centers the pair on the
+    whole box, which can straddle the line.
+  - A selection of exactly one merged block shows no adjust handles at all, since it is not an area
+    selection.
+- **The rule also applies with no frozen panes.** In a plain grid the master is the only overlay,
+  and the visible-range checks still apply to it. When a selection is taller or wider than the
+  viewport, its handles are centered on the visible part. An edge that lies in the overscan rows
+  gets no handle; before, it got one drawn at the rendered band's edge, inside the selection.
+
+The older "edge lies exactly on a freeze line" hides (`isFrozenBoundaryEdge` and friends) still apply
+on top of this. So does the grid-boundary hide in `positionAdjustHandles`, which works in renderable
+space. With visual row 0 hidden, a selection starting at visual row 1 is at the boundary and gets no
+top handle.
+
+Testing needs care:
+- A crossing selection's master slice already shows the right number of handles, so the
+  master-scoped `handle()`/`visibleHandles()` locators pass on the bug. Count with
+  `visibleHandlesInAnyOverlay()` instead.
+- `:visible` does not check occlusion, so a handle drawn under a frozen pane still counts. Assert
+  with `reachableHandleEdges()`, which hit-tests each handle's center.
+- The rendered-versus-visible trap only shows when a scrollable track of the selection stays
+  rendered behind the pane. Scroll just one track past it (`scrollToColumn(2)` with one frozen
+  column), or leave a sliver (`scrollToLeaveSliverOfColumn()`), not to the far end.
+
+All of this is in `tests/e2e/selection-handles.spec.ts`, "a selection crossing a frozen pane".
+
+The `moveCells` bands (`.wtMoveZone`, `Border#positionMoveZone`) follow the same ownership idea, but
+only its own-axis half (`getMoveZoneOwnership`, built on the `ownsEdgeOnOwnAxis` predicate the handle
+rule also uses). Each slice used to show all four bands on its clamped box, so a band sat on each
+freeze line inside the selection (16 bands for a selection crossing both lines, where 8 are right).
+
+- **No cross-axis center rule.** A band spans its whole edge, so an edge that crosses a freeze line is
+  drawn by every overlay it passes through, each band covering that overlay's slice.
+- **No visibility clause.** A band on an overscan track is clipped by the holder or covered by a
+  frozen pane, so it cannot be grabbed and needs no hiding.
+- **Resolved apart from the handles.** `Border#getMoveZoneOwnership` builds the layout itself, because
+  `planAdjustHandles` gives up when the adjust handles are off (`selectionHandles: false`).
+- **The clamp applies to every grid, frozen panes or not.** In a plain grid the master is the only
+  overlay, so a selection taller or wider than the rendered band loses the band on an edge that lies
+  past the band, where it used to get one on the rendered band's edge, inside the selection. A
+  "missing" top or bottom band on a tall selection is therefore expected while that edge is scrolled
+  out of the rendered rows; it comes back once the edge is rendered. The adjust handles behave the
+  same way.
+- **Header-anchored corners never reach it.** `canMoveRange` rejects entire-row, entire-column, and
+  header selections, so the negative raw corners of such a selection never meet the rule.
+
+The same testing trap applies: the master-scoped `visibleMoveZones()` passes on the bug, so count with
+`visibleMoveZonesInAnyOverlay()` and hit-test with `moveZoneHitsAt()` (`tests/e2e/move-zone.spec.ts`,
+"a selection crossing a frozen pane").
+
+## A merged block crossing a freeze line keeps one outline and one fill handle (DEV-143)
+
+A merged focus cell reaches `Border#appear()` as ONE coordinate (`[r, c, r, c]`), so `isMultiple` is
+false and the box is measured from the block's root cell. Every overlay renders that cell over its
+own band only: with `mergeCells.virtualized` MergeCells clamps the `rowspan`/`colspan` to the band
+(`clampToVirtualViewport`), and without it the cell keeps the full span and the browser truncates it
+at the edge of the overlay's table (measured: `rowspan=3` in the two-row `top` clone lays out two
+rows tall). Either way an overlay that renders part of the block measures a box ending on the freeze
+line. Left alone, every slice drew a closed box (a selection edge through the merged cell on each
+seam) and its own fill handle and mobile bottom handle.
+
+- **The block's extent comes from the `onModifyGetCellCoords` setting, asked once per `appear()`**
+  (`Border#resolveMergedBlockEdges`). `getEdgesInsideBlock` (`selection/border/utils.ts`) compares it
+  with the overlay's rendered band and hides every edge the block reaches past; the overlay that
+  renders the block's outline there draws it.
+- **What the extent is depends on the MergeCells mode.** Without `virtualized` it is the full block,
+  and the master is a no-op because MergeCells' viewport-calculator overrides widen the master's band
+  to cover every merged block in view. With `virtualized` the `'render'` source clamps it to the
+  master's band (and reads `getActiveOverlayName()` for the frozen-start side, which names the clone
+  while that clone draws), so the master is a no-op by construction. The clamp also means the master
+  and a clone that start past the block's root (the master's band starts at column 1 behind a
+  frozen column) still draw a start edge inside the block; a frozen pane covers it, which is why the
+  E2E probe hit-tests instead of counting displayed edges.
+- **Only the single-cell path takes the interior-edge rule.** A multi-cell range crossing a seam has
+  the same geometry, but its clamped edge falls on the clone holder's clip edge, where a 1px layer
+  is hidden by accident; a 2px edge there still shows. That clamp also serves the master's overscan
+  and the entire-row/column header paths, so it was left alone.
+- **The fill handle and the mobile bottom handle are drawn only by an overlay that renders the
+  corner** (`checkRow`, `checkCol` inside the band, on BOTH paths). `isSouthEastOfAreaSelection`
+  answers `true` whenever there is no area range, and the hook remap points every clone at the
+  block's bottom-end, so an area whose bottom-end lies in a crossing block also put a handle on the
+  seam in each clone. A block entirely inside the frozen corner keeps the corner's handle; the
+  master's and the other clones' copies sit under it.
+- **A block whose scrollable part is scrolled behind a pane shows an outline open at the seam and no
+  fill handle**, like a multi-cell range in the same state; before, the frozen slice drew a closed
+  box with a handle on the seam. Checked against `functional continuity`: an ordinary (non-merged)
+  drag-selection whose real bottom-end is scrolled out of the rendered band already showed no fill
+  handle either, on develop before this fix - `toRow`/`toColumn` are clamped to the rendered band
+  before `resolveMergedBlockEdges` runs, and `isSouthEastOfAreaSelection` compares that clamped value
+  against the selection's real (unclamped) corner, which then disagrees. A stray handle on the freeze
+  line only ever showed for a merge that is also a SINGLE selected cell (`cellRange` null), where
+  `isSouthEastOfAreaSelection` returns `true` unconditionally without checking the corner at all -
+  the same shape that produced the 4-handle bug this section opens with. So this case loses no
+  behavior the rest of the grid guarantees; it extends the one general rule.
+- **`resolveBlockExtent` (`selection/border/utils.ts`) is what makes `resolveMergedBlockEdges` safe
+  for a cell that never touches MergeCells.** `modifyGetCellCoords` is documented to return either
+  `[row, column]` or a full `[row, column, row2, column2]` extent, and a hook indifferent to `source`
+  legitimately answers even this fix's own `'render'`-sourced lookup with the short form (found in
+  review on #13667: a custom hook returning `[row, column]` hid every plain cell's fill handle and
+  mobile handle, not only a merged one's). `TableView`'s adapter turns a short result into a 4-element
+  array whose last two slots are `null`, and `Number.isInteger` is what tells that apart from a real
+  extent - `undefined`/`null` fail it, so does a partial 3-element result. Read `blockExtent[2]`/`[3]`
+  only after that check passes.
+
+Not covered: a block crossing the `fixedRowsBottom` line. MergeCells renders that block wrongly on
+its own (before and after this fix), and no overlay draws a reachable handle there.
+
+Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (both MergeCells modes, hit-tested: one
+reachable handle on the block's corner, no visible edge inside the block, the outline on every track
+of every side, and a plain cell keeping its handle against a naive `modifyGetCellCoords` hook), the
+merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, and
+`test/unit/selection/border/utils.unit.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
@@ -98,7 +269,7 @@ frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, wher
 transform moves pixels without moving layout and is exempt. Measured on the same build with and
 without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
 
-Four rules follow, and the first is the one that bites.
+Five rules follow, and the first is the one that bites.
 
 - **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
   this distance.** Any code that compares a cell's document position against an element OUTSIDE the
@@ -132,6 +303,15 @@ Four rules follow, and the first is the one that bites.
   `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
   frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
   offset from the record, not from `style.top`, which is empty now.
+- **`StickyScrollStrategy#syncOffsets` resolves each axis on its own.** An axis with nothing
+  rendered (no rows, or every row hidden, trimmed or filtered out; likewise for columns) has a
+  `null` render-calculator `startPosition`, and it takes offset 0 on that sync, the same value the
+  overlays' `applyToDOM()` writes for that axis outside a drag; both axes are re-resolved on every
+  call, so an axis that gets rows back mid-drag follows them again. Skipping the whole update when
+  either axis is `null` froze the OTHER axis at its activation inset: on a grid with no rows the
+  column headers drifted off their columns mid-drag, and `deactivate()`, which derives the release
+  scroll from the inset, snapped the grid back towards its start (DEV-3083, regressed in 17.1.0 by
+  #12235). Pinned by `tests/e2e/walkontable/scrollbar-drag-empty-grid.spec.ts`.
 
 Pinned by `test/unit/overlay/spreaderOffset.unit.ts` and `tests/e2e/walkontable/spreader-layout-shift.spec.ts`,
 which reads the browser's own `layout-shift` entries under a real wheel scroll — a scripted

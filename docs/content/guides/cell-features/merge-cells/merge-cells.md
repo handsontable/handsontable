@@ -371,6 +371,25 @@ hot.updateSettings({
 hot.getDataAtCell(0, 1); // -> null, cleared as usual
 ```
 
+### Re-applying while a filter hides rows
+
+The `row` and `rowspan` of a range describe the rows on screen. While a filter hides rows, a re-applied range that fits the rows on screen is applied to those rows, as described above.
+
+A range that reaches past the rows on screen can't be applied. If the range was applied before, and its merged cell still covers the rows it was merged on, Handsontable keeps that merged cell instead of dropping it. The merged cell comes back when you clear the filter, and its values stay as they were. This covers a filter that hides every row, too.
+
+So one re-applied array can hold both kinds of range. For example, with only 3 rows on screen:
+
+```js
+hot.updateSettings({
+  mergeCells: [
+    { row: 0, col: 0, rowspan: 2, colspan: 1 }, // fits: applied to the first 2 rows on screen
+    { row: 4, col: 0, rowspan: 2, colspan: 1 }, // doesn't fit: the merged cell it made is kept
+  ],
+});
+```
+
+A range that reaches past the rows on screen and was never applied before is still rejected with a warning.
+
 ## Copying and pasting over merged cells
 
 Pasting a block of more than one cell over a merged range unmerges that range, and every pasted value becomes visible. Excel and Google Sheets behave the same way: a block with its own rows and columns cannot fit inside a single merged cell, so the merge gives way.

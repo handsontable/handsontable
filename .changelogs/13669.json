@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the empty data state loading overlay keeping an outdated size when a `dataProvider` fetch started after the grid was resized, which let it cover the pagination bar.",
+  "type": "fixed",
+  "issueOrPR": 13669,
+  "breaking": false,
+  "framework": "none"
+}

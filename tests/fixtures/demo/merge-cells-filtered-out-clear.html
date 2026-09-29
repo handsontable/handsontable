@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells cleared while every row is filtered out fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back, so a config typo is one red leg.
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Clearing the "Region" column's "filter by value" list filters out the whole grid, including
+    // both rows of the merge. The second row's region is empty: the merge covers it, and a merge
+    // clears the values it covers anyway.
+    const settings = {
+      data: [
+        ['North', 'Alpha', 10],
+        [null, 'Beta', 20],
+        ['East', 'Gamma', 30],
+        ['West', 'Delta', 40],
+        ['Central', 'Epsilon', 50],
+      ],
+      colHeaders: ['Region', 'Product', 'Units'],
+      rowHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+      mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+      width: 500,
+      height: 300,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it.
+    try {
+      window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    /**
+     * Drops every merge, the way a host application clears them at runtime. A throw is left to
+     * propagate, so the caller's `page.evaluate()` rejects with it.
+     */
+    window.htClearMerges = () => {
+      window.hot.updateSettings({ mergeCells: [] });
+    };
+
+    /**
+     * Sends the same merges again, the way the React and Angular wrappers re-send unchanged
+     * settings on every commit. A throw is left to propagate, like in `htClearMerges()`.
+     */
+    window.htResendMerges = () => {
+      window.hot.updateSettings({ mergeCells: settings.mergeCells });
+    };
+
+    /**
+     * Keeps only the rows whose "Region" holds one of the given values.
+     */
+    window.htFilterRegionTo = (values) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [values]);
+      filters.filter();
+    };
+
+    /**
+     * Removes every filter condition and re-filters, so all rows are visible again.
+     */
+    window.htClearFilters = () => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    };
+
+    window.htReady = true;
+  </script>
+</body>
+</html>
