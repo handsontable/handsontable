@@ -205,10 +205,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   load and win over the ones the user unmerged or moved. That second pass empties the
   collection only, never the meta: the load has already reset the cell meta, and the same
   update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
-  may sit at visual rows the loaded data lacks, and a meta reset there throws. The restore then
-  drops a stored merge that no longer fits (the data is the host's and can shrink while the
-  sheet is away), and one that would overlap a merge already on screen — the stored list keeps a merge whose rows
-  were all trimmed at its last visual position, and the automatic path skips the overlap check.
+  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
+  leaves MergeCells' own record of applied declared areas alone, so its next settings update
+  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
+  are all trimmed stays in the collection's list at its last visual position, and restored
+  there it came back as a visible merge over unrelated rows, or won over a live merge,
+  depending on list order. Such a merge is therefore gone after a round trip, even once its
+  rows are untrimmed. The restore then drops a stored merge that no longer fits (the data is
+  the host's and can shrink while the sheet is away), and one that would overlap a merge
+  already on screen, which only a host listener adding merges during the load can produce,
+  since the automatic path skips the overlap check.
   The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
   declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
   `auto: true` (UndoRedo records nothing for that), and no cell is written, where the public

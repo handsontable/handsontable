@@ -2398,6 +2398,74 @@ describe('SheetsBar plugin', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
+  it('does not restore a merge whose rows were all trimmed when nothing sits under it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+    const visible = () => mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    mergeCells.merge(2, 0, 3, 1);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+
+    expect(visible()).toEqual([]);
+
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(visible()).toEqual([]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+    expect(hot.getCellMeta(3, 1).hidden).toBeFalsy();
+  });
+
+  it('keeps the live merge over a fully trimmed one created before it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 8 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`)),
+          },
+          { name: 'Beta', data: [['b']] },
+        ],
+      },
+      mergeCells: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    mergeCells.merge(2, 0, 3, 1);
+    mergeCells.merge(4, 1, 5, 2);
+    hot.getPlugin('trimRows').trimRows([2, 3]);
+    sheetsBar.setActiveSheet(beta.id);
+    sheetsBar.setActiveSheet(alpha.id);
+
+    const visible = mergeCells.mergedCellsCollection.mergedCells
+      .filter(({ row, col }) => mergeCells.mergedCellsCollection.get(row, col) !== false)
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan]);
+
+    expect(visible).toEqual([[2, 1, 2, 2]]);
+    expect(hot.getCellMeta(2, 0).spanned).toBeFalsy();
+  });
+
   it('runs no filter pass on a switch between two sheets that were never filtered', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

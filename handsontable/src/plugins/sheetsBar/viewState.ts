@@ -228,16 +228,30 @@ function captureFilterConditions(hot: HotInstance): unknown[] | null {
 }
 
 /**
- * Captures merged cell ranges as plain `{row, col, rowspan, colspan}` records.
+ * Captures the merged cell ranges on screen as plain `{row, col, rowspan, colspan}` records.
+ * A merge whose rows are all trimmed stays in the collection's list at its last visual position,
+ * but the lookup matrix no longer holds it. Such a merge is left out: restored at that stale
+ * position it would come back as a visible merge over unrelated rows.
  */
 function captureMergedCells(hot: HotInstance): Array<{ row: number, col: number, rowspan: number, colspan: number }> {
   const mergeCells = getEnabledPlugin(hot, 'mergeCells') as
-    { mergedCellsCollection: { mergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }> } }
+    {
+      mergedCellsCollection: {
+        mergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>,
+        get: (row: number, col: number) => unknown,
+      },
+    }
     | undefined;
 
-  return mergeCells?.mergedCellsCollection.mergedCells.map(({ row, col, rowspan, colspan }) => (
-    { row, col, rowspan, colspan }
-  )) ?? [];
+  if (!mergeCells) {
+    return [];
+  }
+
+  const collection = mergeCells.mergedCellsCollection;
+
+  return collection.mergedCells
+    .filter(mergedCell => collection.get(mergedCell.row, mergedCell.col) === mergedCell)
+    .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
 }
 
 /**
@@ -435,6 +449,10 @@ export function clearMergedCells(hot: HotInstance): void {
  * `loadData`. The load has already reset every cell's meta, and the merges still listed were
  * built against the previous data and index maps, so resetting their meta the way
  * {@link clearMergedCells} does could address rows the loaded data does not have.
+ *
+ * Only the collection is emptied. MergeCells keeps its own record of the declared areas it has
+ * applied, so its next settings update still treats them as applied and writes `null` only into
+ * the covered cells that hold a value, instead of into every covered cell.
  */
 export function forgetMergedCells(hot: HotInstance): void {
   const mergeCells = getEnabledPlugin(hot, 'mergeCells') as
@@ -452,8 +470,7 @@ export function forgetMergedCells(hot: HotInstance): void {
  * in the settings: the hooks report `auto`, so a listener can tell a restore from a user's
  * merge, and no cell is written, so the covered cells keep the values they hold. That path
  * skips the overlap check, so a stored merge that would overlap a merge already on screen is
- * dropped here instead: the stored list keeps a merge whose rows were all trimmed at its last
- * visual position, which can land on another merge's cells.
+ * dropped here instead: a host listener can add merges during the load, before the restore.
  */
 function restoreMergedCells(hot: HotInstance, state: ViewState) {
   const mergeCells = getEnabledPlugin(hot, 'mergeCells') as
