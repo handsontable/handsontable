@@ -4,4 +4,4 @@ export {
   Filters,
 } from './filters';
 
-export type { OperationType, ConditionId, ColumnConditions } from './filters';
+export type { OperationType, ConditionId, ColumnConditions, FiltersSettings } from './filters';
