@@ -2988,13 +2988,69 @@ describe('SheetsBar plugin', () => {
 
       hot.selectCell(0, 0);
       hot.listen();
+
+      const hostKeys = [];
+      const onHostKeyDown = event => hostKeys.push(event.key);
+
+      window.addEventListener('keydown', onHostKeyDown);
       keyDown(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab'));
+      window.removeEventListener('keydown', onHostKeyDown);
 
       expect(hot.getActiveEditor().isOpened()).toBe(false);
+      expect(hostKeys).toEqual(['q']);
 
       keyDown(document.body);
 
       expect(hot.getActiveEditor().isOpened()).toBe(true);
+    });
+
+    it('keeps the selection on a press on the bar when outsideClickDeselects is a function', () => {
+      const outside = document.createElement('div');
+      const outsideClickDeselects = jest.fn(() => true);
+
+      document.body.appendChild(outside);
+      hot = new Handsontable(container, {
+        outsideClickDeselects,
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 1);
+      press(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab'));
+
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(outsideClickDeselects).not.toHaveBeenCalled();
+
+      press(outside);
+
+      expect(outsideClickDeselects).toHaveBeenCalled();
+      expect(hot.getSelected()).toBeUndefined();
+      outside.remove();
+    });
+
+    it('leaves no selection behind when the stored one no longer fits the sheet', () => {
+      const dataA = [['a1'], ['a2'], ['a3'], ['a4']];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: dataA },
+            { name: 'B', data: [['b1'], ['b2'], ['b3'], ['b4']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      hot.selectCell(3, 0);
+      sheetsBar.setActiveSheet('B');
+      hot.selectCell(3, 0);
+      dataA.length = 1;
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getDataAtCol(0)).toEqual(['a1']);
+      expect(hot.getSelected()).toBeUndefined();
     });
   });
 

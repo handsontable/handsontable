@@ -133,4 +133,28 @@ export class GridPage {
   async pasteHookCalls(): Promise<number> {
     return this.page.evaluate(() => (window as any).__pasteHookCalls);
   }
+
+  /** The grid's current selection, or `null` when nothing is selected. */
+  async selected(): Promise<number[][] | null> {
+    return this.page.evaluate(() => (window as any).hot.getSelected() ?? null);
+  }
+
+  /** Replace the grid's data through `loadData()`. */
+  async loadData(rows: string[][]): Promise<void> {
+    await this.page.evaluate(data => (window as any).hot.loadData(data), rows);
+  }
+
+  /**
+   * Append a focusable field after the grid, so Shift+Tab from it enters the grid from below.
+   */
+  async appendFieldBelow(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const field = document.createElement('textarea');
+
+      field.setAttribute('data-testid', 'field-below');
+      document.body.appendChild(field);
+    });
+
+    return this.page.getByTestId('field-below');
+  }
 }

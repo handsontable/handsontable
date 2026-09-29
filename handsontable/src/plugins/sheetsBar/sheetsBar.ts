@@ -1060,6 +1060,10 @@ export class SheetsBar extends BasePlugin {
       this.#batchRender(() => {
         if (viewState) {
           selectionRestored = restoreViewport(this.hot, viewState);
+
+          if (!selectionRestored) {
+            this.hot.deselectCell();
+          }
         } else {
           resetViewport(this.hot);
         }
