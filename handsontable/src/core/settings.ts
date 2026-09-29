@@ -11,7 +11,7 @@ import type {
   CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
-import type { ColumnConditions } from '../plugins/filters';
+import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
@@ -285,7 +285,7 @@ export interface GridSettings {
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
-  filters?: boolean | object;
+  filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
   formulas?: boolean | {
     engine: unknown;

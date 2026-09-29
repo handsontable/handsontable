@@ -91,12 +91,24 @@ export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
+  // Only `false` is read per column (it hides that column's filter UI); the grid-level object form
+  // is ignored there, so it is not accepted here.
+  filters?: boolean;
 }
 
 /**
  * Additional cell-specific meta data.
+ *
+ * `filters` is re-declared with the GRID type: `ColumnSettings` narrows it to `boolean` for what a
+ * user may WRITE per column, but cell meta inherits the grid-level value through the prototype
+ * chain, so a read can return the `FiltersSettings` object. An extending interface cannot widen a
+ * property, hence the `Omit` - over `RemoveIndexSignature`, for the reason `ColumnSettings` gives.
  */
-export interface CellMeta extends ColumnSettings {
+export interface CellMeta extends Omit<RemoveIndexSignature<ColumnSettings>, 'filters'> {
+  // Same signature as on `ColumnSettings`, which `RemoveIndexSignature` strips; see the NOTE there.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+  filters?: GridSettings['filters'];
   className?: string | string[];
   readOnly?: boolean;
   valid?: boolean;
