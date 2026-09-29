@@ -7,8 +7,8 @@ import { DataProviderRefetchFailedQueryPage } from '../fixtures/pages/DataProvid
  * A failed page or page-size change leaves the pager on the previous state, because the query is
  * stored only after a successful fetch. Refetch must still ask the server for what the user
  * requested, and once that succeeds the grid must show it. Sort and filter changes store their
- * query before fetching, so their retries are pinned here too. A toast whose error a later
- * successful fetch has made obsolete is hidden, so its Refetch cannot roll the grid back.
+ * query before fetching, so their retries are pinned here too. Once a later fetch has succeeded,
+ * an old toast's Refetch reloads the current state rather than rolling the grid back.
  */
 test.describe('dataProvider Refetch after a failed fetch', () => {
   let grid: DataProviderRefetchFailedQueryPage;
@@ -71,7 +71,7 @@ test.describe('dataProvider Refetch after a failed fetch', () => {
 
     await expect(grid.firstIdCell()).toHaveText('50');
     await expect(grid.sortLabel(0)).toHaveClass(/descending/);
-    await expect(grid.refetchButton).toHaveCount(0);
+    await expect(grid.refetchButton).toHaveCount(1);
 
     const calls = await grid.fetchCalls();
 
@@ -99,7 +99,7 @@ test.describe('dataProvider Refetch after a failed fetch', () => {
     ]);
   });
 
-  test('a later successful fetch hides the toast so its Refetch cannot roll the grid back', async() => {
+  test('after a later successful fetch, an old toast\'s Refetch reloads the current state', async() => {
     await grid.setServerFailing(true);
     await grid.nextPageButton.click();
 
@@ -107,9 +107,21 @@ test.describe('dataProvider Refetch after a failed fetch', () => {
 
     await grid.setServerFailing(false);
     await grid.sortLabel(0).click();
+    await grid.sortLabel(0).click();
 
-    await expect(grid.sortLabel(0)).toHaveClass(/ascending/);
-    await expect(grid.refetchButton).toHaveCount(0);
+    await expect(grid.sortLabel(0)).toHaveClass(/descending/);
+    await expect(grid.firstIdCell()).toHaveText('50');
+
+    await grid.refetchButton.click();
+
+    await expect(grid.refetchButton).toBeHidden();
+    await expect.poll(async() => (await grid.fetchCalls()).length).toBe(5);
     await expect(grid.pageCounter).toHaveText('1 - 10 of 50');
+    await expect(grid.sortLabel(0)).toHaveClass(/descending/);
+    await expect(grid.firstIdCell()).toHaveText('50');
+
+    const calls = await grid.fetchCalls();
+
+    expect(calls[calls.length - 1]).toEqual({ page: 1, pageSize: 10, sort: { prop: 'id', order: 'desc' }, filters: null });
   });
 });

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the Refetch button on the DataProvider error notification so it retries the failed page or page-size change instead of reloading the previous page. The notification now closes once a later request succeeds.",
+  "title": "Fixed the Refetch button on the DataProvider error notification so it retries the failed page or page-size change instead of reloading the previous page.",
   "type": "fixed",
   "issueOrPR": 13685,
   "breaking": false,
