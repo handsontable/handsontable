@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T11:11:23.359Z",
+  "generatedAt": "2026-09-29T11:18:07.054Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 290,
+    "tests": 291,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1626
+    "entries": 1627
   },
   "rows": [
     {
@@ -10742,6 +10742,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
+      "line": null,
+      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium-theme-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-29T11:17:21Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36459654851",
+        "branch": "feature/DEV-3139_Editors-visual-consolidation",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 e6a4f1d71ed1",
         "source": "ci"
       },
       "needsTicket": false
