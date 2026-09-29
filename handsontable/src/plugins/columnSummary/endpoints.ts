@@ -514,20 +514,24 @@ class Endpoints {
    * structure alteration. Each coordinate is shifted on its own, because the destination, the source column
    * and the range bounds can sit on different sides of the alteration.
    *
+   * A range start is shifted as a start: when its own row is removed, it moves onto the next surviving row
+   * rather than the previous one. A range whose rows were all removed is dropped.
+   *
    * @private
    * @param {object} endpoint Endpoint object.
    * @param {string} axis The altered axis, `'row'` or `'col'`.
    * @param {Function} shiftIndex Maps a physical index from before the alteration to the one it holds after it.
    */
-  shiftEndpointCoordinates(endpoint: EndpointConfig, axis: 'row' | 'col', shiftIndex: (index: number) => number) {
+  shiftEndpointCoordinates(
+    endpoint: EndpointConfig, axis: 'row' | 'col', shiftIndex: (index: number, isRangeStart?: boolean) => number
+  ) {
     if (axis === 'row') {
       endpoint.destinationRow = shiftIndex(endpoint.destinationRow!);
 
-      arrayEach(endpoint.ranges!, (range: number[]) => {
-        arrayEach(range, (bound: number, j: number) => {
-          range[j] = shiftIndex(bound);
-        });
-      });
+      // `ranges: []` leaves the setting unset, so there can be nothing to shift.
+      if (endpoint.ranges) {
+        endpoint.ranges = this.#shiftRanges(endpoint.ranges, shiftIndex);
+      }
 
     } else {
       endpoint.destinationColumn = shiftIndex(endpoint.destinationColumn!);
@@ -781,14 +785,42 @@ class Endpoints {
   }
 
   /**
+   * Shifts row ranges through a structure alteration and drops the ones whose rows were all removed. A
+   * single-row range (`[row]`) keeps its one-element form.
+   *
+   * @param {number[][]} ranges The ranges to shift.
+   * @param {Function} shiftIndex Maps a physical index from before the alteration to the one it holds after it.
+   * @returns {number[][]}
+   */
+  #shiftRanges(ranges: number[][], shiftIndex: (index: number, isRangeStart?: boolean) => number): number[][] {
+    const shiftedRanges: number[][] = [];
+
+    arrayEach(ranges, (range: number[]) => {
+      const isSingleRow = range.length < 2;
+      const start = shiftIndex(range[0], true);
+      const end = shiftIndex(isSingleRow ? range[0] : range[1]);
+
+      // Every row of the range was removed.
+      if (end < start) {
+        return;
+      }
+
+      shiftedRanges.push(isSingleRow ? [start] : [start, end]);
+    });
+
+    return shiftedRanges;
+  }
+
+  /**
    * Builds the function that maps a physical index recorded before a structure alteration to the physical
    * index it holds after it.
    *
    * Endpoint coordinates are physical, while the alteration hooks report a visual index. The two agree only
    * until a row or column is moved (or rows are sorted), so the shift is worked out in the physical space:
    * an insertion moves every index at or past the first inserted physical index, and a removal moves an
-   * index down by the number of removed physical indexes at or before it. With the identity order, both
-   * rules give the same result as comparing against the visual index.
+   * index down by the number of removed physical indexes at or before it. A range start passes
+   * `isRangeStart`, so a removal counts only the indexes BEFORE it: a removed start then lands on the next
+   * surviving row instead of pulling the range onto the previous record.
    *
    * @param {string} axis The altered axis, `'row'` or `'col'`.
    * @param {string} action Type of the action performed.
@@ -800,11 +832,13 @@ class Endpoints {
   #createPhysicalIndexShift(
     axis: 'row' | 'col', action: string, index: number, amount: number,
     removedPhysicalIndexes: number[] | null | undefined
-  ): (physicalIndex: number) => number {
+  ): (physicalIndex: number, isRangeStart?: boolean) => number {
     if (action.indexOf('remove') === 0) {
       const removed = removedPhysicalIndexes ?? Array.from({ length: amount }, (_, offset) => index + offset);
 
-      return physicalIndex => physicalIndex - removed.filter(removedIndex => removedIndex <= physicalIndex).length;
+      return (physicalIndex, isRangeStart = false) => physicalIndex - removed.filter(
+        removedIndex => (isRangeStart ? removedIndex < physicalIndex : removedIndex <= physicalIndex)
+      ).length;
     }
 
     // Nothing was inserted (for example `maxRows` was already reached), so nothing moves.

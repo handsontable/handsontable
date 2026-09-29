@@ -508,6 +508,50 @@ describe('ColumnSummary with moved columns and rows', () => {
   });
 
   describe('structure alteration without a move', () => {
+    it('moves a removed range start onto the next row, not the previous record', () => {
+      hot = createGrid({
+        data: [[1, 10], [2, 20], [3, 30], [4, 40], [null, null]],
+        columnSummary: [{ sourceColumn: 1, destinationRow: 4, destinationColumn: 1, ranges: [[1, 3]], type: 'sum' }],
+      });
+
+      expect(hot.getDataAtCell(4, 1)).toBe(90);
+
+      hot.alter('remove_row', 1, 1);
+
+      // The range covered records 20, 30 and 40; 20 was removed. It used to become [[0, 2]] and pull in 10.
+      expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges).toEqual([[1, 2]]);
+      expect(hot.getDataAtCell(3, 1)).toBe(70);
+    });
+
+    it('drops a single-row range whose row is removed instead of summing another record', () => {
+      hot = createGrid({
+        data: [[1], [2], [3], [4], [null]],
+        columnSummary: [{ destinationRow: 4, destinationColumn: 0, ranges: [[0], [2]], type: 'sum' }],
+      });
+
+      expect(hot.getDataAtCell(4, 0)).toBe(4);
+
+      hot.alter('remove_row', 2, 1);
+
+      // `[2]` used to become `[1]` and count the record 2 instead.
+      expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges).toEqual([[0]]);
+      expect(hot.getDataAtCell(3, 0)).toBe(1);
+    });
+
+    it('drops a range whose rows are all removed', () => {
+      hot = createGrid({
+        data: [[1], [2], [3], [4], [null]],
+        columnSummary: [{ destinationRow: 4, destinationColumn: 0, ranges: [[0, 0], [1, 2]], type: 'sum' }],
+      });
+
+      expect(hot.getDataAtCell(4, 0)).toBe(6);
+
+      hot.alter('remove_row', 1, 2);
+
+      expect(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges).toEqual([[0, 0]]);
+      expect(hot.getDataAtCell(2, 0)).toBe(1);
+    });
+
     it('grows a range below a summary placed above it when a row is inserted inside the range', () => {
       hot = createGrid({
         data: [[null], [1], [2], [3]],

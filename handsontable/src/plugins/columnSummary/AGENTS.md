@@ -131,7 +131,11 @@ physical space instead:
 
 - An insertion translates the reported index back with `toPhysicalRow()`/`toPhysicalColumn()` (which, after
   the insert, is the first inserted physical index) and moves every index at or past it.
-- A removal moves an index down by the number of removed physical indexes at or before it.
+- A removal moves an index down by the number of removed physical indexes at or before it. A **range
+  start** counts only the removed indexes strictly before it, so a start whose own row was removed lands on
+  the next surviving row instead of pulling the range onto the previous record. A range whose rows were
+  all removed (its shifted end falls below its shifted start) is dropped, and a single-row range `[row]`
+  is treated as `[row, row]` for that test.
 
 With the identity order both rules give exactly what the old visual comparison gave. `shiftEndpointCoordinates()`
 applies the shift to **each coordinate on its own** (the destination, `sourceColumn`, and every range bound),
@@ -142,11 +146,8 @@ column. `alterRowOffset`/`alterColumnOffset` still carry the destination's shift
 which clears the old result and runs the bounds gate. The function-form settings path is unchanged: it
 re-reads the settings function on the next render instead.
 
-Known residuals, all identical to what the visual comparison gave before:
+Known residuals, both identical to what the visual comparison gave before:
 
-- Removing rows that cut through a range's start bound moves the bound down past the removed block too, so
-  the range can take in the row just before it. A strict comparison for lower bounds would fix that, but not
-  for a single-row range (`[a]`), which uses the same index as both bounds.
 - Removing an endpoint's own `sourceColumn` or `destinationColumn` collapses it onto the preceding index, so
   the summary silently moves to (or sums) the previous column.
 - Removing the destination row makes the reset clear, and the refresh overwrite, the preceding row's cell.
