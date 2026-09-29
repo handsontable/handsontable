@@ -139,10 +139,14 @@ captured when the plugin is enabled.
   offers (typos, in `exclude` too), off-list names in a column's allow-list (named with the column's
   meta `type` and its list type - the scan reads column meta, not `getDataType()`, which walks every
   cell), and unknown per-type keys. An excluded name some OTHER type offers is not reported, so one
-  grid-level `{ exclude }` can cover columns of every type. The scan also runs from `updatePlugin()`,
-  because `updateSettings({ filters })` reaches `updatePlugin()` from `BasePlugin`'s own
-  `afterUpdateSettings` listener and the disable inside it removes this plugin's listener for that
-  round. (5) The setting shapes the list, never the filter: a condition added through
+  grid-level `{ exclude }` can cover columns of every type. `enablePlugin()` scans right away when
+  `this.hot.view` exists and defers to `afterInit` only on the first enable, which runs before the
+  view is built. Deferring every time silently skipped the scan for any later enable, because
+  `afterInit` has already fired: a direct `enablePlugin()` call on a grid built with `filters: false`
+  never warned. The same branch covers `updateSettings({ filters })`, which goes through
+  `updatePlugin()`'s disable and enable. Scanning from `#onAfterUpdateSettings` instead cannot work
+  for that payload, because the disable removes that listener for the round that carries it.
+  (5) The setting shapes the list, never the filter: a condition added through
   `addCondition()` still filters, and `setState()` still names it in the caption (the caption reads
   `value.name`, not the item list). `false` is rejected on purpose, so it stays free to mean "hide
   the section" later. Coverage: `availableConditions.unit.ts` (the pure helpers),
@@ -151,9 +155,10 @@ captured when the plugin is enabled.
 - **The ignored-object warning is raised by scanning every column, never from a visibility check.**
   A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
   menu — or a column whose menu is never opened — is never warned, while the docs promise once per
-  grid. It runs from `afterInit` (NOT from `enablePlugin()`, which is `afterPluginsInitialized`, where
-  the column meta layer is not resolvable yet and every column reads as carrying nothing) and from
-  `#onAfterUpdateSettings` when the payload carries `columns`.
+  grid. On the first enable it runs from `afterInit`, NOT inline in `enablePlugin()`: that first
+  enable runs on `afterPluginsInitialized`, where the column meta layer is not resolvable yet and
+  every column reads as carrying nothing. Any later enable scans inline (see the bullet above), and
+  `#onAfterUpdateSettings` scans again when the payload carries `columns`.
 - **The option's `@configScope` is `grid columns`, and it cannot be widened.** `getColumnMeta()` reads
   the COLUMN meta layer, which the `cells` function and the `cell` option never reach — they write on
   the cell layer below it. `optionLevels.unit.js` enforces that listing `cells` also lists `cell`, so

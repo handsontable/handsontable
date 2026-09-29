@@ -434,6 +434,24 @@ describe('Filters -> per-column filters switch', () => {
       expect(warningsWith('names the "eqq" condition, which does not exist').length).toBe(1);
     });
 
+    it('should scan when the plugin is switched on through updateSettings after init', () => {
+      buildTypedGrid(false);
+
+      hot.updateSettings({ filters: { availableConditions: ['eqq'] } });
+
+      expect(warningsWith('names the "eqq" condition, which does not exist').length).toBe(1);
+    });
+
+    it('should scan when the plugin is switched on through enablePlugin() after init', () => {
+      // `afterInit` has already fired by then, so an enable that only deferred the scan to it would
+      // never run it.
+      buildTypedGrid(false, [{}, { filters: { availableConditions: ['eqq'] } }, {}]);
+
+      hot.getPlugin('filters').enablePlugin();
+
+      expect(warningsWith('names the "eqq" condition, which does not exist').length).toBe(1);
+    });
+
     it('should not rename the shared "none" condition when the menu resets with no selection', () => {
       // `setItems()` translates the item names in place, so the component must pass a copy.
       buildTypedGrid();

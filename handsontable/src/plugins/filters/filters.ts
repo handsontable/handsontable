@@ -799,9 +799,15 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
-    // Deferred to `afterInit`: `enablePlugin()` runs on `afterPluginsInitialized`, where the column
-    // meta layer is not resolvable yet and every column reads as carrying nothing.
-    this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
+    // On the first enable this runs on `afterPluginsInitialized`, before the view exists, where the
+    // column meta layer is not resolvable yet and every column reads as carrying nothing - so the scan
+    // waits for `afterInit`. Any later enable (`updatePlugin()`, a direct `enablePlugin()` call, the
+    // off-to-on `updateSettings()` path) comes after `afterInit` has fired, so it scans right away.
+    if (this.hot.view) {
+      this.#warnAboutPerColumnSettingsObjects();
+    } else {
+      this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
+    }
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -814,10 +820,6 @@ export class Filters extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
-    // `updateSettings({ filters })` lands here from `BasePlugin`'s own `afterUpdateSettings`
-    // listener, and the disable above removes this plugin's listener for that same round - so the
-    // new value is scanned here. The grid is built by now, so the column meta layer resolves.
-    this.#warnAboutPerColumnSettingsObjects();
   }
 
   /**
