@@ -28,23 +28,24 @@ describe('MemoryLeakTest', () => {
     expect(leftoverNodesCount).toBe(0);
   });
 
-  describe('Event Listeners', () => {
-    const id = 'testContainer';
+  // `getEventListeners` is a non-standard function available only in Chrome DevTools and in the
+  // current Puppeteer setup, so the suite runs from the command line only. The guard wraps the
+  // whole `describe`, because a `describe` with no specs is an error in Jasmine 4 and later.
+  if (typeof getEventListeners !== 'undefined') {
+    describe('Event Listeners', () => {
+      const id = 'testContainer';
 
-    beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    });
+      beforeEach(function() {
+        this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      });
 
-    afterEach(function() {
-      if (this.$container) {
-        destroy();
-        this.$container.remove();
-      }
-    });
+      afterEach(function() {
+        if (this.$container) {
+          destroy();
+          this.$container.remove();
+        }
+      });
 
-    // `getEventListeners` is a non-standard function available only in Chrome DevTools and in the
-    // current Puppeteer setup, so the spec runs from the command line only.
-    if (typeof getEventListeners !== 'undefined') {
       it('should not leave any event listeners attached to the HTML element after being destroyed', async() => {
         const htmlListenersBefore = await getEventListeners('html');
         const bodyListenersBefore = await getEventListeners('body');
@@ -101,6 +102,6 @@ describe('MemoryLeakTest', () => {
         expect(countListenersOfType(bodyListenersBefore.listeners, 'click'))
           .toEqual(countListenersOfType(bodyListenersAfter.listeners, 'click'));
       });
-    }
-  });
+    });
+  }
 });
