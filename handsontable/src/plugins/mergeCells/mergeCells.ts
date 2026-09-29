@@ -1222,7 +1222,12 @@ export class MergeCells extends BasePlugin {
     this.#purgedMerges = new WeakSet();
 
     state.forEach(({ row, col, rowspan, colspan, anchor }) => {
-      const merge = this.mergedCellsCollection.add({ row, col, rowspan, colspan }, true);
+      // A merge whose rows are all trimmed keeps its stale coordinates, and another merge can be drawn
+      // there now - placed in the lookup matrix first, it would turn that merge away. The re-anchor below
+      // leaves it out of the matrix anyway.
+      const merge = anchor !== null && !this.#hasVisibleTopLeft(anchor)
+        ? this.mergedCellsCollection.addOutsideMatrix({ row, col, rowspan, colspan })
+        : this.mergedCellsCollection.add({ row, col, rowspan, colspan }, true);
 
       if (merge && anchor !== null) {
         this.#mergeAnchors.set(merge, {
@@ -1234,6 +1239,19 @@ export class MergeCells extends BasePlugin {
 
     this.#reanchorMergesToVisibleRows();
     this.hot.markAllCellsChanged();
+  }
+
+  /**
+   * Tells whether a merge anchor has a visible top-left: its column is not hidden from the index space
+   * and at least one of its rows is not trimmed. The rule `#reanchorMergesToVisibleRows()` purges
+   * by.
+   *
+   * @param {MergeAnchor} anchor The anchor.
+   * @returns {boolean}
+   */
+  #hasVisibleTopLeft(anchor: MergeAnchor): boolean {
+    return this.hot.toVisualColumn(anchor.physicalColumn) !== null &&
+      anchor.physicalRows.some(physicalRow => this.hot.toVisualRow(physicalRow) !== null);
   }
 
   /**

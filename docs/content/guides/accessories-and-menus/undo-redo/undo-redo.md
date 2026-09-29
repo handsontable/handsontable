@@ -174,7 +174,8 @@ Both stacks are cleared when:
 
 - You call [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata). The recorded steps describe the dataset those methods replace.
 - You turn on or turn off, at runtime, a plugin that hides, trims, or reorders rows or columns -- for example with `updateSettings({ hiddenRows: true })`. Passing a plugin's settings again, as a framework wrapper does on every render, keeps the stacks.
-- The number of rows or columns changes outside any recorded action, for example through [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array.
+- The number of rows or columns changes outside any recorded action, for example through [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array. Empty rows and columns that Handsontable adds at the end on its own, for example for [`minSpareRows`](@/api/options.md#minsparerows), keep the stacks.
+- An action you recorded with [`done()`](@/api/undoRedo.md#done) adds or removes rows or columns anywhere but at the end when you undo or redo it.
 - You disable the plugin or destroy the grid.
 
 ## Limit the history

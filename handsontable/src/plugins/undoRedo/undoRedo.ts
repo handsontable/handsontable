@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { OperationTransaction } from '../../core/operationScope';
+import type { JournalOp } from '../../dataMap/dataJournal';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
@@ -63,6 +64,43 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 function isCustomAction(value: unknown): value is CustomAction {
   return isRecord(value) && typeof value.undo === 'function' && typeof value.redo === 'function';
+}
+
+/**
+ * Tells whether a journal adds or removes rows and columns only at the end of each axis, the way the
+ * grid's own `auto` rows do. Any other row or column change renumbers the rows and columns the
+ * recorded steps address.
+ *
+ * @param {JournalOp[]} journal The journal.
+ * @param {GridStateSnapshot} before The state the journal started from.
+ * @returns {boolean}
+ */
+function changesOnlyAxisEnds(journal: JournalOp[], before: GridStateSnapshot): boolean {
+  const counts = { row: before.rows.length, column: before.columns.length };
+
+  return journal.every((op) => {
+    if (op.type === 'insertRows' || op.type === 'insertColumns') {
+      const axis = op.type === 'insertRows' ? 'row' : 'column';
+      const atTheEnd = op.physicalIndex === counts[axis];
+
+      counts[axis] += op.amount;
+
+      return atTheEnd;
+    }
+
+    if (op.type === 'removeRows' || op.type === 'removeColumns') {
+      const axis = op.type === 'removeRows' ? 'row' : 'column';
+      const { physicalIndexes } = op;
+      const first = counts[axis] - physicalIndexes.length;
+
+      counts[axis] = first;
+
+      // The indexes are ascending, so the removed ones are the last when each sits at its offset.
+      return physicalIndexes.every((physicalIndex, offset) => physicalIndex === first + offset);
+    }
+
+    return true;
+  });
 }
 
 /**
@@ -153,6 +191,11 @@ export class UndoRedo extends BasePlugin {
    * has already returned.
    */
   #ignoredTransactions = new WeakSet<OperationTransaction>();
+  /**
+   * The structure epoch each transaction opened in. A transaction that outlives its epoch - a `batch()`
+   * that calls `updateData()` - journaled changes to a dataset that is gone, so it is not recorded.
+   */
+  #openEpochs = new WeakMap<OperationTransaction, number>();
 
   /**
    * The selection each open transaction started with.
@@ -834,6 +877,7 @@ export class UndoRedo extends BasePlugin {
     }
 
     this.#detectStructureChange();
+    this.#openEpochs.set(transaction, this.#epoch);
     this.#selectionsBefore.set(transaction, this.hot.getSelected());
     this.#lastState = this.#tracker?.capture() ?? null;
   };
@@ -857,10 +901,20 @@ export class UndoRedo extends BasePlugin {
 
     this.#lastState = after;
 
+    if (this.#ignoredTransactions.has(transaction) || BLOCKED_SOURCES.has(transaction.source)) {
+      // Rows or columns an unrecorded change added or removed anywhere but at the end renumber the ones
+      // every recorded step addresses, so the history is dropped. At the end they are harmless: a
+      // restore fits the axis to them.
+      if (!changesOnlyAxisEnds(transaction.journal, before)) {
+        this.#resetHistory();
+      }
+
+      return;
+    }
+
     if (
-      this.#ignoredTransactions.has(transaction) ||
-      BLOCKED_SOURCES.has(transaction.source) ||
-      (transaction.journal.length === 0 && after === before)
+      (transaction.journal.length === 0 && after === before) ||
+      this.#openEpochs.get(transaction) !== this.#epoch
     ) {
       return;
     }

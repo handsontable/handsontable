@@ -90,6 +90,11 @@ the visible ones are re-validated, and the selection is put back for the step ty
   wrong row - that is how a restored row was validated twice. A restore of a reshaped source WRITES
   through the same mapping (`toFinalIndex()`): without it, the formula text Formulas rewrites when a
   nested parent is removed was written back onto the last child of the restored parent.
+- **A replay writes a prop the way `DataMap#set` wrote it, and the journal reads it the way `DataMap#get`
+  reads it**: a key the row owns is a literal key, a dotted name is walked only with `dataDotNotation`,
+  anything else is a literal key (`DataSource#setAtCell` with `byProp`, `getRawAtCellByProp`). The
+  general `setProperty()` always walks dots, so with `dataDotNotation: false` an undo created `row.a.b`
+  and left `row['a.b']` at the new value. `setSourceDataAtCell()` outside a replay keeps walking dots.
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
   `beforeRedo` are the veto points. The row and column create/remove hooks DO fire, because the replay
@@ -138,10 +143,24 @@ the visible ones are re-validated, and the selection is put back for the step ty
 Steps describe one dataset. `loadData`, `updateData`, and - outside any step - a row or column count
 change or a change to the set of index map NAMES (a plugin that owns a map turned on or off) drop the
 whole history (`#resetHistory`; `#detectStructureChange` runs when a transaction opens and before every
-undo/redo). A step from an older epoch is never restored. The names are compared, not the map objects:
+undo/redo). A step from an older epoch is never restored. A transaction takes the epoch it OPENED in
+(`#openEpochs`), not the one it settles in: a `batch()` that calls `updateData()` journaled changes to the
+replaced dataset, and recorded in the new epoch it would write them into the new data on undo. The names are compared, not the map objects:
 a settings update that disables and enables a plugin again (a framework wrapper does it on every
 render) re-registers the same names and keeps the history (`haveSameIndexMaps`). No warning is logged
 on a drop: `updateData` is routine in the wrappers, so one would fire on every data prop change.
+
+An UNRECORDED transaction - a blocked one (root source `auto`, the grid's own rows) or an ignored one
+(a legacy `done()` action's undo or redo) - does not open an epoch when it only adds or removes rows
+and columns at the END of an axis (`changesOnlyAxisEnds`): Enter on the last row with `minSpareRows`
+must not wipe the history. Anything else it inserts or removes renumbers the rows the recorded steps
+address, so it drops the history. The tail case is safe because a restore never resizes an axis to a
+snapshot: it resizes the axis to the length the data implies (`countSourceRows()`,
+`getInitialColumnCount()` - what `updateData()` fits it to) and fits a snapshot of another length to it
+(`fitSequence()` - indexes past the snapshot's end keep their current state). Resizing to the
+snapshot is what left the index mapper shorter than the data. The data length is needed on the other
+side too: removing the last column empties the ROW axis while the rows stay in the data, and the
+replay of that removal brings the column back but not the rows.
 
 ## The plugin contract (`../base/base.ts`)
 

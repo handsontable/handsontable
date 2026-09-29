@@ -43,6 +43,14 @@ visible rows and marks every cell changed. Match a merge to its own anchor by th
 through `mergedCellsCollection.get()` - that answers for every covered cell, so after a removal has slid
 another merge onto those coords the lookup hands back the wrong object.
 
+A merge whose rows are all trimmed is restored with `addOutsideMatrix()`, not `add()`: its coordinates
+are stale, a visible merge can be drawn there now, and `add()` turns away a merge whose top-left is
+taken - so a purged merge that came first in the list dropped the visible one for good. For the same
+reason the matrix footprint removal (`#removeMergedCellFromMatrix`) deletes only entries that point to
+the merge being removed: purging a merge at its stale coordinates used to erase the entries of the
+merge drawn over them. Both halves are pinned by one spec in `../undoRedo/__tests__/undoRedo.unit.js`
+(`merges restored while rows are trimmed`), and dropping either turns it red.
+
 `captureState()` runs on every operation, the internal `batchExecution()` calls of the render path
 included, so it first compares the live merges with the list it returned last time, in place, and
 allocates a new list only when one differs. Do not replace that with a version counter: the merge objects

@@ -53,9 +53,10 @@ export function getValueSetterValue(value: unknown, cellMeta: Record<string, unk
 
   // `source` is forwarded as a fifth argument, optional so a consumer that reads the option back
   // out and calls it with four still type-checks. A cell type whose stored shape differs from what
-  // the user writes needs it to honor the undo invariant stated below: the autocomplete setter
-  // resolves a bare label into its `source` entry, and doing that on an undo would restore a value
-  // the user never undid to.
+  // the user writes needs it to leave a write with an `UndoRedo.*` source verbatim: the autocomplete
+  // setter resolves a bare label into its `source` entry, and doing that on such a write would store
+  // a value the cell never held. The UndoRedo plugin's own undo and redo do not come here - they write
+  // the stored values without the setter - so this covers a caller that writes with that source itself.
   if (isFunction(valueSetter)) {
     newValue = valueSetter.call(instance, value, visualRow, visualCol, cellMeta, source);
   }
@@ -67,9 +68,9 @@ export function getValueSetterValue(value: unknown, cellMeta: Record<string, unk
     return newValue;
   }
 
-  // Undo and redo restore what the cell held before, verbatim. Remapping here would make an `''` that
-  // legitimately predates the setting - `loadData` never passes through this function - impossible to
-  // restore, so the user would watch undo produce a different value than the one they undid to.
+  // A write with an `UndoRedo.*` source restores what the cell held before, verbatim. Remapping here
+  // would make an `''` that legitimately predates the setting - `loadData` never passes through this
+  // function - impossible to restore. (The UndoRedo plugin's own replay skips this function entirely.)
   if (typeof source === 'string' && source.startsWith('UndoRedo.')) {
     return newValue;
   }

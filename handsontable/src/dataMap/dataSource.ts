@@ -2,9 +2,11 @@ import type { HotInstance } from '../core/types';
 import {
   createObjectPropListener,
   getProperty,
+  hasOwnProperty,
   isObject,
   objectEach,
-  setProperty
+  setProperty,
+  writeOwnProperty,
 } from '../helpers/object';
 import { cloneRow, countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
@@ -313,12 +315,34 @@ class DataSource {
           dataRow[numericIndex] = value;
         }
       } else if (isObject(dataRow)) {
-        setProperty(dataRow as Record<string, unknown>, String(column), value);
+        this.#writeProperty(dataRow as Record<string, unknown>, String(column), value, byProp);
       }
     } else if (Array.isArray(dataRow)) {
       dataRow[column as number] = value;
     } else if (isObject(dataRow)) {
       setProperty(dataRow as Record<string, unknown>, String(column), value);
+    }
+  }
+
+  /**
+   * Writes a property name into an object row. A replay (`byProp`) writes the key the way `DataMap#set`
+   * wrote it, since that is the key the journal recorded: a key the row owns is a literal key, a dotted
+   * name is walked only with `dataDotNotation`, and any other name is a literal key. Any other write
+   * walks a dotted name, as `setSourceDataAtCell()` always has.
+   *
+   * @param {object} dataRow The object row.
+   * @param {string} prop The property name.
+   * @param {*} value The value to write.
+   * @param {boolean} byProp `true` for an undo or redo replay.
+   */
+  #writeProperty(dataRow: Record<string, unknown>, prop: string, value: unknown, byProp: boolean) {
+    const walksDots = !byProp ||
+      (!hasOwnProperty(dataRow, prop) && this.hot!.getSettings().dataDotNotation === true && prop.includes('.'));
+
+    if (walksDots) {
+      setProperty(dataRow, prop, value);
+    } else {
+      writeOwnProperty(dataRow, prop, value);
     }
   }
 
@@ -392,13 +416,22 @@ class DataSource {
    * reads through this method. The `modifyRowData` hook still runs: it decides which row object the
    * physical index names.
    *
+   * A property name resolves the way `DataMap#get` resolves it, so the journal records the key the
+   * grid wrote: a key the row owns is read as a literal key, even with a dot in its name.
+   *
    * @param {number} row Physical row index.
    * @param {number|string|Function} prop Property, physical column index, or a `columns[].data`
    *   accessor function.
    * @returns {*}
    */
   getRawAtCellByProp(row: number, prop: number | string | DataAccessorFn): unknown {
-    return this.#readFromRow(prop, this.modifyRowData(row));
+    const dataRow = this.modifyRowData(row);
+
+    if (typeof prop === 'string' && isObject(dataRow) && hasOwnProperty(dataRow as object, prop)) {
+      return (dataRow as Record<string, unknown>)[prop];
+    }
+
+    return this.#readFromRow(prop, dataRow);
   }
 
   /**

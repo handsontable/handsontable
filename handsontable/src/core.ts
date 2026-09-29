@@ -5755,14 +5755,14 @@ export default function Core(
       } as unknown as CellProperties;
     };
 
-    // An undo or redo writes back values the source already stored. The `valueSetter` still runs - it
-    // receives the `UndoRedo.*` source and must return such a value verbatim (see `getValueSetterValue`)
-    // - but the source data validator must not judge it again: it could blank a value that was
-    // accepted when it was first written.
+    // An undo or redo writes back values the source already stored. The `valueSetter` already
+    // translated them when they were first written, so it does not run again - a setter that is not
+    // idempotent would apply twice - and the source data validator does not judge them again: it
+    // could blank a value that was accepted when it was first written.
     const isReplay = isUndoRedoSource(source);
     const toStoredValue = (
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
-    ) => getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source);
+    ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
 
     if (isThereAnySetSourceListener) {
       arrayEach(input, ([changeRow, changeProp, changeValue]) => {

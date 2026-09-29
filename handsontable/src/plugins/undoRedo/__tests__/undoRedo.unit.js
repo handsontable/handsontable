@@ -1,5 +1,7 @@
 import Handsontable from 'handsontable/base';
-import { HiddenRows, NestedRows, registerPlugin, TrimRows, UndoRedo } from 'handsontable/plugins';
+import {
+  ColumnSorting, HiddenRows, ManualRowMove, MergeCells, NestedRows, registerPlugin, TrimRows, UndoRedo,
+} from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
@@ -7,6 +9,9 @@ registerPlugin(UndoRedo);
 registerPlugin(TrimRows);
 registerPlugin(HiddenRows);
 registerPlugin(NestedRows);
+registerPlugin(MergeCells);
+registerPlugin(ColumnSorting);
+registerPlugin(ManualRowMove);
 
 describe('UndoRedo plugin', () => {
   let container;
@@ -573,6 +578,308 @@ describe('UndoRedo plugin', () => {
       plugin.undo();
 
       expect(hot.getDataAtCell(0, 1)).toBe('B1');
+    });
+  });
+
+  describe('a row or column count that changes outside a step', () => {
+    it('should keep a row the grid appended by itself when an earlier step is undone', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        minSpareRows: 1,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+      // What Enter on the last row does with `minSpareRows`: the grid appends a row on its own, with the
+      // `auto` source, which no step records.
+      hot.alter('insert_row_above', hot.countRows(), 1, 'auto');
+
+      expect(hot.countRows()).toBe(5);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(hot.countRows()).toBe(5);
+      expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(hot.countSourceRows());
+
+      plugin.redo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('x');
+      expect(hot.countRows()).toBe(5);
+    });
+
+    it('should keep a column a settings update added inside the step when the step is undone', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
+        columns: [{}, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batch(() => {
+        hot.updateSettings({ columns: [{}, {}, {}] });
+        hot.setDataAtCell(0, 2, 'x');
+      });
+
+      expect(hot.countCols()).toBe(3);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 2)).toBe('C1');
+      expect(hot.countCols()).toBe(3);
+      expect(hot.columnIndexMapper.getNumberOfIndexes()).toBe(3);
+
+      plugin.redo();
+
+      expect(hot.getDataAtCell(0, 2)).toBe('x');
+      expect(hot.countCols()).toBe(3);
+    });
+
+    it('should keep rows a settings update added from a change listener when the step is undone', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      // The settings update runs inside the edit's step, and the rows it adds are not journaled.
+      hot.addHook('afterChange', (changes) => {
+        if (changes?.some(([, , , value]) => value === 'grow')) {
+          hot.updateSettings({ minRows: 5 });
+        }
+      });
+      hot.setDataAtCell(0, 0, 'grow');
+
+      expect(hot.countRows()).toBe(5);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(hot.countRows()).toBe(5);
+      expect(hot.rowIndexMapper.getNumberOfIndexes()).toBe(hot.countSourceRows());
+
+      plugin.redo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('grow');
+      expect(hot.countRows()).toBe(5);
+    });
+
+    it('should drop the history when an unrecorded change inserts a row before the last one', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
+        hiddenRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const hiddenRecords = () => hot.getPlugin('hiddenRows').getHiddenRows()
+        .map(row => hot.getSourceDataAtCell(hot.toPhysicalRow(row), 0));
+
+      hot.getPlugin('hiddenRows').hideRows([3]);
+      // A legacy action whose undo inserts a row in the middle: its transaction is not recorded, and it
+      // moves the physical index of every row below.
+      plugin.done(() => ({
+        actionType: 'insert_in_the_middle',
+        undo(instance, settle) {
+          instance.alter('insert_row_above', 1, 1);
+          settle();
+        },
+        redo(instance, settle) {
+          instance.alter('remove_row', 1, 1);
+          settle();
+        },
+      }));
+      plugin.undo();
+
+      expect(hiddenRecords()).toEqual(['A4']);
+
+      // The hiding step was recorded against the old numbering, so it must not be replayed.
+      plugin.undo();
+      plugin.redo();
+
+      expect(hiddenRecords()).toEqual(['A4']);
+    });
+  });
+
+  describe('the unsorted order a sorting plugin keeps', () => {
+    it('should put the unsorted order back when a row removal on a sorted grid is undone', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['a'], ['b'], ['c'], ['d'], ['e']],
+        columnSorting: true,
+        manualRowMove: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const column = () => Array.from({ length: hot.countRows() }, (_, row) => hot.getDataAtCell(row, 0));
+
+      hot.getPlugin('manualRowMove').moveRow(0, 3);
+      hot.render();
+
+      const movedOrder = column();
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      hot.alter('remove_row', 1, 1);
+      plugin.undo();
+      hot.getPlugin('columnSorting').clearSort();
+
+      // Clearing the sort brings back the order the rows had before it - the moved one.
+      expect(column()).toEqual(movedOrder);
+    });
+  });
+
+  describe('merges restored while rows are trimmed', () => {
+    it('should keep a visible merge that sits where a fully trimmed merge was drawn', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: Array.from({ length: 10 }, (_, row) => [`A${row + 1}`, `B${row + 1}`]),
+        mergeCells: [
+          { row: 2, col: 0, rowspan: 2, colspan: 1 },
+          { row: 6, col: 0, rowspan: 2, colspan: 1 },
+        ],
+        trimRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const collection = () => hot.getPlugin('mergeCells').mergedCellsCollection;
+
+      // The first merge loses every row and keeps its stale coordinates; the second one moves up onto
+      // the same visual slot.
+      hot.getPlugin('trimRows').trimRows([2, 3, 4, 5]);
+
+      expect(collection().get(2, 0)?.rowspan).toBe(2);
+
+      // Undoing a column insert puts the merge state back, the trimmed merge first in the list.
+      hot.alter('insert_col_end', 2, 1);
+      plugin.undo();
+
+      expect(collection().mergedCells.length).toBe(2);
+      expect(collection().get(2, 0)?.rowspan).toBe(2);
+      expect(hot.getDataAtCell(2, 0)).toBe('A7');
+
+      plugin.undo();
+
+      expect(collection().get(2, 0)?.rowspan).toBe(2);
+      expect(collection().get(6, 0)?.rowspan).toBe(2);
+      expect(hot.getDataAtCell(6, 0)).toBe('A7');
+    });
+  });
+
+  describe('a step that replaces the data', () => {
+    it('should not record a step whose transaction spans `updateData()`', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batch(() => {
+        hot.setDataAtCell(0, 0, 'x');
+        hot.updateData([['new 1'], ['new 2']]);
+      });
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+
+      plugin.undo();
+
+      // The journal describes the replaced dataset, so its old value must not land in the new one.
+      expect(hot.getDataAtCell(0, 0)).toBe('new 1');
+    });
+  });
+
+  describe('the values a restore writes', () => {
+    it('should write the stored values back without running the `valueSetter` again', () => {
+      // Not idempotent on purpose: a setter that ran on the replay would append a second `+`.
+      const valueSetter = jest.fn(value => `${value}+`);
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{ valueSetter }, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('x+');
+
+      valueSetter.mockClear();
+      plugin.undo();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('A1');
+
+      plugin.redo();
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('x+');
+
+      hot.alter('remove_row', 1, 1);
+      plugin.undo();
+
+      expect(hot.getSourceDataAtRow(1)).toEqual(['A2', 'B2']);
+      expect(valueSetter).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a prop with a dot in its name', () => {
+    it('should write a literal dotted key back as a literal key with `dataDotNotation: false`', () => {
+      const data = [{ 'a.b': 1, c: 2 }, { 'a.b': 3, c: 4 }, { 'a.b': 5, c: 6 }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        dataDotNotation: false,
+        columns: [{ data: 'a.b' }, { data: 'c' }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(data[0]).toEqual({ 'a.b': 'x', c: 2 });
+
+      plugin.undo();
+
+      expect(data[0]).toEqual({ 'a.b': 1, c: 2 });
+
+      plugin.redo();
+
+      expect(data[0]).toEqual({ 'a.b': 'x', c: 2 });
+
+      hot.alter('remove_row', 1, 1);
+      plugin.undo();
+
+      expect(hot.getSourceDataAtRow(1)).toEqual({ 'a.b': 3, c: 4 });
+      expect(hot.getDataAtCell(1, 0)).toBe(3);
+    });
+
+    it('should write a literal dotted key the row owns back as a literal key with `dataDotNotation: true`', () => {
+      const data = [{ 'a.b': 1 }, { 'a.b': 2 }];
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        columns: [{ data: 'a.b' }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(data[0]).toEqual({ 'a.b': 'x' });
+
+      plugin.undo();
+
+      expect(data[0]).toEqual({ 'a.b': 1 });
+
+      plugin.redo();
+
+      expect(data[0]).toEqual({ 'a.b': 'x' });
     });
   });
 

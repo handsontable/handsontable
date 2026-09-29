@@ -225,8 +225,13 @@ export class GridStateTracker {
       changedFrom?: GridStateSnapshot, base?: GridStateSnapshot, forceOrder?: boolean,
     } = {},
   ) {
-    this.#rows.restore(snapshot.rows, { changedFrom: changedFrom?.rows, forceOrder });
-    this.#columns.restore(snapshot.columns, { changedFrom: changedFrom?.columns, forceOrder });
+    // Each axis takes the length the data implies, the one `updateData()` fits it to.
+    this.#rows.restore(snapshot.rows, {
+      changedFrom: changedFrom?.rows, forceOrder, length: this.#hot.countSourceRows(),
+    });
+    this.#columns.restore(snapshot.columns, {
+      changedFrom: changedFrom?.columns, forceOrder, length: this.#hot.getInitialColumnCount(),
+    });
 
     this.#forEachEnabledPlugin(snapshot.plugins, (plugin, state, name) => {
       if (typeof plugin.restoreState !== 'function') {

@@ -246,6 +246,135 @@ function expandSparse(map: IndexMap, length: number, entries: ReadonlyArray<[num
 }
 
 /**
+ * Builds the flags a `bitset` snapshot describes.
+ *
+ * @param {number} length The number of flags.
+ * @param {Uint8Array} bits The bitset.
+ * @returns {boolean[]}
+ */
+function expandBitset(length: number, bits: Uint8Array): boolean[] {
+  const values = new Array<boolean>(length);
+
+  for (let index = 0; index < length; index += 1) {
+    values[index] = (bits[index >> 3] & (1 << (index & 7))) !== 0; // eslint-disable-line no-bitwise
+  }
+
+  return values;
+}
+
+/**
+ * Returns the indexes `0` to `length - 1`.
+ *
+ * @param {number} length The number of indexes.
+ * @returns {number[]}
+ */
+function identitySequence(length: number): number[] {
+  const indexes = new Array<number>(length);
+
+  for (let index = 0; index < length; index += 1) {
+    indexes[index] = index;
+  }
+
+  return indexes;
+}
+
+/**
+ * Fits a captured indexes sequence to an axis whose length changed outside the journal. Rows and
+ * columns change that way only at the end of the axis (the grid's own `auto` rows, a settings update),
+ * so the captured order is kept for the indexes the snapshot knows, an index past its end keeps the
+ * place it holds now, and an index the axis no longer has is dropped.
+ *
+ * @param {IndexMapSnapshot} snapshot A `default` or `sequence` snapshot.
+ * @param {number} snapshotLength The axis length the snapshot was taken at.
+ * @param {number[]} currentOrder The sequence the axis holds now.
+ * @returns {number[]}
+ */
+function fitSequence(snapshot: IndexMapSnapshot, snapshotLength: number, currentOrder: number[]): number[] {
+  const captured = snapshot.kind === 'sequence' ? Array.from(snapshot.values) : identitySequence(snapshotLength);
+  const length = currentOrder.length;
+
+  if (length <= snapshotLength) {
+    return captured.filter(index => index < length);
+  }
+
+  return captured.concat(currentOrder.filter(index => index >= snapshotLength));
+}
+
+/**
+ * Returns the values a snapshot of a value map (not an indexes sequence, not a linked map) describes.
+ *
+ * @param {IndexMap} map The map (its default value fills the gaps).
+ * @param {IndexMapSnapshot} snapshot The snapshot.
+ * @param {number} length The axis length the snapshot was taken at.
+ * @returns {Array}
+ */
+function snapshotValues(map: IndexMap, snapshot: IndexMapSnapshot, length: number): unknown[] {
+  switch (snapshot.kind) {
+    case 'bitset':
+      return expandBitset(snapshot.length, snapshot.bits);
+    case 'sparse':
+      return expandSparse(map, snapshot.length, snapshot.entries);
+    case 'dense':
+      return snapshot.values.map(value => deepClone(value));
+    default:
+      // A `default` snapshot of a boolean map: every flag holds the default.
+      return new Array<unknown>(length).fill(map.initValueOrFn);
+  }
+}
+
+/**
+ * Puts a captured state back into a map of an axis whose length changed outside the journal (see
+ * `fitSequence()`). The captured state covers the indexes the snapshot knows; an index past its end
+ * keeps its current value.
+ *
+ * @param {IndexMap} map The map.
+ * @param {IndexMapSnapshot} snapshot The state to restore.
+ * @param {number} snapshotLength The axis length the snapshot was taken at.
+ * @param {number} length The axis length now.
+ */
+function restoreFittedIndexMap(map: IndexMap, snapshot: IndexMapSnapshot, snapshotLength: number, length: number) {
+  if (map instanceof IndexesSequence) {
+    map.setValues(fitSequence(snapshot, snapshotLength, map.getValues()));
+
+    return;
+  }
+
+  if (map instanceof LinkedPhysicalIndexToValueMap) {
+    const kept: Array<[number, unknown]> = [];
+
+    map.orderOfIndexes.forEach((physicalIndex) => {
+      if (physicalIndex >= snapshotLength) {
+        kept.push([physicalIndex, map.getValueAtIndex(physicalIndex)]);
+      }
+    });
+    // A reset clears the link order, and each write links its index again - in the captured order.
+    map.setDefaultValues(length);
+
+    if (snapshot.kind === 'linked') {
+      snapshot.entries.forEach(([physicalIndex, value]) => {
+        if (physicalIndex < length) {
+          map.setValueAtIndex(physicalIndex, deepClone(value));
+        }
+      });
+    }
+
+    kept.forEach(([physicalIndex, value]) => map.setValueAtIndex(physicalIndex, value));
+
+    return;
+  }
+
+  const current = map.getValues();
+  const captured = snapshotValues(map, snapshot, snapshotLength);
+  const values = new Array<unknown>(length);
+
+  for (let index = 0; index < length; index += 1) {
+    values[index] = index < snapshotLength ? captured[index] : current[index];
+  }
+
+  map.setValues(values);
+}
+
+/**
  * Puts a captured state back into a map (other than the indexes sequence).
  *
  * @param {IndexMap} map The map.
@@ -257,16 +386,9 @@ function restoreIndexMap(map: IndexMap, snapshot: IndexMapSnapshot) {
       map.setDefaultValues(snapshot.length);
       break;
 
-    case 'bitset': {
-      const values = new Array<boolean>(snapshot.length);
-
-      for (let index = 0; index < snapshot.length; index += 1) {
-        values[index] = (snapshot.bits[index >> 3] & (1 << (index & 7))) !== 0; // eslint-disable-line no-bitwise
-      }
-
-      map.setValues(values);
+    case 'bitset':
+      map.setValues(expandBitset(snapshot.length, snapshot.bits));
       break;
-    }
 
     case 'linked':
       // A reset clears the link order, and each write links its index again - in the captured order.
@@ -285,7 +407,9 @@ function restoreIndexMap(map: IndexMap, snapshot: IndexMapSnapshot) {
       break;
 
     default:
-      // A `sequence` snapshot belongs to the indexes sequence, which is restored through the mapper.
+      // An indexes sequence registered as a map (the unsorted order the sorting plugins keep). The axis's
+      // own sequence does not come here: it is restored through the mapper.
+      map.setValues(Array.from(snapshot.values));
       break;
   }
 }
@@ -429,8 +553,16 @@ export class IndexMapperStateTracker {
   }
 
   /**
-   * Puts the mapper into a captured state. The axis length is fitted first, then the maps are written
-   * back inside one suspended batch, so the index caches are rebuilt once.
+   * Puts the mapper into a captured state. The maps are written back inside one suspended batch, so the
+   * index caches are rebuilt once.
+   *
+   * The axis takes the length the data implies (`length`), never the snapshot's: a snapshot of another
+   * length was taken before rows or columns the journal does not describe were added or removed at the
+   * end of the axis (the grid's own `auto` rows, a settings update inside the step), and resizing the
+   * axis to it would leave the index mapper out of step with the data. Such a snapshot is fitted to the
+   * axis instead (`fitSequence()`). When the axis itself is at another length - removing the last column
+   * empties the row axis while the rows stay in the data - it is resized first, and every map is then
+   * written back.
    *
    * Which maps are written depends on `changedFrom`. Given the snapshot from the other side of an undo
    * step, only the maps the step changed are written (the two snapshots hold different objects for
@@ -442,27 +574,36 @@ export class IndexMapperStateTracker {
    * @param {IndexMapperSnapshot} [options.changedFrom] The snapshot from the other side of the step.
    * @param {boolean} [options.forceOrder=false] Write the sequence and the trimming maps back even
    *   when the step did not change them - a replay reset them to the physical order.
+   * @param {number} [options.length] The axis length the data implies. Defaults to the current length.
    */
   restore(
     snapshot: IndexMapperSnapshot,
-    { changedFrom, forceOrder = false }: { changedFrom?: IndexMapperSnapshot, forceOrder?: boolean } = {},
+    { changedFrom, forceOrder = false, length: targetLength }: {
+      changedFrom?: IndexMapperSnapshot, forceOrder?: boolean, length?: number,
+    } = {},
   ) {
     const mapper = this.#mapper;
     const current = this.capture();
     const reference = changedFrom ?? current;
-    const lengthChanged = current.length !== snapshot.length;
+    const length = targetLength ?? current.length;
+    const resized = current.length !== length;
+    const fitted = snapshot.length !== length;
     const restored: Array<[IndexMap, IndexMapSnapshot]> = [];
 
-    if (lengthChanged) {
-      mapper.fitToLength(snapshot.length);
+    if (resized) {
+      mapper.fitToLength(length);
     }
 
     mapper.suspendOperations();
 
     try {
-      if (lengthChanged || forceOrder || reference.sequence !== snapshot.sequence) {
-        this.#restoreSequence(snapshot.sequence, snapshot.length);
-        restored.push([mapper.indexesSequence, snapshot.sequence]);
+      if (resized || forceOrder || reference.sequence !== snapshot.sequence) {
+        if (fitted) {
+          mapper.setIndexesSequence(fitSequence(snapshot.sequence, snapshot.length, mapper.getIndexesSequence()));
+        } else {
+          this.#restoreSequence(snapshot.sequence, length);
+          restored.push([mapper.indexesSequence, snapshot.sequence]);
+        }
       }
 
       COLLECTION_KEYS.forEach((key) => {
@@ -473,7 +614,13 @@ export class IndexMapperStateTracker {
         snapshot[key].forEach((mapSnapshot, name) => {
           const map = collection.get(name);
 
-          if (map !== undefined && (lengthChanged || forced || referenceMaps.get(name) !== mapSnapshot)) {
+          if (map === undefined || (!resized && !forced && referenceMaps.get(name) === mapSnapshot)) {
+            return;
+          }
+
+          if (fitted) {
+            restoreFittedIndexMap(map, mapSnapshot, snapshot.length, length);
+          } else {
             restoreIndexMap(map, mapSnapshot);
             restored.push([map, mapSnapshot]);
           }
@@ -523,13 +670,7 @@ export class IndexMapperStateTracker {
       return;
     }
 
-    const identity = new Array<number>(length);
-
-    for (let index = 0; index < length; index += 1) {
-      identity[index] = index;
-    }
-
-    this.#mapper.setIndexesSequence(identity);
+    this.#mapper.setIndexesSequence(identitySequence(length));
   }
 
   /**

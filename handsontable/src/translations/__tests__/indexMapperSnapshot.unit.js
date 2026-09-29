@@ -254,7 +254,7 @@ describe('IndexMapperStateTracker', () => {
     expect(mapper.getNotTrimmedIndexes()).toEqual([0, 1, 3, 4, 5, 6, 7, 8, 9]);
   });
 
-  it('should refit the axis length before restoring the maps', () => {
+  it('should resize the axis to the length the data implies before restoring the maps', () => {
     const hidingMap = mapper.createAndRegisterIndexMap('hiddenRows', 'hiding');
 
     hidingMap.setValueAtIndex(8, true);
@@ -265,10 +265,46 @@ describe('IndexMapperStateTracker', () => {
 
     expect(mapper.getNumberOfIndexes()).toBe(7);
 
-    tracker.restore(snapshot);
+    tracker.restore(snapshot, { length: 10 });
 
     expect(mapper.getNumberOfIndexes()).toBe(10);
     expect(hidingMap.getValues()).toEqual([false, false, false, false, false, false, false, false, true, false]);
+  });
+
+  it('should restore an indexes sequence registered as a map', () => {
+    // The sorting plugins keep the unsorted order in such a map.
+    const cache = mapper.createAndRegisterIndexMap('columnSorting', 'indexesSequence');
+
+    cache.setValues([2, 0, 1, 3, 4, 5, 6, 7, 8, 9]);
+
+    const snapshot = tracker.capture();
+
+    cache.setValues([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+    tracker.restore(snapshot);
+
+    expect(cache.getValues()).toEqual([2, 0, 1, 3, 4, 5, 6, 7, 8, 9]);
+  });
+
+  it('should fit a snapshot to an axis that grew at its end, keeping the new indexes as they are', () => {
+    const hidingMap = mapper.createAndRegisterIndexMap('hiddenRows', 'hiding');
+
+    mapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+    hidingMap.setValueAtIndex(8, true);
+
+    const snapshot = tracker.capture();
+
+    mapper.setIndexesSequence([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    hidingMap.setValueAtIndex(8, false);
+    // Two indexes appended outside the journal, the second one hidden.
+    mapper.insertIndexes(10, 2);
+    hidingMap.setValueAtIndex(11, true);
+
+    tracker.restore(snapshot, { length: 12 });
+
+    expect(mapper.getNumberOfIndexes()).toBe(12);
+    expect(mapper.getIndexesSequence()).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10, 11]);
+    expect(hidingMap.getValues())
+      .toEqual([false, false, false, false, false, false, false, false, true, false, false, true]);
   });
 
   it('should write back only the maps whose state differs and rebuild the caches once', () => {
