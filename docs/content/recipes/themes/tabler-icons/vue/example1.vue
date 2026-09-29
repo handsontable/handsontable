@@ -1,8 +1,8 @@
-/* file: app.component.ts */
-import { Component } from '@angular/core';
-import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+<script setup lang="ts">
+import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { mainTheme, registerTheme } from 'handsontable/themes';
+import type { GridSettings } from 'handsontable/settings';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -46,61 +46,37 @@ tablerTheme.params({
   },
 });
 
-@Component({
-  selector: 'example1-tabler-icons',
-  standalone: true,
-  imports: [HotTableModule],
-  template: ` <div>
-    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-  </div>`,
-})
-export class AppComponent {
-  readonly data = [
+const hotSettings: GridSettings = {
+  // The mapping applies only when the theme is passed as an object.
+  theme: tablerTheme,
+  data: [
     { product: 'Standing desk', category: 'Furniture', inStock: true, units: 24 },
     { product: 'Monitor arm', category: 'Accessories', inStock: true, units: 61 },
     { product: 'Ergonomic chair', category: 'Furniture', inStock: false, units: 0 },
     { product: 'USB-C dock', category: 'Electronics', inStock: true, units: 138 },
     { product: 'Desk lamp', category: 'Lighting', inStock: true, units: 45 },
     { product: 'Cable tray', category: 'Accessories', inStock: false, units: 0 },
-  ];
-
-  readonly gridSettings: GridSettings = {
-    // The mapping applies only when the theme is passed as an object.
-    theme: tablerTheme,
-    columns: [
-      { data: 'product' },
-      { data: 'category', type: 'dropdown', source: ['Furniture', 'Accessories', 'Electronics', 'Lighting'] },
-      { data: 'inStock', type: 'checkbox' },
-      { data: 'units', type: 'numeric' },
-    ],
-    colHeaders: ['Product', 'Category', 'In stock', 'Units'],
-    rowHeaders: true,
-    columnSorting: true,
-    dropdownMenu: true,
-    filters: true,
-    // The hidden Units column puts a caret on the In stock header.
-    hiddenColumns: { columns: [3], indicators: true },
-    height: 260,
-    licenseKey: 'non-commercial-and-evaluation',
-  };
-}
-/* end-file */
-
-/* file: app.config.ts */
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
-// Register Handsontable's modules.
-registerAllModules();
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    {
-      provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
-    },
   ],
+  columns: [
+    { data: 'product' },
+    { data: 'category', type: 'dropdown', source: ['Furniture', 'Accessories', 'Electronics', 'Lighting'] },
+    { data: 'inStock', type: 'checkbox' },
+    { data: 'units', type: 'numeric' },
+  ],
+  colHeaders: ['Product', 'Category', 'In stock', 'Units'],
+  rowHeaders: true,
+  columnSorting: true,
+  dropdownMenu: true,
+  filters: true,
+  // The hidden Units column puts a caret on the In stock header.
+  hiddenColumns: { columns: [3], indicators: true },
+  height: 260,
+  licenseKey: 'non-commercial-and-evaluation',
 };
-/* end-file */
+</script>
+
+<template>
+  <div id="example1">
+    <HotTable :settings="hotSettings" />
+  </div>
+</template>

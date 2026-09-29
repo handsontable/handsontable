@@ -1,7 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { mainTheme, registerTheme } from 'handsontable/themes';
-import './example1.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -71,7 +70,8 @@ const ExampleComponent = () => {
       columnSorting={true}
       dropdownMenu={true}
       filters={true}
-      hiddenColumns={{ indicators: true }}
+      // The hidden Units column puts a caret on the In stock header.
+      hiddenColumns={{ columns: [3], indicators: true }}
       height={260}
       licenseKey="non-commercial-and-evaluation"
     />

@@ -301,10 +301,12 @@ A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper w
 Every built-in icon renders as an `<i class="ht-icon ht-icon-<name>">` element, and its glyph comes from a `--ht-icon-<name>` CSS variable. Override that variable, scoped to the theme class, to replace a single icon with your own SVG:
 
 ```css
-#my-grid .ht-theme-main {
+.ht-theme-main {
   --ht-icon-search: url("/icons/search.svg");
 }
 ```
+
+Unlike the size variables above, do not write an icon override as a descendant of your container (`#my-grid .ht-theme-main`). Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, outside your container, so such a rule misses every icon they show. As with any bare `.ht-theme-main` rule, load your stylesheet after the theme stylesheet.
 
 To replace icons with an icon font instead of a static glyph, use the Theme API's `icons` parameter. A class list works for an icon font that ships CSS classes, such as [Tabler Icons](https://tabler.io/icons):
 

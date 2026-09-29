@@ -78,7 +78,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       const cell = page.locator('.ht_master td').first();
       const input = cell.locator('input.htCheckboxRendererInput');
 
-      // `appearance: none` used to come from the deleted generated `iconsMap` stylesheet and now
+      // `appearance: none` used to come from the pseudo-element rules `iconsMap()` generated and now
       // lives in `_checkbox-renderer.scss` (see the comment there) - without it the browser's own
       // checkbox chrome would paint on top of (or instead of) the `.ht-icon` tick.
       await expect(input).toHaveCSS('appearance', 'none');
@@ -2724,8 +2724,8 @@ test.describe('Icon elements (DEV-3003)', () => {
           // places - the corner badge glyph (`.ht-license-badge-corner ... ::after`) and the
           // lock screen's "H." logomark (`.ht-dialog.ht-license-lock::after`) - both real,
           // still-shipping features, not icon-element leftovers. Everything else matching
-          // `::(before|after)` + a mask-image is exactly what the deleted `iconsMap()` generator
-          // used to emit (`.changeType::before`, `.columnSorting.sortAction.ascending::before`,
+          // `::(before|after)` + a mask-image is exactly what `iconsMap()` used to emit before it
+          // became a shim over `iconStyles()` (`.changeType::before`, `.columnSorting.sortAction.ascending::before`,
           // `.htCheckboxRendererInput::after`, etc.), so scoping OUT only the `ht-license`
           // selectors - rather than scoping IN a hand-picked allow-list of old icon selectors -
           // still catches a real leftover rule wherever it turns up.

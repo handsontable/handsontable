@@ -18,6 +18,8 @@ react:
   metaTitle: Handsontable with Tabler Icons - React Data Grid | Handsontable
 angular:
   metaTitle: Handsontable with Tabler Icons - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Handsontable with Tabler Icons - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
 menuTag: new
@@ -27,11 +29,10 @@ This tutorial shows you how to swap all of Handsontable's built-in icons for the
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+::: example #example1 :hot-recipe --js 1 --ts 2
 
 @[code](@/content/recipes/themes/tabler-icons/javascript/example1.js)
 @[code](@/content/recipes/themes/tabler-icons/javascript/example1.ts)
-@[code](@/content/recipes/themes/tabler-icons/javascript/example1.css)
 
 :::
 
@@ -39,9 +40,8 @@ This tutorial shows you how to swap all of Handsontable's built-in icons for the
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+::: example #example1 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/themes/tabler-icons/react/example1.css)
 @[code](@/content/recipes/themes/tabler-icons/react/example1.jsx)
 @[code](@/content/recipes/themes/tabler-icons/react/example1.tsx)
 
@@ -51,11 +51,20 @@ This tutorial shows you how to swap all of Handsontable's built-in icons for the
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/recipes/themes/tabler-icons/angular/example1.ts)
 @[code](@/content/recipes/themes/tabler-icons/angular/example1.html)
-@[code](@/content/recipes/themes/tabler-icons/angular/example1.css)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/recipes/themes/tabler-icons/vue/example1.vue)
 
 :::
 
@@ -136,18 +145,9 @@ With the Angular wrapper, set `theme` inside `gridSettings`.
 
 A class-list mapping runs in JavaScript when the grid builds each icon element. That only happens when the grid receives the theme through the `theme` option as a configuration object. Putting a `ht-theme-main` class on the container element, or passing a `themeName` string, applies the theme through the stylesheet alone, and the `icons` mapping does nothing. There is no warning.
 
-## Step 4: Size the hidden-column carets
+## Step 4: Check the icons in context
 
-The grid sizes every `ht-icon--external` element to `--ht-icon-size`, so most Tabler glyphs fit as they are. The hidden-column and hidden-row carets are the exception: their box is a fixed 10px, smaller than the icon size. Give them a matching font size:
-
-```css
-.ht-icon.ht-hidden-indicator-start.ht-icon--external,
-.ht-icon.ht-hidden-indicator-end.ht-icon--external {
-  font-size: 10px;
-}
-```
-
-The selector carries three classes on purpose. The grid injects its own base stylesheet at runtime, after yours, and its `.ht-icon.ht-icon--external` rule sets the font size with two classes. A rule of equal specificity in your stylesheet loses to it.
+The example hides the Units column (`hiddenColumns: { columns: [3], indicators: true }`), so the In stock header shows the hidden-column caret. Its box is a fixed 10px, smaller than the icon size every other slot uses, and the grid sizes a font glyph in it to match, so no extra CSS is needed. Sort a column, open a header menu, or open the Category dropdown to see the other slots.
 
 Tabler glyphs paint with `currentColor`, so every state color the theme defines (hover, checked, disabled, active header) applies to them unchanged.
 
@@ -182,7 +182,7 @@ Pagination arrows, the submenu arrow, and the sheets bar arrows mirror in a righ
 
 ## Limitations
 
-- **Runtime theme changes.** A remapped icon reaches every slot without re-creating the grid, but not at the same moment: pagination, the sheets bar, and notifications rebuild at once, the header menu button on the next header render, the filters select and radio on the next menu open, and the select editor arrow on the next editor open.
+- **Runtime theme changes.** A remapped icon reaches every slot without re-creating the grid, but not at the same moment: pagination, the sheets bar, and notifications update their icons in place at once, the header menu button on the next header render, the filters select and radio on the next menu open, and the select editor arrow on the next editor open.
 - **Class-based theming.** As described in [Step 3](#step-3-pass-the-theme-as-an-object), a class on the container or a `themeName` string ignores the `icons` mapping.
 - **Glyph metrics.** Tabler glyphs are drawn on a 24px grid with a 2px stroke. At the default 16px icon size they read slightly lighter than the built-in set. Raise `--ht-icon-size` or pick a heavier Tabler variant if that matters for your design.
 

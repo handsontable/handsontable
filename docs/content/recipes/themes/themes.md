@@ -31,6 +31,7 @@ Recipes in this section cover common use cases and demonstrate best practices fo
 
 - **Design system integration** – Match the grid to shadcn/ui, Fluent UI, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode
+- **Icon sets** – Replace the built-in icons with an icon font
 
 Current recipes:
 
@@ -41,6 +42,7 @@ Current recipes:
 - [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md)
 - [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md)
 - [Handsontable with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
+- [Handsontable with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
 
 </div>
 

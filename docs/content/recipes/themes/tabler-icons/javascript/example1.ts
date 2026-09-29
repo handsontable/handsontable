@@ -68,7 +68,8 @@ new Handsontable(container, {
   columnSorting: true,
   dropdownMenu: true,
   filters: true,
-  hiddenColumns: { indicators: true },
+  // The hidden Units column puts a caret on the In stock header.
+  hiddenColumns: { columns: [3], indicators: true },
   height: 260,
   licenseKey: 'non-commercial-and-evaluation',
 });

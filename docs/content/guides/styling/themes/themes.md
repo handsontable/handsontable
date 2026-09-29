@@ -1021,10 +1021,12 @@ A built-in glyph comes from a `--ht-icon-<name>` CSS custom property, declared o
 Override a variable the same way you override any other theme variable, scoped to the theme class:
 
 ```css
-#my-grid .ht-theme-main {
+.ht-theme-main {
   --ht-icon-search: url("/icons/search.svg");
 }
 ```
+
+Scope the override to the theme class itself, not to a selector that goes through your grid's container, such as `#my-grid .ht-theme-main`. Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, which carries the theme class but sits outside your container, so an override scoped to the container misses every icon they show. A bare `.ht-theme-main` rule has the same specificity as the theme's own, so load your stylesheet after the theme stylesheet.
 
 ### Map icons through the Theme API
 
