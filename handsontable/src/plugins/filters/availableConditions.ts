@@ -8,13 +8,13 @@ export type AvailableConditionsDataType = 'text' | 'numeric' | 'date' | 'intl-da
 /**
  * An allow-list of condition names, shown in this order. `'---------'` adds a separator.
  */
-export type AvailableConditionsList = string[];
+export type AvailableConditionsList = readonly string[];
 
 /**
  * The default list for the column's data type, minus the listed condition names.
  */
 export interface AvailableConditionsExclusion {
-  exclude: string[];
+  exclude: readonly string[];
 }
 
 /**
@@ -40,7 +40,7 @@ const EXCLUDE_KEY = 'exclude';
 /**
  * Checks if the value is an array of strings.
  */
-function isNameList(value: unknown): value is string[] {
+function isNameList(value: unknown): value is readonly string[] {
   return Array.isArray(value) && value.every(name => typeof name === 'string');
 }
 
@@ -55,6 +55,14 @@ function isExclusion(value: unknown): value is AvailableConditionsExclusion {
 }
 
 /**
+ * Checks if a rule is an allow-list. `Array.isArray()` alone does not narrow a `readonly` array
+ * out of the union.
+ */
+function isAllowList(rule: AvailableConditionsRule): rule is AvailableConditionsList {
+  return Array.isArray(rule);
+}
+
+/**
  * Checks if the value is a single-column rule.
  */
 function isRule(value: unknown): value is AvailableConditionsRule {
@@ -65,8 +73,9 @@ function isRule(value: unknown): value is AvailableConditionsRule {
  * Checks if the value is a valid `availableConditions` setting.
  *
  * An object that has an `exclude` key is read as a rule, any other object as a per-type map, so a
- * per-type map cannot carry `exclude`. A per-type key no condition list exists for does not make the
- * setting invalid: it is ignored, and `findAvailableConditionsProblems()` reports it.
+ * per-type map cannot carry `exclude`. A per-type entry set to `undefined` keeps that type's stock
+ * list. A per-type key no condition list exists for does not make the setting invalid: it is ignored,
+ * and `findAvailableConditionsProblems()` reports it.
  *
  * @param {*} value The setting value.
  * @returns {boolean}
@@ -80,7 +89,7 @@ export function isAvailableConditionsSetting(value: unknown): boolean {
     return false;
   }
 
-  return Object.values(value).every(rule => isRule(rule));
+  return Object.values(value).every(rule => rule === undefined || isRule(rule));
 }
 
 /**
@@ -127,7 +136,7 @@ export function findAvailableConditionsProblems(
   const problems: AvailableConditionsProblem[] = [];
   const knownNames = new Set(Object.values(lists).flat());
   const reportNames = (rule: AvailableConditionsRule) => {
-    (Array.isArray(rule) ? rule : rule.exclude).forEach((name) => {
+    (isAllowList(rule) ? rule : rule.exclude).forEach((name) => {
       if (name !== separator && !knownNames.has(name)) {
         problems.push({ kind: 'unknownName', name });
       }
@@ -143,7 +152,9 @@ export function findAvailableConditionsProblems(
         problems.push({ kind: 'unknownDataType', dataType });
       }
 
-      reportNames(rule as AvailableConditionsRule);
+      if (rule !== undefined) {
+        reportNames(rule as AvailableConditionsRule);
+      }
     });
   }
 
@@ -192,7 +203,7 @@ export function applyAvailableConditionsRule(
   const [noneName] = defaultNames;
   let names: string[];
 
-  if (Array.isArray(rule)) {
+  if (isAllowList(rule)) {
     const known = new Set(defaultNames);
     const picked = new Set<string>();
 
@@ -232,7 +243,7 @@ export function findOffListNames(
   defaultNames: string[],
   separator: string,
 ): string[] {
-  if (!Array.isArray(rule)) {
+  if (rule === undefined || !isAllowList(rule)) {
     return [];
   }
 

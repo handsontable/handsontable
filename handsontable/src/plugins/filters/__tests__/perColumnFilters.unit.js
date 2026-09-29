@@ -434,6 +434,32 @@ describe('Filters -> per-column filters switch', () => {
       expect(warningsWith('names the "eqq" condition, which does not exist').length).toBe(1);
     });
 
+    it('should keep the value through a filters object that leaves it out, and drop it on filters: true', () => {
+      // `BasePlugin#updatePluginSettings` merges an object per key, and a boolean replaces it all.
+      buildTypedGrid({ availableConditions: { numeric: ['gt'] } });
+
+      hot.updateSettings({ filters: { searchMode: 'apply' } });
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+
+      hot.updateSettings({ filters: false });
+      hot.updateSettings({ filters: {} });
+
+      expect(conditionKeysForColumn(1)).toEqual(['none', SEPARATOR, 'gt']);
+
+      hot.updateSettings({ filters: true });
+
+      expect(conditionKeysForColumn(1)).toContain('not_between');
+    });
+
+    it('should go back to the default lists on availableConditions: undefined', () => {
+      buildTypedGrid({ availableConditions: { numeric: ['gt'] } });
+
+      hot.updateSettings({ filters: { availableConditions: undefined } });
+
+      expect(conditionKeysForColumn(1)).toContain('not_between');
+    });
+
     it('should scan when the plugin is switched on through updateSettings after init', () => {
       buildTypedGrid(false);
 

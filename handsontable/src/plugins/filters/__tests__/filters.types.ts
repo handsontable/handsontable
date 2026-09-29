@@ -10,6 +10,16 @@ const perType: AvailableConditions = {
   text: ['contains', 'begins_with'],
 };
 
+// A `readonly` array works too; the plugin never changes the lists it is given.
+const readonlyNames = ['eq', 'neq'] as const;
+
+Handsontable(document.createElement('div'), {
+  filters: {
+    availableConditions: { text: readonlyNames, numeric: { exclude: readonlyNames } },
+  },
+  columns: [{ filters: { availableConditions: readonlyNames } }],
+});
+
 // @ts-expect-error - `exclude` holds condition names, not one name.
 const badExclusion: AvailableConditionsRule = { exclude: 'not_between' };
 
@@ -127,7 +137,8 @@ const columnFilters: Handsontable.plugins.Filters.ColumnSettings = { availableCo
 Handsontable(document.createElement('div'), { columns: [{ filters: columnFilters }] });
 
 // Reading is wider than writing: cell meta inherits the grid-level object through the prototype
-// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean.
+// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean or an
+// object with `availableConditions`.
 const cellFilters = hot.getCellMeta(0, 0).filters;
 
 if (typeof cellFilters === 'object') {

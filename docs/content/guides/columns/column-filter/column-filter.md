@@ -640,8 +640,9 @@ To change the setting at runtime, pass the whole `filters` object to
 - Updating the `filters` option clears the filters that are applied. Save them with
   [`exportConditions()`](@/api/filters.md#exportconditions) first, and restore them with
   [`importConditions()`](@/api/filters.md#importconditions).
-- A `filters` object that leaves out `availableConditions` keeps the previous value. To go back to
-  the default lists, pass `availableConditions: undefined` or `filters: true`.
+- A `filters` object that leaves out `availableConditions` keeps the previous value. Setting
+  `filters` to `false` does not clear it either. To go back to the default lists, pass
+  `availableConditions: undefined` or `filters: true`.
 
 To hide every filter control in a column's menu, set `filters` to `false` for that column. See
 [Enable filtering for individual columns](#enable-filtering-for-individual-columns). To hide only

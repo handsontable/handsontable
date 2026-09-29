@@ -239,6 +239,7 @@ export class Filters extends BasePlugin {
     return {
       searchMode: 'show',
       filterFixedRows: FILTER_FIXED_ROWS_DEFAULT,
+      availableConditions: undefined,
     };
   }
 

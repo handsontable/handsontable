@@ -54,6 +54,15 @@ describe('Filters -> availableConditions', () => {
       // `include` is not a rule key, so this reads as a per-type map with one unknown key.
       expect(isAvailableConditionsSetting({ include: ['eq'] })).toBe(true);
     });
+
+    it('should accept a per-type entry set to undefined, so the valid entries next to it still apply', () => {
+      // A conditional build like `numeric: cond ? [...] : undefined` leaves that type on its stock list.
+      const setting = { text: ['eq', 'contains'], numeric: undefined };
+
+      expect(isAvailableConditionsSetting(setting)).toBe(true);
+      expect(listKeys('text', setting)).toEqual(['none', SEPARATOR, 'eq', 'contains']);
+      expect(listKeys('numeric', setting)).toEqual(listKeys('numeric'));
+    });
   });
 
   describe('resolveAvailableConditionsRule', () => {
@@ -173,6 +182,13 @@ describe('Filters -> availableConditions', () => {
 
     it('should report a per-type key no list exists for', () => {
       expect(findAvailableConditionsProblems({ numeric: ['gt'], dropdown: ['eq'] }, TYPES, SEPARATOR))
+        .toEqual([{ kind: 'unknownDataType', dataType: 'dropdown' }]);
+    });
+
+    it('should skip a per-type entry set to undefined, and still report its key if no list exists for it', () => {
+      expect(findAvailableConditionsProblems({ text: ['eqq'], numeric: undefined }, TYPES, SEPARATOR))
+        .toEqual([{ kind: 'unknownName', name: 'eqq' }]);
+      expect(findAvailableConditionsProblems({ dropdown: undefined }, TYPES, SEPARATOR))
         .toEqual([{ kind: 'unknownDataType', dataType: 'dropdown' }]);
     });
 

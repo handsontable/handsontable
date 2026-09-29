@@ -1211,10 +1211,11 @@ Before 19.0, TypeScript typed the [`filters`](@/api/options.md#filters) option a
 Any object compiled, so a misspelled key or a wrong value passed the compiler and was then ignored at
 runtime. The option now has real types:
 
-- At the grid level, the object accepts only `searchMode` (`'show'` or `'apply'`) and
-  `filterFixedRows` (a boolean).
-- Inside [`columns`](@/api/options.md#columns), `filters` is a boolean. Only `false` has ever had an
-  effect there.
+- At the grid level, the object accepts only `searchMode` (`'show'` or `'apply'`), `filterFixedRows`
+  (a boolean), and `availableConditions`, which is new in 19.0. See
+  [Choose the conditions the filter menu offers](@/guides/columns/column-filter/column-filter.md#choose-the-conditions-the-filter-menu-offers).
+- Inside [`columns`](@/api/options.md#columns), `filters` is a boolean or an object that holds only
+  `availableConditions`. Of the boolean values, only `false` has ever had an effect there.
 
 Nothing changes at runtime. This section applies only if you use TypeScript.
 
@@ -1222,12 +1223,12 @@ Nothing changes at runtime. This section applies only if you use TypeScript.
 
 Your code stops compiling in one of these cases:
 
-- The grid-level `filters` object has a key other than `searchMode` or `filterFixedRows`. The grid
-  ignored that key without a warning.
+- The grid-level `filters` object has a key other than `searchMode`, `filterFixedRows`, or
+  `availableConditions`. The grid ignored that key without a warning.
 - `searchMode` holds a value other than `'show'` or `'apply'`. The grid ignored it and logged a
   warning.
-- A column in `columns` sets `filters` to an object. The grid ignored the object and logged a
-  warning.
+- A column in `columns` sets `filters` to an object with a key other than `availableConditions`.
+  The grid ignored the object and logged a warning.
 
 In each case the setting already had no effect, so fixing the error does not change what your grid
 does.

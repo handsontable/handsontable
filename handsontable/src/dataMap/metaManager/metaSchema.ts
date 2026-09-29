@@ -3480,8 +3480,8 @@ export default (): Record<string, unknown> => {
      *
      * Updating the `filters` option through [`updateSettings()`](@/api/core.md#updatesettings)
      * clears the filters that are applied. A `filters` object that leaves out `availableConditions`
-     * keeps the previous value; pass `availableConditions: undefined` or `filters: true` to go back to
-     * the default lists.
+     * keeps the previous value, and setting `filters` to `false` does not clear it either. Pass
+     * `availableConditions: undefined` or `filters: true` to go back to the default lists.
      *
      * `availableConditions` changes what the condition lists contain, not which parts the menu
      * shows. The [`dropdownMenu`](#dropdownmenu) option decides that, so if its configuration leaves

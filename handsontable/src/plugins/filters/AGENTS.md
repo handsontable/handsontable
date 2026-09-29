@@ -153,9 +153,11 @@ captured when the plugin is enabled.
   carries no notion of a pinned row, so `#getPinnedRowCounts()` returns zeros rather than letting the
   local reads disagree with the server's own result.
 - **The option's types are closed since 19.0 (DEV-2941), and that is a breaking type change.** The
-  grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`; public as
-  `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is `boolean`. Before,
-  both were `boolean | object`, so no sub-option was ever type-checked. **Writing and reading differ:**
+  grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`, `availableConditions`;
+  public as `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is
+  `boolean | FiltersColumnSettings`, an object with `availableConditions` only (public as
+  `Handsontable.plugins.Filters.ColumnSettings`). Before, both were `boolean | object`, so no
+  sub-option was ever type-checked. **Writing and reading differ:**
   `CellMeta` (and so `CellProperties` and `getCellMeta()`) re-declares `filters` with the GRID type,
   because cell meta inherits the grid-level object through the prototype chain — narrowing it there
   made `typeof meta.filters === 'object'` narrow to `never`. It is built on
@@ -165,7 +167,8 @@ captured when the plugin is enabled.
   TypeScript users cannot write it. `filters.types.ts` pins each rule with `@ts-expect-error`, which
   fails the run by itself when the error it expects goes away.
 - **`columns: [{ filters: false }]` turns the filter UI off for one column.** Read through
-  `hot.getColumnMeta(visualColumn)`. Only `false` is honored; the effect is UI-only — `addCondition()`
+  `hot.getColumnMeta(visualColumn)`. Of the boolean values only `false` is honored (an object is
+  read for `availableConditions`, see below); the effect is UI-only — `addCondition()`
   still filters such a column, mirroring `columnSorting`'s `headerAction: false`, which leaves
   `sort()` working. Hiding the UI does NOT clear an existing condition, so such a column keeps
   filtering with no way to see it in its own menu; `clearConditions()` is the way out.
