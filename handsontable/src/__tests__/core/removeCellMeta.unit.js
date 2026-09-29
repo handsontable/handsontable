@@ -1,4 +1,7 @@
 import Handsontable from 'handsontable/base';
+import { registerPlugin, TrimRows } from 'handsontable/plugins';
+
+registerPlugin(TrimRows);
 
 /**
  * Builds a square dataset.
@@ -166,6 +169,48 @@ describe('Core#removeCellMeta', () => {
       hot.updateData(square(8));
 
       expect(hot.getCellMeta(6, 6).marker).toBe('written');
+    });
+  });
+
+  describe('an index outside the current range while rows are trimmed', () => {
+    // Pins the raw-physical reading `setCellMeta` and `removeCellMeta` share: a visual index at or past
+    // `countRows()` is used as the PHYSICAL index as it is. With rows trimmed, that index can name a
+    // live trimmed record, so the call reaches that record rather than throwing or being ignored.
+    it('should remove the key from the trimmed record the raw index names', () => {
+      hot = new Handsontable(container, {
+        data: square(10),
+        trimRows: [0, 1, 2, 3, 4],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      expect(hot.countRows()).toBe(5);
+
+      // Visual row 2 is physical row 7.
+      hot.setCellMeta(2, 0, 'marker', 'written');
+
+      expect(hot.getCellMeta(2, 0).marker).toBe('written');
+      expect(hot.toPhysicalRow(2)).toBe(7);
+
+      // Visual 7 is past `countRows()`, so it is read as physical 7 — the record visual 2 addresses.
+      expect(() => hot.removeCellMeta(7, 0, 'marker')).not.toThrow();
+
+      expect(hot.getCellMeta(2, 0).marker).toBeUndefined();
+    });
+
+    it('should write the key onto the trimmed record the raw index names, symmetrically', () => {
+      hot = new Handsontable(container, {
+        data: square(10),
+        trimRows: [0, 1, 2, 3, 4],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setCellMeta(7, 0, 'marker', 'written');
+
+      expect(hot.getCellMeta(2, 0).marker).toBe('written');
+
+      hot.removeCellMeta(2, 0, 'marker');
+
+      expect(hot.getCellMeta(2, 0).marker).toBeUndefined();
     });
   });
 
