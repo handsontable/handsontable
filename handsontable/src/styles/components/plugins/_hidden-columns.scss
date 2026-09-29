@@ -2,14 +2,14 @@
 
 @mixin output {
   .handsontable {
-    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now (DEV-3003),
+    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now,
     // created by `syncIcon()` in `hiddenColumns.ts` as a child of the `th` itself - not a
     // `::before`/`::after` pseudo-element on it any more, and NOT a child of the `.relative`
     // wrapper: `.relative` is only as tall as its own content, so on a `columnHeaderHeight`
     // taller than one line a caret anchored to it sat above the header's centre. The `th` is
     // `position: relative` (`_base.scss`, restated below) and is the exact box the old
     // pseudo-elements positioned against, which is what lets every offset below stay
-    // byte-identical to the pre-DEV-3003 rules.
+    // byte-identical to the 18.1 rules.
 
     // Sizing lives on the SLOT class, not on the `beforeHiddenColumn` / `afterHiddenColumn`
     // marker: a caret whose marker a later header renderer strips (NestedHeaders does, on every
@@ -20,7 +20,7 @@
     // `translateX`). Unscoped, the two files' rules would fight over `transform`, and each file's
     // visibility gate below would hide the other file's carets.
     // Restated from `_base.scss` (where it sits behind a zero-specificity `:where()`), as the
-    // pre-DEV-3003 rule did: the carets' containing block must be this `th`.
+    // 18.1 rule did: the carets' containing block must be this `th`.
     thead th.beforeHiddenColumn,
     thead th.afterHiddenColumn {
       position: relative;
@@ -43,7 +43,7 @@
       color: var(--ht-hidden-indicator-color);
     }
 
-    // The pre-DEV-3003 pseudo-element was gated on the marker class: no `beforeHiddenColumn`,
+    // The old pseudo-element was gated on the marker class: no `beforeHiddenColumn`,
     // no caret. Keep that contract for the element, so stripping the marker still hides the
     // caret exactly as it used to, whoever strips it.
     thead th:not(.beforeHiddenColumn) > .ht-hidden-indicator-end,
@@ -79,7 +79,7 @@
 
   // These carets are PHYSICAL (they point at a screen edge, not a logical start/end), so they are
   // NOT mirrored through `flipInRtl` on the icon element - the rules below reposition and rotate
-  // them by hand, same as before DEV-3003.
+  // them by hand, same as before icons became elements.
   [dir="rtl"].handsontable {
     th {
       // Keeps the LTR `mask-position`: the mask is laid out before the rotation, which mirrors

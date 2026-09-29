@@ -133,7 +133,7 @@ CSS. The select's `:disabled` background was dropped: it is safe only because `s
 in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
 select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
 
-## Icons are built once, not per render (DEV-3003)
+## Icons are built once, not per render
 
 `ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
 ht-icon-<name>">` elements kept through an injected `syncIcon()` (bound to the grid in `pagination.ts`)

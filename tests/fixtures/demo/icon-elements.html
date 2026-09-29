@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture - icon elements (DEV-3003)</title>
+  <title>Handsontable e2e fixture - icon elements</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
@@ -16,7 +16,7 @@
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
-    // Task 22 (DEV-3003): `?noIcons=1` swaps in the `-no-icons` stylesheet variant, which ships
+    // `?noIcons=1` swaps in the `-no-icons` stylesheet variant, which ships
     // no `--ht-icon-*` variables and no glyph rules at all - the proof that an `<i
     // class="ht-icon ht-icon-<name>">` element renders as an EMPTY BOX rather than a painted
     // square when the theme carries no icons (the base `.ht-icon` rule sets no paint of its own).
@@ -35,7 +35,7 @@
 </head>
 <body>
   <!--
-    Fixture for DEV-3003 (real <i class="ht-icon ht-icon-<name>"> elements replacing CSS
+    Fixture for the icon elements (real <i class="ht-icon ht-icon-<name>"> elements replacing CSS
     pseudo-element icons). Covers both the stylesheet foundation - a `--ht-icon-<name>` custom
     property resolving to a `url("data:image/svg+xml…")` on the grid element, plus the base
     `.ht-icon` rule - and every built-in icon site the grid renders (column sorting, hidden
@@ -49,7 +49,7 @@
     // The closing tag is split so the HTML parser does not end THIS script block.
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
 
-    // Task 21: the Tabler branch below extends a BASE theme's config object (`getThemeConfig()`),
+    // The Tabler branch below extends a BASE theme's config object (`getThemeConfig()`),
     // but loading `handsontable.js` alone never registers one - `Handsontable.themes` only ships
     // the bare `hasTheme`/`getTheme`/`registerTheme` registry functions, no config. The UMD/CDN
     // route for a base theme is a separate per-theme script, `dist/themes/<name>.js`, that
@@ -75,39 +75,39 @@
     }
     const iconsMode = params.get('icons') || 'default'; // 'default' | 'tabler'
     const sheetsBarEnabled = params.get('sheetsBar') === '1';
-    // Task 13: the collapse/expand indicator only renders on a collapsible nested-header group,
+    // The collapse/expand indicator only renders on a collapsible nested-header group,
     // which the base fixture does not have - this branch adds one without touching the other
     // sites' configuration.
     const nestedHeadersEnabled = params.get('nestedHeaders') === '1';
-    // Task 14: Nested Rows needs hierarchical (object, `__children`) data - incompatible with the
+    // Nested Rows needs hierarchical (object, `__children`) data - incompatible with the
     // base fixture's array-of-arrays `data` and its index-addressed `columns` (checkbox/
     // autocomplete). This branch swaps both, only when requested. NestedRows also hard-conflicts
     // with Pagination (`registerConflict` in `pagination.ts`), so Pagination is turned off here
     // too, instead of leaving it to silently stay disabled with a console warning.
     const nestedRowsEnabled = params.get('nestedRows') === '1';
-    // Task 15: hides column C (index 2 of the base fixture's 4 columns) up front, with
+    // Hides column C (index 2 of the base fixture's 4 columns) up front, with
     // `indicators: true`, so the neighboring headers (B, D) render their caret on load.
     const hiddenColumnsEnabled = params.get('hiddenColumns') === '1';
-    // Task 15: hides row index 2 (of the base fixture's 5 rows) up front, with `indicators: true`.
+    // Hides row index 2 (of the base fixture's 5 rows) up front, with `indicators: true`.
     // Pagination and HiddenRows both register a `'hiding'` row-index map
     // (`hiddenRows/AGENTS.md`), so Pagination is turned off here the same way it is for
     // NestedRows above, rather than leaving the two maps to interact.
     const hiddenRowsEnabled = params.get('hiddenRows') === '1';
-    // Task 17: swaps column D (index 3, plain by default) for a `type: 'select'` column, so the
+    // Swaps column D (index 3, plain by default) for a `type: 'select'` column, so the
     // SelectEditor's own arrow (built once in `init()`, distinct from the per-cell autocomplete
     // renderer arrow on column C) can be opened and inspected.
     const selectEditorEnabled = params.get('selectEditor') === '1';
-    // Task 18: swaps column D (index 3, plain by default) for a `type: 'multiselect'` column, so
+    // Swaps column D (index 3, plain by default) for a `type: 'multiselect'` column, so
     // the dropdown arrow, the chip remove icon, the editor's search icon, and a selected item's
     // tick can all be inspected. Mutually exclusive with `selectEditor` above (both target column
     // D); no test requests both.
     const multiSelectEnabled = params.get('multiSelect') === '1';
-    // Task 19: the notification plugin shows nothing on its own - a test drives `showMessage()`
+    // The notification plugin shows nothing on its own - a test drives `showMessage()`
     // through the plugin's public API (`hot.getPlugin('notification').showMessage(...)`) once the
     // grid is up, the same way it is meant to be invoked in a real app.
     const notificationEnabled = params.get('notification') === '1';
 
-    // Task 21: the Tabler branch below deliberately leaves the container WITHOUT a `ht-theme-*`
+    // The Tabler branch below deliberately leaves the container WITHOUT a `ht-theme-*`
     // class - see the comment inside that branch for why.
     if (iconsMode !== 'tabler') {
       container.className = `ht-theme-${window.htTheme}`;
@@ -116,7 +116,7 @@
     let themeConfig;
 
     if (sheetsBarEnabled) {
-      // Task 12 (sheets bar): the tab strip is pinned narrow so a handful of sheets overflows
+      // Sheets bar: the tab strip is pinned narrow so a handful of sheets overflows
       // it right away - the paging arrows are hidden until `OverflowController` sees
       // `scrollWidth > clientWidth` (src/plugins/sheetsBar/ui/overflow.ts), and the RTL-mirror
       // assertions need them visible without any extra interaction (adding sheets, resizing).
@@ -135,7 +135,7 @@
 
       const base = Handsontable.themes.getTheme(window.htTheme);
 
-      // Task 21: `core.ts`'s `init()` only builds a ThemeManager for a root instance when the
+      // `core.ts`'s `init()` only builds a ThemeManager for a root instance when the
       // container carries NO `ht-theme-*` class AND the theme arrives as a config OBJECT (or is
       // unnamed). This fixture used to set the theme by putting `ht-theme-main` as a class on the
       // container (see above) and then passing this registered theme's NAME as `themeName` - a
@@ -159,7 +159,7 @@
           menu: 'ti ti-menu',
           // A renderer that inserts a CHILD into the cell arrow, the way an inline-SVG renderer
           // does. The autocomplete arrow's mousedown gate must accept a press on that child
-          // (`autocompleteRenderer.ts`, matched by ancestor since the PR #13639 review).
+          // (`autocompleteRenderer.ts`, matched by ancestor).
           selectArrow: (element) => {
             const glyph = document.createElement('span');
 
@@ -192,7 +192,7 @@
       });
     }
 
-    // Task 16: column 0 is `type: 'checkbox'`, but `createSpreadsheetData` fills every column
+    // Column 0 is `type: 'checkbox'`, but `createSpreadsheetData` fills every column
     // with "A1"/"B1"-style labels regardless of type - a string neither the checked nor the
     // unchecked template matches, so the checkbox renderer treats it as `#bad-value#` (no tick,
     // no icon). Patch column 0 to real boolean values so the checkbox actually renders as a
@@ -204,7 +204,7 @@
       row[0] = false;
     });
 
-    // Task 18: column D needs real array values for the multi-select cell type to render chips -
+    // Column D needs real array values for the multi-select cell type to render chips -
     // the spreadsheet label it otherwise carries parses (via `parseValue`) as a single-item chip,
     // which is not enough to prove "one remove icon per chip". Row 0 gets two chips (the case every
     // test in the task drives); the remaining rows get one each, just so every cell in the column
@@ -264,7 +264,7 @@
         ],
       } : undefined,
       notification: notificationEnabled ? true : undefined,
-      // Task 21: only the Tabler branch passes `theme` - as a config OBJECT, the route that
+      // Only the Tabler branch passes `theme` - as a config OBJECT, the route that
       // builds a ThemeManager. Every other mode keeps theming the container-class way the rest
       // of this fixture relies on (`container.className` above), so `theme`/`themeName` are left
       // out of the settings entirely rather than passed as `undefined`.

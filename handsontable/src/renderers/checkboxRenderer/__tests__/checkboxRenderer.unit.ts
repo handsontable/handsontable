@@ -49,7 +49,7 @@ describe('checkboxRenderer', () => {
 
       checkboxRenderer(instance, TD, 0, 0, undefined, null, cellMeta);
 
-      // DEV-3003: the checkbox tick is now a real `<i class="ht-icon ht-icon-checkbox">` sibling
+      // The checkbox tick is now a real `<i class="ht-icon ht-icon-checkbox">` sibling
       // of the input (`insertAdjacentElement('afterend', ...)`), not a CSS pseudo-element.
       expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',

@@ -239,14 +239,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
   triggers is the remaining per-switch cost outside this plugin.
 - **The bar's icons (paging arrows, add/all-sheets buttons, tab chevrons) are kept through an
-  injected `syncIcon()`** (DEV-3003) — `bar.ts` and `tabStrip.ts` receive `syncIcon` (bound to the
+  injected `syncIcon()`** — `bar.ts` and `tabStrip.ts` receive `syncIcon` (bound to the
   grid in `sheetsBar.ts`), not `createIcon`, and each owns one slot class
   (`ht-sheets-bar__button-icon`, `ht-sheets-bar__tab-chevron-icon`). `#onAfterSetTheme` calls
   `this.#ui?.refreshIcons()` and `this.#tabStrip?.refreshIcons()`, which update the icons **in
   place** and only when the theme's icons revision moved. **Never answer `afterSetTheme` with
   `#refreshUI()`**: `TabStrip#render()` aborts a tab drag and cancels an open rename, and the hook
   also fires for a color-scheme or density switch (a ThemeBuilder `params()` or `setColorScheme()`
-  included), so the user loses the sheet name they were typing (PR #13639 review; pinned by "a
+  included), so the user loses the sheet name they were typing (pinned by "a
   color-scheme switch keeps an open tab rename" in `tests/e2e/icon-elements.spec.ts`). The active-sheet check mark in `menus.ts` is different:
   it is built fresh every time a menu row is rendered (`#renderSheetName`, per `open()`), so it
   always reflects the current theme with no `refreshIcons()` involvement.

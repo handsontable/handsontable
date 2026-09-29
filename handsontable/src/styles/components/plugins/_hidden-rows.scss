@@ -2,12 +2,12 @@
 
 @mixin output {
   .handsontable {
-    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now (DEV-3003),
+    // The caret is a real `<i class="ht-icon ht-hidden-indicator-*">` element now,
     // created by `syncIcon()` in `hiddenRows.ts` as a child of the `th` itself - not a
     // `::before`/`::after` pseudo-element on it any more, and not a child of the `.relative`
     // wrapper (see `_hidden-columns.scss` for why). The `th` is `position: relative`
     // (`_base.scss`, restated below) and is the exact box the old pseudo-elements positioned
-    // against, which is what lets every offset below stay byte-identical to the pre-DEV-3003 rules.
+    // against, which is what lets every offset below stay byte-identical to the 18.1 rules.
 
     // Sizing lives on the SLOT class, not on the `beforeHiddenRow` / `afterHiddenRow` marker,
     // mirroring `_hidden-columns.scss`: a caret whose marker some later header renderer strips
@@ -26,7 +26,7 @@
     tbody th > .ht-hidden-indicator-end {
       position: absolute;
       left: 50%;
-      // 10x10, matching `_hidden-columns.scss` - unchanged by DEV-3003. The
+      // 10x10, matching `_hidden-columns.scss` - unchanged by the icon-element change. The
       // `caretHiddenUp`/`caretHiddenDown` glyphs are themselves drawn on an 8x8 viewBox
       // (`caretHiddenLeft`/`caretHiddenRight`, the column carets, use 10x10 -
       // `themes/static/variables/icons/*.ts`), so the mask (`mask-size: contain`) scales the
@@ -44,7 +44,7 @@
       color: var(--ht-hidden-indicator-color);
     }
 
-    // The pre-DEV-3003 pseudo-element was gated on the marker class: no `beforeHiddenRow`, no
+    // The old pseudo-element was gated on the marker class: no `beforeHiddenRow`, no
     // caret. Keep that contract for the element, so stripping the marker still hides the caret.
     tbody th:not(.beforeHiddenRow) > .ht-hidden-indicator-end,
     tbody th:not(.afterHiddenRow) > .ht-hidden-indicator-start {

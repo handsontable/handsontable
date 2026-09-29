@@ -14,7 +14,7 @@
       outline: none;
       // Moved from the generated `iconsMap` stylesheet (`ht-icons-*.css`): that rule paired it
       // with the tick glyph, but it is native-checkbox chrome removal, not icon paint, so it
-      // belongs here and must survive Task 22 retiring the rest of that generated block.
+      // belongs here, where it does not depend on an icon stylesheet being loaded.
       appearance: none;
 
       // The leading gap, when a label's text sits BEFORE the input (`label { before-text, input,

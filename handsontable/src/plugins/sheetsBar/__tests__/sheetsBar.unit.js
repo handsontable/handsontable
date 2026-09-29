@@ -2704,7 +2704,7 @@ describe('SheetsBar plugin', () => {
     expect(returned).toBe(wrapper);
     // The row of the active sheet also carries the mark, whose own character sits before the
     // name — the name itself still arrives as text and builds no elements. The only elements in
-    // the wrapper are the mark span and the icon element it carries (DEV-3003) - neither comes
+    // the wrapper are the mark span and the icon element it carries - neither comes
     // from the sheet name string, so a hostile name still builds nothing.
     expect(wrapper.textContent.endsWith(hostile)).toBe(true);
     expect(wrapper.querySelector('img')).toBe(null);

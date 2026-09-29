@@ -31,7 +31,7 @@ describe('HiddenColumns', () => {
           colHeaders: true,
         });
 
-        // DEV-3003: the caret is a real `<i class="ht-icon ht-icon-caret-hidden-*">` element now
+        // The caret is a real `<i class="ht-icon ht-icon-caret-hidden-*">` element now
         // (`syncIcon()` against a named slot that is a child of the `th` itself), not a
         // `::before`/`::after` pseudo-element - `beforeHiddenColumn` fills the END slot with a
         // left-pointing caret, `afterHiddenColumn` fills the START slot with a right-pointing one

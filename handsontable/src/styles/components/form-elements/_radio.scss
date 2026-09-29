@@ -98,8 +98,8 @@
          * sits. `--ht-radio-size` is `var(--ht-icon-size)` (`ht-theme-main.css` etc.), so the two
          * boxes are the same size and the dot lands on the ring. An out-of-flow child is not a
          * flex item, so the row's `gap` never applies to it: the dot stays on the ring whatever
-         * gap the row uses, including the `gap: 8px` of a radio cell built from the 18.1 recipe
-         * (PR #13639 review). A negative margin equal to the icon width plus the gap did the same
+         * gap the row uses, including the `gap: 8px` of a radio cell built from the 18.1 recipe.
+         * A negative margin equal to the icon width plus the gap did the same
          * only while the row's gap was `--ht-gap-size`. `.htUIRadio` is the containing block
          * (`position: relative` above), and the label keeps its original position.
          *

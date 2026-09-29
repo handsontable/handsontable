@@ -696,7 +696,7 @@ export class DropdownMenu extends BasePlugin {
    * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
    */
   #getButtonRect(button: HTMLElement) {
-    // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
+    // The glyph is a real `<i class="ht-icon ht-icon-menu">` child of the button
     // (`syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu')` above), not a `::before` pseudo-element -
     // measure its own box directly. Falls back to the button's own rect when the icon is missing
     // (a theme config that maps the `menu` slot to nothing renders no `<i>` at all).

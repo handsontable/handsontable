@@ -8,11 +8,11 @@
 - **Scope**: column-specific operations only (not cells or row headers).
 - **Hook prefix**: `beforeDropdownMenu*`, `afterDropdownMenu*`.
 
-## The keyboard-triggered menu positions itself off the button's ICON, and that measurement must read the real element (DEV-3003)
+## The keyboard-triggered menu positions itself off the button's ICON, and that measurement must read the real element
 
 `registerShortcuts()`'s `Control/Meta`+`Enter` and `Shift`+`Alt/Option`+`ArrowDown` handlers open the menu
-anchored to the change-type button's glyph, not its full hit-area box (`#getButtonRect()`). Before DEV-3003
-task 22 that method read `getComputedStyle(button, '::before').width` — sizing itself off the LEGACY
+anchored to the change-type button's glyph, not its full hit-area box (`#getButtonRect()`). Before icons became
+elements that method read `getComputedStyle(button, '::before').width` — sizing itself off the LEGACY
 `iconsMap()`-generated pseudo-element rule, entirely separate from the real `<i class="ht-icon
 ht-icon-menu">` child `syncIcon(this.hot, button, BUTTON_ICON_CLASS_NAME, 'menu')` already appends. Removing that
 generated CSS made `beforeStyle.width` resolve to `auto` (unparseable → `NaN`), which silently tripped the
@@ -34,8 +34,7 @@ tolerance to widen. `__tests__/helpers/helpers.js`'s `getDropdownMenuButtonIconO
 
 The button survives header re-renders (`#onAfterGetColHeader` returns early on `existingButton`), so
 an icon built once with `createIcon()` kept whichever `icons` mapping was active at first build for the
-life of the element - a runtime `theme.params({ icons })` or theme switch never reached it (PR #13639
-review). Both the create path and the reuse path now call `syncIcon(this.hot, button,
+life of the element - a runtime `theme.params({ icons })` or theme switch never reached it. Both the create path and the reuse path now call `syncIcon(this.hot, button,
 BUTTON_ICON_CLASS_NAME, 'menu')`. That is cheap by design: `syncIcon()` re-applies the mapping only when
 `ThemeManager#getIconsRevision()` moved, which since the same review happens only when the icons mapping
 really changed (not on a density or color-scheme override), so an ordinary redraw pays one class check

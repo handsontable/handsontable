@@ -343,7 +343,7 @@ declared there, not in the core-package file).
 it, and with `headerAction: false` the label shows an indicator but keeps its full width, so reserving would
 just push it inwards.
 
-## The indicator is a real element (DEV-3003), and it still needs the ghost-table `*` stand-in
+## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 
 `#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
 order and the `indicator` setting: ascending → `arrowNarrowUp`, descending → `arrowNarrowDown`, anything
@@ -419,23 +419,23 @@ special-case it.
 `__tests__/` has `a11y/`, `rtl/`, `sortFunction/` and a dedicated `keyboardShortcuts.spec.js` — a sorting
 change usually touches more than the main spec.
 
-## The ghost-table `*` reserve must restate the icon-size width (DEV-3003)
+## The ghost-table `*` reserve must restate the icon-size width
 
 AutoColumnSize measures headers in `.htGhostTable`, where the arrow is stood in for by
 `span.colHeader.columnSorting::before { content: "*" }` plus `padding-inline-end: icon-size + 2px`
-(`_column-sorting.scss`). Before DEV-3003 the real table's `.sortAction::before` glyph rule also matched
+(`_column-sorting.scss`). Before icons became elements the real table's `.sortAction::before` glyph rule also matched
 that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measured reserve was
 `icon-size + (icon-size + 2px)` — 34px on main. The glyph rule went away with the pseudo-element icon, and
 without the width restated on the ghost rule every sortable header with a menu button measured ~10px
 narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
 collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
 Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
-Repro harness: `handsontable/dev-DEV-3003-complex.html?build=pr|latest` (gitignored) exposes `window.hot`
-and `window.measure()` for the complex demo's column widths.
+A local repro page for the complex demo (gitignored, not in the repository) is the quickest way to
+compare its column widths against 18.1.
 
-## The indicator must stay a click target (DEV-3003)
+## The indicator must stay a click target
 
-Before DEV-3003 the arrow was `::before` of the `.colHeader` label, so a press on it targeted
+Before icons became elements the arrow was `::before` of the `.colHeader` label, so a press on it targeted
 the label and `wasClickableHeaderClicked()` accepted it. The arrow is a sibling `<i class="ht-icon
 ht-sort-indicator">` now, and the base `.ht-icon` rule is `pointer-events: none` — which would make
 the arrow the one part of a sortable header that does not sort (hits fall through to `.relative`,

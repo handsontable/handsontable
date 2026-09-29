@@ -20,7 +20,7 @@
       font-size: 0;
       flex-shrink: 0;
 
-      /* Icon (DEV-3003): a real `<i class="ht-icon ht-icon-collapse-on/-off">` element, created
+      /* Icon: a real `<i class="ht-icon ht-icon-collapse-on/-off">` element, created
          by `collapsibleColumns.ts` (and, for Nested Rows, `ui/headers.ts`) as a direct child of
          this element - not a `::before` pseudo-element. Positioned exactly like the old pseudo
          (absolute, centered, above the `::after` chrome layer) so retiring the pseudo changes

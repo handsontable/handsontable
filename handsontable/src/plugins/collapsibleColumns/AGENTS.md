@@ -35,7 +35,7 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.
 
-## The indicator is a real element (DEV-3003), updated in place on every draw
+## The indicator is a real element, updated in place on every draw
 
 `#onAfterGetColHeader` runs for every collapsible header on every draw, so it must not rebuild the
 indicator. `#syncIndicatorContent()` keeps two children: the leading `'+'`/`'-'` text node, updated
@@ -46,14 +46,14 @@ state change and re-applies the theme mapping only when the icons revision moved
 **Never write the text with `fastInnerText()` here.** Once the text node has a sibling (the icon),
 `fastInnerText()` always takes its slow lane - it empties the element and builds a new text node - so
 the icon would have to be rebuilt after it on every draw, re-running any icon renderer callback per
-header per scroll frame. That was the first DEV-3003 version, and the PR #13639 review flagged it.
+header per scroll frame. That was the first version of the element, and review flagged it.
 Pinned by "a draw with no state change keeps the indicator's icon and text nodes" in
 `tests/e2e/icon-elements.spec.ts`.
 
 The `'+'`/`'-'` text stays. It is not new user-visible content: `text-indent: -100px; font-size: 0;` on
 `.collapsibleIndicator` (`_collapsible-columns.scss`) already hid it before this change, so it was
-always a no-CSS fallback rather than visible glyph text — same reasoning as the context menu check mark
-(task 7), which kept its text for the same reason.
+always a no-CSS fallback rather than visible glyph text — same reasoning as the context menu check mark,
+which kept its text for the same reason.
 
 **Two pseudo-elements shared one selector, and only one of them was the glyph.** `_collapsible-columns.scss`
 had `&::before` (glyph: `color` in every `.expanded`/`.collapsed`/hover/active-highlight rule, matching
@@ -65,15 +65,15 @@ pagination migrations. `::after` keeps its `@include mixins.pseudo` untouched.
 
 **The shared `.ht-icon` rule serves BOTH plugins on purpose — do not scope it to `.collapsibleIndicator`
 alone.** The retired `::before` (and its state-color rules) lived on the selector list
-`.collapsibleIndicator, .ht_nestingButton` — Nested Rows' own collapse button, migrated by task 14. The
+`.collapsibleIndicator, .ht_nestingButton` — Nested Rows' own collapse button. The
 replacement `> .ht-icon` rule (position/size/centering/z-index) and every re-keyed `color` rule stay on
-that same shared selector list, so task 14 only has to make `ui/headers.ts` append an `<i class="ht-icon
-ht-icon-collapse-on/-off">` the same way — it should not need to touch this SCSS block at all.
+that same shared selector list, so Nested Rows only has to make `ui/headers.ts` append an `<i class="ht-icon
+ht-icon-collapse-on/-off">` the same way — it does not touch this SCSS block at all.
 
 **The NestedHeaders ghost table (`utils/ghostTable.ts`) builds its own `.collapsibleIndicator` clone for
 width measurement, and now appends the same icon** (`indicator.appendChild(createIcon(this.hot,
 'collapseOff'))`, after `indicator.textContent = '-'` for the same replace-all-children reason). This
-does **not** change any measured width: unlike the column-sorting arrow (task 9), `.collapsibleIndicator`
+does **not** change any measured width: unlike the column-sorting arrow, `.collapsibleIndicator`
 is not absolutely positioned — its box is a fixed `width`/`height` in `--ht-icon-button-hit-area-size`,
 set on the element itself, so it reserves the same space in flow whether or not an icon child is
 present. The icon was still added there for DOM parity with the real header, the same reason every

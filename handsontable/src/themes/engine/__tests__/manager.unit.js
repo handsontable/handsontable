@@ -847,10 +847,10 @@ describe('ThemeManager', () => {
       });
 
       it('does not corrupt the injected stylesheet when an icon is mapped to a renderer ' +
-        'callback (DEV-3003 task 21)', () => {
+        'callback', () => {
         // `#resolveIcons()` splits the theme's icon config into a glyph-only map before ANY of
-        // it reaches CSS text (`iconStyles(glyphs, ...)`, the only remaining serializer since
-        // DEV-3003 task 22 deleted the legacy `iconsMap()` pseudo-element generator, which used
+        // it reaches CSS text (`iconStyles(glyphs, ...)`, the only serializer the manager uses;
+        // the old `iconsMap()` pseudo-element generator, now a deprecated shim, used
         // to receive the RAW, unsplit config and broke the whole `:where()` rule's parsing when
         // a callback's own source text was stringified into it). This proves the split, not a
         // since-deleted call site: a renderer-callback icon contributes no glyph variable or
@@ -971,7 +971,7 @@ describe('ThemeManager', () => {
         warnSpy.mockRestore();
       });
 
-      describe('getIconsRevision (DEV-3003)', () => {
+      describe('getIconsRevision', () => {
         it('bumps the revision on every path that re-resolves icons, so `syncIcon()`\'s ' +
           'keep-path guard can never be bypassed by a re-resolve it does not know about', () => {
           // This is deliberately NOT a comment enumerating call sites - it drives every KNOWN
@@ -1010,7 +1010,7 @@ describe('ThemeManager', () => {
 
           // Path 3: `setOverrides()` (color scheme / density) re-injects the theme styles, which
           // re-resolves the icons - but nothing about them changed, so the revision must hold, or
-          // every kept icon on the grid is re-applied for a density switch (PR #13639 review).
+          // every kept icon on the grid is re-applied for a density switch.
           manager.setOverrides({ colorScheme: 'dark' });
           manager.setOverrides({ density: 'compact' });
 
@@ -1036,7 +1036,7 @@ describe('ThemeManager', () => {
         });
 
         it('never hands two managers the same revision, so an icon stamped by a torn-down ' +
-          'manager is re-applied by the next one (PR #13639 review)', () => {
+          'manager is re-applied by the next one', () => {
           // A grid that moves from theme object A to theme object B destroys A's manager and
           // builds a new one for B. `syncIcon()` keeps an icon whose stamp equals the current
           // revision, so B must never start at a value A already stamped.

@@ -439,7 +439,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
-    // DEV-3003: the checkbox tick icon is inserted as the input's next sibling
+    // The checkbox tick icon is inserted as the input's next sibling
     // (`input.insertAdjacentElement('afterend', ...)`), so the separated label's immediate
     // previous sibling is now that icon, with the checkbox input one step further back.
     expect(getCell(0, 0).querySelector('label').previousSibling.previousSibling.type).toEqual('checkbox');

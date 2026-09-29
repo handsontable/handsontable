@@ -4,7 +4,7 @@ import { _resetDeprecationWarnings } from '../../../helpers/console';
 
 // `handsontable/themes/static/variables/helpers/iconsMap` is a published import path
 // (`package.json` exports `./themes/static/variables/**/*`), so it stays as a deprecated shim
-// until 20.0.0 (PR #13639 review).
+// until 20.0.0.
 describe('iconsMap (deprecated)', () => {
   const icons = { arrowRight: 'data:image/svg+xml,%3Csvg%3E', menu: '/icons/menu.svg' };
 

@@ -26,7 +26,7 @@ describe('icon utils', () => {
   });
 
   // In 18.1 every string icon value was wrapped in `url(...)`. Each of these worked there and
-  // must still be a glyph, not a class list that paints nothing (PR #13639 review).
+  // must still be a glyph, not a class list that paints nothing.
   it('classifies every URL shape an 18.1 icons config held as a glyph', () => {
     expect(isGlyphValue('https://cdn.example.com/search.png')).toBe(true);
     expect(isGlyphValue('http://cdn.example.com/icons/search')).toBe(true);

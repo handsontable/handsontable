@@ -49,7 +49,7 @@ describe('autocompleteRenderer', () => {
 
       autocompleteRenderer(instance, TD, undefined, undefined, undefined, undefined, cellMeta);
 
-      // DEV-3003: the arrow glyph is now a real `<i class="ht-icon ht-icon-select-arrow">`
+      // The arrow glyph is now a real `<i class="ht-icon ht-icon-select-arrow">`
       // sibling of the text-glyph fallback, not a CSS pseudo-element.
       expect(TD.outerHTML).toMatchHTML(
         '<td class="htAutocomplete"><div class="htAutocompleteArrow">▼' +

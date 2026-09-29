@@ -2,7 +2,7 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /**
- * Page Object for the icon-elements fixture (DEV-3003). Every built-in icon site (column
+ * Page Object for the icon-elements fixture. Every built-in icon site (column
  * sorting, hidden columns/rows, the dropdown menu button, the filters select and radio, the
  * select editor, pagination, sheets bar, multi-select, notifications, and more) now renders a
  * real `<i class="ht-icon ht-icon-<name>">` element, so `icon()` below finds it. Extend this

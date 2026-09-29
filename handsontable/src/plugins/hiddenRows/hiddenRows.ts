@@ -22,13 +22,13 @@ const SKIP_ROW_ON_PASTE_BY_PLUGIN = Symbol('skipRowOnPasteByHiddenRows');
 
 /**
  * The `syncIcon()` slot class for the caret shown on the header that FOLLOWS a hidden row
- * (`afterHiddenRow`, glyph pointing down - toward the hidden neighbor) (DEV-3003).
+ * (`afterHiddenRow`, glyph pointing down - toward the hidden neighbor).
  */
 const HIDDEN_INDICATOR_START_SLOT_CLASS = 'ht-hidden-indicator-start';
 
 /**
  * The `syncIcon()` slot class for the caret shown on the header that PRECEDES a hidden row
- * (`beforeHiddenRow`, glyph pointing up - toward the hidden neighbor) (DEV-3003). A header can carry
+ * (`beforeHiddenRow`, glyph pointing up - toward the hidden neighbor). A header can carry
  * both slots at once when it has a hidden neighbor on each side.
  */
 const HIDDEN_INDICATOR_END_SLOT_CLASS = 'ht-hidden-indicator-end';
@@ -298,7 +298,7 @@ export class HiddenRows extends BasePlugin {
    */
   disablePlugin() {
     // `super.disablePlugin()` removes the tracked `#onAfterGetRowHeader` hook, so it never runs
-    // again to clear a previously-rendered caret (DEV-3003). A one-shot hook does that on the
+    // again to clear a previously-rendered caret. A one-shot hook does that on the
     // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
     // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
     const clearRowHeader = (row: number, TH: HTMLTableCellElement) => {

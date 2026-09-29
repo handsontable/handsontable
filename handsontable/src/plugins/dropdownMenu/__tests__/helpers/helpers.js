@@ -6,7 +6,7 @@
  * @returns {{ left: number, top: number }}
  */
 export function getDropdownMenuButtonIconOffset(row, column) {
-  // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-menu">` child of `.changeType`
+  // The glyph is a real `<i class="ht-icon ht-icon-menu">` child of `.changeType`
   // (`button.appendChild(createIcon(this.hot, 'menu'))` in `dropdownMenu.ts`), not a `::before`
   // pseudo-element on the button - measure its own box directly instead of re-deriving it by
   // centering a `::before` size inside the button's rect.

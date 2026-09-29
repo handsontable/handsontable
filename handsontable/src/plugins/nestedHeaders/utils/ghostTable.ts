@@ -320,7 +320,7 @@ class GhostTable {
       indicator.className = 'collapsibleIndicator expanded';
       indicator.textContent = '-';
 
-      // Mirrors `CollapsibleColumns#onAfterGetColHeader` (DEV-3003): the real indicator always
+      // Mirrors `CollapsibleColumns#onAfterGetColHeader`: the real indicator always
       // carries a `.ht-icon` child, appended after the text is set (`textContent =` wipes children
       // the same way `fastInnerText` does). `.collapsibleIndicator`'s own box is sized by the
       // `--ht-icon-button-hit-area-size` custom property, not by its content, so this element does

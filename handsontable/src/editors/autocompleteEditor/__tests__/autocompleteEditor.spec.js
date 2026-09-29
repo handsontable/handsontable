@@ -2975,7 +2975,7 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      // DEV-3003: `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
+      // `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
       // decorative element, ahead of the cell's actual content in DOM order - exclude it so this
       // still resolves the injected `<i>bar</i>` markup, not the arrow icon.
       expect(getCell(0, 0).querySelector('i:not(.ht-icon)').textContent).toBe('bar');
@@ -3037,7 +3037,7 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      // DEV-3003: `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
+      // `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
       // decorative element, ahead of the cell's actual content in DOM order - exclude it so this
       // still resolves the injected `<i>bar</i>` markup, not the arrow icon.
       expect(getCell(0, 0).querySelector('i:not(.ht-icon)').textContent).toBe('bar');
@@ -3195,7 +3195,7 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      // DEV-3003: same exclusion as above - `.htAutocompleteArrow` always carries its own
+      // Same exclusion as above - `.htAutocompleteArrow` always carries its own
       // `<i class="ht-icon ht-icon-select-arrow">`, so a bare `i` selector would never be null.
       expect(getCell(0, 0).querySelector('i:not(.ht-icon)')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');
@@ -3255,7 +3255,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      // DEV-3003: same exclusion as above - `.htAutocompleteArrow` always carries its own
+      // Same exclusion as above - `.htAutocompleteArrow` always carries its own
       // `<i class="ht-icon ht-icon-select-arrow">`, so a bare `i` selector would never be null.
       expect(getCell(0, 0).querySelector('i:not(.ht-icon)')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');

@@ -62,7 +62,7 @@ describe('NestedHeaders', () => {
         // different CSS and silently size every column wrong, which no width assertion phrased as
         // "greater than zero" would catch. Compared against the old markup, parsed.
         //
-        // DEV-3003: the collapsible indicator's glyph is a real `.ht-icon` element now (created by
+        // The collapsible indicator's glyph is a real `.ht-icon` element now (created by
         // `GhostTable#buildHeaderLabel`, mirroring `CollapsibleColumns#onAfterGetColHeader`), not a
         // `::before` pseudo-element - but it does not widen the measured column, because
         // `.collapsibleIndicator` reserves its own fixed box (`--ht-icon-button-hit-area-size`)

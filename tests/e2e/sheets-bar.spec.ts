@@ -289,7 +289,7 @@ test.describe('sheets bar', () => {
 
     const target = (await bar.chevron(0).boundingBox())!;
     const glyph = await bar.chevron(0).evaluate((element) => {
-      // DEV-3003: the glyph is the `.ht-icon` child, not the trigger's `::after`.
+      // The glyph is the `.ht-icon` child, not the trigger's `::after`.
       const rect = element.querySelector('.ht-icon')!.getBoundingClientRect();
 
       return { width: rect.width, height: rect.height };
@@ -818,7 +818,7 @@ test.describe('sheets bar', () => {
     // One mark, and it sits against the active sheet.
     expect(await marked()).toEqual(['Alpha']);
 
-    // The mark is painted from a masked SVG rather than from the character. DEV-3003: the glyph is
+    // The mark is painted from a masked SVG rather than from the character. The glyph is
     // the `<i class="ht-icon ht-icon-check">` child the menu renderer appends inside the mark span,
     // so a sheets bar menu the renderer skipped would leave no icon and read `none` here.
     const painted = await page.locator('.htSheetsBarMenu .htItemWrapper .selected .ht-icon').evaluate(

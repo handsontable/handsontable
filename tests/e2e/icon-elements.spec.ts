@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/test';
 import { IconElementsPage } from '../fixtures/pages/IconElementsPage';
 
-test.describe('Icon elements (DEV-3003)', () => {
+test.describe('Icon elements', () => {
   test('the theme stylesheet defines a --ht-icon-* variable per icon', async({ page, theme, bundle }) => {
     const grid = new IconElementsPage(page, theme, bundle);
 
@@ -27,7 +27,7 @@ test.describe('Icon elements (DEV-3003)', () => {
   // 18.1 pinned the RTL submenu arrow and check marks at `4 * gap` from the menu's left edge, NOT
   // at the LTR distance (`padding + 2 * gap`) mirrored. Those differ per theme in both directions
   // (main 16 vs 20, classic 8 vs 12, horizon 24 vs 20), so the logical property alone moved every
-  // menu surface's marks in RTL; `_dropdown-menu.scss` restates the 18.1 rule (PR #13639 review).
+  // menu surface's marks in RTL; `_dropdown-menu.scss` restates the 18.1 rule.
   test('in RTL the submenu arrow keeps its 18.1 inset of four gaps from the menu edge', async({ page, theme, bundle }) => {
     const grid = new IconElementsPage(page, theme, bundle);
 
@@ -107,8 +107,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // In 18.1 a label-less input was the cell's only child, so it matched both `:first-child` and
     // `:last-child` and got a gap on each side. With the icon after it, neither old rule matched,
-    // and every plain checkbox moved toward the start of its cell by `--ht-gap-size` (PR #13639
-    // review).
+    // and every plain checkbox moved toward the start of its cell by `--ht-gap-size`.
     test('a checkbox without a label keeps its 18.1 gap on both sides', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -386,7 +385,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
   test.describe('column sorting indicator', () => {
     // `.ht_clone_top th` is the visible, interactive copy of the header row - `.ht_master`'s
-    // `<thead>` is `visibility: hidden` (DEV-3003 traps), so clicks and rendered-state assertions
+    // `<thead>` is `visibility: hidden`, so clicks and rendered-state assertions
     // target the clone. Column B (index 2: row header, then col A) is a plain column with no
     // per-column `columnSorting` override.
     const columnBHeader = (page: import('@playwright/test').Page) => page.locator('.ht_clone_top th').nth(2);
@@ -408,7 +407,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(header.locator('.ht-sort-indicator')).toHaveCount(1);
     });
 
-    // DEV-3003 trap: the old `::before` belonged to the `.colHeader` label, so a press on the
+    // Trap: the old `::before` belonged to the `.colHeader` label, so a press on the
     // arrow targeted the label and `wasClickableHeaderClicked()` accepted it. The arrow is a
     // sibling element now, and the base `.ht-icon` is `pointer-events: none` - the slot must take
     // its hits back and the gate must accept it, or the arrow is the one part of a sortable header
@@ -443,7 +442,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
 
     // AutoColumnSize measures headers in an offscreen `.htGhostTable`, where the sort arrow is
-    // stood in for by a `*` pseudo-element on the label. Before DEV-3003 the glyph's own
+    // stood in for by a `*` pseudo-element on the label. Before icons became elements the glyph's own
     // `.sortAction::before { width: var(--ht-icon-size) }` rule matched that pseudo-element too, so
     // the reserve measured `icon-size + (icon-size + 2px)`. The glyph rule is gone; the width has to
     // be restated on the ghost rule, or every sortable header with a menu button measures ~10px
@@ -651,7 +650,7 @@ test.describe('Icon elements (DEV-3003)', () => {
         return target?.tagName ?? null;
       });
 
-      // A pre-existing, unrelated `label::before` overlay (`_radio.scss`, predating DEV-3003)
+      // A pre-existing, unrelated `label::before` overlay (`_radio.scss`, predating the icon elements)
       // covers the whole `.htUIRadio` row - including this pixel - so the icon is never the
       // top hit-tested element here even before this change; the LABEL is. That overlay is what
       // a real click at this point resolves to, never the icon (`ht-icon-radio` never appears).
@@ -665,7 +664,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // The dot used to be pulled back onto the ring by a negative margin of its own width plus
     // `--ht-gap-size`, so it landed on the ring only while the row's `gap` was that variable. A radio
-    // cell built from the 18.1 recipe (`gap: 8px`) put the dot off the ring (PR #13639 review).
+    // cell built from the 18.1 recipe (`gap: 8px`) put the dot off the ring.
     test('the radio dot stays centred on its ring whatever gap the row uses', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -741,8 +740,8 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
 
     // The list is a nested Handsontable instance, and only a root instance gets a ThemeManager, so
-    // its ticks used to ignore the grid's class-list mapping and take the plain-glyph fallback
-    // (PR #13639 review). It draws its icons with the root's theme now.
+    // its ticks used to ignore the grid's class-list mapping and take the plain-glyph fallback.
+    // It draws its icons with the root's theme now.
     test('the "Filter by value" ticks follow a class-list mapping of the grid\'s theme', async({
       page, theme, bundle,
     }) => {
@@ -813,7 +812,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     // Mirroring follows the GRID's direction, never the page's. The retired `[dir="rtl"]` descendant
     // rules mirrored an LTR grid's arrows whenever any ancestor was RTL; `.ht-icon--flip-rtl:dir(rtl)`
     // resolves against the element's own inherited direction, which the grid root sets from
-    // `layoutDirection`. Disclosed in the 19.0 migration guide (PR #13639 review).
+    // `layoutDirection`. Disclosed in the 19.0 migration guide.
     test('mirroring follows layoutDirection, not the page dir, when the two disagree', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -964,7 +963,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       const pageNext = page.locator('.ht-sheets-bar__page-next');
       const pagePrev = page.locator('.ht-sheets-bar__page-prev');
 
-      // The fixture's narrow tab strip (Task 12) overflows immediately with six sheets, so the
+      // The fixture's narrow tab strip overflows immediately with six sheets, so the
       // paging section is visible from the first render - no add-sheet interaction needed.
       await expect(pagingSection).toBeVisible();
       await expect(grid.icon('arrow-right', pageNext)).toHaveCount(1);
@@ -1061,7 +1060,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // `afterSetTheme` also fires for a color-scheme or density switch. The bar used to answer it
     // with a full tab-strip `render()`, which cancels an open rename, so a user typing a sheet name
-    // lost it when the app toggled dark mode (PR #13639 review).
+    // lost it when the app toggled dark mode.
     test('a color-scheme switch keeps an open tab rename and the text typed into it', async({
       page, theme, bundle,
     }) => {
@@ -1127,10 +1126,10 @@ test.describe('Icon elements (DEV-3003)', () => {
   });
 
   test.describe('collapsible nested-header indicator', () => {
-    // The `?nestedHeaders=1` fixture branch (task 13) groups the first two columns under a
+    // The `?nestedHeaders=1` fixture branch groups the first two columns under a
     // collapsible "Group" header (`collapsibleColumns: true`). `.ht_clone_top` is the visible,
-    // interactive copy of the header rows - `.ht_master`'s own `<thead>` is `visibility: hidden`
-    // (DEV-3003 traps), so clicking the indicator targets the clone; a bare presence COUNT is
+    // interactive copy of the header rows - `.ht_master`'s own `<thead>` is
+    // `visibility: hidden`, so clicking the indicator targets the clone; a bare presence COUNT is
     // scoped to `.ht_master` instead, or Walkontable's clone overlay would double it.
     const masterIndicator = (page: import('@playwright/test').Page) =>
       page.locator('.ht_master .collapsibleIndicator');
@@ -1180,7 +1179,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       await grid.goto({ nestedHeaders: true });
 
       // `#onAfterGetColHeader` fires per header, per draw - forcing several renders proves the
-      // indicator never stacks a second icon (DEV-3003).
+      // indicator never stacks a second icon.
       await page.evaluate(() => {
         const hot = (window as unknown as { hot: any }).hot;
 
@@ -1195,7 +1194,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // The indicator used to be emptied and rebuilt on every draw - a new text node, a new `<i>`,
     // and a fresh run of any icon renderer callback, for every collapsible header on every scroll
-    // frame (PR #13639 review). A draw with no state change must keep both nodes.
+    // frame. A draw with no state change must keep both nodes.
     test('a draw with no state change keeps the indicator\'s icon and text nodes', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -1237,7 +1236,7 @@ test.describe('Icon elements (DEV-3003)', () => {
   });
 
   test.describe('nested rows collapse button', () => {
-    // The `?nestedRows=1` fixture branch (task 14) adds one parent row ("Parent A", two
+    // The `?nestedRows=1` fixture branch adds one parent row ("Parent A", two
     // children) on top of "Row B", a plain leaf. `.ht_master table.htCore > tbody > tr > th` is
     // `visibility: hidden` (`_base.scss`) - `.ht_clone_inline_start` is the visible, interactive
     // copy of the row headers, so clicks target the clone; a bare presence COUNT is scoped to
@@ -1294,8 +1293,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       // `appendLevelIndicators()` fires per row header, per draw, and rebuilds `buttonsContainer`
       // from scratch every time (`removeLevelIndicators()` strips the previous one first) -
-      // forcing several renders proves that fresh-container append never stacks a second icon
-      // (DEV-3003).
+      // forcing several renders proves that fresh-container append never stacks a second icon.
       await page.evaluate(() => {
         const hot = (window as unknown as { hot: any }).hot;
 
@@ -1313,10 +1311,10 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       await grid.goto({ nestedRows: true });
 
-      // Task 13 dropped `@include mixins.pseudo` (`content: ""`) from the `.ht_nestingButton::before`
+      // Converting the collapse indicator dropped `@include mixins.pseudo` (`content: ""`) from the `.ht_nestingButton::before`
       // rule shared with `.collapsibleIndicator`; the generated `iconsMap` rule (width/height/
       // mask-image/background-color) carries no `content` of its own, so with nothing supplying it
-      // the pseudo-element paints nothing here either - task 14 never touched this SCSS block.
+      // the pseudo-element paints nothing here either - the Nested Rows button never needed its own change here.
       const beforeContent = await cloneButton(page).evaluate(el => getComputedStyle(el, '::before').content);
 
       expect(beforeContent).toBe('none');
@@ -1324,10 +1322,10 @@ test.describe('Icon elements (DEV-3003)', () => {
   });
 
   test.describe('hidden columns indicator', () => {
-    // `?hiddenColumns=1` (task 15) hides column C (visual index 2) of the base 4-column fixture up
+    // `?hiddenColumns=1` hides column C (visual index 2) of the base 4-column fixture up
     // front, with `indicators: true` - so its neighbors, B and D, render a caret on load. `.ht_master`
     // is the authoritative copy for presence counts; `.ht_clone_top` is the visible, interactive
-    // copy for anything about rendered position, size or color (DEV-3003 traps).
+    // copy for anything about rendered position, size or color.
     const masterBefore = (page: import('@playwright/test').Page) =>
       page.locator('.ht_master th.beforeHiddenColumn');
     const masterAfter = (page: import('@playwright/test').Page) =>
@@ -1374,8 +1372,8 @@ test.describe('Icon elements (DEV-3003)', () => {
       // only on the header closest to the cells. While the caret was a pseudo-element gated on
       // those classes, the strip alone removed it. The caret is a real element now, so HiddenColumns
       // must not create it on those levels at all - otherwise the strip leaves an orphaned `<i>`
-      // rendered at the base 16px icon size on the level-0 "Col D" header (found on the DEV-3003
-      // demo page).
+      // rendered at the base 16px icon size on the level-0 "Col D" header (found on a demo
+      // page).
       const upperRow = page.locator('.ht_master thead tr').first();
       const bottomRow = page.locator('.ht_master thead tr').last();
 
@@ -1397,7 +1395,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     // The bottom-row gate exists for NestedHeaders, which strips the markers from upper levels.
     // Without it nothing strips them, and in 18.1 `th.beforeHiddenColumn::after` painted on every
     // header row - so a multi-row header built through `afterGetColumnHeaderRenderers` must keep
-    // its carets on every row (PR #13639 review).
+    // its carets on every row.
     test('without nested headers, every header row carries its caret', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -1582,10 +1580,10 @@ test.describe('Icon elements (DEV-3003)', () => {
   });
 
   test.describe('hidden rows indicator', () => {
-    // `?hiddenRows=1` (task 15) hides row index 2 of the base 5-row fixture up front, with
+    // `?hiddenRows=1` hides row index 2 of the base 5-row fixture up front, with
     // `indicators: true` - so its neighbors (rows 1 and 3) render a caret on load. `.ht_master` is
     // the authoritative copy for presence counts; `.ht_clone_inline_start` is the visible,
-    // interactive copy for anything about rendered position, size or color (DEV-3003 traps).
+    // interactive copy for anything about rendered position, size or color.
     const masterBefore = (page: import('@playwright/test').Page) =>
       page.locator('.ht_master th.beforeHiddenRow');
     const masterAfter = (page: import('@playwright/test').Page) =>
@@ -1629,7 +1627,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       // `caretHiddenUp`/`caretHiddenDown` are authored on an 8x8 viewBox and `mask-size: contain`
       // scales that artwork up to fill this box - the CSS box itself is 10x10, unchanged from
-      // before DEV-3003 (pinned here so a future edit cannot silently shrink it to match the
+      // before icons became elements (pinned here so a future edit cannot silently shrink it to match the
       // glyph's own artwork size).
       expect(box).toEqual({ width: 10, height: 10 });
     });
@@ -1721,7 +1719,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
   });
 
-  test.describe('autocomplete arrow and select editor (task 17)', () => {
+  test.describe('autocomplete arrow and select editor', () => {
     // Column C (visual index 2) is `type: 'autocomplete'` in the base fixture. Pagination
     // (`pageSize: 2`) is on by default in this fixture for every other block above, so it is
     // turned off here through the public API - the only way to see every one of the 5 base rows
@@ -1756,7 +1754,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(afterContent).toBe('none');
     });
 
-    // DEV-3003 trap (item 1 of the task brief): the arrow is INTERACTIVE - a `mousedown` listener
+    // Trap: the arrow is INTERACTIVE - a `mousedown` listener
     // in `autocompleteRenderer.ts` opens the editor when the press lands on `.htAutocompleteArrow`.
     // `.ht-icon`'s base `pointer-events: none` must let a click through to the arrow div beneath
     // it rather than intercepting it, or this affordance silently breaks. Also covered end-to-end
@@ -1931,7 +1929,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
   });
 
-  test.describe('multi-select renderer and editor (task 18)', () => {
+  test.describe('multi-select renderer and editor', () => {
     // Column D (visual index 3) is `type: 'multiselect'` only when `multiSelect=1` is passed, so
     // every other block above keeps its original 4-column fixture untouched. Row 0's source data
     // is `['Alpha', 'Beta']` out of the column's `source: ['Alpha', 'Beta', 'Gamma', 'Delta']` -
@@ -1978,7 +1976,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
       // Scoped to `.ht-multi-select-arrow` specifically, not the page-wide `grid.icon()` helper -
       // column C in this same fixture is `type: 'autocomplete'` and carries the same `select-arrow`
-      // glyph on a different element (`.htAutocompleteArrow`, task 17), which would inflate the count.
+      // glyph on a different element (`.htAutocompleteArrow`), which would inflate the count.
       const arrows = page.locator('.ht_master td.ht-multi-select-renderer .ht-multi-select-arrow .ht-icon.ht-icon-select-arrow');
 
       await expect(arrows).toHaveCount(5);
@@ -2001,7 +1999,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(chipRemoveBeforeContent).toBe('none');
     });
 
-    // DEV-3003 trap: the chip remove button is INTERACTIVE (`registerChipRemovingEvents`,
+    // Trap: the chip remove button is INTERACTIVE (`registerChipRemovingEvents`,
     // `utils/utils.ts`) - `.ht-icon`'s base `pointer-events: none` must let a click through to the
     // span beneath it rather than intercepting it, or the affordance silently breaks.
     test('a click precisely on a chip remove icon removes that chip - the icon does not intercept ' +
@@ -2036,7 +2034,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       expect(sourceData).toEqual(['Beta']);
     });
 
-    // DEV-3003 trap, same as the autocomplete arrow (task 17): a `mousedown` listener
+    // Trap, same as the autocomplete arrow: a `mousedown` listener
     // (`registerDropdownIndicatorEvents`, `utils/utils.ts`) opens the editor when the press lands
     // on `.ht-multi-select-arrow`; the icon inside it must not steal the hit.
     test('a click precisely on the arrow opens the editor - the icon does not intercept the click', async({
@@ -2168,7 +2166,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
   });
 
-  test.describe('notification close button (task 19)', () => {
+  test.describe('notification close button', () => {
     // The notification plugin shows nothing on its own - every test here drives it through its
     // public API (`hot.getPlugin('notification').showMessage(...)`), the way an application is
     // meant to invoke it. `duration: 0` keeps the toast open until a test dismisses it itself, so
@@ -2198,7 +2196,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       await expect(grid.icon('chip-close', close)).toHaveCount(1);
     });
 
-    // DEV-3003 trap: the close button is INTERACTIVE (`hideAll`/`hide`, `notification.ts`) -
+    // Trap: the close button is INTERACTIVE (`hideAll`/`hide`, `notification.ts`) -
     // `.ht-icon`'s base `pointer-events: none` must let a click through to the button beneath it
     // rather than intercepting it, or the toast can never be dismissed by mouse.
     test('a click on the close icon dismisses the toast - the icon does not intercept the ' +
@@ -2279,7 +2277,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       // the OLD theme is still on screen. `Notification`'s `afterSetTheme` hook calls
       // `NotificationUI#refreshIcons()`, which removes and re-appends the close icon of every
       // currently-open toast - a live toast is not discarded, only its icon catches up. This is the
-      // deliberate choice for task 19: a toast built before the change keeps showing its close
+      // deliberate choice: a toast built before the change keeps showing its close
       // control throughout, unlike a control that vanished and reappeared.
       await page.evaluate((themeName) => {
         (window as unknown as { hot: any }).hot.useTheme(`ht-theme-${themeName}`);
@@ -2298,8 +2296,8 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
   });
 
-  test.describe('external icon mapping (task 21)', () => {
-    // `?icons=tabler` (fixture task 21) registers a per-instance theme as a THEME CONFIG OBJECT,
+  test.describe('external icon mapping', () => {
+    // `?icons=tabler` (the fixture's Tabler branch) registers a per-instance theme as a THEME CONFIG OBJECT,
     // through `Handsontable.themes.registerTheme()` and the `theme` constructor option - not a
     // `themeName` string, and the container carries no `ht-theme-*` class. That arrangement is the
     // only one that actually builds a `ThemeManager` (`core.ts` `init()`): a `themeName` string, or
@@ -2330,7 +2328,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // A renderer callback owns the inside of the `<i>`: the fixture's `arrowNarrowUp` renderer
     // inserts a child span, so a press on the arrow targets that span. The sort click gate must
-    // accept any target inside the indicator, not only the slot element itself (PR review).
+    // accept any target inside the indicator, not only the slot element itself.
     test('a click on markup a renderer callback put inside the indicator still toggles the sort', async({
       page, theme, bundle,
     }) => {
@@ -2365,7 +2363,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     // The cell arrow's mousedown gate used to accept only a target that carried
     // `htAutocompleteArrow` itself. The fixture's `selectArrow` renderer inserts a child span into
     // the arrow's icon, so a press on the painted glyph targets that child; the gate matches by
-    // ancestor now (PR #13639 review), and this pins it with a real click on the child.
+    // ancestor now, and this pins it with a real click on the child.
     test('a click on markup a renderer callback put inside the cell arrow still opens the editor', async({
       page, theme, bundle,
     }) => {
@@ -2435,7 +2433,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // The header menu opens from `#onTableClick`, which used to require the click target to BE the
     // button. A renderer child that takes its own pointer events made the mousedown set the
-    // "button clicked" flag and the click then fail to open the menu (PR #13639 review). Both
+    // "button clicked" flag and the click then fail to open the menu. Both
     // gates match by ancestor now, and the menu is positioned from the button, not the child.
     test('a click on markup a renderer callback put inside the header menu button still opens the menu', async({
       page, theme, bundle,
@@ -2478,7 +2476,7 @@ test.describe('Icon elements (DEV-3003)', () => {
 
     // The multi-select editor's dropdown is built once per editor and reused, so its search icon
     // used to keep whichever mapping was active when the editor was first created. It refreshes
-    // from `prepare()` now, like the other create-once hosts (PR #13639 review).
+    // from `prepare()` now, like the other create-once hosts.
     test('a runtime icons remap reaches the reused multi-select search icon', async({
       page, theme, bundle,
     }) => {
@@ -2565,7 +2563,7 @@ test.describe('Icon elements (DEV-3003)', () => {
       await grid.goto({ icons: 'tabler' });
 
       // `.ht_clone_top th` is the visible, interactive copy of the header row - `.ht_master`'s
-      // `<thead>` is `visibility: hidden` (DEV-3003 traps, also used by the "column sorting
+      // `<thead>` is `visibility: hidden` (also used by the "column sorting
       // indicator" tests above). Column B (index 2) has no per-column `columnSorting` override.
       const columnBHeader = page.locator('.ht_clone_top th').nth(2);
 
@@ -2700,7 +2698,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     });
   });
 
-  test('the theme stylesheet has no pseudo-element icon rules left (DEV-3003 task 22)', async({
+  test('the theme stylesheet has no pseudo-element icon rules left', async({
     page, theme, bundle,
   }) => {
     const grid = new IconElementsPage(page, theme, bundle);
@@ -2745,7 +2743,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     expect(pseudoMaskRules).toBe(0);
   });
 
-  test.describe('-no-icons bundle (DEV-3003 task 22)', () => {
+  test.describe('-no-icons bundle', () => {
     test('an icon element renders as an empty box, never a painted square', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -2775,7 +2773,7 @@ test.describe('Icon elements (DEV-3003)', () => {
     // scoped to a theme. So on a page where one grid loads a theme with icons and another grid a
     // `-no-icons` bundle, the second grid's icons match the first theme's rules with the variable
     // undeclared. `mask-image` then used to compute to `none`, and `background-color:
-    // currentColor` painted a solid square (PR #13639 review).
+    // currentColor` painted a solid square.
     test('an icon outside every icon-carrying theme scope paints nothing on a page that loads glyph rules', async({
       page, theme, bundle,
     }) => {

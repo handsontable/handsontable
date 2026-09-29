@@ -227,7 +227,7 @@ describe('ColumnSorting', () => {
       expect(icon).not.toBe(null);
       expect(isIconPainted(icon)).toBe(true);
 
-      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
+      // The indicator is a real `.ht-sort-indicator` element now, positioned by
       // `_column-sorting.scss` against the header's `.relative` container with
       // `inset-inline-end: calc(--ht-sort-indicator-offset-end + 2px)` - that is what keeps it
       // pinned to the header edge instead of travelling with the label. Assert against the real
@@ -3046,7 +3046,7 @@ describe('ColumnSorting', () => {
       expect(icon).not.toBe(null);
       expect(isIconPainted(icon)).toBe(true);
 
-      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, so its box is read
+      // The indicator is a real `.ht-sort-indicator` element now, so its box is read
       // straight off the element instead of derived from `::before` computed style.
       const iconRect = icon.getBoundingClientRect();
 

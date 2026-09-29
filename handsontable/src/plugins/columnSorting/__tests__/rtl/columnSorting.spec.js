@@ -1,7 +1,7 @@
 describe('ColumnSorting (RTL)', () => {
   /**
    * Returns the sort-direction indicator icon for a header label, or `null` when the header shows
-   * none. DEV-3003: the indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
+   * none. The indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
    * label inside `.relative`, not a `::before` pseudo-element on the label (see the non-RTL
    * `__tests__/columnSorting.spec.js`, which this file mirrors).
    *
@@ -57,7 +57,7 @@ describe('ColumnSorting (RTL)', () => {
       expect(icon).not.toBe(null);
       expect(isIconPainted(icon)).toBe(true);
 
-      // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned by
+      // The indicator is a real `.ht-sort-indicator` element now, positioned by
       // `_column-sorting.scss` against the header's `.relative` container with
       // `inset-inline-end: calc(--ht-sort-indicator-offset-end + 2px)` - that is what keeps it
       // pinned to the header edge instead of travelling with the label. Assert against the real

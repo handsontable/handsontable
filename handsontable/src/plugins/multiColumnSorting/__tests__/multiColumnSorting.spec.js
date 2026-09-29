@@ -51,7 +51,7 @@ describe('MultiColumnSorting', () => {
 
   /**
    * Returns the sort-direction indicator icon for a header label, or `null` when the header shows
-   * none. DEV-3003: the indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
+   * none. The indicator is a real `<i class="ht-icon ht-sort-indicator">` sibling of the
    * label inside `.relative`, not a `::before` pseudo-element on the label.
    *
    * @param {HTMLElement} headerLabel The `span.colHeader`/`span.columnSorting` label element.
@@ -222,7 +222,7 @@ describe('MultiColumnSorting', () => {
     expect(icon).not.toBe(null);
     expect(isIconPainted(icon)).toBe(true);
 
-    // DEV-3003: the indicator is a real `.ht-sort-indicator` element now, positioned against the
+    // The indicator is a real `.ht-sort-indicator` element now, positioned against the
     // header's `.relative` container - assert its box sits inside that container instead of
     // reading `::before` computed style.
     const containerRect = sortedColumn.closest('.relative').getBoundingClientRect();

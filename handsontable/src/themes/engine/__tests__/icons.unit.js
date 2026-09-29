@@ -44,7 +44,7 @@ describe('createIcon / syncIcon', () => {
   });
 
   it('createTrackedIconSync skips the query when clearing a slot it never filled, and still ' +
-    'clears one it did (PR #13639 review)', () => {
+    'clears one it did', () => {
     const hot = { rootDocument: document, themeManager: null };
     const sync = createTrackedIconSync();
     const untouched = document.createElement('div');
@@ -62,7 +62,7 @@ describe('createIcon / syncIcon', () => {
     expect(filled.querySelector('.slot')).toBeNull();
   });
 
-  describe('keep-path revision guard (DEV-3003)', () => {
+  describe('keep-path revision guard', () => {
     let guidCounter = 0;
 
     /**
@@ -197,8 +197,7 @@ describe('createIcon / syncIcon', () => {
       expect(afterSecondChange.className).not.toContain('ti-chevron-right');
     });
 
-    it('re-applies the new theme\'s mapping when the grid swaps to a brand-new theme manager ' +
-      '(PR #13639 review)', () => {
+    it('re-applies the new theme\'s mapping when the grid swaps to a brand-new theme manager', () => {
       // Theme object A -> theme object B tears A's manager down and builds a new one. A
       // per-manager counter restarted at the same value A had stamped, so the kept icon kept A's
       // class list.
@@ -227,7 +226,7 @@ describe('createIcon / syncIcon', () => {
     });
 
     it('draws a linked nested instance\'s icons with its source\'s mapping, and follows a ' +
-      'later change on the source (PR #13639 review)', () => {
+      'later change on the source', () => {
       // A nested grid (the Filters by-value list) never gets a ThemeManager of its own.
       const root = createMockHot();
 
@@ -300,8 +299,7 @@ describe('createIcon / syncIcon', () => {
       expect(syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' })).toBe(menuAfter);
     });
 
-    it('keeps exactly one slot icon when a renderer callback assigns `className` ' +
-      '(PR #13639 review)', () => {
+    it('keeps exactly one slot icon when a renderer callback assigns `className`', () => {
       const hot = createMockHot();
 
       hot.themeManager = createThemeManager({

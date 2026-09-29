@@ -4,7 +4,7 @@ import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 /**
  * The hidden-column and hidden-row indicator geometry as 18.1.0 shipped it, and the reference every
  * arrow is compared against. 18.1.0 drew the arrows as `th::before`/`th::after` pseudo-elements;
- * since DEV-3003 they are real `<i class="ht-icon ht-hidden-indicator-start|end">` children of the
+ * since icons became elements they are real `<i class="ht-icon ht-hidden-indicator-start|end">` children of the
  * same `th`, so the 18.1.0 offsets are re-expressed against those elements - a rule written for the
  * pseudo-elements would generate nothing (no stylesheet gives them `content` any more) and both
  * screenshot passes would silently compare the build against itself. `mask-position` and

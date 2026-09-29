@@ -56,7 +56,7 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
 }
 
 /**
- * The class the search icon carried before DEV-3003, when it was a `<div>` painted by an `iconsMap`
+ * The class the search icon carried before icons became elements, when it was a `<div>` painted by an `iconsMap`
  * rule. Kept on the new `<i class="ht-icon ht-icon-search">` as a legacy hook for custom
  * stylesheets (`.ai/BREAKING-CHANGES.md`: a class Handsontable produces stays in the DOM); nothing
  * in the shipped CSS targets it any more.
@@ -249,7 +249,7 @@ export function createListItemElement({
   labelElement.textContent = itemValue;
 
   innerContainer.appendChild(checkboxElement);
-  // Structurally the same as `checkboxRenderer`'s tick (task 16): an `<input>` can hold no
+  // Structurally the same as `checkboxRenderer`'s tick: an `<input>` can hold no
   // children, so the checked-state icon is a sibling instead, inserted right after it and before
   // the label. `_multi-select-editor.scss` drives its visibility with `input:checked + .ht-icon`
   // rather than the `.ht-multi-select-editor-item-selected` class `selectItem()`/`deselectItem()`

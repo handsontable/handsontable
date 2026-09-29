@@ -212,7 +212,7 @@ export class ContextMenuCheckedItemsPage {
     await expect(mark).toBeAttached();
 
     return mark.evaluate((element) => {
-      // DEV-3003: the glyph is a real `<i class="ht-icon ht-icon-<name>">` child of the mark span,
+      // The glyph is a real `<i class="ht-icon ht-icon-<name>">` child of the mark span,
       // not the span's `::after` any more - a mark with no icon child reads as `none` / 0, which is
       // exactly the "invisible mark" this reader exists to catch.
       const icon = element.querySelector('.ht-icon');

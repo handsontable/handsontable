@@ -173,7 +173,7 @@ class HeadersUI extends BaseUI {
 
       // `buttonsContainer` is a brand-new `DIV` created a few lines above (never reused across
       // draws - `removeLevelIndicators()` at the top of this method tears down the previous one),
-      // so a plain `appendChild()` can never stack a second icon (DEV-3003): each render starts
+      // so a plain `appendChild()` can never stack a second icon: each render starts
       // from an empty container. `collapsed` mirrors `CollapsibleColumns#onAfterGetColHeader`'s
       // `isCollapsed` branch - children collapsed (the `+`/expand button, `ht_nestingExpand`) gets
       // `collapseOn`, children expanded (the `-`/collapse button, `ht_nestingCollapse`) gets

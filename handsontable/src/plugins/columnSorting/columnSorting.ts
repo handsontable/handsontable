@@ -93,7 +93,7 @@ const SORT_FIXED_ROWS_DEFAULT = false;
 const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
 /**
  * The `syncIcon()` slot class for the sort-direction arrow. Keeps exactly one icon element inside
- * the header container across renders (DEV-3003) - created when the column becomes sorted, kept
+ * the header container across renders - created when the column becomes sorted, kept
  * across re-renders while the direction is unchanged, replaced when the direction flips, and
  * removed when the column is not showing an indicator.
  */
@@ -1223,7 +1223,7 @@ export class ColumnSorting extends BasePlugin {
     const target = eventTargetEl(event)!;
 
     // The indicator used to be a `::before` of the label, so a press on the arrow targeted the
-    // label itself. It is a sibling `<i>` now (DEV-3003) with its own hit surface, so accept it
+    // label itself. It is a sibling `<i>` now with its own hit surface, so accept it
     // as a sort click too - otherwise the arrow becomes the one part of a sortable header that
     // does not sort. Matched by ancestor, not by the target's own class: a theme `icons`
     // renderer callback may put its own markup inside the `<i>` (an inline SVG, a ligature

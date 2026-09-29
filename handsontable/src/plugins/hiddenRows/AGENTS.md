@@ -60,7 +60,7 @@ twin, which is the same defect on the horizontal axis. Covered by
 `tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
 byte for byte against the 18.1.0 rules.
 
-## The caret is a real element now (DEV-3003) — box stays 10×10, glyph artwork is 8×8
+## The caret is a real element now — box stays 10×10, glyph artwork is 8×8
 
 `#onAfterGetRowHeader` calls `syncIcon(this.hot, TH, slotClass, iconName)`
 (`themes/engine/icons.ts`) against `ht-hidden-indicator-start` (`afterHiddenRow`, `caretHiddenDown`)
@@ -74,7 +74,7 @@ only fills the `th` for a one-line header.
 glyph's own artwork size.** `caretHiddenUp`/`caretHiddenDown` are authored on an 8×8 viewBox
 (`caretHiddenLeft`/`caretHiddenRight`, the column carets, are 10×10 —
 `handsontable/src/themes/static/variables/icons/*.ts`), and `mask-size: contain` scales that 8×8
-artwork UP to fill the 10px box — same before DEV-3003 (the pre-existing pseudo-element rule was
+artwork UP to fill the 10px box — same before icons became elements (the pre-existing pseudo-element rule was
 `width: 10px !important; height: 10px !important`, identical to the column plugin's) and unchanged by
 it. Sizing the box to 8px would render the indicator ~2px smaller than it has always shipped — a
 visible size change unrelated to the pseudo-element → real-element mechanism swap this task is about,

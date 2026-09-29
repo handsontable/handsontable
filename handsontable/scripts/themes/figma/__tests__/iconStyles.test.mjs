@@ -22,7 +22,7 @@ test('emits one variable and one glyph rule per icon, scoped to the given select
 
 // The glyph rules are unscoped, so a grid on a `-no-icons` bundle matches another grid's rules
 // on the same page; an undeclared variable must leave a transparent mask, never `none`, which
-// would let `background-color: currentColor` paint a solid square (PR #13639 review).
+// would let `background-color: currentColor` paint a solid square.
 test('falls back to a transparent mask when the icon variable is not declared', () => {
   const css = runtimeIconStyles({ arrowRight: 'data:a' }, ':root');
 

@@ -22,7 +22,7 @@
 
       // `.relative`'s padding box is the containing block for the multi-column-sorting sequence
       // number, which is still a `::after` pseudo-element - the sort-direction arrow is a real
-      // `.ht-sort-indicator` element now (DEV-3003) and positions itself below, without this margin.
+      // `.ht-sort-indicator` element now and positions itself below, without this margin.
       &::after {
         margin-inline: var(--ht-sort-indicator-offset);
         margin-inline-end: var(--ht-sort-indicator-offset-end);
@@ -113,7 +113,7 @@
       }
     }
 
-    // The sort-direction glyph (DEV-3003): a real `<i class="ht-icon ht-sort-indicator">` element,
+    // The sort-direction glyph: a real `<i class="ht-icon ht-sort-indicator">` element,
     // created by `syncIcon()` in `columnSorting.ts` as a sibling of the `.colHeader` label inside
     // `.relative`, not a `::before` pseudo-element on the label - so it positions against the
     // container, using the same offset custom properties the old pseudo-element read, plus the same
@@ -193,7 +193,7 @@
     }
   }
 
-  // The indicator is a real element now (DEV-3003) and, like in the real table, is absolutely
+  // The indicator is a real element now and, like in the real table, is absolutely
   // positioned against `.relative` - so it contributes nothing to the ghost table's own flow-based
   // measurement either. The offsets it would be positioned by are zeroed here for the same reason
   // they always were: counting them on top of the reserve below would make every auto-sized column
@@ -212,7 +212,7 @@
     --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
   }
 
-  // DEV-3003: `getColHeader` clones the header through the same `afterGetColHeader` hook the real
+  // `getColHeader` clones the header through the same `afterGetColHeader` hook the real
   // table uses, so `.ht-sort-indicator` DOES end up in the ghost table's markup too - but it stays
   // absolutely positioned there exactly as in the real table (see the base `.ht-sort-indicator` rule
   // above), so it contributes nothing to the ghost row's own flow-based width, same as the
@@ -228,7 +228,7 @@
     content: "*";
     display: inline-block;
     position: relative;
-    // Before DEV-3003 the real table's `.sortAction::before` rule (the glyph's box) also matched
+    // Before icons became elements the real table's `.sortAction::before` rule (the glyph's box) also matched
     // this pseudo-element and gave it `width: var(--ht-icon-size, 16px)`; this rule only added the
     // padding below. The measured reserve was therefore `icon-size + (icon-size + 2px)`, not the
     // glyph's own width plus the padding. That rule is gone with the pseudo-element glyph, so the

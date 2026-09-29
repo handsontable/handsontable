@@ -95,7 +95,7 @@ They are written in different places and can drift. Keep this in mind:
   `HeadersUI#appendLevelIndicators()` (`ui/headers.ts`) creates a brand-new `buttonsContainer` `div`
   every draw and calls `removeLevelIndicators()` first to tear down the previous one, so
   `buttonsContainer.appendChild(createIcon(this.hot, collapsed ? 'collapseOn' : 'collapseOff'))` can
-  never stack a second icon (DEV-3003) — each render starts from an empty container, unlike
+  never stack a second icon — each render starts from an empty container, unlike
   `columnSorting`/`hiddenColumns`/`hiddenRows`, which reuse one persistent slot via `syncIcon` and
   must explicitly clear it on a no-icon path.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**

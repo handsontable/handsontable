@@ -22,13 +22,13 @@ const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns'
 
 /**
  * The `syncIcon()` slot class for the caret shown on the header that FOLLOWS a hidden column
- * (`afterHiddenColumn`, glyph pointing right - toward the hidden neighbor) (DEV-3003).
+ * (`afterHiddenColumn`, glyph pointing right - toward the hidden neighbor).
  */
 const HIDDEN_INDICATOR_START_SLOT_CLASS = 'ht-hidden-indicator-start';
 
 /**
  * The `syncIcon()` slot class for the caret shown on the header that PRECEDES a hidden column
- * (`beforeHiddenColumn`, glyph pointing left - toward the hidden neighbor) (DEV-3003). A header can
+ * (`beforeHiddenColumn`, glyph pointing left - toward the hidden neighbor). A header can
  * carry both slots at once when it has a hidden neighbor on each side.
  */
 const HIDDEN_INDICATOR_END_SLOT_CLASS = 'ht-hidden-indicator-end';
@@ -298,7 +298,7 @@ export class HiddenColumns extends BasePlugin {
    */
   disablePlugin() {
     // `super.disablePlugin()` removes the tracked `#onAfterGetColHeader` hook, so it never runs
-    // again to clear a previously-rendered caret (DEV-3003). A one-shot hook does that on the
+    // again to clear a previously-rendered caret. A one-shot hook does that on the
     // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
     // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
     const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
@@ -637,7 +637,7 @@ export class HiddenColumns extends BasePlugin {
     // NestedHeaders strips `beforeHiddenColumn` / `afterHiddenColumn` again from every header
     // level that does not reach the cells (`nestedHeaders.ts`, `reachesCells`): the indicator
     // belongs only on the header closest to the cells. That worked by itself while the caret was
-    // a pseudo-element gated on those classes. The caret is a real element now (DEV-3003), so the
+    // a pseudo-element gated on those classes. The caret is a real element now, so the
     // strip alone would leave an orphaned `<i>` on the upper level, rendered at the base 16px icon
     // size. Gate creation on the same "reaches the cells" test - the classes keep their old
     // behavior, only the element is withheld where NestedHeaders would discard its marker anyway.
