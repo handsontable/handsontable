@@ -1032,14 +1032,16 @@ on such a cell.
 ## 22. XLSX export no longer needs ExcelJS
 
 This is not a breaking change. Every configuration that exported an XLSX file in 18.1 exports the
-same file in 19.0, and `exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine.
+same file in 19.0, apart from two bug fixes described below, and
+`exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine.
 Three behaviors of the [`ExportFile`](@/api/exportFile.md) plugin changed additively: paths that
 refused the format now serve it. It applies only if you export to XLSX.
 
 Handsontable 18.1 required ExcelJS for an XLSX export. You passed it as
 `exportFile: { engines: { xlsx: ExcelJS } }`, and without that entry the plugin refused the format.
 Handsontable 19.0 ships its own XLSX engine, so the format works with no engine configured. Three
-behaviors you could rely on in 18.1 changed with it.
+behaviors you could rely on in 18.1 changed with it, and two bug fixes change what the exported
+file holds.
 
 ### `supportsExportFormat('xlsx')` now answers `true` with no engine configured
 
@@ -1061,6 +1063,36 @@ to "To CSV".
 `Missing or invalid ExcelJS engine` when no engine was configured. They now write the file through
 the built-in engine. A value that is not a supported engine module still rejects, with
 `Invalid xlsx engine module.`
+
+### Two bug fixes change the exported file
+
+These are bug fixes, not breaking changes. They apply to both engines, but they change what an
+18.1 export wrote, so check them if another tool reads the file.
+
+#### An empty checkbox exports as an empty cell
+
+What changed: in 18.1, a `checkbox` cell with no value (`null`, `undefined`, or `''`) exported as
+`FALSE`. It now exports as an empty cell, the same "no value" state the grid shows, so a round trip
+does not turn it into an unchecked box. A value that matches `checkedTemplate` still exports as
+`TRUE`, and one that matches `uncheckedTemplate` still exports as `FALSE`.
+
+What to do: if a consumer of the file expects `TRUE` or `FALSE` in every checkbox cell, fill the
+empty cells with your `uncheckedTemplate` value (`false` by default) before you export. If your
+data stores an unchecked box as `''`, set `uncheckedTemplate: ''` on the column, and `''` exports
+as `FALSE` again.
+
+#### The frozen pane counts only exported rows and columns
+
+What changed: in 18.1, the sheet's frozen pane used the
+[`fixedRowsTop`](@/api/options.md#fixedrowstop) and
+[`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) counts as they were. When the export
+skipped a hidden row or column inside the frozen band, or the `range` option started inside it, the
+file froze more rows or columns than the grid does. The pane now counts only the frozen rows and
+columns that the file contains.
+
+What to do: to freeze the same number of rows and columns as in 18.1, export the hidden ones with
+`exportHiddenRows: true` and `exportHiddenColumns: true`, and start the `range` at the first row
+and column.
 
 ### Who is affected
 
@@ -1104,3 +1136,9 @@ The built-in engine needs the [Compression Streams API](https://developer.mozill
 which every browser Handsontable supports provides. See the
 [export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) guide for what
 each engine writes.
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::
