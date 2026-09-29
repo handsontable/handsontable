@@ -207,8 +207,11 @@ runs the old callback protocol (`#undoCustomAction`), including `canUndo`/`canRe
   cases), `tests/e2e/undo-plugin-state.spec.ts` (one step per plugin action: hiding, trimming,
   freezing, resizing - the drag and the double-click included -, collapsing, borders, comments, pages),
   plus the per-feature `*-undo.spec.ts` files.
-- **Reported bugs, one case each, named by their ClickUp id:** `__tests__/reportedIssues.unit.js` for
-  what the API can drive, and `tests/e2e/undo-reported-issues.spec.ts` for what needs a browser
-  (ColumnSummary only calculates on the first visible render, so a jsdom summary test passes with
-  nothing calculated; autofill is a drag). Every case there fails on the 18.x implementation. Add a
-  case when a reported undo bug is closed.
+- More unit files by topic: `removeRowsAndColumns.unit.js`, `indexTransformations.unit.js` and
+  `pluginState.unit.js` (their shared setup is `__tests__/helpers/grid.js`), plus
+  `../formulas/__tests__/undoRedo.unit.js`. More browser specs by topic: `tests/e2e/column-summary-undo.spec.ts`
+  and `tests/e2e/autofill-merge-undo.spec.ts`.
+- **A closed undo bug gets its case in the file for what it tests**, with the task id in a comment above
+  it - never in a file or a test named after the report. **A ColumnSummary case must run in a browser:**
+  the summary is calculated on the first visible render, jsdom grids are never visible, and a jsdom
+  summary test passes with nothing calculated.
