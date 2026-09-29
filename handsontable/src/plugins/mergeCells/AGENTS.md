@@ -115,7 +115,14 @@ each merge does not own (`#collectForeignDrawnRows`), and `#onRowIndexCacheUpdat
 hooks). The recording is discarded when the physical row count changed — an insert or remove renumbers
 the physical rows it holds. It costs one pass over each merge's drawn rows per mapping change, next to the
 re-anchor's pass over its anchor rows. A nested `updateCache` overwrites the outer recording, so the outer
-update then cleans nothing: a missed cleanup, never a wrong one.
+update then cleans nothing: a missed cleanup, never a wrong one. **Known limit:** like the unmerge reset,
+the cleanup removes `copyable` outright rather than restoring what was there before. A value the user set
+on such a cell through `setCellMeta` (`copyable: false`, say) is therefore lost once a sort passes a merge
+over the cell and a later sort or `clearSort()` moves it off: `afterGetCellMeta` has already overwritten it
+while the merge covered the cell, and the cleanup then deletes the key, so the cell reads the column or grid
+value again. A value set through the `cells` or `columns` option survives, because the removal only drops
+the cell's own key. Restoring the user's value would mean remembering it before that overwrite, which runs
+on every meta read — not done.
 
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
