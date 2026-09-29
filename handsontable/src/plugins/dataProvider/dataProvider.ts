@@ -1,6 +1,7 @@
 import { isFunction } from '../../helpers/function';
 import { error as logError } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
+import { hasOwnProperty } from '../../helpers/object';
 import * as I18nC from '../../i18n/constants';
 import { BasePlugin } from '../base';
 import type { HotInstance } from '../../core/types';
@@ -163,6 +164,11 @@ export interface DataProviderContextOwner {
    * fires, so no hook listener can change what the owner keeps.
    */
   onShownResponse(result: DataProviderFetchResult, context: object): void;
+  /**
+   * Returns the latest query of a context the grid no longer shows, which an off-screen refetch asks for. When the
+   * owner has none, the refetch uses the query the request was queued with.
+   */
+  getContextQuery?(context: object): DataProviderQueryParameters | null | undefined;
 }
 
 export interface DataProviderFetchResult {
@@ -415,9 +421,20 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Re-applies settings and refetches when the instance is already initialized.
+   * Re-applies settings and refetches when the instance is already initialized. A payload whose `dataProvider`
+   * is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a nested `updateSettings()`
+   * call, which already re-applied the plugin) changes nothing.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
-  updatePlugin(): void {
+  updatePlugin(newSettings?: Record<string, unknown>): void {
+    if (newSettings && hasOwnProperty(newSettings, 'dataProvider')
+      && newSettings.dataProvider !== this.hot.getSettings().dataProvider) {
+      super.updatePlugin();
+
+      return;
+    }
+
     this.disablePlugin();
     this.enablePlugin();
 
@@ -569,7 +586,7 @@ export class DataProvider extends BasePlugin {
       }
 
       const offScreen = target !== null && !this.#isVisible(target);
-      const pageBeforeFetch = offScreen ? target.query.page : this.#queryParameters.page;
+      const pageBeforeFetch = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
       const rowsLoaded = offScreen ? rowsLoadedAtQueue : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
@@ -623,8 +640,10 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Tells whether the grid is waiting for a `fetchRows` response that shows the loading overlay (internal
-   * refetches that pass `skipLoading` do not count). With the {@link SheetsBar} plugin, it answers for the sheet
+   * Tells whether the grid is waiting for a `fetchRows` response that shows the loading overlay. A fetch that passes
+   * `skipLoading: true` does not count. The answer is already `false` inside the {@link Hooks#afterDataProviderFetch},
+   * {@link Hooks#afterDataProviderFetchError}, and {@link Hooks#afterDataProviderFetchAbort} listeners of the fetch
+   * that settled, unless another fetch has started in the meantime. With the sheets bar, it answers for the sheet
    * you see.
    *
    * @returns {boolean}
@@ -652,7 +671,8 @@ export class DataProvider extends BasePlugin {
    * calls its callback and fires its mutation hooks, and its failure is still logged, but its refetch, its cell
    * revert, and the report to the owner are skipped. The default context, `null`, is never dropped: releasing it
    * only aborts its running request. EmptyDataState's loading overlay is synced afterwards, since an aborted fetch
-   * fires no hook that would hide it. Internal: part of the context owner contract; not public API.
+   * fires no hook that would hide it. The fetch error notifications of a dropped context are hidden, since their
+   * Refetch action could no longer fetch it. Internal: part of the context owner contract; not public API.
    *
    * @private
    * @param {object|null} context The context to drop.
@@ -662,6 +682,7 @@ export class DataProvider extends BasePlugin {
 
     if (context !== null) {
       this.#releasedContexts.add(context);
+      this.#hideFetchErrorToastsFor(context);
     }
 
     this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
@@ -727,7 +748,7 @@ export class DataProvider extends BasePlugin {
     } finally {
       this.#detachFetchErrorToast();
       this.#rederiveQuery();
-      this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+      this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
       this.hot.getPlugin('filters')?._resetDataProviderRollback();
     }
   }
@@ -938,6 +959,23 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Returns the query a refetch for a binding starts from: the current query while its context is shown, otherwise
+   * the latest query the owner keeps for that context, or the query the binding was made with when it keeps none.
+   *
+   * @param {object} binding The request binding.
+   * @returns {object}
+   */
+  #queryFor(binding: RequestBinding): DataProviderQueryParameters {
+    if (this.#isVisible(binding)) {
+      return this.#queryParameters;
+    }
+
+    const latest = binding.context === null ? null : this.#contextOwner?.getContextQuery?.(binding.context);
+
+    return latest ?? binding.query;
+  }
+
+  /**
    * Makes the query of the current context's running fetch the current query, so the page, sort, and filters the
    * plugin reports match the rows that fetch will load.
    */
@@ -976,7 +1014,7 @@ export class DataProvider extends BasePlugin {
       return null;
     }
 
-    const base = baseQuery ?? (this.#isVisible(binding) ? this.#queryParameters : binding.query);
+    const base = baseQuery ?? this.#queryFor(binding);
     const params = this.#mergeAndNormalizeFetchParams(overrides, base);
     const controller = new AbortController();
 
@@ -998,6 +1036,7 @@ export class DataProvider extends BasePlugin {
       const result = await fetchFn(this.#snapshotQueryParameters(params), { signal });
 
       if (signal.aborted) {
+        this.#releaseInFlight(binding.context, controller);
         this.#runAfterDataProviderFetchAbort(params, undefined);
 
         return null;
@@ -1023,10 +1062,13 @@ export class DataProvider extends BasePlugin {
         );
       }
 
+      this.#releaseInFlight(binding.context, controller);
       this.#applyFetchResult(binding, result, rows, totalRows, persistedParams);
 
       return { rows, totalRows };
     } catch (err) {
+      this.#releaseInFlight(binding.context, controller);
+
       if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
         this.#runAfterDataProviderFetchAbort(params, err);
 
@@ -1380,6 +1422,9 @@ export class DataProvider extends BasePlugin {
    */
   #detachFetchErrorToast(): void {
     const current = this.#currentContext();
+
+    this.#fetchErrorToasts = this.#fetchErrorToasts.filter(toast => !this.#releasedContexts.has(toast.context));
+
     const departed = this.#fetchErrorToasts.filter(toast => toast.context !== current);
 
     if (departed.length === 0) {

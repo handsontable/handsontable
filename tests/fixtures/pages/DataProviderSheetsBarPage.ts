@@ -80,6 +80,7 @@ interface FixtureSheetsBarPlugin {
   getSheets(): { id: number, isActive: boolean }[];
   duplicateSheet(id: number): unknown;
   removeSheet(id: number): unknown;
+  setActiveSheet(id: number): unknown;
 }
 
 /**
@@ -326,6 +327,70 @@ export class DataProviderSheetsBarPage {
 
       window.hot.updateSettings({ dataProvider: htProvider(p) });
     }, prefix);
+  }
+
+  /**
+   * Send the grid-level `dataProvider` object the fixture was built with (`gridLevel: true`) through
+   * `updateSettings()` again, the way a framework wrapper re-sends unchanged settings on every render.
+   */
+  async resendGridDataProvider(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { htGridProvider } = window as unknown as { htGridProvider: object | null };
+
+      if (!htGridProvider) {
+        throw new Error('The fixture has no grid-level dataProvider; open it with `gridLevel: true`.');
+      }
+
+      window.hot.updateSettings({ dataProvider: htGridProvider } as never);
+    });
+  }
+
+  /**
+   * Select one cell through `selectCell()`.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(args => window.hot.selectCell(args.row, args.col), { row, col });
+  }
+
+  /**
+   * The last selection layer, as `getSelectedLast()` reports it.
+   *
+   * @returns {Promise<number[] | null>} The `[row, col, row2, col2]` coordinates, or `null` without a selection.
+   */
+  async selectedLast(): Promise<number[] | null> {
+    return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
+   * Set one cell meta property through `setCellMeta()`.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} key The meta property.
+   * @param {unknown} value The value to set.
+   */
+  async setCellMeta(row: number, col: number, key: string, value: unknown): Promise<void> {
+    await this.page.evaluate(
+      args => window.hot.setCellMeta(args.row, args.col, args.key, args.value),
+      { row, col, key, value }
+    );
+  }
+
+  /**
+   * One cell meta property, as `getCellMeta()` resolves it.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} key The meta property.
+   * @returns {Promise<unknown>} The resolved value.
+   */
+  async cellMeta(row: number, col: number, key: string): Promise<unknown> {
+    return this.page.evaluate(args => (window.hot as unknown as {
+      getCellMeta(row: number, col: number): Record<string, unknown>,
+    }).getCellMeta(args.row, args.col)[args.key], { row, col, key });
   }
 
   /**
@@ -628,6 +693,20 @@ export class DataProviderSheetsBarPage {
       const sheet = sheetsBar.getSheets()[i];
 
       sheetsBar.duplicateSheet(sheet.id);
+    }, index);
+  }
+
+  /**
+   * Switch sheets through the SheetsBar plugin's `setActiveSheet()`. Unlike a tab click, it moves no focus out
+   * of the grid, so the departing sheet's selection is captured as it is.
+   *
+   * @param {number} index The tab's position, 0-based.
+   */
+  async activateSheet(index: number): Promise<void> {
+    await this.page.evaluate(i => {
+      const sheetsBar = (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet(sheetsBar.getSheets()[i].id);
     }, index);
   }
 

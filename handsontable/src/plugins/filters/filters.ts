@@ -349,8 +349,9 @@ export class Filters extends BasePlugin {
   /**
    * Makes the conditions on screen the ones a failed DataProvider fetch rolls back to. The DataProvider plugin
    * calls it when the view the grid shows changes: the rollback target is otherwise whatever the last server
-   * filter action left, possibly in another view. Does nothing while this plugin is disabled. Internal; not
-   * public API.
+   * filter action left, possibly in another view. The conditions on screen also become the previous ones the next
+   * filter pass starts from, since that pass derives its rollback target from them. Does nothing while this plugin
+   * is disabled. Internal; not public API.
    *
    * @private
    */
@@ -359,6 +360,7 @@ export class Filters extends BasePlugin {
       return;
     }
 
+    this.#previousConditionStack = this.exportConditions();
     this.#dataProviderFilterRollbackStack = this.exportConditions();
   }
 

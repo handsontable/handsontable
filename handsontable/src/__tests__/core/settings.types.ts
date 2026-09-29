@@ -1036,6 +1036,7 @@ hot.updateSettings({ selectionHandles: true });
 
 // Regression: moveCells must be accepted by updateSettings.
 hot.updateSettings({ moveCells: true });
+hot.updateSettings({ dataProvider: null });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });

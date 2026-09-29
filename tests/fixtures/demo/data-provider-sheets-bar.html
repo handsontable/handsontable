@@ -39,7 +39,8 @@
       - "Customers" (index 2) declares its own `dataProvider` (prefix `CUS`).
 
     `?gridLevel` adds a grid-level `dataProvider` (prefix `GRID`) alongside the sheets above, to
-    prove SheetsBar disables it for every sheet that does not declare its own and warns once.
+    prove SheetsBar disables it for every sheet that does not declare its own and warns once. That grid-level
+    provider object is exposed as `window.htGridProvider`, so a spec can send the same object again.
     `?plain=1` builds the same grid without SheetsBar, backed by a grid-level `ORD` provider, so a spec can pin
     how a grid without sheets behaves; `?noColumns=1` drops the `columns` setting, so the columns come from the
     loaded rows' schema. `window.htProvider(prefix)` builds a provider for `updateSettings()`.
@@ -247,6 +248,9 @@
     const notesNullProvider = fixtureParams.has('notesNullProvider');
     const activeSheet = Number(fixtureParams.get('activeSheet') ?? 0);
     const ordersData = fixtureParams.has('frozenOrders') ? Object.freeze([]) : [];
+    const gridProvider = gridLevel ? provider('GRID') : null;
+
+    window.htGridProvider = gridProvider;
 
     window.htOrdersData = ordersData;
 
@@ -290,7 +294,7 @@
         pagination: { pageSize: 5 },
         notification: true,
         emptyDataState: !fixtureParams.has('noEmptyDataState'),
-        ...(gridLevel ? { dataProvider: provider('GRID') } : {}),
+        ...(gridLevel ? { dataProvider: gridProvider } : {}),
         ...(plain ? { dataProvider: provider('ORD') } : {
           sheetsBar: { sheets: buildSheets(), activeSheet },
         }),

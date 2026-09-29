@@ -24,6 +24,7 @@ import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import type {
   DataProvider,
+  DataProviderConfig,
   DataProviderContextOwner,
   DataProviderDetachedOutcome,
   DataProviderFetchResult,
@@ -365,7 +366,8 @@ export class SheetsBar extends BasePlugin {
   #sheetsByContext = new WeakMap<object, Sheet>();
   /**
    * What the DataProvider plugin asks this plugin, as the owner of its contexts: the context the
-   * grid shows, and the outcome of a request made for a sheet the grid no longer shows.
+   * grid shows, the outcome of a request made for a sheet the grid no longer shows, and the latest
+   * query of such a sheet, which an off-screen refetch asks for.
    *
    * @type {object}
    */
@@ -383,6 +385,11 @@ export class SheetsBar extends BasePlugin {
         this.#storeServerResult(sheet, result);
       }
     },
+    getContextQuery: (context) => {
+      const sheet = this.#sheetOfContext(context);
+
+      return sheet ? this.#serverViews.get(sheet)?.lastResult?.queryParameters : undefined;
+    },
   };
   /**
    * `true` while `#restoreBaselineToGrid` writes the grid-level settings back, so the grid-level
@@ -391,6 +398,13 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #isRestoringBaseline = false;
+  /**
+   * `true` while `#restoreActiveSheetDataProvider` writes the visible server sheet's own
+   * `dataProvider` back over the grid-level value sent again.
+   *
+   * @type {boolean}
+   */
+  #isRestoringSheetDataProvider = false;
   /**
    * The grid-level `dataProvider` carried across a workbook rebuild, or `null` outside one. A
    * rebuild does not write it back to the grid (that would enable it, and fetch, for the moment
@@ -1128,9 +1142,11 @@ export class SheetsBar extends BasePlugin {
    * the arriving sheet's sort and filters are restored without being sent to the server), and it
    * brings the per-view state of the plugins it drives (the pager total, the loading overlay, the
    * server-filter rollback) in line with the arriving sheet. What the arriving server sheet shows
-   * is decided once the switch completes. The passive window covers
-   * `#switchTo` only: a sort or filter made from an `afterSheetTabStateCapture` or
-   * `afterSheetTabChange` listener is an ordinary user action and goes to the server.
+   * is decided once the switch completes. The passive window covers `#switchTo` only, and
+   * `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a
+   * server sheet is canceled, not sent to the server. A sort or filter made from an
+   * `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action and goes
+   * to the server.
    */
   #withoutFetching(operation: () => void) {
     const dataProvider = this.#getDataProvider();
@@ -1220,7 +1236,8 @@ export class SheetsBar extends BasePlugin {
   /**
    * Keeps the outcome of a request DataProvider made for a sheet the grid no longer shows. A
    * response's rows replace the sheet's data array rather than being written into it, so an array
-   * the host declared (frozen, or observed by a framework) is never touched. A failure waits in the
+   * the host declared (frozen, or observed by a framework) is never touched. The cell meta the sheet
+   * kept is dropped with its old rows, the way a `loadData()` on the grid shown drops it. A failure waits in the
    * sheet's server view, and its error notification appears when the sheet is shown again. The
    * outcome of a request for a sheet that no longer exists is dropped, and so is one for the sheet
    * the grid shows (DataProvider reports it as detached only while it is disabled there): writing
@@ -1236,6 +1253,10 @@ export class SheetsBar extends BasePlugin {
     if ('result' in outcome) {
       sheet.data = outcome.result.rows;
       this.#storeServerResult(sheet, outcome.result);
+
+      if (sheet.viewState) {
+        sheet.viewState = { ...sheet.viewState, cellMeta: [] };
+      }
 
       return;
     }
@@ -1561,7 +1582,10 @@ export class SheetsBar extends BasePlugin {
    * stays in the baseline, captured when the workbook started, so a genuine teardown gives it
    * back. The `null` is only added while there is a `dataProvider` to take off the grid (a
    * baseline one, or the one a previous sheet applied), so a workbook where nobody declared a
-   * `dataProvider` never sends the key at all.
+   * `dataProvider` never sends the key at all. The baseline never reads `dataProvider` from the
+   * grid: a grid-level value was captured before the workbook was built, so the grid holds a
+   * sheet's own `dataProvider` by now (after a rebuild, the departing sheet's), and a teardown must
+   * not give that back as if it were the grid's.
    *
    * @param {object|undefined} settings The sheet's own settings.
    * @returns {object|null} The settings to apply, or `null` when there is nothing to apply.
@@ -1575,7 +1599,10 @@ export class SheetsBar extends BasePlugin {
 
     Object.keys(settings ?? {}).forEach((key) => {
       if (!this.#settingsBaseline.has(key)) {
-        this.#settingsBaseline.set(key, (this.hot.getSettings() as Record<string, unknown>)[key]);
+        this.#settingsBaseline.set(
+          key,
+          key === 'dataProvider' ? undefined : (this.hot.getSettings() as Record<string, unknown>)[key]
+        );
       }
     });
 
@@ -2616,7 +2643,9 @@ export class SheetsBar extends BasePlugin {
    * `dataProvider`, and replaces the grid's data with an empty placeholder through
    * `updateData([])`. The sheet record still points at the rows the grid shows, so the next switch
    * away would store the placeholder as the sheet's data. The placeholder is redirected at the
-   * rows the grid already shows, and `#onAfterUpdateSettings` then blocks the value itself.
+   * rows the grid already shows, and `#onAfterUpdateSettings` then blocks the value itself. The
+   * same holds for the grid-level value sent again while a server sheet is shown, and for the
+   * update that puts that sheet's own `dataProvider` back.
    *
    * @param {Array} sourceData The rows about to be loaded.
    * @param {boolean} initialLoad `true` for the initial data load.
@@ -2624,11 +2653,16 @@ export class SheetsBar extends BasePlugin {
    * @returns {Array|undefined} The grid's current rows while a blocked `dataProvider` is applied.
    */
   #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
-    if (source !== 'updateSettings' || !this.hot.getSettings().dataProvider || !this.#blocksGridDataProvider()) {
+    const { dataProvider } = this.hot.getSettings();
+
+    if (source !== 'updateSettings' || !dataProvider) {
       return;
     }
 
-    return this.#getLiveSourceData();
+    if (this.#blocksGridDataProvider() || this.#isRestoringSheetDataProvider
+      || this.#isResentGridDataProvider(dataProvider)) {
+      return this.#getLiveSourceData();
+    }
   };
 
   /**
@@ -2647,7 +2681,11 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (!this.#blocksGridDataProvider()) {
-      this.#keepActiveSheetDataProvider(newSettings.dataProvider);
+      if (this.#isResentGridDataProvider(newSettings.dataProvider)) {
+        this.#restoreActiveSheetDataProvider();
+      } else {
+        this.#keepActiveSheetDataProvider(newSettings.dataProvider);
+      }
 
       return;
     }
@@ -2655,6 +2693,46 @@ export class SheetsBar extends BasePlugin {
     this.#recordBlockedGridDataProvider(newSettings.dataProvider);
     this.hot.updateSettings({ dataProvider: null });
   };
+
+  /**
+   * Tells whether a `dataProvider` written to the grid is the grid-level value the bar blocked,
+   * sent again while a server sheet is shown. Framework wrappers re-send unchanged settings on every
+   * render, so this value must not be taken for the user re-configuring the visible sheet.
+   *
+   * @param {*} dataProvider The value written to the grid.
+   * @returns {boolean}
+   */
+  #isResentGridDataProvider(dataProvider: unknown): boolean {
+    if (!dataProvider || this.#isSwitching || this.#isRestoringBaseline) {
+      return false;
+    }
+
+    const own = this.#activeSheetRecord()?.settings?.dataProvider;
+
+    return Boolean(own) && own !== dataProvider && dataProvider === this.#settingsBaseline.get('dataProvider');
+  }
+
+  /**
+   * Puts the visible server sheet's own `dataProvider` back over the grid-level value sent again,
+   * without a refetch: the sheet keeps its rows, its running fetch, and its query.
+   */
+  #restoreActiveSheetDataProvider() {
+    const own = this.#activeSheetRecord()?.settings?.dataProvider as DataProviderConfig;
+    const apply = () => this.hot.updateSettings({ dataProvider: own });
+    const dataProvider = this.#getDataProvider();
+
+    this.#isRestoringSheetDataProvider = true;
+
+    try {
+      if (dataProvider) {
+        dataProvider._runWithoutFetching(apply);
+      } else {
+        apply();
+      }
+    } finally {
+      this.#isRestoringSheetDataProvider = false;
+    }
+  }
 
   /**
    * Keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as

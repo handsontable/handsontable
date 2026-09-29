@@ -132,6 +132,119 @@ describe('DataProvider context owner contract', () => {
     }
   }
 
+  describe('isFetching()', () => {
+    it('is true while a fetch runs and false once it lands, already inside afterDataProviderFetch', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+      const duringHook = [];
+
+      hot.addHook('afterDataProviderFetch', () => duringHook.push(plugin.isFetching()));
+
+      expect(plugin.isFetching()).toBe(false);
+
+      void plugin.fetchData();
+
+      expect(plugin.isFetching()).toBe(true);
+
+      await provider.settleLast([{ id: 'x' }]);
+
+      expect(duringHook).toEqual([false]);
+      expect(plugin.isFetching()).toBe(false);
+    });
+
+    it('ignores a fetch that passes skipLoading', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.fetchData({ skipLoading: true });
+
+      expect(provider.pending).toHaveLength(1);
+      expect(plugin.isFetching()).toBe(false);
+    });
+
+    it('is false inside afterDataProviderFetchError and after a failure', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+      const duringHook = [];
+
+      hot.addHook('afterDataProviderFetchError', () => duringHook.push(plugin.isFetching()));
+
+      const request = plugin.fetchData().catch(() => {});
+
+      await provider.failLast(new Error('offline'));
+      await request;
+
+      expect(duringHook).toEqual([false]);
+      expect(plugin.isFetching()).toBe(false);
+    });
+
+    it('is false inside afterDataProviderFetchAbort, unless the fetch was superseded by another', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+      const duringHook = [];
+
+      hot.addHook('afterDataProviderFetchAbort', () => duringHook.push(plugin.isFetching()));
+
+      void plugin.fetchData();
+      void plugin.fetchData();
+      await settle();
+
+      plugin._releaseContext(null);
+      await settle();
+
+      expect(duringHook).toEqual([true, false]);
+      expect(plugin.isFetching()).toBe(false);
+    });
+
+    it('is false once dataProvider is removed while a fetch runs', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.fetchData();
+
+      expect(plugin.isFetching()).toBe(true);
+
+      hot.updateSettings({ dataProvider: null });
+      await settle();
+
+      expect(plugin.isFetching()).toBe(false);
+    });
+
+    it('answers for the context the grid shows', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner });
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.fetchData();
+      owner.current = { name: 'second' };
+
+      expect(plugin.isFetching()).toBe(false);
+
+      owner.current = first;
+
+      expect(plugin.isFetching()).toBe(true);
+    });
+  });
+
   describe('_runWithoutFetching()', () => {
     it('leaves the passive state when the callback throws', async() => {
       const provider = createDeferredProvider();
@@ -212,6 +325,37 @@ describe('DataProvider context owner contract', () => {
     });
   });
 
+  describe('updatePlugin()', () => {
+    it('leaves the plugin alone for a payload whose dataProvider a nested updateSettings() call already replaced', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider);
+
+      const plugin = hot.getPlugin('dataProvider');
+      const other = createDeferredProvider();
+      const aborted = jest.fn();
+
+      hot.addHook('afterDataProviderFetchAbort', aborted);
+      hot.addHook('afterUpdateSettings', (settings) => {
+        if (settings.dataProvider === other.config) {
+          plugin._runWithoutFetching(() => hot.updateSettings({ dataProvider: provider.config }));
+        }
+      }, -2);
+
+      void plugin.fetchData();
+
+      const fetchesBefore = provider.config.fetchRows.mock.calls.length;
+
+      hot.updateSettings({ dataProvider: other.config });
+      await settle();
+
+      expect(other.config.fetchRows).not.toHaveBeenCalled();
+      expect(provider.config.fetchRows.mock.calls.length).toBe(fetchesBefore);
+      expect(aborted).not.toHaveBeenCalled();
+      expect(plugin.isFetching()).toBe(true);
+    });
+  });
+
   describe('_runContextChange()', () => {
     const viewSettings = { pagination: { pageSize: 5 }, filters: true, emptyDataState: true };
 
@@ -257,7 +401,65 @@ describe('DataProvider context owner contract', () => {
         owner.current = first;
       });
 
-      expect(sync.mock.calls).toEqual([[false], [true]]);
+      expect(sync.mock.calls).toEqual([[false, true], [true, true]]);
+    });
+
+    it('keeps the arriving view\'s selection when the change hides the loading overlay', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner, settings: viewSettings });
+
+      const plugin = hot.getPlugin('dataProvider');
+      const emptyDataState = hot.getPlugin('emptyDataState');
+
+      hot.selectCell(1, 1);
+      void plugin.fetchData();
+
+      expect(emptyDataState.isVisible()).toBe(true);
+
+      plugin._runContextChange(() => {
+        owner.current = { name: 'second' };
+        hot.selectCell(0, 1);
+      });
+
+      expect(emptyDataState.isVisible()).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([0, 1, 0, 1]);
+    });
+
+    it('restores the arriving view\'s selection when its own fetch lands under an overlay kept across the change', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const second = { name: 'second' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner, settings: viewSettings });
+
+      const plugin = hot.getPlugin('dataProvider');
+      const emptyDataState = hot.getPlugin('emptyDataState');
+
+      void plugin.fetchData();
+      plugin._runContextChange(() => {
+        owner.current = second;
+        hot.selectCell(0, 1);
+      });
+      void plugin.fetchData();
+
+      expect(emptyDataState.isVisible()).toBe(true);
+
+      plugin._runContextChange(() => {
+        owner.current = first;
+        hot.selectCell(1, 0);
+      });
+
+      expect(emptyDataState.isVisible()).toBe(true);
+
+      provider.pending.shift().resolve({ rows: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }], totalRows: 2 });
+      await settle();
+
+      expect(emptyDataState.isVisible()).toBe(false);
+      expect(hot.getSelectedLast()).toEqual([1, 0, 1, 0]);
     });
 
     it('still syncs the plugins and leaves the passive state when the change throws', async() => {
@@ -339,6 +541,29 @@ describe('DataProvider context owner contract', () => {
 
       expect(onScreen).toHaveLength(1);
       expect(filters.exportConditions()).toEqual(onScreen);
+    });
+
+    it('make the conditions on screen the ones the next failed server filter rolls back to, with no filter pass in between', async() => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const provider = createDeferredProvider();
+
+      await createGrid(provider, { settings: { filters: true } });
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'contains', ['a']);
+      filters.filter();
+      await provider.settleLast([{ id: 'a', name: 'A' }]);
+
+      filters.importConditions([]);
+      filters._resetDataProviderRollback();
+
+      filters.addCondition(1, 'contains', ['b']);
+      filters.filter();
+      await provider.failLast(new Error('offline'));
+
+      expect(filters.exportConditions()).toEqual([]);
     });
 
     it('leave a disabled EmptyDataState alone on a context change with a fetch in flight', async() => {
@@ -465,6 +690,33 @@ describe('DataProvider context owner contract', () => {
         result: jasmine.objectContaining({ rows: [{ id: 'c', name: 'saved' }] }),
       }, first);
       expect(hot.getDataAtCell(0, 1)).toBe('Z');
+    });
+
+    it('refetch with the latest query the owner keeps for their context', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner });
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      hot.setDataAtCell(0, 1, 'edited');
+      await settle();
+
+      void plugin.fetchData({ page: 3 });
+      await provider.settleLast([{ id: 'c', name: 'C' }], 100);
+
+      const latestQuery = provider.lastQuery();
+
+      owner.getContextQuery = jest.fn(context => (context === first ? latestQuery : null));
+      owner.current = { name: 'second' };
+      void plugin.fetchData({ page: 5 });
+      await provider.settleLast([{ id: 'z', name: 'Z' }], 100);
+      await provider.settleMutation();
+
+      expect(owner.getContextQuery).toHaveBeenCalledWith(first);
+      expect(provider.lastQuery().page).toBe(3);
     });
 
     it('reload their context instead of reverting cells when an update fails', async() => {
@@ -682,6 +934,34 @@ describe('DataProvider context owner contract', () => {
       await settle();
 
       expect(aborted).toHaveBeenCalledTimes(1);
+      expect(owner.onDetachedRequest).not.toHaveBeenCalled();
+    });
+
+    it('hides the context\'s fetch error notification and never hands it to the owner afterwards', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner, settings: { notification: true } });
+
+      const notification = hot.getPlugin('notification');
+      const showMessage = jest.spyOn(notification, 'showMessage');
+      const hide = jest.spyOn(notification, 'hide');
+      const plugin = hot.getPlugin('dataProvider');
+      const request = plugin.fetchData().catch(() => {});
+
+      await provider.failLast(new Error('offline'));
+      await request;
+
+      expect(showMessage).toHaveBeenCalledTimes(1);
+
+      plugin._releaseContext(first);
+
+      expect(hide).toHaveBeenCalledWith(showMessage.mock.results[0].value);
+
+      owner.current = { name: 'second' };
+      plugin._runContextChange(() => {});
+
       expect(owner.onDetachedRequest).not.toHaveBeenCalled();
     });
 

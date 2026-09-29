@@ -4808,6 +4808,40 @@ describe('SheetsBar plugin', () => {
       expect(hot.getSettings().dataProvider).toBeUndefined();
     });
 
+    it('gives no server sheet\'s own dataProvider to the grid when turned off after rebuilds', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const declared = [];
+      const buildSheets = () => {
+        const own = makeProvider();
+
+        declared.push(own);
+
+        return [
+          { name: 'Orders', data: [], settings: { dataProvider: own } },
+          { name: 'Notes', data: [[1]] },
+        ];
+      };
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: buildSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ sheetsBar: { sheets: buildSheets() } });
+      hot.updateSettings({ sheetsBar: { sheets: buildSheets() } });
+
+      expect(hot.getSettings().dataProvider).toBe(declared[2]);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+
+      expect(declared).not.toContain(hot.getSettings().dataProvider);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      expect(gateWarnings).toEqual([]);
+      warnSpy.mockRestore();
+    });
+
     it('sends no `dataProvider` update when a workbook without sheets is turned off', () => {
       const payloads = [];
 
@@ -5004,6 +5038,32 @@ describe('SheetsBar plugin', () => {
       plugin.setActiveSheet(first.id);
 
       expect(hot.getData()).toEqual([['fresh']]);
+    });
+
+    it('drops the cell meta a sheet kept when a detached response replaces its rows', () => {
+      const owner = captureOwner();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1, 2]] }, { name: 'B', data: [[3, 4]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [first, second] = plugin.getSheets();
+      const firstContext = owner.current().getContext();
+
+      hot.setCellMeta(0, 1, 'readOnly', true);
+      plugin.setActiveSheet(second.id);
+      plugin.setActiveSheet(first.id);
+
+      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+
+      plugin.setActiveSheet(second.id);
+      owner.current().onDetachedRequest('fetch', { result: { rows: [['fresh', 'row']], totalRows: 1 } }, firstContext);
+      plugin.setActiveSheet(first.id);
+
+      expect(hot.getData()).toEqual([['fresh', 'row']]);
+      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
     });
 
     it('drops a detached outcome reported for the sheet the grid shows', async() => {

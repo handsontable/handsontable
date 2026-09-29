@@ -411,21 +411,28 @@ export class EmptyDataState extends BasePlugin {
    * Shows or hides the loading overlay to match whether the DataProvider plugin is waiting for a `fetchRows`
    * response that shows loading. The DataProvider plugin calls it when the view the grid shows changes, because
    * no fetch hook fires then: a fetch left running for another view must not keep the overlay up, and a view
-   * whose fetch is still running must show it again. Does nothing while this plugin is disabled. Internal; not
-   * public API.
+   * whose fetch is still running must show it again. After a view change, the selection the overlay restores when
+   * it hides is the one the new view has, not the one the previous view had when the overlay appeared, and an
+   * overlay hidden by the change restores no selection at all. Does nothing while this plugin is disabled.
+   * Internal; not public API.
    *
    * @private
    * @param {boolean} isLoading Whether the grid waits for a fetch that shows loading.
+   * @param {boolean} [isViewChange=false] Whether the view the grid shows has just changed.
    */
-  _syncDataProviderLoading(isLoading: boolean): void {
+  _syncDataProviderLoading(isLoading: boolean, isViewChange = false): void {
     if (!this.enabled) {
       return;
+    }
+
+    if (isViewChange && this.#isVisible) {
+      this.#selectionState = this.hot.selection.exportSelection();
     }
 
     if (isLoading) {
       this.#setLoadingActive();
     } else {
-      this.#clearLoadingActive();
+      this.#clearLoadingActive(!isViewChange);
     }
   }
 
@@ -443,14 +450,16 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Clears the loading active flag and hides the emptyDataState.
+   *
+   * @param {boolean} [restoresSelection=true] Whether hiding restores the selection kept when the overlay appeared.
    */
-  #clearLoadingActive() {
+  #clearLoadingActive(restoresSelection = true) {
     if (!this.#loadingActive) {
       return;
     }
 
     this.#loadingActive = false;
-    this.#hide();
+    this.#hide(restoresSelection);
     this.#toggleEmptyDataState();
     this.hot.render();
   }
@@ -675,8 +684,11 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Hides the emptyDataState overlay.
+   *
+   * @param {boolean} [restoresSelection=true] Whether to restore the selection kept when the overlay appeared,
+   * or select the first cell when none was kept. With `false`, the selection is left as it is.
    */
-  #hide() {
+  #hide(restoresSelection = true) {
     if (!this.#isVisible) {
       return;
     }
@@ -690,7 +702,9 @@ export class EmptyDataState extends BasePlugin {
     // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
+    if (!restoresSelection) {
+      this.#selectionState = null;
+    } else if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
         ...this.#selectionState,
         activeRange: this.#selectionState.activeRange!,
