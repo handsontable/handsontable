@@ -86,6 +86,9 @@ interface HandsontableFixture {
   toPhysicalRow(row: number): number;
   alter(action: string, index: number, amount?: number, source?: string): void;
   getDataAtCell(row: number, column: number): unknown;
+  setDataAtCell(row: number, column: number, value: unknown): void;
+  selectCell(row: number, column: number): boolean;
+  updateSettings(settings: Record<string, unknown>): void;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
 }
@@ -519,6 +522,119 @@ export class EditorTrimmedRowPage {
 
       return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
     }, [selectedRow, nestedIndex] as [number, number]);
+  }
+
+  /**
+   * Selects a cell, removes a row, and from inside that removal's `afterRemoveRow` runs the steps
+   * `nested` names, in this order: another `alter()`, a write into the spare row (which appends a
+   * new one through `adjustRowsAndCols()`, a count change with no `alter()` scope of its own), a
+   * fresh `selectCell()`, and a throw. `spareRows` sets `minSpareRows` first, `inBatch` runs the
+   * whole removal inside `hot.batch()`, and `throwOnSelection` makes every `afterSelection` throw
+   * from then on - the hook a shift's write fires. Returns the selection, the value under its highlight, and the message of
+   * whatever the removal threw.
+   */
+  async removeRowRunningFromAfterRemoveRow(
+    select: [number, number],
+    removeIndex: number,
+    nested: {
+      alter?: [string, number, number],
+      writeSpareRow?: boolean,
+      selectCell?: [number, number],
+      throwMessage?: string,
+    },
+    options: { spareRows?: number, inBatch?: boolean, throwOnSelection?: string } = {},
+  ): Promise<{ selected: number[][] | undefined, value: unknown, error: string | null }> {
+    return this.page.evaluate(([target, removed, steps, settings]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+      let error: string | null = null;
+
+      if (settings.spareRows) {
+        hot.updateSettings({ minSpareRows: settings.spareRows });
+      }
+
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('afterRemoveRow', () => {
+        if (fired) {
+          return;
+        }
+
+        fired = true;
+
+        if (steps.alter) {
+          hot.alter(steps.alter[0], steps.alter[1], steps.alter[2]);
+        }
+
+        if (steps.writeSpareRow) {
+          hot.setDataAtCell(hot.countRows() - 1, 0, 'SPARE');
+        }
+
+        if (steps.selectCell) {
+          hot.selectCell(steps.selectCell[0], steps.selectCell[1]);
+        }
+
+        if (steps.throwMessage) {
+          throw new Error(steps.throwMessage);
+        }
+      });
+
+      if (settings.throwOnSelection) {
+        hot.addHook('afterSelection', () => {
+          throw new Error(settings.throwOnSelection);
+        });
+      }
+
+      const remove = () => hot.alter('remove_row', removed, 1);
+
+      try {
+        if (settings.inBatch) {
+          hot.batch(remove);
+        } else {
+          remove();
+        }
+      } catch (thrown) {
+        error = (thrown as Error).message;
+      }
+
+      const selected = hot.getSelected();
+
+      return {
+        selected,
+        value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null,
+        error,
+      };
+    }, [select, removeIndex, nested, options] as [
+      [number, number], number, typeof nested, typeof options,
+    ]);
+  }
+
+  /**
+   * Selects a cell and removes several row groups in one `alter()`. From inside the
+   * `beforeRemoveRow` of the group numbered `nestedBeforeGroup` (counting from 1), a nested
+   * `alter()` removes `nestedIndex` - so that change lands BEFORE the group's own. Returns the
+   * selection and the value under its highlight afterwards.
+   */
+  async removeRowGroupsNestingFromBeforeRemoveRow(
+    select: [number, number], groups: number[][], nestedBeforeGroup: number, nestedIndex: number,
+  ): Promise<{ selected: number[][] | undefined, value: unknown }> {
+    return this.page.evaluate(([target, removed, groupNumber, nestedTarget]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let calls = 0;
+
+      hot.selectCells([[target[0], target[1]]]);
+      hot.addHook('beforeRemoveRow', () => {
+        calls += 1;
+
+        if (calls === groupNumber) {
+          hot.alter('remove_row', nestedTarget, 1);
+        }
+      });
+      hot.alter('remove_row', removed as unknown as number, 1);
+
+      const selected = hot.getSelected();
+
+      return { selected, value: selected ? hot.getDataAtCell(selected[0][0], selected[0][1]) : null };
+    }, [select, groups, nestedBeforeGroup, nestedIndex] as [[number, number], number[][], number, number]);
   }
 
   /**

@@ -545,6 +545,9 @@ class Selection {
     // should be handled by next methods.
     const coordsClone = coords.clone();
 
+    // A held shift describes the selection this call replaces. Every write the shifts make
+    // themselves takes the queues first, so nothing of theirs is lost here.
+    this.#discardHeldShifts();
     this.#disableHeadersHighlight = false;
     this.#isFocusSelectionChanged = false;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
@@ -1059,19 +1062,27 @@ class Selection {
   }
 
   /**
-   * Closes the innermost structural-change scope. Closing the OUTERMOST one writes any shift still
-   * held back, so a change that never reached a shift of its own - a removal that emptied the grid,
-   * a cancelled action, a throwing hook - cannot leave an inner scope's repair for the next one to
-   * apply against a different grid.
+   * Closes the innermost structural-change scope. Closing the OUTERMOST one empties the held shifts,
+   * so a change that never reached a shift of its own - a removal that emptied the grid, a cancelled
+   * action, a throwing hook - cannot leave an inner scope's repair for the next one to apply against
+   * a different grid.
+   *
+   * @param {boolean} [applyHeld=true] `false` drops the held shifts instead of writing them. `alter()`
+   * passes it when its action threw: writing them runs the selection hooks, and one that throws
+   * there would replace the error already on its way out.
    */
-  resumeShifts() {
+  resumeShifts(applyHeld = true) {
     this.#shiftScopes.pop();
 
     if (this.#shiftScopes.length > 0) {
       return;
     }
 
-    this.#flushShifts();
+    if (applyHeld) {
+      this.#flushShifts();
+    } else {
+      this.#discardHeldShifts();
+    }
   }
 
   /**
@@ -1088,6 +1099,17 @@ class Selection {
     }
 
     this.#flushShifts();
+  }
+
+  /**
+   * Drops every held shift on both axes. Each one was computed for the selection that existed when
+   * it was recorded, so a selection laid or cleared since then is not one it can describe.
+   */
+  #discardHeldShifts() {
+    // Emptied in place: `setRangeStart()` calls this on every selection, and a flush reads a sorted
+    // copy, never these arrays.
+    this.#pendingRowShifts.length = 0;
+    this.#pendingColumnShifts.length = 0;
   }
 
   /**
@@ -1116,15 +1138,30 @@ class Selection {
    * renumbering and BEFORE the public cache-update hook - so an `alter()` a consumer of that hook
    * fires already sees this scope as owing a repair, while one fired from a `before*` hook does not.
    *
-   * A multi-group `alter()` lands several changes and re-stamps on each, so a shift asked for after
-   * the second group still sorts behind anything nested between the two.
+   * Only the FIRST count change stamps. The handler also fires for count changes no `alter()` owns -
+   * a spare row `setDataAtCell()` appends through `adjustRowsAndCols()` - and re-stamping on one of
+   * those would sort this scope's shift behind shifts that landed after it.
    */
   markStructuralIndexChange() {
     const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
 
-    if (scope) {
+    if (scope && scope.sequence === null) {
       this.#shiftSequence += 1;
       scope.sequence = this.#shiftSequence;
+    }
+  }
+
+  /**
+   * Clears the innermost scope's stamp before `alter()` removes its next group, so that group's
+   * change stamps again when it lands. A shift asked for after the group then sorts behind anything
+   * nested before it - including a call fired from the group's own `beforeRemoveRow`, which lands
+   * first.
+   */
+  rearmStructuralIndexChange() {
+    const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
+
+    if (scope) {
+      scope.sequence = null;
     }
   }
 
@@ -1212,12 +1249,10 @@ class Selection {
       return;
     }
 
-    const shifts = this.#takeShifts(this.#pendingRowShifts);
-
-    // Cleared BEFORE the write, which runs selection hooks that can open a scope of their own.
-    this.#pendingRowShifts = [];
-
-    this.#applyRowShifts(shifts);
+    // BOTH axes, not only this one: a column shift a nested call asked for is held for this repair
+    // too, and it must be taken before the write below lays a new selection, which drops whatever
+    // is still held (`setRangeStart()`).
+    this.#flushShifts();
   }
 
   /**
@@ -1363,11 +1398,7 @@ class Selection {
       return;
     }
 
-    const shifts = this.#takeShifts(this.#pendingColumnShifts);
-
-    this.#pendingColumnShifts = [];
-
-    this.#applyColumnShifts(shifts);
+    this.#flushShifts();
   }
 
   /**

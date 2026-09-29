@@ -1333,10 +1333,15 @@ export default function Core(
       // and a throwing hook included. A scope left open stops the selection repairing at all.
       selection.suspendShifts();
 
+      let isCompleted = false;
+
       try {
         grid.runAlter(action, index, amount, source, keepEmptyRows);
+        isCompleted = true;
       } finally {
-        selection.resumeShifts();
+        // On a throw the held shifts are dropped, not written: writing them runs the selection
+        // hooks, and one that throws there would replace the error already on its way out.
+        selection.resumeShifts(isCompleted);
       }
     },
 
@@ -1464,6 +1469,10 @@ export default function Core(
 
                 const totalRowsBefore = instance.countRows();
 
+                // Each group's change stamps the scope again when it lands, so a call nested before it -
+                // from this group's own `beforeRemoveRow` - sorts ahead of this group's shift.
+                selection.rearmStructuralIndexChange();
+
                 // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeRow breaks the removing functionality.
                 const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
@@ -1576,6 +1585,9 @@ export default function Core(
                 if (Number.isInteger(groupIndex)) {
                   groupIndex = Math.max(groupIndex - offset, 0);
                 }
+
+                // The column half of the re-arm in the `remove_row` branch above.
+                selection.rearmStructuralIndexChange();
 
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.

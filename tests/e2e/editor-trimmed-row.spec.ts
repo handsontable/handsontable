@@ -1480,6 +1480,153 @@ test.describe('a structural change after select all', () => {
 });
 
 /**
+ * Held shifts are folded in the order their changes LANDED. Every other held-path case above shifts
+ * at index 0, where both orders pass the `>=` gate and give the same result, so none of them can
+ * tell a correct sort from a reversed one. Here the nested removal sits AT the selected row: folded
+ * outer-first it is gated out, folded nested-first it moves the selection a second time.
+ *
+ * A selection rather than an open editor: a nested removal at the edited row closes the editor,
+ * because it reads the highlight before the outer shift has moved it - `develop` does the same.
+ */
+test.describe('the order held shifts are folded in', () => {
+  test('keeps the selection on its record when the nested removal is below the outer one',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Removes `'A2'`, and from inside that removal `'A4'` - by then at row 3.
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+      });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * A spare row appended by `setDataAtCell()` changes the row count with no `alter()` of its own, so
+   * it lands while the OUTER scope is the innermost one. That must not re-stamp the outer scope as
+   * if its own change had landed again - the nested shift would then sort first.
+   */
+  test('keeps the landing order when a spare row is appended after the nested removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+        alter: ['remove_row', 3, 1],
+        writeSpareRow: true,
+      }, { spareRows: 1 });
+
+      expect(result.selected).toEqual([[2, 0, 2, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * A multi-group removal lands one change per group, and a call nested from a group's own
+   * `beforeRemoveRow` lands BEFORE that group's change. `A0` goes with the first group; before the
+   * second, a nested call removes `A1`; the second group then removes row 2 - by then `A4`. Folded
+   * in landing order the selection stays on `A3`; folded with the second group first, it slides
+   * onto `A2`.
+   */
+  test('keeps the landing order for a call nested before the second of two groups',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const result = await grid.removeRowGroupsNestingFromBeforeRemoveRow([3, 0], [[0, 1], [3, 1]], 2, 0);
+
+      expect(await grid.sourceData()).toEqual([
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+      ]);
+      expect(result.selected).toEqual([[1, 0, 1, 0]]);
+      expect(result.value).toBe('A3');
+    });
+
+  /**
+   * The nested call is on the OTHER axis, so its column shift is held while the outer call's own
+   * row shift is written at once. That write lays a new selection, which drops whatever is still
+   * held - so the row write has to take the held column shift with it.
+   */
+  test('keeps a held column shift when the outer row shift is written', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A0'`, and from inside that removal the first column.
+    const result = await grid.removeRowRunningFromAfterRemoveRow([1, 1], 0, {
+      alter: ['remove_col', 0, 1],
+    });
+
+    expect(result.selected).toEqual([[0, 0, 0, 0]]);
+    expect(result.value).toBe('B1');
+  });
+});
+
+/**
+ * A held shift was computed for the selection that existed when it was recorded. A selection made
+ * after that is not the one it describes, so the shift must not be written onto it.
+ */
+test.describe('a selection made while a shift is held', () => {
+  test('stays where it was made', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Removes `'A2'`; from inside that removal, inserts a row above the first one - a shift held for
+    // the outer call - and then selects the new first row.
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['insert_row_above', 0, 1],
+      selectCell: [0, 0],
+    });
+
+    expect(result.selected).toEqual([[0, 0, 0, 0]]);
+  });
+});
+
+/**
+ * An `alter()` that throws closes its scope without writing the held shifts. Writing them runs the
+ * selection hooks, and a consumer that throws there would replace the error the caller has to see.
+ */
+test.describe('a throwing alter with a held shift', () => {
+  test('reports its own error, not one a selection hook throws', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['remove_row', 3, 1],
+      throwMessage: 'afterRemoveRow failed',
+    }, { throwOnSelection: 'afterSelection failed' });
+
+    expect(result.error).toBe('afterRemoveRow failed');
+  });
+});
+
+/**
+ * Inside `batch()` the index mapper holds `cacheUpdated` back until the batch ends. A nested removal
+ * still lands on the record after both removals - `develop` lands it one row up.
+ */
+test.describe('a nested alter inside batch()', () => {
+  test('lands on the record after both removals', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const result = await grid.removeRowRunningFromAfterRemoveRow([3, 0], 2, {
+      alter: ['remove_row', 3, 1],
+    }, { inBatch: true });
+
+    expect(result.selected).toEqual([[2, 0, 2, 0]]);
+    expect(result.value).toBe('A3');
+  });
+});
+
+/**
  * `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
  * renumbers the physical space under it - so its completion callback carries the same
  * structural-change scope `alter()` does (DEV-2739 review).
