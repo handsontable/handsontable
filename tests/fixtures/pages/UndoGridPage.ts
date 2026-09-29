@@ -309,6 +309,32 @@ export class UndoGridPage {
   }
 
   /**
+   * Select a range and merge it with the `Ctrl`+`M` shortcut, the way a user does.
+   */
+  async mergeWithShortcut(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate((cellRange) => {
+      window.hot.selectCells([cellRange]);
+    }, range);
+    await this.page.keyboard.press('Control+m');
+  }
+
+  /**
+   * The merged areas as `[row, col, rowspan, colspan]`, sorted by position.
+   */
+  async merges(): Promise<number[][]> {
+    return this.page.evaluate(() => window.hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+      .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan])
+      .sort((a, b) => a[0] - b[0] || a[1] - b[1]));
+  }
+
+  /**
+   * Undo with the keyboard shortcut: `Cmd`+`Z` on macOS, `Ctrl`+`Z` elsewhere.
+   */
+  async undoWithKeyboard(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
    * The number of steps on the undo stack.
    */
   async undoStackSize(): Promise<number> {

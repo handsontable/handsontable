@@ -37,6 +37,13 @@ trimming and reordering. The merge's own `row`/`col`/`rowspan` are re-derived fr
 `rowIndexMapper` `cacheUpdated`, so treat them as a snapshot of how the merge currently *draws*, not as
 what it owns.
 
+**`mergeSelection()` is one operation, and so one undo step.** It unmerges the merges inside the range
+(`unmergeRange(…, true)`) before it merges the range, and each of those opens its own operation. Left
+unwrapped, the two became two steps: one `Ctrl`+`M` over existing merges took two undos (DEV-160,
+DEV-514). A nested operation's `describe()` is ignored, so the outer operation describes the step
+itself through `#describeMerge()` - the same `cellRange` and `data` fields `mergeRange()` attaches.
+Any new method that calls two mutators must wrap them the same way.
+
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
 `restoreState()` rebuilds the collection from that list, re-attaches the anchors, re-anchors onto the
 visible rows and marks every cell changed. Match a merge to its own anchor by the merge object, never

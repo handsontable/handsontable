@@ -108,6 +108,11 @@ export interface FixtureHotInstance {
     setPage(page: number): void,
     getCurrentPage(): number,
   };
+  getPlugin(name: 'mergeCells'): {
+    mergedCellsCollection: {
+      mergedCells: { row: number, col: number, rowspan: number, colspan: number }[],
+    },
+  };
   getPlugin(name: 'filters'): {
     addCondition(column: number, name: string, args: unknown[]): void,
     clearConditions(column?: number): void,

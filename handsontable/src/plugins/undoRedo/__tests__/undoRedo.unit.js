@@ -824,6 +824,112 @@ describe('UndoRedo plugin', () => {
     });
   });
 
+  // `mergeSelection()` unmerges the merges inside the range before it merges it. That unmerge is part
+  // of the user's merge, so both are one undo step (DEV-160, DEV-514).
+  describe('a merge over existing merges', () => {
+    /**
+     * Lists the merges as `[row, col, rowspan, colspan]`, sorted.
+     *
+     * @returns {Array}
+     */
+    function listMerges() {
+      return hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .map(({ row, col, rowspan, colspan }) => [row, col, rowspan, colspan])
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    }
+
+    /**
+     * Builds a grid of `A1`-style values.
+     *
+     * @param {number} rows The number of rows.
+     * @param {number} columns The number of columns.
+     * @returns {Array}
+     */
+    function sheet(rows, columns) {
+      return Array.from({ length: rows }, (_, row) => Array.from(
+        { length: columns }, (__, column) => `${String.fromCharCode(65 + column)}${row + 1}`,
+      ));
+    }
+
+    it('should be one step, and one undo should bring back the merges it replaced', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: sheet(5, 5),
+        mergeCells: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      hot.selectCell(0, 1, 2, 1);
+      mergeCells.mergeSelection();
+      hot.selectCell(0, 3, 2, 3);
+      mergeCells.mergeSelection();
+
+      const dataBefore = hot.getData();
+
+      hot.selectCell(0, 0, 2, 3);
+      mergeCells.mergeSelection();
+
+      expect(plugin.doneActions.map(step => step.actionType)).toEqual(['merge_cells', 'merge_cells', 'merge_cells']);
+      expect(listMerges()).toEqual([[0, 0, 3, 4]]);
+
+      plugin.undo();
+
+      expect(listMerges()).toEqual([[0, 1, 3, 1], [0, 3, 3, 1]]);
+      expect(hot.getData()).toEqual(dataBefore);
+
+      plugin.redo();
+
+      expect(listMerges()).toEqual([[0, 0, 3, 4]]);
+    });
+
+    it('should bring back a merge declared at initialization with one undo', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: sheet(6, 6),
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const dataBefore = hot.getData();
+
+      hot.selectCell(0, 0, 4, 3);
+      hot.getPlugin('mergeCells').mergeSelection();
+
+      expect(plugin.doneActions.length).toBe(1);
+
+      plugin.undo();
+
+      expect(listMerges()).toEqual([[0, 0, 3, 3]]);
+      expect(hot.getData()).toEqual(dataBefore);
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should describe the step with the merged range and the values it collapses', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: sheet(3, 3),
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      // The declared merge already cleared A2, the cell it covers.
+      const valuesBefore = hot.getData(0, 0, 1, 1);
+
+      hot.selectCell(0, 0, 1, 1);
+      hot.getPlugin('mergeCells').mergeSelection();
+
+      const [step] = plugin.doneActions;
+
+      expect(step.actionType).toBe('merge_cells');
+      expect([step.cellRange.from.row, step.cellRange.from.col, step.cellRange.to.row, step.cellRange.to.col])
+        .toEqual([0, 0, 1, 1]);
+      expect(step.data).toEqual(valuesBefore);
+      expect(valuesBefore).toEqual([['A1', 'B1'], [null, 'B2']]);
+    });
+  });
+
   describe('a step that replaces the data', () => {
     it('should not record a step whose transaction spans `updateData()`', () => {
       hot = new Handsontable(container, {

@@ -829,8 +829,12 @@ export class MergeCells extends BasePlugin {
 
     const { from, to } = cellRange;
 
-    this.unmergeRange(cellRange, true);
-    this.mergeRange(cellRange);
+    // The unmerge of the merges inside the range is part of this merge: one user action, one undo step.
+    this.runOperation('merge_cells', () => {
+      this.#describeMerge(cellRange);
+      this.unmergeRange(cellRange, true);
+      this.mergeRange(cellRange);
+    });
 
     if (from.row !== null && from.col !== null && to.row !== null && to.col !== null) {
       this.hot.selectCell(from.row, from.col, to.row, to.col, false);
@@ -871,24 +875,35 @@ export class MergeCells extends BasePlugin {
    */
   mergeRange(cellRange: CellRange, auto = false, preventPopulation = false) {
     return this.runOperation('merge_cells', () => {
-      const topStart = cellRange.getTopStartCorner();
-      const bottomEnd = cellRange.getBottomEndCorner();
-
-      const scope = this.hot._getOperationScope();
-
-      // The values the merge is about to collapse, as the undo step has always exposed them. Read
-      // only while a step is recorded: a merge from the settings is not one, and pays nothing.
-      if (
-        scope.getRecordingTransaction() !== null &&
-        topStart.row !== null && topStart.col !== null && bottomEnd.row !== null && bottomEnd.col !== null
-      ) {
-        scope.describe({
-          data: this.hot.getData(topStart.row, topStart.col, bottomEnd.row, bottomEnd.col),
-        });
-      }
+      this.#describeMerge(cellRange);
 
       return this.#mergeRange(cellRange, auto, preventPopulation);
-    }, { cellRange: deepClone(cellRange) });
+    });
+  }
+
+  /**
+   * Attaches the public fields of a merge step: the merged range and the values the merge is about to
+   * collapse, as the undo step has always exposed them. It takes effect only in the outermost
+   * operation, so `mergeSelection()` calls it too.
+   *
+   * @param {CellRange} cellRange Cell range to merge.
+   */
+  #describeMerge(cellRange: CellRange) {
+    const scope = this.hot._getOperationScope();
+    const topStart = cellRange.getTopStartCorner();
+    const bottomEnd = cellRange.getBottomEndCorner();
+
+    scope.describe({ cellRange: deepClone(cellRange) });
+
+    // Read only while a step is recorded: a merge from the settings is not one, and pays nothing.
+    if (
+      scope.getRecordingTransaction() !== null &&
+      topStart.row !== null && topStart.col !== null && bottomEnd.row !== null && bottomEnd.col !== null
+    ) {
+      scope.describe({
+        data: this.hot.getData(topStart.row, topStart.col, bottomEnd.row, bottomEnd.col),
+      });
+    }
   }
 
   /**

@@ -278,4 +278,24 @@ test.describe('undo of plugin state', () => {
     expect(await grid.currentPage()).toBe(2);
     await expect(grid.cell(2, 0)).toBeVisible();
   });
+
+  // A merge over existing merges first unmerges them. That is part of the same user action, so one
+  // undo brings the replaced merges back (DEV-160, DEV-514).
+  test('merging over existing merges is one step that one undo reverts', async () => {
+    await grid.initGrid({ mergeCells: true });
+    await grid.mergeWithShortcut([0, 1, 2, 1]);
+    await grid.mergeWithShortcut([0, 3, 2, 3]);
+
+    const rowBefore = await grid.rowValues(0);
+
+    await grid.mergeWithShortcut([0, 0, 2, 3]);
+
+    expect(await grid.merges()).toEqual([[0, 0, 3, 4]]);
+    expect(await grid.undoStackSize()).toBe(3);
+
+    await grid.undoWithKeyboard();
+
+    expect(await grid.merges()).toEqual([[0, 1, 3, 1], [0, 3, 3, 1]]);
+    expect(await grid.rowValues(0)).toEqual(rowBefore);
+  });
 });
