@@ -224,7 +224,7 @@ describe('dataProvider/query/pagination', () => {
     it('should no-op when normalized size and page already match query', () => {
       const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
       const hot = {
-        getPlugin: () => ({ enabled: true }),
+        getPlugin: () => ({ enabled: true, getPaginationData: () => ({ currentPage: 1 }) }),
       };
 
       handleAfterPageSizeChangeExternalPagination(
@@ -241,10 +241,50 @@ describe('dataProvider/query/pagination', () => {
       expect(setPageSize).not.toHaveBeenCalled();
     });
 
+    it('should no-op when the pager takes the page and size of the query on a later page', () => {
+      const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
+      const hot = {
+        getPlugin: () => ({ enabled: true, getPaginationData: () => ({ currentPage: 3 }) }),
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 3,
+          getQueryPageSize: () => 5,
+          setPageSize,
+        },
+        10,
+        5
+      );
+
+      expect(setPageSize).not.toHaveBeenCalled();
+    });
+
+    it('should call setPageSize when the size matches the query but the pager is on another page', () => {
+      const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
+      const hot = {
+        getPlugin: () => ({ enabled: true, getPaginationData: () => ({ currentPage: 1 }) }),
+      };
+
+      handleAfterPageSizeChangeExternalPagination(
+        {
+          hot,
+          getQueryPage: () => 3,
+          getQueryPageSize: () => 5,
+          setPageSize,
+        },
+        10,
+        5
+      );
+
+      expect(setPageSize).toHaveBeenCalledWith(5);
+    });
+
     it('should call setPageSize when page size changes', () => {
       const setPageSize = jasmine.createSpy('setPageSize').and.returnValue(Promise.resolve());
       const hot = {
-        getPlugin: () => ({ enabled: true }),
+        getPlugin: () => ({ enabled: true, getPaginationData: () => ({ currentPage: 1 }) }),
       };
 
       handleAfterPageSizeChangeExternalPagination(

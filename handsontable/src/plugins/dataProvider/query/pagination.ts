@@ -151,7 +151,9 @@ export function handleAfterPageChangeExternalPagination(
 }
 
 /**
- * Loads page 1 with the new page size when Pagination runs in external paged mode.
+ * Loads page 1 with the new page size when Pagination runs in external paged mode. Skips when the pager's page and
+ * page size already match the query: that is Pagination taking the page and page size of a response the plugin
+ * has loaded or replayed (possibly after a view with another page size was shown), not a user's change.
  *
  * @param {object} ctx Context.
  * @param {function(): boolean} ctx.isEnabled DataProvider enabled check.
@@ -181,7 +183,7 @@ export function handleAfterPageSizeChangeExternalPagination(
 
   const ps = normalizeExternalPaginationPageSize(newPageSize, DEFAULT_PAGE_SIZE);
 
-  if (ps === getQueryPageSize() && getQueryPage() === 1) {
+  if (ps === getQueryPageSize() && paginationPlugin.getPaginationData().currentPage === getQueryPage()) {
     return;
   }
 

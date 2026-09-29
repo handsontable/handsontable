@@ -367,7 +367,7 @@ export class SheetsBar extends BasePlugin {
   /**
    * What the DataProvider plugin asks this plugin, as the owner of its contexts: the context the
    * grid shows, the outcome of a request made for a sheet the grid no longer shows, and the latest
-   * query of such a sheet, which an off-screen refetch asks for.
+   * response of such a sheet, whose query an off-screen refetch asks for.
    *
    * @type {object}
    */
@@ -385,10 +385,10 @@ export class SheetsBar extends BasePlugin {
         this.#storeServerResult(sheet, result);
       }
     },
-    getContextQuery: (context) => {
+    getContextResult: (context) => {
       const sheet = this.#sheetOfContext(context);
 
-      return sheet ? this.#serverViews.get(sheet)?.lastResult?.queryParameters : undefined;
+      return sheet ? this.#serverViews.get(sheet)?.lastResult : undefined;
     },
   };
   /**

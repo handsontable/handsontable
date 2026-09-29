@@ -707,15 +707,15 @@ describe('DataProvider context owner contract', () => {
       void plugin.fetchData({ page: 3 });
       await provider.settleLast([{ id: 'c', name: 'C' }], 100);
 
-      const latestQuery = provider.lastQuery();
+      const latestResult = { rows: [{ id: 'c', name: 'C' }], totalRows: 100, queryParameters: provider.lastQuery() };
 
-      owner.getContextQuery = jest.fn(context => (context === first ? latestQuery : null));
+      owner.getContextResult = jest.fn(context => (context === first ? latestResult : null));
       owner.current = { name: 'second' };
       void plugin.fetchData({ page: 5 });
       await provider.settleLast([{ id: 'z', name: 'Z' }], 100);
       await provider.settleMutation();
 
-      expect(owner.getContextQuery).toHaveBeenCalledWith(first);
+      expect(owner.getContextResult).toHaveBeenCalledWith(first);
       expect(provider.lastQuery().page).toBe(3);
     });
 
@@ -765,6 +765,36 @@ describe('DataProvider context owner contract', () => {
       await provider.settleMutation();
 
       expect(provider.lastQuery().page).toBe(1);
+    });
+
+    it('decide a remove\'s page fallback from the latest response the owner keeps', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner });
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.removeRows(['a', 'b']);
+      await settle();
+
+      void plugin.fetchData({ page: 3 });
+      await provider.settleLast([{ id: 'e' }, { id: 'f' }, { id: 'g' }], 100);
+
+      const latestResult = {
+        rows: [{ id: 'e' }, { id: 'f' }, { id: 'g' }],
+        totalRows: 100,
+        queryParameters: provider.lastQuery(),
+      };
+
+      owner.getContextResult = jest.fn(context => (context === first ? latestResult : null));
+      owner.current = { name: 'second' };
+      void plugin.fetchData({ page: 5 });
+      await provider.settleLast([{ id: 'z' }], 100);
+      await provider.settleMutation();
+
+      expect(provider.lastQuery().page).toBe(3);
     });
 
     it('drop the refetch, the revert, and the report once their context is released', async() => {
@@ -1023,6 +1053,27 @@ describe('DataProvider context owner contract', () => {
       expect(pagination.currentPage).toBe(3);
       expect(pagination.pageSize).toBe(10);
       expect(hot.getPlugin('dataProvider').getQueryParameters()).toEqual(queryParameters);
+    });
+
+    it('still fetches a page a listener of the replayed payload moves to', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider, { settings: { pagination: { pageSize: 10 } } });
+
+      hot.addHook('afterDataProviderFetch', (result) => {
+        if (result.isRestored) {
+          hot.getPlugin('pagination').setPage(2);
+        }
+      });
+
+      hot.getPlugin('dataProvider')._restoreFetchResult({
+        totalRows: 100,
+        queryParameters: { page: 3, pageSize: 10, sort: null, filters: null },
+      });
+      await settle();
+
+      expect(provider.config.fetchRows).toHaveBeenCalledTimes(2);
+      expect(provider.lastQuery().page).toBe(2);
     });
 
     it('does nothing while the plugin is disabled', async() => {

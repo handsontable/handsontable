@@ -165,10 +165,11 @@ export interface DataProviderContextOwner {
    */
   onShownResponse(result: DataProviderFetchResult, context: object): void;
   /**
-   * Returns the latest query of a context the grid no longer shows, which an off-screen refetch asks for. When the
-   * owner has none, the refetch uses the query the request was queued with.
+   * Returns the latest response the owner keeps for a context the grid no longer shows. An off-screen refetch asks
+   * for its query, and a remove's follow-up counts its rows. When the owner has none, both use what the request was
+   * queued with.
    */
-  getContextQuery?(context: object): DataProviderQueryParameters | null | undefined;
+  getContextResult?(context: object): DataProviderFetchResult | null | undefined;
 }
 
 export interface DataProviderFetchResult {
@@ -366,13 +367,6 @@ export class DataProvider extends BasePlugin {
    * @type {boolean}
    */
   #isPassive = false;
-  /**
-   * `true` while `_restoreFetchResult()` replays a kept response, so the page and page size that Pagination takes
-   * from it are not read as a user's change that asks for a fetch.
-   *
-   * @type {boolean}
-   */
-  #isRestoringFetchResult = false;
   /**
    * Serializes create/update/remove mutations so they run one after another.
    *
@@ -593,8 +587,9 @@ export class DataProvider extends BasePlugin {
       }
 
       const offScreen = target !== null && !this.#isVisible(target);
+      const latest = offScreen ? this.#latestResultFor(target) : null;
       const pageBeforeFetch = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
-      const rowsLoaded = offScreen ? rowsLoadedAtQueue : this.hot.countRows();
+      const rowsLoaded = offScreen ? latest?.rows.length ?? rowsLoadedAtQueue : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
       if (removesEveryLoadedRow && pageBeforeFetch > 1) {
@@ -787,13 +782,7 @@ export class DataProvider extends BasePlugin {
     const payload = this.#buildFetchResult({ ...result, rows }, rows, totalRows, this.#snapshotQueryParameters(query));
 
     this.#queryParameters = this.#snapshotQueryParameters(query);
-    this.#isRestoringFetchResult = true;
-
-    try {
-      this.hot.runHooks('afterDataProviderFetch', { ...payload, isRestored: true });
-    } finally {
-      this.#isRestoringFetchResult = false;
-    }
+    this.hot.runHooks('afterDataProviderFetch', { ...payload, isRestored: true });
 
     this.hot.getPlugin('filters')?._resetDataProviderRollback();
     this.hot.render();
@@ -975,7 +964,8 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Returns the query a refetch for a binding starts from: the current query while its context is shown, otherwise
-   * the latest query the owner keeps for that context, or the query the binding was made with when it keeps none.
+   * the query of the latest response the owner keeps for that context, or the query the binding was made with when
+   * it keeps none.
    *
    * @param {object} binding The request binding.
    * @returns {object}
@@ -985,9 +975,21 @@ export class DataProvider extends BasePlugin {
       return this.#queryParameters;
     }
 
-    const latest = binding.context === null ? null : this.#contextOwner?.getContextQuery?.(binding.context);
+    return this.#latestResultFor(binding)?.queryParameters ?? binding.query;
+  }
 
-    return latest ?? binding.query;
+  /**
+   * Returns the latest response the owner keeps for a binding's context, or `null` when it keeps none.
+   *
+   * @param {object} binding The request binding.
+   * @returns {object|null}
+   */
+  #latestResultFor(binding: RequestBinding): DataProviderFetchResult | null {
+    if (binding.context === null) {
+      return null;
+    }
+
+    return this.#contextOwner?.getContextResult?.(binding.context) ?? null;
   }
 
   /**
@@ -1009,7 +1011,8 @@ export class DataProvider extends BasePlugin {
    * @param {object} binding What the fetch is for.
    * @param {object} [overrides] Partial query overrides, as in {@link DataProvider#fetchData}.
    * @param {object} [baseQuery] The query the overrides apply to. Omitted, the current query is used for a
-   * visible binding and the binding's own query for one whose context is not shown.
+   * visible binding, and for one whose context is not shown the query of the latest response the owner keeps for
+   * it, or the binding's own query when it keeps none.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    */
   async #fetchFor(
@@ -1678,10 +1681,6 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterPageChangeExternalPagination = (oldPage: number, newPage: number) => {
-    if (this.#isRestoringFetchResult) {
-      return;
-    }
-
     handleAfterPageChangeExternalPagination(
       {
         hot: this.hot,
@@ -1704,10 +1703,6 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterPageSizeChangeExternalPagination = (oldPageSize: number | 'auto', newPageSize: number | 'auto') => {
-    if (this.#isRestoringFetchResult) {
-      return;
-    }
-
     handleAfterPageSizeChangeExternalPagination(
       {
         hot: this.hot,

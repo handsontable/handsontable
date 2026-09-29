@@ -71,6 +71,7 @@ interface FixtureDataProviderPlugin {
 interface FixturePaginationPlugin {
   getPaginationData(): { currentPage: number, pageSize: number, totalPages: number };
   setPage(page: number): void;
+  setPageSize(pageSize: number): void;
 }
 
 /**
@@ -652,6 +653,18 @@ export class DataProviderSheetsBarPage {
     await this.page.evaluate(
       p => (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('pagination').setPage(p),
       page
+    );
+  }
+
+  /**
+   * Change the pager's page size through the Pagination plugin, the way the page-size select does.
+   *
+   * @param {number} pageSize The page size to set.
+   */
+  async setPageSize(pageSize: number): Promise<void> {
+    await this.page.evaluate(
+      size => (window.hot as unknown as FixtureHotWithSheetPlugins).getPlugin('pagination').setPageSize(size),
+      pageSize
     );
   }
 

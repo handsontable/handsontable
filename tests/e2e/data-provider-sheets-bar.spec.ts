@@ -1320,6 +1320,47 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect.poll(async() => (await grid.pagination()).totalPages).toBe(5);
     });
 
+    test('returning to a sheet with another page size shows its saved page without a refetch', async() => {
+      await grid.goToPage(3);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-11');
+      await grid.clickTab(2);
+      await grid.release('CUS');
+      await grid.setPageSize(10);
+      await grid.release('CUS');
+      await expect.poll(async() => (await grid.pagination()).pageSize).toBe(10);
+
+      const fetchesBefore = await grid.fetchCount('ORD');
+
+      await grid.clickTab(0);
+
+      await expect(grid.cell(0, 0)).toHaveText('ORD-11');
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
+      expect(await grid.pagination()).toEqual(expect.objectContaining({ currentPage: 3, pageSize: 5 }));
+    });
+
+    test('a page fetch that lands after returning from a sheet with another page size keeps its page', async() => {
+      await grid.clickTab(2);
+      await grid.release('CUS');
+      await grid.setPageSize(10);
+      await grid.release('CUS');
+      await grid.clickTab(0);
+      await grid.goToPage(3);
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.clickTab(2);
+      await grid.clickTab(0);
+
+      const fetchesBefore = await grid.fetchCount('ORD');
+
+      await grid.release('ORD');
+
+      await expect(grid.cell(0, 0)).toHaveText('ORD-11');
+      expect(await grid.pendingCount('ORD')).toBe(0);
+      expect(await grid.fetchCount('ORD')).toBe(fetchesBefore);
+      expect(await grid.pagination()).toEqual(expect.objectContaining({ currentPage: 3, pageSize: 5 }));
+    });
+
     test('a server sheet whose first fetch failed off-screen does not show another sheet\'s total', async() => {
       await grid.clickTab(2);
       await grid.failNext('CUS');
