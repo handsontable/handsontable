@@ -1,11 +1,13 @@
 import type { HotInstance } from '../../core/types';
-import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
+import { arrayEach, arrayFilter } from '../../helpers/array';
 import { mixin, objectEach } from '../../helpers/object';
 import { curry } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import { createArrayAssertion } from './utils';
+import { ColumnDataMap } from './columnDataMap';
+import type { ColumnDataEntry } from './columnDataMap';
 
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
@@ -66,7 +68,13 @@ class ConditionUpdateObserver {
    * (non-null) only for the duration of one state update or one `flush()` batch — reading a column's
    * data map walks every source row, and one update reads the same columns several times.
    */
-  #columnDataCache: Map<number, Record<string, unknown>[]> | null = null;
+  #columnDataCache: Map<number, ColumnDataMap> | null = null;
+  /**
+   * Memoized `{ row, meta, value }` arrays of the full-column reads in `#columnDataCache`, keyed by
+   * physical column index and active for the same scope. The update consumers take the column as
+   * that array, and several of them ask for the same column in one update.
+   */
+  #columnEntriesCache: Map<number, ColumnDataEntry[]> | null = null;
 
   /**
    * Initializes the observer with the Handsontable instance, a condition collection to watch, and an optional factory for column source data.
@@ -74,7 +82,8 @@ class ConditionUpdateObserver {
   constructor(
     hot: HotInstance,
     conditionCollection: ConditionCollection,
-    columnDataFactory: (physicalColumn: number, physicalRows?: number[]) => Record<string, unknown>[] = () => []
+    columnDataFactory: (physicalColumn: number, physicalRows?: number[]) => ColumnDataMap =
+    () => ColumnDataMap.empty()
   ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
@@ -126,11 +135,13 @@ class ConditionUpdateObserver {
     }
 
     this.#columnDataCache = new Map();
+    this.#columnEntriesCache = new Map();
 
     try {
       callback();
     } finally {
       this.#columnDataCache = null;
+      this.#columnEntriesCache = null;
     }
   }
 
@@ -140,9 +151,9 @@ class ConditionUpdateObserver {
    *
    * @param {number} physicalColumn The physical column index.
    * @param {number[]} [physicalRows] When provided, only these physical rows are read.
-   * @returns {Array} Array of objects with `meta` and `value`, one per read row.
+   * @returns {ColumnDataMap} The column read.
    */
-  #getColumnData(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+  #getColumnData(physicalColumn: number, physicalRows?: number[]): ColumnDataMap {
     if (physicalRows || this.#columnDataCache === null) {
       return this.columnDataFactory(physicalColumn, physicalRows);
     }
@@ -150,11 +161,36 @@ class ConditionUpdateObserver {
     let columnData = this.#columnDataCache.get(physicalColumn);
 
     if (!columnData) {
-      columnData = this.columnDataFactory(physicalColumn);
+      // The memo exists so that several passes over one column cost one read. The read resolves
+      // each row's meta on demand, so the meta is memoized too – every pass must hand a row the
+      // same object, as the single materialized read did.
+      columnData = this.columnDataFactory(physicalColumn).withMemoizedMeta();
       this.#columnDataCache.set(physicalColumn, columnData);
     }
 
     return columnData;
+  }
+
+  /**
+   * Reads a full column as `{ row, meta, value }` entries through the active memo, so every
+   * consumer of one update shares a single array per column.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {Array} The column's entries, one per read row.
+   */
+  #getColumnEntries(physicalColumn: number): ColumnDataEntry[] {
+    if (this.#columnEntriesCache === null) {
+      return this.#getColumnData(physicalColumn).toArray();
+    }
+
+    let entries = this.#columnEntriesCache.get(physicalColumn);
+
+    if (!entries) {
+      entries = this.#getColumnData(physicalColumn).toArray();
+      this.#columnEntriesCache.set(physicalColumn, entries);
+    }
+
+    return entries;
   }
 
   /**
@@ -221,29 +257,28 @@ class ConditionUpdateObserver {
       // in the next conditions in the chain
       splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows = this.#getColumnData(Number(curriedColumn));
-      let visibleRows;
+      const allRows = this.#getColumnEntries(Number(curriedColumn));
 
       if (splitConditionCollection.isEmpty()) {
-        visibleRows = allRows;
-      } else {
-        visibleRows = (new DataFilter(
-          splitConditionCollection,
-          (physicalColumn: number, physicalRows?: number[]) => this.#getColumnData(physicalColumn, physicalRows)
-        )).filter();
-      }
-      // Correlate rows through the immutable `row` property of the data-map entries. The coordinate
-      // stamps on `meta` are shared with every other meta reader (each read re-stamps them), so they
-      // must not be used to match rows between two reads.
-      visibleRows = arrayMap(visibleRows, rowData => (rowData as { row: number }).row);
+        splitConditionCollection.destroy();
 
-      const visibleRowsAssertion = createArrayAssertion(visibleRows);
+        // No conditions at all, so every row survives – which is what the filtering branch below
+        // would return, without the n-sized assertion set it would build to say so. A copy, like
+        // that branch returns, so a consumer never holds the memoized array itself.
+        return allRows.slice();
+      }
+
+      // Correlate rows through the immutable physical row index `DataFilter.filter()` returns. The
+      // coordinate stamps on `meta` are shared with every other meta reader (each read re-stamps
+      // them), so they must not be used to match rows between two reads.
+      const visibleRowsAssertion = createArrayAssertion((new DataFilter(
+        splitConditionCollection,
+        (physicalColumn: number, physicalRows?: number[]) => this.#getColumnData(physicalColumn, physicalRows)
+      )).filter());
 
       splitConditionCollection.destroy();
 
-      return arrayFilter(allRows, (rowData) => {
-        return visibleRowsAssertion((rowData as { row: number }).row);
-      });
+      return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.row));
     })(conditionsBefore);
 
     const editedConditions = [...this.conditionCollection.getConditions(column)];
@@ -255,7 +290,7 @@ class ConditionUpdateObserver {
       // Every row of a column, ignoring every condition. Consumers need it to tell a value that is
       // merely hidden by another column's filter from one that has left the data for good. Shares
       // the same memo as `visibleDataFactory`, which already reads this column, so it costs nothing.
-      columnValuesFactory: (physicalColumn: number) => this.#getColumnData(physicalColumn)
+      columnValuesFactory: (physicalColumn: number) => this.#getColumnEntries(physicalColumn)
     });
   }
 

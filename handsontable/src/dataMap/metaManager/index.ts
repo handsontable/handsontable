@@ -217,7 +217,7 @@ export default class MetaManager {
    * stored meta object (because it carries user-defined or declarative `cell` overrides) that object
    * is returned; otherwise a transient object inheriting from the column layer is created and NOT
    * stored. This avoids permanently materializing one cell meta object per scanned cell when iterating
-   * the whole dataset (for example, filtering), where the eager `getCellMeta` would otherwise grow the
+   * the whole dataset (for example, a column read), where the eager `getCellMeta` would otherwise grow the
    * meta cache to O(rows × columns). The `afterGetCellMeta` extension is intentionally not run.
    *
    * @param {number} physicalRow The physical row index.
@@ -243,6 +243,21 @@ export default class MetaManager {
     cellMeta.col = physicalColumn;
 
     return cellMeta;
+  }
+
+  /**
+   * Creates a cell meta object that inherits from the column layer and is not stored anywhere. It
+   * carries no per-cell overrides and no coordinate stamps, so it stands for "any cell of this
+   * column" until a caller stamps it.
+   *
+   * A bulk read that has already established the cell stores no meta of its own uses this instead
+   * of `getCellMetaUncached`, which would repeat the stored-meta lookup the read just did.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
+   */
+  createTransientColumnMeta(physicalColumn: number): CellProperties {
+    return this.cellMeta.createTransientMeta(physicalColumn);
   }
 
   /**
