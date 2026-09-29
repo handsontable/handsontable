@@ -155,7 +155,10 @@ class MergedCellsCollection {
   }
 
   /**
-   * Filters merge cells objects provided by users from overlapping cells.
+   * Filters merge cells objects provided by users from overlapping cells. The cells the existing
+   * merges occupy are read from the lookup matrix, not the list: a merge whose rows are all trimmed
+   * is purged from the matrix and keeps stale coordinates in the list, so it occupies nothing on
+   * screen (DEV-3135).
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
    * Has to contain `row`, `col`, `colspan` and `rowspan` properties.
@@ -164,14 +167,10 @@ class MergedCellsCollection {
   filterOverlappingMergeCells(mergedCellsInfo: { row: number, col: number, rowspan: number, colspan: number }[]) {
     const occupiedCells = new Set();
 
-    this.mergedCells.forEach((mergedCell) => {
-      const { row, col, colspan, rowspan } = mergedCell;
-
-      for (let r = row; r < row + rowspan; r++) {
-        for (let c = col; c < col + colspan; c++) {
-          occupiedCells.add(`r${r},c${c}`);
-        }
-      }
+    this.mergedCellsMatrix.forEach((columns, row) => {
+      columns.forEach((_mergedCell, col) => {
+        occupiedCells.add(`r${row},c${col}`);
+      });
     });
 
     type MergeCellInfo = { row: number, col: number, rowspan: number, colspan: number };
@@ -910,6 +909,16 @@ class MergedCellsCollection {
 
       this.#removeMergedCellFromMatrix(mergedCell);
     });
+  }
+
+  /**
+   * Puts existing merges back into the `mergedCells` list, keeping each object (and so everything the
+   * plugin keys on it). The lookup matrix is left untouched: the caller places the merges there
+   * itself, from their physical anchors.
+   */
+  restoreMerges(merges: MergedCellCoords[]) {
+    merges.forEach(mergedCell => this.mergedCells.push(mergedCell));
+    this.hot?.markAllCellsChanged();
   }
 
   /**

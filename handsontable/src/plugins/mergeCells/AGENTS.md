@@ -85,6 +85,65 @@ then drops the merges whose anchor is now empty itself and forbids `shiftCollect
 rest. The decision cannot be left to the shift: it reads the merge's *visual* coordinates, which for a
 merge purged while all of its rows were trimmed are stale, frozen at the moment it was purged.
 
+**Resetting a dropped merge's cell meta reads the anchor AND the drawn block, never `row`/`rowspan`
+alone.** `#resetMergedCellMeta` runs for every merge `clearCollections()` drops (every
+`updateSettings({ mergeCells })`, disabling the plugin, and SheetsBar's merge restore on a sheet switch)
+and for every merge `unmergeRange()` drops (the context menu, `Ctrl`+`M`, `unmerge()`, UndoRedo). A merge
+purged because all of its rows are trimmed keeps stale visual coordinates: with every row filtered out they
+address no row, so `removeCellMeta` threw `Expecting an unsigned number` (DEV-3135, a regression from
+#12798 in 18.1.0); with some rows filtered out they address whatever record the trim slid into place, and
+wiped that record's own `copyable: false`. The anchor alone is not enough either: after a sort, the block a
+merge draws covers other records' rows, and `afterGetCellMeta` stores `hidden`/`copyable` on those too. So
+the rows are `anchor.physicalRows` plus, while the merge is not purged, the rows under its drawn block.
+`hidden`/`copyable` are removed from every one of those cells. The span keys (`spanned`, `rowspan`,
+`colspan`) are removed from the current top-left cell unconditionally, as before, and from any other
+left-column cell only where its **stored** meta owns them (`getCellMetaIfExists`, never materialized) —
+`afterGetCellMeta` writes them on whichever cell is the visible top-left when it runs, which after a
+re-anchor is not the original one, but is always in that column. Removing them from every left-column row
+fired `afterRemoveCellMeta` 21 times for a 3x2 merge where `develop` fires 15; pinned at 15. A trimmed row
+has no visual index, so its meta is removed through `_getMetaManager().removeCellMeta()` by physical index,
+and the `before`/`afterRemoveCellMeta` hooks do not fire for it. SheetsBar therefore does not track
+`hidden`/`spanned` at all (its `UNTRACKED_META_KEYS`): a tracked copy would come back after that hookless
+removal. Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
+
+**A record a merge stops drawing over is cleaned when the mapping changes, not when the merge is
+dropped.** The reset above cannot reach a record the merge drew over (after a sort) once a trim has purged
+the merge: a purged merge has no drawn block, and its stale coordinates may name another record by then.
+So `#onBeforeRowIndexCacheUpdate` records, while the mapping still describes the screen, the drawn rows
+each merge does not own (`#collectForeignDrawnRows`), and `#onRowIndexCacheUpdated` removes
+`hidden`/`copyable` from those the re-anchor moved the block off (`#clearRowsLeftBehind`, meta manager, no
+hooks). The recording is discarded when the physical row count changed — an insert or remove renumbers
+the physical rows it holds. It costs one pass over each merge's drawn rows per mapping change, next to the
+re-anchor's pass over its anchor rows. A nested `updateCache` overwrites the outer recording, so the outer
+update then cleans nothing: a missed cleanup, never a wrong one. **Known limit:** like the unmerge reset,
+the cleanup removes `copyable` outright rather than restoring what was there before. A value the user set
+on such a cell through `setCellMeta` (`copyable: false`, say) is therefore lost once a sort passes a merge
+over the cell and a later sort or `clearSort()` moves it off: `afterGetCellMeta` has already overwritten it
+while the merge covered the cell, and the cleanup then deletes the key, so the cell reads the column or grid
+value again. A value set through the `cells` or `columns` option survives, because the removal only drops
+the cell's own key. Restoring the user's value would mean remembering it before that overwrite, which runs
+on every meta read — not done.
+
+**While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
+visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
+guide documents (values a filter brought under it are cleared) — an application that computes its merges
+from the rows on screen sends the same areas after filtering, and they must land there. An area whose rows
+reach past the visible rows (`row + rowspan > countRows()`, while it still fits the whole data) cannot be
+placed: validation used to drop it with an out-of-bounds warning — every merge, when every row is
+filtered out, and the React and Angular wrappers re-send unchanged settings on every commit. Such an area's
+merge is kept when the area was applied before AND the merge still sits on the rows it was created on.
+`#mergeAreas` records, per merge object, the area key and the anchor's footprint (`#getAnchorFootprint`)
+when `generateFromSettings()` created it; a row insert or remove remaps the anchor, the footprint no longer
+matches, and the area goes back through the settings like any other. `#takeKeptMerges` takes the kept
+merges out of the list **before** `disablePlugin()`, so their meta is not reset and nothing is written to
+their cells; `#restoreKeptMerges` puts the same objects back (`MergedCellsCollection#restoreMerges`, list
+only), flags them purged and re-anchors them **before** `generateFromSettings()` applies the other areas.
+`filterOverlappingMergeCells` reads what is occupied from the **lookup matrix**, not the list, so a kept
+merge whose rows are all trimmed (purged, stale coordinates) does not reject a new area on screen, and a
+partly visible one does. So one re-sent array can mix two readings — an area that fits is placed on the
+rows on screen, one that does not keeps its records — and the guide spells that out. A merge a row or
+column move replaced is a new object with no recorded area, so it goes back through the settings.
+
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**
 `afterCreateRow`/`afterRemoveRow`, so by the time those hooks run a re-anchor has already gone round once
