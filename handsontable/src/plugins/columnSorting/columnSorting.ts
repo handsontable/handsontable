@@ -9,6 +9,7 @@ import {
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
+import { isUnsignedNumber } from '../../helpers/number';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
@@ -32,9 +33,27 @@ import {
   getClassesToRemove,
   getClassesToAdd
 } from './domHelpers';
-import { rootComparator } from './rootComparator';
-import { registerRootComparator, sort } from './sortService';
+import { positionComparator, rootComparator } from './rootComparator';
+import {
+  getBuiltInPositionComparator,
+  markBuiltInRootComparator,
+  registerRootComparator,
+  sort,
+} from './sortService';
+import type { PositionComparatorFactory } from './sortService';
+import type { HotInstance } from '../../core/types';
 import { A11Y_SORT } from '../../helpers/a11y';
+
+/**
+ * `HotInstance` augmented with the internal `_getDataAtColumnForRows` method. The method exists on the
+ * Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
+ * exposed to third-party code (it is the bulk form of `getDataAtCell()` the sort gather loop reads
+ * through, and an implementation detail of how that loop resolves the column coordinates once). The
+ * sorting plugins are internal consumers and reach it through this local type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getDataAtColumnForRows(column: number, physicalRows: (number | null)[]): unknown[];
+};
 
 export interface ColumnSortingConfig {
   column: number;
@@ -71,6 +90,7 @@ const SORT_FIXED_ROWS_DEFAULT = false;
 const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+markBuiltInRootComparator(rootComparator, positionComparator);
 
 /**
  * A press on a sortable column header, waiting to be resolved on mouse up.
@@ -780,20 +800,179 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const indexesWithData: [number, ...unknown[]][] = [];
     const from = this.#getSortableRowStart();
     // Through `this`, never inlined: a subclass that overrides `getNumberOfRowsToSort()` owns the
     // upper bound.
     const to = this.getNumberOfRowsToSort(this.hot.countRows());
+    // Re-resolved on every sort run, and by function identity: `staticRegister.register()` replaces
+    // silently, so a custom root comparator registered under this plugin's own key must send the
+    // sort down the tuple path. A key whitelist would take the fast path and never call it.
+    const positionComparatorFactory = getBuiltInPositionComparator(this.pluginKey);
 
-    const getDataForSortedColumns = (visualRowIndex: number) =>
-      arrayMap(sortConfigs, (sortConfig: SortConfig) => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
+    const { indexesBefore, indexesAfter, highestPhysicalIndex } = positionComparatorFactory === undefined ?
+      this.#sortRowTuples(sortConfigs, from, to) :
+      this.#sortRowPositions(sortConfigs, from, to, positionComparatorFactory);
 
-    for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
-      indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex), ...getDataForSortedColumns(visualRowIndex)]);
+    const currentIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
+    // Physical indexes are dense integers, so the before-to-after remap is an array lookup rather
+    // than a hash lookup. The table is indexed BY physical index, and every index it is written at
+    // comes from the band, so covering the highest physical index the band holds covers all of
+    // them. `countRows()` would not: it is `getNotTrimmedIndexesLength()` clamped by `maxRows`, so
+    // under `filters`, `trimRows` or a plain `maxRows` the band's physical indexes reach past it, a
+    // typed-array write past the end is discarded with no error, and those rows silently keep their
+    // pre-sort place. The sequence length is no better - `setIndexesSequence()` is public and
+    // accepts an index above the sequence length.
+    const indexMapping = new Int32Array(highestPhysicalIndex + 1).fill(-1);
+
+    // Only the sorted band is mapped. The rows outside it keep their place because they never
+    // enter `indexMapping`, so nothing has to be appended here.
+    for (let i = 0; i < indexesBefore.length; i += 1) {
+      const indexBefore = indexesBefore[i];
+      const indexAfter = indexesAfter[i];
+
+      // A widening `getNumberOfRowsToSort()` override puts a visual index past the mapper's reach in
+      // the band and `toPhysicalRow()` answers `null` for it. A typed array coerces that `null` to
+      // `0`, which would remap the row onto physical row 0 and duplicate it; the `Map` this replaced
+      // fell through to the row's own index instead. Skipping the pair reproduces that.
+      if (isUnsignedNumber(indexBefore) && isUnsignedNumber(indexAfter)) {
+        indexMapping[indexBefore] = indexAfter;
+      }
     }
 
-    const indexesBefore = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
+    // Grown by ascending assignment from an empty literal, the way `arrayMap()` builds its result:
+    // a preallocated `new Array(n)` stays holey in V8 even once every slot is written, and
+    // `IndexesSequence.setValues()` slices the array it is handed, so the mapper's caches would read
+    // a holey array on every sort.
+    const newIndexesSequence: number[] = [];
+
+    for (let i = 0; i < currentIndexesSequence.length; i += 1) {
+      const physicalIndex = currentIndexesSequence[i];
+      const mappedIndex = indexMapping[physicalIndex];
+
+      // `-1` marks an index the sort never touched, and a read past the table's end gives
+      // `undefined`; both fail `>= 0`, so the row keeps its own index. A sentinel rather than an
+      // offset encoding, because a physical index is never negative and cannot collide with it.
+      newIndexesSequence[i] = mappedIndex >= 0 ? mappedIndex : physicalIndex;
+    }
+
+    // A plain `number[]`, never the typed array - `IndexesSequence.setValues()` stores whatever
+    // array type it is handed.
+    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
+  }
+
+  /**
+   * Reads the sortable band: its physical rows in visual order, one value array per sorted column,
+   * and the highest physical index it holds. Both sort paths start from this.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @returns {{ physicalRows: number[], columnValues: unknown[][], highestPhysicalIndex: number }}
+   */
+  #gatherBand(sortConfigs: SortConfig[], from: number, to: number) {
+    // A plain array, never an `Int32Array`: `getNumberOfRowsToSort()` is an overridable seam, and a
+    // widening override makes `toPhysicalRow()` return `null`, which a typed array would store as
+    // the real physical row 0.
+    const physicalRows: number[] = [];
+    // The highest physical index is tracked in the gather pass: it sizes the remap table in the
+    // caller and costs nothing extra here.
+    let highestPhysicalIndex = -1;
+
+    for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
+      const physicalIndex = this.hot.toPhysicalRow(visualRowIndex);
+
+      physicalRows.push(physicalIndex);
+
+      // Guarded where the value is first read: `toPhysicalRow()` answers `null` for a visual index
+      // the mapper does not reach, and `null > -1` is `true`, so an unguarded comparison would make
+      // `highestPhysicalIndex` itself `null` and size the remap table at 1.
+      if (isUnsignedNumber(physicalIndex) && physicalIndex > highestPhysicalIndex) {
+        highestPhysicalIndex = physicalIndex;
+      }
+    }
+
+    // One resolved read per sorted column instead of a full `getDataAtCell()` round trip per cell.
+    // The column property, the physical column and the hook answers are constant across the band, so
+    // the accessor resolves them once; it falls back to the per-cell path, value for value, whenever
+    // anything on the read path could transform a value. The physical rows the loop above computed
+    // are handed over rather than translated a second time inside every read.
+    const columnValues: unknown[][] = arrayMap(
+      sortConfigs,
+      (sortConfig: SortConfig) =>
+        (this.hot as HotInstanceInternal)._getDataAtColumnForRows(sortConfig.column, physicalRows)
+    );
+
+    return { physicalRows, columnValues, highestPhysicalIndex };
+  }
+
+  /**
+   * Sorts the band by sorting a plain array of positions against one value array per sorted column.
+   *
+   * No per-row object is built: `#gatherBand()` fills one physical-row array and `k` value arrays,
+   * and the sort moves small integers instead of array pointers. `Array.prototype.sort` is stable
+   * and the comparator is a pure function of the gathered values, so tied rows keep the order the
+   * gather gave them - the same order the tuple path produces.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @param {Function} positionComparatorFactory Builds the comparator over the parallel value arrays.
+   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
+   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
+   *   sizes the caller's remap table.
+   */
+  #sortRowPositions(
+    sortConfigs: SortConfig[], from: number, to: number, positionComparatorFactory: PositionComparatorFactory
+  ) {
+    // The gather is already columnar - the shape the position comparator wants - so no per-row
+    // transposition is needed.
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
+    const positions: number[] = [];
+
+    for (let position = 0; position < physicalRows.length; position += 1) {
+      positions.push(position);
+    }
+
+    positions.sort(positionComparatorFactory(
+      arrayMap(sortConfigs, (sortConfig: SortConfig) => sortConfig.sortOrder),
+      arrayMap(sortConfigs, (sortConfig: SortConfig) => this.getFirstCellSettings(sortConfig.column)),
+      columnValues
+    ));
+
+    return {
+      // `physicalRows` is never permuted - only `positions` is - so it still holds the pre-sort order.
+      indexesBefore: physicalRows,
+      indexesAfter: arrayMap(positions, (position: number) => physicalRows[position]),
+      highestPhysicalIndex,
+    };
+  }
+
+  /**
+   * Sorts the band as an array of `[physicalRow, ...values]` tuples, through the registered root
+   * comparator.
+   *
+   * This is the path a custom root comparator gets, and the shape it is documented to receive.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
+   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
+   *   sizes the caller's remap table.
+   */
+  #sortRowTuples(sortConfigs: SortConfig[], from: number, to: number) {
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
+    const indexesWithData: [number, ...unknown[]][] = [];
+
+    for (let rowIndex = 0; rowIndex < physicalRows.length; rowIndex += 1) {
+      const rowWithData: [number, ...unknown[]] = [physicalRows[rowIndex]];
+
+      for (let columnIndex = 0; columnIndex < columnValues.length; columnIndex += 1) {
+        rowWithData.push(columnValues[columnIndex][rowIndex]);
+      }
+
+      indexesWithData.push(rowWithData);
+    }
 
     sort(
       indexesWithData,
@@ -802,20 +981,15 @@ export class ColumnSorting extends BasePlugin {
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.getFirstCellSettings(sortConfig.column))
     );
 
-    // Only the sorted band is mapped. The rows outside it keep their place because they never
-    // enter `indexMapping`, so nothing has to be appended here.
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
-    const indexMapping: Map<number, number> = new Map(
-      arrayMap(indexesBefore, (indexBefore: number, indexInsideArray: number): [number, number] =>
-        [indexBefore, indexesAfter[indexInsideArray]])
-    );
-
-    const newIndexesSequence = arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex: number) => {
-      return indexMapping.get(physicalIndex) ?? physicalIndex;
-    });
-
-    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
+    return {
+      // The engine sorts `indexesWithData` in place, never `physicalRows`, so it still holds the
+      // pre-sort order.
+      indexesBefore: physicalRows,
+      indexesAfter,
+      highestPhysicalIndex,
+    };
   }
 
   /**

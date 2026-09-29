@@ -418,6 +418,7 @@ react:
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
+addedIn: "17.0.0"         # Optional; version that introduced the feature -- see rule below
 ---
 ```
 
@@ -426,6 +427,7 @@ menuTag: new | updated    # Optional; sidebar badge -- see rule below
 - `description` is used in SEO meta and link previews -- make it specific and accurate.
 - `tags` must be lowercase kebab-case.
 - `menuTag` controls the sidebar badge. Set `menuTag: new` when you add a new page, and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes -- typos, snippet/link corrections -- and for changelog and migration-guide pages. Existing tags are refreshed by hand for releases (for example, the RELEASE-631 batch), so leave any existing tag in place.
+- `addedIn` names the Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string. It renders an "Added in Handsontable X.Y.Z" badge next to the title and writes the same sentence under the H1 of the page's Markdown and llms outputs, so readers and LLMs can tell whether their version has the feature. Set it when the page documents a feature introduced in 14.0.0 or later (the changelog's "Added" entry or the option's `@since` tag is the source); a page without it documents a feature available in every version this site serves. Do not set it on recipes, on pages that are new but describe an old feature, or for a feature that is one section of an older page. `npm run build` runs `docs:validate-added-in`, which rejects unquoted values (YAML reads `17.0` as the number 17) and versions that were never released.
 
 ---
 
@@ -559,6 +561,7 @@ Copy and complete this checklist in your PR description:
 - [ ] How-tos have a "Result" section
 - [ ] New page registered in `content/guides/sidebar.js`
 - [ ] `menuTag: new` set on new pages / `menuTag: updated` set on substantively changed pages (omit for trivial fixes, changelogs, and migration guides)
+- [ ] `addedIn: "X.Y.Z"` set when the page documents a feature introduced in 14.0.0 or later (see 2.6)
 - [ ] Microsoft trademark disclaimer added where "Excel" is mentioned
 - [ ] TypeScript example exists; JS generated via `npm run docs:code-examples:generate-js`
 - [ ] `[skip changelog]` in PR body (docs changes don't need changelog entries)
@@ -666,13 +669,19 @@ Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mj
 
 `reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, for one - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
 
-The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Two phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs` and `chunkLoadFailures` in the `beforeSend` hook. `src/scripts/docs-assistant-bootstrap.ts` keeps no list and no reload of its own - its imports go through Vite's preload helper, so the `Head.astro` guard reloads for it, and a second guard reloaded twice per failure. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other engines.
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
 One exception is fixable in our code: a frozen Astro image (>= 17.1) whose URLs miss the version segment - for example Vite's preload helper asking for `/docs/_astro/*.css` instead of `/docs/17.1/_astro/*.css` ("Unable to preload CSS", HANDSONTABLE-DOCS-22T). Fix it at assemble time in `deploy/rewriteVersionedPaths.mjs`, which post-processes each frozen build before deploy (see `README-DEPLOYMENT.md`), not in `Head.astro` or `beforeSend` - neither ever reaches a frozen image.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks. `prod-docs/18.1` carries `sentryOnLoad` and the `Head.astro` guards, but only in the version that was last cherry-picked there, so a rule added on `develop` is inert in production until its own cherry-pick lands - say so when reporting that a filter is done.
+
+**Never cancel a `vite:preloadError` for a failed `import()`.** Vite fires that event both for a CSS preload failure and for a rejected `import()` (`baseModule().catch(handlePreloadError)` in its preload helper), and a cancelled event makes the helper *return* instead of throw - so the import resolves to `undefined` and the caller crashes on `.default` (Sentry HANDSONTABLE-DOCS-24F, -24P, -246). The reload guard in `Head.astro` cancels only payloads starting `Unable to preload CSS`, where the module itself still loads; every other failure reloads but keeps rejecting, so the chunk-load filters above see it.
+
+Errors raised entirely inside Google Tag Manager (every frame `gtm.js`, `gtag/js`, or `<anonymous>` - the code a Custom HTML tag injects) come from tags in the externally managed GTM container that call globals the docs never load (`jQuery`, `$`, `_cio`, `ym`, ...). `beforeSend` drops them only when at least one frame is a real `gtm.js`/`gtag/js` frame - an all-`<anonymous>` stack has no owner and stays visible. The real fix is in the GTM container. One first-party frame keeps the event.
+
+`beforeSend` also drops every `Script error.` (Sentry HANDSONTABLE-DOCS-24A, -245, -247): the browser strips message, file, and stack from an error thrown by a cross-origin script loaded without CORS, so the report cannot be attributed.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 
@@ -776,7 +785,7 @@ The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mj
 `tests/visualDocs.spec.ts` takes one full-page screenshot per guide page in `tests/paths.js` for each of
 the four frameworks – 441 as of 2026-09-14 – and compares each with `toHaveScreenshot` at a `maxDiffPixelRatio` of
 0.01, or 0.05 for the pages listed in `pathsNeedingMoreTolerance`. Chromium only, against `BASE_URL`
-(`http://localhost:4321/docs` by default; on CI the pull request's Cloudflare preview). Eleven functional
+(`http://localhost:4321/docs` by default; on CI the pull request's Cloudflare preview). The functional
 specs (`tests/*.spec.ts` other than `visualDocs`) share its `testDir`.
 
 Until DEV-2860 the suite's baseline was not a baseline, and it passed by construction:
@@ -867,18 +876,76 @@ concluding anything from a golden you read back.
   all-or-nothing, and the job fails closed – it asserts an approval through the approvals API – so **the
   environment must exist with required reviewers before the first docs pull request with differences
   runs**, or that pull request is stuck red until an admin creates it.
-- **The baseline is seeded from the staging deploy.** `.github/workflows/docs-visual-seed.yml` chains
-  (`workflow_run`) on a successful push run of `Docs Staging Deployment` and seeds `docs/base/<branch>`
-  from what that run deployed: `develop` from `https://handsontable-docs-staging.pages.dev/docs`,
-  `release/x.y.z` from `https://rc-x-y-z.handsontable-docs-staging.pages.dev/docs` (dots to dashes, as
-  `docs-staging.yml`'s `cf-target` does). It checks out the deploy's `head_sha` so the spec matches the
-  deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from `paths.js` leaves the
-  baseline. It never runs for a pull request's staging deploy. Its copy on the default branch is the one
-  that runs, so a change to it is exercised only after merging – dispatch it with `branch` to test that, or
-  to re-seed by hand. **Known lag:** the staging deploy triggers on `docs/**` and `handsontable/package.json`
-  only, so a core-only merge that changes grid rendering is not in the baseline until the next docs merge,
-  and a docs pull request opened in that window reports develop's own grid change as its differences.
-  Widening that trigger is a separate call; it costs a ~10-minute docs deploy per core merge.
+- **The baseline is seeded from the staging deploy, by the deploy's own URL.**
+  `.github/workflows/docs-visual-seed.yml` chains (`workflow_run`) on a successful push run of
+  `Docs Staging Deployment` and seeds `docs/base/<branch>` from exactly what that run deployed. Not from
+  the branch alias (`https://handsontable-docs-staging.pages.dev/docs` for develop,
+  `https://rc-x-y-z.handsontable-docs-staging.pages.dev/docs` for a release): an alias moves with the next
+  deploy, and on 2026-09-18 a seed rendered from 12:08 to 12:20 while the next deploy took the alias at
+  12:18, which wrote a baseline mixed from two deploys. `docs-staging.yml` instead reads the deploy's own
+  URL, `https://<hash>.handsontable-docs-staging.pages.dev`, from wrangler's structured output
+  (`WRANGLER_OUTPUT_FILE_PATH`, the `pages-deploy-detailed` entry) and uploads it with the commit it was
+  built from as a `docs-staging-deploy` artifact (push and dispatch runs, kept 30 days). The seed downloads
+  the record of the run that triggered it, refuses a record for any other commit, checks out that commit so
+  the spec matches the deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from
+  `paths.js` leaves the baseline. A dispatch with `branch` seeds from the record of that branch's latest
+  successful staging run; with no record there, it fails and says so. It never runs for a pull request's
+  staging deploy. **A release branch cut before the record step must get it cherry-picked.** The seed's
+  copy on develop is the one that runs, but a release branch's staging deploy runs that branch's own
+  `docs-staging.yml`, so until the `Record the deploy's own URL for the docs visual seed` and `Upload the
+  deploy record` steps are on it, its staging runs leave no record and every seed of it fails (and posts
+  to Slack once), with an error naming the commit whose `docs-staging.yml` lacks them. As of 2026-09-28
+  that is every `release/*` branch; `release/18.1.1` is the one still deploying. The `Docs Visual Tests`
+  dispatch with `update-snapshots` is the other writer of `docs/base/<branch>`, and it has no fixed URL:
+  it renders the environment it is given, and a deployed one (`dev.handsontable.com`) moves with the next
+  deploy, so its check and its render can read two builds. To re-seed from one staging deploy, dispatch
+  `Docs visual seed` with the branch instead. Its copy on the default branch is the one that runs, so a change to it is exercised only
+  after merging – dispatch it to test that, or to re-seed by hand. **Known lag:** the staging deploy
+  triggers on `docs/**` and `handsontable/package.json` only, so a core-only merge that changes grid
+  rendering is not in the baseline until the next docs merge, and a docs pull request opened in that window
+  reports develop's own grid change as its differences. Widening that trigger is a separate call; it costs
+  a ~10-minute docs deploy per core merge.
+- **A render that writes golden records checks the example grid layout, twice.** Between #13381
+  (2026-09-18) and #13626 (2026-09-24) every `height: 'auto'` example grid rendered with a 0px
+  `.ht_master .wtHolder`, 21 seeds wrote the blank grids into `docs/base/develop`, and a docs pull
+  request's visual run then reported that all 437 screenshots matched. The facts live in
+  `tests/lib/example-grid-layout.ts`: every example rendered a grid; its master holder has a height and,
+  when the grid has body rows, is tall enough to show a whole one; it is no wider than the grid root; and
+  the example's `overflow: hidden` wrapper cuts nothing off the root. Two checks read them:
+  - **The fast check.** `tests/exampleGridLayout.spec.ts` covers five pages (`demo`, `grid-size`,
+    `column-width`, `row-height`, `batch-operations`) in all four frameworks. The action's `Check that
+    the example grids are laid out` step runs it right before `Render the baseline`, on the same
+    condition (a seed, a re-seed dispatch, or a bootstrap), with `--fail-on-flaky-tests --retries=0`, and
+    then checks the JSON report, because Playwright exits 0 when every test was skipped. A deploy broken
+    everywhere fails there in seconds instead of after a full render.
+  - **The authoritative check.** `Render the baseline` sets `DOCS_VISUAL_LAYOUT_GATE`, and then
+    `tests/visualDocs.spec.ts` checks every page with examples on the same load it photographs, before the
+    screenshot. The fast check sees one load per page: a grid that collapses on some loads can pass it,
+    and a page shape outside its five is never visited. Neither can become a golden, because the load
+    that is photographed is the load that is checked. A compare never sets the variable: a pull request
+    is judged against the goldens, and gating it on layout would red every docs pull request whenever
+    develop is broken.
+  Either failure skips the seed, so the baseline does not move, and a refused pull request bootstrap says
+  "no baseline created" instead of the core gate's "baseline created". So **a red seed can mean the deploy
+  is broken**: read the report in the run's `docs-visual-report` artifact and fix the render. Never loosen
+  a fact to let a seed through; a page that legitimately stops rendering a grid gets replaced in the fast
+  check's list, not exempted. The "whole row" fact skips a grid with no body rows: a scan of all 445
+  pages on the last deploy before #13381 (`caabcd21`, 2026-09-28) found nine pages with empty grids
+  (`empty-data-state`, `loading`, `server-side-data`, `binding-to-data`), each with a healthy 30 to 300px
+  holder, which failed every seed until then. With that rule the same scan passed every page. As of
+  2026-09-25 the width facts fail on develop - #13381 also made the holder 33 to 35px wider than its root
+  on 819 of the 976 example grids, and #13626 fixed only the height - so no develop seed lands until that
+  is fixed. The fast check runs in the `functional` project on every docs pull request too.
+- **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
+  automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
+  dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
+  when the previous finished automatic seed of the same branch did not fail too. A failed hand dispatch
+  does not start a streak, or trying a seed by hand would mute the first real breakage after it; any
+  success ends one. The workflow's `run-name` carries the branch, which is how it finds those runs. `jq`
+  builds the payload, so no branch name can break its JSON.
+- **A compare dispatch on a branch with no baseline says "nothing to compare".** Only a pull request's
+  compare seeds a missing baseline (the seed step's bootstrap arm), so a `Docs Visual Tests` compare there
+  gets a `bootstrap` verdict naming the two ways to create one, not an error.
 - **The visual project stays opt-in through the `run-docs-visual` label** – 441 full-page captures per run
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
@@ -905,6 +972,12 @@ not the CI baseline: to compare against what CI compares against, sync
 `s3://handsontable-visual/docs/base/develop/screenshots` into that directory with the R2 credentials first,
 or read `https://visual.handsontable.com/docs/base/develop/out.json` (`actualItems`) to see what the
 baseline holds.
+
+To run the seed's layout check against a deploy, point `BASE_URL` at it:
+`BASE_URL=https://handsontable-docs-staging.pages.dev/docs npx playwright test --project=functional exampleGridLayout.spec.ts`.
+Every Cloudflare Pages deploy also keeps its own `https://<hash>.handsontable-docs-staging.pages.dev` URL,
+printed in the log of the `Docs Staging Deployment` run that made it, so an older render can be checked
+the same way – that is how the spec was proven red on the #13381 deploy and green on the one before it.
 
 ### Adding, removing, or breaking a page
 

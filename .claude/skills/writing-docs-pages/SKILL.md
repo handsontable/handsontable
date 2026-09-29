@@ -27,10 +27,13 @@ react:
 searchCategory: Guides
 category: Cell features    # Must match a sidebar category exactly
 menuTag: new | updated     # Optional; sidebar badge
+addedIn: "17.0.0"          # Optional; version that introduced the feature
 ---
 ```
 
 Set `menuTag: new` when you create a new page and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes (typos, snippet/link corrections) and for changelog and migration-guide pages; leave any existing tag in place.
+
+Set `addedIn` when the page documents a feature introduced in Handsontable 14.0.0 or later. Use the full version as a quoted string (`"18.1.0"`, never `18.1`), taken from the changelog's "Added" entry or the option's `@since` tag. It renders an "Added in Handsontable 18.1.0" badge next to the title and the same sentence in the page's Markdown and llms outputs. Leave it out for recipes, for a new page about an old feature, and when the feature is only one section of an older page. `npm run build` fails on a malformed value or a version that was never released.
 
 ## 2. Page Structure
 

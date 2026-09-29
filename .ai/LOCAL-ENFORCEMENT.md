@@ -15,13 +15,18 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 
 | When | Gate | Runs | Blocks on |
 |---|---|---|---|
-| Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
-| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
+| Agent-time (Claude Code) | `SessionStart` | `scripts/claude/setup-worktree.mjs --check`: reports what a linked worktree is missing, silent outside one | never (the command ends in `\|\| true`) |
+| Agent-time (Claude Code) | `PreToolUse` (Bash) | `scripts/claude/deny-deployment-approval.mjs` | a command that names an HTTP client and the `/pending_deployments` endpoint, so an agent cannot clear a human approval gate |
+| Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited file when it matches `*.(spec\|unit).[jt]sx?` | genuine lint errors in that file |
+| Agent-time (Claude Code) | `Stop` (turn end; 120 s timeout in `.claude/settings.json`) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
 | **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
-| CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
+| CI | `test.yml` + gates | the git-hook checks again (the ratchet is a step of `Lint / core`; the presence gate is `Checks / test presence`, with `GATE_MODE: block`) | see the pipeline |
 
-Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
+Most rules escalate: **agent-time → pre-commit → pre-push → CI.** Two exceptions.
+The `SessionStart` and `PreToolUse` hooks are agent-only and have no git-hook or CI
+counterpart. And a Stop run killed at its 120 s timeout blocks nothing, because the
+hook blocks a turn only by exiting 2; pre-push then runs those tests again.
 
 **The changelog entry-filename check** (`assertEntryFilenames` in `bin/changelog`,
 pure logic in `bin/lib/entry-filenames.js`). It asserts that every
@@ -46,12 +51,11 @@ where the violations that prompted it were written, while git hooks do run.
 and `handsontable/no-skipped-test` are `warn` in `handsontable/.eslintrc.js`, and
 nothing else consumes warnings — `npm run lint` exits 0 with them. The ratchet
 closes that gap without red-walling the debt: it lints only the changed
-`handsontable/{src,test}/**/*.{spec,unit}.js` files (`*.unit.ts` is in the
-candidate set too, and is covered the moment the frozen-tier override in
-`handsontable/.eslintrc.js` — `files: ['*.unit.js', '*.spec.js']` today — names
-`*.unit.ts`; until then ESLint reports none of the three rules there, and a
-candidate with no findings never blocks), intersects the warnings
-with the lines the branch **added** (`git diff -U0` against the merge-base), and
+`handsontable/{src,test}/**/*.{spec,unit}.js` and `*.unit.ts` files (the
+frozen-tier override in `handsontable/.eslintrc.js` names `*.unit.js`,
+`*.unit.ts`, and `*.spec.js`, so ESLint reports the three rules in all of them),
+intersects the warnings with the lines the branch **added** (`git diff -U0`
+against the merge-base), and
 **exits 1 when any of the three rules fires on an added line**. A pre-existing
 occurrence on an unchanged line stays a warning. `RATCHETED_RULES` in the lib is
 the single source of truth for the rule set; pre-push and CI run the same script,
@@ -66,9 +70,11 @@ so the local scope is exactly the CI scope. Three things to know:
   whole branch, so a plain `git mv` of a debt-laden spec adds no line and does
   not block; only the lines you changed inside it count.
 - **How to satisfy it:** wait for the *condition*, not the clock —
-  `await waitUntil(() => …)`, a hook promise, or `waitForNextAnimationFrames()`
-  (`handsontable/test/helpers/common.js`). A broken or flaky legacy spec migrates
-  to Playwright (`tests/e2e/`) instead of gaining a delay. For a genuine
+  `await waitUntil(() => …)` (`handsontable/test/helpers/common.js`) or a hook
+  promise. `waitForNextAnimationFrames()` is not a way out:
+  `handsontable/no-fixed-sleep-in-spec` flags it for any frame count except a
+  literal `0`. A broken or flaky legacy spec migrates to Playwright
+  (`tests/e2e/`) instead of gaining a delay. For a genuine
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
 - **Which base:** pre-push diffs against the merge-base of `origin/develop`
@@ -99,9 +105,12 @@ so the local scope is exactly the CI scope. Three things to know:
   finding list is non-empty. The output is Markdown; CI `tee`s it into the step
   summary.
 
-**Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
-Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of
-blocking (CI is authoritative), the same way the presence gate skips a config gap.
+**Changed unit tests** run too, in both the Stop hook and pre-push: one
+`npm run test:unit` per touched unit file. Jest maps imports to `src`, so the leg
+builds no bundle, but `test:unit` runs `build:styles` first (`before` in
+`handsontable/scripts/tasks.json`), once per touched file. A Jest *infra* failure
+(couldn't start) does not block (CI is authoritative), the same way the presence
+gate skips a config gap: pre-push prints a note, and the Stop hook skips silently.
 **A run that was killed is the same case.** A child aborted by Node on buffer
 overflow (`ENOBUFS`) or by a signal produced no verdict — `spawnSync` returns
 `status: null` with a truncated buffer, which is indistinguishable from a real
@@ -191,7 +200,8 @@ push that run is `skipped` and holds no annotations. Measured 2026-09-18 on
 The annotations live only on the runs against the pull request's head SHAs.
 
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
-for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
+for a hook): the `Changed-line coverage floor (warn)` step of the `Unit / test`
+job (`unit.yml`) measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
 report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
@@ -285,15 +295,75 @@ Machine-enforced by the presence gate; full decision rules in
 - **User-visible** (render, interaction, keyboard, menus, overlays) → **Playwright E2E**, `tests/e2e/**/*.spec.ts`.
 - **Only pixels can prove it** (theme tokens, geometry, compositing) → a **visual spec**, `visual-tests/tests/**/*.spec.ts`, **in addition to, never instead of** the Playwright E2E. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage (`presence-gate.mjs`), so this line is policy the reviewer checks, not a gate — rule: `visual-tests/AGENTS.md` → Decision rule.
 - **Logic / invisible** (data, indexing, algorithms, internal state) → **Jest unit**, `*.unit.js` in a `__tests__/` dir next to the source.
-- **Public API / type surface** → a **type test**, `*.types.ts`.
+- **Public API / type surface** (an exported type, a `GridSettings` option, a wrapper prop or input) → a **type test**, `*.types.ts`, in the package whose types changed. Core and Vue have the harness (`test:types`); React and Angular do not yet, so a type change there is declared (next bullets) until they do. A React behavior test cannot stand in: React's Jest runs `.tsx` through `babel-jest`, which strips types unchecked.
 - **Framework consumption** (wrapper / npm) → an integration demo (matrix; being built).
-- **Pure refactor / non-runtime** (types, docs, config, i18n text, re-exports) → **no test**; declare `Refactor-only: <reason>` as a commit trailer.
+- **Pure refactor / internal non-runtime** (types no consumer imports, config, internal re-exports) → **no test**; declare `Refactor-only: <reason>` as a trailer on the commit that makes the refactor. A comment-only edit and a translation dictionary need no declaration (below).
 - New Jasmine `*.spec.js` is **blocked** — new E2E is Playwright; migrate broken Jasmine specs rather than patch them.
+
+**What the presence gate accepts as "a matching test"** (`.github/scripts/lib/presence-gate.mjs`, DEV-3066):
+
+- **A test in the changed package.** A core source change (`handsontable/src/**`) needs a unit or type test under
+  `handsontable/`, a case in an existing Jasmine spec, or a Playwright spec under `tests/`. A wrapper's source
+  needs a test in that wrapper. A visual spec counts for any package (the visual-only-coverage advisory flags it).
+  A test in another package, `docs/tests/`, `evals/`, `examples/`, or `performance-tests/` covers nothing.
+- **Not a deleted test.** Removing a test is never coverage.
+- **A trailer covers its own commit only.** A source file with no test passes when every commit that changed it
+  carries `Refactor-only: <reason>`, or was written by `git revert` (`This reverts commit <sha>.`). One trailer
+  no longer waives a whole branch, so put it on the refactor commit, not on a later one. The waiver follows the
+  file: edits made before a rename still count, and a merge commit's own edits (a conflict resolution) never
+  waive.
+- **A pushed commit is waived from the PR description.** A pushed commit cannot take a trailer without a
+  force-push, which a PR branch must not do, so write `[refactor-only: <reason>]` in the PR description (outside
+  HTML comments) and re-run the job. It waives every uncovered file in the PR, and reviewers see it. Locally,
+  pre-push asks `gh` for the description when the verdict would fail.
+- **A waiver says what the change is.** Its reason needs at least three words, in a trailer or in the
+  description – `TBD`, `x`, and the placeholder itself (`<reason>`, or an elided `…`) declare nothing. In the
+  description it has to be plain text: a waiver GitHub shows as code (a fenced or indented block, backticks, a
+  `<code>` or `<pre>` element) or hides in an HTML comment is a quotation, so pasting the instruction, an
+  example, or the red verdict leaves the job red. Where Markdown is ambiguous the gate reads it the stricter
+  way: a `<!--` before the waiver, even one inside code, hides it.
+- **A comment-only change needs no test.** When a `.ts` or `.js` source file's diff changes nothing but comments
+  and whitespace (a JSDoc edit, typically), the gate passes it as `comments-only`. The check strips comments
+  from both versions with a lexer that knows strings, templates, and regex literals, and compares them; a
+  trailing comment on a code line or a reindent still counts as code, and so does any `.tsx` change (JSX text
+  can look like a comment). The lexer never guesses whether a `/` starts a regex or divides: where the syntax
+  does not settle it (a line break included, because ASI can end the statement), it follows both readings and
+  needs them to agree on every line, or it treats the file as code. Only an in-place edit qualifies: a rename,
+  a copy, or a move into source is code, and so is an edit to a theme file the theme build rewrites as text
+  (`TEXT_REWRITTEN_SOURCE`, pinned against that build's loader rules). A comment a tool acts on is code too:
+  a `#__PURE__` annotation (the minifier drops the call), a `/// <reference>` or `@ts-` directive, a bundler or
+  source-map comment, or a coverage hint.
+- **Translation dictionaries need no test.** `handsontable/src/i18n/languages/` is pure data: a test there could
+  only restate the strings. The path list stays short on purpose – a path joins it only when no test could fail
+  on it. Every other non-runtime change still needs a type test (public types) or a declaration (internal types,
+  config, re-exports). The gate checks the package, not the kind of test, so the reviewer holds that line.
+
+**In CI the gate blocks** (`GATE_MODE: block` on `Checks / test presence`): a red verdict fails the Checks
+module, which stops the pipeline like the changelog gate. A tooling gap – an unreadable base ref, or no
+merge-base – is a skip with a warning, never a block; any other git failure fails the run. CI hands the gate the
+base branch's live tip (`origin/<base.ref>`), never the payload's `base.sha` – the blocking-gate rule in
+[`.ai/CI.md`](CI.md).
+
+Measured on 2026-09-28. **Develop's history** (600 first-parent commits, 310 of them with source that needs a
+test): the rules block 3 for missing coverage – two React prop-type changes with no React-side test and a theme
+cleanup with no trailer. All 3 are real misses. The React two change public types, which need a type test in
+their package, or, while React has no harness, a declaration. The old rules failed 26 there, 24 of them
+JSDoc-only docs PRs that now pass as `comments-only`. Over the last 300 commits the rules block none.
+
+Develop is squash-merged, so its commits cannot exercise the per-commit rule; **the last 600 merged PRs**
+(#12617–#13650) do. Each one's branch survives as `refs/pull/<n>/head`, so the replay runs the gate on the real
+commits (2,924; 438 PRs have more than one) against the squash commit's parent. The per-commit verdict matches
+the squash-commit verdict in all 600. That includes the 9 PRs that rely on a trailer (one has 33 commits): all 9
+pass per commit. The 12 blocks are the same 3 misses plus 9 PRs that added a Jasmine spec before the freeze
+landed (2026-07-22). **The 21 open PRs** (175 commits, 20 merges) all pass.
+
+Squash merging costs the gate nothing: it judges the PR branch, and the squash commit's body concatenates the
+commit messages, so every trailer reaches develop. A PR-description waiver does not – the PR is its record.
 
 ### The meaningfulness bar (non-negotiable)
 - **Intent-first:** encode the *intended* behavior (ideally before the code), not what the code currently does.
 - **When red, diagnose which is wrong** — the code or the test's expectation — and fix whichever genuinely is. The code is the prime *suspect*, not a rule.
-- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Lint + the weakening detector enforce this.)
+- **Never fake green:** no removed/loosened assertions, no `.skip`/`.only`/`xit`/`fit`, no `it()` with no assertion, no `it.flaky`. (Enforcement differs per item. Lint blocks a focused test in `handsontable/`, `tests/`, and `visual-tests/` (the wrapper configs ban none), any skip in `tests/`, and a bare or titled `test.skip()` in `visual-tests/` (the conditional `test.skip(condition, why)` stays legal there). In `handsontable/`, the ratchet blocks a new skip or `it.flaky` on an added line. The weakening detector only warns on a removed or loosened assertion. A test with no assertion gets a `handsontable/require-assertion-in-test` warning in `handsontable/` that blocks nothing, and no check at all in `tests/`, so review owns it.)
 - **Bug fix → failing test first:** turn the repro into a test that fails *for the right reason*, then fix; it stays as a regression guard so nobody re-checks it by hand.
 - **Run the impacted test green locally** before commit/push, and state the result with the run's evidence. For E2E that means **only the specs you created/changed** (the Stop hook and pre-push select exactly those); the full suite runs in PR CI and the develop nightly — never locally.
 - **Coverage is the floor** (necessary); **mutation/meaningfulness is the ceiling** (sufficient). Never pad coverage with hollow tests.
@@ -431,7 +501,7 @@ dodge writing tests.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too. A custom ESLint rule is machinery as well: it gets RuleTester coverage in `handsontable/.config/plugin/eslint/__tests__/*.test.mjs` (ESLint's `RuleTester` pointed at `node:test`'s `describe`/`it`), run by `npm run test:eslint-rules` in `handsontable/` (a `scripts/tasks.json` task) from CI's `Lint / core` job — **not** from the root `test:tooling` glob. That script backs the `Checks / tooling tests` job, which is checkout + Node only, so a test that imports `eslint` dies there with `ERR_MODULE_NOT_FOUND` and red-walls every PR; keep the root glob dependency-free. Name every test file in that task as a literal path, with **no glob**: `node --test` exits 1 (`Could not find`) only when nothing in the list matched *and* every pattern is literal — a glob anywhere, even next to an explicit path, turns a missing file into a green `tests 0`, and a second literal file that still exists masks a renamed first one the same way, so a rename would leave the step passing with nothing, or less, run (`handsontable/test/__tests__/eslintRulesTask.unit.js` pins the list in both directions — every file in the directory named, every named file present — and bans glob characters). A scorer smell signal — a determinism smell or a warning-tier structure smell — gets a `counterexamples/` fixture named after the smell (`evals/README.md`), and `evals/__tests__/` is in the root glob. A new test directory that is in neither script never runs anywhere.
 - **A custom ESLint rule edit is live only while its hard link holds.** `eslint-plugin-handsontable` is a `file:` dependency, and pnpm materializes it under `node_modules/.pnpm/` as **hard links** to the source files (same inode, link count 2 — check with `stat`), not a symlink to the directory. An edit that writes the file **in place** is therefore live at once, with no reinstall. The trap is the write that replaces the inode: an editor's save-then-rename (atomic save), `sed -i`, a branch switch or `git checkout` that rewrites the file, a fresh worktree, and always a **brand-new rule file**, which the store has never seen. After any of those, every lint run — the hooks, `npm run lint`, a `--format json` debt count — executes the rule as it was at the last install, while the RuleTester tests (which import the source file) already pass. `pnpm install --frozen-lockfile --offline` (under a minute) relinks it; verify with `stat` (same inode) or `diff` against the store copy before trusting a lint result that disagrees with the tests.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. In CI, a blocking diff gate takes its base from the merge-base with the base branch's **live tip** (`origin/<base.ref>`, fetched in the job), never from the payload's frozen `base.sha` — see the ratchet's *Which base* above. A hook that fires on a false positive gets disabled — that is worse than no hook.
-- **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
+- **Must stay fast.** No bundle build in the pre-push or agent hooks; run only the **changed scope**. The one build step they pay today is `build:styles`, which `npm run test:unit` runs before Jest, once per touched unit file. Heavy/full-suite work is CI's job.
 - **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.
 - **Know who reads your stderr.** Claude Code forwards a hook's stderr to the agent only on **exit 2**. A non-blocking leg's note lands in the debug log unless a later leg in the same run blocks, so treat those notes as best-effort and never make the flow depend on the agent reading one.
 - **Floor for everyone.** The git hooks must work without Claude Code; the agent hooks are additive, never the only line of defense.

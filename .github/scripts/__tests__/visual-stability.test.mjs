@@ -77,8 +77,8 @@ test('the stability matrix publishes nothing and reads one secret, in the notify
 });
 
 test('the matrix renders only the spec groups under investigation', () => {
-  assert.match(workflow, /MULTI_SPECS: tests\/multi-frameworks\/filters/, 'the multi-framework render must stay '
-    + 'scoped to the filters family');
+  assert.match(workflow, /MULTI_SPECS: tests\/js-only\/filters/, 'the js render must stay scoped to the '
+    + 'filters family, which the consolidation moved under js-only');
   assert.match(workflow, /CROSS_SPECS: selection/, 'the cross-browser render must stay scoped to the selection spec');
   assert.doesNotMatch(workflow, /npm run in visual-tests test(:cross-browser)?\b/, 'the matrix must not run '
     + 'the full suite through run-tests.mjs');
