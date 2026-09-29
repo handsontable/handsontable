@@ -267,6 +267,14 @@ export class DataProvider extends BasePlugin {
    * @type {{ tail: Promise<void> }}
    */
   readonly #mutationQueue: { tail: Promise<void> } = { tail: Promise.resolve() };
+  /**
+   * Ids of the fetch-error toasts still on screen. Each one carries a Refetch action bound to the query that
+   * failed, so they are hidden once a later fetch succeeds or the plugin is disabled; replaying one after that
+   * would load a stale page, sort, or filter over the state the user has since reached.
+   *
+   * @type {Set<string>}
+   */
+  readonly #fetchErrorToastIds: Set<string> = new Set();
 
   /**
    * @param {object} hotInstance Handsontable instance.
@@ -335,6 +343,7 @@ export class DataProvider extends BasePlugin {
    */
   disablePlugin(): void {
     this.#resetAbortController();
+    this.#hideFetchErrorToasts();
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
 
     super.disablePlugin();
@@ -418,6 +427,7 @@ export class DataProvider extends BasePlugin {
       }
 
       this.#queryParameters = persistedParams;
+      this.#hideFetchErrorToasts();
 
       this.hot.loadData(rows, PLUGIN_KEY);
 
@@ -450,7 +460,7 @@ export class DataProvider extends BasePlugin {
       }
 
       this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
-      this.#showDataProviderRequestErrorNotification('fetch', err);
+      this.#showDataProviderRequestErrorNotification('fetch', err, this.#snapshotQueryParameters(params));
 
       throw err;
     } finally {
@@ -768,12 +778,20 @@ export class DataProvider extends BasePlugin {
   /**
    * Shows an error toast in the {@link Options#notification} plugin when it is enabled.
    * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls {@link DataProvider#fetchData} again.
+   * The Refetch action retries the query that failed, not the last successful one: `#queryParameters` changes only after a
+   * successful fetch, so without `failedQuery` a failed page or page-size change would reload the previous state.
+   * The toast is hidden when a later fetch succeeds, so its Refetch action can never replay a query that is out of date.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
+   * @param {DataProviderQueryParameters} [failedQuery] Query parameters of the failed `fetchRows` call (`fetch` only).
    * @returns {void}
    */
-  #showDataProviderRequestErrorNotification(kind: 'fetch' | 'create' | 'update' | 'remove', err: unknown): void {
+  #showDataProviderRequestErrorNotification(
+    kind: 'fetch' | 'create' | 'update' | 'remove',
+    err: unknown,
+    failedQuery?: DataProviderQueryParameters
+  ): void {
     const notificationPlugin = this.hot.getPlugin('notification');
 
     if (!notificationPlugin?.enabled) {
@@ -806,16 +824,37 @@ export class DataProvider extends BasePlugin {
           type: 'primary',
           callback: () => {
             if (toastId) {
+              this.#fetchErrorToastIds.delete(toastId);
               notificationPlugin.hide(toastId);
             }
 
-            void this.#fetchDataSilently();
+            void this.#fetchDataSilently(failedQuery);
           },
         },
       ];
     }
 
     toastId = notificationPlugin.showMessage(options);
+
+    if (kind === 'fetch' && toastId) {
+      this.#fetchErrorToastIds.add(toastId);
+    }
+  }
+
+  /**
+   * Hides every fetch-error toast this plugin still shows.
+   *
+   * @returns {void}
+   */
+  #hideFetchErrorToasts(): void {
+    if (this.#fetchErrorToastIds.size === 0) {
+      return;
+    }
+
+    const notificationPlugin = this.hot.getPlugin('notification');
+
+    this.#fetchErrorToastIds.forEach(id => notificationPlugin?.hide(id));
+    this.#fetchErrorToastIds.clear();
   }
 
   /**

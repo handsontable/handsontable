@@ -5,7 +5,8 @@ The `dataProvider` plugin backs the grid with a remote source via `fetchRows` an
 ## Error UI contract (the trap)
 
 - **Built-in error toasts require the `notification` plugin.** Enable `notification` (`notification: true` or a config object) to get toasts on failed fetches or mutations. **`dialog: true` alone does NOT show these errors** — Dialog is for blocking overlays (Loading, ExportFile export progress, custom modal content), not fetch/mutation errors.
-- **Fetch-failure toasts include a Refetch button** that calls `fetchData()` again. The toast uses `duration: 0`, so it stays until dismissed or Refetch is clicked.
+- **Fetch-failure toasts include a Refetch button** that retries the request that failed. The toast uses `duration: 0`, so it stays until dismissed or Refetch is clicked.
+- **Refetch retries the query that FAILED, not `#queryParameters`.** `fetchData()` stores the query only after a successful fetch, so a failed page or page-size change leaves `#queryParameters` on the previous state (and Pagination's `revertPageTo()`/`revertPageSizeTo()` puts the pager back there). The toast therefore captures the failed request's snapshot and passes it to `#fetchDataSilently()`; a no-override refetch would silently reload the old page. Sort and filter changes write `#queryParameters` before they fetch, so they were never affected. Because the snapshot is replayed whole, an open toast would roll back any page, sort, or filter the user reached after the failure, so `#fetchErrorToastIds` tracks them and every successful fetch (and `disablePlugin()`) hides them. Pinned by `tests/e2e/data-provider-refetch-failed-query.spec.ts`.
 - **For custom error UI when Notification is disabled**, hook `afterDataProviderFetchError` and `afterRowsMutationError` instead of relying on the built-in toasts.
 
 ## Who is allowed to let `fetchData()` reject
