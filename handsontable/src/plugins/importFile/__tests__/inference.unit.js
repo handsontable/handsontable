@@ -87,6 +87,12 @@ describe('inferCellType', () => {
     });
     expect(inferCellType(cell({ value: 1234.5, numFmt: 'HK$#,##0' })).numericFormat.currency).toBe('HKD');
     expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00 PLN' })).numericFormat.currency).toBe('PLN');
+    // The zloty sign is keyed as an escape in the source, so the bundles stay ASCII (DEV-111).
+    const zloty = `z${String.fromCharCode(0x142)}`;
+
+    expect(inferCellType(cell({ value: 1234.5, numFmt: `[$${zloty}-415]#,##0.00` })).numericFormat.currency)
+      .toBe('PLN');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: `${zloty}#,##0.00` })).numericFormat.currency).toBe('PLN');
     // An uppercase format code is not a currency.
     expect(inferCellType(cell({ value: 45000, numFmt: 'YYYY-MM-DD' })).type).toBe('date');
     // The export's own output for these currencies has to come back numeric.

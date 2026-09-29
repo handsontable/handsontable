@@ -10,6 +10,10 @@ const urls = [
 ];
 
 urls.forEach((url) => {
+  /**
+   * Checks that aligning a cell to the right through the context menu renders its text flush right on this
+   * demo route. One capture per route in `urls`, in each browser. Owned by DEV-2981.
+   */
   visualTest(`Test alignment for: ${url}`, {
     themes: [CLASSIC],
     browsers: CROSS_BROWSERS,

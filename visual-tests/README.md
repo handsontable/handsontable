@@ -15,7 +15,8 @@ We run visual tests automatically by using the following tools:
 
 When you push changes to a GitHub pull request:
 1. The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of each visual test.
+   checks the code of each visual test: no fixed delays, an asserted state before every capture that
+   follows a click or a key press, and a docblock on every test that names the ticket owning it.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
@@ -44,7 +45,9 @@ When you push changes to a GitHub pull request:
 If reg-suit spots differences, the **Visual / approve** job of your pull request's Tests run waits for a
 reviewer, and `CI Gate` waits with it, so you can't merge yet. In that case:
 1. Open the report. The **Visual** workflow comments the report URL on your pull request. If that URL is
-   unreachable, download the `visual-diff-report` artifact from the workflow run instead.
+   unreachable, download the `visual-diff-report` artifact from the workflow run instead and open its
+   `index.html`. The artifact holds the images of every changed, new, and deleted screenshot; the passing
+   ones are listed without images.
 2. Decide what the differences mean:
       - They are a regression. Push a commit that removes them; the next run compares again and the
         approval request goes away on its own.
@@ -60,8 +63,9 @@ on your pull request is rewritten to name them, so it stops asking for a review 
 Two cases worth knowing:
 
 - **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets and publish no
-  report, so the `visual-diff-report` artifact on the run holds the images and the job summary carries
-  the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
+  report, so the `visual-diff-report` artifact on the run holds the report and the images of every
+  changed, new, and deleted screenshot (the passing ones are listed without images), and the job summary
+  carries the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
 - **A visual change merged into the branch you target.** The golden records always come from that branch's
   latest build, so once someone else's intentional change lands, your next run inherits their differences
   as well as yours. **Rebase** — approving would also approve any real regression of your own that the same
@@ -92,7 +96,8 @@ themes, and the cross-browser tests minutes after each merge, and when the merge
 so a horizon-only, Firefox-only, or WebKit-only change is attributed to its author the same afternoon,
 and those renders are now the golden records. The nightly is the only build that renders the wrappers for
 real (the seed copies the vanilla JS render into their golden records), and it turns red on any
-difference from the seed: a wrapper that no longer renders like vanilla JS, a flaky or poisoned golden
+difference from the seed outside the visual quarantine (`visual-quarantine.json`, which lists a known-flaky
+capture instead of failing on it): a wrapper that no longer renders like vanilla JS, a flaky or poisoned golden
 record, or a commit whose seed never landed. A theme-only regression cannot red the nightly, because the
 seed has already made it the baseline; the seed's comment is where it shows. `visual-tests/AGENTS.md`
 has the diagnostic for a red nightly.
@@ -132,7 +137,7 @@ flowchart TD
     FORK --> OUT
 
     OUT -->|"pull request"| GATE{"visual-gate.mjs<br/>any differences?"}
-    OUT -->|"base branch or nightly"| REPORT["seed-report.mjs writes the run summary;<br/>the nightly goes red on any difference"]
+    OUT -->|"base branch or nightly"| REPORT["seed-report.mjs writes the run summary;<br/>the nightly goes red on any difference<br/>outside the quarantine"]
     GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
     GATE -->|"none"| PASS["Check passes, PR mergeable"]
     GATE -->|"differences found"| WAIT["approve job waits on the<br/>visual-approval environment"]
@@ -256,7 +261,7 @@ To add a new visual test:
       - [Take screenshots](#take-screenshots)
 4. Push your changes to a pull request.<br>
    The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
-   checks the code of your test.
+   checks the code of your test, including the assertion before each capture and the test's docblock.
 
 ### Take screenshots
 

@@ -73,6 +73,12 @@ const ExampleComponent = () => {
         }
 
         const col = this.propToCol(prop);
+
+        // Skip a property that names no column.
+        if (col === null) {
+          return;
+        }
+
         const td = this.getCell(row, col);
 
         if (!td) {

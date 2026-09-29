@@ -3,7 +3,8 @@ import { helpers } from '../../../../src/helpers';
 import { selectCell, selectEditor, openEditor } from '../../../../src/page-helpers';
 
 /**
- * Checks whether Control+Shift+Z redoes the last action.
+ * Checks whether Control+Shift+Z redoes the last action: the captures show the typed text, then the text
+ * after an undo and a redo. Owned by DEV-2981.
  */
 visualTest(__filename, {
   themes: JS_VARIANTS,
@@ -20,10 +21,12 @@ visualTest(__filename, {
 
   await cellEditor.type('test');
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted type(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await cell.press('Control+Z');
   await cell.press('Control+Shift+Z');
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted press(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

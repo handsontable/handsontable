@@ -126,4 +126,60 @@ describe('Selection', () => {
       expect(columnHeaderHighlight!.getCorners()).toEqual([-1, 1, -1, 1]);
     });
   });
+
+  describe('#setHandlesHoveredLayer', () => {
+    /**
+     * Records every local hook the listed names fire, in order.
+     */
+    function recordLocalHooks(selection: Selection, names: string[]) {
+      const log: Array<[string, unknown[]]> = [];
+
+      names.forEach((name) => {
+        selection.addLocalHook(name, (...args: unknown[]) => log.push([name, args]));
+      });
+
+      return log;
+    }
+
+    it('asks for a redraw once per change of the hovered layer, without replaying the selection', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.selectCells([[1, 1, 3, 3]]);
+
+      const log = recordLocalHooks(selection, [
+        'afterSetHandlesHoveredLayer',
+        'beforeSetRangeEnd',
+        'afterSetRangeEnd',
+        'afterSelectionFinished',
+      ]);
+
+      selection.setHandlesHoveredLayer(0);
+
+      expect(selection.getHandlesHoveredLayer()).toBe(0);
+      expect(log).toEqual([['afterSetHandlesHoveredLayer', [0]]]);
+
+      selection.setHandlesHoveredLayer(null);
+
+      expect(selection.getHandlesHoveredLayer()).toBeNull();
+      expect(log).toEqual([
+        ['afterSetHandlesHoveredLayer', [0]],
+        ['afterSetHandlesHoveredLayer', [null]],
+      ]);
+    });
+
+    // Pins the equality guard, which predates the fix: this passes with `refresh()` restored too.
+    // The test above is the one that fails on a selection replay.
+    it('fires nothing when the hovered layer does not change', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.selectCells([[1, 1, 3, 3]]);
+      selection.setHandlesHoveredLayer(0);
+
+      const log = recordLocalHooks(selection, ['afterSetHandlesHoveredLayer']);
+
+      selection.setHandlesHoveredLayer(0);
+
+      expect(log).toEqual([]);
+    });
+  });
 });

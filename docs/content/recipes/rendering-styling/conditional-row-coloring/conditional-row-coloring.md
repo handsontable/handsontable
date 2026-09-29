@@ -235,6 +235,12 @@ afterValidate(isValid, _value, row, prop) {
   }
 
   const col = this.propToCol(prop);
+
+  // Skip a property that names no column.
+  if (col === null) {
+    return;
+  }
+
   const td = this.getCell(row, col);
 
   if (!td) {
@@ -249,7 +255,7 @@ afterValidate(isValid, _value, row, prop) {
 **Key points:**
 
 - `this` is the Handsontable instance inside any hook defined in the settings object (use a regular function, not an arrow function).
-- `this.propToCol(prop)` converts the property name (`'status'`) to a visual column index.
+- `this.propToCol(prop)` converts the property name (`'status'`) to a visual column index. It returns `null` when no column uses that property, so guard it before you use it.
 - `this.getCell(row, col)` returns the live `<td>` element at the visual row and column. It returns `null` if the row is outside the rendered viewport, so always guard with `if (!td)`.
 - The class is added directly to the DOM - no re-render is needed.
 - The `setTimeout` removes the class after 800 ms, returning the cell to its normal status color.

@@ -85,19 +85,18 @@ function effectiveLevel(config, relativePath, ruleId) {
   return level;
 }
 
-test('every ratcheted rule is warn-level for a .spec.js and a .unit.js path in handsontable/.eslintrc.js', () => {
+test('every ratcheted rule is warn-level for a .spec.js, a .unit.js, and a .unit.ts path in handsontable/.eslintrc.js', () => {
   // A renamed or dropped rule — or an override whose `files` glob stops
   // matching the frozen tier — would turn the ratchet into a silent no-op:
   // ESLint would emit nothing under that id for those files and the
   // intersection would always be empty. Resolve the level per path the way
-  // ESLint does, for one path of each ratcheted extension. A flattened
+  // ESLint does, for paths of each ratcheted extension. A flattened
   // id→level map over all overrides would pass with the rules configured for
   // some unrelated glob, which is exactly the mismatch it cannot catch.
   //
-  // `*.unit.ts` is deliberately not asserted: RATCHETED_FILES lists it, but the
-  // override that turns these rules on does not name it today, so a `.unit.ts`
-  // file yields no findings and cannot block. The moment the override names
-  // `*.unit.ts`, the ratchet covers it with no change here.
+  // `handsontable/test/__tests__/frozenTierLintScope.unit.js` pins the
+  // override's `*.unit.ts` glob too, but for `no-fixed-sleep-in-spec` only;
+  // the `.unit.ts` path here covers the other two rules.
   const require = createRequire(import.meta.url);
   // The config lives at a path resolved from the repo root at runtime; the rule wants a literal.
   // eslint-disable-next-line import/no-dynamic-require
@@ -107,6 +106,7 @@ test('every ratcheted rule is warn-level for a .spec.js and a .unit.js path in h
     'src/3rdparty/walkontable/test/spec/table.spec.js',
     'src/helpers/__tests__/number.unit.js',
     'test/__tests__/esTarget.unit.js',
+    'src/helpers/__tests__/function.unit.ts',
   ];
 
   for (const file of files) {

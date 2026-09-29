@@ -19,6 +19,7 @@ vue:
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
+addedIn: "19.0.0"
 ---
 
 Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file through an engine you provide, derives cell types from number formats, and applies the layout the workbook carries.
