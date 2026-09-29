@@ -76,6 +76,15 @@ answer consistent whether the rows are gone by hiding or by trimming. Full ratio
 stack-overflow risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce
 `push(...array)` here.
 
+## Undo of a row removal restores hidden state (DEV-134)
+
+This plugin registers no `beforeRemoveRow`/`afterRemoveRow` hook of its own — row removal and its undo are
+handled entirely from the `undoRedo` plugin's side, because `IndexMapper#removeIndexes()`/`insertIndexes()`
+splice and re-insert every registered `HidingMap` unconditionally, with no memory of the prior flags.
+UndoRedo records every index map, this plugin's `HidingMap` included, before and after each step, and an
+undo writes the recorded flags back once the removed rows are in place again. Nothing here has to be
+re-hidden by hand. Full mechanics: `../undoRedo/AGENTS.md`.
+
 ## Where to look next
 
 - The column mirror, and the shared rules: `../hiddenColumns/AGENTS.md`.

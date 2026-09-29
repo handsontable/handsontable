@@ -132,6 +132,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   filter: true,
   filteringCaseSensitive: true,
   filters: false,
+  filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
   fixedColumnsLeft: 123,
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
@@ -456,7 +457,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCut: (data, coords) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
-  afterDetachChild: (parent, element) => {},
+  afterDetachChild: (parent, element, finalElementPosition, source) => {
+    const _source: string | undefined = source;
+  },
   afterDialogFocus: (focusSource) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
@@ -630,6 +633,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return true;
   },
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
+  beforeReadOnlyToggle: (stateBefore, ranges, readOnly) => {},
   beforeChange: (changes, source) => {
     if (changes?.[0] !== null) { changes[0][3] = 10; }
 
@@ -668,7 +672,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeDetachChild: (parent, element) => {},
+  beforeDetachChild: (parent, element, source) => {
+    const _source: string | undefined = source;
+  },
   beforeDialogHide: () => {},
   beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},
@@ -1065,3 +1071,14 @@ hot.updateSettings({
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabAdd: (sheetId, name, source) => {},
 });
+
+// DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,
+// so the declared parameter must admit it. The directive below turns into an "unused" error if the
+// parameter is ever narrowed back to `number`.
+const _modifyDataColumnIsNullable: Handsontable.GridSettings = {
+  modifyData(row, column) {
+    // @ts-expect-error `column` can be `null`, which does not fit a plain `number`.
+    const _plainNumberColumn: number = column;
+    const _nullableColumn: number | null = column;
+  },
+};

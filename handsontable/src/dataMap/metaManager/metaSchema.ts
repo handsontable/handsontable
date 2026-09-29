@@ -394,8 +394,10 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright from 20.0.0 on (it was deprecated in
+     * 19.0.0). See that method, which owns the rule; `setDataAtRowProp()` is not affected, because the property you
+     * pass names the field to write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -1812,6 +1814,9 @@ export default (): Record<string, unknown> => {
      * The `currentColClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected columns.
      *
+     * With nested or grouped column headers (the `nestedHeaders` plugin), the class name reaches
+     * every header level above the selected column, not only the leaf level.
+     *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -1878,6 +1883,9 @@ export default (): Record<string, unknown> => {
     /**
      * The `currentRowClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected rows.
+     *
+     * With multiple row-header columns (added through the `afterGetRowHeaderRenderers` hook), the
+     * class name reaches every row-header column, not only the first one.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)
@@ -2074,6 +2082,14 @@ export default (): Record<string, unknown> => {
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
      *
      * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
+     *
+     * Unless you set the [`columns`](#columns) or [`dataSchema`](#dataSchema) option, Handsontable reads the number
+     * of columns from the first row of `data`. If that row has no fields (for example, `[{}]`, `[null]`, or
+     * `[[], [1, 2]]`), the grid displays rows with no cells, and values in later rows are not displayed. For such data,
+     * Handsontable logs a console warning. Two cases log no warning: an empty `data: []`, and an array of empty arrays
+     * (`[[]]`) while [`allowInsertColumn`](#allowInsertColumn) is on, because writing to it creates the columns. The check
+     * runs when the data loads, so set `columns` together with `data`. A `columns` option that arrives in a later
+     * update (for example, from a column component rendered after the grid) can come too late to stop the warning.
      *
      * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
      * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.
@@ -2503,6 +2519,14 @@ export default (): Record<string, unknown> => {
      * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * The current-row and current-column indicators
+     * ([`currentRowClassName`](#currentRowClassName) and [`currentColClassName`](#currentColClassName))
+     * are selection feedback rather than header selection, so `'header'` does not remove them. They are
+     * hidden only when every selection type is off – `true`, or an array holding all of `'current'`,
+     * `'area'`, and `'header'`. The classes also mark the current row's and column's header cell, as
+     * they do with `false`, so `'header'` still leaves your `currentRowClassName` and
+     * `currentColClassName` on those header cells.
      *
      * When set to any non-`false` value, the second-click deselect behavior
      * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
@@ -3307,6 +3331,64 @@ export default (): Record<string, unknown> => {
     filter: true,
 
     /**
+     * The `filterValueComparator` option sets the order of the values in the **Filter by value**
+     * list of the [`Filters`](@/api/filters.md) dropdown.
+     *
+     * By default the list places blank cells first and then sorts the values with a built-in
+     * comparator: numbers by value, text by character code, and `date`, `intl-date`, and
+     * `intl-datetime` cells chronologically. Set `filterValueComparator` to a function to replace
+     * that order. The function takes two cell values and returns a negative number, zero, or a
+     * positive number, like the callback of `Array.prototype.sort()`.
+     *
+     * The option cascades: set it at the grid level to order every column's list the same way,
+     * or inside [`columns`](#columns) to order one column. A column value overrides the grid value.
+     * A custom comparator also overrides the cell type's own comparator.
+     *
+     * Two details to know when you write the function:
+     * - A blank cell (`null`, `undefined`, or `''`) reaches the comparator as an empty string `''`.
+     * - The comparator only orders the list. It cannot add, hide, or remove a value, so it never
+     *   changes which rows the filter keeps.
+     *
+     * A value that is not a function is ignored, and the built-in order applies.
+     *
+     * The list is built once per column, and the comparator is read from the cell meta of the
+     * first row the list is built from. A per-cell value set through [`cells`](#cells) or
+     * [`cell`](#cell) is therefore not a reliable way to configure it. Set it at the grid level or
+     * inside `columns`.
+     *
+     * Read more:
+     * - [Column filter: Change the order of values in the filter list](@/guides/columns/column-filter/column-filter.md#change-the-order-of-values-in-the-filter-list)
+     * - [Plugins: `Filters`](@/api/filters.md)
+     * - [`filters`](#filters)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Filters
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * // order the "Priority" column by severity rather than alphabetically
+     * const priority = ['Critical', 'High', 'Medium', 'Low'];
+     *
+     * filters: true,
+     * columns: [
+     *   {
+     *     data: 'priority',
+     *     filterValueComparator: (a, b) => priority.indexOf(a) - priority.indexOf(b),
+     *   },
+     * ],
+     *
+     * // order every column's list with a locale-aware text comparison
+     * filters: true,
+     * filterValueComparator: (a, b) => String(a).localeCompare(String(b), 'de'),
+     * ```
+     */
+    filterValueComparator: undefined,
+
+    /**
      * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells'
      * search inputs are case-sensitive.
      *
@@ -3409,6 +3491,7 @@ export default (): Record<string, unknown> => {
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
+     * - [`filterValueComparator`](#filtervaluecomparator) – order the values in the **Filter by value** list
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -4178,7 +4261,10 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
-      const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+      // A column index that names no column has no schema entry to compare against. Every value
+      // read from it is empty anyway, so the comparisons below are never reached in that case.
+      const schemaDefault = prop === null ?
+        undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
@@ -4242,7 +4328,9 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
-          const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
+          // See `isEmptyCol()` — a column index that names no column has no schema entry.
+          const schemaDefault = prop === null ?
+            undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
@@ -4952,6 +5040,14 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty columns to the right.
      * - At runtime: for example, when removing columns.
      *
+     * When you lower the `minCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you added
+     * yourself. Nothing is removed while [`maxCols`](#maxCols) hides part of the grid.
+     * The removal fires the [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) and
+     * [`afterRemoveCol`](@/api/hooks.md#afterremovecol) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveCol` keeps the columns.
+     *
      * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects),
      * you can only have as many columns as defined in:
@@ -5020,6 +5116,16 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty rows at the bottom.
      * - At runtime: for example, when removing rows.
      *
+     * When you lower the `minRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you added
+     * yourself. Nothing is removed while [`maxRows`](#maxRows) hides part of the grid.
+     * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
+     * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5043,6 +5149,14 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty columns at the grid's right-hand end,
      * they are counted into the `minSpareCols` value.
+     *
+     * When you lower the `minSpareCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you added
+     * yourself. Nothing is removed while [`maxCols`](#maxCols) hides part of the grid.
+     * The removal fires the [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) and
+     * [`afterRemoveCol`](@/api/hooks.md#afterremovecol) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveCol` keeps the columns.
      *
      * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
      *
@@ -5076,6 +5190,16 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty rows at the bottom,
      * they are counted into the `minSpareRows` value.
+     *
+     * When you lower the `minSpareRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you added
+     * yourself. Nothing is removed while [`maxRows`](#maxRows) hides part of the grid.
+     * The removal fires the [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and
+     * [`afterRemoveRow`](@/api/hooks.md#afterremoverow) hooks with the `auto` source,
+     * and returning `false` from `beforeRemoveRow` keeps the rows.
+     * The value counts only the rows on screen, so while [`filters`](#filters) or [`trimRows`](#trimRows)
+     * hides rows, lowering it can leave some of the added empty rows in place.
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *

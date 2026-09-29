@@ -61,10 +61,27 @@ export class NestedRowsUndoPage {
     await expect(menu).toBeHidden();
   }
 
+  /** Detach one child through Nested Rows' context-menu command. */
+  async detachFromParentViaContextMenu(row: number): Promise<void> {
+    await this.cell(row, 0).click({ button: 'right' });
+    const menu = this.page.locator('.htContextMenu.handsontable').locator('visible=true');
+
+    await expect(menu).toBeVisible();
+    await menu.locator('.ht_master td').filter({ hasText: /^Detach from parent$/ }).click();
+    await expect(menu).toBeHidden();
+  }
+
   /** Undo the removal through the platform-specific Cmd/Ctrl+Z shortcut. */
   async undoWithKeyboard(): Promise<void> {
     await this.cell(0, 0).click();
     await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /** Redo through the platform-specific Cmd/Ctrl+Shift+Z shortcut. */
+  async redoWithKeyboard(): Promise<void> {
+    // Row zero stays selected after `undoWithKeyboard`; selecting another cell avoids entering its editor.
+    await this.cell(1, 0).click();
+    await this.page.keyboard.press('ControlOrMeta+Shift+z');
   }
 
   /** Redo the removal through the UndoRedo plugin API. */

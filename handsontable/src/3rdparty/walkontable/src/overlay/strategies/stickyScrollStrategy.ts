@@ -155,15 +155,16 @@ export class StickyScrollStrategy {
     }
 
     const wtViewport = this.#deps.getWtViewport();
+    const renderedStartTop = wtViewport.rowsRenderCalculator?.startPosition;
+    const renderedStartLeft = wtViewport.columnsRenderCalculator?.startPosition;
 
-    const startTop = wtViewport.rowsRenderCalculator?.startPosition;
-    const startLeft = wtViewport.columnsRenderCalculator?.startPosition;
-
-    // startPosition is null when nothing is rendered (empty dataset or trimmed-away rows/columns).
-    // Arithmetic with null produces NaN, which would set "NaNpx" on the style. Skip the update.
-    if (typeof startTop !== 'number' || typeof startLeft !== 'number') {
-      return;
-    }
+    // startPosition is null when nothing is rendered on that axis (no rows, or every row hidden,
+    // trimmed, or filtered out - and likewise for columns). Such an axis takes offset 0, which is
+    // what the overlays' `applyToDOM()` writes for it outside a drag. Resolve each axis on its own:
+    // skipping the whole update would freeze the OTHER axis at its activation inset, so a drag on a
+    // grid with no rows would leave the column headers behind and snap the scroll back on release.
+    const startTop = typeof renderedStartTop === 'number' ? renderedStartTop : 0;
+    const startLeft = typeof renderedStartLeft === 'number' ? renderedStartLeft : 0;
 
     const stickyTop = startTop - this.#getScrollTop();
     const stickyLeft = startLeft - this.#getScrollLeft();

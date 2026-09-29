@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   forPaginationClickLastPageButton,
@@ -11,9 +11,15 @@ import {
   FilterConditions,
 } from '../../../src/page-helpers';
 
-test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript framework');
-
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that changing the page size (50, auto, then 20) re-pages a filtered and sorted grid and updates
+ * the controls, including after a move to the next page. Owned by DEV-2981.
+ */
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/pagination-demo')

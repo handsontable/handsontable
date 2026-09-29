@@ -15,6 +15,20 @@ export const REFERENCE_FRAMEWORK = 'js';
  */
 export const THEMES = ['main', 'main-dark', 'horizon', 'horizon-dark'];
 /**
+ * The bare js render, the one variant that has no theme name: `HOT_THEME` is unset for it, which is what
+ * makes `helpers.screenshotPath()` drop the `-theme-` suffix and write to `js/chromium/`. The token names
+ * that variant inside a spec's `themes` declaration (`lib/visual-declarations.mjs`) so the js axis is one
+ * flat list a codemod can write and a budget can sum. It is a declaration token only — passing it through
+ * `HOT_THEME` would request a theme that does not exist, because `helpers.getSearchUrlParams()` appends
+ * `?theme=` whenever the variable is set and `src/test-runner.ts` reads `hotTheme.includes('dark')`.
+ */
+export const CLASSIC = 'classic';
+/**
+ * Every variant the js leg renders on chromium, in golden-layout order: the bare run plus the four themes.
+ * A js-only or multi-framework spec that renders everywhere declares exactly this list.
+ */
+export const JS_VARIANTS = [CLASSIC, ...THEMES];
+/**
  * The port for the static server that serves the examples.
  */
 export const EXAMPLES_SERVER_PORT = '8082';
@@ -46,6 +60,14 @@ export const CROSS_BROWSERS = ['chromium', 'firefox', 'webkit'];
  * `frameworks`: what run-tests.mjs renders; `classic`: the bare chromium js run with no HOT_THEME; `themes`:
  * the HOT_THEME runs; `browsers`: the cross-browser leg's projects, empty when the leg does not run in that
  * tier; `copyWrappers`: after rendering, copy `js/chromium/multi-frameworks` into each wrapper directory.
+ *
+ * The tier is one half of what a build renders. The other half is each spec's own `visualTest()`
+ * declaration (`lib/visual-declarations.mjs`), so the golden set is the sum of the declarations
+ * intersected with the tier: a variant the tier launches but the spec does not declare skips at file
+ * scope and costs nothing. Measured on 2026-09-18 (`base/develop/out.json`): 1676 records — 240 per js
+ * variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox / webkit; a `pr`-tier render is
+ * 480 of them. `lib/__tests__/visual-declarations.test.mjs` derives those eleven counts from the
+ * checked-in declarations, so a trim or a new spec moves a number a reviewer can see.
  */
 export const VISUAL_TIERS = {
   pr: {

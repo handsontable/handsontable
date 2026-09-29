@@ -21,6 +21,7 @@ vue:
 searchCategory: Guides
 category: Dialog
 menuTag: updated
+addedIn: "16.1.0"
 ---
 Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 

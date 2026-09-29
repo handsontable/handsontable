@@ -169,6 +169,34 @@ export class RootSizeOptionsPage {
     });
   }
 
+  /**
+   * Heights of the fixture's parent container, the master holder and the master table, read in
+   * one evaluation, plus the holder's inline height.
+   */
+  async verticalSizes(): Promise<{
+    parentHeight: number,
+    holderHeight: number,
+    holderInlineHeight: string,
+    tableHeight: number,
+  }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector<HTMLElement>('.ht_master .wtHolder');
+      const table = document.querySelector<HTMLElement>('.ht_master table.htCore');
+      const parent = document.getElementById('container');
+
+      if (!holder || !table || !parent) {
+        throw new Error('holder, table or container is not rendered');
+      }
+
+      return {
+        parentHeight: parent.offsetHeight,
+        holderHeight: holder.offsetHeight,
+        holderInlineHeight: holder.style.height,
+        tableHeight: table.offsetHeight,
+      };
+    });
+  }
+
   /** Scrolls the master holder horizontally and waits two frames. */
   async scrollHolderBy(x: number): Promise<void> {
     await this.page.evaluate((dx) => {

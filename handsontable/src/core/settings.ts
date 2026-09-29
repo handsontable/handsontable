@@ -286,6 +286,7 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
+  filterValueComparator?: (a: unknown, b: unknown) => number;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;
@@ -417,7 +418,9 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
+  afterDetachChild?: (
+    parent: RowObject, element: RowObject, finalElementPosition: number | null, source?: string
+  ) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -586,6 +589,8 @@ export interface GridSettings {
     event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
     type: string, alignmentClass: string) => void;
+  beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
+    readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -611,7 +616,7 @@ export interface GridSettings {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
-  beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+  beforeDetachChild?: (parent: RowObject, element: RowObject, source?: string) => void;
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
@@ -752,7 +757,7 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

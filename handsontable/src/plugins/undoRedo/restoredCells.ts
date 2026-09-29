@@ -164,7 +164,7 @@ function toIndexAfterStep(
  * @param {RestoreDirection} direction The replay direction.
  * @returns {number|null} The index, or `null` when the row or column does not exist in that grid.
  */
-function toFinalIndex(
+export function toFinalIndex(
   journal: JournalOp[], opIndex: number, index: number, axis: 'row' | 'column', direction: RestoreDirection,
 ): number | null {
   return direction === 'undo' ?

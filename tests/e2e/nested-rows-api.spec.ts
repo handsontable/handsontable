@@ -361,6 +361,20 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.hookLog()).toEqual([]);
   });
 
+  test('disabling the plugin removes the collapse buttons and the indent spacers from the row headers', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(0);
+
+    await nestedRows.updateSettings({ nestedRows: false });
+
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+    await expect(nestedRows.collapseButton(0)).toHaveCount(0);
+  });
+
   test('the master hider is tall enough for the table on initial display', async({ page, theme }) => {
     // NestedRows used to force an overlay resize in a `requestAnimationFrame` after its first
     // render, because the hider came out too short on initial display. That call was removed with

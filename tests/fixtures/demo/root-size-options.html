@@ -36,6 +36,10 @@
     #container.css-host > #grid { height: 100%; }
     #container.bounded { height: 300px; overflow: auto; }
     #container.half-var { --grid-width: 50%; }
+    /* Scroll containers with no height of their own: their height is their content, the grid
+       (DEV-3062). */
+    #container.heightless-hidden { overflow: hidden; }
+    #container.heightless-auto { overflow: auto; }
   </style>
 </head>
 <body>
@@ -66,7 +70,8 @@
     /**
      * Builds (or rebuilds) the grid. `containerClass` picks one of the parent
      * layouts declared in the stylesheet above (`css-host`, `bounded`,
-     * `half-var`); an empty string leaves the parent unstyled.
+     * `half-var`, `heightless-hidden`, `heightless-auto`); an empty string
+     * leaves the parent unstyled.
      */
     window.initRootSizeGrid = function(overrides = {}, containerClass = '') {
       if (window.hot) {

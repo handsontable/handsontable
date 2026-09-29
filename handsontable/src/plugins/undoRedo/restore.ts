@@ -16,6 +16,7 @@ import { isDataAccessorFn } from '../../dataMap/dataSource';
 import { safeBatch } from '../../utils/safeBatch';
 import type { GridStateSnapshot, GridStateTracker } from './snapshot/gridState';
 import type { StepRecord } from './entry';
+import { toFinalIndex } from './restoredCells';
 
 /**
  * Which way a step is replayed.
@@ -26,6 +27,12 @@ export type RestoreDirection = 'undo' | 'redo';
  * A source-data write in the form `setSourceDataAtCell()` accepts.
  */
 type SourceChange = [number, string | number | ColumnDataGetterSetterFunction, unknown];
+
+/**
+ * Maps the physical row a journal entry recorded to the row a replay writes, or to `null` when that row
+ * does not exist in the grid being written.
+ */
+type RowMapper = (op: JournalOp, physicalRow: number) => number | null;
 
 /**
  * Tells whether a journal entry adds or removes rows.
@@ -116,15 +123,24 @@ function applyMetaStates(hot: HotInstance, metas: CellMetaKeyStateEntry[]) {
  * @param {CellsJournalOp} op The journal entry.
  * @param {RestoreDirection} direction The replay direction.
  * @param {string} source The replay source.
+ * @param {Function|null} toRow Maps the recorded rows when the source shape was restored from the
+ *   snapshot, `null` when the replay writes them as recorded.
  */
-function replayCells(hot: HotInstance, op: CellsJournalOp, direction: RestoreDirection, source: string) {
+function replayCells(
+  hot: HotInstance, op: CellsJournalOp, direction: RestoreDirection, source: string, toRow: RowMapper | null,
+) {
   const deltas = direction === 'undo' ? op.changes.slice().reverse() : op.changes;
+  const changes: SourceChange[] = [];
 
-  writeSource(hot, deltas.map(({ physicalRow, prop, oldValue, newValue }): SourceChange => [
-    physicalRow,
-    prop,
-    deepClone(direction === 'undo' ? oldValue : newValue),
-  ]), source);
+  deltas.forEach(({ physicalRow, prop, oldValue, newValue }) => {
+    const row = toRow === null ? physicalRow : toRow(op, physicalRow);
+
+    if (row !== null) {
+      changes.push([row, prop, deepClone(direction === 'undo' ? oldValue : newValue)]);
+    }
+  });
+
+  writeSource(hot, changes, source);
 }
 
 /**
@@ -466,14 +482,14 @@ function rangeOf(start: number, amount: number): number[] {
  * @param {JournalOp} op The journal entry.
  * @param {RestoreDirection} direction The replay direction.
  * @param {string} source The replay source.
- * @param {boolean} shapeRestored `true` when the source shape was restored from the snapshot, so a
- *   row entry moves the cell meta rows only.
+ * @param {Function|null} toRow Set when the source shape was restored from the snapshot: a row entry
+ *   then moves the cell meta rows only, and a cell write is mapped to the restored shape's rows.
  * @returns {boolean} `false` when a listener vetoed a row or column change of the entry.
  */
 function replayOp(
-  hot: HotInstance, op: JournalOp, direction: RestoreDirection, source: string, shapeRestored: boolean,
+  hot: HotInstance, op: JournalOp, direction: RestoreDirection, source: string, toRow: RowMapper | null,
 ): boolean {
-  if (shapeRestored && isRowStructural(op)) {
+  if (toRow !== null && isRowStructural(op)) {
     replayRowsOnMeta(hot, op, direction);
 
     return true;
@@ -481,7 +497,7 @@ function replayOp(
 
   switch (op.type) {
     case 'cells':
-      replayCells(hot, op, direction, source);
+      replayCells(hot, op, direction, source, toRow);
 
       return true;
     case 'insertRows':
@@ -511,19 +527,20 @@ function replayOp(
  * @param {JournalOp[]} ops The entries, in replay order.
  * @param {RestoreDirection} direction The replay direction.
  * @param {string} source The replay source.
- * @param {boolean} shapeRestored `true` when the source shape was restored from the snapshot.
+ * @param {Function|null} toRow Set when the source shape was restored from the snapshot (see
+ *   `replayOp()`). A revert writes the same rows: the shape is still the restored one then.
  * @returns {boolean} `false` when an entry was vetoed.
  */
 function replayJournal(
-  hot: HotInstance, ops: JournalOp[], direction: RestoreDirection, source: string, shapeRestored: boolean,
+  hot: HotInstance, ops: JournalOp[], direction: RestoreDirection, source: string, toRow: RowMapper | null,
 ): boolean {
   const appliedOps: JournalOp[] = [];
 
   for (const op of ops) {
-    if (!replayOp(hot, op, direction, source, shapeRestored)) {
+    if (!replayOp(hot, op, direction, source, toRow)) {
       const reverse = direction === 'undo' ? 'redo' : 'undo';
 
-      appliedOps.reverse().forEach(appliedOp => replayOp(hot, appliedOp, reverse, source, shapeRestored));
+      appliedOps.reverse().forEach(appliedOp => replayOp(hot, appliedOp, reverse, source, toRow));
 
       return false;
     }
@@ -532,6 +549,29 @@ function replayJournal(
   }
 
   return true;
+}
+
+/**
+ * Returns the row mapper for a step whose source shape is restored from the snapshot in one go. The
+ * journal's cell writes address rows as they were when each was recorded, but the restored shape is
+ * the one the whole step ends in - before it for an undo, after it for a redo - so a write recorded
+ * after a row change in the same step (the formula text Formulas rewrites when a nested parent is
+ * removed) must move with the row changes recorded around it.
+ *
+ * @param {StepRecord} record The step to restore.
+ * @param {RestoreDirection} direction The replay direction.
+ * @returns {Function}
+ */
+function createRestoredShapeRowMapper(record: StepRecord, direction: RestoreDirection): RowMapper {
+  const positions = new Map<JournalOp, number>();
+
+  record.journal.forEach((op, position) => positions.set(op, position));
+
+  return (op, physicalRow) => {
+    const position = positions.get(op);
+
+    return position === undefined ? physicalRow : toFinalIndex(record.journal, position, physicalRow, 'row', direction);
+  };
 }
 
 /**
@@ -544,7 +584,8 @@ function replayJournal(
  *    removes are asked about through `beforeCreateRow` and `beforeRemoveRow` - they do not go
  *    through `alter()`, which would ask. Then the shape is put back from the snapshot.
  * 3. The journal, backwards for an undo, forwards for a redo. With a restored shape, a row entry
- *    moves the cell meta rows only: the shape already holds the rows' data.
+ *    moves the cell meta rows only: the shape already holds the rows' data. A cell write is then
+ *    mapped to the restored shape's rows.
  * 4. With a restored shape, `afterCreateRow` and `afterRemoveRow` report its rows.
  * 5. The index maps, the plugin states and the settings the step changed, from the snapshot. What the
  *    step left alone keeps its current state, so a change made outside any step since (a trim a
@@ -567,6 +608,7 @@ export function restoreStep(
   const source = direction === 'undo' ? 'UndoRedo.undo' : 'UndoRedo.redo';
   const ops = direction === 'undo' ? record.journal.slice().reverse() : record.journal;
   const shapeRestored = target.sourceStructures.size > 0;
+  const toRow = shapeRestored ? createRestoredShapeRowMapper(record, direction) : null;
   const rowChanges = shapeRestored ?
     ops.filter(isRowStructural).flatMap(op => toRowChanges(op, direction)) : [];
   const reordersForReplay = ops.some(isStructural);
@@ -591,7 +633,7 @@ export function restoreStep(
       hot.rowIndexMapper.fitToLength(hot.countSourceRows());
     }
 
-    if (!replayJournal(hot, ops, direction, source, shapeRestored)) {
+    if (!replayJournal(hot, ops, direction, source, toRow)) {
       // A listener vetoed part of the replay. The grid is put back as it was, so the step can stay
       // on its stack.
       tracker.restoreSourceStructures(current);

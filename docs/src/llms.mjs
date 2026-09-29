@@ -18,7 +18,9 @@ import { FRAMEWORK_PREFIXES } from './sidebar.mjs';
 // constant. (Some Astro components still inline the origin because they
 // cannot import this module -- see the prerender-bundle note in
 // astro.config.mjs.)
-export const SITE_URL = 'https://handsontable.com';
+import { AGENT_NOTE_MD, SITE_URL } from './agent-note.mjs';
+
+export { SITE_URL };
 
 export const CANONICAL_PREFIX = FRAMEWORK_PREFIXES.javascript;
 
@@ -252,5 +254,7 @@ export function buildLlmsFull(routeMap, sections) {
     }
   }
 
-  return parts.join('\n');
+  // The per-page agent note is stripped from the corpus by construction (the
+  // route map never carries it); append it once, at the end.
+  return parts.join('\n').trimEnd() + AGENT_NOTE_MD;
 }

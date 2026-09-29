@@ -1,11 +1,12 @@
 import Handsontable from 'handsontable/base';
-import { HiddenRows, registerPlugin, TrimRows, UndoRedo } from 'handsontable/plugins';
+import { HiddenRows, NestedRows, registerPlugin, TrimRows, UndoRedo } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
 registerPlugin(UndoRedo);
 registerPlugin(TrimRows);
 registerPlugin(HiddenRows);
+registerPlugin(NestedRows);
 
 describe('UndoRedo plugin', () => {
   let container;
@@ -572,6 +573,78 @@ describe('UndoRedo plugin', () => {
       plugin.undo();
 
       expect(hot.getDataAtCell(0, 1)).toBe('B1');
+    });
+  });
+
+  describe('a step on a nested rows grid', () => {
+    it('should write a cell edited after a parent removal in the same step to the row it named', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [
+          { name: 'Root A', __children: [{ name: 'A-1' }, { name: 'A-2' }] },
+          { name: 'Root B', __children: [{ name: 'B-1' }] },
+          { name: 'After' },
+        ],
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      // `getDataAtCol()` answers one value per top-level row on a nested grid, so read row by row.
+      const names = () => Array.from({ length: hot.countRows() }, (_, row) => hot.getDataAtCell(row, 0));
+
+      // The removal takes `Root A` with its two children, so the edit addresses `After` as row 2. An
+      // undo restores the whole tree shape first, where row 2 is `A-2`.
+      hot.batch(() => {
+        hot.alter('remove_row', 0, 1);
+        hot.setDataAtCell(2, 0, 'After edited');
+      });
+
+      expect(names()).toEqual(['Root B', 'B-1', 'After edited']);
+
+      plugin.undo();
+
+      expect(names()).toEqual(['Root A', 'A-1', 'A-2', 'Root B', 'B-1', 'After']);
+
+      plugin.redo();
+
+      expect(names()).toEqual(['Root B', 'B-1', 'After edited']);
+
+      plugin.undo();
+
+      expect(names()).toEqual(['Root A', 'A-1', 'A-2', 'Root B', 'B-1', 'After']);
+    });
+
+    it('should skip, on undo, a cell edited in a row the same step added', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [
+          { name: 'Root A', __children: [{ name: 'A-1' }] },
+          { name: 'After' },
+        ],
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const dataManager = hot.getPlugin('nestedRows').dataManager;
+      const names = () => Array.from({ length: hot.countRows() }, (_, row) => hot.getDataAtCell(row, 0));
+
+      // The new child lands at row 2. The shape an undo restores has no such row - `After` sits there.
+      hot.batch(() => {
+        dataManager.addChild(dataManager.getDataObject(0));
+        hot.setDataAtCell(2, 0, 'typed');
+      });
+
+      expect(names()).toEqual(['Root A', 'A-1', 'typed', 'After']);
+
+      plugin.undo();
+
+      expect(names()).toEqual(['Root A', 'A-1', 'After']);
+
+      plugin.redo();
+
+      expect(names()).toEqual(['Root A', 'A-1', 'typed', 'After']);
     });
   });
 });

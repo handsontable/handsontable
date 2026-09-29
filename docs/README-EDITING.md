@@ -29,6 +29,7 @@ Each Markdown file can start with the following frontmatter tags:
 | `searchCategory` | Search category used by the search engine to categorize the search results. | If not set, the search result will be listed under the default "Guides" section. |
 | `menuTag`        | A tag displayed next to the page title in the sidebar menu. | None (not required) |
 | `category`       | The content category for organizing pages. | None (not required) |
+| `addedIn`        | The Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string (for example `"17.0.0"`). Renders an "Added in Handsontable 17.0.0" badge next to the page title and adds the same sentence under the H1 of the page's Markdown and llms outputs. Set it only for features introduced in 14.0.0 or later; `npm run build` rejects malformed values and versions that were never released. | None (not required) |
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
 

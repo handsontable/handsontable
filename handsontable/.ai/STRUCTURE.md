@@ -354,7 +354,7 @@ handsontable/src/
 - `handsontable/test/e2e/`: E2E test specs (Jasmine/Puppeteer)
 - `handsontable/test/helpers/`: Test helper functions (globally available in specs)
 - `handsontable/test/bootstrap.js`: Test environment bootstrap
-- `handsontable/test/types/`: TypeScript type tests
+- `handsontable/test/types/`: the `tsconfig.json` that compiles the TypeScript type tests (`*.types.ts`, which live in `src/**/__tests__/`)
 - `handsontable/src/**/__tests__/`: Co-located unit tests (Jest) and some E2E specs
 - `visual-tests/`: Playwright visual regression tests
 - `handsontable/src/3rdparty/walkontable/test/`: Walkontable-specific tests

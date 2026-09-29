@@ -1365,7 +1365,9 @@ export const REGISTERED_HOOKS = [
    * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
    * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
    * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
-   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
+   * with an empty `changes` array when a `beforeChange` handler cancels the change, and when every
+   * change is skipped because it addresses a column past the last one of an object data source (see
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell)). Changes made
    * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
    * instead – never both for the same change.
    *
@@ -1502,6 +1504,19 @@ export const REGISTERED_HOOKS = [
    * Possible values: `htLeft` , `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`.
    */
   'beforeCellAlignment',
+
+  /**
+   * Fired before toggling the read-only state of the selected cells, from the context menu or column
+   * menu "Read only" item.
+   *
+   * @event Hooks#beforeReadOnlyToggle
+   * @since 19.0.0
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of booleans (the previous `readOnly` state) indexed by visual column.
+   * @param {CellRange[]} ranges An array of `CellRange` coordinates where the read-only state will be applied.
+   * @param {boolean} readOnly The new read-only state being applied to every affected cell.
+   */
+  'beforeReadOnlyToggle',
 
   /**
    * Fired before one or more cells are changed.
@@ -2224,7 +2239,9 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyData
    * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
+   * @param {number|string|Function|null} column Visual column index. `null` when the property is a
+   *   numeric index that names no column that exists and is visible. A property name the data set
+   *   does not use, or a `columns[].data` accessor function, arrives unchanged.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -3877,6 +3894,9 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeDetachChild
    * @param {object} parent An object representing the parent from which the element is to be detached.
    * @param {object} element The detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeDetachChild',
 
@@ -3888,6 +3908,9 @@ export const REGISTERED_HOOKS = [
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementPosition The final row index of the detached element.
+   * @param {string} [source] String that identifies source of hook call. It is `'NestedRows'` for a detach made
+   *                          through the plugin, and `'UndoRedo.redo'` when the {@link UndoRedo} plugin replays one
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterDetachChild',
 

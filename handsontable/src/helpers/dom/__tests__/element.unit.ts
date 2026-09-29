@@ -35,6 +35,7 @@ import {
   getTrimmingContainer,
   getFixedContainingBlockRect,
   observeVisibilityChangeOnce,
+  setCaretPosition,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
 
@@ -2294,4 +2295,35 @@ describe('DomElement helper', () => {
     });
   });
 
+  describe('setCaretPosition', () => {
+    it('should set the selection range on a text input', () => {
+      const input = document.createElement('input');
+
+      input.value = 'abcdef';
+      document.body.appendChild(input);
+
+      setCaretPosition(input, 2, 4);
+
+      expect(input.selectionStart).toBe(2);
+      expect(input.selectionEnd).toBe(4);
+      expect(document.activeElement).toBe(input);
+
+      input.remove();
+    });
+
+    it.each(['date', 'time', 'datetime-local', 'number'])(
+      'should focus an input of type "%s" without throwing, as it does not support selection (DEV-3049)',
+      (type) => {
+        const input = document.createElement('input');
+
+        input.setAttribute('type', type);
+        document.body.appendChild(input);
+
+        expect(() => setCaretPosition(input, 0, 0)).not.toThrow();
+        expect(document.activeElement).toBe(input);
+
+        input.remove();
+      }
+    );
+  });
 });

@@ -14,58 +14,59 @@ registerAllModules();
 
 describe('`autoRowSize`/`autoColumns` warning', () => {
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
-    'is defined (using the default Handsontable settings - autoColumnSize is enabled by default)', async () => {
+    'is defined (using the default Handsontable settings - autoColumnSize is enabled by default)', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={RendererComponent}/>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={RendererComponent}/>
     ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
-    'is defined', async () => {
+    'is defined', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                autoRowSize={false}
-                autoColumnSize={true}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={RendererComponent}/>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        autoRowSize={false}
+        autoColumnSize={true}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={RendererComponent}/>
     ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
-  it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
-    'is defined for any column (using the default Handsontable settings - autoColumnSize enabled by default)', async () => {
+  it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a ' +
+    'component-based renderer is defined for any column (using the default Handsontable settings - ' +
+    'autoColumnSize enabled by default)', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
@@ -76,20 +77,20 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
-    'is defined for any column', async () => {
+    'is defined for any column', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                autoColumnSize={false}
-                autoRowSize={true}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        autoColumnSize={false}
+        autoRowSize={true}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
@@ -99,25 +100,25 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
-  it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async () => {
+  it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                autoRowSize={false}
-                autoColumnSize={true}
-                columns={function(columnIndex) {
-                  return {
-                    renderer: function() {}
-                  }
-                }}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        autoRowSize={false}
+        autoColumnSize={true}
+        columns={function(columnIndex) {
+          return {
+            renderer() {}
+          };
+        }}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn renderer={RendererComponent}/>
         <HotColumn/>
@@ -127,21 +128,21 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
-  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async () => {
+  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                autoRowSize={true}
-                autoColumnSize={false}
-                hotRenderer={function() {}}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        autoRowSize={true}
+        autoColumnSize={false}
+        hotRenderer={function() {}}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>
@@ -151,21 +152,21 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).not.toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
-  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async () => {
+  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                autoRowSize={true}
-                autoColumnSize={true}
-                columns={[{renderer: function() {}}]}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        autoRowSize={true}
+        autoColumnSize={true}
+        columns={[{ renderer() {} }]}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>
@@ -176,25 +177,25 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns, when ' +
-    'the `columns` option is defined as a function', async () => {
+    'the `columns` option is defined as a function', async() => {
     console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 3)}
-                width={300}
-                height={300}
-                autoRowSize={false}
-                autoColumnSize={true}
-                columns={function(columnIndex) {
-                  return {
-                    renderer: function() {}
-                  }
-                }}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 3)}
+        width={300}
+        height={300}
+        autoRowSize={false}
+        autoColumnSize={true}
+        columns={function(columnIndex) {
+          return {
+            renderer() {}
+          };
+        }}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}>
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>

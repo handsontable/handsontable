@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/test-runner';
+import { visualTest, expect, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import {
   rowsCount,
@@ -8,7 +8,16 @@ import {
   filterByCondition,
 } from '../../src/page-helpers';
 
-test('Test filtering', async({ tablePage }) => {
+/**
+ * Checks that filtering by value (Country: India) and then by condition (Sell date between two dates)
+ * renders the filtered rows and the header indicators. The row counts are asserted; the two captures show
+ * what the filters look like. Owned by DEV-2981.
+ */
+visualTest('Test filtering', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ tablePage }) => {
   expect(await rowsCount()).toBe(16);
 
   await openHeaderDropdownMenu('Country');

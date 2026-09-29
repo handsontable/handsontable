@@ -2989,6 +2989,11 @@ export class MergeCells extends BasePlugin {
     // site (`core.ts` `processChanges`, `applyChanges`).
     const column = this.hot.propToCol(prop as string | number);
 
+    // A property that names no column cannot sit inside a merge area.
+    if (column === null) {
+      return false;
+    }
+
     return this.mergedCellsCollection.get(row, column);
   }
 

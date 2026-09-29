@@ -380,6 +380,82 @@ describe('Core', () => {
 
     core.destroy();
   });
+
+  describe('getDataAtProp', () => {
+    it('should return the values of the column the property names', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(1)).toEqual(['b', 'e']);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for an index past the last column', () => {
+      const core = new Core(container, { data: [['a', 'b', 'c'], ['d', 'e', 'f']] });
+
+      core.init();
+
+      expect(core.getDataAtProp(99)).toEqual([]);
+      expect(core.getDataAtProp(-1)).toEqual([]);
+
+      core.destroy();
+    });
+
+    it('should return an empty array for a property name the data set does not use', () => {
+      const core = new Core(container, { data: [{ id: 1, name: 'x' }, { id: 2, name: 'y' }] });
+
+      core.init();
+
+      // The name is handed back unchanged rather than resolved to `null`, so it never reaches the
+      // "no column" early return.
+      expect(core.propToCol('missing')).toBe('missing');
+      expect(core.getDataAtProp('missing')).toEqual([]);
+      expect(core.getDataAtProp('name')).toEqual(['x', 'y']);
+
+      core.destroy();
+    });
+  });
+
+  describe('an unbound column (`{ data: null }`)', () => {
+    const settings = () => ({
+      data: [{ a: 'a0', b: 'b0', c: 'c0' }, { a: 'a1', b: 'b1', c: 'c1' }],
+      columns: [{ data: 'a' }, { data: null }, { data: 'b' }],
+    });
+
+    it('should keep its slot in `getSourceDataArray()`, so no other column moves', () => {
+      const core = new Core(container, settings());
+
+      core.init();
+
+      expect(core.getSourceDataArray()).toEqual([['a0', undefined, 'b0'], ['a1', undefined, 'b1']]);
+
+      core.destroy();
+    });
+
+    it('should read back an edit and run the `modifyData` hook for it', () => {
+      const writes = [];
+      const core = new Core(container, {
+        ...settings(),
+        modifyData(row, column, valueHolder, ioMode) {
+          if (ioMode === 'set') {
+            writes.push([row, column, valueHolder.value]);
+          }
+        },
+      });
+
+      core.init();
+      core.setDataAtCell(0, 1, 'x');
+
+      expect(core.getDataAtCell(0, 1)).toBe('x');
+      expect(core.getDataAtCell(0, 0)).toBe('a0');
+      expect(core.getDataAtCell(0, 2)).toBe('b0');
+      expect(writes).toEqual([[0, 1, 'x']]);
+
+      core.destroy();
+    });
+  });
 });
 
 describe('Core.setDataAtCell past the last column', () => {
@@ -388,8 +464,8 @@ describe('Core.setDataAtCell past the last column', () => {
 
   beforeEach(() => {
     container = document.createElement('div');
-    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
-    // assertions below would depend on the order the specs run in.
+    // The removal warning is recorded module-globally, so without this the warn-once assertion
+    // would depend on the order the specs run in.
     _resetDeprecationWarnings();
     warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
@@ -400,11 +476,11 @@ describe('Core.setDataAtCell past the last column', () => {
   });
 
   /**
-   * Collects every deprecation warning printed so far that mentions the last-column write.
+   * Collects every console warning printed so far that reports the removed write.
    *
    * @returns {Array} The matching `console.warn` messages.
    */
-  function pastLastColumnWarnings() {
+  function removalWarnings() {
     return warnSpy.mock.calls
       .map(args => String(args[0]))
       .filter(message => message.includes('past the last column of an object data source'));
@@ -424,24 +500,63 @@ describe('Core.setDataAtCell past the last column', () => {
     return core;
   }
 
-  it('should warn when the write lands past the last column of an object data source', () => {
+  it('should skip the write when it lands past the last column of an object data source', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: { id: null, name: null } });
 
     core.setDataAtCell(0, 2, 'x');
 
-    const warnings = pastLastColumnWarnings();
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('20.0.0');
-    expect(warnings[0]).toContain('setDataAtRowProp()');
-    // The write still stands while the behavior is only deprecated.
-    expect(data[0]).toEqual({ 2: 'x', id: 1, name: 'Ted Right' });
+    // The value would land on a literal `2` key beside the declared ones, which no column can
+    // display and every consumer serializing the row would then see (#5409).
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
 
     core.destroy();
   });
 
-  it('should warn for a `dataSchema` given as a function, which is object-rowed too', () => {
+  it('should warn once that the write was removed', () => {
+    const core = build({ data: [{ id: 1, name: 'Ted Right' }], dataSchema: { id: null, name: null } });
+
+    core.setDataAtCell(0, 2, 'x');
+    core.setDataAtCell(0, 3, 'y');
+
+    const warnings = removalWarnings();
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('removed in Handsontable 20.0.0');
+    expect(warnings[0]).toContain('setDataAtRowProp()');
+
+    core.destroy();
+  });
+
+  it('should still fire afterSetDataAtCell, with an empty array, when every change is skipped', () => {
+    const afterSetDataAtCell = jest.fn();
+    const core = build({
+      data: [{ id: 1, name: 'Ted Right' }],
+      dataSchema: { id: null, name: null },
+      afterSetDataAtCell,
+    });
+
+    core.setDataAtCell(0, 2, 'x', 'custom');
+
+    expect(afterSetDataAtCell).toHaveBeenCalledTimes(1);
+    expect(afterSetDataAtCell).toHaveBeenCalledWith([], 'custom');
+
+    core.destroy();
+  });
+
+  it('should drop an existing value that a `shift_right` paste pushes past the last column', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({ data, dataSchema: { id: null, name: null } });
+
+    core.populateFromArray(0, 0, [['Frank Honest']], undefined, undefined, 'populateFromArray', 'shift_right');
+
+    // `name` shifts onto the column past the last one, which an object data source cannot gain.
+    expect(data[0]).toEqual({ id: 'Frank Honest', name: 1 });
+
+    core.destroy();
+  });
+
+  it('should skip the write for a `dataSchema` given as a function, which is object-rowed too', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: () => ({ id: null, name: null }) });
 
@@ -450,49 +565,60 @@ describe('Core.setDataAtCell past the last column', () => {
     // A function `dataSchema` sets `dataType` to 'function', not 'object'. It is just as unable to
     // gain a column, so a predicate naming only 'object' would leave this case writing the key.
     expect(core.dataType).toBe('function');
-    expect(pastLastColumnWarnings()).toHaveLength(1);
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
 
     core.destroy();
   });
 
-  it('should warn only once across repeated writes', () => {
+  it('should report the skipped write to neither beforeChange nor afterChange', () => {
+    const seen = { before: [], after: [] };
     const core = build({
       data: [{ id: 1, name: 'Ted Right' }],
       dataSchema: { id: null, name: null },
+      beforeChange: changes => seen.before.push(changes),
+      afterChange: (changes, source) => {
+        if (source !== 'loadData') {
+          seen.after.push(changes);
+        }
+      },
     });
 
     core.setDataAtCell(0, 2, 'x');
-    core.setDataAtCell(0, 3, 'y');
 
-    expect(pastLastColumnWarnings()).toHaveLength(1);
+    // Reporting a change for a value the grid did not write would send an integrator syncing from
+    // either hook a property its own schema does not have.
+    expect(seen.before).toEqual([]);
+    expect(seen.after).toEqual([]);
 
     core.destroy();
   });
 
-  it('should not warn for an array data source, which can grow a column', () => {
+  it('should keep writing into an array data source, which can grow a column', () => {
     const core = build({ data: [['A1', 'B1']] });
 
     core.setDataAtCell(0, 2, 'x');
 
-    expect(pastLastColumnWarnings()).toHaveLength(0);
     expect(core.countCols()).toBe(3);
+    expect(core.getDataAtCell(0, 2)).toBe('x');
 
     core.destroy();
   });
 
-  it('should not warn for an array data source that sets the `columns` option', () => {
-    const core = build({ data: [['A1', 'B1']], columns: [{}, {}] });
+  it('should keep writing into an array data source that sets the `columns` option', () => {
+    const data = [['A1', 'B1']];
+    const core = build({ data, columns: [{}, {}] });
 
     core.setDataAtCell(0, 2, 'x');
 
     // No column is created here either, but the row is an array, so the index names a real array
-    // slot rather than a property no schema declared. Nothing is deprecated.
-    expect(pastLastColumnWarnings()).toHaveLength(0);
+    // slot rather than a property no schema declared. The write stands.
+    expect(data[0][2]).toBe('x');
+    expect(core.getDataAtCell(0, 2)).toBe('x');
 
     core.destroy();
   });
 
-  it('should not warn for a grid that declares no columns at all', () => {
+  it('should keep writing into a grid that declares no columns at all', () => {
     const core = build({ data: [] });
 
     core.setDataAtCell(0, 0, 'WRITE');
@@ -501,8 +627,125 @@ describe('Core.setDataAtCell past the last column', () => {
     // `countCols()` is 0 - so every index is "past the last column". Writing to such a grid is how
     // an empty dataset gets bootstrapped, and it is deliberately left alone.
     expect(core.dataType).toBe('object');
-    expect(pastLastColumnWarnings()).toHaveLength(0);
     expect(core.getDataAtCell(0, 0)).toBe('WRITE');
+
+    core.destroy();
+  });
+});
+
+describe('Core.spliceCol / Core.spliceRow deprecation', () => {
+  let container;
+  let warnSpy;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
+    // assertions below would depend on the order the specs run in.
+    _resetDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+    container.remove();
+  });
+
+  /**
+   * Collects every deprecation warning printed so far that mentions the given method name.
+   *
+   * @param {string} methodName The deprecated method's name (for example, `spliceCol`).
+   * @returns {Array} The matching `console.warn` messages.
+   */
+  function deprecationWarnings(methodName) {
+    return warnSpy.mock.calls
+      .map(args => String(args[0]))
+      .filter(message => message.includes(`\`${methodName}()\` method is deprecated`));
+  }
+
+  /**
+   * Builds and initializes a grid.
+   *
+   * @param {object} settings The grid settings.
+   * @returns {object} The initialized instance.
+   */
+  function build(settings) {
+    const core = new Core(container, { licenseKey: 'non-commercial-and-evaluation', ...settings });
+
+    core.init();
+
+    return core;
+  }
+
+  describe('spliceCol', () => {
+    it('should warn once no matter how many times it is called', () => {
+      const core = build({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
+
+      core.spliceCol(0, 0, 1);
+      core.spliceCol(0, 0, 1);
+      core.spliceCol(0, 0, 1);
+
+      const warnings = deprecationWarnings('spliceCol');
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
+
+      core.destroy();
+    });
+
+    it('should keep working - splice the column data and return the removed portion', () => {
+      const core = build({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
+
+      const removed = core.spliceCol(0, 0, 2);
+
+      expect(removed).toEqual(['A1', 'A2']);
+      expect(core.getDataAtCol(0)).toEqual(['A3', null, null]);
+
+      core.destroy();
+    });
+  });
+
+  describe('spliceRow', () => {
+    it('should warn once no matter how many times it is called', () => {
+      const core = build({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']] });
+
+      core.spliceRow(0, 0, 1);
+      core.spliceRow(0, 0, 1);
+      core.spliceRow(0, 0, 1);
+
+      const warnings = deprecationWarnings('spliceRow');
+
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toMatch(/^Deprecated: .*removed in Handsontable 20\.0\.0/);
+      // The replacement guidance is what makes the warning actionable, so pin it too.
+      expect(warnings[0]).toContain('populateFromArray()');
+      expect(warnings[0]).toContain('alter()');
+
+      core.destroy();
+    });
+
+    it('should keep working - splice the row data and return the removed portion', () => {
+      const core = build({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']] });
+
+      const removed = core.spliceRow(0, 0, 2);
+
+      expect(removed).toEqual(['A1', 'B1']);
+      expect(core.getDataAtRow(0)).toEqual(['C1', null, null]);
+
+      core.destroy();
+    });
+  });
+
+  it('should warn separately for each method', () => {
+    const core = build({ data: [['A1', 'B1'], ['A2', 'B2']] });
+
+    core.spliceCol(0, 0, 1);
+    core.spliceRow(0, 0, 1);
+
+    expect(deprecationWarnings('spliceCol')).toHaveLength(1);
+    expect(deprecationWarnings('spliceRow')).toHaveLength(1);
 
     core.destroy();
   });

@@ -76,7 +76,7 @@ class CollapsingUI extends BaseUI {
         this.lastCollapsedRows = this.collapsedRows.slice(0);
 
         // Workaround for wrong indexes being set in the trimRows plugin
-        this.expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
+        this.#expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
       },
       shiftStash: (baseIndex: number, targetIndex: number | null | undefined = undefined, delta = 1) => {
         const targetIdx = targetIndex === null || targetIndex === undefined ? Infinity : targetIndex;
@@ -88,7 +88,7 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: (forceRender = true) => {
-        this.collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
+        this.#collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender, true);
         this.lastCollapsedRows = undefined;
       },
       trimStash: (realElementIndex: number, amount: number) => {
@@ -112,6 +112,18 @@ class CollapsingUI extends BaseUI {
    * @returns {Array}
    */
   collapseChildren(row: number, forceRender = true, doTrimming = true): number[] {
+    return this.plugin.runOperation('collapse_rows', () => this.#collapseChildren(row, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `collapseChildren()`, run inside its undo step.
+   *
+   * @param {number|object} row The parent row.
+   * @param {boolean} forceRender Whether to render the table after the function ends.
+   * @param {boolean} doTrimming Whether collapsing should trim the rows.
+   * @returns {Array}
+   */
+  #collapseChildren(row: number, forceRender: boolean, doTrimming: boolean): number[] {
     const rowsToCollapse: number[] = [];
     let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
@@ -166,10 +178,21 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
   collapseMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    this.plugin.runOperation('collapse_rows', () => this.#collapseMultipleChildren(rows, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `collapseMultipleChildren()`, run inside its undo step.
+   *
+   * @param {Array} rows Rows to collapse (including their children).
+   * @param {boolean} forceRender `true` if the table should be rendered after finishing the function.
+   * @param {boolean} doTrimming Whether collapsing should trim the rows.
+   */
+  #collapseMultipleChildren(rows: number[] | RowObject[], forceRender: boolean, doTrimming: boolean) {
     const rowsToTrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToTrim.push(...this.collapseChildren(elem, false, false));
+      rowsToTrim.push(...this.#collapseChildren(elem, false, false));
     });
 
     if (doTrimming) {
@@ -318,6 +341,18 @@ class CollapsingUI extends BaseUI {
    * @returns {number[]}
    */
   expandChildren(row: number, forceRender = true, doTrimming = true): number[] {
+    return this.plugin.runOperation('expand_rows', () => this.#expandChildren(row, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `expandChildren()`, run inside its undo step.
+   *
+   * @param {number|object} row Parent row.
+   * @param {boolean} forceRender Whether to render the table after the function ends.
+   * @param {boolean} doTrimming Whether the rows should be untrimmed when the function finishes.
+   * @returns {number[]}
+   */
+  #expandChildren(row: number, forceRender: boolean, doTrimming: boolean): number[] {
     const rowsToExpand: number[] = [];
     let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
@@ -370,10 +405,21 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] `true` if the rows should be untrimmed after finishing the function.
    */
   expandMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    this.plugin.runOperation('expand_rows', () => this.#expandMultipleChildren(rows, forceRender, doTrimming));
+  }
+
+  /**
+   * The body of `expandMultipleChildren()`, run inside its undo step.
+   *
+   * @param {Array} rows Array of rows which children are about to be expanded.
+   * @param {boolean} forceRender `true` if the table should render after finishing the function.
+   * @param {boolean} doTrimming `true` if the rows should be untrimmed after finishing the function.
+   */
+  #expandMultipleChildren(rows: number[] | RowObject[], forceRender: boolean, doTrimming: boolean) {
     const rowsToUntrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToUntrim.push(...this.expandChildren(elem, false, false));
+      rowsToUntrim.push(...this.#expandChildren(elem, false, false));
     });
 
     if (doTrimming) {
@@ -522,9 +568,9 @@ class CollapsingUI extends BaseUI {
 
     if (actionPossible) {
       if (isCollapse) {
-        this.collapseMultipleChildren(parents, false, true);
+        this.#collapseMultipleChildren(parents, false, true);
       } else {
-        this.expandMultipleChildren(parents, false, true);
+        this.#expandMultipleChildren(parents, false, true);
       }
     }
 

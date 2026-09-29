@@ -30,10 +30,11 @@ To speed up the process of merging your changes, follow these rules:
     - `./wrappers/vue3/src/`
 7. **Ship a test with your change.** Every change to `handsontable/src/**` or `wrappers/**` must include a matching test change. This is not a courtesy — a **presence gate** enforces it on every PR (and locally, before you push). The *kind* of test follows the *kind* of change:
     - **User-visible** (rendering, editing, selection, keyboard, menus, overlays) → an **E2E** test. New E2E is **Playwright** (`tests/e2e/**/*.spec.ts`). The legacy Jasmine/Puppeteer `*.spec.js` suite is **frozen** — you may edit an existing spec, but **new `*.spec.js` files are blocked**; migrate a broken one to Playwright rather than patch it.
-    - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` in a `__tests__/` directory next to the source.
-    - **Public API / type surface** → a **type test**, `*.types.ts`.
-    - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → its own test runner (separate pipeline).
-    - **Pure refactor or non-runtime change** (types, docs, config, i18n text, re-exports) → no test required, but you must declare it with a `Refactor-only: <reason>` trailer in the commit message.
+    - **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, in addition to, never instead of the E2E test above — a screenshot proves pixels only; the rule is in `visual-tests/AGENTS.md` (Decision rule).
+    - **Logic / not user-visible** (data, indexing, algorithms, internal state) → a **Jest unit** test, `*.unit.js` or `*.unit.ts` in a `__tests__/` directory next to the source.
+    - **Public API / type surface** (an exported type, a `GridSettings` option, a wrapper prop or input) → a **type test**, `*.types.ts`, in the package whose types changed. React and Angular have no type-test harness yet, so declare a type change there (see the refactor bullet) until they do.
+    - **Rendering engine** (`handsontable/src/3rdparty/walkontable/`) → new behavior tests are Playwright, in `tests/e2e/walkontable/`. The engine's Jasmine specs (`test/spec/`) are frozen like the main suite and run in their own pipeline (`npm run test:walkontable`); its unit tests (`test/unit/`) are Jest and run with the core `npm run test:unit`.
+    - **Pure refactor or internal non-runtime change** (types no consumer imports, config, internal re-exports) → no test required, but you must declare it with a `Refactor-only: <reason>` trailer in the message of the commit that makes the change – a trailer covers only the files its own commit changes. If that commit is already pushed, write `[refactor-only: <reason>]` in the PR description instead, as plain text rather than code (a PR branch must not be force-pushed). Either way, the reason needs at least three words that say what the change is. A comment-only edit and a translation dictionary need no declaration.
 
     Your tests help us understand the issue and make sure it stays fixed forever. Write them to prove the *intended* behavior, ideally before the code — for a bug fix, write the failing test first, confirm it fails for the right reason, then fix it so it stays as a regression guard.
 8. Lint your code. From the root directory, run: `npm run lint`. Your code should follow our coding style, inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
@@ -75,14 +76,14 @@ Running `pnpm install` wires the git hooks (via [lefthook](https://github.com/ev
 
 `git ... --no-verify` bypasses the local hooks, but CI re-runs the same checks — so the bypass only defers the failure. Don't rely on it.
 
-**The meaningfulness bar (non-negotiable):** *green is not the goal — correct behavior is.* When a test is red, diagnose which side is wrong (the code or the test's expectation) and fix that side. Never reach green by weakening the test. These moves are banned and machine-detected:
+**The meaningfulness bar (non-negotiable):** *green is not the goal — correct behavior is.* When a test is red, diagnose which side is wrong (the code or the test's expectation) and fix that side. Never reach green by weakening the test. These moves are banned and, except where noted, machine-detected:
 
 - removing or loosening assertions,
 - `.skip` / `.only` / `xit` / `fit` / `it.flaky`,
-- an `it()` with no assertion,
+- an `it()` with no assertion (a lint warning in `handsontable/` only; nothing checks the Playwright suite for it),
 - fixed `sleep()` delays in place of waiting for a condition.
 
-**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), tick **"MANUAL QA NEEDED"** in the PR description (the template carries the line) and say in one line what to check. Also add the red **`Requires Manual QA`** label so the request is visible in the PR list. The Tests pipeline then holds its **`Manual QA / sign-off`** job until a designated reviewer approves the run (the **Review pending deployments** button on the workflow run) — the approver is recorded by GitHub, and self-approval is blocked. Unticked PRs skip the job. The box is read once per run, so if you tick or untick it after the pipeline has run, press **"Re-run all jobs"** to re-decide. This *adds* a recorded human pass — it never replaces the test requirement.
+**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), tick **"MANUAL QA NEEDED"** in the PR description (the template carries the line) and say in one line what to check. Also add the red **`Requires Manual QA`** label so the request is visible in the PR list. The Tests pipeline then holds its **`Manual QA / sign-off`** job until a designated reviewer approves the run (the **Review pending deployments** button on the workflow run) — the approver is recorded by GitHub. Self-approval is allowed, so the reviewer may be the author; the reasoning lives once in [`.ai/CI.md`](https://github.com/handsontable/handsontable/blob/develop/.ai/CI.md). Unticked PRs skip the job. The box is read once per run, so if you tick or untick it after the pipeline has run, press **"Re-run all jobs"** to re-decide. This *adds* a recorded human pass — it never replaces the test requirement.
 
 The full local rules live in [`.ai/LOCAL-ENFORCEMENT.md`](https://github.com/handsontable/handsontable/blob/develop/.ai/LOCAL-ENFORCEMENT.md); the test-kind decision rules in [`handsontable/.ai/TESTING.md`](https://github.com/handsontable/handsontable/blob/develop/handsontable/.ai/TESTING.md).
 

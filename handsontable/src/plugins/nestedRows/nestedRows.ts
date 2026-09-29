@@ -167,7 +167,10 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
-    this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
+    // `orderIndex: -1` puts the subtree expansion ahead of every default-order listener, so each of
+    // them reads the final removal list. At the default order a lower-priority plugin (Formulas, 260)
+    // saw the parent alone and removed only that row from HyperFormula. See `#onBeforeRemoveRow`.
+    this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow, -1);
     this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
     this.addHook('beforeAddChild', this.#onBeforeAddChild);
     this.addHook('afterAddChild', this.#onAfterAddChild);
@@ -176,7 +179,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
-    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData, 1);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
 
@@ -186,12 +189,21 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
+   *
+   * The header decoration is stripped last, after the hooks are gone. `afterGetRowHeader` is the
+   * only code that ever removes it, and Walkontable recycles `<th>` elements, so anything left in
+   * one once that hook is unregistered stays for the instance's life (DEV-2982). Stripping before
+   * the teardown would leave a window: `unregisterMap()` fires the public
+   * `afterRowSequenceCacheUpdate` hook, and a consumer rendering from it would re-decorate the
+   * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
     super.disablePlugin();
+
+    this.headersUI!.removeRenderedLevelIndicators();
   }
 
   /**
@@ -1036,6 +1048,11 @@ export class NestedRows extends BasePlugin {
    * node has the effect of removing its whole subtree, at every depth – removing the parent object from the
    * source array takes every descendant with it, so a descendant left out of this list would survive in the
    * index maps as a row with no data behind it.
+   *
+   * Registered with `orderIndex: -1`, so it runs before every default-order `beforeRemoveRow` listener. A
+   * listener that reads the list, or vetoes the removal based on it, has to see the whole subtree. Registration
+   * order alone cannot guarantee that: it follows `PLUGIN_PRIORITY`, and it changes when this plugin is enabled
+   * at runtime.
    *
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.

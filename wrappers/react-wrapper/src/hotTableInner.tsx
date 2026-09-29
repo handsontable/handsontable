@@ -8,6 +8,9 @@ import React, {
   forwardRef
 } from 'react';
 import Handsontable from 'handsontable/base';
+import PropTypes from 'prop-types';
+import { getRenderer } from 'handsontable/renderers/registry';
+import { getEditor } from 'handsontable/editors/registry';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
 import { HotColumn, isHotColumn } from './hotColumn';
@@ -27,11 +30,8 @@ import {
   useUpdateEffect,
   displayChildrenOfTypeWarning
 } from './helpers';
-import PropTypes from 'prop-types';
-import { getRenderer } from 'handsontable/renderers/registry';
-import { getEditor } from 'handsontable/editors/registry';
-import { useHotTableContext } from './hotTableContext'
-import { HotColumnContextProvider } from './hotColumnContext'
+import { useHotTableContext } from './hotTableContext';
+import { HotColumnContextProvider } from './hotColumnContext';
 import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
 const HotTableInner = forwardRef<
@@ -144,14 +144,16 @@ const HotTableInner = forwardRef<
   /**
    * Create a new settings object containing the column settings and global editors and renderers.
    *
+   * @param {boolean} init `true` when called during the initial mount.
+   * @param {HotTableProps} previousProps The component's props before the current update.
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
-  const createNewGlobalSettings = (init: boolean = false, prevProps: HotTableProps = {}): Handsontable.GridSettings => {
+  const createNewGlobalSettings = (init = false, previousProps: HotTableProps = {}): Handsontable.GridSettings => {
     const liveSettings = !isHotInstanceDestroyed() ? getHotInstance()?.getSettings() : undefined;
     const initOnlySettingKeys = (liveSettings as any)?._initOnlySettings || [];
     const newSettings = SettingsMapper.getSettings(
       props, {
-        prevProps,
+        prevProps: previousProps,
         isInit: init,
         initOnlySettingKeys,
         currentSettings: liveSettings
@@ -185,6 +187,8 @@ const HotTableInner = forwardRef<
 
   /**
    * Detect if `autoRowSize` or `autoColumnSize` is defined, and if so, throw an incompatibility warning.
+   *
+   * @param {Handsontable | null} hotInstance The Handsontable instance to check.
    */
   const displayAutoSizeWarning = (hotInstance: Handsontable | null): void => {
     if (
@@ -260,7 +264,7 @@ const HotTableInner = forwardRef<
       editorPortalHostRef.current?.remove();
       clearCache();
       getHotInstance()?.destroy();
-    }
+    };
   }, []);
 
   /**
@@ -309,9 +313,9 @@ const HotTableInner = forwardRef<
     .filter(isHotColumn)
     .map((childNode, columnIndex) => (
       <HotColumnContextProvider columnIndex={columnIndex}
-                                getOwnerDocument={getOwnerDocument}
-                                getEditorPortalHost={getEditorPortalHost}
-                                key={columnIndex}>
+        getOwnerDocument={getOwnerDocument}
+        getEditorPortalHost={getEditorPortalHost}
+        key={columnIndex}>
         {childNode}
       </HotColumnContextProvider>
     ));
@@ -330,7 +334,7 @@ const HotTableInner = forwardRef<
       </div>
       <RenderersPortalManager ref={context.setRenderersPortalManagerRef} />
       <EditorContextProvider hooksRef={globalEditorHooksRef}
-                             hotCustomEditorInstanceRef={globalEditorClassInstance}>
+        hotCustomEditorInstanceRef={globalEditorClassInstance}>
         {editorPortal}
       </EditorContextProvider>
     </Fragment>

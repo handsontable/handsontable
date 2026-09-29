@@ -400,11 +400,13 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
-
+    // The stack changes only once every `beforeRedo` listener accepts the step: a vetoed redo stays
+    // available, to be retried once the condition that vetoed it no longer applies.
     if (this.hot.runHooks('beforeRedo', step) === false) {
       return;
     }
+
+    this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
 
     const doneActionsCopy = this.doneActions.slice();
 
@@ -769,13 +771,14 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
-
     const actionClone = deepClone(pendingAction);
 
+    // As for a recorded step, a vetoed redo leaves the stack alone.
     if (this.hot.runHooks('beforeRedo', actionClone) === false) {
       return;
     }
+
+    this.#takeStep(this.undoneActions, 'beforeRedoStackChange', 'afterRedoStackChange');
 
     this.#ignoreNewActions = true;
 

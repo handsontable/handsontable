@@ -1,21 +1,25 @@
 ---
 name: visual-testing
 path: visual-tests/**
-description: Use when writing Playwright visual regression tests or creating visual test examples for Handsontable - covers the custom tablePage fixture, screenshot workflow, reg-suit comparison, and example creation in examples/next/docs/
+description: Use when writing Playwright visual regression tests or adding a demo route for one - covers the decision rule (what earns a capture, and that a visual spec is in addition to a Playwright assertion), the custom tablePage fixture, the screenshot workflow, reg-suit comparison, and the demo routes in examples/next/visual-tests/
 ---
 
 # Visual Regression Testing with Playwright
 
 ## Overview
 
-Visual tests live in `visual-tests/` and use Playwright with TypeScript. Screenshots are compared against golden records by reg-suit to detect visual regressions. There are two workflows: (a) add visual tests for existing examples, and (b) create a new example in `examples/next/docs/` and write visual tests for it.
+Visual tests live in `visual-tests/` and use Playwright with TypeScript. Screenshots are compared against golden records by reg-suit to detect visual regressions. There are two workflows: (a) add a visual test for a demo route that already exists, and (b) add a new `/<feature>-demo` route to the js demo in `examples/next/visual-tests/js/demo/` (the `creating-visual-test-examples` skill) and write a visual test for it. Nothing in the visual suite serves `examples/next/docs/` — that tree is the documentation examples.
+
+## Decision rule
+
+A screenshot proves pixels only. Capture one screenshot per distinct visual state, assert that state first, and keep the DOM and API facts (focus, selection, data, "the menu opened") as Playwright assertions in `tests/e2e` — a visual spec is in addition to, never instead of them. The canonical paragraph, the measured numbers behind it, and why a new feature gets its own demo route (and what that costs in wrapper coverage) are `visual-tests/AGENTS.md` → Decision rule. Read it before writing the spec.
 
 ## Custom Fixture: `tablePage`
 
-Import the custom test runner instead of the default Playwright `test`:
+Import the custom test runner instead of the default Playwright `test`. `visualTest` is how a spec registers, and a bare `test(` in a spec is a lint error:
 
 ```typescript
-import { test } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 ```
 
 The `tablePage` fixture (defined in `visual-tests/src/test-runner.ts`) automatically:
@@ -23,56 +27,82 @@ The `tablePage` fixture (defined in `visual-tests/src/test-runner.ts`) automatic
 1. Navigates to the demo page.
 2. Waits for the page to load and the table to appear.
 3. Disables CSS animations and transitions for consistent screenshots.
+4. Before every capture, waits out the scrollbar-clearance band and clears a stray native text selection — which is why an element capture is a clipped `tablePage.screenshot()`, never `locator.screenshot()`.
 
 The fixture provides a standard Playwright `Page` object, so all Playwright APIs work as expected.
 
 ## Test Naming
 
-Use `__filename` as the first argument to `test()`. The runner auto-generates the test title from the file path. File names should be kebab-case and describe what is being tested (e.g., `apply-active-class-name-nested-header.spec.ts`).
+Use `__filename` as the first argument. The runner auto-generates the test title from the file path. File names should be kebab-case and describe the visual state being captured (e.g., `apply-active-class-name-nested-header.spec.ts`).
 
 ## Screenshot Workflow
 
-Every test follows this pattern: perform setup/actions, then capture a screenshot. You can take multiple screenshots per test.
+Every test follows this pattern: reach a visual state, assert it, capture it once. A second capture is a second visual state, never a second angle on the same one.
 
 ```typescript
-import { test } from '../../../src/test-runner';
+import { visualTest, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
-test(__filename, async({ tablePage }) => {
+/**
+ * Checks that the focused cell renders its current-cell highlight. Owned by DEV-<number>.
+ */
+visualTest(__filename, {
+  themes: ['main', 'main-dark'],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ tablePage }) => {
   const cell = await selectCell(0, 2);
+
+  // One visual state: the focused cell. Assert it before the capture — a screenshot on the line
+  // after `click()` records whichever half of the transition the runner reached.
   await cell.click();
+  await expect(cell).toHaveClass(/current/);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
 ```
+
+Every test call carries a docblock that says what its capture proves and names the ticket that owns it — a ClickUp ID in the `DEV-`, `PRO-` or `SU-` space, or a GitHub issue of four or more digits as `#12345`. Both halves are lint errors when missing (`jsdoc/require-jsdoc`, `jsdoc/require-description`, `jsdoc/match-description`), and `DEV-<number>` above is deliberately a placeholder the lint rejects, so a copy of the example fails until it names a real owner. The assertion before the capture is a lint error too when it is missing: a capture on the statement straight after a click, a key press, or any other pointer or keyboard action is reported at the capture.
 
 Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 
+The `visualTest()` declaration names the variants the spec renders on, and the golden set is the sum of every spec's declaration intersected with the tier. The shape above is the default for a new spec — two themes, one browser, no wrapper — and it is the one to start from: it costs two goldens per capture rather than the five every spec written before the declaration costs. Add `CLASSIC` to `themes` when the spec is about the bare delivery path (where the core inlines the main theme stylesheet), a `horizon` theme when the pixels being judged are theme tokens rather than geometry, and a wrapper only with a `wrappersReason` saying what the wrapper render proves that the js render does not — each wrapper is one more golden per capture. Go below the default, to `themes: ['main']` alone, only for a look check whose behavior a functional test asserts on every theme: name that `tests/e2e` spec (or the Jasmine spec under `handsontable/src`) in the docblock, in backticks, and the declaration sweep checks that the file exists. The tooling reads either layout, but write one key per line as the example does: the default on a single line is 121 characters, one over the package's `max-len`, so a spec that inlines it fails lint even though the declaration is correct. `visual-tests/AGENTS.md` → Variant declaration has the axes and the two invariants.
+
 ## Test Organization
 
-- `visual-tests/tests/js-only/` -- Tests that run only against the vanilla JS examples.
-- `visual-tests/tests/multi-frameworks/` -- Tests that run against JS, React, Angular, and Vue examples.
-- `visual-tests/tests/cross-browser/` -- Tests that verify cross-browser rendering consistency.
+- `visual-tests/tests/js-only/` -- Tests that run only against the vanilla JS demo, usually on their own `/<feature>-demo` route.
+- `visual-tests/tests/multi-frameworks/` -- Tests that run against the JS, React, Angular, and Vue demos. They photograph the shared `/` grid and never navigate.
+- `visual-tests/tests/cross-browser/` -- Tests that verify rendering on Chromium, Firefox, and WebKit.
 
-Use `test.skip(helpers.hotWrapper !== 'js', '...')` to restrict a test to a specific framework.
+The directory decides which Playwright config runs the spec; the declaration decides which variants it renders inside that config. `wrappers: []` keeps a spec off the wrapper baselines, a non-empty `wrappers` list needs a `wrappersReason`, and `browsers` only ever names more than `chromium` under `cross-browser/`. A spec never calls `test.skip()` to scope itself — that is a lint error, and `visualTest()` emits the skip from the declaration instead.
 
 ## Navigating to Custom Pages
 
-For tests targeting a specific example (not the default demo), use the `goto` fixture:
+For tests targeting a specific demo route (not the default `/` grid), use the `goto` fixture:
 
 ```typescript
-test(__filename, async({ goto, tablePage }) => {
+/**
+ * Checks that the my-feature demo renders its grid. Owned by DEV-<number>.
+ */
+visualTest(__filename, {
+  themes: ['main', 'main-dark'],
+  browsers: ['chromium'],
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto(
-    helpers.setBaseUrl('/my-custom-demo').getFullUrl()
+    helpers.setBaseUrl('/my-feature-demo').getFullUrl()
   );
+  await expect(tablePage.locator(helpers.selectors.mainTable)).toBeVisible();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
 ```
 
+A route exists on the js demo only (the wrapper demos serve `/`; react and angular also serve `/scenario-grid`, and no spec navigates there), so a spec that navigates is js-only by construction. The trade-off for wrapper coverage is in the decision rule.
+
 ## Available Helpers
 
-- **`visual-tests/src/helpers.ts`** -- `screenshotPath()`, `selectors` (CSS selectors for table parts), `findCell()`, `cssPath()`.
-- **`visual-tests/src/page-helpers.ts`** -- `selectCell()`, `openEditor()`, `openContextMenu()`, `createSelection()`, `openHeaderDropdownMenu()`, `filterByValue()`, `filterByCondition()`, `scrollTableToTheBottom()`, `takeScreenshot()`, and more.
+- **`visual-tests/src/helpers.ts`** -- `screenshotPath()`, `selectors` (CSS selectors for table parts), `findCell()`, `cssPath()`, `setBaseUrl()` / `getFullUrl()`.
+- **`visual-tests/src/page-helpers.ts`** -- `selectCell()`, `openEditor()`, `openContextMenu()`, `createSelection()`, `openHeaderDropdownMenu()`, `filterByValue()`, `filterByCondition()`, `scrollTableToTheBottom()`, and more. Capture through `tablePage.screenshot({ path: helpers.screenshotPath() })`; that is the one capture form.
 
 ## Running Tests
 
@@ -84,24 +114,21 @@ Check `visual-tests/package.json` for available scripts. Configuration files:
 What CI renders depends on the tier (`VISUAL_TIERS` in `visual-tests/src/config.mjs`; the reasoning and the measured numbers are in `visual-tests/AGENTS.md`, Tiers):
 
 - A pull request renders the `pr` tier: the vanilla JS specs on Chromium with the `main` and `main-dark` themes, plus a wrapper only when that wrapper's own `wrappers/<pkg>/` tree changed. No horizon themes, no bare "classic" run, no Firefox or WebKit.
-- Horizon, the classic delivery path, Firefox, and WebKit are rendered by the develop seed (`visual-seed.yml`) minutes after a merge; when the merge changed any of them, the seed comments the list on the merged pull request, and those renders become the golden records. The wrappers are rendered for real only by the weekday nightly (`visual-nightly.yml`; the seed copies the js render into their goldens), which goes red on any difference from the seed — a wrapper drifting from js, a flaky or poisoned golden, or a commit whose seed never landed. A theme-only regression shows in the seed's comment, never as a red nightly.
+- Horizon, the classic delivery path, Firefox, and WebKit are rendered by the develop seed (`visual-seed.yml`) minutes after a merge; when the merge changed any of them, the seed comments the list on the merged pull request, and those renders become the golden records. The wrappers are rendered for real only by the weekday nightly (`visual-nightly.yml`; the seed copies the js render into their goldens), which goes red on any difference from the seed outside the visual quarantine (`visual-tests/visual-quarantine.json`) — a wrapper drifting from js, a flaky or poisoned golden, or a commit whose seed never landed. A theme-only regression shows in the seed's comment, never as a red nightly.
 - A pull request that touches `visual-tests/**` or `examples/next/visual-tests/**` renders everything (the `full` tier), so a spec or demo change is proven on every variant before it merges.
-- Locally, `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` (from `visual-tests/`) renders what a pull request renders and skips the wrapper installs; pass the same `VISUAL_TIER=pr` to `npm run compare`. A bare `npm run test` on a feature branch still renders everything.
+- Locally, `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` (from `visual-tests/`) renders what a pull request renders and skips the wrapper installs; pass the same `VISUAL_TIER=pr` to `npm run compare`. A bare `npm run test` on a feature branch still renders everything. Running a visual spec is never a git or agent hook — the enforcement map in `.ai/LOCAL-ENFORCEMENT.md` says why.
 
-## Example Structure
+## Demo Routes
 
-When creating a new example at `examples/next/docs/js/demo/`, include:
-
-- `index.html` -- HTML entry point.
-- `package.json` -- Dependencies (Handsontable, Vite).
-- `vite.config.js` -- Vite configuration.
-- `src/` -- Source files for the example.
-- `spec/` -- Spec metadata for the example.
+A new feature gets its own `/<feature>-demo` route on the js demo's Navigo router (`examples/next/visual-tests/js/demo/src/index.js`) backed by a `src/demos/<feature>/` module — the `creating-visual-test-examples` skill has the structure. Never extend the shared `/` grid: every spec that photographs it re-captures on every variant, and its config must stay identical across all four framework demos.
 
 ## Common Mistakes
 
 - Not using `helpers.screenshotPath()` -- breaks screenshot matching, which is purely path-based.
-- Forgetting to wait for animations or async rendering before taking a screenshot.
+- Capturing on the statement after `click()` / `press()` / `type()` (or any pointer or keyboard action) with nothing asserted in between -- a lint error, because the golden records whichever half of the transition the runner reached. Assert the state first (`toBeFocused()`, `toBeVisible()`, `toBeHidden()`, `toHaveClass()`); the Determinism section of `visual-tests/AGENTS.md` lists the shapes that have flaked. A page helper call in between silences the lint whether or not the helper asserts, so check that it does: 25 of the 48 exported helpers in `src/page-helpers.ts` call a pointer or keyboard action and no `expect()` or wait (2026-09-23).
+- A test call with no docblock, or a docblock that names no ticket -- a lint error. Say what the capture proves and who owns it.
+- A second screenshot of the same visual state -- one capture per state; a second capture is a second state.
+- `locator.screenshot()` -- a lint error; it bypasses the fixture's settle and selection clear. Clip a `tablePage.screenshot()` instead.
+- A fixed delay (`waitForTimeout()`, `setTimeout`) -- a lint error; wait for the condition.
 - Placing JS-only tests in `multi-frameworks/` or vice versa.
-- Not disabling animations -- the `tablePage` fixture handles this, but if you use `goto` to navigate to a different page, animations are still disabled automatically by the fixture.
-- Taking screenshots before the table is fully rendered -- `tablePage` waits for the table, but dynamic content (menus, dropdowns) may need explicit waits.
+- Adding a feature to the shared `/` demo instead of its own route.

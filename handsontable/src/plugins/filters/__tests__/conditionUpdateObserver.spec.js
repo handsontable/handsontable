@@ -132,7 +132,7 @@ describe('ConditionUpdateObserver', () => {
       filtersPlugin.addCondition(2, 'by_value', [['C1', 'C2', 'C3']]);
       filtersPlugin.filter();
 
-      const dataMapSpy = spyOn(filtersPlugin, 'getDataMapAtColumn').and.callThrough();
+      const dataMapSpy = spyOn(filtersPlugin, '_readColumn').and.callThrough();
 
       // updating the first filtered column refreshes both its own state and the dependent
       // column's state - without memoization column 1 would be fully re-read for each
@@ -163,7 +163,7 @@ describe('ConditionUpdateObserver', () => {
       const filtersPlugin = getPlugin('filters');
       const conditionObserver = filtersPlugin.conditionUpdateObserver;
 
-      const dataMapSpy = spyOn(filtersPlugin, 'getDataMapAtColumn').and.callThrough();
+      const dataMapSpy = spyOn(filtersPlugin, '_readColumn').and.callThrough();
 
       conditionObserver.groupChanges();
       conditionObserver.conditionCollection.addCondition(1, { name: 'by_value', args: [['B1', 'B2']] });

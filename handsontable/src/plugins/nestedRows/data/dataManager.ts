@@ -966,9 +966,10 @@ class DataManager {
    *
    * @param {object|Array} elements Row object or an array of selected coordinates.
    * @param {boolean} [forceRender=true] If true (default), it triggers render after finished.
+   * @param {string} [source] Source emitted with the row mutation hooks.
    */
-  detachFromParent(elements: RowObject | number[], forceRender = true) {
-    this.plugin.runOperation('detach_child', () => this.#detachFromParent(elements, forceRender));
+  detachFromParent(elements: RowObject | number[], forceRender = true, source = this.plugin.pluginName) {
+    this.plugin.runOperation('nested_rows_detach', () => this.#detachFromParent(elements, forceRender, source));
   }
 
   /**
@@ -976,8 +977,9 @@ class DataManager {
    *
    * @param {object|Array} elements Row object or an array of selected coordinates.
    * @param {boolean} forceRender If true, it triggers render after finished.
+   * @param {string|null} source Source emitted with the row mutation hooks.
    */
-  #detachFromParent(elements: RowObject | number[], forceRender: boolean) {
+  #detachFromParent(elements: RowObject | number[], forceRender: boolean, source: string | null) {
     let element: RowObject | null = null;
     const rowObjects: (RowObject | null | undefined)[] = [];
 
@@ -992,7 +994,7 @@ class DataManager {
         const rowObj = rowObjects[i];
 
         if (rowObj !== null && rowObj !== undefined) {
-          this.detachFromParent(rowObj, false);
+          this.detachFromParent(rowObj, false, source);
         }
       });
 
@@ -1021,7 +1023,7 @@ class DataManager {
     // condition, free to drift away from the one the data operation is gated on.
     let hasMovedTheRow = false;
 
-    this.hot.runHooks('beforeDetachChild', parent, element);
+    this.hot.runHooks('beforeDetachChild', parent, element, source);
 
     if (indexWithinParent !== null && indexWithinParent !== undefined) {
       const removedRowIndexes = Array.from(
@@ -1033,7 +1035,7 @@ class DataManager {
         childRowIndex,
         childCount + 1,
         removedRowIndexes,
-        this.plugin.pluginName
+        source
       );
 
       parent!.__children!.splice(indexWithinParent, 1);
@@ -1045,7 +1047,7 @@ class DataManager {
         childRowIndex,
         childCount + 1,
         removedRowIndexes,
-        this.plugin.pluginName
+        source
       );
 
       if (grandparent) {
@@ -1054,13 +1056,13 @@ class DataManager {
         const lastGrandparentChild = this.getChild(grandparent, this.countChildren(grandparent) - 1);
         const lastGrandparentChildIndex = this.getRowIndex(lastGrandparentChild) ?? 0;
 
-        this.hot.runHooks('beforeCreateRow', lastGrandparentChildIndex + 1, childCount + 1, this.plugin.pluginName);
+        this.hot.runHooks('beforeCreateRow', lastGrandparentChildIndex + 1, childCount + 1, source);
 
         grandparent.__children!.push(element);
 
       } else {
         movedElementRowIndex = this.hot.countRows() + 1;
-        this.hot.runHooks('beforeCreateRow', movedElementRowIndex - 2, childCount + 1, this.plugin.pluginName);
+        this.hot.runHooks('beforeCreateRow', movedElementRowIndex - 2, childCount + 1, source);
 
         this.data!.push(element);
       }
@@ -1077,9 +1079,9 @@ class DataManager {
       this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
     }
 
-    this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, this.plugin.pluginName);
+    this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, source);
 
-    this.hot.runHooks('afterDetachChild', parent, element, this.getRowIndex(element));
+    this.hot.runHooks('afterDetachChild', parent, element, this.getRowIndex(element), source);
 
     if (forceRender) {
       this.hot.render();

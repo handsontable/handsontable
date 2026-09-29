@@ -418,6 +418,7 @@ react:
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
+addedIn: "17.0.0"         # Optional; version that introduced the feature -- see rule below
 ---
 ```
 
@@ -426,6 +427,7 @@ menuTag: new | updated    # Optional; sidebar badge -- see rule below
 - `description` is used in SEO meta and link previews -- make it specific and accurate.
 - `tags` must be lowercase kebab-case.
 - `menuTag` controls the sidebar badge. Set `menuTag: new` when you add a new page, and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes -- typos, snippet/link corrections -- and for changelog and migration-guide pages. Existing tags are refreshed by hand for releases (for example, the RELEASE-631 batch), so leave any existing tag in place.
+- `addedIn` names the Handsontable version that introduced the feature the page documents, as a quoted `"MAJOR.MINOR.PATCH"` string. It renders an "Added in Handsontable X.Y.Z" badge next to the title and writes the same sentence under the H1 of the page's Markdown and llms outputs, so readers and LLMs can tell whether their version has the feature. Set it when the page documents a feature introduced in 14.0.0 or later (the changelog's "Added" entry or the option's `@since` tag is the source); a page without it documents a feature available in every version this site serves. Do not set it on recipes, on pages that are new but describe an old feature, or for a feature that is one section of an older page. `npm run build` runs `docs:validate-added-in`, which rejects unquoted values (YAML reads `17.0` as the number 17) and versions that were never released.
 
 ---
 
@@ -559,6 +561,7 @@ Copy and complete this checklist in your PR description:
 - [ ] How-tos have a "Result" section
 - [ ] New page registered in `content/guides/sidebar.js`
 - [ ] `menuTag: new` set on new pages / `menuTag: updated` set on substantively changed pages (omit for trivial fixes, changelogs, and migration guides)
+- [ ] `addedIn: "X.Y.Z"` set when the page documents a feature introduced in 14.0.0 or later (see 2.6)
 - [ ] Microsoft trademark disclaimer added where "Excel" is mentioned
 - [ ] TypeScript example exists; JS generated via `npm run docs:code-examples:generate-js`
 - [ ] `[skip changelog]` in PR body (docs changes don't need changelog entries)
@@ -666,11 +669,19 @@ Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mj
 
 `reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, for one - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
 
-The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Two phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs` and `chunkLoadFailures` in the `beforeSend` hook. `src/scripts/docs-assistant-bootstrap.ts` keeps no list and no reload of its own - its imports go through Vite's preload helper, so the `Head.astro` guard reloads for it, and a second guard reloaded twice per failure. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other engines.
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+One exception is fixable in our code: a frozen Astro image (>= 17.1) whose URLs miss the version segment - for example Vite's preload helper asking for `/docs/_astro/*.css` instead of `/docs/17.1/_astro/*.css` ("Unable to preload CSS", HANDSONTABLE-DOCS-22T). Fix it at assemble time in `deploy/rewriteVersionedPaths.mjs`, which post-processes each frozen build before deploy (see `README-DEPLOYMENT.md`), not in `Head.astro` or `beforeSend` - neither ever reaches a frozen image.
+
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks. `prod-docs/18.1` carries `sentryOnLoad` and the `Head.astro` guards, but only in the version that was last cherry-picked there, so a rule added on `develop` is inert in production until its own cherry-pick lands - say so when reporting that a filter is done.
+
+**Never cancel a `vite:preloadError` for a failed `import()`.** Vite fires that event both for a CSS preload failure and for a rejected `import()` (`baseModule().catch(handlePreloadError)` in its preload helper), and a cancelled event makes the helper *return* instead of throw - so the import resolves to `undefined` and the caller crashes on `.default` (Sentry HANDSONTABLE-DOCS-24F, -24P, -246). The reload guard in `Head.astro` cancels only payloads starting `Unable to preload CSS`, where the module itself still loads; every other failure reloads but keeps rejecting, so the chunk-load filters above see it.
+
+Errors raised entirely inside Google Tag Manager (every frame `gtm.js`, `gtag/js`, or `<anonymous>` - the code a Custom HTML tag injects) come from tags in the externally managed GTM container that call globals the docs never load (`jQuery`, `$`, `_cio`, `ym`, ...). `beforeSend` drops them only when at least one frame is a real `gtm.js`/`gtag/js` frame - an all-`<anonymous>` stack has no owner and stays visible. The real fix is in the GTM container. One first-party frame keeps the event.
+
+`beforeSend` also drops every `Script error.` (Sentry HANDSONTABLE-DOCS-24A, -245, -247): the browser strips message, file, and stack from an error thrown by a cross-origin script loaded without CORS, so the report cannot be attributed.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 
@@ -690,6 +701,8 @@ To patch such an element, intercept `customElements.define` in an `is:inline` he
 Wrapping after `super()` works because the base constructor only *schedules* the method through `requestIdleCallback`, and that callback reads `this.init` when it fires.
 
 The install does not need a re-entry flag today. The site does not use `<ClientRouter />`, and Astro's swap logic keys executed scripts by `textContent` (`detectScriptExecuted()` in `astro/dist/transitions/swap-functions.js`), so an unchanged inline head script never runs twice. Add one if either of those stops holding.
+
+The patched `define` returns early when the name is already registered, so a second evaluation of a module that registers an element is a no-op instead of a `NotSupportedError` (Sentry HANDSONTABLE-DOCS-22D). This applies to every name, not only the guarded tags.
 
 The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
 

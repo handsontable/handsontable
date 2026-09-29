@@ -84,3 +84,10 @@ jobs:
       - uses: ./.github/actions/setup-workspace
       - name: Lint
         run: npm run in visual-tests lint
+      # The lint config's own self-test: the capture-adjacency and spec docblock
+      # rules run through ESLint on fixtures, because a selector esquery cannot
+      # use matches nothing and lints green. It imports `eslint`, so it cannot join
+      # the root `test:tooling` glob (that job installs nothing); this job has the
+      # workspace installed and runs whenever the visual-tests scope changed.
+      - name: Lint config self-test
+        run: npm run in visual-tests test:lint-config

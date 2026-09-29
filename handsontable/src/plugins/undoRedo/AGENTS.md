@@ -53,7 +53,9 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
 2. **A reshaped source (NestedRows)** is put back by reference from the plugin's
    `captureSourceStructure()`, after `beforeCreateRow`/`beforeRemoveRow` were asked about the rows it
    adds and removes (they do not go through `alter()`). Its row entries then move the cell meta rows
-   only, and `afterCreateRow`/`afterRemoveRow` report them.
+   only, and `afterCreateRow`/`afterRemoveRow` report them. Its cell writes are mapped to the restored
+   shape's rows (`createRestoredShapeRowMapper()`), because the shape jumps to the end state in one go
+   while each write addresses the rows as they were when it was recorded.
 3. **The journal**, backwards for undo, forwards for redo. Cell writes go through
    `setSourceDataAtCell` with the `UndoRedo.*` source: no `beforeChange`, no validator gate, no
    `valueSetter` translation (the values are stored values), and `sourceDataValidator` is skipped.
@@ -85,7 +87,9 @@ the visible ones are re-validated, and the selection is put back for the step ty
   a row removal in the same step addresses rows as they were after the removal. Anything that reports
   restored cells must map them with `restoredCells.ts` (reverse the earlier structural entries for an
   undo, apply the later ones for a redo). Reading `op.physicalRow` against the final maps reports the
-  wrong row - that is how a restored row was validated twice.
+  wrong row - that is how a restored row was validated twice. A restore of a reshaped source WRITES
+  through the same mapping (`toFinalIndex()`): without it, the formula text Formulas rewrites when a
+  nested parent is removed was written back onto the last child of the restored parent.
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
   `beforeRedo` are the veto points. The row and column create/remove hooks DO fire, because the replay
@@ -118,6 +122,11 @@ the visible ones are re-validated, and the selection is put back for the step ty
 - **A replayed insertion can land in part** (`maxRows` clamps it). `alterRuns()` takes the rows that
   did land out again before it reverts the earlier runs. A removal that lands in part cannot be taken
   back - its rows are gone.
+- **A menu item that writes cell meta over a selection groups it into one operation.** The context
+  menu's **Read only** item runs one `read_only_toggle` operation, so one undo step reverts the whole
+  selection, and it still fires the public `beforeReadOnlyToggle` hook with its `stateBefore` snapshot
+  (DEV-136). The comment items do the same. Without the operation every `setCellMeta()` would be a
+  step of its own.
 - **A write that must not become a step runs under `operationScope.suppress()`.** The Comments
   editor's box size is the example: its resize observer reports every frame of a drag. A write left
   outside any operation is not enough - the core entry points (`setCellMeta`) open one themselves.
@@ -158,9 +167,10 @@ runs the old callback protocol (`#undoCustomAction`), including `canUndo`/`canRe
 
 ## Known gaps
 
-- A multi-operation step on a NestedRows grid (a `batch()` with a row change and edits) replays its
-  cell writes against the restored tree shape, so an edit recorded after a row change can land one row
-  off.
+- A multi-operation step on a NestedRows grid that MOVES rows (a detach, a row move) and edits cells
+  can put an edit on another row. The cell writes are mapped to the restored tree shape through the
+  step's `insertRows`/`removeRows` entries only; a move is journaled as `metaRows` entries, which
+  `spliceCellsMeta()` also records for a meta-only shift, so they cannot be read as data moves.
 - The index maps of a structural step are restored from its snapshot, so a trim or hide made outside
   any step after the step is lost on undo.
 - While a Formulas grid is sorted or moved, every step that writes data re-serializes the engine sheet

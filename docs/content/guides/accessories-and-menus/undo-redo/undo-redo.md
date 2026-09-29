@@ -99,6 +99,7 @@ The tracked actions include:
 - [Moving rows](@/guides/rows/row-moving/row-moving.md), [moving columns](@/guides/columns/column-moving/column-moving.md), and moving cells, when the [`moveCells`](@/api/options.md#movecells) option is enabled.
 - Merging and unmerging cells, and changing cell alignment.
 - Cell metadata written with [`setCellMeta()`](@/api/core.md#setcellmeta) or [`removeCellMeta()`](@/api/core.md#removecellmeta), for example a `className` or a `readOnly` flag.
+- Making cells read-only or writable through the **Read only** item of the context menu or the column menu. The whole selection is one step.
 - [Hiding and showing rows](@/guides/rows/row-hiding/row-hiding.md) and [columns](@/guides/columns/column-hiding/column-hiding.md), and [trimming rows](@/guides/rows/row-trimming/row-trimming.md).
 - [Resizing rows](@/guides/rows/row-height/row-height.md) and [columns](@/guides/columns/column-width/column-width.md), through the API or by dragging a header. A whole drag is one step.
 - [Freezing and unfreezing columns](@/guides/columns/column-freezing/column-freezing.md).
@@ -269,7 +270,7 @@ The following changes are not recorded:
 Two more behaviors to plan for:
 
 - An undo of an action that inserted or removed rows or columns puts back the hidden, trimmed, and ordered rows and columns as they were when the action ran. A hide or a trim applied with `updateSettings()` after that action is lost on the undo.
-- In a [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) grid, a `batch()` that both inserts or removes rows and edits cells can put an edit one row off when you undo it.
+- In a [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) grid, a `batch()` that both moves or detaches rows and edits cells can put an edit on another row when you undo it.
 
 ## Related keyboard shortcuts
 

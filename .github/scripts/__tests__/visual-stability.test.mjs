@@ -5,16 +5,16 @@ import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
 // The stability matrix is the acceptance instrument for visual-suite flakes: it
-// renders one commit on N runners and reports what differed. Two properties make
-// it safe to dispatch from any branch without a fork guard, and both are the kind
-// that erode silently:
+// renders one commit on N runners and reports what differed, on a dispatch and
+// every weekday night. Two properties make it safe to run from any branch without
+// a fork guard, and both are the kind that erode silently:
 //
-//   1. it must stay credential-free and write nothing: no secret, no comment, no
-//      label, no publish — the verdict goes to the job summary only. The moment a
-//      step writes through the API it needs the canonical fork guard and a place
-//      in fork-guards.test.mjs;
-//   2. it must stay a probe, not a second suite: only the spec groups under
-//      investigation render, or a dispatch costs ten full renders.
+//   1. it writes nothing and reads one secret, the Slack webhook, in the `notify`
+//      job alone: no comment, no label, no publish, and the verdict goes to the job
+//      summary. The moment a step writes through the API it needs the canonical
+//      fork guard and a place in fork-guards.test.mjs;
+//   2. it stays a probe, not a second suite: by default only the spec groups under
+//      investigation render, and `scope: full` is a dispatch-only widening.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.
@@ -23,21 +23,62 @@ const root = repoRoot();
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const workflow = read('.github/workflows/visual-stability.yml');
 
-test('the stability matrix is dispatch-only and reads nothing but the repository', () => {
-  assert.match(workflow, /^on:\n  workflow_dispatch:/m, 'the matrix must be dispatch-only');
-  assert.doesNotMatch(workflow, /^\s+(push|pull_request|schedule):/m, 'a scheduled or event-driven '
-    + 'trigger turns the probe into a suite; the nightly full render is a separate workflow');
+test('the stability matrix runs on weekday nights and on demand, and never on an event', () => {
+  // The nightly catches drift (one render against the baseline); this catches noise (runners against each
+  // other). They run on the same nights so a flake and a drift seen the same morning can be told apart —
+  // thirty minutes apart, so they do not contend for runner slots at the same instant.
+  assert.match(workflow, /^on:\n {2}schedule:\n(?:\s+#.*\n)*\s+- cron: '30 2 \* \* 2-6'\n {2}workflow_dispatch:/m,
+    'the matrix runs at 02:30 UTC Tue–Sat, thirty minutes after the nightly, and on demand');
+  assert.match(read('.github/workflows/visual-nightly.yml'), /- cron: '0 2 \* \* 2-6'/,
+    'the nightly moved; move this schedule with it so the two still share their nights');
+  assert.doesNotMatch(workflow, /^\s+(push|pull_request|pull_request_target|workflow_run):/m,
+    'an event-driven trigger turns the probe into a per-change suite');
+});
+
+test('a scheduled run falls back for every input a schedule does not carry', () => {
+  // A schedule has no inputs. Without a fallback the iteration gate compares against an empty string (a
+  // bash error on every iteration, so nothing renders) and the themed pass runs with no theme at all.
+  assert.match(workflow, /ITERATIONS: \$\{\{ inputs\.iterations \|\| '3' \}\}/);
+  assert.match(workflow, /HOT_THEME_UNDER_TEST: \$\{\{ inputs\.theme \|\| 'main-dark' \}\}/);
+  assert.match(workflow, /SCOPE: \$\{\{ inputs\.scope \|\| 'investigation' \}\}/);
+  assert.doesNotMatch(workflow.replace(/\$\{\{ inputs\.\w+ \|\| '[^']*' \}\}/g, ''), /inputs\.\w+/,
+    'every read of an input carries a fallback');
+  // The dispatch keeps the DEV-2797 acceptance count of ten. Sliced to the input and matched flat: a
+  // pattern spanning the lines between would be the ambiguous `(?:\s+.*\n)*?` shape this file already
+  // had to remove once (CodeQL js/redos).
+  const iterationsAt = workflow.indexOf('      iterations:\n');
+  const themeAt = workflow.indexOf('      theme:\n', iterationsAt);
+
+  assert.ok(iterationsAt > -1 && themeAt > iterationsAt, 'the dispatch lost its iterations or theme input');
+  assert.match(workflow.slice(iterationsAt, themeAt), /^ {8}default: '10'$/m);
+});
+
+test('the stability matrix publishes nothing and reads one secret, in the notify job only', () => {
   assert.match(workflow, /^permissions:\n  contents: read\n/m, 'the workflow must ask for read access only');
-  assert.doesNotMatch(workflow, /secrets\./, 'the matrix must not read a secret — it renders and compares, '
-    + 'it never publishes to R2');
   assert.doesNotMatch(workflow, /sticky-pull-request-comment|gh pr edit|gh api .*(comments|labels)|aws s3/,
     'the matrix must not comment, label, or publish; the verdict belongs in the job summary');
   assert.match(workflow, /GITHUB_STEP_SUMMARY/, 'the verdict must reach the job summary');
+
+  const secrets = [...workflow.matchAll(/secrets\.(\w+)/g)].map(([, name]) => name);
+
+  assert.deepEqual(secrets, ['SLACK_VISUAL_WEBHOOK_URL'], 'the one secret is the Slack webhook');
+
+  const notifyAt = workflow.indexOf('\n  notify:\n');
+
+  assert.notEqual(notifyAt, -1, 'the matrix lost its notify job');
+  assert.ok(workflow.indexOf('secrets.SLACK_VISUAL_WEBHOOK_URL') > notifyAt, 'the webhook is read in notify alone');
+
+  const notify = workflow.slice(notifyAt);
+
+  // A status function, or the implicit success() makes the job unreachable exactly when it is needed.
+  assert.match(notify, /\n {4}if: \$\{\{ failure\(\) && github\.event_name == 'schedule' \}\}\n/);
+  assert.match(notify, /needs: \[ render, verdict \]/);
+  assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/, 'the step skips itself when the secret is absent');
 });
 
 test('the matrix renders only the spec groups under investigation', () => {
-  assert.match(workflow, /MULTI_SPECS: tests\/multi-frameworks\/filters/, 'the multi-framework render must stay '
-    + 'scoped to the filters family');
+  assert.match(workflow, /MULTI_SPECS: tests\/js-only\/filters/, 'the js render must stay scoped to the '
+    + 'filters family, which the consolidation moved under js-only');
   assert.match(workflow, /CROSS_SPECS: selection/, 'the cross-browser render must stay scoped to the selection spec');
   assert.doesNotMatch(workflow, /npm run in visual-tests test(:cross-browser)?\b/, 'the matrix must not run '
     + 'the full suite through run-tests.mjs');
@@ -50,6 +91,39 @@ test('the render job composes the screenshot tree the way visual.yml does', () =
   assert.match(workflow, /build:es\b/);
   assert.match(workflow, /postbuild:partial/);
   assert.match(workflow, /examples:install next\/visual-tests/);
+});
+
+test('the render job builds the theme stylesheets the themed passes load, before the tree is composed', () => {
+  // The base stylesheet comes for free — `build:es` pulls `build:styles.min` and `build:styles`
+  // through handsontable/scripts/tasks.json — but the theme files are prerequisites of `build:umd`
+  // alone, which is how visual.yml's fallback gets them and which this job never runs. Left out,
+  // `postbuild:partial` copies a styles/ with no theme in it and says nothing, the demo's theme
+  // <link> is answered with index.html and a 200, and every themed pass renders an unstyled grid —
+  // ten runners agreed on it in run 35230835319, and the matrix called that "stable" because it only
+  // compares runners with each other. `indexOf` asserted before the ordering comparison: on a miss
+  // both would be -1 and `-1 < -1` could never fail with a useful message.
+  const [, buildBlock = ''] = workflow.split('Build the Handsontable package the demos import');
+  const [renderBlock = ''] = buildBlock.split('Build the js visual-test demo');
+
+  for (const task of ['build:themes-css', 'build:themes-css.min']) {
+    assert.match(renderBlock, new RegExp(`npm run in handsontable ${task.replace('.', '\\.')}(?![.\\w-])`),
+      `the build step lost \`${task}\`; the themed passes would render unstyled`);
+  }
+
+  // The command lines, not the bare task names: the step's comment names both tasks while explaining
+  // the order, and a lookup on the word alone lands in the comment first.
+  const themesAt = renderBlock.indexOf('npm run in handsontable build:themes-css');
+  const postbuildAt = renderBlock.indexOf('npm run in handsontable postbuild:partial');
+  const checkAt = renderBlock.indexOf('test -f handsontable/tmp/styles/ht-theme-main.css || {');
+
+  assert.notEqual(themesAt, -1, 'the build step lost the build:themes-css command');
+  assert.notEqual(postbuildAt, -1, 'the build step lost the postbuild:partial command');
+  assert.ok(themesAt < postbuildAt, 'the theme stylesheets must exist before postbuild:partial copies styles/ into tmp/');
+  // And the tree is checked before a browser is launched, so a regression here fails in seconds with
+  // the file named, not eight minutes later inside a capture.
+  assert.notEqual(checkAt, -1, 'the build step lost the ht-theme-main.css presence check');
+  assert.ok(checkAt > postbuildAt,
+    'the stylesheet check must run after postbuild:partial, which is what puts the file in tmp/');
 });
 
 test('the verdict step runs the checked-in script, and the script exists', () => {
@@ -117,6 +191,14 @@ test('the browser install matches the cache key it saves under', () => {
   // cross-browser leg without webkit on its next cache hit.
   assert.match(workflow, /key: playwright-all-/);
   assert.match(workflow, /playwright install chromium firefox webkit/);
+});
+
+test('scope: full widens both spec lists, and only when it is asked for', () => {
+  // The defaults are the investigation's two groups (pinned above); `full` replaces both, in the render step,
+  // and the render reads the variables rather than the literals, so the widening reaches every pass.
+  assert.match(workflow, /if \[ "\$SCOPE" = "full" \]; then\n\s+MULTI_SPECS=tests\n\s+CROSS_SPECS=\.\n/);
+  assert.match(workflow, /--project=firefox --retries=0 --reporter=dot "\$CROSS_SPECS"/);
+  assert.equal((workflow.match(/--reporter=dot "\$MULTI_SPECS"/g) ?? []).length, 2, 'the classic and themed passes');
 });
 
 test('a red iteration still uploads what it rendered', () => {

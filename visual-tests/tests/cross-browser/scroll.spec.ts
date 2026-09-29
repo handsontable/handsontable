@@ -1,4 +1,4 @@
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell } from '../../src/page-helpers';
 
@@ -12,7 +12,15 @@ const urls = [
 ];
 
 urls.forEach((url) => {
-  test(`Test rows resizing for: ${url}`, async({ goto, tablePage }) => {
+  /**
+   * Checks that scrolling the grid with the mouse wheel from a selected cell renders the scrolled viewport
+   * on this demo route. One capture per route in `urls`, in each browser. Owned by DEV-2981.
+   */
+  visualTest(`Test scrolling for: ${url}`, {
+    themes: [CLASSIC],
+    browsers: CROSS_BROWSERS,
+    wrappers: [],
+  }, async({ goto, tablePage }) => {
     await goto(url);
 
     const table = tablePage.locator(helpers.selectors.mainTable);
