@@ -1,0 +1,73 @@
+name: Breaking change check
+
+# Advisory only (DEV-3030): flags a pull request that removes or renames a
+# public name, or changes a `metaSchema` option default, and posts one sticky
+# comment. It is deliberately standalone: no other workflow references it and
+# `CI Gate` does not `needs` it, so it can never block a merge. Both steps are
+# `continue-on-error` for the same reason.
+# Script: .github/scripts/breaking-check.mjs (run it locally with --render).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'handsontable/src/**'
+      - 'wrappers/**'
+      - '.github/scripts/breaking-check.mjs'
+      - '.github/scripts/lib/breaking-check/**'
+      - '.github/scripts/lib/docs-sync/github.mjs'
+      - '.github/scripts/lib/changelog-gate.mjs'
+      - '.github/workflows/breaking-check.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: breaking-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check for a possible breaking change
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Two commits are enough: the checkout is the `refs/pull/N/merge` commit
+      # and its first parent is the base tip it was built on.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+
+      # `HEAD^1..HEAD` on the merge commit is the pull request's own diff: the
+      # first parent is the base the merge was built on, so this avoids the
+      # stale `base.sha` trap described in .ai/CI.md without a full-history
+      # clone. Not guarded: it only reads, and without LiteLLM secrets (fork
+      # and Dependabot runs) it falls back to code-only detection.
+      - name: Detect
+        continue-on-error: true
+        env:
+          LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: node .github/scripts/breaking-check.mjs --merge-parent --out "$RUNNER_TEMP/breaking-check.json"
+
+      # Writes through the API, so it is guarded like every such step (.ai/CI.md).
+      # The output file is missing when Detect failed; `hashFiles` cannot see
+      # $RUNNER_TEMP, so the script line checks for it instead of the `if:`.
+      - name: Comment
+        if: github.event_name != 'pull_request'
+          || (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -f "$RUNNER_TEMP/breaking-check.json" ]; then
+            node .github/scripts/breaking-check.mjs --from-json "$RUNNER_TEMP/breaking-check.json" --comment "$PR_NUMBER"
+          fi
