@@ -330,6 +330,59 @@ Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, l
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
 
+## A validated write reaches the engine BEFORE the source data
+
+`#onAfterSetDataAtCell` writes a `setDataAtCell()` / `setDataAtRowProp()` change into the engine
+synchronously, but the Core applies a change to the source data only after the column's validators
+resolve — and `validateCell` always resolves in a microtask. Any cell with a validator opens that window:
+a `numeric`, `date`, `dropdown` or `autocomplete` column, or a custom `validator`. A full sheet write from
+the source data inside it (`#writeSheet`, reached from an `updateSettings()` in the same synchronous task)
+scans data that does not hold the change yet and silently drops it from the engine: the cell reads its raw
+formula text through `getDataAtCell()` and every formula depending on it keeps the previous value, with no
+error. Pre-existing — reproduced identically on 18.1.1. Repro: a grid with `columns: [{ type: 'numeric' }]`,
+`setDataAtCell(2, 0, '=SUM(A1:A2)')` then `updateSettings({})` in the same task.
+
+The repair is `#onBeforeChangeRender`. `#onAfterSetDataAtCell` records each change set in
+`#changesAwaitingApply` (a `WeakMap` keyed by the change array — the Core hands the same array to
+`beforeChangeRender`), together with `#sheetWriteCount`. When the count has moved by the
+time the Core applies the set, the set is written into the engine again. Five rules:
+
+- **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
+  `afterChange` painted the raw formula text until the next render (negative control in the test below).
+- **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
+  refused to hold would leave it holding that one cell.
+- **A sheet switch in the window does NOT stop the write-back - the engine follows the grid.** The Core
+  applies the validated change to whatever data the grid holds when validation ends, and after a switch
+  that is the switched-to sheet's. A guard on the sheet id used to skip the write-back there, which left
+  the grid holding the change while the engine did not, so the cell showed its raw formula text. The
+  plugin's invariant is that the engine mirrors the grid, so the set is written into the CURRENT sheet.
+  The switch alone does not move the count (its `loadData()` writes no sheet); this path is reached only
+  when a full write follows the switch in the same task. Pinned by `keeps the engine in step with the
+  grid when the sheet switched while the change was validated`.
+- **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
+  the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
+  listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
+  covers it and sets `writtenBack` on the record, which the `afterChange` listener checks. Writing it
+  twice pushed a second engine undo entry for the one grid action, and a grid undo reverted only that one.
+- **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
+  first validation ran against the settings the update replaced (a swapped validator, for one).
+
+A validator's rejection needs no guard: `validateChanges()` splices a rejected change out of the very array
+`beforeChangeRender` receives, so the write-back never sees it. Keep the write-back reading that array, not
+a copy taken in `afterSetDataAtCell`.
+
+The write-back adds one engine undo entry on top of the resync's own, which is what keeps a later grid undo
+of that change consistent: `engine.undo()` then reverts the write-back, not the resync. Without a resync the
+listener costs a `WeakMap` get and delete per change set and writes nothing (measured: a 10,000-change
+`setDataAtCell()` makes 10,000 `setCellContents` calls either way; with a resync, 20,000 – the first write
+plus one write-back).
+
+Still open, and older than this repair: WITHOUT a resync, a paste that reaches past the last row writes the
+in-bounds changes and the out-of-bounds ones in two engine batches – two engine undo entries for one grid
+action – so one grid undo leaves the in-bounds values in the engine.
+
+Tests: `__tests__/validatedWriteResync.unit.js`.
+
 ## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
 
 A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call

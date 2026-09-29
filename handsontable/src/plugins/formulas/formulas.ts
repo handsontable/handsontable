@@ -113,6 +113,17 @@ interface MoveCellsRect {
 }
 
 /**
+ * A `setDataAtCell()` / `setDataAtRowProp()` change set written into the engine and not yet applied
+ * to the source data by the Core (see `Formulas#changesAwaitingApply`). `writeCount` is taken when
+ * the set is written; `writtenBack` is set once `beforeChangeRender` has written the whole set
+ * again, so the deferred write of its out-of-bounds changes is skipped.
+ */
+interface ChangeSetAwaitingApply {
+  writeCount: number;
+  writtenBack: boolean;
+}
+
+/**
  * The object form of the `formulas.hyperlinks` setting.
  */
 export interface FormulasHyperlinkSettings {
@@ -429,6 +440,33 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #sheetResyncPending = false;
+
+  /**
+   * Counts the full sheet writes from the source data (`#writeSheet`). A change set compares it
+   * across its validation window to learn whether a full write replaced the sheet in between. The
+   * emptying write of `#clearRejectedSheet` is not counted: writing a change back into a sheet the
+   * engine could not hold would leave it holding that one cell.
+   *
+   * @type {number}
+   */
+  #sheetWriteCount = 0;
+
+  /**
+   * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
+   * has not applied to the source data yet, keyed by the change array itself (the Core hands the
+   * same array to `afterSetDataAtCell` and to `beforeChangeRender`). Each one records the sheet write
+   * count at the moment it was written.
+   *
+   * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
+   * the Core applies a validated change to the source data only after its validators resolve, in a
+   * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
+   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
+   * writes it back. A `WeakMap`, so a change set that never reaches `beforeChangeRender` holds
+   * nothing alive.
+   *
+   * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
+   */
+  #changesAwaitingApply = new WeakMap<CellChange[], ChangeSetAwaitingApply>();
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -904,6 +942,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
+    this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
@@ -2766,6 +2805,8 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = true;
 
     try {
+      this.#sheetWriteCount += 1;
+
       const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
@@ -3254,6 +3295,48 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const { dependentCells, changedCells, outOfBoundsChanges } = this.#writeChangesToEngine(changes);
+    const awaitingApply: ChangeSetAwaitingApply = {
+      writeCount: this.#sheetWriteCount,
+      writtenBack: false,
+    };
+
+    this.#changesAwaitingApply.set(changes, awaitingApply);
+
+    if (outOfBoundsChanges.length) {
+      // Workaround for rows/columns being created two times (by HOT and the engine).
+      // (unfortunately, this requires an extra re-render)
+      this.hot.addHookOnce('afterChange', () => {
+        // A write-back in `beforeChangeRender` already wrote the whole set, these changes included,
+        // once the Core had created their rows and columns. A second write would add a second
+        // engine undo entry for one grid action, and a grid undo would revert only one of them.
+        if (awaitingApply.writtenBack) {
+          return;
+        }
+
+        const outOfBoundsDependentCells = this.engine!.batch(() => {
+          outOfBoundsChanges.forEach(([row, column, newValue]) => {
+            this.syncChangeWithEngine(row, column, newValue);
+          });
+        });
+
+        this.renderDependentSheets(outOfBoundsDependentCells, true);
+      });
+    }
+
+    this.renderDependentSheets(dependentCells);
+    this.validateDependentCells(dependentCells, changedCells);
+  };
+
+  /**
+   * Writes a `setDataAtCell()` / `setDataAtRowProp()` change set into the engine, in one batch.
+   * A change whose row or column does not exist yet is not written: it is returned in
+   * `outOfBoundsChanges` for the caller to write once the Core created it.
+   *
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @returns {{ dependentCells: unknown[], changedCells: unknown[], outOfBoundsChanges: Array[] }}
+   */
+  #writeChangesToEngine(changes: CellChange[]) {
     const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
 
@@ -3284,19 +3367,47 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    if (outOfBoundsChanges.length) {
-      // Workaround for rows/columns being created two times (by HOT and the engine).
-      // (unfortunately, this requires an extra re-render)
-      this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = this.engine!.batch(() => {
-          outOfBoundsChanges.forEach(([row, column, newValue]) => {
-            this.syncChangeWithEngine(row, column, newValue);
-          });
-        });
+    return { dependentCells, changedCells, outOfBoundsChanges };
+  }
 
-        this.renderDependentSheets(outOfBoundsDependentCells, true);
-      });
+  /**
+   * `beforeChangeRender` hook callback.
+   *
+   * Writes a change set back into the engine when a full sheet write from the source data replaced
+   * the sheet between `afterSetDataAtCell` (where the change first reached the engine) and now,
+   * when the Core applied it. `beforeChangeRender` is the Core's first hook after the apply, and it
+   * runs before the render that follows, so the cell never paints its raw formula text. That window
+   * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
+   * in the same task rebuilds the sheet from source data that does not hold the change yet. A change
+   * set written into another sheet in the meantime is left alone: the grid's data is that sheet's now.
+   *
+   * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
+   * is written in one batch - one engine undo entry for one grid action - and the deferred
+   * `afterChange` write of those changes is skipped. The dependents the write recalculated are
+   * validated, as on the `afterSetDataAtCell` path.
+   *
+   * @param {Array[]|null} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   */
+  #onBeforeChangeRender = (changes: CellChange[] | null) => {
+    const awaitingApply = changes ? this.#changesAwaitingApply.get(changes) : undefined;
+
+    if (!changes || !awaitingApply) {
+      return;
     }
+
+    this.#changesAwaitingApply.delete(changes);
+
+    if (
+      !this.engine ||
+      awaitingApply.writeCount === this.#sheetWriteCount ||
+      changes.length === 0
+    ) {
+      return;
+    }
+
+    const { dependentCells, changedCells } = this.#writeChangesToEngine(changes);
+
+    awaitingApply.writtenBack = true;
 
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
