@@ -17,6 +17,7 @@ vue:
   metaTitle: Migrate to server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
+addedIn: "17.1.0"
 ---
 
 Use this checklist when moving from a full in-memory `data` array and hooks such as [`afterChange`](@/api/hooks.md#afterchange) to `dataProvider`. For an overview and demo, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).

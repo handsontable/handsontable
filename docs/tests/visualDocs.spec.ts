@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { jsPaths, reactPaths, angularPaths, vuePaths } from './paths';
+import { layoutProblems, settledExamples } from './lib/example-grid-layout';
+
+/*
+ * Set only by the docs-visual-run action's `Render the baseline` step, the one run that writes golden
+ * records. Then every page with examples must lay out its grids (./lib/example-grid-layout.ts) on the
+ * same load this test photographs, so a grid that collapses on some page loads, or breaks on a page
+ * shape exampleGridLayout.spec.ts does not visit, fails the render and writes nothing. A compare leaves
+ * it unset: a pull request's screenshots are judged against the goldens, and a layout break there shows
+ * up as a difference and in the functional project's report.
+ */
+const LAYOUT_GATE = process.env.DOCS_VISUAL_LAYOUT_GATE === 'true';
 
 const pathsNeedingMoreTolerance = [
   'events-and-hooks',
@@ -115,6 +126,10 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         // Angular and Vue examples can take several seconds to bootstrap; without
         // this wait the screenshot captures a loading shimmer instead of the grid.
         await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
+
+        if (LAYOUT_GATE && await page.locator('.hot-example-preview').count() > 0) {
+          expect(layoutProblems(await settledExamples(page)), `every example on ${path} lays out its grid`).toEqual([]);
+        }
 
         // Third-party Figma embeds (e.g. the design-system "Live preview") load
         // asynchronously and are sometimes blank when the screenshot is taken.

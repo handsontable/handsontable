@@ -1,6 +1,6 @@
 # Wrapper E2E (React / Angular / Vue) — reference
 
-Wrapper functional tests drive the wrapper **example apps** (not a static demo) in a real browser, because the bugs that matter are framework-integration bugs jsdom cannot see. Same rules as core E2E — page objects, `data-testid`, web-first waits — plus the framework-specific gotchas below. Specs live under `tests/e2e/wrappers/<framework>/`.
+Wrapper functional tests drive the wrapper **example apps** (not a static demo) in a real browser, because the bugs that matter are framework-integration bugs jsdom cannot see. Same rules as core E2E — page objects, `data-testid`, web-first waits — plus the framework-specific gotchas below. No Playwright wrapper spec exists yet: `tests/e2e/` has no `wrappers/` directory, and the suite's one web server (`tests/support/static-server.mjs`) serves static files from the repo root, not a running example app. Treat this page as the rules for the first one, and put it under `tests/e2e/wrappers/<framework>/`.
 
 ## Driving the app
 

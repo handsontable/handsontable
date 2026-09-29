@@ -25,7 +25,7 @@ on:
           - https://handsontable.com/docs
           - http://localhost:4321/docs
       update-snapshots:
-        description: 'Re-seed docs/base/<this branch> from the chosen environment'
+        description: 'Re-seed docs/base/<this branch> from the chosen environment. A deployed one moves with the next deploy; to re-seed from one staging deploy, dispatch Docs visual seed'
         type: boolean
         default: false
 

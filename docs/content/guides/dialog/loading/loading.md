@@ -21,6 +21,7 @@ vue:
 searchCategory: Guides
 category: Dialog
 menuTag: updated
+addedIn: "16.1.0"
 ---
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 

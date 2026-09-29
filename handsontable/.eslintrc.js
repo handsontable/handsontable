@@ -279,9 +279,9 @@ module.exports = {
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
-    // Every Jasmine spec and every Jest unit test, in both languages: the 217 `*.unit.ts` files
-    // sat outside this override until review found `src/helpers/__tests__/function.unit.ts`
-    // carrying eleven sleep() calls the rule never saw.
+    // Every Jasmine spec and every Jest unit test, in both languages. The `*.unit.ts` files sat
+    // outside this override until review found `src/helpers/__tests__/function.unit.ts` carrying
+    // eleven sleep() calls the rule never saw.
     {
       files: ['*.unit.js', '*.unit.ts', '*.spec.js'],
       rules: {
@@ -306,9 +306,10 @@ module.exports = {
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a
         // committed .only/fit silently drops the suite and there are 0 today.
-        // Skip is WARN — 21 existing .skip must not red-wall. A NEW skip on a line
-        // a branch adds is blocked by the same diff-scoped ratchet as the sleep
-        // rules above (exit 1 at pre-push, red in the CI lint job).
+        // Skip is WARN — the 10 existing skips (2026-09-23) must not red-wall.
+        // A NEW skip on a line a branch adds is blocked by the same diff-scoped
+        // ratchet as the sleep rules above (exit 1 at pre-push, red in the CI
+        // lint job).
         'handsontable/no-focused-test': 'error',
         'handsontable/no-skipped-test': 'warn',
         // A test with no assertion is hollow coverage. WARN — heuristic (a test may
