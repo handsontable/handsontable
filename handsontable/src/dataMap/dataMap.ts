@@ -18,8 +18,10 @@ import {
 import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
+import { isFunction } from '../helpers/function';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -124,6 +126,21 @@ class DataMap {
    * @type {Map}
    */
   declare propToColCache: Map<string | number | DataAccessorFn, number> | undefined;
+  /**
+   * The number of rows at the physical end of the data set that `minRows`/`minSpareRows` appended and that no
+   * other row follows. A lowered option removes only these, so an empty row the data set brought with it, one
+   * the user inserted, or one a write past the last row created is never taken.
+   *
+   * A count rather than a set of row objects: those options always append, so the rows they add are the
+   * physically last ones, and a sort or a row move reorders the VISUAL space only. Both counters are kept in
+   * step by every insert and removal that goes through this class.
+   */
+  #trailingFillerRows = 0;
+  /**
+   * The number of columns at the physical end of every row that `minCols`/`minSpareCols` appended and that no
+   * other column follows. Same rule as `#trailingFillerRows`.
+   */
+  #trailingFillerColumns = 0;
 
   /**
    * @param {object} hotInstance Instance of Handsontable.
@@ -162,6 +179,17 @@ class DataMap {
     } else {
       this.recursiveDuckColumns(schema);
     }
+  }
+
+  /**
+   * Checks whether a `null` property names no column. `null` is a real property only for a column
+   * declared `{ data: null }`, which reads and writes through a `"null"` key as it always has.
+   *
+   * @param {*} prop The column property.
+   * @returns {boolean}
+   */
+  #namesNoColumn(prop: unknown): boolean {
+    return prop === null && !this.propToColCache!.has(null as unknown as string);
   }
 
   /**
@@ -251,17 +279,16 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * The declared return type is the `string|number` shape `Core#colToProp` has always exposed, so
-   * widening it does not leak into consumer code. A `columns[].data` accessor function is handed
-   * back as-is at runtime – code that has to handle it reads the result through `unknown` and
-   * `isDataAccessorFn()`.
+   * A `columns[].data` accessor function is handed back as-is at runtime – code that has to handle
+   * it reads the result through `unknown` and `isDataAccessorFn()`.
    *
    * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number} Column property, physical column index, or the passed argument.
+   * @returns {string|number|null} Column property, physical column index, `null` when the index
+   *   names no column that exists and is visible, or the passed argument when it is not an integer.
    */
-  colToProp(column: number): string | number;
+  colToProp(column: number): string | number | null;
   /* eslint-disable jsdoc/require-jsdoc -- the implementation shares the JSDoc of the overload above */
-  colToProp(column: number): string | number | DataAccessorFn {
+  colToProp(column: number): string | number | DataAccessorFn | null {
     // TODO: Should it work? Please, look at the test:
     // "it should return the provided property name, when the user passes a property name as a column number".
     if (Number.isInteger(column) === false) {
@@ -270,9 +297,12 @@ class DataMap {
 
     const physicalColumn = this.hot!.toPhysicalColumn(column);
 
-    // Out of range, not visible column index.
+    // The index identifies no column that currently exists, so there is no property to name.
+    // `null` matches `toPhysicalColumn` / `toVisualColumn`, which the caller has to test for
+    // anyway. Returning the argument instead made an unknown index indistinguishable from a
+    // physical one (#7031).
     if (physicalColumn === null) {
-      return column;
+      return null;
     }
 
     // Cached property.
@@ -287,27 +317,36 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {string|number|Function} prop Column property, a physical column index, or a
-   *   `columns[].data` accessor function.
-   * @returns {string|number|Function} Visual column index or the passed argument.
+   * @param {string|number|Function|null} prop Column property, a physical column index, a
+   *   `columns[].data` accessor function, or `null`.
+   * @returns {string|number|Function|null} Visual column index, `null` when the argument names no
+   *   visible column, or the passed argument when it is a property this data set does not use.
    */
-  propToCol(prop: string | number | DataAccessorFn) {
-    const cachedPhysicalIndex = this.propToColCache!.get(prop);
+  propToCol(prop: string | number | DataAccessorFn | null) {
+    // The cache is consulted before `null` is rejected: a column declared `{ data: null }` stores
+    // `null` as its property, so the lookup resolves it to a real column.
+    const cachedPhysicalIndex = this.propToColCache!.get(prop as string | number | DataAccessorFn);
 
     if (cachedPhysicalIndex !== undefined) {
       return this.hot!.toVisualColumn(cachedPhysicalIndex);
     }
 
-    // Property may be a physical column index.
+    // No column uses `null` as its property, so it means "no column" — most often it arrived from
+    // a `colToProp()` that could not resolve one.
+    if (prop === null) {
+      return null;
+    }
+
+    // A property that names no column is handed back unchanged. Only a numeric argument is
+    // treated as an index and resolved below.
     if (typeof prop !== 'number') {
       return prop;
     }
 
-    const visualColumn = this.hot!.toVisualColumn(prop);
-
-    // Fall back to the physical index when toVisualColumn returns null
-    // (e.g. column is trimmed/hidden and has no visual equivalent).
-    return visualColumn !== null ? visualColumn : prop;
+    // Property may be a physical column index. `null` when it identifies no visible column —
+    // either past the last one or trimmed. It used to fall back to the passed index, which
+    // named a different column whenever the two coordinate spaces had diverged (#7031).
+    return this.hot!.toVisualColumn(prop);
   }
 
   /**
@@ -353,11 +392,14 @@ class DataMap {
    * @param {object} [options] Additional options for created rows.
    * @param {string} [options.source] Source of method call.
    * @param {'above'|'below'} [options.mode] Sets where the row is inserted: above or below the passed index.
+   * @param {boolean} [options.fillsMinimumSize] Whether the rows are appended to satisfy `minRows`/`minSpareRows`.
+   * Only such rows are given back when one of those options is lowered.
    * @fires Hooks#afterCreateRow
    * @returns {number} Returns number of created rows.
    */
   createRow(index: number | undefined, amount = 1,
-            { source, mode = 'above' }: { source?: string; mode?: string } = {}) {
+            { source, mode = 'above', fillsMinimumSize = false }:
+            { source?: string; mode?: string; fillsMinimumSize?: boolean } = {}) {
     const sourceRowsCount = this.hot!.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
@@ -421,6 +463,9 @@ class DataMap {
       physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
     }
 
+    // After the `below` adjustment, so the tracked position is the one the rows actually take.
+    this.#trackInsertedRows(physicalRowIndex, numberOfCreatedRows, sourceRowsCount, fillsMinimumSize);
+
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     const newVisualRowIndex = this.hot!.toVisualRow(physicalRowIndex);
@@ -459,11 +504,14 @@ class DataMap {
    * @param {string} [options.source] Source of method call.
    * @param {'start'|'end'} [options.mode] Sets where the column is inserted: at the start (left in [LTR](@/api/options.md#layoutdirection), right in [RTL](@/api/options.md#layoutdirection)) or at the end (right in LTR, left in LTR)
    * the passed index.
+   * @param {boolean} [options.fillsMinimumSize] Whether the columns are appended to satisfy `minCols`/`minSpareCols`.
+   * Only such columns are given back when one of those options is lowered.
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.
    */
   createCol(index: number | undefined, amount = 1,
-            { source, mode = 'start' }: { source?: string; mode?: 'start' | 'end' } = {}) {
+            { source, mode = 'start', fillsMinimumSize = false }:
+            { source?: string; mode?: 'start' | 'end'; fillsMinimumSize?: boolean } = {}) {
     if (!this.hot!.isColumnModificationAllowed()) {
       throwWithCause('Cannot create new column. When data source in an object, ' +
         // eslint-disable-next-line max-len
@@ -491,6 +539,9 @@ class DataMap {
       0, Math.min(amount, (maxCols ?? Infinity) - numberOfVisualCols)
     );
 
+    this.#trackInsertedColumns(
+      firstNewPhysicalColumnIndex, numberOfCreatedCols, numberOfSourceCols, fillsMinimumSize
+    );
     this.#insertColumnsIntoDataSource(
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
       numberOfSourceRows, numberOfCreatedCols
@@ -588,6 +639,89 @@ class DataMap {
   }
 
   /**
+   * Answers what a trailing filler count becomes after an insertion. A minimum-size fill appended past the last
+   * item extends the run; any other insertion that lands inside the run leaves only the fillers after it.
+   *
+   * @param {number} trailingFillers The current trailing filler count.
+   * @param {number} firstPhysicalIndex The physical index the first inserted item takes.
+   * @param {number} amount The number of inserted items.
+   * @param {number} count The number of items before the insertion.
+   * @param {boolean} fillsMinimumSize Whether the insertion fills a minimum size.
+   * @returns {number}
+   */
+  #trailingFillersAfterInsert(
+    trailingFillers: number, firstPhysicalIndex: number, amount: number, count: number, fillsMinimumSize: boolean
+  ): number {
+    if (amount <= 0) {
+      return trailingFillers;
+    }
+
+    if (fillsMinimumSize && firstPhysicalIndex >= count) {
+      return trailingFillers + amount;
+    }
+
+    if (firstPhysicalIndex > count - trailingFillers) {
+      return Math.max(count - firstPhysicalIndex, 0);
+    }
+
+    return trailingFillers;
+  }
+
+  /**
+   * Answers what a trailing filler count becomes after a removal, counting how many of the removed physical
+   * indexes fell inside the trailing run. Must be read before the items leave the data source.
+   *
+   * @param {number} trailingFillers The current trailing filler count.
+   * @param {number[]} removedPhysicalIndexes Physical indexes of the removed items.
+   * @param {number} count The number of items before the removal.
+   * @returns {number}
+   */
+  #trailingFillersAfterRemove(trailingFillers: number, removedPhysicalIndexes: number[], count: number): number {
+    const firstFillerIndex = count - trailingFillers;
+    let removedFillers = 0;
+
+    removedPhysicalIndexes.forEach((physicalIndex) => {
+      if (physicalIndex >= firstFillerIndex) {
+        removedFillers += 1;
+      }
+    });
+
+    return Math.max(trailingFillers - removedFillers, 0);
+  }
+
+  /**
+   * Keeps the trailing filler row count in step with a row insertion.
+   *
+   * @param {number} firstPhysicalRow The physical index the first inserted row takes.
+   * @param {number} amount The number of inserted rows.
+   * @param {number} numberOfSourceRows The number of source rows before the insertion.
+   * @param {boolean} fillsMinimumSize Whether the rows fill `minRows`/`minSpareRows`.
+   */
+  #trackInsertedRows(
+    firstPhysicalRow: number, amount: number, numberOfSourceRows: number, fillsMinimumSize: boolean
+  ) {
+    this.#trailingFillerRows = this.#trailingFillersAfterInsert(
+      this.#trailingFillerRows, firstPhysicalRow, amount, numberOfSourceRows, fillsMinimumSize
+    );
+  }
+
+  /**
+   * Keeps the trailing filler column count in step with a column insertion.
+   *
+   * @param {number} firstPhysicalColumn The physical index the first inserted column takes.
+   * @param {number} amount The number of inserted columns.
+   * @param {number} numberOfSourceCols The number of source columns before the insertion.
+   * @param {boolean} fillsMinimumSize Whether the columns fill `minCols`/`minSpareCols`.
+   */
+  #trackInsertedColumns(
+    firstPhysicalColumn: number, amount: number, numberOfSourceCols: number, fillsMinimumSize: boolean
+  ) {
+    this.#trailingFillerColumns = this.#trailingFillersAfterInsert(
+      this.#trailingFillerColumns, firstPhysicalColumn, amount, numberOfSourceCols, fillsMinimumSize
+    );
+  }
+
+  /**
    * Removes row from the data array.
    *
    * @fires Hooks#beforeRemoveRow
@@ -615,6 +749,8 @@ class DataMap {
 
     // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
     const numberOfRemovedIndexes = removedPhysicalIndexes.length;
+
+    this.#trackRemovedRows(removedPhysicalIndexes);
 
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
@@ -678,6 +814,8 @@ class DataMap {
       }
     }
 
+    this.#trackRemovedColumns(removedPhysicalIndexes);
+
     this.#spliceRemovedColumns(data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount);
 
     if (columnIndex < this.hot!.countCols()) {
@@ -692,6 +830,28 @@ class DataMap {
     this.refreshDuckSchema();
 
     return true;
+  }
+
+  /**
+   * Checks whether a row is one of the filler rows at the end of the data set, that is, one `minRows` or
+   * `minSpareRows` appended with no other row after it.
+   *
+   * @param {number|null} physicalRow The physical row index.
+   * @returns {boolean}
+   */
+  isTrailingFillerRow(physicalRow: number | null): boolean {
+    return physicalRow !== null && physicalRow >= this.hot!.countSourceRows() - this.#trailingFillerRows;
+  }
+
+  /**
+   * Checks whether a column is one of the filler columns at the end of the data set, that is, one `minCols` or
+   * `minSpareCols` appended with no other column after it.
+   *
+   * @param {number|null} physicalColumn The physical column index.
+   * @returns {boolean}
+   */
+  isTrailingFillerColumn(physicalColumn: number | null): boolean {
+    return physicalColumn !== null && physicalColumn >= this.hot!.countSourceCols() - this.#trailingFillerColumns;
   }
 
   /**
@@ -738,6 +898,30 @@ class DataMap {
         });
       }
     }
+  }
+
+  /**
+   * Keeps the trailing filler column count in step with a column removal. Must run before the columns leave the
+   * data source, while the source column count still includes them.
+   *
+   * @param {number[]} removedPhysicalIndexes Physical indexes of the removed columns.
+   */
+  #trackRemovedColumns(removedPhysicalIndexes: number[]) {
+    this.#trailingFillerColumns = this.#trailingFillersAfterRemove(
+      this.#trailingFillerColumns, removedPhysicalIndexes, this.hot!.countSourceCols()
+    );
+  }
+
+  /**
+   * Keeps the trailing filler row count in step with a row removal. Must run before the rows leave the data
+   * source, while the source row count still includes them.
+   *
+   * @param {number[]} removedPhysicalIndexes Physical indexes of the removed rows.
+   */
+  #trackRemovedRows(removedPhysicalIndexes: number[]) {
+    this.#trailingFillerRows = this.#trailingFillersAfterRemove(
+      this.#trailingFillerRows, removedPhysicalIndexes, this.hot!.countSourceRows()
+    );
   }
 
   /**
@@ -870,10 +1054,11 @@ class DataMap {
    * Returns single value from the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
    * @returns {*}
    */
-  get(row: number, prop: string | number | DataAccessorFn) {
+  get(row: number, prop: string | number | DataAccessorFn | null) {
     const physicalRow = this.hot!.toPhysicalRow(row);
 
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -887,8 +1072,9 @@ class DataMap {
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
-    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      value = dataRow[prop];
+    if (dataRow && !this.#namesNoColumn(prop) && typeof prop !== 'function' &&
+        hasOwnProperty(dataRow, prop as string | number)) {
+      value = dataRow[prop as string | number];
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -952,14 +1138,105 @@ class DataMap {
   }
 
   /**
+   * Reads one column's values for a list of physical rows, in any order, in a single pass.
+   *
+   * `get()` resolves the column property, the visual and physical column, the settings and the hook
+   * answers once per cell, although every one of them is constant across the rows. This resolves
+   * them once and then reads the source rows directly, which is what a full-column scan such as a
+   * sort needs.
+   *
+   * The fast loop runs no user code, so it is entered only when nothing that can transform a value
+   * is in play: no `columns[].data` accessor function, no `dataDotNotation` property path, no
+   * listener on `modifyRowData`, `modifyData` or `modifySourceData`, and no `valueGetter` resolved
+   * through the column meta layer (`autocomplete`, `dropdown` and `multiSelect` each ship one). Every
+   * probe is re-read per call - a host app can register a listener or retype a column at any time,
+   * so caching the answers across calls would read stale values.
+   *
+   * Stored cell meta is the one thing a column-layer probe cannot see: a `cells()` function and a
+   * `cell: [{ row, col, type }]` entry both land a `valueGetter` on a single cell, and a rendered
+   * grid stores meta for its viewport rows. Any row that carries stored meta therefore falls back to
+   * `get()`, so what the caller receives is what `getDataAtCell()` returns today.
+   *
+   * `physicalRows` is the only row source both paths read. `get()` takes a visual row, so a fallback
+   * translates the physical row back rather than assuming the block is a contiguous visual band -
+   * the rows read are the rows asked for, whatever order they arrive in.
+   *
+   * A `null` entry reads as an empty cell on either path, exactly as `get()` resolves an unmapped
+   * row. A physical row that exists but has no visual position - a trimmed one - is outside the
+   * contract: the fast loop reads its source value while a fallback reads it as empty. The sort
+   * gather loop cannot produce one, because every index it passes came out of `toPhysicalRow()`.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {Array} physicalRows Physical row indexes to read, in the order the values are wanted.
+   * @returns {Array} Column values in the same order as `physicalRows`.
+   */
+  getAtColumnForRows(column: number, physicalRows: (number | null)[]): unknown[] {
+    const prop = this.colToProp(column);
+    const rowsLength = physicalRows.length;
+    const values: unknown[] = [];
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = typeof visualColumnIndex === 'number'
+      ? this.hot!.toPhysicalColumn(visualColumnIndex)
+      : null;
+    // Mirrors the coordinate check `get()` makes before it consults the cell meta at all - when it
+    // fails, no `valueGetter` can reach the value and the meta layer needs no probing.
+    const isValueGetterReachable = typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalColumn);
+    const { dataDotNotation } = this.hot!.getSettings();
+    // The column meta object IS the prototype the transient cell meta inherits from
+    // (`ColumnMeta#_createMeta()` returns the constructor's prototype), so reading `valueGetter` off
+    // it resolves exactly what `getCellMetaUncached()` would resolve for an unstored cell - without
+    // allocating one object per row to find that out.
+    const isBulkReadable = typeof prop !== 'function'
+      && !(dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1)
+      && !this.hot!.hasHook('modifyRowData')
+      && !this.hot!.hasHook('modifyData')
+      && !this.hot!.hasHook('modifySourceData')
+      && !(isValueGetterReachable && isFunction(this.metaManager!.getColumnMeta(physicalColumn!).valueGetter));
+
+    if (!isBulkReadable) {
+      for (let i = 0; i < rowsLength; i++) {
+        values.push(this.get(this.hot!.toVisualRow(physicalRows[i] as number), prop));
+      }
+
+      return values;
+    }
+
+    const dataSource = this.dataSource!;
+    const plainProp = prop as string | number;
+
+    for (let i = 0; i < rowsLength; i++) {
+      const physicalRow = physicalRows[i];
+
+      if (isValueGetterReachable && isUnsignedNumber(physicalRow) &&
+          this.metaManager!.getCellMetaIfExists(physicalRow as number, physicalColumn as number) !== undefined) {
+        values.push(this.get(this.hot!.toVisualRow(physicalRow as number), prop));
+
+        continue;
+      }
+
+      const dataRow = dataSource[physicalRow as number] as Record<string | number, unknown>;
+
+      values.push(dataRow && hasOwnProperty(dataRow, plainProp) ? dataRow[plainProp] : null);
+    }
+
+    return values;
+  }
+
+  /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
+   *
+   * The value is returned as it is stored, so it can be of any type. `Core#getCopyableData()`
+   * converts it to a string; the clipboard and Autofill consume it raw.
    *
    * @param {number} row Visual row index.
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
-   * @returns {string}
+   * @returns {*}
    */
-  getCopyable(row: number, prop: string | number | DataAccessorFn) {
-    const colIndex = this.propToCol(prop);
+  getCopyable(row: number, prop: string | number | DataAccessorFn | null) {
+    // Falls back to the prop so an out-of-range index still reaches the meta lookup, keeping the
+    // copyable getters reading back what they did before `propToCol()` began answering `null`.
+    const colIndex = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - the copy path
@@ -975,10 +1252,16 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
    * @param {string} value The value to set.
    */
-  set(row: number, prop: string | number | DataAccessorFn, value: unknown) {
+  set(row: number, prop: string | number | DataAccessorFn | null, value: unknown) {
+    // No column, nothing to write. Falling through would add a literal `"null"` key to the row.
+    if (this.#namesNoColumn(prop)) {
+      return;
+    }
+
     const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -1001,8 +1284,8 @@ class DataMap {
     const { dataDotNotation } = this.hot!.getSettings();
 
     // try to set value under property `prop` (includes dot)
-    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
-      dataRow[prop] = newValue;
+    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop as string | number)) {
+      dataRow[prop as string | number] = newValue;
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
       let out: Record<string, unknown> = dataRow;
@@ -1038,7 +1321,8 @@ class DataMap {
         return;
       }
 
-      dataRow[prop] = newValue;
+      // An unbound column (`{ data: null }`) stores its value under a `"null"` key.
+      dataRow[prop as string | number] = newValue;
     }
   }
 
@@ -1193,7 +1477,8 @@ class DataMap {
         if (physicalRow === null) {
           break;
         }
-        row.push(getFn.call(this, r, this.colToProp(c)));
+        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
       }
       if (physicalRow !== null) {
         output.push(row);

@@ -1,7 +1,7 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
 import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -48,6 +48,12 @@ import {
   Hooks,
   CellRangeToRenderableMapper,
 } from './core/index';
+import {
+  countSurplusTrailingItems,
+  countTrailingItems,
+  isSizeLowered,
+  type MinimumSizes,
+} from './core/minimumSizes';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -63,6 +69,7 @@ import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
+import { isSkippedPastLastColumn } from './utils/pastLastColumn';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -70,6 +77,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -79,6 +87,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -87,6 +96,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import DataMap from './dataMap/dataMap';
+import { colToPropOrIndex } from './helpers/columnProp';
 
 let activeGuid: string | null = null;
 
@@ -365,6 +375,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
+  // that a second call is a no-op regardless of how the first one ended (see the `init` method).
+  let initialized = false;
   // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
   // instance instead of on every `updateSettings()` call that carries the options.
   let themeOverridesWarningShown = false;
@@ -795,7 +808,9 @@ export default function Core(
     columnIndexMapper: instance.columnIndexMapper,
     countCols: () => instance.countCols() as number,
     countRows: () => instance.countRows() as number,
-    propToCol: (prop: string | number) => datamap.propToCol(prop) as number,
+    // Falls back to the prop: the selection module's contract is non-nullable, and `Math.min()`
+    // would silently coerce a `null` to column 0.
+    propToCol: (prop: string | number) => (datamap.propToCol(prop) ?? prop) as number,
     isEditorOpened: () => {
       const editor = instance.getActiveEditor();
 
@@ -1121,6 +1136,22 @@ export default function Core(
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
+  /**
+   * Translates a selection's column index for the `*ByProp` hooks.
+   *
+   * A selection range uses negative columns as header sentinels – `-1` for a row selection, and
+   * further negative values for the nested-header levels above it – so they are not out-of-range
+   * indexes and must reach the hook unchanged. `colToProp()` cannot tell the two apart and now
+   * answers `null` for both, which would silently replace the sentinel every consumer of these
+   * hooks already handles.
+   *
+   * @param {number} column Visual column index, or a negative header sentinel.
+   * @returns {string|number|null} The column property, or the sentinel unchanged.
+   */
+  function columnToPropForSelection(column: number): string | number | null {
+    return column < 0 ? column : instance.colToProp(column);
+  }
+
   this.selection.addLocalHook('afterSetRangeEnd', (
     cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
   ) => {
@@ -1139,9 +1170,9 @@ export default function Core(
     );
     this.runHooks('afterSelectionByProp',
       from.row,
-      instance.colToProp(from.col!),
+      columnToPropForSelection(from.col!),
       to.row,
-      instance.colToProp(to.col!),
+      columnToPropForSelection(to.col!),
       preventScrolling,
       selectionLayerLevel
     );
@@ -1214,7 +1245,8 @@ export default function Core(
       this.runHooks('afterSelectionEnd',
         from.row, from.col, to.row, to.col, selectionLayerLevel);
       this.runHooks('afterSelectionEndByProp',
-        from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+        from.row, columnToPropForSelection(from.col), to.row,
+        columnToPropForSelection(to.col), selectionLayerLevel);
 
       if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
         instance.view.render();
@@ -1237,6 +1269,12 @@ export default function Core(
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
     this.runHooks('afterDeselect');
+  });
+
+  // The hovered layer is read when the borders are drawn, so a view render repaints the handles.
+  // Not `instance.render()`: that forces a full draw, which a hover during a scroll must not pay.
+  this.selection.addLocalHook('afterSetHandlesHoveredLayer', () => {
+    instance.view.render();
   });
 
   this.selection
@@ -1279,6 +1317,116 @@ export default function Core(
       (totalRows: number) => instance.alter('insert_row_above', totalRows, 1, 'auto'))
     .addLocalHook('insertColRequire',
       (totalCols: number) => instance.alter('insert_col_start', totalCols, 1, 'auto'));
+
+  /**
+   * Removes the last rows or columns of the grid with the `auto` source, and keeps the editor and the selection
+   * on what is left.
+   *
+   * It is not `alter()`: the rows and columns it removes were created without it (`adjustRowsAndCols()` calls
+   * the data map directly), so `alter()`'s bookkeeping would be one-sided here - it lowers `fixedRowsBottom` and
+   * splices `colHeaders`, neither of which the creation raised or extended.
+   *
+   * @param {string} axis The axis to remove from, `'row'` or `'column'`.
+   * @param {number} index The visual index of the first removed row or column.
+   * @param {number} amount The number of rows or columns to remove.
+   */
+  const removeTrailingItems = (axis: 'row' | 'column', index: number, amount: number) => {
+    const activeRange = selection.isSelected() ? instance.getSelectedRangeActive() : undefined;
+    const highlightIndex = axis === 'row' ? activeRange?.highlight.row : activeRange?.highlight.col;
+
+    const wasRemoved = axis === 'row'
+      ? datamap.removeRow(index, amount, 'auto')
+      : datamap.removeCol(index, amount, 'auto');
+
+    // Discarded only once the removal has happened, the way `alter()` does it: a `beforeRemoveRow`/
+    // `beforeRemoveCol` listener can veto it, and throwing away what the user is typing into a row that then
+    // stays would lose the text with no hook and no way back.
+    if (wasRemoved && typeof highlightIndex === 'number' && highlightIndex >= index) {
+      editorManager.closeEditor(true);
+    }
+
+    // `refresh()` clamps every layer to the new size and leaves the ones that did not reach the removed part as
+    // they were. `shiftRows()`/`shiftColumns()`, which `alter()` uses, move a layer by the removed amount, which
+    // is right for a removal in the middle and wrong at the end. It re-lays every layer and fires the selection
+    // hooks, so it runs only when a layer reached the removed part.
+    const reachesRemovedPart = wasRemoved && selection.isSelected() &&
+      selection.getSelectedRange().ranges.some((range) => {
+        const bottomEnd = range.getOuterBottomEndCorner();
+
+        return ((axis === 'row' ? bottomEnd.row : bottomEnd.col) ?? -1) >= index;
+      });
+
+    // Marked `shift`, the source `alter()`'s removals re-lay the selection with: a settings update must not
+    // scroll the viewport to the clamped selection. Ended in `finally`, because `refresh()` clears the source on
+    // its normal path only, and a source stuck at `shift` would stop every later selection from scrolling.
+    if (reachesRemovedPart) {
+      selection.markSource('shift');
+
+      try {
+        selection.refresh();
+      } finally {
+        selection.markEndSource();
+      }
+    }
+  };
+
+  /**
+   * Gives back the filler rows or columns at the end of one axis that its lowered minimum sizes no longer
+   * require. Does nothing when neither of that axis's two options was lowered.
+   *
+   * @param {object} axisState The axis, its current state, and its minimum sizes before and after the update.
+   * @param {string} axisState.axis The axis to shrink, `'row'` or `'column'`.
+   * @param {Function} axisState.getCount Gives the number of rows or columns on the axis.
+   * @param {Function} axisState.getNotTrimmedCount Gives the number of rows or columns left by the trimming maps.
+   * @param {Function} axisState.isEmpty Answers whether the row or column at a visual index is empty.
+   * @param {Function} axisState.isRemovable Answers whether the row or column at a visual index is a filler.
+   * @param {number} axisState.previousMinimum The `minRows`/`minCols` value before the update.
+   * @param {number} axisState.previousSpare The `minSpareRows`/`minSpareCols` value before the update.
+   * @param {number} axisState.minimum The `minRows`/`minCols` value after the update.
+   * @param {number} axisState.spare The `minSpareRows`/`minSpareCols` value after the update.
+   */
+  const shrinkAxis = ({ axis, getCount, getNotTrimmedCount, isEmpty, isRemovable, previousMinimum, previousSpare,
+    minimum, spare }: {
+      axis: 'row' | 'column';
+      getCount: () => number;
+      getNotTrimmedCount: () => number;
+      isEmpty: (visualIndex: number) => boolean;
+      isRemovable: (visualIndex: number) => boolean;
+      previousMinimum: number;
+      previousSpare: number;
+      minimum: number;
+      spare: number;
+    }) => {
+    const wasLowered = isSizeLowered(previousMinimum, minimum) || isSizeLowered(previousSpare, spare);
+
+    // Read before the grid is, the way `adjustRowsAndCols()` reads its own options first: `updateSettings()`
+    // also runs from a plugin's `enablePlugin()`, which happens before the first data load, and the counts
+    // reach for a data map that does not exist yet.
+    if (!wasLowered) {
+      return;
+    }
+
+    const count = getCount();
+
+    // `countRows()` is capped by `maxRows`, and so is the removal, which cannot address a row the cap hides.
+    // Under a cap the two disagree, and acting on the capped count removes a row out of the MIDDLE of the data
+    // set, so the axis is left alone until the cap is lifted.
+    if (count < getNotTrimmedCount()) {
+      return;
+    }
+
+    const surplus = countSurplusTrailingItems({
+      count,
+      trailingEmpty: countTrailingItems(count, count, isEmpty),
+      minimum,
+      spare,
+    });
+    const removable = countTrailingItems(count, surplus, isRemovable);
+
+    if (removable > 0) {
+      removeTrailingItems(axis, count - removable, removable);
+    }
+  };
 
   grid = {
     /**
@@ -1380,6 +1528,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Rows the group names above the first one or past the last one do not exist, so they
+                // are dropped from it rather than translated into rows the caller never named (DEV-117).
+                // The part that does exist is still removed - `normalizeIndexesGroup` above may have
+                // merged a valid group into one that starts above the table. An empty index keeps its
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`. The
+                // rule lives in `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countRows());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1475,6 +1639,22 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // Columns the group names before the first one or past the last one do not exist, so
+                // they are dropped from it rather than translated into columns the caller never named
+                // (DEV-117). The part that does exist is still removed - `normalizeIndexesGroup` above
+                // may have merged a valid group into one that starts before the table. An empty index
+                // keeps its own meaning, "take the columns from the end". The rule lives in
+                // `clipRemovalRange()` because UndoRedo reads it too.
+                if (Number.isInteger(groupIndex)) {
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countCols());
+
+                  if (clippedRange === null) {
+                    return;
+                  }
+
+                  groupAmount = clippedRange.amount;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
                 let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -1592,7 +1772,7 @@ export default function Core(
         if (nrOfRows < minRows) {
           // The synchronization with cell meta is not desired here. For `minRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto' });
+          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto', fillsMinimumSize: true });
         }
       }
       if (minSpareRows) {
@@ -1605,7 +1785,7 @@ export default function Core(
 
           // The synchronization with cell meta is not desired here. For `minSpareRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto' });
+          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
       }
       {
@@ -1641,7 +1821,7 @@ export default function Core(
 
           emptyCols += colsToCreate;
 
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
         // should I add empty cols to meet minSpareCols?
         if (canCreateSpareCols && emptyCols < minSpareCols) {
@@ -1651,9 +1831,59 @@ export default function Core(
 
           // The synchronization with cell meta is not desired here. For `minSpareCols` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
       }
+    },
+
+    /**
+     * Removes the empty rows and columns at the end of the grid that a lowered `minRows`, `minSpareRows`,
+     * `minCols` or `minSpareCols` no longer requires. `adjustRowsAndCols()` only ever adds them, so without this
+     * a lowered value changes nothing.
+     *
+     * It gives back only the rows and columns those options appended themselves
+     * (`DataMap#isTrailingFillerRow`, `DataMap#isTrailingFillerColumn`), and only down to what the new values
+     * require. An empty row or column that came with the data set, that the user inserted, or that a write past
+     * the last one created, stays - so the grid ends up the way it would have been built with the lower value.
+     * A row or column that holds data is never removed: the surplus can never exceed the number of empty items
+     * at the end, because the requirement is never below the filled part.
+     *
+     * The removal is an ordinary one, so the cell meta follows it. It has to: the rows it takes are the last
+     * ones ON SCREEN, and a sort or a row move can leave a surviving row physically after them, whose meta
+     * would otherwise be left behind at an index the removal has renumbered.
+     *
+     * @private
+     * @param {object} previous The four options as they were before the settings update.
+     */
+    removeSurplusRowsAndCols(previous: MinimumSizes) {
+      shrinkAxis({
+        axis: 'row',
+        getCount: () => instance.countRows(),
+        getNotTrimmedCount: () => instance.rowIndexMapper.getNotTrimmedIndexesLength(),
+        isEmpty: visualRow => instance.isEmptyRow(visualRow),
+        isRemovable: visualRow => datamap.isTrailingFillerRow(instance.toPhysicalRow(visualRow)),
+        previousMinimum: previous.minRows,
+        previousSpare: previous.minSpareRows,
+        minimum: tableMeta.minRows,
+        spare: tableMeta.minSpareRows,
+      });
+
+      // The same guards `adjustRowsAndCols()` creates columns under, and `DataMap#removeCol` throws outside them.
+      if (tableMeta.columns || instance.dataType !== 'array') {
+        return;
+      }
+
+      shrinkAxis({
+        axis: 'column',
+        getCount: () => instance.countCols(),
+        getNotTrimmedCount: () => instance.columnIndexMapper.getNotTrimmedIndexesLength(),
+        isEmpty: visualColumn => instance.isEmptyCol(visualColumn),
+        isRemovable: visualColumn => datamap.isTrailingFillerColumn(instance.toPhysicalColumn(visualColumn)),
+        previousMinimum: previous.minCols,
+        previousSpare: previous.minSpareCols,
+        minimum: tableMeta.minCols,
+        spare: tableMeta.minSpareCols,
+      });
     },
 
     /**
@@ -2037,6 +2267,25 @@ export default function Core(
   }
 
   this.init = function() {
+    // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
+    // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
+    // Use `updateSettings()` to reconfigure a live instance.
+    if (initialized) {
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
+
+      return;
+    }
+
+    initialized = true;
+
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
@@ -2159,9 +2408,7 @@ export default function Core(
 
         lastSlotsHeight = slotsHeight;
 
-        if (isPixelHeight(isFunction(tableMeta.height) ? tableMeta.height() : tableMeta.height)) {
-          applyHeightSetting(tableMeta.height);
-        }
+        reapplyPixelRootHeight(instance, tableMeta.height);
 
         instance.render();
       });
@@ -2424,7 +2671,10 @@ export default function Core(
 
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
-      const visualCol = datamap.propToCol(prop as string | number);
+      // A change can address a column that auto column growth is about to create, and `propToCol()`
+      // answers `null` for one that does not exist yet. Falling back to the prop keeps such a cell
+      // validated against its own column meta, the way it was before `null` became an answer.
+      const visualCol = datamap.propToCol(prop as string | number) ?? prop;
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
@@ -2520,9 +2770,17 @@ export default function Core(
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
-          const missingColumns =
-            Number(datamap.propToCol(changes[i][1] as string | number)) - (instance.countCols() - 1);
+        // `propToCol()` answers `null` for an index that names no column — exactly the case this
+        // loop exists to handle — so the prop is the fallback. That reproduces the resolution this
+        // loop used before, which fell back the same way. The translation itself must stay: with a
+        // trimmed column the prop is a physical index drawn from a wider space than `countCols()`,
+        // and comparing it raw would grow columns nobody asked for. Re-read on every pass so a
+        // partial creation (a `maxCols` clamp) is seen.
+        const targetColumn = () =>
+          Number(datamap.propToCol(changes[i][1] as string | number) ?? changes[i][1]);
+
+        while (targetColumn() > instance.countCols() - 1) {
+          const missingColumns = targetColumn() - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
           } = datamap.createCol(undefined, missingColumns, { source: 'auto' });
@@ -2832,7 +3090,9 @@ export default function Core(
 
     for (let i = filteredChanges.length - 1; i >= 0; i--) {
       const [row, prop, , newValue] = filteredChanges[i];
-      const visualColumn = datamap.propToCol(prop as string | number);
+      // Falls back to the prop for a column auto column growth has not created yet — see the same
+      // resolution in `validateChanges()`.
+      const visualColumn = datamap.propToCol(prop as string | number) ?? prop;
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
@@ -2858,17 +3118,24 @@ export default function Core(
    *
    * Writing past the last column creates the missing columns only where the grid can create them: an
    * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
-   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
-   * is fixed, and the value is instead written to a property named after the column index. That property is not part
-   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
-   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it, and
-   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it only when the write lands on the first row,
-   * because that method reads the first row's keys.
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. With an array data source that cannot grow,
+   * the value is still written to the matching array index, so
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
-   * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
-   * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
+   * there, so it would only add a property the schema never declared. No value is written, and no
+   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
+   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
+   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
+   * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
+   *
+   * Avoid calling this method unconditionally from inside a [`renderer`](@/api/options.md#renderer) function.
+   * Changing a cell's data triggers Handsontable to re-render, which can re-invoke the same renderer and create an
+   * infinite loop. If you need to update data from within a renderer, guard the call (for example, skip it when the
+   * new value already equals the current one), or, preferably, perform the update in a data-change hook such as
+   * {@link Hooks#afterChange} and keep the renderer display-only.
    *
    * @memberof Core#
    * @function setDataAtCell
@@ -2901,29 +3168,24 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on.
-        //
-        // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
-        // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
-        // (`replaceData.ts`) and is just as object-rowed and just as unable to gain a column, so
-        // naming only `'object'` would leave it writing the key.
-        //
-        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
-        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
-        // there every index is "past the last column". Writing to such a grid is how an empty
-        // dataset gets bootstrapped, so it is left exactly as it was.
-        if (instance.dataType !== 'array' && this.countCols() > 0) {
-          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
-            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
-            'field the grid shows no column for.');
+        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
+        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
+          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
+            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
+            'write a field the grid shows no column for.');
+
+          continue;
         }
 
         prop = visualColumnIndex;
 
       } else {
-        prop = datamap.colToProp(visualColumnIndex);
+        // A negative index names no column and keeps travelling on as the index, the way it
+        // always has. An unbound column keeps its `null` property, so the write does not land on
+        // a neighbour's source field.
+        prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
       changes.push([
@@ -2936,6 +3198,17 @@ export default function Core(
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column as string;
+    }
+
+    // Every requested change was skipped above, so there is nothing left to report or apply.
+    // Falling through would run `processChanges([])`, which cancels the active editor - discarding
+    // a value the user is still typing in an unrelated cell - and then render for no work. An
+    // empty `input` keeps its previous path, so `setDataAtCell([])` behaves as it always has.
+    // `afterSetDataAtCell` still fires, because it is documented to fire for every call.
+    if (input.length > 0 && changes.length === 0) {
+      instance.runHooks('afterSetDataAtCell', [], changeSource);
+
+      return;
     }
 
     const processedChanges = processChanges(changes, changeSource);
@@ -3096,10 +3369,14 @@ export default function Core(
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_col` and
+   * `remove_col` to add or remove columns.
    * @param {number} column Index of the column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3107,14 +3384,23 @@ export default function Core(
    * @returns {Array} Returns removed portion of columns.
    */
   this.spliceCol = function(column: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceCol',
+      'The `spliceCol()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_col`/`remove_col`.');
+
     return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
+   * Deprecated. Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
+   * @deprecated Since 19.0.0. Handsontable no longer uses this method internally and it duplicates
+   * `populateFromArray()`, so it will be removed in 20.0.0. Change the data yourself and write it
+   * back with {@link Core#populateFromArray}, or use {@link Core#alter} with `insert_row` and
+   * `remove_row` to add or remove rows.
    * @param {number} row Index of column in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
@@ -3122,6 +3408,11 @@ export default function Core(
    * @returns {Array} Returns removed portion of rows.
    */
   this.spliceRow = function(row: number, index: number, amount: number, ...elements: unknown[]) {
+    deprecatedWarnOnce('Core.spliceRow',
+      'The `spliceRow()` method is deprecated and will be removed in Handsontable 20.0.0. ' +
+      'Change the data yourself and write it back with `populateFromArray()`, or use `alter()` ' +
+      'with `insert_row`/`remove_row`.');
+
     return datamap.spliceRow(row, index, amount, ...elements);
   };
 
@@ -3536,6 +3827,8 @@ export default function Core(
    * rendered once. As a result, it improves the performance of wrapped operations.
    * Without batching, a similar case could trigger multiple table render calls.
    *
+   * Rendering resumes even when the callback throws; the error is rethrown.
+   *
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3559,11 +3852,11 @@ export default function Core(
   this.batchRender = function<T>(wrappedOperations: () => T): T {
     instance.suspendRender();
 
-    const result = wrappedOperations();
-
-    instance.resumeRender();
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeRender();
+    }
   };
 
   /**
@@ -3650,6 +3943,9 @@ export default function Core(
    * cache is recalculated once. As a result, it improves the performance of wrapped
    * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
+   * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
+   * is not applied on that path.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3673,11 +3969,19 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
-    const result = wrappedOperations();
+    let completed = false;
 
-    instance.resumeExecution(forceFlushChanges);
+    try {
+      const result = wrappedOperations();
 
-    return result;
+      completed = true;
+
+      return result;
+    } finally {
+      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+      // after a throw is a half-applied change, so the flag is honored only on the happy path.
+      instance.resumeExecution(completed && forceFlushChanges);
+    }
   };
 
   /**
@@ -3686,7 +3990,8 @@ export default function Core(
    * as well aggregates the table logic changes such as index changes into one call
    * after which the cache is updated. After the execution of the operations, the
    * table is rendered, and the cache is updated once. As a result, it improves the
-   * performance of wrapped operations.
+   * performance of wrapped operations. Rendering and execution resume even when the
+   * callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batch
@@ -3718,12 +4023,19 @@ export default function Core(
     instance.suspendRender();
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution();
-    instance.resumeRender();
-
-    return result;
+    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+    // instance suspended for the rest of its life, so it never painted again. The two resumes are
+    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+    // the flush) still lets `resumeRender` run.
+    try {
+      return wrappedOperations();
+    } finally {
+      try {
+        instance.resumeExecution();
+      } finally {
+        instance.resumeRender();
+      }
+    }
   };
 
   /**
@@ -4031,7 +4343,14 @@ export default function Core(
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index.
+   * Returns the data's copyable value at specified `row` and `column` index, as a string.
+   *
+   * A value that is not already a string is converted: numbers and booleans to their text form,
+   * `null` and `undefined` to an empty string, and everything else through its `toString()`.
+   * A cell with `copyable` disabled returns an empty string.
+   *
+   * The text copied to the clipboard can differ for an object with its own `valueOf()`, because the
+   * clipboard reads such an object through `valueOf()` first.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -4040,21 +4359,48 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return stringify(datamap.getCopyable(row, colToPropOrIndex(instance, column)));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index, without converting it
+   * to a string.
+   *
+   * The clipboard and Autofill need the value as it is stored. Autofill writes it back into the grid,
+   * the `beforeCopy`, `afterCopy`, `beforeCut`, `afterCut`, and `beforeAutofill` hooks hand it to
+   * consumers, and the clipboard text reads an object through `valueOf()` rather than `toString()`.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. The Autofill and CopyPaste plugins
+   * reach it through a local internal type. Do not add it to `HotInstance`.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getCopyableData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getCopyableData = function(row: number, column: number) {
+    return datamap.getCopyable(row, colToPropOrIndex(instance, column));
   };
 
   /**
    * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * The value is returned as it is stored, so it can be a nested object or an array. The CopyPaste
+   * plugin serializes those to JSON when copying with source data. A cell with `copyable` disabled
+   * returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableSourceData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, colToPropOrIndex(instance, column));
   };
 
   /**
@@ -4067,84 +4413,6 @@ export default function Core(
    */
   this.getSchema = function() {
     return datamap.getSchema();
-  };
-
-  /**
-   * Checks whether a `height` value is a plain pixel length (a number, a digit string, or a `px`
-   * string) – the only form the edge slots can be subtracted from.
-   *
-   * @param {unknown} height The resolved `height` setting.
-   * @returns {boolean}
-   */
-  const isPixelHeight = (height: unknown): height is number | string => (
-    typeof height === 'number' ||
-    (typeof height === 'string' && (/^\d+$/.test(height) || height.endsWith('px')))
-  );
-
-  /**
-   * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
-   * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
-   * asked for. With an explicit `height` the root element owns the vertical axis and contains no
-   * slot, so the engine's `layoutReservedHeight` reserves nothing there – this is the other half of
-   * the same rule, and it used to live in the Pagination plugin alone, which left the sheets bar
-   * 38px taller than the declared height (DEV-2848). A non-pixel height (`auto`, `100%`, a `calc()`)
-   * is left alone: it is resolved by the browser, not by us.
-   *
-   * @param {number | string} height The resolved `height` setting.
-   * @returns {number | string}
-   */
-  const reserveEdgeSlotsHeight = (height: number | string): number | string => {
-    if (!isRootInstance(instance) || !isPixelHeight(height)) {
-      return height;
-    }
-
-    const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
-      .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
-
-    if (reservedHeight === 0) {
-      return height;
-    }
-
-    const heightValue = typeof height === 'string' && height.endsWith('px') ? height : `${height}px`;
-
-    return `calc(${heightValue} - ${reservedHeight}px)`;
-  };
-
-  /**
-   * Writes the `height` setting onto the root element. Split out of `updateSettings` so the slot
-   * `ResizeObserver` can re-apply it when a bar's height changes after the settings were applied.
-   *
-   * @param {*} heightSetting The `height` setting (a length, `'auto'`, `null`, or a function).
-   * @returns {*} The height as written (after `beforeHeightChange` and the slot reservation).
-   */
-  const applyHeightSetting = (heightSetting: unknown): unknown => {
-    let height = heightSetting;
-
-    if (isFunction(height)) {
-      height = (height as () => string | number)();
-    }
-
-    height = instance.runHooks('beforeHeightChange', height);
-
-    if (height === null) {
-      const initialStyle = instance.rootElement.dataset.initialstyle;
-
-      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle);
-
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
-      }
-
-    } else if (height !== undefined) {
-      height = reserveEdgeSlotsHeight(height as number | string);
-
-      instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'clip';
-    }
-
-    return height;
   };
 
   /**
@@ -4219,11 +4487,28 @@ export default function Core(
     // getColHeader's index translation cache so it rebuilds against the updated settings.
     columnsSettingIndexes = null;
 
+    // Read before the loop below merges the payload into the table meta, so a lowered minimum can be
+    // compared with the value that sized the grid.
+    const previousMinimumSizes = {
+      minRows: tableMeta.minRows,
+      minSpareRows: tableMeta.minSpareRows,
+      minCols: tableMeta.minCols,
+      minSpareCols: tableMeta.minSpareCols,
+    };
+
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
         '`rowHeights` will be used as the row height configuration.');
     }
+
+    // The stored `height` and `width` before this call. An unreadable value is ignored by
+    // `applyRootSize()` below, and the stored setting must stay on the size the grid uses. On init the
+    // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
+    const previousRootSize = {
+      height: init ? undefined : tableMeta.height,
+      width: init ? undefined : tableMeta.width,
+    };
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
@@ -4552,85 +4837,12 @@ export default function Core(
       runSourceDataValidators(instance, 'init');
     }
 
-    let currentHeight: string | number = instance.rootElement.style.height;
+    // The root's inline `height`, `width`, and `overflow*` have one writer: `core/rootSize.ts`.
+    const rootSize = applyRootSize(instance, settings, init);
 
-    if (currentHeight !== '') {
-      currentHeight = parseInt(instance.rootElement.style.height, 10);
-    }
-
-    if (init) {
-      const initialStyle = instance.rootElement.getAttribute('style');
-
-      if (initialStyle) {
-        instance.rootElement.dataset.initialstyle = instance.rootElement.getAttribute('style') ?? '';
-      }
-    }
-
-    // The resolved value (after `beforeHeightChange` and the slot reservation) is compared against
-    // the previous inline height below, to re-pick the scrollable elements when the axis owner moved.
-    let height: unknown;
-
-    if (typeof settings.height !== 'undefined') {
-      height = applyHeightSetting(settings.height);
-    }
-
-    if (typeof settings.width !== 'undefined') {
-      let width = settings.width;
-
-      if (isFunction(width)) {
-        width = (width as () => string | number)();
-      }
-
-      width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
-    }
-
-    // When height is absent the table uses window scroll, so the `overflow: clip` shorthand from the
-    // height block is not applied. Set overflowX: clip to prevent the inner table from visually
-    // overflowing a constrained width. Read the effective values from the DOM (after both height and
-    // width blocks ran) so partial updateSettings calls see the correct state.
-    // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
-    // overflowX untouched to avoid breaking that shorthand.
-    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
-    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
-    // with the window — matching the long-standing behavior where the page gains a horizontal
-    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
-    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
-    // establishes a fixed box the table must not visually overflow, so it is clipped.
-    if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
-      const effectiveHeight = instance.rootElement.style.height;
-      const effectiveWidth = instance.rootElement.style.width;
-      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
-      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
-      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
-      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
-      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
-      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
-      // `height: 'auto'` is a free height like an unset one: the grid's rows belong to the page. It
-      // still writes the `overflow: clip` shorthand above, so the longhand written here changes
-      // nothing readable today. It is the contract the engine's per-axis trimming reads (the root
-      // owns the horizontal axis, the window the vertical one), and it is what keeps every column
-      // reachable once `'auto'` stops writing the shorthand. Only an unset height may clear the
-      // longhand: for `'auto'` with a relative width the shorthand stays whole, so the clip is not
-      // silently reduced to the vertical axis.
-      const isFreeHeight = effectiveHeight === '' || effectiveHeight === 'auto';
-
-      if (isFreeHeight) {
-        const currentOverflowX = instance.rootElement.style.overflowX;
-
-        // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
-        // overflow (e.g. `overflow: hidden` restored from the initial style) so it is not stomped
-        // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
-        // programmatic scroll.
-        if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          if (isDefiniteWidth) {
-            instance.rootElement.style.overflowX = 'clip';
-          } else if (effectiveHeight === '') {
-            instance.rootElement.style.overflowX = '';
-          }
-        }
-      }
-    }
+    rootSize.ignoredAxes.forEach((axis) => {
+      globalMeta[axis] = previousRootSize[axis];
+    });
 
     if (!init) {
       if (instance.view) {
@@ -4642,6 +4854,12 @@ export default function Core(
       selection.updateHighlightClassNames();
       instance.renderChangeTracker.markAllChanged();
       instance.runHooks('afterUpdateSettings', settings);
+    }
+
+    // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed: the
+    // data phase already sized the new axis to the merged values, so there is no surplus left to give back.
+    if (!init) {
+      grid.removeSurplusRowsAndCols(previousMinimumSizes);
     }
 
     grid.adjustRowsAndCols();
@@ -4657,8 +4875,7 @@ export default function Core(
       instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
-        currentHeight !== height) {
+    if (!init && instance.view && rootSize.scrollOwnerChanged) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
 
@@ -4805,6 +5022,10 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   *                                For `'remove_row'` and `'remove_col'`, rows and columns that do not exist are
+   *                                never removed. An index that points outside the table (a negative one, or one at
+   *                                or past the last row/column) removes nothing, and in the array format any part of
+   *                                a range that falls outside the table is ignored while the rest is still removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
@@ -4942,21 +5163,20 @@ export default function Core(
    * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
-   * When the column index points at no existing column, the method hands the argument back
-   * unchanged. It does not signal an unknown column, so the result on its own never tells you
-   * whether that column exists.
-   *
-   * The result can also be `null`, in two cases: an argument that is not an integer comes straight
-   * back, and a column declared as `{ data: null }` resolves to `null` for an index that is
-   * perfectly valid. Test the result before you use it as a property name.
+   * Returns `null` when the index names no column that currently exists, the same way
+   * {@link Core#toVisualColumn} and the other index translators report an index they cannot
+   * resolve. It also returns `null` for a column declared as `{ data: null }` – a perfectly valid
+   * index for a column that binds to no source property. Test the result before you use it as a
+   * property name.
    *
    * @memberof Core#
    * @function colToProp
    * @param {number} column Visual column index. An argument that is not an integer comes back
    *   unchanged, so the declared type is narrower than what the method accepts at runtime.
-   * @returns {string|number|null} Column property, physical column index, `null`, or the passed
-   *   argument. When the column's `data` option is an accessor function, that function is returned
-   *   at runtime – check `typeof` before treating the result as a property name.
+   * @returns {string|number|null} Column property, physical column index, or `null` when the index
+   *   names no column or the column binds to no property. When the column's `data` option is an
+   *   accessor function, that function is returned at runtime – check `typeof` before treating the
+   *   result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4965,33 +5185,28 @@ export default function Core(
   /**
    * Returns column index that corresponds with the given property.
    *
-   * When the property matches no column, the method hands the argument back unchanged, so the
-   * result on its own never tells you whether that column exists.
+   * Returns `null` when the argument names no column that currently exists and is visible – an
+   * index past the last column, or one whose column is trimmed. Both forms answer the same way: a
+   * cached property and a bare physical index on array data now agree.
    *
-   * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
-   * how the property is declared. A property held in the column cache – object data, or one named
-   * by a `columns[].data` entry – resolves through {@link Core#toVisualColumn} and comes back
-   * `null`. A bare physical index on array data comes back unchanged instead, which does not
-   * identify a usable visual column.
+   * A property this data set does not use is handed back unchanged, so validate with
+   * `Number.isInteger()` rather than comparing against {@link Core#countCols}: `null` compares as
+   * `0` and would pass such a check.
    *
-   * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
-   * second case through, and a {@link Core#countCols} comparison alone lets `null` through, because
-   * `null` compares as `0`.
-   *
-   * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
-   * `number`, so neither a returned property name nor `null` is visible to the type checker, and it
-   * narrows the parameter to `string | number`, so passing a `columns[].data` accessor function
-   * works at runtime but does not type-check.
+   * The TypeScript declaration is narrower than what runs, at both ends. It narrows the result to
+   * `number | null`, so a returned property name is not visible to the type checker, and it narrows
+   * the parameter to `string | number`, so passing a `columns[].data` accessor function works at
+   * runtime but does not type-check.
    *
    * @memberof Core#
    * @function propToCol
    * @param {string|number|Function} prop Property name, physical column index, or a `columns[].data`
    *   accessor function.
-   * @returns {string|number|Function|null} Visual column index, `null` when a cached property's
-   *   column is trimmed, or the passed argument.
+   * @returns {string|number|Function|null} Visual column index, `null` when the argument names no
+   *   visible column, or the passed argument when it is a property this data set does not use.
    */
   this.propToCol = function(prop: string | number) {
-    return datamap.propToCol(prop) as number;
+    return datamap.propToCol(prop) as number | null;
   };
 
   /**
@@ -5063,7 +5278,31 @@ export default function Core(
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row: number, column: number) {
-    return datamap.get(row, datamap.colToProp(column));
+    return datamap.get(row, colToPropOrIndex(instance, column));
+  };
+
+  /**
+   * Returns one column's values for a block of rows, resolving the column coordinates once instead
+   * of once per cell.
+   *
+   * This is the bulk form of `getDataAtCell()` for a full-column scan and returns the same values.
+   * The physical row indexes are passed in, so a caller that has already translated them - the sort
+   * gather loop has - does not pay for a second translation per cell.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
+   * local internal type (see `HotInstanceInternal` in the ColumnSorting plugin). Do not add it to
+   * `HotInstance` - that would turn an implementation detail into a supported public API.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getDataAtColumnForRows
+   * @param {number} column Visual column index.
+   * @param {Array} physicalRows Physical row indexes to read, in the order the values are wanted.
+   * @returns {Array} Data at the column, in the same order as `physicalRows`.
+   */
+  this._getDataAtColumnForRows = function(column: number, physicalRows: (number | null)[]) {
+    return datamap.getAtColumnForRows(column, physicalRows);
   };
 
   /**
@@ -5116,15 +5355,24 @@ export default function Core(
    * @memberof Core#
    * @function getDataAtProp
    * @param {string|number} prop Property name or physical column index.
-   * @returns {Array} Array of cell values.
+   * @returns {Array} Array of cell values. An empty array when `prop` names no column – an index past
+   *   the last column, a negative index, or a property name your data set does not use.
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop: string | number) {
-    const columnData = [];
+    const columnData: unknown[] = [];
+    const visualColumn = datamap.propToCol(prop);
+
+    // No column, no values. Building a range from `null` would collapse both ends to column `0`
+    // and hand back that column's data for a property this data set does not have.
+    if (visualColumn === null) {
+      return columnData;
+    }
+
     const dataByRows = datamap.getRange(
-      instance._createCellCoords(0, datamap.propToCol(prop) as number | null) as { row: number; col: number },
+      instance._createCellCoords(0, visualColumn as number) as { row: number; col: number },
       instance._createCellCoords(
-        tableMeta.data.length - 1, datamap.propToCol(prop) as number | null
+        tableMeta.data.length - 1, visualColumn as number
       ) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );

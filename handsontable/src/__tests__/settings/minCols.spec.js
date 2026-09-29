@@ -95,8 +95,7 @@ describe('settings', () => {
         expect(countEmptyCols()).toBe(4);
       });
 
-      // Currently this is a bug (#6571)
-      xit('should show data properly after `minCols` is updated from 5 to 2', async() => {
+      it('should show data properly after `minCols` is updated from 5 to 2', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minCols: 5

@@ -44,4 +44,42 @@ describe('UndoRedo -> RemoveColumn action', () => {
       expect(hot.getData()).toEqual([[5]]);
     });
   });
+
+  describe('a partial removal (more columns requested than exist) (DEV-2936)', () => {
+    it('should record the clamped count for indexes/headers/amount, not the raw requested amount', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['a', 'b', 'c']],
+        colHeaders: ['H0', 'H1', 'H2'],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      // Requests 5 columns from index 1, but only 2 exist there, so only 2 are removed.
+      hot.alter('remove_col', 1, 5);
+
+      expect(hot.getData()).toEqual([['a']]);
+
+      const action = plugin.doneActions[0];
+
+      // Everything the action recorded is sized to the 2 columns actually removed - not to 5.
+      expect(action.amount).toBe(2);
+      expect(action.indexes.length).toBe(2);
+      expect(action.headers.length).toBe(2);
+      expect(action.data[0].length).toBe(2);
+
+      // No out-of-range physical index leaked in from the raw amount.
+      action.indexes.forEach((physicalColumn) => {
+        expect(typeof physicalColumn).toBe('number');
+        expect(physicalColumn).toBeGreaterThanOrEqual(0);
+        expect(physicalColumn).toBeLessThan(3);
+      });
+
+      // Undo restores the exact pre-removal data and headers, with no `undefined` cells.
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['a', 'b', 'c']]);
+      expect(hot.getColHeader()).toEqual(['H0', 'H1', 'H2']);
+    });
+  });
 });

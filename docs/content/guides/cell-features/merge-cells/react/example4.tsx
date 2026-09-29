@@ -5,6 +5,15 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['North America', 420000, 465000, 501000],
+  ['Europe', 388000, 402000, 411000],
+  ['APAC', 275000, 298000, 312000],
+  ['Latin America', 142000, 151000, 158000],
+  ['Middle East', 96000, 101000, 108000],
+  ['Note: Q1 totals include a one-time currency adjustment.', null, null, null],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
@@ -30,14 +39,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['North America', 420000, 465000, 501000],
-          ['Europe', 388000, 402000, 411000],
-          ['APAC', 275000, 298000, 312000],
-          ['Latin America', 142000, 151000, 158000],
-          ['Middle East', 96000, 101000, 108000],
-          ['Note: Q1 totals include a one-time currency adjustment.', null, null, null],
-        ]}
+        data={data}
         colHeaders={['Region', 'Jan 2025', 'Feb 2025', 'Mar 2025']}
         rowHeaders={true}
         height="auto"

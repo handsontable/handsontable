@@ -23,6 +23,11 @@ Review the tests a change ships — and the tests it should have shipped — wit
 5. **A weakened or deleted assertion carries its ticket.**
    - An assertion loosened, widened, or removed with a race as the reason ("held 15/15 locally", "flakes on classic") needs a filed ticket in the same PR, named beside the change. "Still open, no ticket" blocks the review. The weakening detector flags the change; you confirm the ticket.
 
+6. **A visual spec is in addition to, never instead of.**
+   - If the diff adds or changes `visual-tests/tests/**/*.spec.ts`, name the `tests/e2e` assertion that proves the same state by DOM or API (focus, selection, data, "the menu opened"). A screenshot proves pixels only, and the presence gate counts a visual spec as coverage, so this is yours to hold.
+   - A capture that stands alone for a state a probe can express is **Medium**. So is a capture that duplicates one already recorded for the same visual state, a capture on the line after an action with nothing asserted in between, or a new feature wired into the shared `/` demo instead of its own route.
+   - Rule: `visual-tests/AGENTS.md` → Decision rule.
+
 ## References
 
 - The `test-writing-discipline` skill — the rules these items enforce at review time.

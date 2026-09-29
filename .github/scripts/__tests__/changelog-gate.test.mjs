@@ -41,6 +41,14 @@ test('requiresChangelog classifies shippable source', () => {
 });
 
 // --- stripHtmlComments ---
+test('stripHtmlComments repeats to a fixed point', () => {
+  // A single pass removes the inner comment and leaves `A <!-- b --> C` — itself a comment, assembled
+  // out of the text either side of the one just removed. CodeQL flags that shape as
+  // js/incomplete-multi-character-sanitization, and for these gates it is the difference between a
+  // commented marker staying inert and becoming live.
+  assert.equal(stripHtmlComments('A <!<!-- x -->-- b --> C'), 'A  C');
+});
+
 test('stripHtmlComments removes single and multiline comment blocks', () => {
   const body = `real text <!-- hidden ${SKIP_MARKER} --> more\n<!--\nmultiline ${SKIP_MARKER}\n-->tail`;
 

@@ -16,6 +16,7 @@ import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -148,8 +149,8 @@ export interface GridSettings {
   density?: DensityType;
 
   // Dimensions
-  width?: number | string | (() => number | string);
-  height?: number | string | (() => number | string);
+  width?: number | 'auto' | (string & {}) | null | (() => number | string | null);
+  height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
@@ -284,6 +285,7 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
+  filterValueComparator?: (a: unknown, b: unknown) => number;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;
@@ -303,6 +305,7 @@ export interface GridSettings {
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;
+  importFile?: boolean | ImportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
@@ -414,7 +417,9 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
+  afterDetachChild?: (
+    parent: RowObject, element: RowObject, finalElementPosition: number | null, source?: string
+  ) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -438,6 +443,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
+  afterImport?: (result: ImportResult, format: string) => void;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -582,6 +588,8 @@ export interface GridSettings {
     event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
   beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
     type: string, alignmentClass: string) => void;
+  beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
+    readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -607,7 +615,7 @@ export interface GridSettings {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
-  beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
+  beforeDetachChild?: (parent: RowObject, element: RowObject, source?: string) => void;
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
@@ -627,6 +635,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
+  beforeImport?: (result: ImportResult, format: string) => boolean | void;
   beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -747,7 +756,7 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

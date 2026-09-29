@@ -33,6 +33,10 @@ interface TrimmingContainerCache {
    * was computed with.
    */
   reservedHeight: number;
+  /**
+   * The `heightFollowsContent` setting the holder height was computed with.
+   */
+  heightFollowsContent: boolean;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -216,14 +220,22 @@ class MasterTable extends Table {
       // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
       // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
       // would pin the holder to the old box while the page is supposed to size it. Clearing them is
-      // the whole of this mode's sizing.
-      this.holder.style.width = '';
-      this.holder.style.height = '';
+      // the whole of this mode's sizing. `measureWorkspaceWidth`'s window branch reads the holder
+      // width, so a stale one also kept the columns stretching to the old box.
+      const holderStyle = this.holder.style;
+
+      holderStyle.width = '';
+      holderStyle.height = '';
       this.hasTableWidth = true;
       this.hasTableHeight = true;
 
+      if (fieldsInitialized) {
+        // The measurement it holds was taken in another mode and must not be replayed on the way back.
+        this.#trimmingCache = null;
+      }
+
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        holderStyle.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
     } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {
@@ -280,6 +292,9 @@ class MasterTable extends Table {
       // Part of the fingerprint: a bar that mounts into a slot after the first draw (or changes
       // height) must re-measure, or the cached holder height keeps the whole owner box.
       const reservedHeight = this.wtSettings.getSetting('layoutReservedHeight', trimmingElement);
+      // Part of the fingerprint: switching `height` between `'auto'` and unset moves no box, yet it
+      // decides whether a heightless owner gets `auto` or 0px.
+      const heightFollowsContent = this.wtSettings.getSetting('heightFollowsContent');
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -290,7 +305,8 @@ class MasterTable extends Table {
         && cache.trimmingHeight === trimmingHeight
         && cache.hiderOffsetHeight === hiderOffsetHeight
         && cache.hiderOffsetWidth === hiderOffsetWidth
-        && cache.reservedHeight === reservedHeight;
+        && cache.reservedHeight === reservedHeight
+        && cache.heightFollowsContent === heightFollowsContent;
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -353,6 +369,15 @@ class MasterTable extends Table {
                 (overflowY !== 'auto' && overflowY !== 'scroll')) {
               useAutoHeight = true;
             }
+
+            // The second case that switches to auto-height: the host sized the grid by its content
+            // (Handsontable's `height: 'auto'`, which leaves the root unclipped so the grid can
+            // scroll a sized ancestor). A heightless owner then has no box to scroll the rows in,
+            // and 0px would hide the whole grid inside it (DEV-3062). `auto` sizes the holder to its
+            // rows, as the root owning the axis did.
+            if (heightFollowsContent) {
+              useAutoHeight = true;
+            }
           }
         }
 
@@ -391,6 +416,7 @@ class MasterTable extends Table {
             hiderOffsetHeight,
             hiderOffsetWidth,
             reservedHeight,
+            heightFollowsContent,
             holderWidth,
             holderHeight,
             hasTableHeight,

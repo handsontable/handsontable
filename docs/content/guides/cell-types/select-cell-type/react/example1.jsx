@@ -4,14 +4,16 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['2017', 'Honda', 10],
+  ['2018', 'Toyota', 20],
+  ['2019', 'Nissan', 30],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['2017', 'Honda', 10],
-        ['2018', 'Toyota', 20],
-        ['2019', 'Nissan', 30],
-      ]}
+      data={data}
       colWidths={[70, 90, 80]}
       colHeaders={['Year', 'Make', 'In stock']}
       columns={[

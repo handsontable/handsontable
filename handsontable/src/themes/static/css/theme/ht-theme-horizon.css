@@ -488,6 +488,17 @@
   background-color: currentColor;
 }
 
+[class*=ht-theme-horizon] .htDropdownMenu table tbody tr td .htItemWrapper span.htMixed::after,
+[class*=ht-theme-horizon] .htContextMenu table tbody tr td .htItemWrapper span.htMixed::after,
+[class*=ht-theme-horizon] .htFiltersConditionsMenu table tbody tr td .htItemWrapper span.htMixed::after,
+[class*=ht-theme-horizon] .htSheetsBarMenu table tbody tr td .htItemWrapper span.htMixed::after {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.33325 8H11.6666' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
 [class*=ht-theme-horizon] .htCheckboxRendererInput {
   appearance: none;
 }

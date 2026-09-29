@@ -101,6 +101,7 @@ The built-in tracked actions include:
 - Cell moving and copying (`beforeMoveCells`, `afterMoveCells`), when the [`moveCells`](@/api/options.md#movecells) option is enabled
 - Merge and unmerge (`beforeMergeCells`, `afterUnmergeCells`)
 - Alignment changes (`beforeCellAlignment`)
+- Read-only toggles made through the context menu or the column menu (`beforeReadOnlyToggle`)
 
 ## Batch edits and multi-cell changes
 

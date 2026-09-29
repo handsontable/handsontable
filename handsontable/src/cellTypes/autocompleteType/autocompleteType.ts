@@ -12,4 +12,8 @@ export const AutocompleteCellType = {
   valueGetter,
   valueSetter,
   parsePastedValue: true,
+  // Keep a long value on one line, truncated with an ellipsis, so it stays clear of the dropdown
+  // arrow instead of wrapping around it (DEV-28). This is a type-level default: set
+  // `textEllipsis: false` on the column (or in `cells`/`setCellMeta`) to restore wrapping.
+  textEllipsis: true,
 };

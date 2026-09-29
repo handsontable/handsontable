@@ -4,6 +4,17 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const budgetData = [
+  ['Marketing', 4200, 5100],
+  ['Engineering', 18700, 19200],
+  ['Operations', 3100, 2900],
+];
+
+const notesData = [
+  ['Reviewed by Ana García on 2026-03-14'],
+  ['Pending sign-off from Finance'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -11,21 +22,14 @@ const ExampleComponent = () => {
         sheets: [
           {
             name: 'Budget',
-            data: [
-              ['Marketing', 4200, 5100],
-              ['Engineering', 18700, 19200],
-              ['Operations', 3100, 2900],
-            ],
+            data: budgetData,
             settings: {
               colHeaders: ['Category • A', 'Q1 2026 • B', 'Q2 2026 • C'],
             },
           },
           {
             name: 'Notes',
-            data: [
-              ['Reviewed by Ana García on 2026-03-14'],
-              ['Pending sign-off from Finance'],
-            ],
+            data: notesData,
             settings: {
               colHeaders: ['Note • A'],
             },

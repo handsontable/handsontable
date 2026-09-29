@@ -64,6 +64,24 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the target row well inside the band on every theme, which is why `cell(40, 3)`
   after an 800px window scroll in the same spec is safe. Distance from the
   band's edge is what decides, not whether the index is written down.
+- **The same trap applies to any assertion about WHICH SIDE a popup opens on.**
+  A dropdown editor's list is as tall as its rows, so the theme decides whether
+  it fits below the cell or has to flip above it: the same grid flips on
+  `horizon` and does not on `main`. Because every local gate is pinned to
+  `e2e-main` (and the legacy Jasmine runner defaults to `main`), a spec that
+  pins the side goes green locally and reds exactly one CI leg, with a message
+  full of coordinates that says nothing about the cause — that is how
+  `E2E / UMD (theme: horizon)` went red on #13417 while the other two themes
+  passed. Assert **adjacency** instead: the popup touches the cell on one side
+  or the other. Leave "which side, and does it leave the grid" to a spec whose
+  grid is deliberately shaped to force that outcome on all three themes, and
+  run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
+  `e2e/submenu-position.spec.ts` is that shape for menus: its fixture's menus
+  are three and two items long, so every point it opens a menu at clears or
+  misses the room the menu and its submenu need by 56 px or more on every
+  theme, more than a row. With the full default item list that margin collapses: from the
+  top-left corner the Alignment submenu has 142 px to spare below on `main`
+  and 5 px on `horizon`, one row-height change from flipping.
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator
@@ -374,8 +392,11 @@ artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
 runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
 outcome (failed, then passed on retry) reaches the ledger only because
 `failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
-The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
-in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+`.github/scripts/__tests__/playwright-flake-settings.test.mjs` pins all three
+settings (`failOnFlakyTests`, `retries`, and `forbidOnly`) as text in the root
+`test:tooling` gate, and fails with this reason if one moves. The report path
+is pinned by `.github/scripts/lib/test-health.mjs` and asserted in
+`.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
 
 ## Quarantine
@@ -383,8 +404,12 @@ all three places.
 `failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
 fixing the flake is the answer. Quarantine is the narrow, expiring, capped
 exception for a *known* flake that would otherwise redden every unrelated pull
-request until the fix lands — and it exists in this tier only. The frozen
-Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+request until the fix lands. The mechanism below is this tier's only. The visual
+suite parks a flaky capture with the same limits (owner, 30-day expiry, cap of
+six) through `visual-tests/visual-quarantine.json`, whose checks import
+`lib/quarantine-policy.mjs`; its rules are `visual-tests/AGENTS.md`, Guardrails
+(G5). The frozen Jasmine suite has no quarantine: a flaky legacy spec migrates
+here instead.
 
 - **Tag through the helper, never by hand.**
   `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
@@ -418,4 +443,8 @@ The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
 `lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
 proves the exit codes end to end by running synthetic projects in a child
 process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
-policy module; change them there and in this section together.
+policy module; change them there, in this section, in the G5 bullet of
+`visual-tests/AGENTS.md`, and in `visual-tests/visual-quarantine.json`'s
+`$comment` together. The visual quarantine imports them, and
+`visual-tests/lib/__tests__/visual-quarantine.test.mjs` pins 6 and 30, so it
+fails until you do.

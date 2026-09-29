@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import type { ColumnSortingConfig } from '../../columnSorting/columnSorting';
+import { colToPropOrIndex } from '../../../helpers/columnProp';
 
 const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
 
@@ -58,11 +59,12 @@ export function normalizeSortToQueryFormat(
  * Converts query-format sort `{ prop, order }` to ColumnSorting plugin format `{ column, sortOrder }`.
  *
  * @param {{ prop: string, order: 'asc'|'desc' }|null} sort Query-format sort.
- * @param {function(string): number} propToCol Maps column data key to visual column index.
+ * @param {function(string): (number|null)} propToCol Maps column data key to visual column index, or
+ *   to `null` when the key names no column.
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
 export function querySortToPluginSort(
-  sort: unknown, propToCol: (prop: string) => number
+  sort: unknown, propToCol: (prop: string) => number | null
 ): { column: number; sortOrder: SortOrder } | null {
   if ((sort === null || sort === undefined) || typeof sort !== 'object') {
     return null;
@@ -160,7 +162,7 @@ export function applyColumnSortToQueryFromPlugin(hot: HotInstance, queryParamete
   applyColumnSortingToQueryParameters(
     hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY) as unknown as ColumnSortingPluginLike,
     queryParameters,
-    column => String(hot.colToProp(column))
+    column => String(colToPropOrIndex(hot, column))
   );
 }
 
@@ -172,7 +174,7 @@ export function applyColumnSortToQueryFromPlugin(hot: HotInstance, queryParamete
  * @returns {void}
  */
 export function normalizeSortInFetchParams(params: { sort: unknown }, hot: HotInstance): void {
-  params.sort = normalizeSortToQueryFormat(params.sort, col => String(hot.colToProp(col)));
+  params.sort = normalizeSortToQueryFormat(params.sort, col => String(colToPropOrIndex(hot, col)));
 }
 
 /**

@@ -1,9 +1,18 @@
-import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import type { UndoRedoActionResult } from '../undoRedo';
 import { BaseAction } from './_base';
-import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
+import { NESTED_ROWS_DETACH_SOURCE } from './nestedRowsDetachSource';
+import {
+  getCellMetas,
+  collectAffectedMergedCells,
+  restoreMergedCells,
+  collectHiddenRowsForRemoval,
+  restoreHiddenRows,
+  settleOnRemoveHook,
+  type SettleCallback,
+} from '../utils';
 import { deepClone, isPlainObject, stripFunctionValues } from '../../../helpers/object';
+import { clipRemovalRange } from '../../../utils/removalRange';
 import { isDataAccessorFn } from '../../../dataMap/dataSource';
 import type { DataAccessorFn } from '../../../dataMap/dataSource';
 import type { PhysicalRowMergeSnapshot } from '../../mergeCells/mergeCells';
@@ -42,8 +51,10 @@ function collectAccessorColumns(hot: HotInstance): Array<[number, DataAccessorFn
   const accessorColumns: Array<[number, DataAccessorFn]> = [];
 
   for (let visualColumn = 0; visualColumn < hot.countCols(); visualColumn++) {
-    // `colToProp` is declared as `string | number` – the shape it has always had publicly – but it
-    // hands back the `columns[].data` accessor as-is, so read it as `unknown` and narrow it here.
+    // `colToProp` is declared as `string | number | null` but hands back the `columns[].data`
+    // accessor as-is, so read it as `unknown` and narrow it here. The loop is bounded by
+    // `countCols()`, so `null` only comes back for an unbound column (`{ data: null }`), which is
+    // not an accessor and is skipped.
     const prop: unknown = hot.colToProp(visualColumn);
 
     if (isDataAccessorFn(prop)) {
@@ -160,6 +171,11 @@ export class RemoveRowAction extends BaseAction {
    */
   removedMergedCells;
   /**
+   * @param {number[]} removedHiddenRows Absolute visual row indexes the `hiddenRows` plugin had hidden
+   *   within the removed range, captured before the removal ran.
+   */
+  removedHiddenRows;
+  /**
    * Internal snapshot supplied by the NestedRows plugin when a removed row owns a nested subtree.
    *
    * @type {unknown}
@@ -204,6 +220,7 @@ export class RemoveRowAction extends BaseAction {
     rowIndexesSequence,
     removedCellMetas,
     removedMergedCells,
+    removedHiddenRows,
     nestedRowsSnapshot,
     nestedRemovedCellMetas,
     nestedAccessorValues,
@@ -214,6 +231,7 @@ export class RemoveRowAction extends BaseAction {
     fixedRowsBottom: number, fixedRowsTop: number,
     rowIndexesSequence: number[], removedCellMetas: unknown[],
     removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>,
+    removedHiddenRows: number[],
     nestedRowsSnapshot?: unknown,
     nestedRemovedCellMetas?: Array<[number, number, Record<string, unknown>]>,
     nestedAccessorValues?: Array<{ row: number, values: Array<[number, unknown]> }>,
@@ -229,6 +247,7 @@ export class RemoveRowAction extends BaseAction {
     this.rowIndexesSequence = rowIndexesSequence;
     this.removedCellMetas = removedCellMetas;
     this.removedMergedCells = removedMergedCells;
+    this.removedHiddenRows = removedHiddenRows;
 
     if (nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined) {
       this.nestedRowsSnapshot = nestedRowsSnapshot;
@@ -240,74 +259,101 @@ export class RemoveRowAction extends BaseAction {
   }
 
   /**
+   * Captures a row removal as an action without adding it to the undo stack.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @param {number} physicalRowIndex Physical index of the first removed row.
+   * @param {number} amount Number of removed rows.
+   * @param {unknown} logicRows Physical rows removed by the operation.
+   * @param {string} source Source that initiated the removal.
+   * @returns {RemoveRowAction|null} The captured action, or `null` when no rows are removed.
+   */
+  static create(
+    hot: HotInstance, physicalRowIndex: number, amount: number, logicRows: unknown, source: string
+  ): RemoveRowAction | null {
+    // A removal that takes no rows (e.g. `remove_row` on a grid with no visible rows) changed
+    // nothing, so it must not stack an action - `UndoRedo.done()` drops a `null` result.
+    if (amount < 1) {
+      return null;
+    }
+    const lastRowIndex = physicalRowIndex + amount - 1;
+    const removedData: unknown[] = [];
+    const removedAccessorValues: Array<Array<[number, unknown]>> = [];
+    const accessorColumns = collectAccessorColumns(hot);
+    const removedPhysicalRows = Array.isArray(logicRows)
+      ? logicRows.filter((row): row is number => typeof row === 'number')
+      : [];
+    const nestedRows = hot.getPlugin('nestedRows');
+    const nestedRowsSnapshot = nestedRows?.enabled
+      ? nestedRows.captureRemovedRows(removedPhysicalRows)
+      : null;
+    const hasNestedRowsSnapshot = nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined;
+    const nestedRemovedPhysicalRows = hasNestedRowsSnapshot && nestedRows
+      ? nestedRows.getRemovedPhysicalRows(nestedRowsSnapshot)
+      : [];
+    const nestedRemovedCellMetas = hasNestedRowsSnapshot
+      ? capturePhysicalCellMetas(hot, nestedRemovedPhysicalRows)
+      : undefined;
+    const nestedAccessorValues = hasNestedRowsSnapshot
+      ? nestedRemovedPhysicalRows.map(row => ({
+        row,
+        values: captureAccessorValues(hot, row, accessorColumns),
+      }))
+      : undefined;
+    const nestedRemovedMergedCells = hasNestedRowsSnapshot
+      ? collectNestedRemovedMergedCells(hot, nestedRemovedPhysicalRows)
+      : undefined;
+    const visualRowIndex = hot.toVisualRow(physicalRowIndex);
+    let removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }> = [];
+
+    if (nestedRemovedMergedCells) {
+      removedMergedCells = nestedRemovedMergedCells.map(({ physicalRows: _physicalRows, ...mergedCell }) => mergedCell);
+    } else if (visualRowIndex !== null) {
+      removedMergedCells = collectAffectedMergedCells(hot, 'row', visualRowIndex, amount);
+    }
+    const removedHiddenRows = hasNestedRowsSnapshot || visualRowIndex === null
+      ? []
+      : collectHiddenRowsForRemoval(hot, visualRowIndex, amount);
+
+    for (let i = 0; i < amount; i++) {
+      removedData.push(captureRowData(hot, physicalRowIndex + i));
+      removedAccessorValues.push(captureAccessorValues(hot, physicalRowIndex + i, accessorColumns));
+    }
+
+    return new RemoveRowAction({
+      index: physicalRowIndex,
+      data: removedData as unknown[][],
+      accessorValues: removedAccessorValues,
+      fixedRowsBottom: hot.getSettings().fixedRowsBottom ?? 0,
+      fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
+      rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
+      removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
+      removedMergedCells,
+      removedHiddenRows,
+      nestedRowsSnapshot,
+      nestedRemovedCellMetas,
+      nestedAccessorValues,
+      nestedRemovedMergedCells,
+      nestedRemovalSource: source,
+    });
+  }
+
+  /**
    * Registers the `beforeRemoveRow` hook listener that captures removed row data and records a RemoveRowAction.
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveRow', (index: number, amount: number, logicRows: unknown, source: string) => {
-      const wrappedAction = () => {
-        // A removal that takes no rows (e.g. `remove_row` on a grid with no visible rows) changed
-        // nothing, so it must not stack an action - `UndoRedo.done()` drops a `null` result.
-        if (amount < 1) {
-          return null;
-        }
-
-        const physicalRowIndex = hot.toPhysicalRow(index);
-        const lastRowIndex = physicalRowIndex + amount - 1;
-        const removedData: unknown[] = [];
-        const removedAccessorValues: Array<Array<[number, unknown]>> = [];
-        const accessorColumns = collectAccessorColumns(hot);
-        const removedPhysicalRows = Array.isArray(logicRows)
-          ? logicRows.filter((row): row is number => typeof row === 'number')
-          : [];
-        const nestedRows = hot.getPlugin('nestedRows');
-        const nestedRowsSnapshot = nestedRows?.enabled
-          ? nestedRows.captureRemovedRows(removedPhysicalRows)
-          : null;
-        const hasNestedRowsSnapshot = nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined;
-        const nestedRemovedPhysicalRows = hasNestedRowsSnapshot && nestedRows
-          ? nestedRows.getRemovedPhysicalRows(nestedRowsSnapshot)
-          : [];
-        const nestedRemovedCellMetas = hasNestedRowsSnapshot
-          ? capturePhysicalCellMetas(hot, nestedRemovedPhysicalRows)
-          : undefined;
-        const nestedAccessorValues = hasNestedRowsSnapshot
-          ? nestedRemovedPhysicalRows.map(row => ({
-            row,
-            values: captureAccessorValues(hot, row, accessorColumns),
-          }))
-          : undefined;
-        const nestedRemovedMergedCells = hasNestedRowsSnapshot
-          ? collectNestedRemovedMergedCells(hot, nestedRemovedPhysicalRows)
-          : undefined;
-        const removedMergedCells = nestedRemovedMergedCells
-          ? nestedRemovedMergedCells.map(({ physicalRows: _physicalRows, ...mergedCell }) => mergedCell)
-          : collectAffectedMergedCells(hot, 'row', index, amount);
-
-        for (let i = 0; i < amount; i++) {
-          removedData.push(captureRowData(hot, physicalRowIndex + i));
-          removedAccessorValues.push(captureAccessorValues(hot, physicalRowIndex + i, accessorColumns));
-        }
-
-        return new RemoveRowAction({
-          index: physicalRowIndex,
-          data: removedData as unknown[][],
-          accessorValues: removedAccessorValues,
-          fixedRowsBottom: hot.getSettings().fixedRowsBottom ?? 0,
-          fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
-          rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
-          removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
-          removedMergedCells,
-          nestedRowsSnapshot,
-          nestedRemovedCellMetas,
-          nestedAccessorValues,
-          nestedRemovedMergedCells,
-          nestedRemovalSource: source,
-        });
-      };
+      if (source === NESTED_ROWS_DETACH_SOURCE) {
+        return;
+      }
 
       type UndoRedoPlugin = { done: (wrappedAction: () => RemoveRowAction | null, source: string) => void };
 
-      (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
+      const physicalRowIndex = hot.toPhysicalRow(index);
+
+      (undoRedoPlugin as UndoRedoPlugin).done(
+        () => RemoveRowAction.create(hot, physicalRowIndex, amount, logicRows, source), source
+      );
     });
   }
 
@@ -487,6 +533,7 @@ export class RemoveRowAction extends BaseAction {
 
     if (this.nestedRowsSnapshot === undefined) {
       restoreMergedCells(hot, this.removedMergedCells);
+      restoreHiddenRows(hot, this.removedHiddenRows);
     }
 
     if (this.nestedRemovedMergedCells?.length) {
@@ -512,11 +559,35 @@ export class RemoveRowAction extends BaseAction {
   }
 
   /**
+   * Reports whether redoing the removal would remove the rows it recorded.
+   *
+   * UndoRedo must call this before `beforeRedo`. Formulas always calls `engine.redo()` in `beforeRedo`,
+   * so a redo that removes nothing would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * The recorded row is physical, and a trimmed one has no visual index: `toVisualRow()` returns `null`.
+   * `alter()` reads an index that is not an integer as "take the rows from the end", so letting the redo
+   * run would delete rows this action never recorded.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when redo can proceed.
+   */
+  canRedo(hot: HotInstance): boolean {
+    const visualRow = hot.toVisualRow(this.index);
+
+    if (!Number.isInteger(visualRow)) {
+      return false;
+    }
+
+    return clipRemovalRange(visualRow, this.data.length, hot.countRows()) !== null;
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
-  redo(hot: HotInstance, redoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveRow', redoneCallback);
-    hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+  redo(hot: HotInstance, redoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveRow', redoneCallback, { wasRedone: false }, () => {
+      hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+    });
   }
 }

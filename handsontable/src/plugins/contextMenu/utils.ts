@@ -10,6 +10,15 @@ const VERTICAL_ALIGNMENT_CLASS_NAMES = ['htTop', 'htMiddle', 'htBottom'];
 const HORIZONTAL_ALIGNMENT_CLASS_NAMES = ['htLeft', 'htCenter', 'htRight', 'htJustify'];
 
 /**
+ * The third state of a checkable menu item, for a selection that is only partly on. Maps to
+ * `aria-checked="mixed"`. Declared here, not in `menu/utils.ts`, because that module reaches this one
+ * through `predefinedItems`, so a value import the other way is a cycle. `menu/utils.ts` re-exports it.
+ */
+export const MENU_ITEM_MIXED = 'mixed';
+
+export type MenuItemCheckedState = boolean | typeof MENU_ITEM_MIXED;
+
+/**
  * Swaps the alignment class of one axis, leaving every other class name untouched.
  *
  * The class name is compared token by token. Matching substrings is not enough – it both destroys
@@ -79,6 +88,30 @@ export function getAlignmentClasses(ranges: CellRangeLike[], callback: (row: num
 
 /**
  * @param {CellRange[]} ranges An array of the cell ranges.
+ * @param {Function} callback The callback function.
+ * @returns {object}
+ */
+export function getReadOnlyStates(ranges: CellRangeLike[], callback: (row: number, col: number) => boolean) {
+  const states: Record<number, boolean[]> = {};
+
+  arrayEach(ranges, (range: CellRangeLike) => {
+    range.forAll((row: number, col: number) => {
+      // Read-only states should only be collected within cell ranges. We skip header coordinates.
+      if (row >= 0 && col >= 0) {
+        if (!states[row]) {
+          states[row] = [];
+        }
+
+        states[row][col] = callback(row, col);
+      }
+    });
+  });
+
+  return states;
+}
+
+/**
+ * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {string} type The type of the alignment axis ('horizontal' or 'vertical').
  * @param {string} alignment CSS class name to add.
  * @param {Function} cellDescriptor The function which fetches the cell meta object based in passed coordinates.
@@ -126,6 +159,63 @@ function applyAlignClassName(
 }
 
 /**
+ * Reports whether every, no, or only some of the selected cells satisfy the comparator. Use it for a
+ * check mark; `checkSelectionConsistency()` answers "at least one", which marks a partly-on
+ * selection as fully on. Stops as soon as both a match and a non-match are seen.
+ *
+ * The comparator returns `null` for a cell that does not take part, such as a hidden cell under a
+ * merged block. Only `null` skips a cell: any other falsy value, `undefined` included, is a
+ * non-match, so a comparator that returns an unset `meta.readOnly` still reads a writable cell as
+ * "no". A selection in which no cell takes part reports `false`.
+ *
+ * @param {CellRange[]} ranges An array of the cell ranges.
+ * @param {Function} comparator The comparator function.
+ * @returns {boolean|string}
+ */
+export function getSelectionCheckState(
+  ranges: CellRangeLike[], comparator: (row: number, col: number) => boolean | null
+): MenuItemCheckedState {
+  let seenMatch = false;
+  let seenMiss = false;
+
+  if (Array.isArray(ranges)) {
+    arrayEach(ranges, (range) => {
+      (range as CellRangeLike).forAll((row: number, col: number) => {
+        // Only cell ranges carry the meta a comparator reads. Header coordinates are skipped, as
+        // they are in `checkSelectionConsistency()`, so a column selection is judged by its cells.
+        if (row < 0 || col < 0) {
+          return;
+        }
+
+        const matches = comparator(row, col);
+
+        if (matches === null) {
+          return;
+        }
+
+        if (matches) {
+          seenMatch = true;
+        } else {
+          seenMiss = true;
+        }
+
+        if (seenMatch && seenMiss) {
+          return false;
+        }
+      });
+
+      return !(seenMatch && seenMiss);
+    });
+  }
+
+  if (seenMatch && seenMiss) {
+    return MENU_ITEM_MIXED;
+  }
+
+  return seenMatch;
+}
+
+/**
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} comparator The comparator function.
  * @returns {boolean}
@@ -144,7 +234,13 @@ export function checkSelectionConsistency(ranges: CellRangeLike[], comparator: (
         }
       });
 
-      return result;
+      // `arrayEach` stops the moment a callback returns exactly `false`. A range with no match
+      // must return anything else so the NEXT range still gets a chance - returning `result`
+      // (`false` while nothing has matched yet) stopped the whole search after the FIRST range
+      // that came up empty, so a match sitting in a later range (a multi-layer selection, e.g. a
+      // Ctrl+click) was never found (DEV-136, reported by Bugbot). Only stop once a match is
+      // actually found, which `!result` expresses: `false` (stop) once `result` is `true`.
+      return !result;
     });
   }
 

@@ -4,18 +4,20 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['empty string', '', '', '', '', ''],
+  ['null', null, null, null, null, null],
+  ['undefined', undefined, undefined, undefined, undefined, undefined],
+  ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['empty string', '', '', '', '', ''],
-        ['null', null, null, null, null, null],
-        ['undefined', undefined, undefined, undefined, undefined, undefined],
-        ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
-      ]}
+      data={data}
       columnSorting={{
         sortEmptyCells: true,
       }}
@@ -47,14 +49,7 @@ const ExampleComponent = () => {
         { type: 'password' },
       ]}
       preventOverflow="horizontal"
-      colHeaders={[
-        'value underneath',
-        'type:text',
-        'type:numeric',
-        'type:checkbox',
-        'type:dropdown',
-        'type:password',
-      ]}
+      colHeaders={['value underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password']}
       height="auto"
     />
   );

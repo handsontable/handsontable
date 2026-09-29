@@ -3,6 +3,7 @@ import type { EngineContext } from '../wire';
 import type Settings from '../settings';
 import type Table from '../table/baseTable';
 import type { Overlay } from './regions/_base';
+import type { AxisVisibleRange } from '../selection/border/adjustHandlesOwnership';
 import type EventManager from '../../../../eventManager';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
@@ -133,6 +134,18 @@ class Overlays {
    * @type {boolean}
    */
   rowRecyclingAllowed: boolean = false;
+  /**
+   * The master's visible rows and columns, snapshotted by the master draw cycle right before the
+   * overlays render (`snapshotSelectionVisibleRange` in `table/drawCycle.ts`). The selection handles
+   * decide which overlay draws each handle from it (`selection/border/adjustHandlesOwnership.ts`),
+   * and the clones render their selections before the master does, with a possible
+   * `createVisibleCalculators()` in between. Reading the live range there would let the clones and the
+   * master decide on different ranges, drawing a handle twice or not at all. `null` until the first
+   * snapshot.
+   *
+   * @type {{row: AxisVisibleRange, column: AxisVisibleRange}|null}
+   */
+  selectionVisibleRange: { row: AxisVisibleRange, column: AxisVisibleRange } | null = null;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the

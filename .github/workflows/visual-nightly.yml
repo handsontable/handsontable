@@ -27,7 +27,13 @@ name: Visual nightly
 # its seed made it the baseline hours earlier, and this render matches it —
 # the seed's comment on the merged pull request is where it shows.
 #
-# Triage: an item that also appears in the latest Visual seed summary means
+# Triage: start at the flake ledger
+# (https://handsontable.github.io/handsontable/test-health/, the `visual` rows):
+# this run's compare record lands there, so a capture that was red on earlier
+# nights or on unrelated pull requests shows its count, its variants and its
+# last render hash. `Visual stability` runs thirty minutes after this; a capture
+# it calls byte-unstable the same morning is a flake, not drift. An item that
+# also appears in the latest Visual seed summary means
 # that seed did not land (the item would otherwise match) or the item is
 # flaky — hash the two renders. An item byte-identical across two nightlies but
 # different from its golden is a poisoned or flaky golden — dispatch `Visual

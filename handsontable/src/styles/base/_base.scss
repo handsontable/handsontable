@@ -415,7 +415,10 @@
     // marker instead, the carve-outs reach the seam whatever the row-header count.
     &.htRowHeaders {
       .ht_master:not(.emptyColumns),
-      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
+      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable),
+      // A clone pinned while the window scrolls the grid sideways sits inside a rail, not beside the
+      // master (`walkontable/src/overlay/overlayRail.ts`).
+      .ht_master:not(.emptyColumns) ~ .htOverlayRail > .handsontable:not(.htGhostTable) {
         $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
 
         :where(#{$grid-head-row}) > th.htLastRowHeaderColumn#{$seam-owner},
@@ -728,6 +731,15 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+    }
+
+    // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no
+    // ellipsis on its own: the value is moved into the absolutely positioned `.htCellClip`, which
+    // clips and inherits `nowrap` from the `htTextEllipsis` TD but not its `text-overflow`. Set it
+    // on the wrapper. Keyed on `td.htTextEllipsis`, so it matches only cells that opted into the
+    // ellipsis (the list cell types default to it; any cell can via `textEllipsis: true`).
+    tr.htExactRow > td.htTextEllipsis > .htCellClip {
+      text-overflow: ellipsis;
     }
 
     // Box-sizing normalize — grid chrome only. Scoped so it never forces `content-box` onto a

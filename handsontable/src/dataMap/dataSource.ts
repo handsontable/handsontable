@@ -10,6 +10,7 @@ import { cloneRow, countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
+import { colToPropOrIndex } from '../helpers/columnProp';
 
 /**
  * A `columns[].data` accessor: called with the row object only to read, and with the row object
@@ -69,6 +70,14 @@ class DataSource {
    * Returns the number of columns derived from the data source cache; injected externally when object-based data is used.
    */
   countCachedColumns?: () => number;
+  /**
+   * Resolves a column through this source's own `colToProp` for `colToPropOrIndex()`, so the
+   * injected translator stays the one in use. Built once, as it runs for every cell of a range.
+   */
+  #columnResolver = {
+    colToProp: (column: number) => this.colToProp(column) as string | number | DataAccessorFn | null,
+    toPhysicalColumn: (column: number) => this.hot!.toPhysicalColumn(column),
+  };
 
   /**
    * Initializes the data source with a reference to the Handsontable instance and the raw data array.
@@ -195,7 +204,10 @@ class DataSource {
         const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
-          const prop = this.colToProp(column);
+          // An index that names no column comes back as the index, which the integer test below
+          // rejects. An unbound column (`{ data: null }`) keeps its `null` property, so it keeps its
+          // slot and the columns after it stay in place.
+          const prop = colToPropOrIndex(this.#columnResolver, column);
 
           if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
@@ -356,7 +368,11 @@ class DataSource {
    */
   getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
-    const prop = typeof columnOrProp === 'function' ? columnOrProp : this.colToProp(columnOrProp);
+    // An index that names no column falls back to the index, so a source read past `countCols()`
+    // reaches the stored value as it did before, and `modifySourceData` keeps receiving a column
+    // address rather than `null`.
+    const prop = typeof columnOrProp === 'function' ?
+      columnOrProp : colToPropOrIndex(this.#columnResolver, columnOrProp as number);
 
     return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }
@@ -425,13 +441,17 @@ class DataSource {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
+   * The value is returned as it is stored, so it can be a nested object or an array.
+   *
    * @param {number} row Visual row index.
    * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
-  getCopyable(row: number, prop: string | number | DataAccessorFn): unknown {
-    const visualColumn = this.propToCol(prop);
+  getCopyable(row: number, prop: string | number | DataAccessorFn | null): unknown {
+    // Falls back to the prop, matching `DataMap#getCopyable`, so an out-of-range index still
+    // reaches the meta lookup and the source copyable getter reads back what it did before.
+    const visualColumn = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - `onCopy` walks

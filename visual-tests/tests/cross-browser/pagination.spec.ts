@@ -1,5 +1,5 @@
 import { helpers } from '../../src/helpers';
-import { test } from '../../src/test-runner';
+import { visualTest, CLASSIC, CROSS_BROWSERS } from '../../src/test-runner';
 import {
   selectColumnHeaderByIndex,
   openHeaderDropdownMenu,
@@ -10,7 +10,15 @@ import {
   forPaginationClickPrevPageButton,
 } from '../../src/page-helpers';
 
-test('Test pagination', async({ goto, tablePage }) => {
+/**
+ * Checks that the pagination controls and page counts stay right after filtering and sorting, after moving
+ * to the next page, after clearing a column, and after moving back. Owned by DEV-2981.
+ */
+visualTest('Test pagination', {
+  themes: [CLASSIC],
+  browsers: CROSS_BROWSERS,
+  wrappers: [],
+}, async({ goto, tablePage }) => {
   await goto('/pagination-demo');
 
   // filtering

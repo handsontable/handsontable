@@ -16,20 +16,23 @@ let bulkComponentContainer: DocumentFragment | null = null;
 /**
  * Warning message for the `autoRowSize`/`autoColumnSize` compatibility check.
  */
-export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRowSize`/`autoColumnSize` options, which are not compatible with ' +
-  ' the component-based renderers`. Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.';
+export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRowSize`/`autoColumnSize` options, ' +
+  'which are not compatible with the component-based renderers. Disable `autoRowSize` and `autoColumnSize` to ' +
+  'prevent row and column misalignment.';
 
 /**
  * Warning message for the `hot-renderer` obsolete renderer passing method.
  */
-export const OBSOLETE_HOTRENDERER_WARNING = 'Providing a component-based renderer using `hot-renderer`-annotated component is no longer supported. ' +
-  'Pass your component using `renderer` prop of the `HotTable` or `HotColumn` component instead.';
+export const OBSOLETE_HOTRENDERER_WARNING = 'Providing a component-based renderer using `hot-renderer`-annotated ' +
+  'component is no longer supported. Pass your component using `renderer` prop of the `HotTable` or `HotColumn` ' +
+  'component instead.';
 
 /**
  * Warning message for the `hot-editor` obsolete editor passing method.
  */
-export const OBSOLETE_HOTEDITOR_WARNING = 'Providing a component-based editor using `hot-editor`-annotated component is no longer supported. ' +
-  'Pass your component using `editor` prop of the `HotTable` or `HotColumn` component instead.';
+export const OBSOLETE_HOTEDITOR_WARNING = 'Providing a component-based editor using `hot-editor`-annotated ' +
+  'component is no longer supported. Pass your component using `editor` prop of the `HotTable` or `HotColumn` ' +
+  'component instead.';
 
 /**
  * Warning message for the unexpected children of HotTable component.
@@ -63,7 +66,8 @@ export const EDITOR_PORTAL_HOST_CLASSNAME = 'hot-wrapper-editor-portal-host';
 /**
  * Warning when the editor portal host cannot be moved into `rootPortalElement`.
  */
-export const MISSING_ROOT_PORTAL_WARNING = 'The React editor portal host could not be attached to `rootPortalElement`. The editor stays on `document.body` and clicks on it may fail to commit.';
+export const MISSING_ROOT_PORTAL_WARNING = 'The React editor portal host could not be attached to ' +
+  '`rootPortalElement`. The editor stays on `document.body` and clicks on it may fail to commit.';
 
 /**
  * Logs warn to the console if the `console` object is exposed.
@@ -79,19 +83,22 @@ export function warn(...args: any[]) {
 /**
  * Detect if `hot-renderer` or `hot-editor` is defined, and if so, throw an incompatibility warning.
  *
+ * @param {ReactNode} children Component children nodes.
  * @returns {boolean} 'true' if the warning was issued
  */
 export function displayObsoleteRenderersEditorsWarning(children: ReactNode): boolean {
   if (hasChildElementOfType(children, 'hot-renderer')) {
     warn(OBSOLETE_HOTRENDERER_WARNING);
+
     return true;
   }
   if (hasChildElementOfType(children, 'hot-editor')) {
     warn(OBSOLETE_HOTEDITOR_WARNING);
+
     return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -104,12 +111,13 @@ export function displayObsoleteRenderersEditorsWarning(children: ReactNode): boo
 export function displayChildrenOfTypeWarning(children: ReactNode, Component: ComponentType): boolean {
   const childrenArray: ReactNode[] = React.Children.toArray(children);
 
-  if (childrenArray.some((child) => (child as React.ReactElement).type !== Component)) {
+  if (childrenArray.some(child => (child as React.ReactElement).type !== Component)) {
     warn(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+
     return true;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -123,24 +131,25 @@ export function displayAnyChildrenWarning(children: ReactNode): boolean {
 
   if (childrenArray.length) {
     warn(UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING);
+
     return true;
   }
 
-  return false
+  return false;
 }
 
 /**
  * Check the existence of elements of the provided `type` from the `HotColumn` component's children.
  *
  * @param {ReactNode} children HotTable children array.
- * @param {String} type Either `'hot-renderer'` or `'hot-editor'`.
+ * @param {string} type Either `'hot-renderer'` or `'hot-editor'`.
  * @returns {boolean} `true` if the child of that type was found, `false` otherwise.
  */
 function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-editor'): boolean {
   const childrenArray: ReactNode[] = React.Children.toArray(children);
 
   return childrenArray.some((child) => {
-      return (child as React.ReactElement).props[type] !== void 0;
+    return (child as React.ReactElement).props[type] !== void 0;
   });
 }
 
@@ -220,8 +229,8 @@ export function createEditorPortal(
   return ReactDOM.createPortal(
     <div {...containerProps}>
       {editorElement}
-    </div>
-    , portalHost);
+    </div>,
+    portalHost);
 }
 
 /**
@@ -229,11 +238,17 @@ export function createEditorPortal(
  *
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
- * @param {String} portalKey The key to be used for the portal.
+ * @param {string} portalKey The key to be used for the portal.
  * @param {HTMLElement} [cachedContainer] The cached container to be used for the portal.
- * @returns {{portal: ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
+ * @returns {{portal: ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its
+ * container.
  */
-export function createPortal(rElement: React.ReactElement, ownerDocument: Document | null = document, portalKey: string, cachedContainer?: HTMLElement): {
+export function createPortal(
+  rElement: React.ReactElement,
+  ownerDocument: Document | null = document,
+  portalKey: string,
+  cachedContainer?: HTMLElement
+): {
   portal: ReactPortal,
   portalContainer: HTMLElement,
 } {
@@ -265,13 +280,17 @@ export function createPortal(rElement: React.ReactElement, ownerDocument: Docume
  * component.
  *
  * @param {HotTableProps} props Object containing the React element props.
- * @param {Boolean} randomizeId If set to `true`, the function will randomize the `id` property when no `id` was present in the `prop` object.
- * @returns An object containing the `id`, `className` and `style` keys, representing the corresponding props passed to the
- * component.
+ * @param {boolean} randomizeId If set to `true`, the function will randomize the `id` property when no `id` was
+ * present in the `prop` object.
+ * @returns {{id?: string, className: string, style: CSSProperties}} An object containing the `id`, `className`
+ * and `style` keys, representing the corresponding props passed to the component.
  */
-export function getContainerAttributesProps(props: HotTableProps, randomizeId: boolean = true): {id?: string, className: string, style: CSSProperties} {
+export function getContainerAttributesProps(
+  props: HotTableProps,
+  randomizeId = true
+): { id?: string, className: string, style: CSSProperties } {
   return {
-    id: props.id || (randomizeId ? 'hot-' + Math.random().toString(36).substring(5) : undefined),
+    id: props.id || (randomizeId ? `hot-${Math.random().toString(36).substring(5)}` : undefined),
     className: props.className || '',
     style: props.style || {},
   };
@@ -280,16 +299,28 @@ export function getContainerAttributesProps(props: HotTableProps, randomizeId: b
 /**
  * Checks if the environment that the code runs in is a browser.
  *
- * @returns {boolean}
+ * @returns {boolean} `true` when running in a browser environment.
  */
 export function isCSR(): boolean {
   return typeof window !== 'undefined';
 }
 
+/**
+ * Checks whether the value is an object or `null`.
+ *
+ * @param {unknown} value Value to check.
+ * @returns {boolean} `true` when the value is an object.
+ */
 function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+/**
+ * Checks whether the value is a plain object (an object literal or one created with `Object.create(null)`).
+ *
+ * @param {unknown} value Value to check.
+ * @returns {boolean} `true` when the value is a plain object.
+ */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (!isObjectLike(value)) {
     return false;
@@ -300,6 +331,12 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
+/**
+ * Checks whether the value is an array.
+ *
+ * @param {unknown} value Value to check.
+ * @returns {boolean} `true` when the value is an array.
+ */
 function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
@@ -358,24 +395,15 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
     return false;
   }
 
-  for (const key of previousKeys) {
-    if (!Object.prototype.hasOwnProperty.call(currentValue, key)) {
-      return false;
-    }
-
-    if (!areEquivalentSettingsValue(previousValue[key], currentValue[key])) {
-      return false;
-    }
-  }
-
-  return true;
+  return previousKeys.every(key => Object.prototype.hasOwnProperty.call(currentValue, key) &&
+    areEquivalentSettingsValue(previousValue[key], currentValue[key]));
 }
 
 /**
  * A variant of useEffect hook that does not trigger on initial mount, only updates
  *
- * @param effect Effect function
- * @param deps Effect dependencies
+ * @param {EffectCallback} effect Effect function
+ * @param {DependencyList} [deps] Effect dependencies
  */
 export function useUpdateEffect(effect: EffectCallback, deps?: DependencyList): void {
   const notInitialRender = React.useRef(false);

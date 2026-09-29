@@ -80,5 +80,37 @@ describe('checkboxRenderer', () => {
         'tabindex="-1" style="display: none;" data-row="100" data-col="50">#bad-value#</td>'
       ].join(''), toMatchHTMLConfig);
     });
+
+    it('should reflect the checked state as the `checked` HTML attribute so it survives ' +
+      'a custom renderer that rebuilds the cell via `innerHTML` (handsontable/dev-handsontable#342)', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+      const cellMeta = {};
+
+      checkboxRenderer(instance, TD, 0, 0, undefined, true, cellMeta);
+
+      const input = TD.querySelector('input') as HTMLInputElement;
+
+      expect(input.checked).toBe(true);
+      expect(input.hasAttribute('checked')).toBe(true);
+
+      // Re-serializing and re-parsing the cell (what `TD.innerHTML += ...` does) must keep the checkbox checked.
+      TD.innerHTML += ' ( TEST )';
+
+      expect((TD.querySelector('input') as HTMLInputElement).checked).toBe(true);
+    });
+
+    it('should not reflect the `checked` attribute for an unchecked value', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+      const cellMeta = {};
+
+      checkboxRenderer(instance, TD, 0, 0, undefined, false, cellMeta);
+
+      const input = TD.querySelector('input') as HTMLInputElement;
+
+      expect(input.checked).toBe(false);
+      expect(input.hasAttribute('checked')).toBe(false);
+    });
   });
 });

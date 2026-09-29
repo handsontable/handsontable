@@ -161,6 +161,7 @@ without a priority in registration order. Registering two plugins on the same pr
 | 30 | manualRowResize | 220 | columnSummary |
 | 40 | autoRowSize | 230 | dropdownMenu |
 | 45 | autoRowHeaderSize | 240 | exportFile |
+| | | 245 | importFile |
 | 50 | columnSorting | 250 | filters |
 | 60 | comments | 260 | formulas |
 | 70 | contextMenu | 270 | autoLink |

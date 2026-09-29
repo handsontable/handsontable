@@ -31,7 +31,7 @@ the index type from *whether the row can be trimmed*, not from the house rule al
 
 | File | Role |
 |---|---|
-| `nestedRows.ts` | The plugin. Lifecycle, 22 core hooks, the shortcut, and the **public API** |
+| `nestedRows.ts` | The plugin. Lifecycle, 21 core hooks, the shortcut, and the **public API** |
 | `data/dataManager.ts` | The tree: flatten, cache, read structure, add/detach/move children |
 | `ui/collapsing.ts` | All collapse/expand logic and the hook choke point |
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
@@ -91,6 +91,58 @@ They are written in different places and can drift. Keep this in mind:
   disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
   `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
   public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
+  The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
+  header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —
+  a hook `disablePlugin()` unregisters. Walkontable recycles `<th>` elements across renders, so whatever
+  was inside one at the moment of the disable stayed there for the rest of the instance's life:
+  measured, `updateSettings({ nestedRows: false })` left a dead button (its `beforeOnCellMouseDown`
+  listener went with the hooks) and the spacers in every rendered header, whether the plugin had been on
+  since construction or switched on at runtime (DEV-2982). Only the INNER nodes leak: Walkontable
+  resets the `<th>`'s `className` and strips every `aria-*` attribute on each paint
+  (`3rdparty/walkontable/src/render/rowHeaders.ts`), so `ht_nestingLevels`, `ht_nestingParent` and
+  `aria-expanded` never survive a repaint — but `TableView#appendRowHeader()` reuses the existing
+  `div.relative` and rewrites only its `.rowHeader` span. `HeadersUI#removeRenderedLevelIndicators()`
+  therefore runs as the LAST line of `disablePlugin()`, after `super.disablePlugin()` has removed the
+  hooks - not before: `unregisterMap()` fires the public `afterRowSequenceCacheUpdate` hook, and a
+  consumer rendering from it would re-decorate the headers while `afterGetRowHeader` is still
+  registered, silently undoing a walk that ran first. It **walks the DOM, not coordinates**: every
+  `tbody th` under `rootElement` whose table belongs to this instance, through
+  `HeadersUI#removeLevelIndicators()`, which takes only the DIRECT children of the header's inner
+  `div` (`:scope > [class^="ht_nesting"]`) - the walk now reaches headers the plugin never decorated,
+  and `removeChild()` on a deeper match would throw `NotFoundError`. Two earlier cuts show why the
+  DOM. Bounding the walk by `countRows()`
+  threw `Cannot read properties of undefined (reading 'getLength')` — `disablePlugin()` is also reached
+  from `#acceptsData()` inside `beforeLoadData`, and at construction that hook fires before `hot.view`
+  and before the first DataMap exist. That took down 7 specs: `initialization.spec.js` (3),
+  `nestedRows.spec.js` (1), `core/destroy.spec.js` (1) and the two sorting a11y `attributes.spec.js`
+  (every grid built with `nestedRows: true` and no or invalid data). Resolving the rendered band
+  through `view.getFirstRenderedVisibleRow()` and `Core#getCell(row, -1, topmost)` fixed that one and
+  broke the mirror case: a later `loadData()` with invalid data reaches the hook AFTER `replaceData()`
+  has destroyed the previous DataMap, and both `getCell()` — through the `fixedRowsTop` setting
+  accessor, `countNotHiddenFixedRowsTop()` — and `getLastRenderedVisibleRow()`'s fallback call
+  `countRows()`, so `loadData([[1, 2]])` on a drawn nested grid threw and left `countRows()` throwing
+  for the rest of the instance's life; released 18.1.1 just logged the error. It also missed copies: a
+  row header is painted in the master table and in every overlay covering its row — four copies for a
+  frozen row — and `getCell()` can name two of them (measured: 2 stale nodes left with
+  `fixedRowsTop: 1`). The DOM walk touches no setting, mapper or DataMap, so it is safe on every path
+  into `disablePlugin()`, and it covers every copy. **Ownership is "the nearest `handsontable` ancestor
+  above the table is this root", never "the table is a direct child of the root"**: `ht_master` and
+  every `ht_clone_*` carry the `handsontable` class, as does the root, but on a window-scrolled grid
+  (`height: 'auto'`) the overlays sit inside a `div.htOverlayRail` that carries neither — a direct-child
+  check skipped the inline-start clone there and left 2 nodes per fixture. The filter is what keeps a
+  grid rendered inside a cell out of the walk (a `GhostTable` container also copies the root's
+  classes, but it is injected and removed within one measurement pass, so it is never there at
+  disable time). The cost is one `querySelectorAll` over the rendered `th` elements plus a scoped
+  query per header, so it scales with what is drawn, not with `countRows()`; the earlier
+  band-bounded cut measured ~30 µs against a 10 ms no-op `updateSettings()`, and the DOM walk does
+  strictly less coordinate work. Pinned by `tests/e2e/nested-rows-runtime-enable.spec.ts`
+  (frozen-row copies, `loadData()` with arrays while on, and an inner grid rendered in a cell) and
+  `tests/e2e/nested-rows-api.spec.ts`. **The inner-grid spec has to read the inner headers in the
+  same tick as the outer disable.** The inner grid redraws shortly after the outer toggle (its own
+  observers fire when the cell around it resizes) and its `afterGetRowHeader` puts the decoration
+  back, so an auto-retrying `toHaveCount()` passed against a build with the ownership filter removed
+  - measured before the synchronous read was added; with it the same build fails 4 → 0.
 - **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
   `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
   passes must tell those apart, or "already in the right state" reads as "blocked". Use
@@ -190,6 +242,16 @@ They are written in different places and can drift. Keep this in mind:
   is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
   it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
   visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
+- **The same hand-built inserts bypass the `minRows`/`minSpareRows` filler count, so a lowered minimum can
+  take the wrong empty row.** `DataMap` counts the trailing rows those options appended
+  (`#trailingFillerRows`, the DEV-2206 bullet in `handsontable/AGENTS.md`) and keeps that count in step only
+  through `createRow`/`removeRow`. A top-level append through `addChildAtIndex()` reaches neither, so the
+  source grows while the count stays put, and the window of "filler" rows slides onto the new row. Lowering
+  the option afterwards still removes the right NUMBER of rows and never a row holding data — the removal only
+  takes empty rows — but it can take the user's new empty row, with its cell meta, and keep a filler.
+  Measured: `minSpareRows: 2`, `addSibling()` below the last row, a meta marker set on the new row, then
+  `updateSettings({ minSpareRows: 0 })` — 4 rows, as expected, and the marker gone. A known limit, deliberately
+  left open: keeping the count in step would mean these inserts calling into `DataMap` internals.
 - **Removing a parent must reach every depth, and a two-level fixture cannot tell you whether it
   does.** `#onBeforeRemoveRow()` rewrites the core's list of rows to remove, and the data side and the
   index side of that removal are driven by different things: `DataManager#filterData()` splices the
@@ -228,12 +290,42 @@ They are written in different places and can drift. Keep this in mind:
   sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
   row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
   splice cannot leave a later one pointing at the wrong sibling.
+- **The `beforeRemoveRow` listener is registered with `orderIndex: -1`, and that number is load-bearing.**
+  `beforeRemoveRow` listeners run in registration order, and registration follows ascending
+  `PLUGIN_PRIORITY`. At the default order, every plugin below 300 read the list before the
+  subtree was added to it. Formulas (260) is the one that broke: it translated the parent alone to HyperFormula
+  indexes, so the engine kept the descendants while the grid dropped them, and its
+  `isItPossibleToRemoveRows` veto never saw them either (DEV-3092). The negative index puts the
+  expansion ahead of every default-order listener, including host hooks and a listener registered by a
+  plugin enabled at runtime. **Registration order is not stable even for a grid built with the plugin
+  on.** `updatePlugin()` runs `disablePlugin()` (which clears the hooks) and `enablePlugin()` on every
+  `updateSettings()` carrying the `nestedRows` key, which in React is every re-render, so before the
+  negative index the listener moved to the tail. From then on, a host `beforeRemoveRow` saw the parent
+  alone too, so what it received depended on whether a settings update had happened. The negative index
+  makes the list the same every time for every default-order listener. UndoRedo was never affected
+  either way: `RemoveRowAction` snapshots the tree through `NestedRows#captureRemovedRows()` (delegating to the `DataManager`), which walks
+  each removed row's subtree itself. The guarantee stops at order index `-1`. A host listener registered
+  with a lower index always runs before the expansion. One registered with `-1` itself is ordered by
+  insertion (`HooksBucket#insertByOrder` places an entry after the existing entries with the same
+  index), so it runs after the expansion when it was added after the plugin was enabled, and before it
+  once `updatePlugin()` has re-registered the plugin's listener.
+  Global (`Hooks.getSingleton()`) listeners still run first, because the
+  global bucket runs before the instance bucket. The expansion has no side effects and is idempotent (the
+  accumulator is a `Set`), so it may run even when a later listener vetoes the removal, and a detach,
+  which hands the hook a list that is already expanded, is unaffected. `amount` is not rewritten, so a
+  listener that sizes its work from `amount` (ColumnSummary) still sees the count before expansion. Do
+  not "fix" an ordering problem here by raising `PLUGIN_PRIORITY`, and do not make Formulas expand the
+  list itself.
 - **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
   open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
   so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
   (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
   still dropping `__children`. A two-level "no error" assertion is not enough — use
   `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
+- **Detach is one undo action, not a remove/create pair.** `detachFromParent()` must carry its source
+  through all structural hooks. UndoRedo recognizes the initial `NestedRows` source and records
+  `NestedRowsDetachAction`; redo uses `UndoRedo.redo` so it does not record another action. Do not bypass
+  either source, or one Ctrl/Cmd+Z replays only half of the tree move (DEV-138).
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
@@ -242,6 +334,109 @@ They are written in different places and can drift. Keep this in mind:
   `enablePlugin()`. The existing `collapsedRowsStash` cannot carry it — that object dies with the old
   instance. Replay with `shouldRunHooks = false`: it repeats a choice the user already made, and
   firing hooks there reports a collapse on every settings update.
+- **A settings-driven enable arrives with an EMPTY data manager and a stale row count, and the plugin
+  has to repair both itself.** `DataManager#setData()` is called from the `beforeLoadData` and
+  `beforeUpdateData` hooks only, so a grid built with `nestedRows: false` and switched on later reaches
+  `updatePlugin()` with `getData()` still `null` — `rewriteCache()` then died on `this.data.length`
+  (DEV-2938). `updatePlugin()` therefore falls back to `this.hot.getSettings().data`, and that fallback
+  is also where the dataset is validated, because `#acceptsData()` hangs off those same data hooks and
+  an array-of-arrays dataset would otherwise be cached as one node per cell. **It has to be the
+  setting, never `getSourceData()`** — `replaceData()` assigns one array to both `tableMeta.data` and
+  `dataSource.data`, so the setting IS the live source array the data hooks hand over at init, while
+  `DataSource#getData()` returns `this.data.map(cloneRow)`: a fresh outer array of shallow row copies.
+  Caching that copy detaches every top-level row from the array the host still holds — measured on the
+  first cut of this fix, an edit to a parent row landed only in the copy while a child edit still
+  arrived (a shallow clone shares `__children`), and the top-level splices in `addChildAtIndex()` and
+  `filterData()` would never reach the grid's own data. `getSourceData()` cannot even be used to *see*
+  that divergence: with the plugin on it routes through `modifyRowData`, so it reports the plugin's
+  copies back to you. Compare the two grids directly, or hold the array reference the test passed in.
+  The row count is the second
+  half: `modifySourceLength` reports the flattened tree while the plugin runs, but `updateSettings()`
+  resizes the index maps for a payload carrying `data` or `columns` only, so a bare
+  `{ nestedRows: <bool> }` left the maps on the previous length — no children on an enable, and phantom
+  rows reading back as `null` on a disable. `onUpdateSettings()` is overridden to `fitToLength()` when
+  the enabled state actually flipped; the Core renders right after that hook. Do not move that repair
+  into `enablePlugin()`/`disablePlugin()`: `updatePlugin()` calls both on every rebuild, and the
+  intermediate count would be wrong in each direction.
+  **The row header width has to be seeded on that path too.** `HeadersUI`'s `rowHeaderWidthCache`
+  starts empty on the instance `enablePlugin()` builds, and the only startup call to
+  `updateRowHeaderWidth()` hangs off `afterInit` — which fired long before a settings-driven enable.
+  Left empty, `#onModifyRowHeaderWidth` falls back to `?? 0` and `Math.max` keeps the grid default, so
+  the indentation and the collapse button are clipped: measured 50px against the 71px the same
+  three-level tree gets when the plugin is on at construction. `updatePlugin()` seeds it after
+  `updateWithData()`, where the cache knows the tree's depth (found by Bugbot on #13564).
+  **A row-count change owes the selection and the editor the same protocol `updateData` pays**, and
+  `updateSettings()` does not pay it for you: after `afterUpdateSettings` it runs only
+  `adjustRowsAndCols()` and a render, neither of which touches the selection. Measured on the first
+  cut: with the plugin enabled at runtime and rows 0-4 selected, `updateSettings({ nestedRows: false })`
+  left the range at `[0, 0, 4, 0]` in a two-row grid — the shape that appends records on the next fill
+  or paste — and an editor opened on row 4 stayed open over a record that no longer existed. So the
+  override discards an open editor with `cancelChanges()` (never a commit: the value would be written
+  through coordinates the shrink has invalidated) and ends on `selection.refresh()`.
+  **The undo history cannot survive the toggle either.** `DataChangeAction` records `countSourceRows`
+  when the edit happens, and on undo `#collectCreatedRows()` removes every physical row past that
+  baseline as one the change created. After an enable the baseline is two and the grid has six, so one
+  Ctrl+Z deletes real records — measured: edit a cell, enable, undo, and A-3 and Root B are gone. The
+  override drops the history (`getPlugin('undoRedo')?.clear()`), which is what `loadData` does for the
+  same reason. The cost is that an edit made before the toggle stops being undoable, and that is the
+  right trade against deleting records.
+  **Source the `refresh()` as `updateData`, or the toggle scrolls the grid.** `Selection#refresh()`
+  labels itself `refresh`, which is NOT in `core.ts`'s `ignoreScrollSources`, so the clamp scrolls the
+  viewport onto the selected cell: measured, a grid scrolled to row 11 jumped back to the top on a
+  toggle. `updateData` is in that list and is what the operation is from the selection's side.
+  **Seed the header width without its render.** `HeadersUI#updateRowHeaderWidth()` ends with
+  `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
+  every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
+  leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
+  **Formulas is carried across the toggle by Formulas itself, not from here.** That plugin
+  resyncs its sheet from `afterLoadData` / `afterUpdateData`, and on a settings update from
+  `afterCellMetaReset`, which the Core fires *before* `afterUpdateSettings` — a toggle reaches none
+  of them with the new layout, so a scan there served the pre-flatten one: measured, the grid
+  showed four rows against a two-row HyperFormula sheet, a formula on a moved row rendered as raw
+  text, and its value landed on another row. So `afterCellMetaReset` only records that a resync is
+  owed, and the scan runs once the plugins have updated — from an `afterUpdateSettings` listener
+  registered with `orderIndex: 1`, or earlier, from `beforeRender`, which is where it lands on this
+  toggle because `updatePlugin()` above renders (`formulas/AGENTS.md`, "resyncs the sheet ONCE").
+  A row-count gate against the layout the last scan recorded is the fallback. Nothing there names
+  this plugin. Do not add a `nestedRows`-shaped fix on this side, and do not fire `afterUpdateData`
+  by hand — a settings-driven row-count change is a general event, and any other plugin caching a
+  row layout needs the same treatment in its own file.
+  **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
+  by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
+  INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid
+  with `hiddenRows: { rows: [1] }` enabled at runtime paints exactly what the same grid built with both
+  settings paints (measured: `Root A`, `A-2`, `Root B` in both, because physical 1 means `A-1` once the
+  tree is flat). `initToLength()` changes nothing there and would additionally reset the indexes below
+  the boundary, so it is not the better primitive. What does get lost is map state set
+  **imperatively** — a `trimRows()` call, a `manualRowMove` order, a hand-registered IndexMap — across
+  an off/on round trip. That is inherent to the physical space meaning two different things, and it is
+  the reason a runtime toggle is not a free operation to hand a user a button for.
+- **The `beforeLoadData` listener is registered with `orderIndex: 1`, and that number is load-bearing.**
+  `#onBeforeLoadData` validates the incoming array through `#acceptsData()` and, on a non-nested
+  shape, flips the `nestedRows` setting to `false` and disables the plugin for the grid's life. It
+  is a filter hook: every listener sees the value the previous one returned, in registration order,
+  and registration follows ascending `PLUGIN_PRIORITY` — so at 300 this plugin used to run before
+  `sheetsBar` (910) redirected the init load at the active sheet's array. A grid declaring a
+  top-level `data` next to a `sheetsBar` workbook therefore validated the host's placeholder array,
+  self-disabled, and never saw the nested sheet that replaced it (DEV-2939). The positive
+  `orderIndex` moves only this listener behind every default-ordered `beforeLoadData` listener,
+  including that redirect. Do not "fix" this by raising `PLUGIN_PRIORITY` — that reorders all 21
+  hooks and the whole lifecycle. The same move puts every host-declared `beforeLoadData` listener
+  (the settings object, `hot.addHook()`, a wrapper prop) ahead of this validation too — they land at
+  the default order after the plugin hooks, so a host hook that returns a nested array now keeps the
+  plugin on, and a host hook reading `dataManager` inside `beforeLoadData` sees the previous
+  dataset. `beforeUpdateData` deliberately stays at the default order even though
+  `#onBeforeUpdateData` shares the same `#acceptsData` gate: no in-tree listener substitutes the
+  array on that hook (sheetsBar switches through `loadData()`, formulas only reads), so there is
+  nothing to sit behind, and a host `beforeUpdateData` hook returning a nested array still cannot
+  keep the plugin on — move it to `1` only when a redirecting `beforeUpdateData` filter appears.
+  The bug does **not** reproduce with `data` omitted: sheetsBar's `enablePlugin` already loads the
+  sheet through `loadData()`, so core's init pass skips its own load and the plugin only ever sees
+  the valid array. Three specs pin this. In `sheetsBar/__tests__/sheetsBar.unit.js`: the top-level
+  `data` shape (keep that `data` in the fixture; without it the test passes on the unfixed code),
+  and the no-`data` two-sheet shape — a guard that passes on develop and pins sheetsBar's
+  enable-time load, not the fix. In `__tests__/dataHooks.unit.js` here: a host `beforeLoadData`
+  returning a nested array, which fails without the `orderIndex`.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
@@ -407,6 +602,7 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
+| `tests/e2e/nested-rows-runtime-enable.spec.ts` | Playwright: the plugin switched on and off with `updateSettings()`, including the header cleanup on disable (frozen-row copies, an inner grid in a cell left alone) and a `loadData()` with invalid data while it is on |
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |

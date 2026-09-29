@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a `columnSummary` endpoint with `reversedRowCoords` not following the last row when rows are added or removed via `alter()`.",
+  "type": "fixed",
+  "issueOrPR": 13573,
+  "breaking": false,
+  "framework": "none"
+}

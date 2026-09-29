@@ -57,14 +57,15 @@ One thing a rebuild does **not** cover: `CommandExecutor` never evicts a command
 
 `menuItemRenderer` writes an item's resolved `name` through `fastInnerHTML`, which is a Trusted Types sink. Anything an item bakes into that string as markup therefore takes the whole menu down under a CSP carrying `require-trusted-types-for 'script'`, and it is the grid's own markup, so no `sanitizer` should be needed for it.
 
-That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Neither is used any more, and both were kept as legacy exports — their modules ship a declaration file, so a consumer on `moduleResolution: node` can import them whatever the `exports` map says. An item declares `checked` instead — `boolean` or a function, resolved by `isItemChecked()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`.
+That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Neither is used any more, and both were kept as legacy exports — their modules ship a declaration file, so a consumer on `moduleResolution: node` can import them whatever the `exports` map says. An item declares `checked` instead — `boolean`, `MENU_ITEM_MIXED` (`'mixed'`), or a function returning one, resolved by `getItemCheckedState()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`. `isItemChecked()` survives as the two-state reader and answers `false` for mixed.
 
-Four things to keep right when touching this:
+Five things to keep right when touching this:
 
 - **Insert the mark AFTER calling `fastInnerHTML`.** It replaces everything the wrapper holds, so a span appended first is wiped. The rendered DOM must stay `[span.selected, text]`; four legacy positioning specs measure that span's offset.
 - **Declaring `checked` makes an item checkable**, so it is announced as `menuitemcheckbox` and carries `aria-checked`. That is not a convenience: `aria-checked` is invalid on a plain `menuitem`, so leaving these items as menu items would draw a mark a screen reader cannot perceive — worse than the markup-in-the-label it replaced, which at least reached the accessible name. Five of the six in-tree items rely on this; only `make_read_only` declares `checkable` itself. An explicit `ariaChecked` still wins, and predates the flag, so that is the one way the mark and the announced state can still be made to disagree.
 - **The checkbox branch labels from `ariaLabel ?? itemValue`.** These five items declare no `ariaLabel`, and reading one unconditionally would write the string `"undefined"` as the accessible name.
 - **Returning a node from `name` does not work.** The renderer does `String(itemValue)`, and `name` is publicly documented as a string or a function returning one. A new item property is the additive route; widening `name` is not.
+- **A mark drawn from a selection must tell "all" from "some" (DEV-124).** `checkSelectionConsistency()` (`contextMenu/utils.ts`) answers "at least one cell" despite its name, and from 2015 until DEV-124 both read-only items drew their mark from it — so one read-only cell in a writable range showed a full check and announced `aria-checked="true"`. Draw a mark from `getSelectionCheckState()` instead, which returns `true`, `false` or `MENU_ITEM_MIXED` and stops after two cells on a mixed selection. The *click* is a separate question: `make_read_only` still acts on "at least one" (a partly read-only selection is cleared), which `readOnly.spec.js` pins, so do not "fix" the callback to match the mark — and it asks `checkSelectionConsistency()`, which stops at the first read-only cell, because the three-state helper reads a fully read-only selection to the end. Since DEV-136, the click also decides from that same short-circuit whether it needs a second, full pass to snapshot the selection for undo — see `../undoRedo/AGENTS.md`'s `ReadOnlyToggleAction` section for why only the "make writable" direction pays for it. A comparator returns `null` for a cell that must not count: both read-only items leave out a hidden cell under a merged block (`hidden` meta, the same signal the auto-size plugins skip on), because MergeCells stretches the selection over the whole block while the block's state sits on its top-left cell; and the comment item also leaves out a cell with no comment `value`, including value-less comment meta that older versions of its click wrote. That item's click now sets one state for the whole range too – see `../comments/AGENTS.md`. `checkSelectionConsistency()` itself stays exported as legacy. Three details that bit while adding the state. (1) The mixed mark is `span.htMixed`, **not** `span.selected` plus a modifier: `selected` carries the check glyph's mask in the icons stylesheet and is what the active-row `:has()` background matches, and a partly-on item is neither. (2) Its glyph is the design system's existing `collapseOff` icon, mapped in `scripts/themes/figma/utils/helpers/iconsMap.mjs` **and** the typed `templates/iconsMap.ts` (`iconsMap.test.mjs` asserts the two agree). The generated outputs — `ht-icons-*.css`, the icon block at the end of each `ht-theme-<name>.css`, and `variables/helpers/iconsMap.ts` — are deterministic functions of those maps plus the checked-in `icons/*.mjs`, so they can be regenerated without the gitignored `tokens.json`: each `ht-theme-<name>.css` is its `-no-icons` sibling, a newline, `iconsMap(set, 'ht-theme-<name>')` and a newline. Diff the result — an icon-only change must be pure insertions. (3) `MENU_ITEM_MIXED` and `MenuItemCheckedState` are declared in `contextMenu/utils.ts` and re-exported from `menu/utils.ts`, not the other way round: `menu/utils.ts` imports `SEPARATOR` from `predefinedItems`, whose items import `contextMenu/utils.ts`, so a value import in that direction closes a cycle. `isItemCheckable()` accepts the one `'mixed'` literal and no other string, so an unrelated string `checked` still does not change an item's role.
 
 ## `className` is `string | string[]` — never do string surgery on it
 
@@ -237,7 +238,13 @@ Rules for anyone touching this:
   it is destroyed in a `catch` before the rethrow. Every hover that reaches the row tries again, and
   without that `catch` each attempt leaks another set of the sub-menu's document listeners. It is
   the listeners that pile up, not containers: `createContainer()` finds an existing sub-menu
-  container by its `...Sub_<name>` class and reuses it. `closeSubMenu()` does the parent's
+  container by its `...Sub_<name>` class and reuses it. That `<name>` is the item's display LABEL
+  with every character outside A-Z, a-z, and 0-9 turned into `_`, so it changes with the language:
+  under `ar-AR` the Alignment submenu's class is all underscores and `.htContextMenuSub_Alignment`
+  matches nothing. A test that opens a submenu in a translated grid finds it by
+  `[class*="htContextMenuSub_"]` (or `htDropdownMenuSub_`), as the RTL menu specs under
+  `visual-tests/tests/js-only/` do; the visual suite's `waitFor*SubmenuToAppear()` helpers apply the
+  same mapping to the label they are given. `closeSubMenu()` does the parent's
   bookkeeping — the `hotSubMenus` entry, `aria-expanded` — BEFORE destroying the sub-menu, so a
   throwing teardown cannot leave a destroyed menu registered.
 - **`destroy()` while `opening` stops the build, through `#isDestroyed`.** `close()` cannot do it —
@@ -287,6 +294,18 @@ horizontal `transformStart` to the merge's top row, so this path has to call
 menu would leave a merged cell on the top row instead of the row it cycles along. It does not go
 through `inlineStart`/`inlineEnd`, so the grid Tab commands cannot cover it. Pinned by
 `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
+
+## `checkSelectionConsistency()` abandoned the search after the FIRST empty range (FIXED, DEV-136)
+
+`arrayEach()` stops iterating the moment a callback returns exactly `false`. The per-range callback
+used to `return result` — `false` while nothing had matched yet — so a range with no match stopped
+the whole walk right there, and a match sitting in a LATER range (a multi-layer selection, e.g. a
+Ctrl+click adding a second block) was never found. `readOnly.ts` and `readOnlyComment.ts` both decide
+their toggle from this helper, so a selection shaped that way toggled the wrong way — and, since
+DEV-136, corrupted the read-only toggle's undo snapshot too (its "no match found" fast path trusts
+this helper's `false` to mean every visited cell was proven writable, which a truncated search cannot
+guarantee). Fixed by returning `!result` instead: continue while no match has been found yet, stop
+once it has. Pinned by `contextMenu/__tests__/utils.unit.js`.
 
 ## Where to look next
 

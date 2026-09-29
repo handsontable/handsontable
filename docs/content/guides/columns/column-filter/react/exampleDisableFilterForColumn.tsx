@@ -4,46 +4,48 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    brand: 'Jetpulse',
+    model: 'Racing Socks',
+    price: 30,
+    sellDate: '2023-10-11',
+    inStock: false,
+  },
+  {
+    brand: 'Gigabox',
+    model: 'HL Mountain Frame',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    inStock: false,
+  },
+  {
+    brand: 'Camido',
+    model: 'Cycling Cap',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    inStock: true,
+  },
+  {
+    brand: 'Chatterpoint',
+    model: 'Road Tire Tube',
+    price: 59,
+    sellDate: '2023-08-28',
+    inStock: true,
+  },
+  {
+    brand: 'Eidel',
+    model: 'HL Road Tire',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    inStock: true,
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '2023-10-11',
-          inStock: false,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          inStock: false,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          inStock: true,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '2023-08-28',
-          inStock: true,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '2023-10-02',
-          inStock: true,
-        },
-      ]}
+      data={data}
       columns={[
         {
           title: 'Brand',

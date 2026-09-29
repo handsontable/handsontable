@@ -3,7 +3,7 @@ import {
   axisScrollbarClearance,
   canGrabScrollbar,
   clearanceClipPath,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   isPointInScrollbarBand,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
@@ -181,42 +181,53 @@ describe('overlay scrollbar clearance', () => {
     });
   });
 
-  describe('holderOwnsScrollbars', () => {
+  describe('holderOwnsAxisScrollbar', () => {
     const windowWith = (finePointer: boolean) => ({
       matchMedia: () => ({ matches: finePointer } as MediaQueryList),
     } as unknown as Window);
 
-    it('should hold when an element trims the grid, so the holder is the scrollport', () => {
+    it('should hold when an element owns the axis, so the holder is the scrollport', () => {
       const rootWindow = windowWith(true);
 
-      expect(holderOwnsScrollbars(document.createElement('div'), rootWindow)).toBe(true);
+      expect(holderOwnsAxisScrollbar(false, rootWindow)).toBe(true);
     });
 
-    it('should not hold when the window trims the grid', () => {
-      // The scrollbars then belong to the window, nowhere near these overlays, so a strip kept clear
-      // along the holder's edge would be reserved for a scrollbar that is not drawn there.
+    it('should not hold when the window owns the axis', () => {
+      // The scrollbar then belongs to the window, outside the grid's box and nowhere near these
+      // overlays, so a strip kept clear along the holder's edge would be reserved for a scrollbar
+      // that is not drawn there.
       const rootWindow = windowWith(true);
 
-      expect(holderOwnsScrollbars(rootWindow, rootWindow)).toBe(false);
+      expect(holderOwnsAxisScrollbar(true, rootWindow)).toBe(false);
     });
 
-    it('should not hold on a touch-only device even when an element trims the grid', () => {
-      expect(holderOwnsScrollbars(document.createElement('div'), windowWith(false))).toBe(false);
+    it('should not hold on a touch-only device even when an element owns the axis', () => {
+      expect(holderOwnsAxisScrollbar(false, windowWith(false))).toBe(false);
     });
 
-    it('should give every overlay the same answer for the same grid', () => {
-      // The point of the helper. The four overlays used to hand-roll this: the frozen bottom rows
-      // required the holder to be the scrollport, the frozen top rows and columns accepted any
-      // `preventOverflow` grid, and the bottom corner asked neither - so under window trimming the
-      // corner was clipped out of a strip the frozen rows beside it still painted into.
+    it('should answer the two axes independently, so a split grid can clip one edge only', () => {
+      // The whole reason the gate takes the axis rather than the overlay. With a definite `width`
+      // and no sized `height` an element owns the horizontal axis and the window the vertical one,
+      // so the bottom edge needs a strip and the inline-end edge must not get one. Asking about the
+      // overlay's own owner instead re-created the #10370 notch: the frozen columns clipped a bottom
+      // strip while the frozen bottom rows and the corner drawn over them published none.
       const rootWindow = windowWith(true);
-      const trimmedByElement = document.createElement('div');
+      const verticalOwnedByWindow = true;
+      const horizontalOwnedByWindow = false;
 
-      const answersFor = (trimming: HTMLElement | Window) =>
-        [trimming, trimming, trimming, trimming].map(t => holderOwnsScrollbars(t, rootWindow));
+      expect(holderOwnsAxisScrollbar(horizontalOwnedByWindow, rootWindow)).toBe(true);
+      expect(holderOwnsAxisScrollbar(verticalOwnedByWindow, rootWindow)).toBe(false);
+    });
 
-      expect(new Set(answersFor(trimmedByElement)).size).toBe(1);
-      expect(new Set(answersFor(rootWindow)).size).toBe(1);
+    it('should give every overlay the same answer for the same axis', () => {
+      // One function because all four overlays have to agree edge by edge.
+      const rootWindow = windowWith(true);
+
+      const answersFor = (axisOwnedByWindow: boolean) =>
+        [1, 2, 3, 4].map(() => holderOwnsAxisScrollbar(axisOwnedByWindow, rootWindow));
+
+      expect(new Set(answersFor(false)).size).toBe(1);
+      expect(new Set(answersFor(true)).size).toBe(1);
     });
   });
 
