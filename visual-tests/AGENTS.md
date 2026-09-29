@@ -87,6 +87,14 @@ visualTest(__filename, {
   two goldens per capture, not five, and eight under `tests/multi-frameworks/`. Add `classic` when the spec
   is about the bare delivery path, a horizon theme when the pixels being judged are theme tokens rather
   than geometry, and a wrapper only when its render proves something the js render does not.
+- **`['main']` alone is the look-check shape, for a js-only spec whose behavior a functional test
+  asserts.** One golden a capture: it gives up `main-dark` on the `pr` tier and the bare run, the dark
+  themes, and `horizon` everywhere. So it is right only when a Playwright spec in `tests/e2e` or a
+  Jasmine spec under `handsontable/src` asserts, on every theme, what the capture shows, and another
+  spec photographs the same component on every variant. The docblock names both, and
+  `lib/__tests__/visual-declarations.test.mjs` fails a single-theme spec that names no functional test
+  in backticks, or names one that does not exist. The menu-position family is the first user
+  (`tests/e2e/submenu-position.spec.ts` asserts the placement).
 - **`classic` is a token inside `themes`,** not a separate flag. The bare run is a variant like any other
   and only differs in having no name to pass through `HOT_THEME`, which is what makes
   `helpers.screenshotPath()` drop the `-theme-` suffix. The token lives in declarations only — passing it
@@ -115,8 +123,8 @@ visualTest(__filename, {
 - **The golden set is now the sum of the declarations intersected with the tier.**
   `lib/__tests__/visual-declarations.test.mjs` derives it from the checked-in specs and asserts the eleven
   per-prefix totals against `visual-budget.json`, printing the implied total. The file held the live
-  baseline's 1676 records on 2026-09-18 and comes down with every trim (1225 after the filters
-  consolidation, #13647). A trim or a new spec moves a number there, which is the review a description
+  baseline's 1676 records on 2026-09-18 and comes down with every trim, so it, not this page, holds
+  today's numbers. A trim or a new spec moves a number there, which is the review a description
   cannot give.
 - **`npx playwright test --list --reporter=json` reports every declaration** as a `visual-variants`
   annotation, including on a spec the current variant skips. That is the only form a reader outside the
@@ -165,17 +173,18 @@ requests: a build rendered 1646 golden records and the visual stage added a mean
 request run. The golden set is 1676 records on 2026-09-18 (`base/develop/out.json`, read cache-busted as
 described below): 240 per js variant × 5, 92 per wrapper × 3, and 68 / 66 / 66 on chromium / firefox /
 webkit; a `pr`-tier render is 480 of them. Every count below that names a golden total is this one.
-The filters consolidation (#13647, 2026-09-25) brought the set to 1225: 187 per js variant, 30 per
-wrapper, the same cross-browser counts, and a `pr`-tier render of 374.
-Every js-only spec renders five times today (the bare chromium run — the "classic" delivery path,
-where the core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
+The consolidation lowers these family by family, and each trim lowers `visual-budget.json` in the same
+pull request, so that file has today's counts; the ones here stay the dated reference.
+Most js-only specs render five times (the bare chromium run — the "classic" delivery path, where the
+core inlines the main theme stylesheet — plus the four themes), every multi-framework spec eight
 times (js × 5 plus the three wrappers), and the cross-browser leg renders its specs on three browsers —
 but that is what the checked-in declarations happen to say, not a property of the tier. What each spec
-renders is its [variant declaration](#variant-declaration), and a new spec renders two themes by default,
-so "every js variant renders the same count" stops holding with the first spec that takes the default. The
-bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18, 187 since the
-filters consolidation) — it is a delivery-path
-parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
+renders is its [variant declaration](#variant-declaration): a new spec renders two themes by default, and
+three of the menu-position look checks render on `main` alone, so the js variants no longer render the
+same count (`main` has run ahead of the other four in `visual-budget.json` since the submenu-placement
+trim). The
+bare run was byte-identical to `main` on 199 of its then 234 records (240 on 2026-09-18) — it is a
+delivery-path parity check, not a fifth theme — and no real regression in that window was confined to one theme, one
 browser or one wrapper;
 every real change hit all themes or all browsers. So a pull request renders the two default themes on js;
 the seed renders the other js variants and the cross-browser leg minutes after the merge and comments what
@@ -253,7 +262,7 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
   chromium with two themes, no wrapper installs. Set the same `VISUAL_TIER=pr` on `npm run compare` so the
   prune matches what was rendered; a feature branch otherwise resolves to `full`, and a `pr`-tier render
   compared as `full` reports every record outside its two prefixes as deleted (1196 of the 2026-09-18
-  set, 851 since the filters consolidation). A bare `npm run test` on a feature branch
+  set). A bare `npm run test` on a feature branch
   renders everything, as before.
 - **Bootstrap seeds the tier's subset, not the branch's full set.** A `pr`-tier pull request that seeds a
   new base branch (`VISUAL_BOOTSTRAP=true`) promotes its 480 records and nothing else; the branch's own
@@ -282,7 +291,7 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-Seven things about this pipeline are worth knowing before changing it.
+These things about this pipeline are worth knowing before changing it.
 
 - **`reg-suit` exits 0 no matter what it finds — `run` and the `compare` / `publish` subcommands
   `compare.mjs` calls alike.** A comparison result never fails it; fetch, publish
@@ -352,6 +361,22 @@ Seven things about this pipeline are worth knowing before changing it.
   while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
   carries on with a selection it never made. `copy-paste.spec.ts` is the spec that shape bit — one cell
   copied instead of the range, its assertions still passing, visible only as a changed screenshot.
+- **The `visual-diff-report` artifact holds the differences, not `.reg/`.** The Compare job's
+  `Stage the visual diff report` step (`scripts/stage-diff-report.mjs`; `lib/visual-diff-report.mjs`
+  picks the files) copies `index.html`, `out.json`, and the expected, actual, and diff image of
+  each changed item, the actual of each new one, and the expected of each deleted one into
+  `$RUNNER_TEMP/visual-diff-report`, and the upload reads that. The report opens from the subset because
+  reg-cli addresses its images relative to `index.html`; the passing items are listed without images.
+  Two traps sit behind it. Until DEV-3089 the upload read `visual-tests/.reg` directly and uploaded nothing
+  on any run: `.reg` is a dot-directory, upload-artifact skips hidden paths unless
+  `include-hidden-files: true` is set, and the step still reported success, while the comment sent
+  reviewers there. And setting that flag on the whole tree ships the tier's golden set twice (110 MB for a
+  pr-tier run with 28 changed items, against 24.5 MB staged). The artifact is the only place a fork pull
+  request's images are, so prove any change to these steps against a real run's artifact list
+  (`gh api repos/handsontable/handsontable/actions/runs/<id>/artifacts`), not the YAML.
+  `.github/scripts/__tests__/visual-diff-report.test.mjs` pins the two steps to one condition and one
+  directory, and `visual-flake-governance.test.mjs` fails any upload that reads a dot-directory without the
+  flag.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
@@ -447,8 +472,10 @@ does for you):
   directory's other six filters specs, got
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
-  six specs with their 15 lines, and its replacements assert every state they capture, so 85 remain, in
-  41 specs; `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
+  six specs with their 15 lines, and its replacements assert every state they capture; the
+  submenu-placement trim (#13656) retired the menu family's 24 the same way. So 61 remain, in 33 specs
+  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
+  `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
 - **What the capture rule cannot see.** It judges the one statement before the capture, and only when that
@@ -607,6 +634,18 @@ does for you):
   family's 186 wrapper renders matched their copied classic goldens byte for byte, and the menu is core
   code the wrappers only hand their `dropdownMenu` and `filters` settings to, so that hand-off now has
   no check in this suite or in `tests/e2e`.
+- **Where a popup opens is geometry a DOM probe can express, so it is an assertion, not a capture.** A
+  capture shows where the popup was drawn; it cannot say that was the right place for that corner, and
+  a regression approved once becomes the golden. #11505 deleted the Jasmine submenu-placement tests and
+  left eight menu-position specs (120 goldens) as their only guard. `tests/e2e/submenu-position.spec.ts`
+  now asserts the placement from DOM rects (the submenu edge to edge with its parent, its first or
+  last row level with the row it belongs to, inside the viewport) for the context and dropdown menus,
+  in both grid directions and both document directions, with the grid's holder scrolled and, for the
+  context menu, with the window scrolled, on all six theme and bundle legs. What stays under
+  `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is a check of how the menus look:
+  one capture of an open submenu on every js variant, which guards the seam and border between a menu
+  and its submenu on each theme, and four on `main` in the single-theme shape
+  [Variant declaration](#variant-declaration) describes.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -681,7 +720,8 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (85 since #13647 retired the filters family's 15). The rules, what they cannot see, and their three
+  counted and greppable (61 since #13647 and #13656 retired the filters family's 15 and the menu
+  family's 24). The rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Removed writing past the last column of an object data source, deprecated in 19.0.0. A paste, `populateFromArray()`, or `setDataAtCell()` no longer adds a property named after the column index, which no column could display. Use `setDataAtRowProp()` to write a field the grid shows no column for.",
+  "type": "removed",
+  "issueOrPR": 5409,
+  "breaking": true,
+  "framework": "none"
+}

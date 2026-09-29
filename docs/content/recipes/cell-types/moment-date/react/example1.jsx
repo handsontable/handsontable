@@ -40,7 +40,12 @@ function correctDatesBeforeChange(changes) {
             return;
         }
         const [visualRow, prop, , newValue] = change;
-        const cellMeta = this.getCellMetaTransient(visualRow, this.propToCol(prop));
+        const column = this.propToCol(prop);
+        // Skip a property that names no column.
+        if (column === null) {
+            return;
+        }
+        const cellMeta = this.getCellMetaTransient(visualRow, column);
         if (cellMeta.type !== 'moment-date' ||
             cellMeta.correctFormat !== true ||
             typeof newValue !== 'string' ||

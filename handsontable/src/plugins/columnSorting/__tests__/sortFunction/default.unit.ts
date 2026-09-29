@@ -81,3 +81,79 @@ it('should not share the lowercase cache between separately created compare func
 
   spy.mockRestore();
 });
+
+describe('defaultSort prepared keys', () => {
+  // Mixed pool: numeric-looking strings, plain numbers, booleans, the three empty values, NaN,
+  // a Date, whitespace-only strings, an object and a case-only string pair.
+  const MIXED_POOL: unknown[] = [
+    'A1', 'a10', 'A100', 'b2', '3', '10', '2.5', ' ', '  ',
+    '', null, undefined,
+    true, false,
+    0, 1, -5, 2.5, NaN,
+    new Date(2020, 0, 1), {},
+    'Zebra', 'zebra',
+  ];
+
+  /**
+   * Builds the sorted-row arrays the engine hands to `prepare()`.
+   *
+   * @param {Array} pool The values to wrap.
+   * @returns {Array} The `[rowIndex, value]` rows.
+   */
+  function toRows(pool: unknown[]): unknown[][] {
+    return pool.map((value, rowIndex) => [rowIndex, value]);
+  }
+
+  it('should answer every comparison exactly as the pairwise path does', () => {
+    (['asc', 'desc'] as const).forEach((sortOrder) => {
+      ([{}, { sortEmptyCells: true }, { sortEmptyCells: false }] as const).forEach((pluginSettings) => {
+        const compare = defaultSort(sortOrder, { locale: 'en-US' }, pluginSettings);
+        const keys = compare.prepare(toRows(MIXED_POOL), 1);
+        const mismatches: string[] = [];
+
+        for (let index = 0; index < MIXED_POOL.length; index++) {
+          for (let nextIndex = 0; nextIndex < MIXED_POOL.length; nextIndex++) {
+            const prepared = compare.compare(keys, index, nextIndex);
+            const pairwise = compare(MIXED_POOL[index], MIXED_POOL[nextIndex]);
+
+            if (prepared !== pairwise) {
+              mismatches.push(
+                `${sortOrder}/${JSON.stringify(pluginSettings)}: (${index},${nextIndex}) ` +
+                `prepared ${prepared} vs pairwise ${pairwise}`
+              );
+            }
+          }
+        }
+
+        expect(mismatches).toEqual([]);
+      });
+    });
+  });
+
+  it('should lowercase every row exactly once while preparing, without a per-run cache', () => {
+    // eslint-disable-next-line global-require
+    const stringHelpers = require('handsontable/helpers/string');
+    const spy = jest.spyOn(stringHelpers, 'localeLowerCase');
+    const pool = ['Banana', 'apple', 'Banana', 'Cherry', 'apple', 1, null];
+    const compare = defaultSort('asc', { locale: 'en-US' }, {});
+
+    compare.prepare(toRows(pool), 1);
+
+    // 5 strings among 7 rows — one call per string row, no memoization, no row-sized Map.
+    expect(spy).toHaveBeenCalledTimes(5);
+
+    spy.mockRestore();
+  });
+
+  it('should read `sortEmptyCells` per comparison, not once per prepared column', () => {
+    const pluginSettings: { sortEmptyCells?: boolean } = { sortEmptyCells: false };
+    const compare = defaultSort('asc', {}, pluginSettings);
+    const keys = compare.prepare(toRows(['a', null]), 1);
+
+    expect(compare.compare(keys, 1, 0)).toBe(1);
+
+    pluginSettings.sortEmptyCells = true;
+
+    expect(compare.compare(keys, 1, 0)).toBe(-1);
+  });
+});

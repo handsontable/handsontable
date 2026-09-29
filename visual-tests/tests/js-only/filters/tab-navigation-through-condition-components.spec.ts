@@ -41,16 +41,29 @@ visualTest(__filename, {
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Enter'); // open the list of conditions
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('Enter'); // choose "Is between" (the ninth condition of a date column)
+
+  // Walk to "Is between" by its label rather than by a count of presses, so a reorder of a date column's
+  // conditions cannot make this capture photograph another condition. The order itself is asserted in
+  // `handsontable/src/plugins/filters/__tests__/component/conditional.spec.js`.
+  const conditions = tablePage.locator('.htFiltersConditionsMenu:visible');
+  const highlightedCondition = conditions.locator('td.current');
+  const highlight = async(label: string, pressesLeft: number): Promise<void> => {
+    if ((await highlightedCondition.count()) === 1 && (await highlightedCondition.innerText()).trim() === label) {
+      return;
+    }
+
+    if (pressesLeft === 0) {
+      throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} condition`);
+    }
+
+    await tablePage.keyboard.press('ArrowDown');
+    await highlight(label, pressesLeft - 1);
+  };
+
+  await expect(conditions).toBeVisible();
+  await highlight('Is between', 15);
+  await expect(highlightedCondition).toHaveText('Is between');
+  await tablePage.keyboard.press('Enter'); // choose it
 
   // Choosing a condition focuses its first input on a 10 ms timer
   // (handsontable/src/plugins/filters/component/condition.ts), so wait for the hand-off before

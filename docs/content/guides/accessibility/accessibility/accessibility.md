@@ -25,6 +25,7 @@ vue:
   metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
+addedIn: "14.0.0"
 ---
 Handsontable supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
 

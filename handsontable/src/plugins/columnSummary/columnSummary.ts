@@ -499,16 +499,23 @@ export class ColumnSummary extends BasePlugin {
    * Returns a cell value, taking into consideration a basic validation.
    *
    * @private
-   * @param {number} row Row index.
-   * @param {number} col Column index.
+   * @param {number} row Physical row index.
+   * @param {number} col Physical column index.
    * @returns {string} The cell value.
    */
   getCellValue(row: number, col: number): number | string | null {
     const visualRowIndex = this.hot.toVisualRow(row);
+    // The endpoint columns are physical, like the rows, while every read below takes a visual column -
+    // `getSourceDataAtCell` included, which pairs a physical row with a visual column.
+    const visualColumnIndex = this.hot.toVisualColumn(col);
+
+    if (visualColumnIndex === null) {
+      return null;
+    }
 
     let cellValue: number | string | null = (visualRowIndex !== null
-      ? this.hot.getDataAtCell(visualRowIndex, col)
-      : this.hot.getSourceDataAtCell(row, col)) as number | string | null;
+      ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
+      : this.hot.getSourceDataAtCell(row, visualColumnIndex)) as number | string | null;
 
     // A trimmed row has no visual coordinates, so its cell meta - and with it the
     // `columnSummaryResult` class - cannot be read. Fall back to the endpoint destinations, or a
@@ -518,7 +525,7 @@ export class ColumnSummary extends BasePlugin {
     // the user's own value on the first calculation pass, before any result was written, and that
     // value counts towards the summary. Three long-standing specs pin that behavior.
     const isSummaryResult = visualRowIndex !== null
-      ? ((this.hot.getCellMetaTransient(visualRowIndex, col).className as string) || '')
+      ? ((this.hot.getCellMetaTransient(visualRowIndex, visualColumnIndex).className as string) || '')
         .indexOf('columnSummaryResult') > -1
       : this.endpoints!.isSummaryDestination(row, col);
 
@@ -601,7 +608,7 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * `afterFormulasValuesUpdate` hook callback. Refresh only endpoints whose
-   * `sourceColumn` (visual) maps to a column the engine recalculated.
+   * `sourceColumn` (physical) maps to a column the engine recalculated.
    *
    * @param {Array} changes Changes from the formula engine.
    */
@@ -629,39 +636,48 @@ export class ColumnSummary extends BasePlugin {
       return;
     }
 
-    const changedVisualColumns = new Set<number>();
+    const changedSourceColumns = new Set<number>();
 
     this.endpoints.getAllEndpoints().forEach((endpoint) => {
-      const hfSourceColumn = formulasPlugin.columnAxisSyncer!
-        .getHfIndexFromVisualIndex(endpoint.sourceColumn ?? 0);
+      const sourceColumn = endpoint.sourceColumn ?? 0;
+      const hfSourceColumn = formulasPlugin.columnAxisSyncer!.getHfIndexFromPhysicalIndex(sourceColumn);
 
       if (changedHfColumns.has(hfSourceColumn)) {
-        changedVisualColumns.add(endpoint.sourceColumn ?? 0);
+        changedSourceColumns.add(sourceColumn);
       }
     });
 
-    if (changedVisualColumns.size === 0) {
+    if (changedSourceColumns.size === 0) {
       return;
     }
 
     this.#refreshingFromFormulas = true;
 
     try {
-      this.endpoints.refreshEndpointsBySourceColumns(changedVisualColumns);
+      this.endpoints.refreshEndpointsBySourceColumns(changedSourceColumns);
     } finally {
       this.#refreshingFromFormulas = false;
     }
   };
 
   /**
-   * `beforeRowMove` hook callback.
+   * `afterRowMove` hook callback. The endpoint rows and ranges are physical, and ManualRowMove only permutes
+   * the row index, so a move changes neither which records a summary covers nor which record holds its
+   * result - both travel with their rows. The endpoints are still recalculated: NestedRows moves a row by
+   * splicing the data itself, which does change what a physical range holds, and a `custom` function may
+   * read the row order.
    *
-   * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving/row-moving.md).
+   * @param {Array} rows Array of visual row indexes that were moved.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows.
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
+   * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
+   * @param {boolean} orderChanged Indicates if order of rows was changed by move.
    */
-  #onAfterRowMove = (rows: number[], finalIndex: number) => {
-    this.endpoints!.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length);
-    this.endpoints!.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName!);
+  #onAfterRowMove = (
+    rows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean
+  ) => {
+    if (orderChanged) {
+      this.endpoints!.refreshAllEndpoints();
+    }
   };
 }

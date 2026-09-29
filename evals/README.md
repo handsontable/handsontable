@@ -16,10 +16,13 @@ meaningfulness, not sufficient ones.
 
 1. **Per-change mutation check** — inject bugs (mutants) into changed source
    with StrykerJS (Jest runner) scoped to the changed files, and measure the
-   kill rate of the new test. **Status: pending team sign-off.** StrykerJS is a
-   new dependency, and the minimal-dependency policy requires a team discussion
-   first. Until `@stryker-mutator/core` resolves, every score reports
-   `mutation: { available: false, reason: "stryker pending team sign-off" }`.
+   kill rate of the new test. **Status: installed, manual-only.** StrykerJS is a
+   root devDependency, and no CI workflow runs it: you run it by hand with
+   `--mutate` (see [Mutation layer](#mutation-layer-installed-manual-only)).
+   Without `--mutate`, a score reports `mutation: { available: true, reason:
+   "stryker installed — pass --mutate <files> to run the kill-rate check" }`;
+   in a checkout where `@stryker-mutator/core` does not resolve, it reports
+   `mutation: { available: false, reason: "stryker not installed" }`.
 2. **Prompt/skill regression eval** — **runnable now, zero dependencies.** The
    test-generation skills (`test-writing-discipline`,
    `handsontable-unit-testing`, `handsontable-playwright-e2e`) are artifacts
@@ -125,9 +128,9 @@ weakening detector.
 | `hollowTests` | `it()`/`test()` blocks with no `expect`/`assert`/`verify` call — a test that only executes code. |
 | `gamingSignals` | `.only`/`.skip`/`xit`/`fit` in any opener form the block count reads (`xit.each`, `test.concurrent.only`), `it.flaky`, `fixme`/`todo`, and failure-swallowing `try/catch`. |
 | `determinismSmells` | `sleep(`, `waitForTimeout(`, `networkidle`, a global `setTimeout(` (bare, `window.`, or `globalThis.`) with a non-zero numeric-literal delay, `waitForNextAnimationFrames(` with anything but a literal `0` — timing-based instead of condition-based waits. Mirrors the lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`, exemptions included: `test.setTimeout(ms)` is a budget, `setTimeout(fn, 0)` and `waitForNextAnimationFrames(0)` are zero-duration hand-offs, and a computed delay cannot be judged statically. And `theme-sensitive-viewport`: a rendered-count read (the legacy helpers by exact name — `countVisibleRows()`/`countVisibleCols()`, `countRenderedRows()`/`countRenderedCols()`, `getRenderedRowsCount()` — a look-alike such as `countVisibleCustomBorders()` does not read; or a `:visible` selector that something counts — `toHaveCount(` or `.count()` on the selector or on the locator it is captured into; a `:visible` click or `.first()` counts nothing) inside a describe whose grid setup hands no top-level `width`/`height` to an options object (`handsontable({ … })`, `grid.initGrid({ … })`, `new Handsontable(host, { … })`, or a local passed to one whole or spread) and never calls `scrollViewportTo`. A nested `width` (`border: { width: 2 }`, `columns: [{ width: 100 }]`) is not the grid's size, and an expected value (`toEqual({ width: 2, … })`) is not a setup. Row height differs per theme, so that count is a different number on each leg of the theme matrix. |
-| `structureSmells` | `unasserted-capture`: a `const x = await …` in a test body whose value never reaches an assertion — neither `x` nor a local derived from it in one step (`const tokens = String(x).split(' ')`) lands inside `expect(…)`/`assert…(…)`, its matcher chain, or as the receiver of an `x.expect…(` helper. A value fetched and dropped is code run without being checked. **Warning-only** until its precision is measured: over the 69 shipped Playwright specs it flags 4 captures in 3 files, each a value fetched to drive an action (a bounding box for a pointer move, a count for a keyboard loop) whose outcome the test asserts by other means. |
+| `structureSmells` | `unasserted-capture`: a `const x = await …` in a test body whose value never reaches an assertion — neither `x` nor a local derived from it in one step (`const tokens = String(x).split(' ')`) lands inside `expect(…)`/`assert…(…)`, its matcher chain, or as the receiver of an `x.expect…(` helper. A value fetched and dropped is code run without being checked. **Warning-only** until its precision is measured: over the 69 Playwright specs shipped when it landed, it flagged 4 captures in 3 files, each a value fetched to drive an action (a bounding box for a pointer move, a count for a keyboard loop) whose outcome the test asserts by other means. Over the 158 specs in `tests/e2e/` on 2026-09-23 it flags 21 captures in 9 files. |
 | `relevance` | With `--diff`: does the test reference any changed symbol? Warning-only (E2E tests assert behavior, not symbols). |
-| `mutation` | The dependency-gated ceiling; stubbed until StrykerJS is approved. |
+| `mutation` | The ceiling: the kill rate from a scoped StrykerJS run with `--mutate`, or only the availability status without it. |
 | `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. A structure smell is a warning while its precision is measured, so it never flips the verdict. |
 
 The signals are heuristic and text-based, like the weakening detector they
@@ -135,11 +138,11 @@ build on: strong signals to surface, not proof. A reviewer or the mutation
 layer still judges intent.
 
 
-## Mutation layer (live)
+## Mutation layer (installed, manual-only)
 
 StrykerJS is installed (root devDependencies: `@stryker-mutator/core` +
-`@stryker-mutator/jest-runner`); the scorer's `mutation.available` flips to true
-automatically. Config: `handsontable/stryker.config.json` (jest runner via
+`@stryker-mutator/jest-runner`), and nothing in CI runs it; the scorer's
+`mutation.available` flips to true automatically. Config: `handsontable/stryker.config.json` (jest runner via
 `handsontable/jest.stryker.config.js`, which pins the Babel transform +
 `envName: 'commonjs'` — Stryker's worker cwd breaks cwd-relative Babel
 discovery). `inPlace` mode is used because the sandbox breaks pnpm workspace

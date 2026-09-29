@@ -1,5 +1,6 @@
 import type { BaseRenderer } from '../../renderers/baseRenderer';
 import { formatCellValue, renderCell } from '../../renderers/renderCell';
+import { colToPropOrIndex } from '../../helpers/columnProp';
 import type { CellProperties } from '../../settings';
 import type { HotInstance } from '../types';
 import {
@@ -222,7 +223,9 @@ export class CellPainter {
     }
 
     const cellProperties = hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-    const prop = hot.colToProp(visualColumnToCheck) as string;
+    // Resolved the same way as in `GhostTable` and `EditorManager`, so one cell is not
+    // addressed two different ways across the measuring and painting paths.
+    const prop = colToPropOrIndex(hot, visualColumnToCheck) as string;
     let value = hot.getDataAtRowProp(visualRowToCheck, prop);
 
     if (hot.hasHook('beforeValueRender')) {

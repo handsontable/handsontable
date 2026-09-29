@@ -23,7 +23,7 @@ The authoritative checklists live in the `handsontable-code-review` skill so the
 - **Architecture** — `.claude/skills/handsontable-code-review/references/architecture.md`: SOLID + BasePlugin contract (static `PLUGIN_KEY`/`PLUGIN_PRIORITY`/`SETTING_KEYS`), Law of Demeter, plugin decoupling, **conflict ownership** (`registerConflict()` — the plugin that introduces the incompatibility owns the blocking logic), coordinate-system correctness, breaking-changes policy, convention over configuration.
 - **Code quality** — `.claude/skills/handsontable-code-review/references/code-quality.md`: custom ESLint rules, JSDoc (`{@link Class#member}` cross-references, never TypeDoc's `[[Target]]`; no `<br>`), naming, cognitive complexity (<= 15), silent-catch comments, browser targets, DRY, the TypeScript boundary.
 - **Performance & accessibility** — `.claude/skills/handsontable-code-review/references/performance-a11y.md`: large-array safety, render batching, memory cleanup, WCAG 2.1 AA, both keyboard-navigation modes, ARIA semantics.
-- **Tests** — `.claude/skills/handsontable-code-review/references/tests.md`: a named exercising test for every new interaction path and option form, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened or deleted assertion.
+- **Tests** — `.claude/skills/handsontable-code-review/references/tests.md`: a named exercising test for every new interaction path and option form, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened or deleted assertion, a DOM/API assertion beside every visual capture.
 
 For Handsontable-specific landmines on the subsystem you are reviewing, also consult the nearest `AGENTS.md` and its `.ai/` deep reference — e.g. `handsontable/.ai/INDEX-MAPPING.md` and `handsontable/src/plugins/filters/AGENTS.md` for coordinate/index work, `handsontable/.ai/HOOKS.md` and `handsontable/src/core/hooks/AGENTS.md` for hook changes (a new built-in hook is a two-step: register the name in `src/core/hooks/constants.ts` AND add the signature to `GridSettings` in `src/core/settings.ts`).
 
@@ -40,7 +40,7 @@ Apply the discipline from `handsontable-code-review/SKILL.md`:
 ## Additional checks
 
 - Missing changelog entry in `.changelogs/` for source-code changes.
-- Missing test coverage (both unit and E2E required for behavior changes).
+- Missing test coverage: a behavior change needs the test kind the "What to test, and in which framework" section of `handsontable/.ai/TESTING.md` assigns it (Jest unit for logic, Playwright `tests/e2e/` for anything a user can see or do), not both by default. The presence gate blocks a new Jasmine `*.spec.js`, at pre-push and in CI.
 - Wrapper code (`wrappers/`) must not contain business logic.
 - New dependencies require team discussion.
 

@@ -20,6 +20,7 @@ vue:
   metaTitle: Empty Data State - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and Menus
+addedIn: "16.2.0"
 ---
 Use the `EmptyDataState` plugin to display a contextual overlay when the grid has no data or all rows are hidden by active filters.
 
