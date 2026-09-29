@@ -1608,8 +1608,10 @@ test.describe('a throwing alter with a held shift', () => {
 });
 
 /**
- * Inside `batch()` the index mapper holds `cacheUpdated` back until the batch ends. A nested removal
- * still lands on the record after both removals - `develop` lands it one row up.
+ * `batch()` suspends the index mapper, but a removal still updates the cache at once:
+ * `IndexMapper#removeIndexes()` suspends and resumes the mapper itself, and the suspension is a flag,
+ * not a count. So the scope is stamped as usual, and a nested removal lands on the record after both
+ * removals - `develop` lands it one row up.
  */
 test.describe('a nested alter inside batch()', () => {
   test('lands on the record after both removals', async({ page, theme, bundle }) => {
