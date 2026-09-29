@@ -216,6 +216,32 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   is active by then. Without the guard the rename input opened on top of the menu the second
   click had just opened. The reverse order needs no guard — opening the menu moves the focus,
   the input blurs, and the blur commits the rename first.
+- **The bar is registered as grid UI, so a press on it never deselects.** The bar sits outside
+  `rootElement` (a layout slot or `uiContainer`), and with the default `outsideClickDeselects`
+  the document `mousedown` in `tableView.ts` used to deselect before a tab's `click` switched
+  sheets — every switch from the bar then stored an empty selection. `enablePlugin` registers the
+  bar container through `FocusGridManager#registerOutsideClickExemptElement()` and
+  `#releaseState` removes it; a press inside it only closes an open editor (saving it, as
+  `outsideClickDeselects: false` does), so the outgoing sheet keeps its selection. Do not replace
+  this with a selection snapshot taken on `pointerdown`: that covers the tab click only, leaks
+  when the release lands off the tab, and still drops the selection on the active tab, the add
+  button, and the all-sheets button. Pagination is deliberately not registered —
+  `layout-slot-focus.spec.ts` pins its deselect. Three things ride along. (1) With the selection
+  alive and the focus in the bar, the editor manager would open the cell editor on any printable
+  key — a letter typed into the rename input started editing the selected cell and the rename
+  was lost — so `#onKeyDownWithinBar` marks keys and composition starts inside the bar at
+  `orderIndex` -1. It sets only the `isImmediatePropagationEnabled` mark, never `cancelBubble`:
+  the grid's key listener sits on the `documentElement`, and stopping the bubble there hides every
+  bar keystroke from the host page. (2) `setActiveSheet` closes an open editor before it captures
+  the outgoing sheet, so an API switch mid-edit saves into the sheet being left. (3) A switch onto
+  a sheet with no stored selection deselects at the start of the switch batch, before
+  `loadData`: `loadData` only clamps the selection, so the previous sheet's cells used to carry
+  over, and deselecting after the load would let a still-open editor save into the arriving
+  sheet. A stored selection that no longer fits (the host shrank the sheet's data while it was
+  away, so `restoreViewport()` reports `false`) is deselected inside the viewport batch for the
+  same reason. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
+  every grid, not only on a switch: a cell remembered from the previous data does not name a
+  record of the new data.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.

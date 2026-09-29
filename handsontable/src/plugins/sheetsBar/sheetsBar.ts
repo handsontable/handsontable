@@ -566,6 +566,7 @@ export class SheetsBar extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: this.#registeredSide, weight: LAYOUT_WEIGHT });
     }
 
+    this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());
     this.#registerFocusScope();
     this.#registerShortcuts();
 
@@ -580,6 +581,8 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
+    this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
 
     this.#refreshUI();
 
@@ -736,6 +739,10 @@ export class SheetsBar extends BasePlugin {
       this.#unregisterShortcuts();
     }
 
+    if (this.#ui) {
+      this.hot.getFocusManager().unregisterOutsideClickExemptElement(this.#ui.getContainer());
+    }
+
     this.#model = null;
     this.#trackedCellMeta = new Map();
     this.#declaredEntries = new Map();
@@ -833,6 +840,10 @@ export class SheetsBar extends BasePlugin {
         const oldSheet = oldId === null ? null : model.getSheetById(oldId);
 
         if (oldSheet) {
+          if (this.hot.getActiveEditor()?.isOpened()) {
+            this.hot.destroyEditor(false, false);
+          }
+
           this.#syncActiveSheetData();
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
@@ -1017,6 +1028,10 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
+      if (!viewState?.selection && this.hot.view) {
+        this.hot.deselectCell();
+      }
+
       // The neutral reset runs BEFORE the sheet arrives. `loadData` resets only the index
       // mappers, so the reset is what clears the previous sheet's filters, hidden and trimmed
       // indexes, merges, borders, manual sizes, and a runtime freeze — and running it first
@@ -1054,6 +1069,10 @@ export class SheetsBar extends BasePlugin {
       this.#batchRender(() => {
         if (viewState) {
           selectionRestored = restoreViewport(this.hot, viewState);
+
+          if (!selectionRestored) {
+            this.hot.deselectCell();
+          }
         } else {
           resetViewport(this.hot);
         }
@@ -2156,6 +2175,26 @@ export class SheetsBar extends BasePlugin {
         cellProperties[key] = value;
       }
     });
+  };
+
+  /**
+   * Keeps the keys typed inside the bar away from the grid. A press on the bar keeps the grid's
+   * selection, and the editor manager opens the cell editor on any printable key while the grid
+   * listens and has a selection, whatever shortcut context is active - so without this a letter
+   * typed into the rename input, or pressed on a focused tab, would start editing the selected
+   * cell. Registered ahead of the editor manager's own listener, which skips an event marked this
+   * way. Only the mark is set: `stopImmediatePropagation()` from `helpers/dom/event` also sets
+   * `cancelBubble`, and the grid's key listener sits on the `documentElement`, so the host page's
+   * own `document` and `window` listeners would stop seeing every key pressed in the bar.
+   *
+   * @param {Event} event The keyboard or composition event.
+   */
+  #onKeyDownWithinBar = (event: Event) => {
+    const container = this.#ui?.getContainer();
+
+    if (container && event.composedPath().includes(container)) {
+      (event as Event & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
+    }
   };
 
   /**

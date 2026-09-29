@@ -189,6 +189,64 @@ test.describe('sheets bar', () => {
     await bar.expectCell(0, 0, 'edited');
   });
 
+  test('a selection survives a round-trip made by clicking the tabs', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(0, 0).click();
+    await bar.cell(1, 1).click({ modifiers: ['Shift'] });
+
+    await expect.poll(() => bar.selected()).toEqual([[0, 0, 1, 1]]);
+
+    await bar.clickTab(1);
+    await bar.expectCell(0, 0, 'B1');
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A1');
+    await expect.poll(() => bar.selected()).toEqual([[0, 0, 1, 1]]);
+  });
+
+  test('pressing the active tab keeps the selection, and the add button stores it on the sheet it leaves', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.clickTab(0);
+    await bar.expectActiveTab(0);
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.addButton.click();
+    await bar.expectActiveTab(3);
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A1');
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+  });
+
+  test('pressing a tab saves the open editor into the sheet it leaves', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 0).click();
+    await page.keyboard.type('typed');
+    await expect.poll(() => bar.isEditorOpened()).toBe(true);
+
+    await bar.clickTab(1);
+    await bar.expectCell(1, 0, 'B3');
+
+    await bar.clickTab(0);
+    await bar.expectCell(1, 0, 'typed');
+  });
+
   test('a read-only cell stays read-only when rows move under it', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -444,6 +502,44 @@ test.describe('sheets bar', () => {
 
     await expect(bar.tabByName('Quarterly')).toBeVisible();
     await expect(bar.tabByName('Alpha')).toHaveCount(0);
+  });
+
+  test('typing a new name with a cell selected renames the sheet and leaves the cell alone', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('Quarterly');
+    await page.keyboard.press('Enter');
+
+    await expect(bar.tabByName('Quarterly')).toBeVisible();
+    expect(await bar.isEditorOpened()).toBe(false);
+    expect(await bar.dataAtCell(1, 1)).toBe('A4');
+  });
+
+  test('Shift+Tab into a sheet that was never visited does not select the previous sheet\'s cell', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(0, 0).click();
+    await bar.clickTab(1);
+    await bar.expectCell(0, 0, 'B1');
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.addButton.focus();
+    await page.keyboard.press('Shift+Tab');
+
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
   });
 
   test('the rename field stops accepting characters at fifty', async ({ page, theme, bundle }) => {
