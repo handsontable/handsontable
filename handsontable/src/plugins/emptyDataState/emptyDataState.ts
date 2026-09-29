@@ -583,7 +583,6 @@ export class EmptyDataState extends BasePlugin {
     if (this.#loadingActive) {
       if (this.#isVisible) {
         this.#update();
-        this.#updateLayout();
       } else {
         this.#show();
       }
@@ -639,9 +638,9 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Fits the visible overlay to the current grid layout.
    *
-   * It runs after every render, and also whenever the overlay is shown or switched to loading between
-   * renders - a DataProvider fetch starting, for example. Without that the overlay keeps the size it had
-   * the last time it was on screen, and can spill over the pager or the sheets bar.
+   * It runs after every render, and also when the overlay is shown between renders – a DataProvider
+   * fetch starting, for example. Without that the overlay keeps the size it had the last time it was on
+   * screen, and can spill over the pager or the sheets bar.
    */
   #updateLayout() {
     if (!this.#ui?.getElement() || !this.isVisible() || !this.hot.view?._wt) {

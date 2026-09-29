@@ -13,7 +13,6 @@ export interface BoxSize {
  * The hooks the `empty-data-state-loading-size.html` fixture exposes on `window`.
  */
 interface FixtureWindow {
-  htServer: { fetchCount: number };
   htReleaseFetch(): void;
   htHasPendingFetch(): boolean;
 }
@@ -30,8 +29,9 @@ export class EmptyDataStateLoadingSizePage {
   readonly bundle: string;
   readonly grid: Locator;
   readonly status: Locator;
-  readonly rows: Locator;
   readonly overlay: Locator;
+  readonly pager: Locator;
+  readonly nextPageButton: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -39,12 +39,13 @@ export class EmptyDataStateLoadingSizePage {
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.status = page.getByTestId('status');
-    this.rows = this.grid.locator('.ht_master tbody tr');
     this.overlay = this.grid.locator('.ht-empty-data-state');
+    this.pager = this.grid.locator('.ht-pagination');
+    this.nextPageButton = this.grid.getByRole('button', { name: 'Go to next page', exact: true });
   }
 
   /**
-   * Navigate to the fixture, release the initial fetch, and wait for the first page to be on screen.
+   * Navigate to the fixture and release the initial fetch.
    */
   async goto(): Promise<void> {
     await this.page.goto(
@@ -63,13 +64,13 @@ export class EmptyDataStateLoadingSizePage {
   }
 
   /**
-   * Resolve the pending fetch and wait until its rows are on screen and the overlay is gone.
+   * Resolve the pending fetch and wait for the loading overlay to go away, which happens once the
+   * fetched rows are applied.
    */
   async releaseFetch(): Promise<void> {
     await expect.poll(() => this.page.evaluate(() =>
       (window as unknown as FixtureWindow).htHasPendingFetch())).toBe(true);
     await this.page.evaluate(() => (window as unknown as FixtureWindow).htReleaseFetch());
-    await expect(this.rows).toHaveCount(5);
     await expect(this.overlay).toBeHidden();
   }
 
@@ -81,10 +82,17 @@ export class EmptyDataStateLoadingSizePage {
   }
 
   /**
+   * Change the grid height through `updateSettings()` while the overlay is hidden.
+   */
+  async setGridHeight(height: number): Promise<void> {
+    await this.page.evaluate(h => window.hot.updateSettings({ height: h }), height);
+  }
+
+  /**
    * Go to the next page from the pager, which starts a fetch and turns the loading overlay on.
    */
   async nextPageFromPager(): Promise<void> {
-    await this.page.getByRole('button', { name: /next page/i }).click();
+    await this.nextPageButton.click();
     await expect(this.overlay).toBeVisible();
   }
 
@@ -99,6 +107,21 @@ export class EmptyDataStateLoadingSizePage {
     }
 
     return { width: Math.round(box.width), height: Math.round(box.height) };
+  }
+
+  /**
+   * How far the overlay's bottom edge reaches past the pager's top edge, in CSS pixels. Zero or less
+   * means the overlay leaves the pager uncovered.
+   */
+  async overlayOverlapWithPager(): Promise<number> {
+    const overlayBox = await this.overlay.boundingBox();
+    const pagerBox = await this.pager.boundingBox();
+
+    if (!overlayBox || !pagerBox) {
+      throw new Error('The overlay or the pager is not on screen');
+    }
+
+    return Math.round(overlayBox.y + overlayBox.height - pagerBox.y);
   }
 
   /**
