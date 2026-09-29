@@ -189,15 +189,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (server-side mode), so the restore never forces them through. A canceled `filter()` puts back the
   conditions of the previous pass, which ran on the departing sheet. `restoreFilterConditions`
   imports the plain way, so `beforeFilter` still gets the departing sheet's conditions as the
-  previous stack. When the pass comes back with other conditions, it re-imports the sheet's own
-  through the Filters plugin's `@private` `importBaselineConditions()`, which also makes them the
-  fallback for later canceled passes. The skipped branch (nothing to apply, nothing to clear) sets
+  previous stack. A canceled pass is recognized by `afterFilter` not firing (`runFilterPass()`), not
+  by comparing conditions, which also fired when an `afterFilter` listener edited them and then
+  undid the edit. After a canceled pass it re-imports the sheet's own through the Filters plugin's
+  `@private` `importBaselineConditions()`, which also makes them the fallback for later canceled
+  passes. The skipped branch (nothing to apply, nothing to clear) sets
   an empty baseline too. `loadData` empties the condition collection but not the fallback, so
   without that, a canceled pass or the first undo on an unfiltered sheet brought back the departing
   sheet's filter. A canceled filter leaves the rows unfiltered while the menu shows the sheet's own
   conditions: that is the listener's decision, not the restore's. A canceled `sort()` returns
   before the sort states are written, while `restoreSequence()` still writes the sorted rows, so
-  `restoreCanceledSortStates()` writes them back through `setSortConfig()`. It writes nothing when
+  `restoreCanceledSortStates()` writes them back through `setSortConfig()`, and only once
+  `restoreSequence()` reports the captured row order written: a sheet whose data changed size keeps
+  the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
   the states are no longer empty (the listener set its own config) or while the plugin has no
   `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
   without it made the next `sort()` throw. The cache is missing after the plugin was disabled and

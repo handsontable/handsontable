@@ -8,6 +8,7 @@ import { ManualRowResize } from '../../manualRowResize/manualRowResize';
 import { Comments } from '../../comments/comments';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { ColumnSorting } from '../../columnSorting/columnSorting';
+import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
 import { Formulas } from '../../formulas/formulas';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { NestedRows } from '../../nestedRows/nestedRows';
@@ -102,6 +103,7 @@ describe('SheetsBar plugin', () => {
     registerPlugin(Comments);
     registerPlugin(AutoColumnSize);
     registerPlugin(ColumnSorting);
+    registerPlugin(MultiColumnSorting);
     registerPlugin(Formulas);
     registerPlugin(HiddenRows);
     registerPlugin(NestedRows);
@@ -2465,6 +2467,95 @@ describe('SheetsBar plugin', () => {
 
     expect(filters.exportConditions()).toEqual([]);
     expect(hot.countRows()).toBe(4);
+  });
+
+  it('keeps the conditions an afterFilter listener changed during the restore', () => {
+    let clearOnNextFilter = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1], [2], [3], [4]] },
+          { name: 'Beta', data: [[1], [2], [3], [4]] },
+        ],
+      },
+      filters: true,
+      afterFilter() {
+        if (clearOnNextFilter) {
+          clearOnNextFilter = false;
+          this.getPlugin('filters').clearConditions();
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(0, 'gt', [2]);
+    filters.filter();
+    sheetsBar.setActiveSheet(beta.id);
+    clearOnNextFilter = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(filters.exportConditions()).toEqual([]);
+  });
+
+  it('shows no sort indicator after a canceled restore of a sheet whose row count changed', () => {
+    let vetoSort = false;
+    const alphaData = [[3], [1], [2]];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: alphaData },
+          { name: 'Beta', data: [['a']] },
+        ],
+      },
+      columnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const columnSorting = hot.getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet(beta.id);
+    alphaData.push([0]);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(hot.getDataAtCol(0)).toEqual([3, 1, 2, 0]);
+    expect(columnSorting.getSortConfig()).toEqual([]);
+  });
+
+  it('keeps a multi-column sort config when beforeColumnSort cancels the restore', () => {
+    let vetoSort = false;
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [[1, 'b'], [0, 'c'], [1, 'a'], [0, 'd']] },
+          { name: 'Beta', data: [['x', 'y']] },
+        ],
+      },
+      multiColumnSorting: true,
+      beforeColumnSort: () => (vetoSort ? false : undefined),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [alpha, beta] = sheetsBar.getSheets();
+    const multiColumnSorting = hot.getPlugin('multiColumnSorting');
+    const sortConfig = [{ column: 0, sortOrder: 'asc' }, { column: 1, sortOrder: 'desc' }];
+
+    multiColumnSorting.sort(sortConfig);
+    sheetsBar.setActiveSheet(beta.id);
+    vetoSort = true;
+    sheetsBar.setActiveSheet(alpha.id);
+
+    expect(multiColumnSorting.getSortConfig()).toEqual(sortConfig);
+    expect(hot.getData()).toEqual([[0, 'd'], [0, 'c'], [1, 'b'], [1, 'a']]);
   });
 
   it('passes the departing sheet\'s conditions to beforeFilter as the previous stack on a restore', () => {

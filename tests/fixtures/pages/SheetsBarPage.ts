@@ -16,8 +16,9 @@ export class SheetsBarPage {
     this.bar = page.getByTestId('sheets-bar');
   }
 
-  async goto(options: { rtl?: boolean } = {}): Promise<void> {
+  async goto(options: { rtl?: boolean, filters?: boolean } = {}): Promise<void> {
     const rtlParam = options.rtl ? '&rtl=1' : '';
+    const filtersParam = options.filters ? '&filters=1' : '';
     // A script error on the fixture leaves the page with no test ids at all, which surfaces as
     // an unexplained ten-second timeout on the first locator. Collecting the errors turns that
     // into the actual cause — this suite has seen rare page-load failures whose artifacts
@@ -26,7 +27,7 @@ export class SheetsBarPage {
 
     this.page.on('pageerror', error => pageErrors.push(error.message));
 
-    await this.page.goto(`/tests/fixtures/demo/sheets-bar.html?theme=${this.theme}&bundle=${this.bundle}${rtlParam}`);
+    await this.page.goto(`/tests/fixtures/demo/sheets-bar.html?theme=${this.theme}&bundle=${this.bundle}${rtlParam}${filtersParam}`);
 
     await expect(
       this.tab(0),
@@ -57,10 +58,17 @@ export class SheetsBarPage {
   }
 
   /**
-   * The sorting label inside a column header, scoped to the top overlay so the match is unambiguous.
+   * A column header, scoped to the top overlay so the match is unambiguous.
+   */
+  columnHeader(col: number): Locator {
+    return this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`);
+  }
+
+  /**
+   * The sorting label inside a column header.
    */
   sortLabel(col: number): Locator {
-    return this.page.locator('.ht_clone_top').getByTestId(`col-header-${col}`).locator('span.colHeader');
+    return this.columnHeader(col).locator('span.colHeader');
   }
 
   async clickTab(index: number): Promise<void> {
