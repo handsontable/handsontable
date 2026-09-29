@@ -7,9 +7,10 @@ import { DropdownMenu } from '../../dropdownMenu';
 import { AutoColumnSize } from '../../autoColumnSize';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
+import { Pagination } from '../../pagination';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
 import { SheetsBar } from '../sheetsBar';
-import { captureViewState, restoreViewState } from '../viewState';
+import { captureViewState, keepSelectionOnPage, restoreViewState, restoreViewport } from '../viewState';
 
 describe('SheetsBar view state', () => {
   let container;
@@ -24,6 +25,7 @@ describe('SheetsBar view state', () => {
     registerPlugin(HiddenRows);
     registerPlugin(Filters);
     registerPlugin(HiddenColumns);
+    registerPlugin(Pagination);
     registerPlugin(SheetsBar);
   });
 
@@ -213,5 +215,601 @@ describe('SheetsBar view state', () => {
     hot.getPlugin('sheetsBar').setActiveSheet('A');
 
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+
+  it('captures the page and the page size when Pagination is enabled', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('pagination').setPageSize(20);
+    hot.getPlugin('pagination').setPage(4);
+
+    expect(captureViewState(hot, []).pagination).toEqual({ page: 4, pageSize: 20 });
+  });
+
+  it('captures no pagination state when Pagination is disabled', () => {
+    hot = new Handsontable(container, {
+      data: [['a'], ['b']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(captureViewState(hot, []).pagination).toBeNull();
+  });
+
+  it('puts the page back before the selection, so the restored row is on the visible page', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+
+    const state = captureViewState(hot, []);
+
+    pagination.setPage(2);
+    hot.deselectCell();
+
+    expect(hot.rowIndexMapper.isHidden(64)).toBe(true);
+
+    restoreViewport(hot, state);
+
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(hot.rowIndexMapper.isHidden(64)).toBe(false);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('restores a whole row selected from its header', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(4);
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[4, -1, 4, 1]]);
+    expect(hot.selection.isSelectedByRowHeader()).toBe(true);
+  });
+
+  it('restores every layer of a selection made from several row headers', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(2);
+
+    const firstLayer = hot.selection.exportSelection();
+
+    hot.selectRows(6);
+
+    const secondLayer = hot.selection.exportSelection();
+
+    hot.selection.importSelection({
+      ...secondLayer,
+      ranges: [firstLayer.ranges[0], secondLayer.ranges[0]],
+      selectedByRowHeader: [0, 1],
+      activeSelectionLayer: 1,
+    });
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
+  });
+
+  it('leaves the current selection alone when a header-anchored one no longer fits the grid', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(15);
+
+    const state = captureViewState(hot, []);
+
+    hot.loadData(Array.from({ length: 5 }, (_, row) => [`s${row + 1}`, row]));
+    hot.selectCell(1, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+  });
+
+  it('keeps the page of each sheet across a sheet switch', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Short', data: Array.from({ length: 15 }, (_, row) => [`Short row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    pagination.setPage(7);
+    sheetsBar.setActiveSheet('Short');
+
+    expect(pagination.getCurrentPage()).toBe(1);
+
+    pagination.setPage(2);
+    sheetsBar.setActiveSheet('Long');
+
+    expect(pagination.getCurrentPage()).toBe(7);
+
+    sheetsBar.setActiveSheet('Short');
+
+    expect(pagination.getCurrentPage()).toBe(2);
+  });
+
+  it('opens a never-visited sheet on the configured page and page size', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Other', data: Array.from({ length: 200 }, (_, row) => [`Other row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPageSize(20);
+    pagination.setPage(7);
+    hot.selectCell(130, 0);
+    hot.getPlugin('sheetsBar').setActiveSheet('Other');
+
+    expect(pagination.getCurrentPage()).toBe(1);
+    expect(pagination.getCurrentPageSize()).toBe(10);
+    expect(hot.getSelected()).toBeUndefined();
+  });
+
+  it('leaves the page alone when the rows come from an external data source', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+
+    const localState = captureViewState(hot, []);
+
+    hot.addHook('hasExternalDataSource', () => true);
+
+    expect(captureViewState(hot, []).pagination).toBeNull();
+
+    const afterPageChange = jest.fn();
+
+    pagination.setPage(2);
+    hot.addHook('afterPageChange', afterPageChange);
+    restoreViewport(hot, localState);
+
+    expect(pagination.getCurrentPage()).toBe(2);
+    expect(afterPageChange).not.toHaveBeenCalled();
+  });
+
+  it('fires the page hooks only when the restored page differs', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const afterPageChange = jest.fn();
+    const afterPageSizeChange = jest.fn();
+
+    pagination.setPage(7);
+
+    const state = captureViewState(hot, []);
+
+    hot.addHook('afterPageChange', afterPageChange);
+    hot.addHook('afterPageSizeChange', afterPageSizeChange);
+    restoreViewport(hot, state);
+
+    expect(afterPageChange).not.toHaveBeenCalled();
+    expect(afterPageSizeChange).not.toHaveBeenCalled();
+
+    pagination.setPage(3);
+    afterPageChange.mockClear();
+    restoreViewport(hot, state);
+
+    expect(afterPageChange).toHaveBeenCalledTimes(1);
+    expect(afterPageChange).toHaveBeenCalledWith(3, 7);
+  });
+
+  it('clamps a captured page past the end without firing a page change', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+
+    const state = captureViewState(hot, []);
+
+    hot.loadData(Array.from({ length: 30 }, (_, row) => [`s${row + 1}`]));
+
+    const afterPageChange = jest.fn();
+
+    hot.addHook('afterPageChange', afterPageChange);
+    restoreViewport(hot, state);
+
+    expect(pagination.getCurrentPage()).toBe(3);
+    expect(afterPageChange).not.toHaveBeenCalled();
+  });
+
+  it('drops the restored selection instead of leaving it on a page a listener refused to open', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Short', data: Array.from({ length: 15 }, (_, row) => [`Short row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+    sheetsBar.setActiveSheet('Short');
+    hot.addHook('beforePageChange', () => false);
+    sheetsBar.setActiveSheet('Long');
+
+    expect(pagination.getCurrentPage()).toBe(1);
+    expect(hot.getSelected()).toBeUndefined();
+  });
+
+  it('follows a restored selection to its page when the page it came back on does not show it', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+    pagination.setPage(6);
+
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('jumps to the page of a far-away restored selection with a single page change', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const afterPageChange = jest.fn();
+
+    pagination.setPage(16);
+    hot.selectCell(154, 0);
+    pagination.setPage(1);
+    hot.addHook('afterPageChange', afterPageChange);
+
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(16);
+    expect(afterPageChange).toHaveBeenCalledTimes(1);
+    expect(hot.getSelectedLast()).toEqual([154, 0, 154, 0]);
+  });
+
+  it('reaches a restored selection from a short last page with a single page change', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 195 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const afterPageChange = jest.fn();
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+    pagination.setPage(20);
+
+    expect(pagination.getPaginationData().lastVisibleRowIndex).toBe(194);
+
+    hot.addHook('afterPageChange', afterPageChange);
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(afterPageChange).toHaveBeenCalledTimes(1);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('walks the last pages to a restored selection when hidden rows throw the estimate off', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      hiddenRows: { rows: Array.from({ length: 50 }, (_, index) => 100 + index) },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(13);
+    hot.selectCell(170, 0);
+
+    expect(pagination.getPaginationData().firstVisibleRowIndex).toBe(170);
+
+    pagination.setPage(1);
+    keepSelectionOnPage(hot, true);
+
+    expect(pagination.getCurrentPage()).toBe(13);
+    expect(hot.getSelectedLast()).toEqual([170, 0, 170, 0]);
+  });
+
+  it('keeps the restored selection on the shown page when a listener refuses the page size', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Long', data: Array.from({ length: 200 }, (_, row) => [`Long row ${row + 1}`]) },
+          { name: 'Short', data: Array.from({ length: 15 }, (_, row) => [`Short row ${row + 1}`]) },
+        ],
+      },
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    pagination.setPageSize(20);
+    pagination.setPage(4);
+    hot.selectCell(64, 0);
+    sheetsBar.setActiveSheet('Short');
+    hot.addHook('beforePageSizeChange', () => false);
+    sheetsBar.setActiveSheet('Long');
+
+    expect(pagination.getCurrentPageSize()).toBe(10);
+    expect(pagination.getCurrentPage()).toBe(7);
+    expect(hot.getSelectedLast()).toEqual([64, 0, 64, 0]);
+  });
+
+  it('drops a carried-over selection that is not on the shown page instead of following it', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const pagination = hot.getPlugin('pagination');
+
+    pagination.setPage(7);
+    hot.selectCell(64, 0);
+    pagination.setPage(1);
+
+    keepSelectionOnPage(hot, false);
+
+    expect(pagination.getCurrentPage()).toBe(1);
+    expect(hot.getSelected()).toBeUndefined();
+  });
+
+  it('restores a whole column selected from its header on a later page', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      pagination: { pageSize: 10 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('pagination').setPage(7);
+    hot.selectColumns(1);
+
+    const expected = hot.getSelected();
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(62, 0);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual(expected);
+    expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+  });
+
+  it('restores select-all made from the corner', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectAll();
+
+    const expected = hot.getSelected();
+    const flags = () => [
+      hot.selection.isSelectedByCorner(),
+      hot.selection.isSelectedByRowHeader(),
+      hot.selection.isSelectedByColumnHeader(),
+    ];
+    const expectedFlags = flags();
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(3, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual(expected);
+    expect(expectedFlags[0]).toBe(true);
+    expect(flags()).toEqual(expectedFlags);
+  });
+
+  it('runs the selection hooks and marks the header state when a row selection comes back', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(4);
+
+    const state = captureViewState(hot, []);
+    const afterSelectionEnd = jest.fn();
+
+    hot.selectCell(10, 1);
+    hot.addHook('afterSelectionEnd', afterSelectionEnd);
+    restoreViewport(hot, state);
+
+    expect(afterSelectionEnd).toHaveBeenCalledWith(4, -1, 4, 1, 0);
+    expect(hot.rootElement.classList.contains('ht__selection--rows')).toBe(true);
+  });
+
+  it('runs the selection hooks and marks the header state when several row layers come back', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(2);
+
+    const firstLayer = hot.selection.exportSelection();
+
+    hot.selectRows(6);
+
+    const secondLayer = hot.selection.exportSelection();
+
+    hot.selection.importSelection({
+      ...secondLayer,
+      ranges: [firstLayer.ranges[0], secondLayer.ranges[0]],
+      selectedByRowHeader: [0, 1],
+      columnExtentSpansGrid: [0, 1],
+      activeSelectionLayer: 1,
+    });
+
+    const state = captureViewState(hot, []);
+    const afterSelectionEnd = jest.fn();
+
+    hot.selectCell(10, 1);
+    hot.addHook('afterSelectionEnd', afterSelectionEnd);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
+    expect(afterSelectionEnd).toHaveBeenCalled();
+    expect(hot.rootElement.classList.contains('ht__selection--rows')).toBe(true);
+  });
+
+  it('keeps the focus on the layer that held it when several row layers come back', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(2);
+
+    const firstLayer = hot.selection.exportSelection();
+
+    hot.selectRows(6);
+
+    const secondLayer = hot.selection.exportSelection();
+
+    hot.selection.importSelection({
+      ...firstLayer,
+      ranges: [firstLayer.ranges[0], secondLayer.ranges[0]],
+      selectedByRowHeader: [0, 1],
+      columnExtentSpansGrid: [0, 1],
+      activeRange: firstLayer.ranges[0],
+      activeSelectionLayer: 0,
+    });
+
+    expect(hot.selection.getActiveSelectionLayerIndex()).toBe(0);
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, -1, 2, 1], [6, -1, 6, 1]]);
+    expect(hot.selection.getActiveSelectionLayerIndex()).toBe(0);
+    expect(hot.selection.getActiveSelectedRange().highlight.row).toBe(2);
+  });
+
+  it('keeps copies of the selection, so later selection work cannot change a captured one', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectRows(4);
+
+    const state = captureViewState(hot, []);
+    const live = hot.selection.getActiveSelectedRange();
+
+    expect(state.selectionState.activeRange).not.toBe(live);
+
+    live.highlight.assign({ row: 9, col: 1 });
+
+    expect(state.selectionState.activeRange.highlight.row).toBe(4);
+
+    restoreViewport(hot, state);
+
+    expect(hot.selection.getActiveSelectedRange()).not.toBe(state.selectionState.ranges[0]);
+  });
+
+  it('puts the focus back where it was inside a cell range', () => {
+    hot = new Handsontable(container, {
+      data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row, row]),
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.selectCell(2, 0, 5, 2);
+    hot.selection.setRangeFocus(hot._createCellCoords(4, 1));
+
+    const state = captureViewState(hot, []);
+
+    hot.selectCell(10, 1);
+    restoreViewport(hot, state);
+
+    expect(hot.getSelected()).toEqual([[2, 0, 5, 2]]);
+    expect(hot.getSelectedRangeActive().highlight.row).toBe(4);
+    expect(hot.getSelectedRangeActive().highlight.col).toBe(1);
   });
 });

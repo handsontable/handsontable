@@ -18,8 +18,41 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
-  longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
+  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
+  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
+  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
+  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
+  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
+  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
+  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
+  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
+  nor restored: DataProvider answers a page change with a fetch, and the result would load into
+  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
+  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
+  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
+  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
+  one `setPage()` to the estimated page (the number page size as the page length, the shown
+  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
+  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
+  lengths make repeated estimates bounce past the row; a selection carried over from
+  the previous sheet, or one the follow could not reach, is deselected rather than left on a
+  hidden row.
+  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
+  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
+  and so are the ranges handed to the import, or the stored state would become the live
+  selection). A selection made from a header or spanning a whole axis (any header or
+  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
+  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
+  while a whole column on page 2 or later has none — Pagination moves its start to the page's
+  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
+  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
+  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
+  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
+  layer, the step core answers with those classes and hooks — and since that step makes the last
+  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
+  plain cell selection goes through
+  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
+  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
   read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
   count — are dropped one by one before `trimRows()`, which rejects the whole list when any
   index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical
