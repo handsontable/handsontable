@@ -26,13 +26,14 @@ test('shouldComment needs a flag and no declared breaking entry', () => {
   assert.equal(shouldComment(result({ declared: { breakingEntry: true } })), false);
 });
 
-test('the comment is advisory, lists the name with kind, file, and score, and states its scope', () => {
+test('the comment is advisory, lists the name with kind and file but no raw score, and states its scope', () => {
   const text = renderComment(result());
 
   assert.match(text, /^### Possible breaking change/);
   assert.match(text, /does not block/);
   assert.match(text, /can be wrong/);
-  assert.match(text, /`forRoot` \(method\) in `wrappers\/angular-wrapper\/x\.ts`, Jev score 0\.21/);
+  assert.match(text, /`forRoot` \(method\) in `wrappers\/angular-wrapper\/x\.ts`$/m);
+  assert.doesNotMatch(text, /0\.21|Jev score/);
   assert.match(text, /"breaking": true/);
   assert.match(text, /\.ai\/BREAKING-CHANGES\.md/);
   assert.match(text, /does not check behavior, DOM structure, or CSS property or value changes/);
@@ -41,14 +42,14 @@ test('the comment is advisory, lists the name with kind, file, and score, and st
   assert.doesNotMatch(text, /\u2014/);
 });
 
-test('a code-only result omits the score, and a default change shows its evidence', () => {
+test('a code-only result marks the name as not checked by Jev, and a default change shows its evidence', () => {
   const text = renderComment(result({
     removedNames: [{ name: 'x', kind: 'option', file: 'f.ts', line: '', publicScore: null }],
     defaultsTouched: true,
     defaultsEvidence: '-  undo: true,',
   }));
 
-  assert.doesNotMatch(text, /Jev score/);
+  assert.match(text, /`x` \(option\) in `f\.ts`, not checked by Jev$/m);
   assert.match(text, /metaSchema.*`- undo: true,`/);
 });
 

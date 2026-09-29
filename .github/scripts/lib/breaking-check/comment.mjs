@@ -35,13 +35,18 @@ function codeSpan(text) {
 }
 
 /**
+ * Renders one flagged name. The raw Jev score stays out of the comment: every listed name already
+ * cleared the calibrated threshold, and a low-looking number such as 0.14 on a plainly public
+ * method reads as "probably not public" to a reviewer. The score is kept in the result JSON and
+ * the job summary instead.
+ *
  * @param {{ name: string, kind: string, file: string, publicScore: number | null }} item
  * @returns {string}
  */
 function renderName(item) {
-  const score = item.publicScore === null ? '' : `, Jev score ${item.publicScore.toFixed(2)}`;
+  const note = item.publicScore === null ? ', not checked by Jev' : '';
 
-  return `- ${codeSpan(item.name)} (${item.kind}) in ${codeSpan(item.file)}${score}`;
+  return `- ${codeSpan(item.name)} (${item.kind}) in ${codeSpan(item.file)}${note}`;
 }
 
 /**
