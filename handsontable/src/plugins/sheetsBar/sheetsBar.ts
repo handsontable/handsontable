@@ -406,9 +406,10 @@ export class SheetsBar extends BasePlugin {
    */
   #isRestoringSheetDataProvider = false;
   /**
-   * The grid-level `dataProvider` carried across a workbook rebuild, or `null` outside one. A
-   * rebuild does not write it back to the grid (that would enable it, and fetch, for the moment
-   * between the two workbooks); the rebuilt workbook blocks it again from this value.
+   * The grid-level `dataProvider` carried across a workbook rebuild (`undefined` when there is
+   * none), or `null` outside one. A rebuild does not write it back to the grid (that would enable
+   * it, and fetch, for the moment between the two workbooks); the rebuilt workbook blocks it again
+   * from this value, and never reads the grid, which holds the departing sheet's own value then.
    *
    * @type {{ value: unknown }|null}
    */
@@ -727,7 +728,7 @@ export class SheetsBar extends BasePlugin {
     // Assigned before the disable, which restores the settings baseline to the grid on a
     // genuine teardown and must stand aside on a preserved one.
     this.#preservedState = preservedState;
-    this.#rebuildGridDataProvider = preservedState === null && this.#settingsBaseline.has('dataProvider')
+    this.#rebuildGridDataProvider = preservedState === null
       ? { value: this.#settingsBaseline.get('dataProvider') }
       : null;
 

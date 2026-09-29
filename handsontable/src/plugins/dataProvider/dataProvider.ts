@@ -353,14 +353,15 @@ export class DataProvider extends BasePlugin {
    */
   #contextOwner: DataProviderContextOwner | null = null;
   /**
-   * The fetch error notifications on screen for an owner's context (each stays until dismissed), with the context
-   * it was shown for. A context change hides the ones of the view that was left and hands the latest failure back
-   * to the owner, so no Refetch action can ever fetch another view; a successful fetch for the context hides them.
-   * Notifications of the default context are not tracked.
+   * The error notifications on screen for an owner's context, with the request kind and the context each was shown
+   * for. A context change hides the ones of the view that was left and hands their failures back to the owner, so
+   * no Refetch action can ever fetch another view and no failure is shown over another view; a successful fetch for
+   * the context hides its fetch error notifications, and dropping the context hides them all. Notifications of the
+   * default context are not tracked.
    *
    * @type {object[]}
    */
-  #fetchErrorToasts: Array<{ id: string, context: object, error: unknown }> = [];
+  #errorToasts: Array<{ id: string, kind: DataProviderRequestKind, context: object, error: unknown }> = [];
   /**
    * `true` while `_runWithoutFetching()` runs its callback.
    *
@@ -673,8 +674,9 @@ export class DataProvider extends BasePlugin {
    * calls its callback and fires its mutation hooks, and its failure is still logged, but its refetch, its cell
    * revert, and the report to the owner are skipped. The default context, `null`, is never dropped: releasing it
    * only aborts its running request. EmptyDataState's loading overlay is synced afterwards, since an aborted fetch
-   * fires no hook that would hide it. The fetch error notifications of a dropped context are hidden, since their
-   * Refetch action could no longer fetch it. Internal: part of the context owner contract; not public API.
+   * fires no hook that would hide it. The error notifications of a dropped context are hidden, since a Refetch action
+   * could no longer fetch it and the failures describe a view that is gone. Internal: part of the context owner
+   * contract; not public API.
    *
    * @private
    * @param {object|null} context The context to drop.
@@ -684,7 +686,7 @@ export class DataProvider extends BasePlugin {
 
     if (context !== null) {
       this.#releasedContexts.add(context);
-      this.#hideFetchErrorToastsFor(context);
+      this.#hideErrorToastsFor(context);
     }
 
     this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
@@ -727,9 +729,9 @@ export class DataProvider extends BasePlugin {
    * view changes:
    *
    * - before `callback`, Pagination forgets the server row total, which described the view being left;
-   * - after `callback` (also when it throws), the fetch error notifications still on screen for the view that was
-   * left are hidden and its latest failure handed back to the owner (a Refetch action would otherwise fetch the new
-   * view), the query parameters are derived again from the plugins, which the
+   * - after `callback` (also when it throws), the error notifications still on screen for the view that was left are
+   * hidden and their failures handed back to the owner (its latest fetch failure, and every mutation failure: a
+   * Refetch action would otherwise fetch the new view, and a mutation failure would describe it), the query parameters are derived again from the plugins, which the
    * change has brought to the new view's state (page 1, or the query of the new context's running fetch),
    * EmptyDataState shows its loading overlay exactly when the new context has a fetch in flight that shows
    * loading, and Filters takes the conditions on screen as the ones a failed server fetch rolls back to.
@@ -748,7 +750,7 @@ export class DataProvider extends BasePlugin {
     try {
       return this._runWithoutFetching(callback);
     } finally {
-      this.#detachFetchErrorToast();
+      this.#detachErrorToasts();
       this.#rederiveQuery();
       this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
       this.hot.getPlugin('filters')?._resetDataProviderRollback();
@@ -1139,7 +1141,7 @@ export class DataProvider extends BasePlugin {
       this.hot.loadData(rows, PLUGIN_KEY);
 
       if (binding.context !== null) {
-        this.#hideFetchErrorToastsFor(binding.context);
+        this.#hideErrorToastsFor(binding.context, true);
         this.#contextOwner?.onShownResponse(
           { ...result, rows, totalRows, queryParameters: this.#snapshotQueryParameters(persistedParams) },
           binding.context
@@ -1427,51 +1429,61 @@ export class DataProvider extends BasePlugin {
 
     const context = this.#currentContext();
 
-    if (kind === 'fetch' && toastId && context !== null) {
-      this.#fetchErrorToasts.push({ id: toastId, context, error: err });
+    if (toastId && context !== null) {
+      this.#errorToasts.push({ id: toastId, kind, context, error: err });
     }
   }
 
   /**
-   * Hides the fetch error notifications still on screen for a view the grid no longer shows, and hands the latest
-   * failure of each such view back to the owner, which shows it again once that view is shown again (the owner
-   * keeps it only for a view it does not show). A Refetch action fetches the view the grid shows,
-   * so leaving one on screen would let it fetch the next view and lose the failure it reports.
+   * Hides the error notifications still on screen for a view the grid no longer shows, and hands their failures back
+   * to the owner, which shows them again once that view is shown again (the owner keeps them only for a view it
+   * does not show): the latest fetch failure of each such view, and every create, update, or remove failure. A
+   * Refetch action fetches the view the grid shows, so leaving one on screen would let it fetch the next view and
+   * lose the failure it reports, and a mutation failure left on screen would describe the next view.
    */
-  #detachFetchErrorToast(): void {
+  #detachErrorToasts(): void {
     const current = this.#currentContext();
 
-    this.#fetchErrorToasts = this.#fetchErrorToasts.filter(toast => !this.#releasedContexts.has(toast.context));
+    this.#errorToasts = this.#errorToasts.filter(toast => !this.#releasedContexts.has(toast.context));
 
-    const departed = this.#fetchErrorToasts.filter(toast => toast.context !== current);
+    const departed = this.#errorToasts.filter(toast => toast.context !== current);
 
     if (departed.length === 0) {
       return;
     }
 
-    const latestErrors = new Map<object, unknown>();
+    const latestFetchErrors = new Map<object, unknown>();
 
-    this.#fetchErrorToasts = this.#fetchErrorToasts.filter(toast => toast.context === current);
+    this.#errorToasts = this.#errorToasts.filter(toast => toast.context === current);
     departed.forEach((toast) => {
       this.hot.getPlugin('notification')?.hide(toast.id);
-      latestErrors.set(toast.context, toast.error);
+
+      if (toast.kind === 'fetch') {
+        latestFetchErrors.set(toast.context, toast.error);
+      } else {
+        this.#contextOwner?.onDetachedRequest(toast.kind, { error: toast.error }, toast.context);
+      }
     });
-    latestErrors.forEach((error, context) => {
+    latestFetchErrors.forEach((error, context) => {
       this.#contextOwner?.onDetachedRequest('fetch', { error }, context);
     });
   }
 
   /**
-   * Hides the fetch error notifications of a context once a fetch for it succeeded, so none of them is handed back
-   * to the owner as a failure on the next context change.
+   * Hides the error notifications of a context: only its fetch error notifications once a fetch for it succeeded,
+   * so none of them is handed back to the owner as a failure on the next context change, or every one of them when
+   * the context is dropped.
    *
-   * @param {object} context The context whose fetch succeeded.
+   * @param {object} context The context.
+   * @param {boolean} [fetchOnly=false] Whether to hide only the fetch error notifications.
    */
-  #hideFetchErrorToastsFor(context: object): void {
-    const resolved = this.#fetchErrorToasts.filter(toast => toast.context === context);
+  #hideErrorToastsFor(context: object, fetchOnly = false): void {
+    const isHidden = (toast: { kind: DataProviderRequestKind, context: object }) => toast.context === context
+      && (!fetchOnly || toast.kind === 'fetch');
+    const hidden = this.#errorToasts.filter(isHidden);
 
-    this.#fetchErrorToasts = this.#fetchErrorToasts.filter(toast => toast.context !== context);
-    resolved.forEach((toast) => {
+    this.#errorToasts = this.#errorToasts.filter(toast => !isHidden(toast));
+    hidden.forEach((toast) => {
       this.hot.getPlugin('notification')?.hide(toast.id);
     });
   }
@@ -1770,12 +1782,12 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * Forgets a tracked fetch error notification once it is hidden (dismissed, or hidden by its Refetch action).
+   * Forgets a tracked error notification once it is hidden (dismissed, timed out, or hidden by its Refetch action).
    *
    * @param {string} id The hidden notification's id.
    */
   readonly #onAfterNotificationHide = (id: string) => {
-    this.#fetchErrorToasts = this.#fetchErrorToasts.filter(toast => toast.id !== id);
+    this.#errorToasts = this.#errorToasts.filter(toast => toast.id !== id);
   };
 
   /**

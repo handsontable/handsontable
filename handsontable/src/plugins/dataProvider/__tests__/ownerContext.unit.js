@@ -462,6 +462,35 @@ describe('DataProvider context owner contract', () => {
       expect(hot.getSelectedLast()).toEqual([1, 0, 1, 0]);
     });
 
+    it('hides a mutation error notification of the view that was left and hands the failure to the owner', async() => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner, settings: { notification: true } });
+
+      const notification = hot.getPlugin('notification');
+      const showMessage = jest.spyOn(notification, 'showMessage');
+      const hide = jest.spyOn(notification, 'hide');
+      const plugin = hot.getPlugin('dataProvider');
+      const error = new Error('rejected');
+
+      hot.setDataAtCell(0, 1, 'edited');
+      await settle();
+      await provider.failMutation(error);
+
+      expect(showMessage).toHaveBeenCalledTimes(1);
+
+      plugin._runContextChange(() => {
+        owner.current = { name: 'second' };
+      });
+
+      expect(hide).toHaveBeenCalledWith(showMessage.mock.results[0].value);
+      expect(owner.onDetachedRequest).toHaveBeenCalledWith('update', { error }, first);
+    });
+
     it('still syncs the plugins and leaves the passive state when the change throws', async() => {
       const provider = createDeferredProvider();
 
@@ -993,6 +1022,27 @@ describe('DataProvider context owner contract', () => {
       plugin._runContextChange(() => {});
 
       expect(owner.onDetachedRequest).not.toHaveBeenCalled();
+    });
+
+    it('hides the context\'s mutation error notification', async() => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner, settings: { notification: true } });
+
+      const notification = hot.getPlugin('notification');
+      const showMessage = jest.spyOn(notification, 'showMessage');
+      const hide = jest.spyOn(notification, 'hide');
+
+      hot.setDataAtCell(0, 1, 'edited');
+      await settle();
+      await provider.failMutation(new Error('rejected'));
+      hot.getPlugin('dataProvider')._releaseContext(first);
+
+      expect(hide).toHaveBeenCalledWith(showMessage.mock.results[0].value);
     });
 
     it('keeps the default context usable after releasing it', async() => {

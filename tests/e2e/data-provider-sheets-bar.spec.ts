@@ -286,6 +286,24 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.goto();
     });
 
+    test('an on-screen save failure\'s notification leaves with its sheet and comes back on return', async() => {
+      await grid.editCell(0, 1, 'edited');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.failNextUpdate();
+      await grid.releaseUpdates();
+
+      await expect(grid.toast()).toContainText('Could not update rows');
+      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row update failed:')]);
+      await grid.clearConsoleProblems();
+
+      await grid.clickTab(1);
+      await expect(grid.toast()).toHaveCount(0);
+
+      await grid.clickTab(0);
+      await expect(grid.toast()).toHaveCount(1);
+      await expect(grid.toast()).toContainText('Could not update rows');
+    });
+
     test('an off-screen failure fires the hook now and shows the toast on return', async() => {
       await grid.startFetch();
       await grid.failNext('ORD');
