@@ -41,12 +41,15 @@
 - `vue-tsc` 3.x emits each SFC's default export as `declare const _default: typeof __VLS_export`, a
   separate const structurally identical to the named `HotTable`/`HotColumn` export. That is expected
   output, not a regression.
-- **`strictNullChecks` must stay on in `tsconfig.json`.** It is what makes the emit truthful, not a style
-  preference: with null checks off the checker folds `Handsontable | null` down to `Handsontable`, so the
-  published type says `hotInstance` is never `null` when it is `null` before `hotInit()` and after the grid
-  is destroyed — `hotTableRef.value.hotInstance.getData()` then compiles and throws. `test/types` asserts
-  the `| null` survives, so turning the flag off goes red rather than shipping. Keep the nullable data
-  members annotated (`null as Handsontable | null`), never widened with `as unknown as`.
+- **`strictNullChecks` must stay on in `tsconfig.json`.** `hotInstance` is `null` before `hotInit()` and
+  after the grid is destroyed, so the published type must say `Handsontable | null` — otherwise
+  `hotTableRef.value.hotInstance.getData()` compiles and throws. The flag also keeps the `.ts` and `.vue`
+  sources honest about that `null`. On TypeScript 4.9 turning it off folded the emit down to
+  `Handsontable`. TypeScript 5.9 reuses the written annotation instead, so the emit keeps `| null` even
+  with the flag off, and `test/types` no longer goes red for that alone. What keeps the emit truthful now
+  is the annotation itself: keep the nullable members annotated (`null as Handsontable | null`), never
+  widened with `as unknown as`. `test/types` asserts the `| null` survives on the public `hotInstance`
+  and `columnSettings`, so widening either goes red.
 - Test: `npm run test --prefix wrappers/vue3` (Jest + @vue/test-utils)
 - Type surface: `npm run test:types --prefix wrappers/vue3` (`test/types/*.types.ts`). It checks the
   **emitted** root declarations, so build first. Run it after any change to `src/index.ts`, `src/types.ts`,
