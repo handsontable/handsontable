@@ -573,11 +573,11 @@ describe('Formulas', () => {
       const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
 
       // The undo of a detach moves rows without creating or removing any, so `beforeUndo` is its veto. A
-      // vetoed undo drops the step and leaves the grid and HyperFormula as they were.
+      // vetoed undo keeps the step and leaves the grid and HyperFormula as they were.
       addHook('beforeUndo', () => false);
       undoRedo.undo();
 
-      expect(undoRedo.doneActions.length).toBe(0);
+      expect(undoRedo.doneActions.length).toBe(1);
       expect(undoRedo.undoneActions.length).toBe(0);
       expect(nestedRows.dataManager.getData()).toEqual(detachedData);
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);

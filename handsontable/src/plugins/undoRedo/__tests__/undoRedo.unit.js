@@ -139,6 +139,61 @@ describe('UndoRedo plugin', () => {
     expect(plugin.isUndoAvailable()).toBe(true);
   });
 
+  // A vetoed undo keeps its step, as a vetoed redo does, so it can be retried once the condition that
+  // vetoed it is gone. The stacks do not change, so no stack hook fires.
+  describe('an undo vetoed by `beforeUndo`', () => {
+    it('should keep a recorded step on the undo stack and undo it on a retry', () => {
+      const stackHooks = jest.fn();
+      let veto = true;
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2']],
+        undo: true,
+        beforeUndo: () => !veto,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'edited');
+      hot.addHook('beforeUndoStackChange', stackHooks);
+      hot.addHook('afterUndoStackChange', stackHooks);
+      hot.addHook('beforeRedoStackChange', stackHooks);
+      hot.addHook('afterRedoStackChange', stackHooks);
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('edited');
+      expect(plugin.doneActions.length).toBe(1);
+      expect(plugin.undoneActions.length).toBe(0);
+      expect(stackHooks).not.toHaveBeenCalled();
+
+      veto = false;
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(plugin.doneActions.length).toBe(0);
+      expect(plugin.undoneActions.length).toBe(1);
+    });
+
+    it('should keep an action registered through `done()` on the undo stack', () => {
+      const undoAction = jest.fn((instance, callback) => callback());
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      plugin.done(() => ({ actionType: 'custom', undo: undoAction, redo() {} }));
+      hot.addHook('beforeUndo', () => false);
+      plugin.undo();
+
+      expect(undoAction).not.toHaveBeenCalled();
+      expect(plugin.doneActions.length).toBe(1);
+      expect(plugin.isUndoAvailable()).toBe(true);
+    });
+  });
+
   // A step records the grid it was made on. Once `updateData()` replaced the dataset, those steps
   // describe data that is gone, so the history is dropped - and recording goes on for the new data.
   // A listener that vetoes a row or column change while a step is replayed leaves the grid as it was,

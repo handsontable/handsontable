@@ -97,8 +97,11 @@ the visible ones are re-validated, and the selection is put back for the step ty
   and left `row['a.b']` at the new value. `setSourceDataAtCell()` outside a replay keeps walking dots.
 - **Undo and redo do not run the operation again.** A step's own hooks - `beforeColumnSort`,
   `beforeFilter`, `beforeRowMove`, `beforeMoveCells` - do not fire and cannot veto. `beforeUndo`/
-  `beforeRedo` are the veto points. The row and column create/remove hooks DO fire, because the replay
-  goes through `alter()` (or the NestedRows path above), and `afterChange` fires once.
+  `beforeRedo` are the veto points, and both are asked BEFORE the stack changes: a vetoed step stays
+  where it was and no stack hook fires. 18.x popped the step before `beforeUndo`, because Formulas
+  stepped HyperFormula there; Formulas no longer listens to it, so nothing needs that order. The row
+  and column create/remove hooks DO fire, because the replay goes through `alter()` (or the NestedRows
+  path above), and `afterChange` fires once.
 - **Never `deepClone` a step or a record.** Hooks receive the step object itself. A plugin that puts
   a live object into its details (a `CellRange`) must put a plain copy (`deepClone(range)` at describe
   time), or the step changes with the selection.
