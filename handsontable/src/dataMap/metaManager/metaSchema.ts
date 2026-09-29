@@ -4994,6 +4994,11 @@ export default (): Record<string, unknown> => {
      * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
      * re-apply tries again.
      *
+     * While a filter hides rows, a re-applied range that fits the rows on screen is applied to those
+     * rows. A range that reaches past them can't be applied, so if it was applied before and its
+     * merged cell still covers the rows it was merged on, that merged cell is kept, with its values,
+     * until the filter is cleared.
+     *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
      *

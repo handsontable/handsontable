@@ -143,7 +143,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (130k on a validated 5,000-row sheet: +42% switch time, +126 MB over ten switches). The
   serve hook runs on the hottest read path: keep the `size === 0` bail-out first and only
   write differing values. `valid` is not tracked at all (`UNTRACKED_META_KEYS`) — the next
-  validation recomputes it, and it is what made the map balloon. Entries are stored with
+  validation recomputes it, and it is what made the map balloon. Neither are MergeCells' `hidden`
+  and `spanned`: the switch restores merges itself, and MergeCells removes those keys from a
+  trimmed row without `afterRemoveCellMeta`, so a tracked copy came back after an unmerge (DEV-3135). Entries are stored with
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
   `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the
@@ -241,12 +243,40 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   enabled again, which a sheet declaring `columnSorting: false` does on every switch.
 - **The switch runs under `#withoutUndoEntry`, and so does the live-grid reset in
   `#buildInitialWorkbook` (DEV-3037).** `loadData()` clears the UndoRedo stacks, but the view-state
-  restore runs after it and goes through the public `sort()`, `filter()` and `merge()`, whose
-  UndoRedo actions register on `beforeColumnSort`/`beforeFilter`/`beforeMergeCells`. Without the
+  restore runs after it and goes through the public `sort()` and `filter()`, whose UndoRedo
+  actions register on `beforeColumnSort`/`beforeFilter`. Without the
   guard they land on the fresh stack, and the first Ctrl+Z after a switch took back the arriving
   sheet's own sort. `restoreFilterConditions` also skips `filter()` when neither the stored state
   nor the grid has a condition — the neutral state's `filterConditions: []` is truthy, so every
   switch used to run a filter pass.
+- **Merges are cleared before `loadData()` and restored on the automatic path.**
+  MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
+  and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
+  shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
+  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
+  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
+  while the departing merges still match the grid (the neutral reset does it otherwise). And
+  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
+  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
+  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
+  load and win over the ones the user unmerged or moved. That second pass empties the
+  collection only, never the meta: the load has already reset the cell meta, and the same
+  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
+  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
+  leaves MergeCells' own record of applied declared areas alone, so its next settings update
+  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
+  are all trimmed stays in the collection's list at its last visual position, and restored
+  there it came back as a visible merge over unrelated rows, or won over a live merge,
+  depending on list order. Such a merge is therefore gone after a round trip, even once its
+  rows are untrimmed. The restore then drops a stored merge that no longer fits (the data is
+  the host's and can shrink while the sheet is away), and one that would overlap a merge
+  already on screen, which only a host listener adding merges during the load can produce,
+  since the automatic path skips the overlap check.
+  The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
+  declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
+  `auto: true` (UndoRedo records nothing for that), and no cell is written, where the public
+  `merge()` rewrote every covered cell with `null`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
