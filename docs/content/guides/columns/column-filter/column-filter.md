@@ -556,6 +556,58 @@ time input. Pick the value from the browser's picker or type it in your locale's
 set the condition through the API instead, pass the value as an ISO 8601 string
 (`YYYY-MM-DD` for dates, `HH:mm` for times).
 
+## Filtering with nested headers
+
+The [`Filters`](@/api/filters.md) plugin works together with
+[nested headers](@/guides/columns/column-groups/column-groups.md). When you group columns with the
+[`nestedHeaders`](@/api/options.md#nestedheaders) option, the column menu button (▼) and the
+filtering interface attach only to the lowest level of the header structure. The group headers on
+the levels above don't get a filter menu of their own.
+
+::: only-for javascript
+
+::: example #exampleFilterNestedHeaders --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterNestedHeaders.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterNestedHeaders.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterNestedHeaders.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleFilterNestedHeaders :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleFilterNestedHeaders.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterNestedHeaders.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example18 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example18.ts)
+@[code](@/content/guides/columns/column-filter/angular/example18.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleFilterNestedHeaders :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterNestedHeaders.vue)
+
+:::
+
+:::
+
 ## Choose the conditions the filter menu offers
 
 To change which operators the **Filter by condition** lists offer, use the `availableConditions`
