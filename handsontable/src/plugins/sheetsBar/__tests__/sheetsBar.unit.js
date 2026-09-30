@@ -2367,6 +2367,117 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
   });
 
+  it('does not write the cells a sheet\'s declared merges cover into the sheet being left', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const plainData = grid();
+    const declaredData = grid();
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: plainData },
+          {
+            name: 'Declared',
+            data: declaredData,
+            settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] },
+          },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(plainData).toEqual(grid());
+    expect(declaredData.slice(0, 2)).toEqual([['0:0', null, '0:2', '0:3'], [null, null, '1:2', '1:3']]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+
+    sheetsBar.setActiveSheet(plain.id);
+
+    expect(hot.getData()).toEqual(grid());
+  });
+
+  it('does not write into the sheet being left when a sheet returns with its declared merges unmerged', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const plainData = grid();
+    const declaredData = grid();
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: plainData },
+          {
+            name: 'Declared',
+            data: declaredData,
+            settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] },
+          },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(declared.id);
+    hot.getPlugin('mergeCells').unmerge(0, 0, 1, 1);
+    hot.setDataAtCell(1, 1, 'typed');
+    sheetsBar.setActiveSheet(plain.id);
+    plainData[1][1] = 'plain';
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(plainData[1][1]).toBe('plain');
+    expect(hot.getDataAtCell(1, 1)).toBe('typed');
+    expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
+  });
+
+  it('checks a sheet\'s declared merges against its own size, not the size of the sheet being left', () => {
+    const grid = rows => Array.from({ length: rows }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Short', data: grid(5) },
+          { name: 'Tall', data: grid(20), settings: { mergeCells: [{ row: 10, col: 1, rowspan: 2, colspan: 2 }] } },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [, tall] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(tall.id);
+
+    expect(hot.getCellMeta(10, 1).rowspan).toBe(2);
+    expect(hot.getCellMeta(10, 1).colspan).toBe(2);
+    expect(hot.getDataAtCell(11, 2)).toBeNull();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('builds the opening sheet\'s declared merges when it is active at construction', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Declared', data: grid(), settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] } },
+          { name: 'Plain', data: grid() },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+    expect(hot.getDataAtCell(1, 1)).toBeNull();
+  });
+
   it('does not restore a merge whose rows were all trimmed over another merge', () => {
     hot = new Handsontable(container, {
       sheetsBar: {

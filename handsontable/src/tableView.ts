@@ -2161,18 +2161,17 @@ class TableView {
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendRowHeader(visualRowIndex: number, TH: HTMLTableCellElement) {
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const rowHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      if (!hasClass(container, 'relative')) {
-        empty(TH);
-        this.appendRowHeader(visualRowIndex, TH);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !rowHeader) {
+      empty(TH);
+    }
 
-        return;
-      }
-
-      this.updateCellHeader(
-        container.querySelector<HTMLElement>('.rowHeader')!, visualRowIndex, this.hot.getRowHeader);
+    if (rowHeader) {
+      this.updateCellHeader(rowHeader, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -2223,20 +2222,20 @@ class TableView {
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
 
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const colHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.colHeader') : null;
 
-      if (hasClass(container, 'relative')) {
-        this.updateCellHeader(
-          container.querySelector<HTMLElement>('.colHeader')!, visualColumnIndex, label, headerLevel);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !colHeader) {
+      empty(TH);
+    }
 
-        container.className = '';
-        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
+    if (container && colHeader) {
+      this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
 
-      } else {
-        empty(TH);
-        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
-      }
+      container.className = '';
+      addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
     } else {
       const { rootDocument } = this.hot;

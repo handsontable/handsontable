@@ -1,0 +1,155 @@
+import { test, expect } from '../fixtures/test';
+import { HandsontableEditorListPositionPage, type Layout, type Variant } from '../fixtures/pages/HandsontableEditorListPositionPage';
+
+/**
+ * Where the `handsontable` and `dropdown` editors' lists open, relative to the cell being edited, on a
+ * page the WINDOW scrolls and in a sized grid that scrolls its own holder, after scrolling to the
+ * bottom and inline end.
+ *
+ * The `handsontable` list opens toward the inline end (right in LTR, left in RTL) when it fits there,
+ * even when it would fit toward the inline start as well, and flips toward the inline start when it
+ * does not fit and has more room there. It opens below the cell when it fits there, even when it would
+ * fit above as well, and flips above when it does not fit below and has more room above. It stays in
+ * the viewport. `HandsontableEditor#flipDropdownHorizontallyIfNeeded` and
+ * `#flipDropdownVerticallyIfNeeded` (`handsontable/src/editors/handsontableEditor/handsontableEditor.ts`)
+ * decide it.
+ *
+ * The `dropdown` editor extends that editor and flips the same way, but sizes its list itself
+ * (`AutocompleteEditor#updateDropdownDimensions`): trimmed to the cell's width by default, so it stays
+ * on the cell's inline start and only the vertical flip moves it.
+ *
+ * The two layouts reach different branches of the horizontal flip. On a page the window scrolls,
+ * the room is measured from the viewport, through `view.isHorizontallyScrollableByWindow()` and
+ * `rootWindow.scrollX`. In a sized grid it is measured from the grid's own workspace, on purpose: the
+ * fixture's grid is 1000 px wide in a 1280 px viewport, so from a cell near the grid's inline end the
+ * list flips although the viewport still has room. A sized grid also runs with the page in the other
+ * direction (an RTL grid on an LTR page, and the mirror), since the flip reads the grid's direction and
+ * not the document's.
+ *
+ * The Jasmine positioning specs pin the horizontal flip of a sized grid in one layout direction each,
+ * and the vertical side only as "touching the cell", because there the side depends on the theme.
+ * The visual captures under `js-only/editors/` were the only guard of the rest.
+ *
+ * Each point forces its placement on every theme. The `handsontable` list is 334–388 px wide and
+ * 190–273 px tall across the themes, and the room each point leaves clears or misses it by 60 px or
+ * more (the least is `horizon`'s mid-height points, which fit below by 60 px and above by 61). The
+ * `dropdown` list is 263–371 px tall (ten options), so at mid-height on `horizon` it fits neither below
+ * nor above and is trimmed to whole rows instead of flipped; its points are the top and bottom ones,
+ * which clear or miss it by 139 px or more.
+ */
+
+/**
+ * A point of the box that scrolls (the viewport, or the grid's holder), as offsets from its edges (a
+ * negative offset counts from the right or bottom edge, `center` is the middle), and the placement it
+ * forces.
+ */
+interface Point {
+  name: string;
+  x: number | 'center';
+  y: number | 'center';
+  aligned: { ltr: string; rtl: string };
+  side: string;
+}
+
+const POINTS: Point[] = [
+  { name: 'top-left', x: 120, y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
+  // The middle of the top edge has room both ways, so it shows the default of each direction.
+  { name: 'top-center', x: 'center', y: 60, aligned: { ltr: 'left edge', rtl: 'right edge' }, side: 'below' },
+  { name: 'top-right', x: -150, y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+  // Mid-height, the list fits below the cell and above it, so these show that it opens below.
+  { name: 'middle-left', x: 120, y: 'center', aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
+  { name: 'middle-right', x: -150, y: 'center', aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+  { name: 'bottom-left', x: 120, y: -110, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'above' },
+  { name: 'bottom-right', x: -150, y: -110, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'above' },
+];
+
+// The dropdown's list is trimmed to the cell, so every point expects it on the cell's width, and the
+// mid-height points are left out (see the docblock above).
+const DROPDOWN_POINTS: Point[] = POINTS
+  .filter(({ name }) => !name.startsWith('middle'))
+  .map(point => ({ ...point, aligned: { ltr: 'cell width', rtl: 'cell width' } }));
+
+/**
+ * Opens the editor from every point and asserts the placement each one forces.
+ *
+ * @param {HandsontableEditorListPositionPage} grid The page object.
+ * @param {Point[]} points The points and what each forces.
+ */
+async function expectEveryPoint(grid: HandsontableEditorListPositionPage, points: Point[]): Promise<void> {
+  await grid.scrollToEnd();
+
+  for (const point of points) {
+    const coords = await grid.openEditorAt(point.x, point.y);
+
+    await expect.poll(() => grid.listPlacement(coords), { message: `from the ${point.name} point` })
+      .toEqual({ aligned: point.aligned[grid.dir], side: point.side, inViewport: 'yes' });
+
+    await grid.closeEditor();
+  }
+}
+
+const LAYOUT_NAMES: Record<Layout, string> = {
+  window: 'on a page the window scrolls',
+  sized: 'in a sized grid that scrolls itself',
+};
+
+/**
+ * The layouts both editors run in. The window layout keeps the page in the grid's direction: an RTL
+ * grid on an LTR page the window scrolls opens on the grid's last columns, so cell (0, 0) never renders
+ * (tests/AGENTS.md).
+ */
+const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
+  { title: `${LAYOUT_NAMES.window} (LTR)`, variant: { dir: 'ltr', layout: 'window' } },
+  { title: `${LAYOUT_NAMES.sized} (LTR)`, variant: { dir: 'ltr', layout: 'sized' } },
+  { title: `${LAYOUT_NAMES.sized} (RTL)`, variant: { dir: 'rtl', layout: 'sized' } },
+  { title: `${LAYOUT_NAMES.sized} (an RTL grid on an LTR page)`, variant: { dir: 'rtl', layout: 'sized', doc: 'ltr' } },
+  { title: `${LAYOUT_NAMES.sized} (an LTR grid on an RTL page)`, variant: { dir: 'ltr', layout: 'sized', doc: 'rtl' } },
+];
+
+test.describe('handsontable editor list position', () => {
+  for (const { title, variant } of CASES) {
+    test(`opens toward the room it has from every point, ${title}`, async({ page, theme, bundle }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, variant);
+
+      await grid.goto();
+      await expectEveryPoint(grid, POINTS);
+    });
+  }
+});
+
+test.describe('dropdown editor list position', () => {
+  for (const { title, variant } of CASES) {
+    test(`keeps its list on the cell and opens it toward the room it has, ${title}`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'dropdown' });
+
+      await grid.goto();
+      await expectEveryPoint(grid, DROPDOWN_POINTS);
+    });
+  }
+});
+
+// Known product bug (measured 2026-09-28 and 2026-09-29 on all three themes): on an RTL page scrolled by
+// the window, the list always opens aligned to the cell's LEFT edge and extends right. The handsontable
+// editor's list therefore runs off-screen from a cell near the viewport's right edge (cell 1100–1200,
+// list 1100–1466 on a 1280 px viewport). The dropdown's list is trimmed to the cell, so the bug shows
+// only where the list is narrower than the cell: 2 px on `horizon`, where it lands on the cell's inline
+// end instead of its start. The window branch of the horizontal flip measures from the left and adds
+// the RTL document's negative `scrollX`. The sized RTL grids above are correct. Unpark with the fix.
+// eslint-disable-next-line no-restricted-syntax -- DEV-3138: RTL window-scrolled list opens off-screen; unpark with the fix
+test.fixme(`both editors open toward the room they have from every point, ${LAYOUT_NAMES.window} (RTL)`, async({
+  page, theme, bundle,
+}) => {
+  const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { dir: 'rtl', layout: 'window' });
+
+  await grid.goto();
+  await expectEveryPoint(grid, POINTS);
+
+  const dropdown = new HandsontableEditorListPositionPage(page, theme, bundle, {
+    dir: 'rtl', layout: 'window', type: 'dropdown',
+  });
+
+  await dropdown.goto();
+  await expectEveryPoint(dropdown, DROPDOWN_POINTS);
+});

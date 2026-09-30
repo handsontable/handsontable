@@ -79,9 +79,19 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `e2e/submenu-position.spec.ts` is that shape for menus: its fixture's menus
   are three and two items long, so every point it opens a menu at clears or
   misses the room the menu and its submenu need by 56 px or more on every
-  theme, more than a row. With the full default item list that margin collapses: from the
-  top-left corner the Alignment submenu has 142 px to spare below on `main`
-  and 5 px on `horizon`, one row-height change from flipping.
+  theme, more than a row. With the full default item list that margin
+  collapses: from the top-left corner the Alignment submenu has 142 px to
+  spare below on `main` and 5 px on `horizon`, one row-height change from
+  flipping.
+- **An RTL fixture the WINDOW scrolls needs an RTL document, not only an RTL
+  grid.** A `layoutDirection: 'rtl'` grid inside an LTR page is laid out with
+  its inline start at the far end of the page, so the page opens on the grid's
+  LAST columns and cell (0, 0) is never rendered: `goto()` dies on a missing
+  cell. Set `<html dir="rtl">` too, as a real RTL page does; the window then
+  scrolls toward the inline end with a NEGATIVE `scrollX`, which is the
+  arithmetic a window-scroll branch has to get right
+  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case is
+  parked on exactly such a bug).
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `availableConditions` setting to the `filters` option, which chooses the operators that the **Filter by condition** lists offer, for the whole grid, per data type, or per column.",
+  "type": "added",
+  "issueOrPR": 13661,
+  "breaking": false,
+  "framework": "none"
+}

@@ -167,6 +167,15 @@ const _undoRedo: Handsontable.plugins.UndoRedo = new UndoRedo(hot);
 const _contextMenuKey: Handsontable.plugins.ContextMenu.PredefinedMenuItemKey = 'row_above';
 const _filtersConditionId: Handsontable.plugins.Filters.ConditionId = { name: 'begins_with', args: [] };
 const _filtersOperationType: Handsontable.plugins.Filters.OperationType = 'conjunction';
+const _filtersAvailableConditions: Handsontable.plugins.Filters.AvailableConditions = {
+  numeric: { exclude: ['not_between'] },
+};
+const _filtersAvailableConditionsRule: Handsontable.plugins.Filters.AvailableConditionsRule = ['eq', 'gt'];
+const _filtersAvailableConditionsList: Handsontable.plugins.Filters.AvailableConditionsList = ['eq'];
+const _filtersAvailableConditionsExclusion: Handsontable.plugins.Filters.AvailableConditionsExclusion = {
+  exclude: ['gt'],
+};
+const _filtersAvailableConditionsDataType: Handsontable.plugins.Filters.AvailableConditionsDataType = 'intl-date';
 
 // ---------------------------------------------------------------------------
 // renderers namespace: verify function type aliases

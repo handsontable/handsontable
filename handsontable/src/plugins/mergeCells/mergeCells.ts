@@ -269,6 +269,24 @@ export class MergeCells extends BasePlugin {
    */
   #appliedMergeKeys: Set<string> = new Set();
   /**
+   * When set, `updatePlugin()` rebuilds the plugin but holds back the pass that builds the merges
+   * declared in the settings, until {@link MergeCells#runDeferredSettingsPass} runs it. The
+   * SheetsBar plugin sets it around a sheet switch's settings update, which runs while the grid
+   * still holds the departing sheet's data: built there, the arriving sheet's merges were
+   * validated against the departing sheet's size, and their clearing write landed in the
+   * departing sheet's data.
+   *
+   * @private
+   * @type {boolean}
+   */
+  deferSettingsPass = false;
+  /**
+   * Whether `updatePlugin()` held back a settings pass that has not run yet.
+   *
+   * @type {boolean}
+   */
+  #settingsPassPending = false;
+  /**
    * The physical rows every merged cell covers, plus its physical left column, captured while its
    * visual coordinates are authoritative (creation, structural edits). This is the authoritative
    * description of a merge: physical indexes are stable across trimming, so one capture survives any
@@ -468,6 +486,21 @@ export class MergeCells extends BasePlugin {
     // Copy before `disablePlugin()` clears the field, so `generateFromSettings()` can tell a
     // re-applied area from a newly declared one.
     const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
+
+    this.#settingsPassPending = false;
+
+    if (this.deferSettingsPass) {
+      this.disablePlugin();
+      this.enablePlugin();
+
+      alreadyAppliedMerges.forEach(key => this.#appliedMergeKeys.add(key));
+      this.#settingsPassPending = true;
+
+      super.updatePlugin();
+
+      return;
+    }
+
     // Taken out of the list before `disablePlugin()`, so their meta is not reset and nothing is
     // written to their cells.
     const keptMerges = this.#takeKeptMerges(alreadyAppliedMerges);
@@ -480,6 +513,31 @@ export class MergeCells extends BasePlugin {
     this.#captureMergeAnchors();
 
     super.updatePlugin();
+  }
+
+  /**
+   * Runs the settings pass that `updatePlugin()` held back while {@link MergeCells#deferSettingsPass}
+   * was set. With `apply` set, the declared merges are built against the data the grid holds now,
+   * so they are validated against its size and their covered cells are cleared in it. Without it,
+   * no merge is built and no cell is written, and the areas applied before stay recorded as
+   * applied. Does nothing when no pass is pending.
+   *
+   * @private
+   * @param {boolean} apply Whether to build the declared merges.
+   */
+  runDeferredSettingsPass(apply: boolean) {
+    if (!this.#settingsPassPending) {
+      return;
+    }
+
+    this.#settingsPassPending = false;
+
+    if (apply) {
+      this.generateFromSettings(new Set(this.#appliedMergeKeys));
+    }
+
+    this.#initialized = true;
+    this.#captureMergeAnchors();
   }
 
   /**
@@ -1259,6 +1317,8 @@ export class MergeCells extends BasePlugin {
    * any draw here would repaint an identical table (#5687).
    */
   #onAfterInit = () => {
+    this.#settingsPassPending = false;
+
     if (this.getSetting<unknown[]>('cells').length > 0) {
       this.hot.suspendRender();
 

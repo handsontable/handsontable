@@ -239,12 +239,16 @@ export class ConditionComponent extends BaseComponent {
    */
   reset() {
     const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-    let items = [getConditionDescriptor(CONDITION_NONE)];
+    // A copy, because `setItems()` translates the names in place and the descriptor is shared.
+    let items = [{ ...getConditionDescriptor(CONDITION_NONE) }];
 
-    if (selectedColumn !== null) {
+    if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
 
-      items = getOptionsList(this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text');
+      items = getOptionsList(
+        this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text',
+        this.hot.getPlugin('filters')._getAvailableConditions(visualIndex),
+      );
     }
 
     arrayEach(this.getInputElements(), element => element.hide());
