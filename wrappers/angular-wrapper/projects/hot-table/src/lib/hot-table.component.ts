@@ -55,15 +55,32 @@ function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
   return false;
 }
 
+/**
+ * The class that makes the container and the host fill their parent. The component styles below
+ * spell the same name, because decorator metadata must stay statically analyzable.
+ */
+const FILL_HEIGHT_CLASS_NAME = 'ht-fill-height';
+
+/**
+ * A `height` that resolves against the container: a percentage, or a `var()` that may hold one.
+ * The core treats the same two as container-driven in `utils/rootSize.ts`, together with units that
+ * resolve against the viewport or a query container, which do not depend on the container here.
+ */
+const RELATIVE_HEIGHT_PATTERN = /%|\bvar\(/i;
+
 @Component({
   selector: 'hot-table',
-  template: '<div #container [style.height]="containerHeight"></div>',
+  template: '<div #container></div>',
   encapsulation: ViewEncapsulation.None,
   providers: [HotSettingsResolver],
   styles: [
     `
       :host {
         display: block;
+      }
+
+      :where(hot-table.ht-fill-height, hot-table > div.ht-fill-height) {
+        height: 100%;
       }
     `,
   ],
@@ -82,6 +99,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   /** The Handsontable instance. */
   private __hotInstance: Handsontable | null = null;
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -90,25 +108,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     private readonly environmentInjector: EnvironmentInjector,
     private readonly _dynamicComponentService: DynamicComponentService
   ) {}
-
-  /**
-   * The height of the container element.
-   *
-   * The core wraps the container in its own root element and sizes that root. A relative `height`
-   * (for example `'100%'`) resolves against the container, so the container must pass the height of
-   * its parent through, or the grid collapses to `0px`. The `<hot-table>` host is an inline element,
-   * so the container's `100%` resolves against the nearest block ancestor. Other heights do not
-   * depend on the container, so they leave it at its default size.
-   *
-   * A `height` function is not evaluated here, because this getter runs on every change detection
-   * and would call user code each time. Give the container its own height in that case.
-   * @returns `'100%'` when the `height` option is relative to the container, `null` otherwise.
-   */
-  get containerHeight(): string | null {
-    const height = this.settings?.height;
-
-    return typeof height === 'string' && height.includes('%') ? '100%' : null;
-  }
 
   /**
    * Gets the Handsontable instance.
@@ -146,6 +145,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
       (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
+
+      // Registered before `init()`, so the hook also sees the initial `height`, before the first render.
+      this.hotInstance.addHook('beforeHeightChange', (height) => {
+        this.toggleFillHeight(height);
+
+        return height;
+      });
 
       this.hotInstance.init();
     });
@@ -228,6 +234,26 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
       this.__hotInstance.destroy();
     });
+  }
+
+  /**
+   * Makes the container and the `<hot-table>` host fill their parent when the grid `height` is
+   * relative.
+   *
+   * The core puts its root wrapper inside the container, and the `height: 100%` of the grid content
+   * resolves against the container. An auto-height container makes that `100%` collapse to `0px`, so
+   * the container has to pass the height of its parent through. React and Vue always do. Here it
+   * happens only for a relative `height` (`%` or `var()`), so grids with other heights keep their
+   * layout. The rule is a zero-specificity `:where()`, so any CSS of the app overrides it.
+   *
+   * @param height The value the `beforeHeightChange` hook received. It is the result of a `height`
+   * function, and it is `null` when the `height` is reset.
+   */
+  private toggleFillHeight(height: unknown): void {
+    const fillHeight = typeof height === 'string' && RELATIVE_HEIGHT_PATTERN.test(height);
+
+    this.container.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
+    this._host.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
   }
 
   /**
