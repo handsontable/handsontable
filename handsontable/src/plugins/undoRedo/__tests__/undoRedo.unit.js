@@ -790,15 +790,15 @@ describe('UndoRedo plugin', () => {
       expect(plugin.doneActions.map(action => action.source)).toEqual(['edit', 'edit', 'edit']);
     });
 
-    // A write past the last row lands nowhere, and a write of the value a cell holds changes nothing.
-    // Recorded, either one would empty the redo stack for a step that undoes nothing.
-    it('should record no step for a write that changes nothing', () => {
+    // A source write past the last row lands nowhere, and one of the value a cell holds changes
+    // nothing. Recorded, either one would empty the redo stack for a step that undoes nothing. (An
+    // edit through `setDataAtCell()` is a step even then, as it always was - `UndoRedo.spec.js`.)
+    it('should record no step for a source write that changes nothing', () => {
       createGrid();
       const plugin = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 0, 'x');
       plugin.undo();
-      hot.setDataAtCell(1, 1, 'B2');
       hot.setSourceDataAtCell(1, 1, 'B2');
       hot.setSourceDataAtCell(50, 0, 'y');
 

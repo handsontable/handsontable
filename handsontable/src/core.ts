@@ -2871,25 +2871,18 @@ export default function Core(
 
     // The journal keeps what the SOURCE held before and after the write, read raw – see
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
-    const rawOldValue = dataSource.getRawAtCellByProp(physicalRow, prop);
-    const oldValue = detachValue(rawOldValue);
+    const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
 
     datamap.set(visualRow, prop, value);
 
-    const rawNewValue = dataSource.getRawAtCellByProp(physicalRow, prop);
-
-    // A write of the value the cell holds changes nothing, and journaled it would make a step that
-    // undoes nothing and empties the redo stack.
-    if (rawNewValue === rawOldValue) {
-      return;
-    }
-
-    // `writeChangesToData()` writes its changes from the last one to the first.
+    // `writeChangesToData()` writes its changes from the last one to the first. A write of the value
+    // the cell already held is journaled too: an edit is a step even when it changed nothing, as it
+    // always was (`UndoRedo.spec.js`).
     recordCellChange(operationScope, {
       physicalRow,
       prop,
       oldValue,
-      newValue: detachValue(rawNewValue),
+      newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
     }, run);
   }
 
@@ -6013,7 +6006,8 @@ export default function Core(
     const rawNewValue = dataSource.getRawAtCellByProp(physicalRow, prop);
 
     // Nothing is journaled for a write that left the source as it was – the value the cell held, or
-    // a row past the end, which `setAtCell()` never reaches.
+    // a row past the end, which `setAtCell()` never reaches. These writes were never recorded before
+    // the journal, so a no-op must not become a step that empties the redo stack.
     if (rawNewValue === rawOldValue) {
       return;
     }

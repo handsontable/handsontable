@@ -73,11 +73,14 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
 5. **Each `writeChangesToData()` call journals its own cell run** (`ReversedCellRun`): it appends
    only while its own entry is still the last one. A nested write from `afterChange` therefore gets
    an entry of its own after the outer one, instead of being merged into the outer run's reversed
-   order. Writes without a run (`setSourceDataAtCell`) keep merging forward. **A write that leaves the
-   raw value as it was is not journaled** (`writeChange`/`writeSourceChange` compare the raw values by
-   reference): the value the cell already held (Enter on an unedited cell), or a row past the end
-   that `setAtCell()` never reaches. Journaled, it made a step that undid nothing and emptied the redo
-   stack; `develop`'s recorder skipped such an edit too (`hasDifferences`).
+   order. Writes without a run (`setSourceDataAtCell`) keep merging forward. **A source write that
+   leaves the raw value as it was is not journaled** (`writeSourceChange` compares the raw values by
+   reference): the value the cell already held, or a row past the end that `setAtCell()` never
+   reaches. `setSourceDataAtCell()` was never recorded before the journal, and a no-op step would
+   only empty the redo stack. **A grid write (`writeChange`) is journaled even then**: an edit that
+   writes the value the cell holds is an undo step, as it always was - `UndoRedo.spec.js` pins it
+   ("should save the undo action even if a new value is the same as the previous one"). The old
+   recorder's `hasDifferences` was computed and never read, so do not take it as a precedent.
 6. **The step's source is the one `beforeChange` reports.** `setDataAtCell()` and
    `setDataAtRowProp()` record `'edit'` for a call with no source, and every data setter takes an
    array-form source from its second argument (`readOperationSource()` in `core.ts`, the one place
