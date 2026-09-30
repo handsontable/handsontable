@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-30T10:54:35.152Z",
+  "generatedAt": "2026-09-30T17:22:51.451Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 303,
+    "tests": 304,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 1706
+    "entries": 1712
   },
   "rows": [
     {
@@ -339,6 +339,46 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/undoRedo/__tests__/UndoRedo.spec.js|UndoRedo should save the undo action even if a new value is the same as the previous one",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/undoRedo/__tests__/UndoRedo.spec.js",
+      "line": null,
+      "title": "UndoRedo should save the undo action even if a new value is the same as the previous one",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-30T17:22:03Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36746066949",
+        "branch": "feature/DEV-3142_UndoRedo-recorded-grid-states",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected false to be true.",
         "source": "ci"
       },
       "needsTicket": false
