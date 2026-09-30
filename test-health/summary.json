@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-29T16:34:13.943Z",
+  "generatedAt": "2026-09-30T10:31:24.460Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 303,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 1702
+    "entries": 1703
   },
   "rows": [
     {
@@ -20,14 +20,14 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 7,
-      "count30": 23,
-      "countAll": 23,
-      "runs30": 13,
-      "flakyRuns30": 13,
-      "branches30": 11,
+      "count7": 8,
+      "count30": 24,
+      "countAll": 24,
+      "runs30": 14,
+      "flakyRuns30": 14,
+      "branches30": 12,
       "nightlyRuns30": 0,
-      "openBranches30": 11,
+      "openBranches30": 12,
       "legs": [
         "e2e-classic",
         "e2e-classic-min",
@@ -42,10 +42,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-29T14:30:40Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36577400085",
-        "branch": "feature/DEV-3177_Remove-pending-E2E-tests",
-        "leg": "e2e-classic-min",
+        "seenAt": "2026-09-30T10:30:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805",
+        "branch": "docs/SheetJS-CDN-xlsx",
+        "leg": "e2e-horizon-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
