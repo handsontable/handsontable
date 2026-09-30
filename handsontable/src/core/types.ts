@@ -227,7 +227,7 @@ export interface HotInstance {
   batchRender(wrappedOperations: () => unknown): unknown;
   batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;
   batch(wrappedOperations: () => unknown): unknown;
-  runOperation<T>(name: string, source: string | undefined, callback: () => T): T;
+  runOperation<T>(name: string, callback: () => T, source?: string): T;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
   suspendRender(): void;

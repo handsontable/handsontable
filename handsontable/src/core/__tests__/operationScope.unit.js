@@ -258,4 +258,94 @@ describe('OperationScope', () => {
 
     expect(settled.length).toBe(0);
   });
+
+  // A listener that throws while a transaction opens (UndoRedo captures the grid state there) must not
+  // leave the transaction on the stack: every later operation would join it and nothing would settle.
+  it('should not leave a transaction open when an open listener throws', () => {
+    const callback = jest.fn();
+    const failOnce = jest.fn(() => {
+      throw new Error('capture boom');
+    });
+
+    scope.addOpenListener(failOnce);
+
+    expect(() => scope.run('change', undefined, callback)).toThrow('capture boom');
+    expect(callback).not.toHaveBeenCalled();
+    expect(scope.isActive()).toBe(false);
+
+    scope.removeOpenListener(failOnce);
+    scope.run('alter', undefined, () => {});
+
+    expect(settled.map(transaction => transaction.name)).toEqual(['alter']);
+    expect(settled[0].id).toBeGreaterThan(opened[0].id);
+  });
+
+  it('should settle once when the last hold is released inside its own continuation', () => {
+    let hold;
+
+    scope.run('change', undefined, () => {
+      hold = scope.hold();
+    });
+
+    hold.resume(() => hold.release());
+
+    expect(settled.length).toBe(1);
+    expect(settled[0].holds).toBe(0);
+    expect(settled[0].depth).toBe(0);
+  });
+
+  it('should settle once, when the outer hold releases, when one hold is released inside another\'s continuation', () => {
+    let outer;
+    let inner;
+
+    scope.run('change', undefined, () => {
+      outer = scope.hold();
+      inner = scope.hold();
+    });
+
+    outer.resume(() => inner.release());
+
+    expect(settled.length).toBe(0);
+
+    outer.release();
+
+    expect(settled.length).toBe(1);
+  });
+
+  it('should settle once, aborted, when a hold is released inside a continuation that throws', () => {
+    let hold;
+
+    scope.run('change', undefined, () => {
+      hold = scope.hold();
+    });
+
+    expect(() => hold.resume(() => {
+      hold.release();
+      throw new Error('boom');
+    })).toThrow('boom');
+
+    expect(settled.length).toBe(1);
+    expect(settled[0].aborted).toBe(true);
+  });
+
+  it('should resume a hold taken while suppressed inside a suppression, opening nothing', () => {
+    let hold;
+
+    scope.run('restore', undefined, () => {
+      scope.suppress(() => {
+        hold = scope.hold();
+      });
+    });
+
+    const suppressedInside = hold.resume(() => {
+      scope.run('change', undefined, () => {});
+
+      return scope.isSuppressed();
+    });
+
+    hold.release();
+
+    expect(suppressedInside).toBe(true);
+    expect(settled.map(transaction => transaction.name)).toEqual(['restore']);
+  });
 });

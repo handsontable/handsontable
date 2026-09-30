@@ -443,7 +443,7 @@ describe('UndoRedo -> DataChange action', () => {
       expect(data[0][5]).toBe('x');
     });
 
-    it('should drop the history when the `columns` option narrows the grid, and write nothing', () => {
+    it('should restore the recorded field after the `columns` option narrowed', () => {
       const data = [{ id: 1, name: 'Ted Right', address: 'Main St' }];
 
       hot = new Handsontable(container, {
@@ -451,16 +451,19 @@ describe('UndoRedo -> DataChange action', () => {
         data,
         undo: true,
       });
+      const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 2, 'Oak St');
-      // The column count changed outside any recorded step, so the recorded steps no longer describe
-      // the grid, and the history is dropped.
       hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
-      hot.getPlugin('undoRedo').undo();
+      undoRedo.undo();
 
-      // Nothing is written, in particular no `2` key.
+      // The write is recorded by field. `colToProp(2)` now answers `2`, so replaying by column would
+      // have written a `2` key.
+      expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Main St' });
+
+      undoRedo.redo();
+
       expect(data[0]).toEqual({ id: 1, name: 'Ted Right', address: 'Oak St' });
-      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
     });
 
     it('should undo a write to a declared field that has no column', () => {
@@ -557,7 +560,7 @@ describe('UndoRedo -> DataChange action', () => {
       expect(data[2][5]).toBe('x');
     });
 
-    it('should drop the history for a trimmed row too when the `columns` option narrows the grid', () => {
+    it('should restore a trimmed row by its recorded field after the `columns` option narrowed', () => {
       const data = [
         { id: 1, name: 'Ted Right', address: 'Main St' },
         { id: 2, name: 'Frank Honest', address: 'Elm St' },
@@ -573,12 +576,12 @@ describe('UndoRedo -> DataChange action', () => {
       hot.setDataAtCell(1, 2, 'Oak St');
       hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
       hot.getPlugin('trimRows').trimRows([1]);
+      // The trim is a step of its own, so the first undo lifts it and the second reverts the edit.
+      hot.getPlugin('undoRedo').undo();
       hot.getPlugin('undoRedo').undo();
 
-      // The history was dropped with the column count change, so the trim is the only step, and the
-      // undo lifts it without writing to the record.
-      expect(hot.countRows()).toBe(2);
-      expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Oak St' });
+      // A trimmed row is written to the source data. `colToPropOrIndex(2)` answers `2` there too.
+      expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
     });
   });
 });

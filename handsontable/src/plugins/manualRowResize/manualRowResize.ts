@@ -81,6 +81,7 @@ export class ManualRowResize extends BasePlugin {
 
     this.#gesture = new ResizeGesture(this.hot, ROW_RESIZE_AXIS, {
       isActive: () => this.enabled,
+      clampSize: height => this.#clampSize(height),
       setManualSize: (row, height) => this.#setManualSize(row, height),
     });
   }
@@ -242,13 +243,23 @@ export class ManualRowResize extends BasePlugin {
    */
   #setManualSize(row: number, height: number): number {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const newHeight = Math.max(height, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
+    const newHeight = this.#clampSize(height);
 
     if (physicalRow !== null) {
       this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
     }
 
     return newHeight;
+  }
+
+  /**
+   * Returns the height `setManualSize()` stores for the given height.
+   *
+   * @param {number} height Row height.
+   * @returns {number}
+   */
+  #clampSize(height: number): number {
+    return Math.max(height, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
   }
 
   /**

@@ -131,6 +131,28 @@ test.describe('undo of plugin state', () => {
     expect(await grid.columnWidth(1)).toBe(draggedWidth);
   });
 
+  test('an edit made while a column resize is dragged is a step of its own, and undoing it leaves the width', async () => {
+    await grid.initGrid({ manualColumnResize: true });
+    const initialWidth = await grid.columnWidth(1);
+
+    await grid.dragColumnResizeHandleWhile(1, 60, () => grid.setCell(0, 0, 'edited'));
+
+    expect(await grid.columnWidth(1)).toBeGreaterThan(initialWidth);
+    expect(await grid.undoStackSize()).toBe(2);
+
+    // The resize settled last, so it is undone first - back to the width before the drag, not to
+    // the width the drag had reached when the edit settled.
+    await grid.undo();
+
+    expect(await grid.columnWidth(1)).toBe(initialWidth);
+    expect(await grid.cellValue(0, 0)).toBe('edited');
+
+    await grid.undo();
+
+    expect(await grid.cellValue(0, 0)).toBe('A1');
+    expect(await grid.columnWidth(1)).toBe(initialWidth);
+  });
+
   // DEV-513: the double-click autosize is a resize a user makes, so it is undoable like a drag.
   test('autosizing a column by double-clicking its resize handle is one step that an undo reverts', async () => {
     await grid.initGrid({
@@ -289,6 +311,26 @@ test.describe('undo of plugin state', () => {
     await grid.undo();
 
     expect(await grid.comment(0, 0)).toBe('First');
+  });
+
+  test('an undo that removes the comment under the open editor closes the editor without saving', async () => {
+    await grid.initGrid({ comments: true });
+    await grid.setComment(0, 0, 'Check this');
+    await grid.openCommentEditor(0, 0);
+
+    await grid.undo();
+
+    await expect(grid.commentTextArea()).toBeHidden();
+
+    // Leaving the editor's cell must not write an empty comment back.
+    await grid.cell(4, 5).click();
+
+    expect(await grid.commentMeta(0, 0)).toBeUndefined();
+    await expect(grid.cell(0, 0)).not.toHaveClass(/\bhtCommentCell\b/);
+
+    await grid.redo();
+
+    expect(await grid.comment(0, 0)).toBe('Check this');
   });
 
   test('changing the page is one step that an undo reverts and a redo repeats', async () => {

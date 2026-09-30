@@ -356,8 +356,11 @@ export function toVisibleCells(hot: HotInstance, cells: RestoredCell[]): Array<[
     const visualColumn = hot.propToCol(prop as string | number);
     const key = `${visualRow}:${visualColumn}`;
 
+    // `propToCol()` hands a number it has no column for back as a visual index. After a `columns`
+    // update that no longer shows the prop, that index names another field's column.
     if (
-      visualRow !== null && typeof visualColumn === 'number' && Number.isInteger(visualColumn) && !seen.has(key)
+      visualRow !== null && typeof visualColumn === 'number' && Number.isInteger(visualColumn) &&
+      hot.colToProp(visualColumn) === prop && !seen.has(key)
     ) {
       seen.add(key);
       visibleCells.push([visualRow, visualColumn]);

@@ -1194,7 +1194,7 @@ export class Comments extends BasePlugin {
   /**
    * An undo or a redo can change the comment under an open editor. Show the comment the cell holds
    * now, so a later save cannot write the text from before the undo back. The editor is hidden when
-   * its cell is gone.
+   * its cell is gone, or when the cell has no comment any more.
    */
   #onAfterUndoRedo = () => {
     if (!this.#editor?.isVisible() || !this.range.from) {
@@ -1209,10 +1209,32 @@ export class Comments extends BasePlugin {
       return;
     }
 
+    if (this.getComment() === undefined) {
+      this.#closeEditorWithoutSave();
+
+      return;
+    }
+
     this.#commentValueBeforeSave = this.getComment() ?? '';
     this.#editor.setValue(this.#commentValueBeforeSave);
     this.refreshEditor(true);
   };
+
+  /**
+   * Hides the editor without saving its text. The blur that leaving the editor fires would save
+   * the text as the cell's comment, so it is fired here, with the save turned off.
+   */
+  #closeEditorWithoutSave() {
+    if (this.#editor?.isFocused()) {
+      this.#preventEditorSaveOnBlur = true;
+      this.#editor.getInputElement()?.blur();
+      this.#preventEditorSaveOnBlur = false;
+      this.hot.getShortcutManager().setActiveContextName('grid');
+    }
+
+    this.#commentValueBeforeSave = '';
+    this.hide();
+  }
 
   /**
    * Add Comments plugin options to the Context Menu.

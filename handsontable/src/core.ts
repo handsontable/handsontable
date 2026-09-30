@@ -96,7 +96,13 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
-import { detachValue, recordCellChange, recordMetaRowsShift, UNJOURNALED_META_KEYS } from './dataMap/dataJournal';
+import {
+  detachValue,
+  recordCellChange,
+  recordMetaRowsShift,
+  UNJOURNALED_META_KEYS,
+  type ReversedCellRun,
+} from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -2760,6 +2766,36 @@ export default function Core(
       callback(); // called when async validators are resolved and beforeChange was not async
     };
 
+    try {
+      queueValidators(changes, source, waitingForValidator, () => {
+        shouldBeCanceled = false;
+      });
+    } catch (error) {
+      // A cell that threw before its validator answered never leaves the queue, so the queue never
+      // drains and the call applies nothing. Take the correction hook off now, or it outlives the call.
+      waitingForValidator.onQueueEmpty = () => {};
+      instance.removeHook('afterChange', onAfterChange);
+      throw error;
+    }
+
+    waitingForValidator.checkIfQueueIsEmpty();
+  }
+
+  /**
+   * Starts the validator of every change that has one, and queues each until it answers. A change the
+   * validator rejects under `allowInvalid: false` is taken out of the list.
+   *
+   * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
+   * @param {string} [source] The change source.
+   * @param {object} waitingForValidator The queue.
+   * @param {Function} onRejected Called for each rejected change.
+   */
+  function queueValidators(
+    changes: CellChange[],
+    source: string | undefined,
+    waitingForValidator: ReturnType<typeof ValidatorsQueue>,
+    onRejected: () => void,
+  ) {
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
       // A change can address a column that auto column growth is about to create, and `propToCol()`
@@ -2798,7 +2834,7 @@ export default function Core(
             }
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
-              shouldBeCanceled = false;
+              onRejected();
               // cancel the change
               changes.splice(index, 1);
               // we canceled the change, so cell value is still valid
@@ -2813,8 +2849,6 @@ export default function Core(
         }(i, cellProperties)), source);
       }
     }
-
-    waitingForValidator.checkIfQueueIsEmpty();
   }
 
   /**
@@ -2823,8 +2857,9 @@ export default function Core(
    * @param {number} visualRow The visual row index.
    * @param {string|number} prop The column property.
    * @param {*} value The value to write.
+   * @param {ReversedCellRun} run The `writeChangesToData()` call the write belongs to.
    */
-  function writeChange(visualRow: number, prop: string | number, value: unknown) {
+  function writeChange(visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun) {
     const physicalRow: number | null =
       operationScope.getRecordingTransaction() === null ? null : instance.toPhysicalRow(visualRow);
 
@@ -2846,7 +2881,7 @@ export default function Core(
       prop,
       oldValue,
       newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
-    }, true);
+    }, run);
   }
 
   /**
@@ -2882,6 +2917,8 @@ export default function Core(
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
    */
   function writeChangesToData(changes: CellChange[]) {
+    const run: ReversedCellRun = { op: null };
+
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -2942,7 +2979,7 @@ export default function Core(
         continue;
       }
 
-      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3]);
+      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run);
     }
   }
 
@@ -3179,30 +3216,49 @@ export default function Core(
       // Captured before the validator runs, so the callback can tell whether the cell's coordinates
       // still mean what they meant when it started.
       const structureVersion = metaManager.getStructureVersion();
+      // The validator answers after the call that asked for it has returned. What it and the
+      // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
+      // was not recorded – so the answer runs inside the call's operation.
+      const hold = operationScope.hold();
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
-        validator.call(cellProperties, value, (valid: boolean) => {
-          if (!instance) {
-            return;
-          }
+        try {
+          hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
+            if (!instance) {
+              hold.release();
 
-          valid = instance
-            .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
-          cellProperties.valid = valid;
-          markCellMetaChanged(cellProperties);
+              return;
+            }
 
-          persistValidationResult(cellProperties, valid, structureVersion);
+            try {
+              hold.resume(() => {
+                valid = instance
+                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+                cellProperties.valid = valid;
+                markCellMetaChanged(cellProperties);
 
-          done(valid);
-          instance.runHooks(
-            'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
-          );
-        });
+                persistValidationResult(cellProperties, valid, structureVersion);
+
+                done(valid);
+                instance.runHooks(
+                  'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+                );
+              });
+            } finally {
+              hold.release();
+            }
+          }));
+        } catch (error) {
+          hold.release();
+          throw error;
+        }
       });
 
     } else {
-      // resolve callback even if validator function was not found
+      // resolve callback even if validator function was not found. Nothing here is recorded (the `valid`
+      // flag is never journaled), so the call's step is not held for it: a Formulas grid validates the
+      // dependents of every edit, and a hold would record each edit a tick late.
       instance._registerMicrotask(() => {
         cellProperties.valid = true;
         markCellMetaChanged(cellProperties);
@@ -3399,8 +3455,9 @@ export default function Core(
   /**
    * Validates the changes and applies the ones that pass. An asynchronous validator answers after the
    * operation that made the change has returned, so the operation's transaction is held until the
-   * changes land - they are part of the same user action. `validateChanges` calls back on every
-   * path, including the one where every change is rejected, so the hold is always released.
+   * changes land - they are part of the same user action. `validateChanges` calls back once every
+   * validator has answered, including when every change is rejected; when it throws before that (a
+   * `beforeValidate` listener that throws), it never calls back and the hold is released here.
    *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
@@ -3408,13 +3465,18 @@ export default function Core(
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
     const hold = operationScope.hold();
 
-    validateChanges(changes, source, () => {
-      try {
-        hold.resume(() => applyChanges(changes, source));
-      } finally {
-        hold.release();
-      }
-    });
+    try {
+      validateChanges(changes, source, () => {
+        try {
+          hold.resume(() => applyChanges(changes, source));
+        } finally {
+          hold.release();
+        }
+      });
+    } catch (error) {
+      hold.release();
+      throw error;
+    }
   }
 
   /**
@@ -4160,6 +4222,9 @@ export default function Core(
    * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
    * is not applied on that path.
    *
+   * Like [`batch()`](@/api/core.md#batch), the callback is one operation: every change it makes is one
+   * undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin, with the `'batch'` action type.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -4260,7 +4325,7 @@ export default function Core(
   };
 
   /**
-   * Runs the callback as one operation, so every change it makes is recorded as a single user action -
+   * Runs the callback as one operation, so every change it makes is recorded as a single user action –
    * for example, one undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin. Operations nest: called
    * inside another operation (a [`batch()`](@/api/core.md#batch), another `runOperation()`, or a
    * change a hook makes while an edit is applied), the callback joins the outer operation instead of
@@ -4274,20 +4339,20 @@ export default function Core(
    * @since 19.0.0
    * @param {string} name The operation name. It becomes the `actionType` of the undo step when the
    * operation is the outermost one.
-   * @param {string} [source] The operation source, passed to the undo stack hooks.
    * @param {Function} callback The operation.
+   * @param {string} [source] The operation source, passed to the undo stack hooks.
    * @returns {*} The value the callback returns.
    * @example
    * ```js
    * // Undoing restores both cells and the removed row in one step
-   * hot.runOperation('import', 'myImport', () => {
+   * hot.runOperation('import', () => {
    *   hot.setDataAtCell(0, 0, 'A');
    *   hot.setDataAtCell(1, 0, 'B');
    *   hot.alter('remove_row', 5);
-   * });
+   * }, 'myImport');
    * ```
    */
-  this.runOperation = function<T>(name: string, source: string | undefined, callback: () => T): T {
+  this.runOperation = function<T>(name: string, callback: () => T, source?: string): T {
     return operationScope.run(name, source, callback);
   };
 
@@ -6112,26 +6177,30 @@ export default function Core(
       throwWithCause('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
     }
 
-    if (deleteAmount > 0) {
-      const physicalRow = instance.toPhysicalRow(visualIndex);
-
-      recordMetaRowsShift(instance, false, physicalRow, deleteAmount);
-      metaManager.removeRow(physicalRow, deleteAmount);
-    }
-
-    if (cellMetaRows.length > 0) {
-      arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
+    // One operation, so the shift is journaled (`recordMetaRowsShift()` records only inside one) and the
+    // meta the inserted rows get is part of the same undo step.
+    operationScope.run('splice_cells_meta', undefined, () => {
+      if (deleteAmount > 0) {
         const physicalRow = instance.toPhysicalRow(visualIndex);
 
-        recordMetaRowsShift(instance, true, physicalRow, 1);
-        metaManager.createRow(physicalRow);
+        recordMetaRowsShift(instance, false, physicalRow, deleteAmount);
+        metaManager.removeRow(physicalRow, deleteAmount);
+      }
 
-        arrayEach(cellMetaRow as unknown[],
-          (cellMeta, columnIndex) => {
-            this.setCellMetaObject(visualIndex, columnIndex, cellMeta as Record<string, unknown>);
-          });
-      });
-    }
+      if (cellMetaRows.length > 0) {
+        arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
+          const physicalRow = instance.toPhysicalRow(visualIndex);
+
+          recordMetaRowsShift(instance, true, physicalRow, 1);
+          metaManager.createRow(physicalRow);
+
+          arrayEach(cellMetaRow as unknown[],
+            (cellMeta, columnIndex) => {
+              this.setCellMetaObject(visualIndex, columnIndex, cellMeta as Record<string, unknown>);
+            });
+        });
+      }
+    });
 
     instance.render();
   };

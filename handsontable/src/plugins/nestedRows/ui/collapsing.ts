@@ -192,7 +192,10 @@ class CollapsingUI extends BaseUI {
     const rowsToTrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToTrim.push(...this.#collapseChildren(elem, false, false));
+      // Not `push(...rows)`: a parent with many children would overflow the call stack.
+      arrayEach(this.#collapseChildren(elem, false, false), (row: number) => {
+        rowsToTrim.push(row);
+      });
     });
 
     if (doTrimming) {
@@ -419,7 +422,10 @@ class CollapsingUI extends BaseUI {
     const rowsToUntrim: number[] = [];
 
     arrayEach(rows as number[], (elem: number) => {
-      rowsToUntrim.push(...this.#expandChildren(elem, false, false));
+      // Not `push(...rows)`: a parent with many children would overflow the call stack.
+      arrayEach(this.#expandChildren(elem, false, false), (row: number) => {
+        rowsToUntrim.push(row);
+      });
     });
 
     if (doTrimming) {

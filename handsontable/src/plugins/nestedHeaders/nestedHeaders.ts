@@ -73,6 +73,11 @@ export const PLUGIN_PRIORITY = 280;
  */
 interface MembershipState {
   readonly version: number;
+  /**
+   * The state manager's config version when the overrides were recorded. Overrides from another
+   * `nestedHeaders` configuration name columns and groups of that one.
+   */
+  readonly configVersion: number;
   readonly overrides: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>;
 }
 
@@ -85,6 +90,7 @@ interface MembershipState {
 function isMembershipState(value: unknown): value is MembershipState {
   return typeof value === 'object' && value !== null &&
     'version' in value && typeof value.version === 'number' &&
+    'configVersion' in value && typeof value.configVersion === 'number' &&
     'overrides' in value && Array.isArray(value.overrides);
 }
 
@@ -540,12 +546,18 @@ export class NestedHeaders extends BasePlugin {
       return previous;
     }
 
-    return { version, overrides: this.#stateManager.exportMembershipOverrides() };
+    return {
+      version,
+      configVersion: this.#stateManager.getConfigVersion(),
+      overrides: this.#stateManager.exportMembershipOverrides(),
+    };
   }
 
   /**
    * Puts back the header group membership a `captureState()` call recorded and derives the headers
-   * from it. The column order is already restored by then.
+   * from it. The column order is already restored by then. Overrides recorded under another
+   * `nestedHeaders` configuration are not put back, but the headers are still derived again, for
+   * the restored column order.
    *
    * @private
    * @param {*} state The recorded state.
@@ -555,7 +567,10 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    this.#stateManager.importMembershipOverrides(state.overrides);
+    if (state.configVersion === this.#stateManager.getConfigVersion()) {
+      this.#stateManager.importMembershipOverrides(state.overrides);
+    }
+
     this.#stateManager.rebuildState();
     this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
   }

@@ -90,4 +90,35 @@ describe('UndoRedo – removing rows and columns', () => {
       expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
     });
   });
+
+  // The journal does not carry a cell's `valid` flag, so the cells an undo fills back into removed rows
+  // are validated again. Without it, an invalid cell came back without its invalid marker.
+  it('should mark a cell invalid again when an undo brings back its removed row, and validate an undone edit once', async() => {
+    const validator = jest.fn((value, callback) => callback(value !== 'bad'));
+    const hot = grid.create({
+      data: spreadsheet(3, 2),
+      columns: [{ validator }, {}],
+    });
+    const undoRedo = hot.getPlugin('undoRedo');
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    hot.setDataAtCell(1, 0, 'bad');
+    await settle();
+
+    expect(hot.getCellMeta(1, 0).valid).toBe(false);
+
+    hot.alter('remove_row', 1);
+    undoRedo.undo();
+    await settle();
+
+    expect(hot.getDataAtCell(1, 0)).toBe('bad');
+    expect(hot.getCellMeta(1, 0).valid).toBe(false);
+
+    validator.mockClear();
+    undoRedo.undo();
+    await settle();
+
+    expect(hot.getDataAtCell(1, 0)).toBe('A2');
+    expect(validator).toHaveBeenCalledTimes(1);
+  });
 });

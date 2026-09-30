@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { ColumnSorting } from '../../columnSorting';
 
 /**
  * The `modifyData` hook runs once per cell of every bulk read, and it used to ask the engine whether
@@ -113,6 +114,30 @@ describe('Formulas own-sheet cache', () => {
     expect(hot.getSourceDataAtCell(2, 0)).toBe(5);
     expect(engine.doesSheetExist('Sheet1')).toBe(false);
     expect(hot.getDataAtCell(0, 1)).toBe('=A1+10');
+  });
+
+  // A structural undo reloads the engine's sheet, and the grid's order is sent to the engine: both
+  // have to leave a sheet the host removed alone.
+  it('undoes a row insertion after the bound sheet was removed from the engine directly', () => {
+    build();
+    hot.alter('insert_row_above', 0);
+    engine.removeSheet(engine.getSheetId('Sheet1'));
+
+    expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+    expect(hot.getSourceData()).toEqual([[1, '=A1+10'], [2, '=A2+10'], [3, '=A3+10']]);
+    expect(engine.doesSheetExist('Sheet1')).toBe(false);
+  });
+
+  it('undoes a sort after the bound sheet was removed from the engine directly', () => {
+    registerPlugin(ColumnSorting);
+    build();
+    hot.updateSettings({ columnSorting: true });
+    hot.getPlugin('undoRedo').clear();
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    engine.removeSheet(engine.getSheetId('Sheet1'));
+
+    expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
   });
 
   it('answers an out-of-bounds read from the source value without asking the engine', () => {

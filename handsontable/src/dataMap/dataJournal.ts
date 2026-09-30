@@ -29,9 +29,23 @@ export interface CellsJournalOp {
    * Set when the changes were written from the last one to the first: `applyChanges()` walks its
    * list backwards. The journal keeps the write order, which the replay depends on, and a step's
    * public `changes` field reads such a run backwards, so it lists the cells in the order they were
-   * passed.
+   * passed. Such an entry holds the writes of ONE call (see `ReversedCellRun`), so reading it
+   * backwards cannot reorder two calls.
    */
   reversed?: true;
+}
+
+/**
+ * The writes of one `applyChanges()` call, which walks its changes from the last one to the first.
+ * They are journaled as one reversed `cells` entry, and a write of another call never joins it – a
+ * nested edit from an `afterChange` listener, say – so each call's changes read back in the order
+ * they were passed.
+ */
+export interface ReversedCellRun {
+  /**
+   * The entry the run writes into, `null` until its first write.
+   */
+  op: CellsJournalOp | null;
 }
 
 /**
@@ -225,16 +239,17 @@ export function captureAccessorValues(
 }
 
 /**
- * Appends one cell value change to the transaction's journal. Consecutive changes are kept in one
- * `cells` entry; a structural entry in between starts a new one, so the journal keeps the order the
- * writes happened in.
+ * Appends one cell value change to the transaction's journal. Consecutive forward changes are kept
+ * in one `cells` entry; a structural entry in between starts a new one, so the journal keeps the
+ * order the writes happened in. A change of a `run` joins only that run's own entry, and only while
+ * it is still the last one.
  *
  * @param {OperationScope} scope The operation scope.
  * @param {CellDelta} delta The change.
- * @param {boolean} [reversed=false] `true` for a change written by a loop that walks its list
- *   backwards (see `CellsJournalOp#reversed`).
+ * @param {ReversedCellRun} [run] The backwards-walking call the change belongs to (see
+ *   `CellsJournalOp#reversed`).
  */
-export function recordCellChange(scope: OperationScope, delta: CellDelta, reversed = false) {
+export function recordCellChange(scope: OperationScope, delta: CellDelta, run?: ReversedCellRun) {
   const transaction = scope.getRecordingTransaction();
 
   if (transaction === null) {
@@ -243,10 +258,15 @@ export function recordCellChange(scope: OperationScope, delta: CellDelta, revers
 
   const lastOp = transaction.journal[transaction.journal.length - 1];
 
-  if (lastOp?.type === 'cells' && (lastOp.reversed === true) === reversed) {
+  if (run !== undefined) {
+    if (run.op !== null && lastOp === run.op) {
+      run.op.changes.push(delta);
+    } else {
+      run.op = { type: 'cells', changes: [delta], reversed: true };
+      transaction.journal.push(run.op);
+    }
+  } else if (lastOp?.type === 'cells' && lastOp.reversed !== true) {
     lastOp.changes.push(delta);
-  } else if (reversed) {
-    transaction.journal.push({ type: 'cells', changes: [delta], reversed: true });
   } else {
     transaction.journal.push({ type: 'cells', changes: [delta] });
   }

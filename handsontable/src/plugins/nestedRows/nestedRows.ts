@@ -901,6 +901,17 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * The collapsed parents are rows, so a `columns` settings update never makes a collapse unsafe to
+   * undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
    * @private
    * @param {number} index The index where the data was spliced.
    * @param {number} amount An amount of items to remove.
@@ -997,10 +1008,28 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.hot._registerTimeout(() => {
+    // Collapsing the stashed parents again is part of the removal, and it runs a tick later. The
+    // removal's undo step is held open until then; otherwise the collapse records a step of its own,
+    // and the first undo expands the parents. During an undo replay the hold keeps it unrecorded.
+    const scope = this.hot._getOperationScope();
+    const hasStash = (this.collapsingUI!.lastCollapsedRows?.length ?? 0) > 0;
+    const hold = hasStash || scope.isSuppressed() ? scope.hold() : null;
+    const reapplyStash = () => {
       this.#skipRender = false;
       this.headersUI!.updateRowHeaderWidth();
       this.collapsingUI!.collapsedRowsStash.applyStash();
+    };
+
+    this.hot._registerTimeout(() => {
+      try {
+        if (hold === null) {
+          reapplyStash();
+        } else {
+          hold.resume(reapplyStash);
+        }
+      } finally {
+        hold?.release();
+      }
     });
   };
 

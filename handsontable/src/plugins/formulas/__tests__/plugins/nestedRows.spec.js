@@ -548,19 +548,23 @@ describe('Formulas', () => {
     });
 
     it('should keep HyperFormula in step when undoing a detached child is vetoed', async() => {
+      const originalData = [
+        {
+          col1: 'Parent',
+          __children: [{ col1: '=A1 & "-child"' }],
+        },
+        { col1: 'After' },
+      ];
+      let vetoUndo = false;
+
       handsontable({
-        data: [
-          {
-            col1: 'Parent',
-            __children: [{ col1: '=A1 & "-child"' }],
-          },
-          { col1: 'After' },
-        ],
+        data: JSON.parse(JSON.stringify(originalData)),
         formulas: {
           engine: HyperFormula,
           sheetName: 'Sheet1',
         },
         nestedRows: true,
+        beforeUndo: () => !vetoUndo,
       });
 
       const nestedRows = getPlugin('nestedRows');
@@ -572,9 +576,10 @@ describe('Formulas', () => {
       const detachedData = JSON.parse(JSON.stringify(nestedRows.dataManager.getData()));
       const sheetAfterDetach = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
 
-      // The undo of a detach moves rows without creating or removing any, so `beforeUndo` is its veto. A
-      // vetoed undo keeps the step and leaves the grid and HyperFormula as they were.
-      addHook('beforeUndo', () => false);
+      // The undo of a detach moves rows without creating or removing any – it journals only meta row
+      // shifts – so no row hook is asked during its replay, and `beforeUndo` is its only veto. A vetoed
+      // undo keeps the step and leaves the grid and HyperFormula as they were.
+      vetoUndo = true;
       undoRedo.undo();
 
       expect(undoRedo.doneActions.length).toBe(1);
@@ -582,6 +587,19 @@ describe('Formulas', () => {
       expect(nestedRows.dataManager.getData()).toEqual(detachedData);
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterDetach);
       expect(getDataAtCell(2, 0)).toBe('Parent-child');
+
+      // Once the veto is lifted, the kept step undoes the detach, in the grid and in HyperFormula.
+      vetoUndo = false;
+      undoRedo.undo();
+      await waitUntil(() => undoRedo.undoneActions.length === 1);
+
+      expect(nestedRows.dataManager.getData()).toEqual(originalData);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['Parent'],
+        ['=A1 & "-child"'],
+        ['After'],
+      ]);
+      expect(getDataAtCell(1, 0)).toBe('Parent-child');
     });
 
     it('should keep HyperFormula in step when redoing a detached child is vetoed', async() => {

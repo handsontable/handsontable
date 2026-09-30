@@ -62,6 +62,9 @@ const NO_SELECTION: StepSelection = Object.freeze({ undo: null, redo: null });
  */
 export interface UndoRedoStep {
   actionType: string;
+  source?: string;
+  operations?: string[];
+  sources?: Array<string | undefined>;
   [key: string]: unknown;
 }
 

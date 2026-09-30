@@ -14,6 +14,7 @@ import type { ColumnDataGetterSetterFunction } from '../../settings';
 import { deepClone, isPlainObject } from '../../helpers/object';
 import { isDataAccessorFn } from '../../dataMap/dataSource';
 import { safeBatch } from '../../utils/safeBatch';
+import type { IndexMapSnapshot } from '../../translations/indexMapperSnapshot';
 import type { GridStateSnapshot, GridStateTracker } from './snapshot/gridState';
 import type { StepRecord } from './entry';
 import { toFinalIndex } from './restoredCells';
@@ -33,6 +34,204 @@ type SourceChange = [number, string | number | ColumnDataGetterSetterFunction, u
  * does not exist in the grid being written.
  */
 type RowMapper = (op: JournalOp, physicalRow: number) => number | null;
+
+/**
+ * The collections of true/false index maps whose flags a structural restore keeps when the step left
+ * them alone.
+ */
+const KEPT_FLAG_COLLECTIONS = ['trimming', 'hiding'] as const;
+
+/**
+ * The flagged (trimmed or hidden) physical indexes of one map a step left alone, read before a
+ * restore.
+ */
+interface KeptFlags {
+  axis: 'row' | 'column';
+  key: typeof KEPT_FLAG_COLLECTIONS[number];
+  name: string;
+  physicalIndexes: number[];
+}
+
+/**
+ * Returns the physical indexes a trimming or hiding map snapshot marks as `true`.
+ *
+ * @param {IndexMapSnapshot} snapshot The snapshot.
+ * @returns {number[]}
+ */
+function readFlaggedIndexes(snapshot: IndexMapSnapshot): number[] {
+  const indexes: number[] = [];
+
+  switch (snapshot.kind) {
+    case 'bitset':
+      for (let index = 0; index < snapshot.length; index += 1) {
+        if (snapshot.bits[index >> 3] & (1 << (index & 7))) { // eslint-disable-line no-bitwise
+          indexes.push(index);
+        }
+      }
+      break;
+    case 'sparse':
+    case 'linked':
+      snapshot.entries.forEach(([index, value]) => {
+        if (value === true) {
+          indexes.push(index);
+        }
+      });
+      break;
+    case 'dense':
+      snapshot.values.forEach((value, index) => {
+        if (value === true) {
+          indexes.push(index);
+        }
+      });
+      break;
+    default:
+      break;
+  }
+
+  return indexes;
+}
+
+/**
+ * Tells whether a step left the flags of one map as they were: the flags before the step, moved
+ * through the rows or columns it inserted and removed, are the flags after it. The two snapshots are
+ * different objects whenever the step changed the axis length, so they cannot be compared by identity.
+ *
+ * @param {IndexMapSnapshot} before The map before the step.
+ * @param {IndexMapSnapshot} after The map after the step.
+ * @param {JournalOp[]} journal The step journal.
+ * @param {'row'|'column'} axis The axis.
+ * @returns {boolean}
+ */
+function isFlagMapLeftAlone(
+  before: IndexMapSnapshot, after: IndexMapSnapshot, journal: JournalOp[], axis: 'row' | 'column',
+): boolean {
+  if (before === after) {
+    return true;
+  }
+
+  const moved: number[] = [];
+  let removedFlag = false;
+
+  readFlaggedIndexes(before).forEach((index) => {
+    const finalIndex = toFinalIndex(journal, -1, index, axis, 'redo');
+
+    if (finalIndex === null) {
+      removedFlag = true;
+    } else {
+      moved.push(finalIndex);
+    }
+  });
+
+  // The step removed a flagged row or column, so an undo has to put the flag back with it.
+  if (removedFlag) {
+    return false;
+  }
+
+  const flaggedAfter = readFlaggedIndexes(after);
+
+  moved.sort((left, right) => left - right);
+
+  return moved.length === flaggedAfter.length && moved.every((index, position) => index === flaggedAfter[position]);
+}
+
+/**
+ * Reads the live flags of every trimming and hiding map the step left alone. The replay lifts every
+ * trim, and the snapshot the restore writes back then brings back the trims and hides the step
+ * recorded – dropping a trim or a hide made outside any step since, such as a `trimRows` or
+ * `hiddenRows` settings update.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {GridStateSnapshot} target The state the restore goes to.
+ * @param {GridStateSnapshot} other The state on the other side of the step.
+ * @param {JournalOp[]} journal The step journal.
+ * @param {RestoreDirection} direction The replay direction.
+ * @returns {KeptFlags[]}
+ */
+function readKeptFlags(
+  hot: HotInstance, target: GridStateSnapshot, other: GridStateSnapshot, journal: JournalOp[],
+  direction: RestoreDirection,
+): KeptFlags[] {
+  const kept: KeptFlags[] = [];
+
+  (['row', 'column'] as const).forEach((axis) => {
+    const mapper = axis === 'row' ? hot.rowIndexMapper : hot.columnIndexMapper;
+    const targetAxis = axis === 'row' ? target.rows : target.columns;
+    const otherAxis = axis === 'row' ? other.rows : other.columns;
+
+    KEPT_FLAG_COLLECTIONS.forEach((key) => {
+      const collection = key === 'trimming' ? mapper.trimmingMapsCollection : mapper.hidingMapsCollection;
+
+      targetAxis[key].forEach((snapshot, name) => {
+        const map = collection.get(name);
+        const otherSnapshot = otherAxis[key].get(name);
+
+        if (map === undefined || otherSnapshot === undefined) {
+          return;
+        }
+
+        const [before, after] = direction === 'undo' ? [snapshot, otherSnapshot] : [otherSnapshot, snapshot];
+
+        if (!isFlagMapLeftAlone(before, after, journal, axis)) {
+          return;
+        }
+
+        const physicalIndexes: number[] = [];
+
+        (map.getValues() as unknown[]).forEach((isFlagged, physicalIndex) => {
+          if (isFlagged === true) {
+            physicalIndexes.push(physicalIndex);
+          }
+        });
+
+        kept.push({ axis, key, name, physicalIndexes });
+      });
+    });
+  });
+
+  return kept;
+}
+
+/**
+ * Puts back the flags `readKeptFlags()` read, moved through the step's row and column changes to the
+ * grid the restore leaves behind. A row the step inserted is never flagged by them.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {KeptFlags[]} kept The flags.
+ * @param {JournalOp[]} journal The step journal.
+ * @param {RestoreDirection} direction The replay direction.
+ */
+function applyKeptFlags(hot: HotInstance, kept: KeptFlags[], journal: JournalOp[], direction: RestoreDirection) {
+  // An undo leaves the grid as it was before the step, so every entry is reversed; a redo applies them all.
+  const fromEntry = direction === 'undo' ? journal.length : -1;
+
+  kept.forEach(({ axis, key, name, physicalIndexes }) => {
+    const mapper = axis === 'row' ? hot.rowIndexMapper : hot.columnIndexMapper;
+    const map = (key === 'trimming' ? mapper.trimmingMapsCollection : mapper.hidingMapsCollection).get(name);
+
+    if (map === undefined) {
+      return;
+    }
+
+    const length = mapper.getNumberOfIndexes();
+    const values = new Array<boolean>(length).fill(false);
+
+    physicalIndexes.forEach((physicalIndex) => {
+      const finalIndex = toFinalIndex(journal, fromEntry, physicalIndex, axis, direction);
+
+      if (finalIndex !== null && finalIndex < length) {
+        values[finalIndex] = true;
+      }
+    });
+
+    mapper.suspendOperations();
+
+    try {
+      map.setValues(values);
+    } finally {
+      mapper.resumeOperations();
+    }
+  });
+}
 
 /**
  * Tells whether a journal entry adds or removes rows.
@@ -589,7 +788,9 @@ function createRestoredShapeRowMapper(record: StepRecord, direction: RestoreDire
  * 4. With a restored shape, `afterCreateRow` and `afterRemoveRow` report its rows.
  * 5. The index maps, the plugin states and the settings the step changed, from the snapshot. What the
  *    step left alone keeps its current state, so a change made outside any step since (a trim a
- *    settings update applied) survives the undo.
+ *    settings update applied) survives the undo. After a step that inserts or removes rows or columns
+ *    every map snapshot has another length, so the trims and hides the step left alone are read
+ *    before step 1 and put back last, moved through the step's changes (`readKeptFlags()`).
  *
  * Everything runs inside one suspended render and index-cache batch. When a listener vetoes a row or
  * column change, the replay is reverted and the grid is put back as it was.
@@ -615,6 +816,7 @@ export function restoreStep(
 
   return safeBatch(hot, () => {
     const current = tracker.capture();
+    const keptFlags = reordersForReplay ? readKeptFlags(hot, target, other, record.journal, direction) : [];
 
     if (reordersForReplay) {
       tracker.resetToPhysicalOrder();
@@ -645,7 +847,8 @@ export function restoreStep(
     announceRowChanges(hot, rowChanges, source);
 
     // Only what the step changed is written back, so a change made outside any step since survives.
-    tracker.restore(target, { changedFrom: other, base: current, forceOrder: reordersForReplay });
+    tracker.restore(target, { changedFrom: other, base: current, forceOrder: reordersForReplay, direction });
+    applyKeptFlags(hot, keptFlags, record.journal, direction);
 
     // A full render when the batch ends. A step that changed only cell meta asks for none itself, and
     // the fast draw the batch ends with would keep every cell as it was painted.

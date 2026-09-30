@@ -4,6 +4,7 @@ import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
 import { ManualRowMove } from '../../manualRowMove';
+import { MoveCells } from '../../moveCells';
 
 /**
  * The Formulas plugin observes undo and redo instead of driving them: the grid restores its own
@@ -171,6 +172,70 @@ describe('Formulas as an undo/redo observer', () => {
 
     expect(hot.getData()).toEqual(movedValues);
     expect(engine.getCellFormula({ sheet: sheetId, row: 0, col: 0 })).toBe('=A5+1000');
+  });
+
+  // While the order is not physical every step keeps the engine's sheet. Consecutive steps share the
+  // rows they did not change, so the history grows by the rows an edit touched, not by the sheet.
+  it('shares the unchanged rows of the recorded sheet between steps on a moved grid', () => {
+    build([[1, '=A1*2'], [2, '=A2*2'], [3, '=A3*2']], { manualRowMove: true });
+
+    const formulas = hot.getPlugin('formulas');
+
+    hot.getPlugin('manualRowMove').moveRow(2, 0);
+    hot.render();
+
+    const before = formulas.captureState(undefined);
+
+    hot.setDataAtCell(0, 0, 30);
+
+    const after = formulas.captureState(before);
+    const changedRow = after.engineSheet.content.findIndex((row, index) => row !== before.engineSheet.content[index]);
+
+    expect(after.engineSheet.content.filter((row, index) => row === before.engineSheet.content[index]).length).toBe(2);
+    expect(after.engineSheet.content[changedRow][0]).toBe(30);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getDataAtCol(0)).toEqual([3, 1, 2]);
+    expect(hot.getDataAtCol(1)).toEqual([6, 2, 4]);
+  });
+
+  // Out of physical order the engine's rewrite of `=A3*2` is never written back to the source data, so
+  // the journal cannot undo it; the step loads the recorded sheet instead.
+  it('undoes a cell move on a moved grid together with the reference the move rewrote', () => {
+    registerPlugin(MoveCells);
+    build([[30, '=A1*2', null], [10, '=A2*2', null], [20, '=A3*2', null]], { manualRowMove: true, moveCells: true });
+
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.getPlugin('manualRowMove').moveRow(2, 0);
+    hot.render();
+    undoRedo.clear();
+
+    const topLeft = hot._createCellCoords(0, 0);
+    const moved = hot._createCellRange(topLeft, topLeft, topLeft);
+
+    hot.getPlugin('moveCells').moveCellRange(moved, hot._createCellCoords(0, 2));
+
+    expect(hot.getDataAtRow(0)).toEqual([null, 40, 20]);
+
+    // The formula follows the value back to column A: a later edit there is what it reads.
+    undoRedo.undo();
+
+    expect(hot.getDataAtRow(0)).toEqual([20, 40, null]);
+
+    hot.setDataAtCell(0, 0, 50);
+
+    expect(hot.getDataAtCell(0, 1)).toBe(100);
+
+    // And forward again to column C.
+    undoRedo.undo();
+    hot.getPlugin('moveCells').moveCellRange(moved, hot._createCellCoords(0, 2));
+    undoRedo.undo();
+    undoRedo.redo();
+    hot.setDataAtCell(0, 2, 7);
+
+    expect(hot.getDataAtRow(0)).toEqual([null, 14, 7]);
   });
 
   it('keeps the engine in step with a row move that is undone', () => {

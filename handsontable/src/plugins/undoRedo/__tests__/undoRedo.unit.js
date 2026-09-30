@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import {
-  ColumnSorting, HiddenRows, ManualRowMove, MergeCells, NestedRows, registerPlugin, TrimRows, UndoRedo,
+  ColumnSorting, HiddenColumns, HiddenRows, ManualRowMove, MergeCells, NestedRows, registerPlugin, TrimRows, UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
@@ -8,6 +8,7 @@ registerAllCellTypes();
 registerPlugin(UndoRedo);
 registerPlugin(TrimRows);
 registerPlugin(HiddenRows);
+registerPlugin(HiddenColumns);
 registerPlugin(NestedRows);
 registerPlugin(MergeCells);
 registerPlugin(ColumnSorting);
@@ -87,6 +88,92 @@ describe('UndoRedo plugin', () => {
 
       expect(hot.getPlugin('undoRedo').doneActions.length).toBe(59);
     });
+
+    it('should keep no steps for `maxHistory: 0`', () => {
+      hot = new Handsontable(container, {
+        data: [['A1']],
+        undo: { maxHistory: 0 },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
+    it.each([-1, 1.5, '3', NaN, null])('should warn about `maxHistory: %p` and keep the previous limit', (value) => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        data: [['A1', 'B1', 'C1']],
+        undo: { maxHistory: 2 },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      hot.updateSettings({ undo: { maxHistory: value } });
+
+      ['a', 'b', 'c'].forEach((cellValue, column) => hot.setDataAtCell(0, column, cellValue));
+
+      expect(hot.getPlugin('undoRedo').doneActions.length).toBe(2);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('"maxHistory" option is not valid'));
+
+      warnSpy.mockRestore();
+    });
+
+    it('should drop the oldest steps at once when the limit is lowered, with one hook pair', () => {
+      const afterUndoStackChange = jest.fn();
+
+      hot = new Handsontable(container, {
+        data: [['A1', 'B1', 'C1', 'D1', 'E1']],
+        undo: { maxHistory: 5 },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      ['a', 'b', 'c', 'd', 'e'].forEach((value, column) => hot.setDataAtCell(0, column, value));
+      hot.addHook('afterUndoStackChange', afterUndoStackChange);
+      hot.updateSettings({ undo: { maxHistory: 2 } });
+
+      expect(plugin.doneActions.length).toBe(2);
+      expect(afterUndoStackChange).toHaveBeenCalledTimes(1);
+      expect(afterUndoStackChange.mock.calls[0][1]).toHaveLength(2);
+
+      plugin.undo();
+      plugin.undo();
+
+      expect(hot.getDataAtRow(0)).toEqual(['a', 'b', 'c', 'D1', 'E1']);
+    });
+
+    it('should keep the limit through a settings update that does not mention `undo`', () => {
+      hot = new Handsontable(container, {
+        data: [['A1', 'B1', 'C1']],
+        undo: { maxHistory: 2 },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ colHeaders: true });
+      ['a', 'b', 'c'].forEach((value, column) => hot.setDataAtCell(0, column, value));
+
+      expect(hot.getPlugin('undoRedo').doneActions.length).toBe(2);
+    });
+
+    it('should never let a redo push the undo stack past a lowered limit', () => {
+      hot = new Handsontable(container, {
+        data: [['A1', 'B1', 'C1']],
+        undo: { maxHistory: 3 },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      ['a', 'b', 'c'].forEach((value, column) => hot.setDataAtCell(0, column, value));
+      plugin.undo();
+      plugin.undo();
+      hot.updateSettings({ undo: { maxHistory: 1 } });
+      plugin.redo();
+      plugin.redo();
+
+      expect(plugin.doneActions.length).toBe(1);
+      expect(hot.getDataAtRow(0)).toEqual(['a', 'b', 'c']);
+    });
   });
 
   it('should keep recording new actions after an action throws during undo', () => {
@@ -137,6 +224,44 @@ describe('UndoRedo plugin', () => {
     hot.alter('remove_row', 0);
 
     expect(plugin.isUndoAvailable()).toBe(true);
+  });
+
+  // 19.0: the plugin records only while it is on (18.x recorded with `undo: false` too), so an API
+  // `undo()` on a disabled grid has nothing to undo.
+  it('should record nothing while `undo` is `false`', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1', 'B1']],
+      undo: false,
+    });
+    const plugin = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 1, 'X');
+    plugin.undo();
+
+    expect(plugin.isUndoAvailable()).toBe(false);
+    expect(hot.getDataAtCell(0, 1)).toBe('X');
+  });
+
+  // The hooks get the step object itself, and `beforeUndo` runs while the step is still on the stack.
+  it('should hand `beforeUndo` the step on top of the undo stack', () => {
+    const seen = [];
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1']],
+      undo: true,
+      beforeUndo(action) {
+        const { doneActions } = hot.getPlugin('undoRedo');
+
+        seen.push(action === doneActions[doneActions.length - 1], doneActions.length);
+      },
+    });
+
+    hot.setDataAtCell(0, 0, 'x');
+    hot.getPlugin('undoRedo').undo();
+
+    expect(seen).toEqual([true, 1]);
   });
 
   // A vetoed undo keeps its step, as a vetoed redo does, so it can be retried once the condition that
@@ -594,16 +719,33 @@ describe('UndoRedo plugin', () => {
       expect(hot.getData()).toEqual([['edited', 'B1'], ['A3', 'also edited']]);
     });
 
+    it('should record a `batchExecution()` as one `batch` step', () => {
+      createGrid();
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batchExecution(() => {
+        hot.setDataAtCell(0, 0, 'x');
+        hot.setDataAtCell(1, 1, 'y');
+      });
+
+      expect(plugin.doneActions.map(action => action.actionType)).toEqual(['batch']);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(hot.getDataAtCell(1, 1)).toBe('B2');
+    });
+
     it('should record a `runOperation()` as one step named after the operation', () => {
       createGrid();
       const plugin = hot.getPlugin('undoRedo');
       const beforeUndoStackChange = jest.fn();
 
       hot.addHook('beforeUndoStackChange', beforeUndoStackChange);
-      hot.runOperation('import', 'myImport', () => {
+      hot.runOperation('import', () => {
         hot.setDataAtCell(0, 0, 'x');
         hot.setDataAtCell(1, 0, 'y');
-      });
+      }, 'myImport');
 
       expect(plugin.doneActions.map(action => action.actionType)).toEqual(['import']);
       expect(beforeUndoStackChange).toHaveBeenCalledTimes(1);
@@ -655,6 +797,24 @@ describe('UndoRedo plugin', () => {
       ]);
     });
 
+    it('should list a nested edit after the edit that caused it', () => {
+      createGrid({
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            hot.setDataAtCell([[2, 0, 'z'], [3, 0, 'w']], 'nested');
+          }
+        },
+      });
+      const beforeUndo = jest.fn();
+
+      hot.addHook('beforeUndo', beforeUndo);
+      hot.setDataAtCell([[0, 0, 'x'], [1, 0, 'y']], 'edit');
+      hot.getPlugin('undoRedo').undo();
+
+      expect(beforeUndo.mock.calls[0][0].changes.map(([row]) => row)).toEqual([0, 1, 2, 3]);
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4']);
+    });
+
     it('should report the physical row of the first visual row removed as the `index` of a removal', () => {
       createGrid();
       hot.rowIndexMapper.setIndexesSequence([2, 0, 1, 3]);
@@ -692,6 +852,495 @@ describe('UndoRedo plugin', () => {
       plugin.undo();
 
       expect(hot.getDataAtCell(0, 1)).toBe('B1');
+    });
+  });
+
+  // Validation runs in a microtask, after the call that started it has returned. What it writes
+  // belongs to the step of that call, and a step that waits for it keeps the history intact.
+  describe('validation inside a step', () => {
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+    const actionTypes = () => hot.getPlugin('undoRedo').doneActions.map(action => action.actionType);
+
+    it('should record an edit and the meta its `afterValidate` listener writes as one step', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        columns: [{ validator: (value, callback) => callback(value !== 'bad') }, {}],
+        undo: true,
+        afterValidate(isValid, value, row) {
+          hot.setCellMeta(row, 0, 'className', isValid ? '' : 'error');
+        },
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'bad');
+      await settle();
+
+      expect(actionTypes()).toEqual(['change']);
+      expect(hot.getCellMeta(0, 0).className).toBe('error');
+
+      plugin.undo();
+      await settle();
+
+      // The re-validation after the undo writes meta too, and must not record a step of its own:
+      // that would empty the redo stack.
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(hot.getCellMeta(0, 0).className).not.toBe('error');
+      expect(plugin.doneActions.length).toBe(0);
+      expect(plugin.isRedoAvailable()).toBe(true);
+    });
+
+    it('should keep the history while a step that removes a row waits for its validator', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']],
+        columns: [{ validator: (value, callback) => callback(true) }, {}],
+        undo: true,
+      });
+
+      hot.setDataAtCell(3, 1, 'prior');
+      hot.batch(() => {
+        hot.alter('remove_row', 2);
+        hot.setDataAtCell(0, 0, 'x');
+      });
+      // Opens a transaction while the batch still waits for its validator.
+      hot.setCellMeta(1, 1, 'className', 'marked');
+      await settle();
+
+      expect(actionTypes()).toEqual(['change', 'set_cell_meta', 'batch']);
+    });
+
+    it('should ignore an undo made while a step that removes a row waits for its validator', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{ validator: (value, callback) => callback(true) }, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(2, 1, 'prior');
+      hot.batch(() => {
+        hot.alter('remove_row', 1);
+        hot.setDataAtCell(0, 0, 'x');
+      });
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['A1', 'B1'], ['A3', 'prior']]);
+
+      await settle();
+
+      expect(actionTypes()).toEqual(['change', 'batch']);
+
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'prior']]);
+
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']]);
+    });
+
+    it('should not let an edit whose validator never answers block the undo of an earlier step', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1']],
+        columns: [{ validator: () => {} }, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 1, 'edited');
+      hot.setDataAtCell(0, 0, 'never validated');
+      await settle();
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('B1');
+    });
+
+    // The step that threw removed a row, so a hold it never released would block every undo for good.
+    it('should record what a step did before a `beforeValidate` listener threw, and keep undo working', async() => {
+      let shouldThrow = true;
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{ validator: (value, callback) => callback(true) }, {}],
+        undo: true,
+        beforeValidate() {
+          if (shouldThrow) {
+            shouldThrow = false;
+            throw new Error('beforeValidate boom');
+          }
+        },
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      expect(() => hot.batch(() => {
+        hot.alter('remove_row', 1);
+        hot.setDataAtCell(0, 0, 'never applied');
+      })).toThrow('beforeValidate boom');
+      await settle();
+
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A3']);
+      expect(actionTypes()).toEqual(['batch']);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
+
+      hot.setDataAtCell(0, 1, 'y');
+      await settle();
+
+      expect(actionTypes()).toEqual(['change']);
+    });
+
+    it('should record an edit and the value its validator corrects as one step', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1']],
+        columns: [{
+          validator(value, callback) {
+            if (value === 'raw') {
+              hot.setDataAtCell(0, 0, 'corrected', 'correctingValidator');
+            }
+
+            callback(true);
+          },
+        }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'raw');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('corrected');
+      expect(actionTypes()).toEqual(['change']);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+  });
+
+  describe('`spliceCellsMeta()`', () => {
+    it('should record a meta row insertion as one step that one undo reverts', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.spliceCellsMeta(0, 0, [{ className: 'x' }, { className: 'y' }]);
+
+      expect(plugin.doneActions.map(action => action.actionType)).toEqual(['splice_cells_meta']);
+
+      plugin.undo();
+
+      expect(hot.getCellMeta(0, 0).className).toBeUndefined();
+      expect(hot.getCellMeta(0, 1).className).toBeUndefined();
+    });
+
+    it('should keep an older meta step on its row after a meta row removal', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setCellMeta(5, 0, 'className', 'x');
+      hot.spliceCellsMeta(0, 1);
+
+      // The removal shifted the meta of row 5 up to row 4.
+      expect(hot.getCellMeta(4, 0).className).toBe('x');
+
+      plugin.undo();
+      plugin.undo();
+
+      expect(hot.getCellMeta(5, 0).className).toBeUndefined();
+      expect(hot.getCellMeta(4, 0).className).toBeUndefined();
+    });
+  });
+
+  // Every drop of the history is announced through the stack hooks, so a toolbar that follows them
+  // disables its buttons at once.
+  describe('a dropped history', () => {
+    it('should fire the stack hooks when `updateData()` drops the history', () => {
+      const afterUndoStackChange = jest.fn();
+      const afterRedoStackChange = jest.fn();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+      hot.setDataAtCell(0, 1, 'y');
+      plugin.undo();
+      hot.addHook('afterUndoStackChange', afterUndoStackChange);
+      hot.addHook('afterRedoStackChange', afterRedoStackChange);
+      hot.updateData([['C1', 'D1']]);
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+      expect(plugin.isRedoAvailable()).toBe(false);
+      expect(afterUndoStackChange).toHaveBeenCalledTimes(1);
+      expect(afterUndoStackChange.mock.calls[0][1]).toEqual([]);
+      expect(afterRedoStackChange).toHaveBeenCalledTimes(1);
+      expect(afterRedoStackChange.mock.calls[0][1]).toEqual([]);
+    });
+
+    it('should fire no stack hook when an empty history is dropped', () => {
+      const stackHooks = jest.fn();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1']],
+        undo: true,
+      });
+      hot.addHook('afterUndoStackChange', stackHooks);
+      hot.addHook('afterRedoStackChange', stackHooks);
+      hot.updateData([['B1']]);
+
+      expect(stackHooks).not.toHaveBeenCalled();
+    });
+
+    it('should drop the history at once when a settings update turns on a plugin that owns an index map', () => {
+      const afterUndoStackChange = jest.fn();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+      hot.addHook('afterUndoStackChange', afterUndoStackChange);
+      hot.updateSettings({ hiddenRows: true });
+
+      // Before any `undo()` call: a toolbar that asks, or follows the hooks, sees an empty stack.
+      expect(plugin.isUndoAvailable()).toBe(false);
+      expect(afterUndoStackChange).toHaveBeenCalledTimes(1);
+      expect(afterUndoStackChange.mock.calls[0][1]).toEqual([]);
+    });
+  });
+
+  // A `columns` update changes which field each column shows. A cell write is recorded by field, so it
+  // survives; a step that addresses a column whose field changed is dropped, with every step that can
+  // only be restored after it.
+  describe('a `columns` settings update', () => {
+    const people = () => [
+      { id: 1, name: 'Ted Right', city: 'Boston' },
+      { id: 2, name: 'Frank Honest', city: 'Denver' },
+    ];
+    const ID = { data: 'id' };
+    const NAME = { data: 'name' };
+    const CITY = { data: 'city' };
+
+    /**
+     * Builds a grid of `people()` rows with the given columns.
+     *
+     * @param {object[]} data The rows.
+     * @param {object} settings More settings.
+     * @returns {Handsontable}
+     */
+    function createPeopleGrid(data, settings) {
+      return new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        undo: true,
+        ...settings,
+      });
+    }
+
+    it('should keep an edit through a narrower `columns`, and undo and redo it by field', () => {
+      const data = people();
+      const stackHooks = jest.fn();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME, CITY] });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 1, 'Ann Lee');
+      hot.addHook('afterUndoStackChange', stackHooks);
+      hot.addHook('afterRedoStackChange', stackHooks);
+      hot.updateSettings({ columns: [ID, NAME] });
+
+      expect(stackHooks).not.toHaveBeenCalled();
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(data[0].name).toBe('Ted Right');
+
+      plugin.redo();
+
+      expect(data[0].name).toBe('Ann Lee');
+    });
+
+    it('should keep an edit through a wider `columns`', () => {
+      const data = people();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME] });
+
+      hot.setDataAtCell(1, 1, 'Ann Lee');
+      hot.updateSettings({ columns: [ID, NAME, CITY] });
+      hot.getPlugin('undoRedo').undo();
+
+      expect(data[1].name).toBe('Frank Honest');
+      expect(hot.getDataAtCell(1, 2)).toBe('Denver');
+    });
+
+    it('should keep a cell meta step on a column that still shows its field', () => {
+      hot = createPeopleGrid(people(), { columns: [ID, NAME, CITY] });
+
+      hot.setCellMeta(0, 0, 'className', 'flagged');
+      hot.updateSettings({ columns: [ID, NAME] });
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getCellMeta(0, 0).className).toBeUndefined();
+    });
+
+    it('should drop a cell meta step on a column that is gone, with every older step, and announce it', () => {
+      const data = people();
+      const afterUndoStackChange = jest.fn();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME, CITY] });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 1, 'Ann Lee');
+      hot.setCellMeta(0, 2, 'className', 'flagged');
+      hot.setDataAtCell(1, 1, 'Bo Diaz');
+      hot.addHook('afterUndoStackChange', afterUndoStackChange);
+      hot.updateSettings({ columns: [ID, NAME] });
+
+      expect(plugin.doneActions.length).toBe(1);
+      expect(afterUndoStackChange).toHaveBeenCalledTimes(1);
+      expect(afterUndoStackChange.mock.calls[0][0].length).toBe(3);
+      expect(afterUndoStackChange.mock.calls[0][1]).toEqual([plugin.doneActions[0]]);
+
+      plugin.undo();
+
+      expect(data[1].name).toBe('Frank Honest');
+      expect(data[0].name).toBe('Ann Lee');
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should drop such a step from the redo stack with every step redone after it', () => {
+      const data = people();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME, CITY] });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 1, 'Ann Lee');
+      hot.setCellMeta(0, 2, 'className', 'flagged');
+      hot.setDataAtCell(1, 1, 'Bo Diaz');
+      plugin.undo();
+      plugin.undo();
+      plugin.undo();
+      hot.updateSettings({ columns: [ID, NAME] });
+
+      expect(plugin.undoneActions.length).toBe(1);
+
+      plugin.redo();
+
+      expect(data[0].name).toBe('Ann Lee');
+      expect(data[1].name).toBe('Frank Honest');
+      expect(plugin.isRedoAvailable()).toBe(false);
+    });
+
+    it('should drop a hide on a column that is gone, and keep a later hide on a column that stays', () => {
+      hot = createPeopleGrid(people(), { columns: [ID, NAME, CITY], hiddenColumns: true });
+      const plugin = hot.getPlugin('undoRedo');
+      const hiddenColumns = hot.getPlugin('hiddenColumns');
+
+      hiddenColumns.hideColumn(2);
+      hiddenColumns.hideColumn(1);
+      hot.updateSettings({ columns: [ID, NAME] });
+
+      expect(plugin.doneActions.length).toBe(1);
+
+      plugin.undo();
+
+      expect(hiddenColumns.isHidden(1)).toBe(false);
+
+      plugin.redo();
+
+      expect(hiddenColumns.isHidden(1)).toBe(true);
+    });
+
+    it('should drop a cell meta step on a column that now shows another field, and keep an edit', () => {
+      const data = people();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME] });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setCellMeta(0, 0, 'className', 'flagged');
+      hot.setDataAtCell(0, 1, 'Ann Lee');
+      // The same width, with the two fields swapped.
+      hot.updateSettings({ columns: [NAME, ID] });
+
+      expect(plugin.doneActions.length).toBe(1);
+
+      plugin.undo();
+
+      expect(data[0].name).toBe('Ted Right');
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should not validate the column that now shows another field when an undo restores a value', async() => {
+      const data = [['A1', 'B1', 'C1', 'D1']];
+      const validator = jest.fn((value, callback) => callback(true));
+
+      hot = createPeopleGrid(data, { columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+
+      hot.setDataAtCell(0, 2, 'x');
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 3, validator }] });
+      hot.getPlugin('undoRedo').undo();
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(data[0]).toEqual(['A1', 'B1', 'C1', 'D1']);
+      // Column 2 shows field 3 now, which the undo did not write.
+      expect(validator).not.toHaveBeenCalled();
+    });
+
+    it('should drop a column insertion once `columns` is set, because it cannot be replayed', () => {
+      const data = [['A1', 'B1']];
+
+      hot = createPeopleGrid(data, {});
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.alter('insert_col_start', 1);
+      hot.setDataAtCell(0, 0, 'x');
+      // Every column keeps its field, but a column `alter()` throws while `columns` is set.
+      hot.updateSettings({ columns: [{ data: 0 }, { data: 1 }, { data: 2 }] });
+
+      expect(plugin.doneActions.length).toBe(1);
+
+      plugin.undo();
+
+      expect(data[0][0]).toBe('A1');
+      expect(plugin.isUndoAvailable()).toBe(false);
+    });
+
+    it('should keep the history and fire no stack hook when the same `columns` is sent again', () => {
+      const data = people();
+      const stackHooks = jest.fn();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME] });
+
+      hot.setCellMeta(0, 1, 'className', 'flagged');
+      hot.addHook('afterUndoStackChange', stackHooks);
+      hot.addHook('afterRedoStackChange', stackHooks);
+      // What the React wrapper does on every render: a new array with the same fields.
+      hot.updateSettings({ columns: [{ data: 'id' }, { data: 'name' }] });
+
+      expect(stackHooks).not.toHaveBeenCalled();
+      expect(hot.getPlugin('undoRedo').doneActions.length).toBe(1);
     });
   });
 
@@ -949,6 +1598,35 @@ describe('UndoRedo plugin', () => {
       ));
     }
 
+    // An undo writes back only the merges its step changed, so a merge a settings update made since
+    // survives it.
+    it('should keep a merge a settings update made after the step when the step is undone and redone', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: sheet(6, 4),
+        mergeCells: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+      hot.updateSettings({ mergeCells: [{ row: 3, col: 0, rowspan: 2, colspan: 2 }] });
+
+      expect(listMerges()).toEqual([[3, 0, 2, 2]]);
+
+      plugin.undo();
+
+      expect(listMerges()).toEqual([[3, 0, 2, 2]]);
+
+      plugin.redo();
+
+      expect(listMerges()).toEqual([[0, 0, 2, 2], [3, 0, 2, 2]]);
+
+      plugin.undo();
+
+      expect(listMerges()).toEqual([[3, 0, 2, 2]]);
+    });
+
     it('should be one step, and one undo should bring back the merges it replaced', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
@@ -1025,6 +1703,26 @@ describe('UndoRedo plugin', () => {
         .toEqual([0, 0, 1, 1]);
       expect(step.data).toEqual(valuesBefore);
       expect(valuesBefore).toEqual([['A1', 'B1'], [null, 'B2']]);
+    });
+
+    // The undo adds back only the merge the step removed, and keeps the list in the order it had.
+    it('should put a merge an undo brings back in its place in the list', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: Array.from({ length: 6 }, (_, row) => [`A${row + 1}`]),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 1 },
+          { row: 2, col: 0, rowspan: 2, colspan: 1 },
+          { row: 4, col: 0, rowspan: 2, colspan: 1 },
+        ],
+        undo: true,
+      });
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.unmerge(0, 0, 1, 0);
+      hot.getPlugin('undoRedo').undo();
+
+      expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row }) => row)).toEqual([0, 2, 4]);
     });
   });
 
@@ -1143,6 +1841,45 @@ describe('UndoRedo plugin', () => {
   });
 
   describe('a step on a nested rows grid', () => {
+    // NestedRows expands the collapsed parents before a removal and collapses them again a tick later.
+    it('should record a row removal next to a collapsed parent as one step that keeps it collapsed', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [
+          { name: 'Root A', __children: [{ name: 'A-1' }, { name: 'A-2' }] },
+          { name: 'Root B', __children: [{ name: 'B-1' }, { name: 'B-2' }] },
+        ],
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const collapsing = hot.getPlugin('nestedRows').collapsingUI;
+      const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+      collapsing.collapseChildren(3);
+      plugin.clear();
+      hot.alter('remove_row', 1);
+      await settle();
+
+      expect(plugin.doneActions.map(action => action.actionType)).toEqual(['remove_row']);
+      expect(hot.countRows()).toBe(3);
+
+      plugin.undo();
+      await settle();
+
+      expect(hot.countRows()).toBe(4);
+      expect(hot.getDataAtCell(1, 0)).toBe('A-1');
+      expect(collapsing.areChildrenCollapsed(3)).toBe(true);
+      expect(plugin.isRedoAvailable()).toBe(true);
+
+      plugin.redo();
+      await settle();
+
+      expect(hot.countRows()).toBe(3);
+      expect(collapsing.areChildrenCollapsed(2)).toBe(true);
+    });
+
     it('should write a cell edited after a parent removal in the same step to the row it named', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',

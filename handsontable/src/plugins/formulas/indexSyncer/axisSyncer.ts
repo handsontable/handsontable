@@ -505,6 +505,18 @@ class AxisSyncer {
   }
 
   /**
+   * Tells whether the sheet this axis is synced with was removed from the engine behind the grid's back.
+   *
+   * @returns {boolean}
+   */
+  #isSheetRemoved(): boolean {
+    const engine = this.#indexSyncer.getEngine();
+    const sheetId = this.#indexSyncer.getSheetId();
+
+    return engine !== null && sheetId !== null && engine.getSheetName(sheetId) === undefined;
+  }
+
+  /**
    * Gets callback for hook triggered after performing change of indexes order.
    *
    * @returns {Function}
@@ -514,7 +526,10 @@ class AxisSyncer {
       const newSequence = this.#indexMapper.getIndexesSequence();
 
       if (source === 'update' && newSequence.length > 0) {
-        this.#syncOrderWithEngine(newSequence);
+        // A sheet the host removed from the engine has no order to follow: asking its size throws.
+        if (!this.#isSheetRemoved()) {
+          this.#syncOrderWithEngine(newSequence);
+        }
 
         return;
       }

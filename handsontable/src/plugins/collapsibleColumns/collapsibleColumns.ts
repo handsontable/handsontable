@@ -37,6 +37,11 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 interface CollapsedGroupsState {
   readonly groups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>;
+  /**
+   * The header state manager's config version when the groups were recorded. Groups from another
+   * `nestedHeaders` configuration name that configuration's headers.
+   */
+  readonly configVersion: number;
 }
 
 /**
@@ -46,7 +51,8 @@ interface CollapsedGroupsState {
  * @returns {boolean}
  */
 function isCollapsedGroupsState(value: unknown): value is CollapsedGroupsState {
-  return typeof value === 'object' && value !== null && 'groups' in value && Array.isArray(value.groups);
+  return typeof value === 'object' && value !== null && 'groups' in value && Array.isArray(value.groups) &&
+    'configVersion' in value && typeof value.configVersion === 'number';
 }
 
 const actionDictionary = new Map([
@@ -223,6 +229,12 @@ export class CollapsibleColumns extends BasePlugin {
    * `#collapsedColumnsMap`.
    */
   #visibleWhenMap: HidingMap | null = null;
+  /**
+   * The collapsed-groups version of the header state manager at which each state `captureState()`
+   * returned was last known to be current. Kept out of the state itself: a state returned again
+   * after a version change must still be the same object.
+   */
+  #capturedVersions = new WeakMap<object, number>();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -535,29 +547,41 @@ export class CollapsibleColumns extends BasePlugin {
       return undefined;
     }
 
-    const groups = this.headerStateManager.exportCollapsedGroups();
+    const version = this.headerStateManager.getCollapsedGroupsVersion();
+    const configVersion = this.headerStateManager.getConfigVersion();
+    const isSameConfig = isCollapsedGroupsState(previous) && previous.configVersion === configVersion;
 
-    if (
-      isCollapsedGroupsState(previous) &&
-      previous.groups.length === groups.length &&
-      previous.groups.every((group, index) => group.headerLevel === groups[index].headerLevel &&
-        group.authoredColumnIndex === groups[index].authoredColumnIndex)
-    ) {
+    // Every transaction captures the state, so the tree is walked only when it may have changed.
+    if (isSameConfig && this.#capturedVersions.get(previous) === version) {
       return previous;
     }
 
-    return { groups };
+    const groups = this.headerStateManager.exportCollapsedGroups();
+    const state = (
+      isSameConfig &&
+      previous.groups.length === groups.length &&
+      previous.groups.every((group, index) => group.headerLevel === groups[index].headerLevel &&
+        group.authoredColumnIndex === groups[index].authoredColumnIndex)
+    ) ? previous : { groups, configVersion };
+
+    this.#capturedVersions.set(state, version);
+
+    return state;
   }
 
   /**
    * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
-   * hooks fired when the user acted.
+   * hooks fired when the user acted. Groups recorded under another `nestedHeaders` configuration are
+   * not put back: they would collapse whatever group of the new one sits at the same position.
    *
    * @private
    * @param {*} state The recorded state.
    */
   restoreState(state: unknown): void {
-    if (this.headerStateManager !== null && isCollapsedGroupsState(state)) {
+    if (
+      this.headerStateManager !== null && isCollapsedGroupsState(state) &&
+      state.configVersion === this.headerStateManager.getConfigVersion()
+    ) {
       this.headerStateManager.importCollapsedGroups(state.groups);
     }
   }

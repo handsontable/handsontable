@@ -17,7 +17,7 @@ export const KEY = 'alignment';
  * @param {string} alignment The alignment class name.
  */
 function applyAlignment(hot: HotInstance, type: string, alignment: string) {
-  hot.runOperation('cell_alignment', 'ContextMenu.alignment', () => {
+  hot.runOperation('cell_alignment', () => {
     const selectedRange = hot.getSelectedRange() ?? [];
     const stateBefore = getAlignmentClasses(selectedRange,
       (row: number, col: number) => hot.getCellMetaTransient(row, col).className as string);
@@ -28,7 +28,7 @@ function applyAlignment(hot: HotInstance, type: string, alignment: string) {
     align(selectedRange, type, alignment, (row: number, col: number) => hot.getCellMetaTransient(row, col),
       (row: number, col: number, key: string, value: string) => hot.setCellMeta(row, col, key, value));
     hot.render();
-  });
+  }, 'ContextMenu.alignment');
 }
 
 /**

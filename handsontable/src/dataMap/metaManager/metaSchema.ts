@@ -7937,9 +7937,13 @@ export default (): Record<string, unknown> => {
      *
      * By default, the `undo` option is set to `true`, and the undo stack has no size limit.
      * To disable the [`UndoRedo`](@/api/undoRedo.md) plugin completely,
-     * set the `undo` option to `false`.
+     * set the `undo` option to `false`. With `false`, nothing is recorded, so calling `undo()` through the
+     * API undoes nothing either.
      *
-     * With `maxHistory`, the oldest step is dropped once the stack grows past the limit.
+     * With `maxHistory`, the oldest step is dropped once the stack grows past the limit. `maxHistory` takes
+     * a whole number from `0` up, or `Infinity` (no limit, the default); `0` keeps no steps. Lowering it
+     * with `updateSettings()` drops the oldest steps at once. Any other value is ignored with a warning,
+     * and the previous limit stays. The object form is available since 19.0.0.
      *
      * Read more:
      * - [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md)

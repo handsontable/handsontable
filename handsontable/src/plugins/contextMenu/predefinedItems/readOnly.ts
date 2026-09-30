@@ -121,7 +121,7 @@ export default function readOnlyItem() {
       // The whole selection is one undo step, under the action type the toggle has always recorded.
       // UndoRedo restores the `readOnly` meta from its journal; the step carries the toggle's own
       // description (plain copies of the ranges - the selection's are live objects).
-      this.runOperation('read_only_toggle', 'ContextMenu.read_only_toggle', () => {
+      this.runOperation('read_only_toggle', () => {
         this._getOperationScope().describe({ stateBefore, ranges: deepClone(ranges), readOnly });
         this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
 
@@ -132,7 +132,7 @@ export default function readOnlyItem() {
             }
           });
         }
-      });
+      }, 'ContextMenu.read_only_toggle');
 
       this.render();
     },

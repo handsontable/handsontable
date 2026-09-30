@@ -646,7 +646,9 @@ export interface GridSettings {
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
   /**
-   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move. To let
+   * the move through, return nothing, or the `sourceRange` the listener received. Any other value,
+   * `true` included, cancels the move too.
    *
    * @since 18.1.0
    */

@@ -191,6 +191,37 @@ export class UndoGridPage {
   }
 
   /**
+   * Drag a column resize handle with the button held while `whileHeld` runs, halfway through the
+   * drag. The pointer moves in several steps, like `dragColumnResizeHandle()`.
+   */
+  async dragColumnResizeHandleWhile(
+    visualColumn: number, deltaX: number, whileHeld: () => Promise<void>
+  ): Promise<void> {
+    const handle = this.grid.locator('.manualColumnResizer');
+
+    await this.page.mouse.move(0, 0);
+    // `nth(column + 1)` skips the corner cell.
+    await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
+    await expect(handle).toBeVisible();
+
+    const box = await handle.boundingBox();
+
+    if (!box) {
+      throw new Error('The resize handle has no layout box.');
+    }
+
+    const startX = box.x + (box.width / 2);
+    const startY = box.y + (box.height / 2);
+
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + (deltaX / 2), startY);
+    await whileHeld();
+    await this.page.mouse.move(startX + deltaX, startY);
+    await this.page.mouse.up();
+  }
+
+  /**
    * Autosize a column the way a user does: hover its header, then double-click the resize handle.
    * The autosize runs from a timer after the second press, so wait for the width to change.
    */
@@ -338,6 +369,15 @@ export class UndoGridPage {
   async comment(visualRow: number, visualColumn: number): Promise<string | undefined> {
     return this.page.evaluate(([row, column]) => (
       window.hot.getPlugin('comments').getCommentAtCell(row, column)
+    ), [visualRow, visualColumn]);
+  }
+
+  /**
+   * The `comment` cell meta of a cell, or `undefined` when it has none.
+   */
+  async commentMeta(visualRow: number, visualColumn: number): Promise<unknown> {
+    return this.page.evaluate(([row, column]) => (
+      window.hot.getCellMeta(row, column).comment
     ), [visualRow, visualColumn]);
   }
 

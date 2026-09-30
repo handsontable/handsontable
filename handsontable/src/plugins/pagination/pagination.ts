@@ -754,6 +754,17 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * The page and the page size name no column, so a `columns` settings update never makes a page
+   * change unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
    * Switches the page to the next one.
    */
   nextPage(): void {

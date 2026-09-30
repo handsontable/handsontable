@@ -71,8 +71,7 @@ type OpenListener = (transaction: OperationTransaction) => void;
 type SettleListener = (transaction: OperationTransaction) => void;
 
 /**
- * The hold handed out when there is no transaction to hold (nothing open, or the scope is
- * suppressed). Its continuation runs as a plain call.
+ * The hold handed out when no transaction is open. Its continuation runs as a plain call.
  */
 const DETACHED_HOLD: OperationHold = Object.freeze({
   resume: <T>(callback: () => T): T => callback(),
@@ -119,6 +118,19 @@ export class OperationScope {
    * Called when a transaction settles.
    */
   #settleListeners = new Set<SettleListener>();
+  /**
+   * The transactions that settled, so none settles twice.
+   */
+  #settled = new WeakSet<OperationTransaction>();
+  /**
+   * The hold handed out while the scope is suppressed. Its continuation runs suppressed too: an
+   * asynchronous continuation keeps the recording context of the call that started it, so a validator
+   * answering after an undo returned does not record what it writes.
+   */
+  #suppressedHold: OperationHold = Object.freeze({
+    resume: <T>(callback: () => T): T => this.suppress(callback),
+    release: () => {},
+  });
 
   /**
    * Returns the transaction the next journal entry belongs to, or `null` when no transaction is
@@ -259,7 +271,16 @@ export class OperationScope {
 
     this.#nextId += 1;
     this.#stack.push(transaction);
-    this.#openListeners.forEach(listener => listener(transaction));
+
+    // `enter()` either opens the transaction or does not: a listener that throws takes it off the
+    // stack again, or every later operation would join it and nothing would settle any more. The
+    // caller's `leave()` never runs, since `run()` enters outside its `try`.
+    try {
+      this.#openListeners.forEach(listener => listener(transaction));
+    } catch (error) {
+      this.#stack.splice(this.#stack.lastIndexOf(transaction), 1);
+      throw error;
+    }
   }
 
   /**
@@ -303,6 +324,10 @@ export class OperationScope {
    * @returns {OperationHold}
    */
   hold(): OperationHold {
+    if (this.#suppressDepth > 0) {
+      return this.#suppressedHold;
+    }
+
     const transaction = this.current();
 
     if (transaction === null) {
@@ -439,15 +464,25 @@ export class OperationScope {
           this.#stack.splice(position, 1);
         }
       }
+
+      // The last hold can be released inside its own continuation, while `depth` still counted it.
+      if (transaction.depth === 0 && transaction.holds === 0) {
+        this.#settle(transaction);
+      }
     }
   }
 
   /**
-   * Hands a finished transaction to the settle listeners.
+   * Hands a finished transaction to the settle listeners, once.
    *
    * @param {OperationTransaction} transaction The transaction.
    */
   #settle(transaction: OperationTransaction) {
+    if (this.#settled.has(transaction)) {
+      return;
+    }
+
+    this.#settled.add(transaction);
     this.#settleListeners.forEach(listener => listener(transaction));
   }
 }

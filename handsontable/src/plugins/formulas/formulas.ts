@@ -1,4 +1,4 @@
-import { BasePlugin } from '../base';
+import { BasePlugin, type PluginRestoreContext } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
 import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -237,7 +237,31 @@ interface FormulasUndoState {
   readonly structureVersion: number;
   readonly dataVersion: number;
   readonly engineSheet: EngineSheetSnapshot | null;
+  /**
+   * The formulas outside this grid's sheet that the step's engine calls rewrote.
+   */
+  readonly peerRewrites: readonly PeerRewrite[];
 }
+
+/**
+ * A formula outside this grid's sheet – a cell of another sheet on the same engine, or a named
+ * expression – that the engine rewrote because this grid's rows, columns or cells moved. Restoring
+ * this grid's sheet never touches it, so the step records its text before and after the change.
+ */
+type PeerRewrite = {
+  readonly kind: 'cell';
+  readonly sheet: number;
+  readonly row: number;
+  readonly col: number;
+  readonly before: string;
+  after: string | undefined;
+} | {
+  readonly kind: 'name';
+  readonly name: string;
+  readonly scope: number | undefined;
+  readonly before: string;
+  after: string | undefined;
+};
 
 /**
  * Tells whether a value is a state `Formulas#captureState()` returned.
@@ -500,6 +524,12 @@ export class Formulas extends BasePlugin {
    * held until the restore is done - see `restoreState()`.
    */
   #restoredWrites: CellChange[] = [];
+
+  /**
+   * The formulas outside this grid's sheet that the recording step's engine calls rewrote so far,
+   * keyed by cell or name. The step's closing capture takes them – see `#trackPeerRewrites()`.
+   */
+  #pendingPeerRewrites = new Map<string, PeerRewrite>();
 
   /**
    * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
@@ -886,14 +916,14 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRowMove',
       (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
+        this.#trackPeerRewrites(() => this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged));
         this.#markStructureChanged();
       });
 
     this.addHook('afterColumnMove',
       (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
+        this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged));
         this.#markStructureChanged();
       });
 
@@ -905,7 +935,7 @@ export class Formulas extends BasePlugin {
     });
 
     this.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
-      this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed);
+      this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed));
     });
 
     this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
@@ -916,7 +946,8 @@ export class Formulas extends BasePlugin {
     });
 
     this.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
-      this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
+      this.#trackPeerRewrites(
+        () => this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed));
     });
 
     // Date and preserved-text escaping runs both here (for `updateSettings`-driven
@@ -1664,15 +1695,22 @@ export class Formulas extends BasePlugin {
     if (
       isFormulasUndoState(previous) &&
       previous.structureVersion === this.#structureVersion &&
-      previous.dataVersion === this.#dataVersion
+      previous.dataVersion === this.#dataVersion &&
+      this.#pendingPeerRewrites.size === 0
     ) {
       return previous;
     }
 
+    const peerRewrites = Array.from(this.#pendingPeerRewrites.values())
+      .filter(rewrite => rewrite.after !== rewrite.before);
+
+    this.#pendingPeerRewrites.clear();
+
     return {
       structureVersion: this.#structureVersion,
       dataVersion: this.#dataVersion,
-      engineSheet: this.#captureEngineSheet(),
+      engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
+      peerRewrites,
     };
   }
 
@@ -1681,11 +1719,25 @@ export class Formulas extends BasePlugin {
    * restored by then. When the rows or columns differ from the ones the engine holds, the sheet is
    * reloaded from the source data; otherwise the cells the restore wrote are written into the engine.
    *
+   * The formulas the step's engine calls rewrote in other sheets and named expressions are then put
+   * back (`#restorePeerRewrites()`): reloading this grid's own sheet never adjusts them.
+   *
    * @private
    * @param {*} state The recorded state.
+   * @param {object} [context] The step being restored.
    */
-  restoreState(state: unknown): void {
+  restoreState(state: unknown, context?: PluginRestoreContext): void {
     if (!isFormulasUndoState(state)) {
+      return;
+    }
+
+    // The host removed this grid's sheet from the engine, so there is no sheet to bring in line. The
+    // versions still follow the restored state, so a later capture compares against it.
+    if (!this.#hasOwnSheet()) {
+      this.#restoredWrites = [];
+      this.#structureVersion = state.structureVersion;
+      this.#dataVersion = state.dataVersion;
+
       return;
     }
 
@@ -1700,21 +1752,251 @@ export class Formulas extends BasePlugin {
       dependentCells.forEach((cell) => {
         this.#restoredDependentCells.push(cell);
       });
+    } else {
+      this.#dataVersion = state.dataVersion;
+      this.#flushRestoredWrites();
+    }
 
+    this.#restorePeerRewrites(state, context);
+  }
+
+  /**
+   * A step that changed only data, on a grid in physical order, restores the cells it wrote by prop,
+   * so it names no column. A step that reloads the sheet, or restores a serialized one, restores a
+   * column layout, so it cannot be kept across a `columns` settings update.
+   *
+   * @private
+   * @param {*} state The state on one side of a step.
+   * @param {*} other The state on the other side.
+   * @returns {number[]|null}
+   */
+  getStateColumns(state: unknown, other: unknown): readonly number[] | null {
+    if (
+      isFormulasUndoState(state) && isFormulasUndoState(other) &&
+      state.engineSheet === null && other.engineSheet === null &&
+      state.structureVersion === other.structureVersion
+    ) {
+      return [];
+    }
+
+    return null;
+  }
+
+  /**
+   * Runs an engine call that can rewrite formulas outside this grid's sheet – adding, removing or
+   * moving rows, columns or cells – and records what it rewrote for the recording undo step. The
+   * references this grid's own sheet holds are restored with the sheet; the ones other sheets and
+   * named expressions hold are not, and a removal can leave them `#REF!` for good. Costs nothing
+   * unless the engine holds another sheet or a named expression, and a step is recording.
+   *
+   * @param {Function} engineCall The engine call.
+   * @returns {*} What the engine call returns.
+   */
+  #trackPeerRewrites<T>(engineCall: () => T): T {
+    const candidates = this.#collectPeerFormulas();
+    const result = engineCall();
+
+    if (candidates.length > 0) {
+      this.#recordPeerRewrites(candidates);
+    }
+
+    return result;
+  }
+
+  /**
+   * Lists the formulas an engine call on this grid's sheet can rewrite: every cell of another sheet
+   * whose formula names this sheet, and every named expression. Empty unless a step records.
+   *
+   * @returns {PeerRewrite[]} The candidates, with `before` set to their current text.
+   */
+  #collectPeerFormulas(): PeerRewrite[] {
+    const engine = this.engine;
+    const candidates: PeerRewrite[] = [];
+
+    if (!engine || this.sheetId === null || this.hot._getOperationScope().getRecordingTransaction() === null) {
+      return candidates;
+    }
+
+    const ownName = engine.getSheetName(this.sheetId);
+
+    if (ownName === undefined) {
+      return candidates;
+    }
+
+    // The engine matches sheet names without regard to case.
+    const ownNameInFormula = ownName.toLowerCase();
+    const sheetIds: number[] = engine.getSheetNames().map((name: string) => engine.getSheetId(name));
+
+    sheetIds.forEach((sheet) => {
+      if (sheet === this.sheetId) {
+        return;
+      }
+
+      engine.getSheetFormulas(sheet).forEach((formulasRow, row) => {
+        formulasRow.forEach((formula, col) => {
+          if (formula !== undefined && formula.toLowerCase().includes(ownNameInFormula)) {
+            candidates.push({ kind: 'cell', sheet, row, col, before: formula, after: formula });
+          }
+        });
+      });
+    });
+
+    // A named expression can reach this sheet with or without naming it, so each one is a candidate.
+    [undefined, ...sheetIds].forEach((scope) => {
+      engine.listNamedExpressions(scope).forEach((name: string) => {
+        const formula: string | undefined = engine.getNamedExpressionFormula(name, scope);
+
+        if (formula !== undefined) {
+          candidates.push({ kind: 'name', name, scope, before: formula, after: formula });
+        }
+      });
+    });
+
+    return candidates;
+  }
+
+  /**
+   * Records the candidates the engine call rewrote, merged per cell or name within the step (the first
+   * text before, the last text after), and brings the other grids' source data in line with them.
+   *
+   * @param {PeerRewrite[]} candidates The candidates `#collectPeerFormulas()` listed before the call.
+   */
+  #recordPeerRewrites(candidates: PeerRewrite[]) {
+    const engine = this.engine!;
+    const rewritten: PeerRewrite[] = [];
+
+    candidates.forEach((candidate) => {
+      const after: string | undefined = candidate.kind === 'cell' ?
+        engine.getCellFormula({ sheet: candidate.sheet, row: candidate.row, col: candidate.col }) :
+        engine.getNamedExpressionFormula(candidate.name, candidate.scope);
+
+      if (after === candidate.before) {
+        return;
+      }
+
+      const key = candidate.kind === 'cell' ?
+        `cell:${candidate.sheet}:${candidate.row}:${candidate.col}` : `name:${candidate.scope}:${candidate.name}`;
+      const recorded = this.#pendingPeerRewrites.get(key);
+
+      if (recorded === undefined) {
+        this.#pendingPeerRewrites.set(key, { ...candidate, after });
+      } else {
+        recorded.after = after;
+      }
+
+      rewritten.push(candidate);
+    });
+
+    this.#syncPeerSources(rewritten);
+  }
+
+  /**
+   * Puts back the formulas the restored step rewrote outside this grid's sheet: their text before the
+   * step for an undo, after it for a redo. A formula edited since the step is left alone.
+   *
+   * @param {object} state The state being restored.
+   * @param {object} [context] The step being restored.
+   */
+  #restorePeerRewrites(state: FormulasUndoState, context?: PluginRestoreContext) {
+    // The step's rewrites are recorded in the state it ended in.
+    const stepEnd = context?.direction === 'undo' ? context.other : state;
+
+    if (context?.direction === undefined || !isFormulasUndoState(stepEnd) || stepEnd.peerRewrites.length === 0) {
       return;
     }
 
-    this.#dataVersion = state.dataVersion;
-    this.#flushRestoredWrites();
+    const engine = this.engine!;
+    const isUndo = context.direction === 'undo';
+    let keptEdited = false;
+    const changes = engine.batch(() => {
+      stepEnd.peerRewrites.forEach((rewrite) => {
+        const expected = isUndo ? rewrite.after : rewrite.before;
+        const text = isUndo ? rewrite.before : rewrite.after;
+
+        if (rewrite.kind === 'cell') {
+          const address = { sheet: rewrite.sheet, row: rewrite.row, col: rewrite.col };
+
+          if (engine.getSheetName(rewrite.sheet) === undefined) {
+            return;
+          }
+
+          if (engine.getCellFormula(address) !== expected) {
+            keptEdited = true;
+          } else if (engine.isItPossibleToSetCellContents(address)) {
+            engine.setCellContents(address, text ?? null);
+          }
+
+          return;
+        }
+
+        if (engine.getNamedExpressionFormula(rewrite.name, rewrite.scope) !== expected) {
+          keptEdited = true;
+        } else if (text !== undefined &&
+            engine.isItPossibleToChangeNamedExpression(rewrite.name, text, rewrite.scope)) {
+          engine.changeNamedExpression(rewrite.name, text, rewrite.scope,
+            engine.getNamedExpression(rewrite.name, rewrite.scope)?.options);
+        }
+      });
+    });
+
+    if (keptEdited) {
+      warnOnce(this.hot, 'formulas.undoKeptEditedPeerFormula', toSingleLine`Formulas: an undo or a redo left\x20
+        a formula in another sheet or a named expression as it was, because it was edited after the step.`);
+    }
+
+    changes.forEach((cell) => {
+      this.#restoredDependentCells.push(cell);
+    });
+    this.renderDependentSheets(changes);
+    this.#syncPeerSources(stepEnd.peerRewrites);
+  }
+
+  /**
+   * Writes the engine's formulas back into the source data of the other grids whose sheets hold the
+   * given rewrites, the way each grid does it after its own row and column changes. Suppressed there,
+   * so the other grid records no undo step for it.
+   *
+   * @param {PeerRewrite[]} rewrites The rewrites.
+   */
+  #syncPeerSources(rewrites: readonly PeerRewrite[]) {
+    const sheets = new Set<number>();
+
+    rewrites.forEach((rewrite) => {
+      if (rewrite.kind === 'cell') {
+        sheets.add(rewrite.sheet);
+      }
+    });
+
+    if (sheets.size === 0) {
+      return;
+    }
+
+    const peers = getRegisteredHotInstances(this.engine!);
+
+    sheets.forEach((sheet) => {
+      const peerHot = peers.get(sheet);
+      const peer = peerHot?.getPlugin('formulas');
+
+      // A grid of another Handsontable bundle is another class, whose private members this one
+      // cannot reach.
+      if (peerHot === undefined || peerHot === this.hot || !(peer instanceof Formulas) || !peer.enabled) {
+        return;
+      }
+
+      peerHot._getOperationScope().suppress(() => peer.#syncFormulasToSourceData(true));
+    });
   }
 
   /**
    * Returns the engine's sheet while its order is not the physical one, and `null` otherwise - the
-   * source data rebuilds a sheet in physical order.
+   * source data rebuilds a sheet in physical order. A row that reads the same as in the previous
+   * capture is that capture's row array, so consecutive steps share what they did not change: each
+   * step keeps the rows it changed, not a copy of the whole sheet.
    *
+   * @param {object|null} previous The sheet the previous capture returned.
    * @returns {object|null}
    */
-  #captureEngineSheet(): EngineSheetSnapshot | null {
+  #captureEngineSheet(previous: EngineSheetSnapshot | null): EngineSheetSnapshot | null {
     if (
       !this.engine || this.sheetId === null ||
       (this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())
@@ -1722,8 +2004,23 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
+    const content: unknown[][] = this.engine.getSheetSerialized(this.sheetId);
+
+    if (previous !== null) {
+      content.forEach((row, index) => {
+        const previousRow = previous.content[index];
+
+        if (
+          previousRow !== undefined && previousRow.length === row.length &&
+          row.every((value, column) => value === previousRow[column])
+        ) {
+          content[index] = previousRow;
+        }
+      });
+    }
+
     return {
-      content: this.engine.getSheetSerialized(this.sheetId),
+      content,
       rowOrder: this.rowAxisSyncer!.getEngineOrder(),
       columnOrder: this.columnAxisSyncer!.getEngineOrder(),
     };
@@ -3375,7 +3672,11 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      newValue = normalizeValueForFormulaEngine(newValue);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+
+      // The stored value, projected the way an edit and a load project it: an object value (a
+      // `{ key, value }` dropdown option) reaches the engine as its `valueGetter` text, never raw.
+      newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
 
       // Values the escaping can never change skip the meta read: both `isDate()` and
       // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
@@ -3385,7 +3686,6 @@ export class Formulas extends BasePlugin {
         // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
         // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
         // would consult a visible neighbor's meta instead of the written cell's own.
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
         const cellMeta = metaManager.getCellMetaTransient(
           physicalRow, physicalColumn,
           { visualRow, visualColumn },
@@ -3755,8 +4055,8 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.engine!.addRows(this.sheetId,
-      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
+    const changes = this.#trackPeerRewrites(() => this.engine!.addRows(this.sheetId,
+      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -3780,8 +4080,8 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.engine!.addColumns(this.sheetId,
-      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
+    const changes = this.#trackPeerRewrites(() => this.engine!.addColumns(this.sheetId,
+      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -3808,9 +4108,9 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    });
+    }));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -3837,9 +4137,9 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    });
+    }));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -4015,9 +4315,9 @@ export class Formulas extends BasePlugin {
         this.engine.copy(source);
         this.#moveCellsChanges = this.engine.paste(dest);
       } else {
-        this.#moveCellsChanges = this.engine.batch(() => {
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.engine!.batch(() => {
           this.engine!.moveCells(source, dest);
-        });
+        }));
       }
     } catch (e) {
       const operation = isCopy ? 'copy/paste' : 'moveCells';
@@ -4029,7 +4329,15 @@ export class Formulas extends BasePlugin {
     }
 
     this.#committedMoveCells = rect;
-    this.#markDataChanged();
+
+    // A move rewrites every formula that points at the moved cells. In physical order those rewrites
+    // are written back to the source data, so the journal holds them. Out of it they are not, so the
+    // step records the engine's sheet instead, and its undo loads it back.
+    if (!isCopy && !(this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())) {
+      this.#markStructureChanged();
+    } else {
+      this.#markDataChanged();
+    }
 
     return true;
   }

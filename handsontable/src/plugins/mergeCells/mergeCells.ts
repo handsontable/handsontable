@@ -2,7 +2,7 @@ import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
 import type { default as Table } from '../../3rdparty/walkontable/src/table/baseTable';
-import { BasePlugin, defaultMainSettingSymbol } from '../base';
+import { BasePlugin, defaultMainSettingSymbol, type PluginRestoreContext } from '../base';
 import { Hooks } from '../../core/hooks';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
@@ -1224,36 +1224,104 @@ export class MergeCells extends BasePlugin {
    * maps, so the recorded geometry addresses the same cells again; the merged cells' meta travels in
    * the UndoRedo journal. No merge hook fires: the merges are restored, not made.
    *
+   * Given the step's other side, only the merges the step changed are written back, so a merge made
+   * outside any step since – an `updateSettings({ mergeCells })` – survives the undo. After a replay
+   * that inserted or removed rows or columns the live merges are numbered like the restored side, not
+   * like the other one, so the whole list is restored instead.
+   *
    * @private
    * @param {*} state The recorded merges.
+   * @param {object} [context] The step being restored.
    */
-  restoreState(state: unknown): void {
+  restoreState(state: unknown, context?: PluginRestoreContext): void {
     if (!isMergeState(state) || !this.mergedCellsCollection) {
       return;
     }
 
-    this.mergedCellsCollection.clear();
-    this.#mergeAnchors = new WeakMap();
-    this.#purgedMerges = new WeakSet();
+    const other = context?.other;
 
-    state.forEach(({ row, col, rowspan, colspan, anchor }) => {
-      // A merge whose rows are all trimmed keeps its stale coordinates, and another merge can be drawn
-      // there now - placed in the lookup matrix first, it would turn that merge away. The re-anchor below
-      // leaves it out of the matrix anyway.
-      const merge = anchor !== null && !this.#hasVisibleTopLeft(anchor)
-        ? this.mergedCellsCollection.addOutsideMatrix({ row, col, rowspan, colspan })
-        : this.mergedCellsCollection.add({ row, col, rowspan, colspan }, true);
-
-      if (merge && anchor !== null) {
-        this.#mergeAnchors.set(merge, {
-          physicalRows: anchor.physicalRows.slice(),
-          physicalColumn: anchor.physicalColumn,
-        });
-      }
-    });
+    if (!isMergeState(other) || context?.reordered === true || !this.#restoreChangedMerges(state, other)) {
+      this.mergedCellsCollection.clear();
+      this.#mergeAnchors = new WeakMap();
+      this.#purgedMerges = new WeakSet();
+      state.forEach(entry => this.#addRecordedMerge(entry));
+    }
 
     this.#reanchorMergesToVisibleRows();
     this.hot.markAllCellsChanged();
+  }
+
+  /**
+   * Takes out the live merges the step made and puts back the ones it took, leaving every other live
+   * merge alone.
+   *
+   * @param {Array} target The merges on the restored side of the step.
+   * @param {Array} from The merges on the other side of the step.
+   * @returns {boolean} `false` when a merge the step made cannot be told apart among the live ones (its
+   *   rows are all trimmed, so the lookup does not reach it); nothing is changed then.
+   */
+  #restoreChangedMerges(target: readonly MergeStateEntry[], from: readonly MergeStateEntry[]): boolean {
+    const isListed = (list: readonly MergeStateEntry[], entry: MergeStateEntry) => list.some(listed => (
+      listed.row === entry.row && listed.col === entry.col && listed.rowspan === entry.rowspan &&
+      listed.colspan === entry.colspan && areAnchorsEqual(listed.anchor, entry.anchor)
+    ));
+    const liveToRemove = from.filter(entry => !isListed(target, entry)).map(entry => (
+      this.mergedCellsCollection.mergedCells.find(merge => (
+        merge.row === entry.row && merge.col === entry.col && merge.rowspan === entry.rowspan &&
+        merge.colspan === entry.colspan && areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
+      ))
+    ));
+
+    if (liveToRemove.some(merge => merge !== undefined &&
+        this.mergedCellsCollection.get(merge.row, merge.col) !== merge)) {
+      return false;
+    }
+
+    liveToRemove.forEach((merge) => {
+      if (merge !== undefined) {
+        this.mergedCellsCollection.remove(merge.row, merge.col);
+      }
+    });
+    target.forEach((entry) => {
+      if (!isListed(from, entry)) {
+        this.#addRecordedMerge(entry);
+      }
+    });
+
+    // A put-back merge lands at the end. Keep the order the state lists, as a full rebuild would; a
+    // merge made outside any step stays after them.
+    const toKey = ({ row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }) => (
+      `${row},${col},${rowspan},${colspan}`
+    );
+    const positions = new Map<string, number>();
+
+    target.forEach((entry, position) => positions.set(toKey(entry), position));
+    this.mergedCellsCollection.mergedCells.sort((left, right) => (
+      (positions.get(toKey(left)) ?? target.length) - (positions.get(toKey(right)) ?? target.length)
+    ));
+
+    return true;
+  }
+
+  /**
+   * Adds one recorded merge back to the collection, with its anchor.
+   *
+   * @param {object} entry The recorded merge.
+   */
+  #addRecordedMerge({ row, col, rowspan, colspan, anchor }: MergeStateEntry) {
+    // A merge whose rows are all trimmed keeps its stale coordinates, and another merge can be drawn
+    // there now - placed in the lookup matrix first, it would turn that merge away. The re-anchor
+    // leaves it out of the matrix anyway.
+    const merge = anchor !== null && !this.#hasVisibleTopLeft(anchor)
+      ? this.mergedCellsCollection.addOutsideMatrix({ row, col, rowspan, colspan })
+      : this.mergedCellsCollection.add({ row, col, rowspan, colspan }, true);
+
+    if (merge && anchor !== null) {
+      this.#mergeAnchors.set(merge, {
+        physicalRows: anchor.physicalRows.slice(),
+        physicalColumn: anchor.physicalColumn,
+      });
+    }
   }
 
   /**

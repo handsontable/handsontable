@@ -207,8 +207,10 @@ export class GridStateTracker {
    *
    * Given `changedFrom` - the snapshot from the other side of an undo step - only the parts the step
    * changed are written back (the two snapshots share every part the step left alone), so a change
-   * made outside any step since, such as a trim a settings update applied, survives the undo. Without
-   * it, everything the snapshot records is written back.
+   * made outside any step since, such as a trim a settings update applied, survives the undo. A step
+   * that inserts or removes rows or columns changes the length of every index map, so the two
+   * snapshots share no map; `restoreStep()` puts back the trims and hides such a step left alone
+   * after this call. Without `changedFrom`, everything the snapshot records is written back.
    *
    * @param {GridStateSnapshot} snapshot The snapshot to restore.
    * @param {object} [options] Restore options.
@@ -218,11 +220,12 @@ export class GridStateTracker {
    *   step did not change - a journal replay can move both. Without it, they are left as they are.
    * @param {boolean} [options.forceOrder=false] Write the row and column order and the trimming maps back
    *   even when the step did not change them - a replay reset them to the physical order.
+   * @param {string} [options.direction] `'undo'` or `'redo'`, handed to the plugins with `changedFrom`.
    */
   restore(
     snapshot: GridStateSnapshot,
-    { changedFrom, base, forceOrder = false }: {
-      changedFrom?: GridStateSnapshot, base?: GridStateSnapshot, forceOrder?: boolean,
+    { changedFrom, base, forceOrder = false, direction }: {
+      changedFrom?: GridStateSnapshot, base?: GridStateSnapshot, forceOrder?: boolean, direction?: 'undo' | 'redo',
     } = {},
   ) {
     // Each axis takes the length the data implies, the one `updateData()` fits it to.
@@ -239,7 +242,11 @@ export class GridStateTracker {
       }
 
       if (changedFrom?.plugins.get(name) !== state) {
-        plugin.restoreState(state);
+        plugin.restoreState(state, changedFrom === undefined ? undefined : {
+          other: changedFrom.plugins.get(name),
+          direction,
+          reordered: forceOrder,
+        });
 
       } else if (forceOrder && base?.plugins.has(name)) {
         // The step left this state alone, but the row and column replay may have moved it (a merge

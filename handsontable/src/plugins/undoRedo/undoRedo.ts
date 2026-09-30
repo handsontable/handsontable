@@ -4,16 +4,31 @@ import type { JournalOp } from '../../dataMap/dataJournal';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
+import { warnOnce } from '../../helpers/console';
 import { GridStateTracker, type GridStateSnapshot } from './snapshot/gridState';
 import { createStep, type SelectionSnapshot, type StepRecord, type StepSelectionTarget } from './entry';
 import { isStructural, restoreStep, type RestoreDirection } from './restore';
 import { collectRestoredCells, toCellChanges, toVisibleCells, type RestoredCell } from './restoredCells';
+import { addressesChangedColumn, type ColumnChangeTest } from './stepColumns';
 import { haveSameIndexMaps } from '../../translations/indexMapperSnapshot';
 
 const SHORTCUTS_GROUP = 'undoRedo';
 
 export interface UndoRedoAction {
   actionType: string;
+  /**
+   * The source of the outermost operation the step records. An action registered through `done()`
+   * carries only what it declares itself.
+   */
+  source?: string;
+  /**
+   * The name of every operation the step ran, the outermost one first.
+   */
+  operations?: string[];
+  /**
+   * The source of every operation the step ran, in the order of `operations`.
+   */
+  sources?: Array<string | undefined>;
   [key: string]: unknown;
 }
 
@@ -108,17 +123,29 @@ function changesOnlyAxisEnds(journal: JournalOp[], before: GridStateSnapshot): b
  */
 export interface UndoRedoSettings {
   /**
-   * The largest number of steps the undo stack keeps. Past it, the oldest step is dropped.
+   * The largest number of steps the undo stack keeps: a whole number from `0` up, or `Infinity` (the
+   * default). Past it, the oldest step is dropped; `0` keeps none. Any other value is ignored with a
+   * warning, and the previous limit stays.
    */
   maxHistory?: number;
+}
+
+/**
+ * Tells whether a value is a valid `maxHistory`.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isValidMaxHistory(value: unknown): value is number {
+  return value === Infinity || (Number.isInteger(value) && (value as number) >= 0);
 }
 
 /**
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
- * The plugin is enabled by default. Each user action - an edit, a paste, a row removal, a sort, a
- * [`batch()`](@/api/core.md#batch) of calls - is recorded as one step. For the list of tracked actions and
+ * The plugin is enabled by default. Each user action – an edit, a paste, a row removal, a sort, a
+ * [`batch()`](@/api/core.md#batch) of calls – is recorded as one step. For the list of tracked actions and
  * the known limitations, see [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md).
  * @example
  * ```js
@@ -208,6 +235,23 @@ export class UndoRedo extends BasePlugin {
   #epoch = 0;
 
   /**
+   * The transactions that opened and have not settled yet – most often a change waiting for its
+   * validator.
+   */
+  #pending = new Set<OperationTransaction>();
+
+  /**
+   * The largest number of steps the undo stack keeps (`undo: { maxHistory }`).
+   */
+  #maxHistory = Infinity;
+
+  /**
+   * The field each physical column showed when the recorded steps were made - what a `columns`
+   * settings update is compared against. `null` while no recorded step is kept.
+   */
+  #columnProps: unknown[] | null = null;
+
+  /**
    * The flag that determines if new actions should be ignored.
    *
    * @private
@@ -246,6 +290,7 @@ export class UndoRedo extends BasePlugin {
 
     const scope = this.hot._getOperationScope();
 
+    this.#maxHistory = this.#readMaxHistory(Infinity);
     this.#tracker = new GridStateTracker(this.hot);
     this.#lastState = null;
     scope.setJournaling(true);
@@ -257,6 +302,139 @@ export class UndoRedo extends BasePlugin {
     this.registerShortcuts();
 
     super.enablePlugin();
+  }
+
+  /**
+   * Applies a settings update. Runs for every `updateSettings()` call (`SETTING_KEYS` is `true`), so it
+   * must not disable and enable the plugin: `disablePlugin()` clears the history.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings()`.
+   */
+  updatePlugin(newSettings?: Record<string, unknown>): void {
+    if (newSettings !== undefined && 'undo' in newSettings) {
+      this.#maxHistory = this.#readMaxHistory(this.#maxHistory);
+    }
+
+    // A lowered limit drops the oldest steps now, not only when the next one is recorded.
+    this.#dropSteps(Math.max(0, this.doneActions.length - this.#maxHistory), 0);
+    this.#checkSettingsUpdate(newSettings);
+
+    super.updatePlugin(newSettings);
+  }
+
+  /**
+   * Checks the history against a settings update right away, so the stacks and their hooks never
+   * report steps that can no longer be restored. Settings that change the row count or the set of
+   * index maps drop the whole history. A `columns` update that changes which field a column shows
+   * drops only the steps that address such a column, with every step older than them, and keeps
+   * the rest: a cell write is recorded by field, so it survives any reshape.
+   *
+   * It runs only while no transaction is open. Inside one, the settle and the next transaction do
+   * the check, as they always did.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings()`.
+   */
+  #checkSettingsUpdate(newSettings: Record<string, unknown> | undefined) {
+    const tracker = this.#tracker;
+    const lastState = this.#lastState;
+
+    // An empty history has nothing to protect, and the next transaction captures the state anyway.
+    // `updateSettings()` runs on every render in the React wrapper, so this skips a capture there.
+    if (
+      tracker === null || lastState === null || this.#pending.size > 0 ||
+      (this.doneActions.length === 0 && this.undoneActions.length === 0)
+    ) {
+      return;
+    }
+
+    const current = tracker.capture();
+
+    if (
+      current.rows.length !== lastState.rows.length ||
+      !haveSameIndexMaps(current.rows, lastState.rows) ||
+      !haveSameIndexMaps(current.columns, lastState.columns)
+    ) {
+      this.#resetHistory();
+
+      return;
+    }
+
+    const columnCountChanged = current.columns.length !== lastState.columns.length;
+
+    if (columnCountChanged || (newSettings !== undefined && 'columns' in newSettings)) {
+      const recordedProps = this.#columnProps;
+      const props = this.#readColumnProps();
+
+      if (recordedProps === null) {
+        // No recorded step says which fields it was made on, so a new column count cannot be checked.
+        if (columnCountChanged) {
+          this.#resetHistory();
+
+          return;
+        }
+      } else if (
+        recordedProps.length !== props.length || recordedProps.some((prop, column) => prop !== props[column])
+      ) {
+        const isChanged: ColumnChangeTest = physicalColumn => physicalColumn >= props.length ||
+          physicalColumn >= recordedProps.length || recordedProps[physicalColumn] !== props[physicalColumn];
+
+        this.#dropStepsWhere(record => addressesChangedColumn(this.hot, record, isChanged));
+      } else if (!this.hot.isColumnModificationAllowed()) {
+        // Every column shows the field it showed, but with `columns` set a column insert or removal
+        // cannot be replayed any more: `alter()` refuses it.
+        this.#dropStepsWhere(record => record.journal.some(op => op.type === 'insertColumns' ||
+          op.type === 'removeColumns'));
+      }
+
+      this.#columnProps = this.doneActions.length > 0 || this.undoneActions.length > 0 ? props : null;
+    }
+
+    // The update is a change made outside any step: the next step starts from it, and the check a
+    // transaction runs when it opens compares against it.
+    this.#lastState = current;
+  }
+
+  /**
+   * Reads the field each physical column shows now. A column with no visual index gets a value of
+   * its own, so it never compares equal.
+   *
+   * @returns {Array}
+   */
+  #readColumnProps(): unknown[] {
+    const count = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const props = new Array<unknown>(count);
+
+    for (let physicalColumn = 0; physicalColumn < count; physicalColumn += 1) {
+      const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+      props[physicalColumn] = visualColumn === null ? Symbol('trimmed column') : this.hot.colToProp(visualColumn);
+    }
+
+    return props;
+  }
+
+  /**
+   * Drops every recorded step that fails the test, together with every step that can only be undone
+   * or redone after it - so the stacks keep no hole. Legacy `done()` actions are kept unless such a
+   * step sits above them.
+   *
+   * @param {Function} fails Tells whether a step cannot be restored any more.
+   */
+  #dropStepsWhere(fails: (record: StepRecord) => boolean) {
+    const lastFailing = (stack: unknown[]) => {
+      for (let index = stack.length - 1; index >= 0; index -= 1) {
+        const step = stack[index];
+        const record = isRecord(step) ? this.#records.get(step) : undefined;
+
+        if (record !== undefined && fails(record)) {
+          return index;
+        }
+      }
+
+      return -1;
+    };
+
+    this.#dropSteps(lastFailing(this.doneActions) + 1, lastFailing(this.undoneActions) + 1);
   }
 
   /**
@@ -314,7 +492,7 @@ export class UndoRedo extends BasePlugin {
    * Stash information about performed actions.
    *
    * Every change made through the grid's API is recorded automatically. Use this method for a change
-   * the grid cannot see - for example, state your own code keeps outside the grid - by registering an
+   * the grid cannot see – for example, state your own code keeps outside the grid – by registering an
    * action that knows how to reverse and replay itself.
    *
    * @example
@@ -376,7 +554,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterUndo
    */
   undo(): void {
-    if (!this.isUndoAvailable()) {
+    if (!this.isUndoAvailable() || this.#hasPendingStructuralStep()) {
       return;
     }
 
@@ -433,7 +611,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterRedo
    */
   redo(): void {
-    if (!this.isRedoAvailable()) {
+    if (!this.isRedoAvailable() || this.#hasPendingStructuralStep()) {
       return;
     }
 
@@ -466,6 +644,7 @@ export class UndoRedo extends BasePlugin {
 
     if (wasRedone) {
       this.doneActions.push(step);
+      this.#trimUndoStack();
     } else {
       this.#putBackStep(this.undoneActions, step, 'beforeRedoStackChange', 'afterRedoStackChange');
     }
@@ -501,6 +680,7 @@ export class UndoRedo extends BasePlugin {
   clear(): void {
     this.doneActions.length = 0;
     this.undoneActions.length = 0;
+    this.#columnProps = null;
   }
 
   /**
@@ -560,15 +740,9 @@ export class UndoRedo extends BasePlugin {
     }
 
     const undoneActionsCopy = this.undoneActions.slice();
-    const maxHistory = this.#getMaxHistory();
 
     this.doneActions.push(step);
-
-    // The oldest steps go first. Their records are released with them (they are weakly held).
-    if (this.doneActions.length > maxHistory) {
-      this.doneActions.splice(0, this.doneActions.length - maxHistory);
-    }
-
+    this.#trimUndoStack();
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
@@ -580,22 +754,96 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Returns the largest number of steps the undo stack keeps (`undo: { maxHistory }`), or `Infinity`.
+   * Drops the oldest steps past `maxHistory`. Runs inside the stack-change hook pair of whoever pushed
+   * onto the undo stack. The dropped steps' records go with them (they are weakly held).
+   */
+  #trimUndoStack() {
+    if (this.doneActions.length > this.#maxHistory) {
+      this.doneActions.splice(0, this.doneActions.length - this.#maxHistory);
+    }
+  }
+
+  /**
+   * Reads `maxHistory` from the `undo` option. A value that is not a whole number from `0` up (or
+   * `Infinity`) is ignored with a warning, the way the plugins' own option validators do it.
    *
+   * @param {number} fallback The limit to keep when the value is not valid.
    * @returns {number}
    */
-  #getMaxHistory(): number {
+  #readMaxHistory(fallback: number): number {
     const { undo } = this.hot.getSettings();
 
-    if (typeof undo === 'object' && undo !== null) {
-      const { maxHistory } = undo;
+    if (!isRecord(undo) || !('maxHistory' in undo) || undo.maxHistory === undefined) {
+      return Infinity;
+    }
 
-      if (typeof maxHistory === 'number' && Number.isInteger(maxHistory) && maxHistory > 0) {
-        return maxHistory;
+    if (isValidMaxHistory(undo.maxHistory)) {
+      return undo.maxHistory;
+    }
+
+    warnOnce(this.hot, `undo.maxHistory.${String(undo.maxHistory)}`,
+      `${this.pluginName} Plugin: "maxHistory" option is not valid and it will be ignored.`);
+
+    return fallback;
+  }
+
+  /**
+   * Drops the oldest `undoCount` steps of the undo stack and the bottom `redoCount` steps of the redo
+   * stack – the ones that can only be redone after every other – announcing each stack that changes.
+   * A drop is not a user action, so it cannot be vetoed.
+   *
+   * @param {number} undoCount How many steps to drop from the undo stack.
+   * @param {number} redoCount How many steps to drop from the redo stack.
+   */
+  #dropSteps(undoCount: number, redoCount: number) {
+    this.#dropFromStack(this.doneActions, undoCount, 'beforeUndoStackChange', 'afterUndoStackChange');
+    this.#dropFromStack(this.undoneActions, redoCount, 'beforeRedoStackChange', 'afterRedoStackChange');
+
+    if (this.doneActions.length === 0 && this.undoneActions.length === 0) {
+      this.#columnProps = null;
+    }
+  }
+
+  /**
+   * Drops the first `count` steps of a stack, announcing the change through the stack's two hooks.
+   *
+   * @param {Array} stack The stack.
+   * @param {number} count How many steps to drop.
+   * @param {string} beforeHook The hook fired before the change.
+   * @param {string} afterHook The hook fired after the change.
+   */
+  #dropFromStack(
+    stack: unknown[],
+    count: number,
+    beforeHook: 'beforeUndoStackChange' | 'beforeRedoStackChange',
+    afterHook: 'afterUndoStackChange' | 'afterRedoStackChange',
+  ) {
+    if (count <= 0 || stack.length === 0) {
+      return;
+    }
+
+    const stackCopy = stack.slice();
+
+    this.hot.runHooks(beforeHook, stackCopy);
+    stack.splice(0, count);
+    this.hot.runHooks(afterHook, stackCopy, stack.slice());
+  }
+
+  /**
+   * Tells whether a pending transaction already inserted or removed rows or columns and still waits
+   * for a validator. The grid then has a shape no recorded state describes: an undo would restore
+   * around it, and the structure check would read it as a change made outside any step.
+   *
+   * @returns {boolean}
+   */
+  #hasPendingStructuralStep(): boolean {
+    for (const transaction of this.#pending) {
+      if (transaction.holds > 0 && transaction.journal.some(isStructural)) {
+        return true;
       }
     }
 
-    return Infinity;
+    return false;
   }
 
   /**
@@ -629,15 +877,15 @@ export class UndoRedo extends BasePlugin {
    * the change, the row or column count changed, or a plugin that owns an index map was turned on or
    * off (the set of map names changed). Every step recorded before is dropped. A plugin that a
    * settings update disables and enables again keeps its map names, so it drops nothing.
+   *
+   * @param {GridStateSnapshot} [current] The grid state now, when the caller captured it already.
    */
-  #detectStructureChange() {
+  #detectStructureChange(current = this.#tracker?.capture() ?? null) {
     const lastState = this.#lastState;
 
-    if (this.#tracker === null || lastState === null) {
+    if (current === null || lastState === null) {
       return;
     }
-
-    const current = this.#tracker.capture();
 
     if (
       current.rows.length !== lastState.rows.length ||
@@ -650,12 +898,14 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Drops the whole history and starts a new structure epoch.
+   * Drops the whole history and starts a new structure epoch. The stack hooks announce it, so a toolbar
+   * that follows them disables its buttons (the public `clear()` stays silent, as it always was).
    */
   #resetHistory() {
-    this.clear();
+    this.#dropSteps(this.doneActions.length, this.undoneActions.length);
     this.#epoch += 1;
     this.#lastState = null;
+    this.#pending.clear();
   }
 
   /**
@@ -699,7 +949,12 @@ export class UndoRedo extends BasePlugin {
       return false;
     }
 
-    this.#revalidateChangedCells(restoredCells, record.journal.some(isStructural));
+    // Suppressed, so what the validators and their `afterValidate` listeners write in reply is not
+    // recorded – a recorded step would empty the redo stack. They answer in a microtask, and the hold
+    // `validateCell()` takes keeps them suppressed then too.
+    this.hot._getOperationScope().suppress(() => {
+      this.#revalidateChangedCells(restoredCells, record.journal.some(isStructural));
+    });
     this.#restoreSelection(record.selection[direction], direction);
 
     return true;
@@ -873,6 +1128,7 @@ export class UndoRedo extends BasePlugin {
 
         if (wasRedone) {
           this.doneActions.push(pendingAction);
+          this.#trimUndoStack();
         } else {
           this.#putBackStep(this.undoneActions, pendingAction, 'beforeRedoStackChange', 'afterRedoStackChange');
         }
@@ -904,6 +1160,7 @@ export class UndoRedo extends BasePlugin {
     this.#tracker?.destroy();
     this.#tracker = null;
     this.#lastState = null;
+    this.#pending.clear();
   }
 
   /**
@@ -918,10 +1175,19 @@ export class UndoRedo extends BasePlugin {
       this.#ignoredTransactions.add(transaction);
     }
 
-    this.#detectStructureChange();
+    const current = this.#tracker?.capture() ?? null;
+
+    // A pending step that removed rows changed the grid's shape itself; that is not a change made
+    // outside any step, and it must not drop the history it is about to join.
+    if (!this.#hasPendingStructuralStep()) {
+      this.#detectStructureChange(current);
+    }
+
     this.#openEpochs.set(transaction, this.#epoch);
     this.#selectionsBefore.set(transaction, this.hot.getSelected());
-    this.#lastState = this.#tracker?.capture() ?? null;
+    this.#lastState = current;
+    // Added last, so a capture that throws leaves nothing pending.
+    this.#pending.add(transaction);
   };
 
   /**
@@ -933,6 +1199,8 @@ export class UndoRedo extends BasePlugin {
    */
   #onTransactionSettle = (transaction: OperationTransaction) => {
     const tracker = this.#tracker;
+
+    this.#pending.delete(transaction);
 
     if (tracker === null) {
       return;
@@ -971,7 +1239,16 @@ export class UndoRedo extends BasePlugin {
       selection,
     });
 
-    this.#pushStep(step, transaction.source);
+    if (!this.#pushStep(step, transaction.source)) {
+      return;
+    }
+
+    // The fields the kept steps were made on. A step that inserted or removed columns renumbers them,
+    // and it drops with every older step on any `columns` change, so the latest numbering is the one
+    // every kept step shares.
+    if (this.#columnProps === null || this.#columnProps.length !== this.hot.columnIndexMapper.getNumberOfIndexes()) {
+      this.#columnProps = this.#readColumnProps();
+    }
   };
 
   /**

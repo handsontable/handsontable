@@ -113,6 +113,46 @@ describe('MoveCells hook argument safety', () => {
     expect(hot.getDataAtCell(5, 5)).toBe('1-1');
     expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });
+
+  describe('with the UndoRedo plugin off', () => {
+    /**
+     * Builds a 10x10 grid with the moveCells plugin on, undo off, and a `beforeMoveCells` listener.
+     *
+     * @param {Function} beforeMoveCells The listener.
+     */
+    function buildWithoutUndo(beforeMoveCells) {
+      hot = new Handsontable(container, {
+        data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
+        moveCells: true,
+        undo: false,
+        beforeMoveCells,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    }
+
+    it('cancels the move when the listener returns `true`', () => {
+      buildWithoutUndo(() => true);
+
+      expect(hot.getPlugin('undoRedo').enabled).toBe(false);
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(false);
+      expect(hot.getDataAtCell(1, 1)).toBe('1-1');
+      expect(hot.getDataAtCell(5, 5)).toBe('5-5');
+    });
+
+    it('lets the move through when the listener returns nothing', () => {
+      buildWithoutUndo(() => undefined);
+
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(true);
+      expect(hot.getDataAtCell(5, 5)).toBe('1-1');
+    });
+
+    it('lets the move through when the listener returns the range it received', () => {
+      buildWithoutUndo(sourceRange => sourceRange);
+
+      expect(move([1, 1, 2, 2], [5, 5])).toBe(true);
+      expect(hot.getDataAtCell(5, 5)).toBe('1-1');
+    });
+  });
 });
 
 /**

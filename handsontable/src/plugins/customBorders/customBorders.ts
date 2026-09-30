@@ -524,6 +524,17 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * The state is a version only. The borders live in the `borders` cell meta, and UndoRedo reads the
+   * columns a step changed from its journal.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
    * Rebuilds the border model and its rendered selections from the stored `borders` cell meta.
    */
   #rebuildModelFromMeta() {
@@ -1437,7 +1448,10 @@ export class CustomBorders extends BasePlugin {
     const queue = this.#progressiveQueue;
     const end = Math.min(this.#progressiveIndex + this.#progressiveChunkSize, queue.length);
 
-    this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
+    // Loading the configured borders is not a user action, so it is never an undo step.
+    this.hot._getOperationScope().suppress(() => {
+      this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
+    });
     this.#progressiveIndex = end;
     this.hot.render();
 
@@ -1459,12 +1473,16 @@ export class CustomBorders extends BasePlugin {
 
     const queue = this.#progressiveQueue;
 
-    while (this.#progressiveIndex < queue.length) {
-      const end = Math.min(this.#progressiveIndex + this.#progressiveChunkSize, queue.length);
+    // The flush runs from the hooks of a user action. The borders it writes are the rest of the
+    // configured load, so they must not join that action's undo step.
+    this.hot._getOperationScope().suppress(() => {
+      while (this.#progressiveIndex < queue.length) {
+        const end = Math.min(this.#progressiveIndex + this.#progressiveChunkSize, queue.length);
 
-      this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
-      this.#progressiveIndex = end;
-    }
+        this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
+        this.#progressiveIndex = end;
+      }
+    });
 
     this.#finishProgressiveApply();
   }

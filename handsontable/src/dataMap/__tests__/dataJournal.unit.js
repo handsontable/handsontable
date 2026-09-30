@@ -272,18 +272,32 @@ describe('data journal', () => {
   it('should group the calls inside `runOperation()` under its name and source', () => {
     createJournalingGrid({ data: [['A1'], ['A2']] });
 
-    const result = hot.runOperation('import', 'myImport', () => {
+    const result = hot.runOperation('import', () => {
       hot.setDataAtCell(0, 0, 'x');
       hot.setDataAtCell(1, 0, 'y');
 
       return 'done';
-    });
+    }, 'myImport');
 
     expect(result).toBe('done');
     expect(settled.length).toBe(1);
     expect(settled[0].name).toBe('import');
     expect(settled[0].source).toBe('myImport');
-    expect(settled[0].journal[0].changes.length).toBe(2);
+    // One entry per edit: an entry written backwards is read backwards, so two calls must not share one.
+    expect(settled[0].journal.map(op => op.changes.length)).toEqual([1, 1]);
+  });
+
+  it('should keep consecutive source writes in one forward entry', () => {
+    createJournalingGrid({ data: [['A1', 'B1']] });
+
+    hot.runOperation('import', () => {
+      hot.setSourceDataAtCell(0, 0, 'x');
+      hot.setSourceDataAtCell(0, 1, 'y');
+    });
+
+    expect(settled[0].journal.length).toBe(1);
+    expect(settled[0].journal[0].reversed).toBeUndefined();
+    expect(settled[0].journal[0].changes.map(change => change.prop)).toEqual([0, 1]);
   });
 
   /**

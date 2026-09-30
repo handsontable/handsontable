@@ -38,7 +38,7 @@ describe('ResizeGesture', () => {
     const operationScope = new OperationScope();
     const hot = {
       _getOperationScope: () => operationScope,
-      runOperation: (name, source, callback) => operationScope.run(name, source, callback),
+      runOperation: (name, callback, source) => operationScope.run(name, source, callback),
       rootDocument: document,
       rootWindow: window,
       rootElement,
@@ -90,6 +90,7 @@ describe('ResizeGesture', () => {
   function createOwner() {
     return {
       isActive: jest.fn(() => true),
+      clampSize: jest.fn(size => size),
       setManualSize: jest.fn((_index, size) => size),
     };
   }
@@ -137,10 +138,14 @@ describe('ResizeGesture', () => {
       mouse('mousedown', handle(), { pageY: 10 });
       mouse('mousemove', window, { pageY: 40 });
 
-      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+      // Nothing is stored before the release, so a step that settles during the drag records none
+      // of it.
+      expect(owner.clampSize).toHaveBeenLastCalledWith(30);
+      expect(owner.setManualSize).not.toHaveBeenCalled();
 
       mouse('mouseup', window);
 
+      expect(owner.setManualSize.mock.calls).toEqual([[2, 30]]);
       expect(hot.runHooks).toHaveBeenCalledWith('beforeTestResize', 35, 2, false);
       expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 35, 2, false);
     });
@@ -194,6 +199,40 @@ describe('ResizeGesture', () => {
       expect(settled).toHaveBeenCalledTimes(1);
     });
 
+    it('should close a step left by a press with no release, and record the next drag in a step of its own', () => {
+      const { th, owner, handle, operationScope } = createGesture();
+      const opened = jest.fn();
+      const settled = jest.fn();
+      const writtenInto = [];
+
+      operationScope.addOpenListener(opened);
+      operationScope.addSettleListener(settled);
+      owner.setManualSize.mockImplementation((_index, size) => {
+        writtenInto.push(operationScope.current());
+
+        return size;
+      });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mousemove', window, { pageY: 30 });
+      // The mouseup of that drag never arrives. The next press closes its step, empty.
+      mouse('mousedown', handle(), { pageY: 10 });
+
+      expect(opened).toHaveBeenCalledTimes(2);
+      expect(settled).toHaveBeenCalledTimes(1);
+      expect(settled.mock.calls[0][0]).toBe(opened.mock.calls[0][0]);
+      expect(settled.mock.calls[0][0].journal).toEqual([]);
+
+      mouse('mousemove', window, { pageY: 40 });
+      mouse('mouseup', window);
+
+      expect(opened).toHaveBeenCalledTimes(2);
+      expect(settled).toHaveBeenCalledTimes(2);
+      expect(settled.mock.calls[1][0]).toBe(opened.mock.calls[1][0]);
+      expect(writtenInto).toEqual([opened.mock.calls[1][0]]);
+    });
+
     it('should resize every index of a header selection the drag starts in', () => {
       const range = {
         getTopStartCorner: () => ({ row: 1, col: 0 }),
@@ -204,6 +243,7 @@ describe('ResizeGesture', () => {
       mouse('mouseover', th);
       mouse('mousedown', handle(), { pageY: 0 });
       mouse('mousemove', window, { pageY: 25 });
+      mouse('mouseup', window);
 
       expect(owner.setManualSize.mock.calls).toEqual([[1, 25], [2, 25], [3, 25]]);
     });
@@ -220,6 +260,7 @@ describe('ResizeGesture', () => {
       mouse('mouseover', th);
       mouse('mousedown', handle(), { pageY: 0 });
       mouse('mousemove', window, { pageY: 25 });
+      mouse('mouseup', window);
 
       expect(owner.setManualSize.mock.calls).toEqual([[2, 25]]);
     });
@@ -239,6 +280,7 @@ describe('ResizeGesture', () => {
       mouse('mouseover', th);
       mouse('mousedown', handle(), { pageY: 0 });
       mouse('mousemove', window, { pageY: 25 });
+      mouse('mouseup', window);
 
       expect(owner.setManualSize.mock.calls).toEqual([[2, 25]]);
     });
@@ -261,6 +303,7 @@ describe('ResizeGesture', () => {
       mouse('mouseover', th);
       mouse('mousedown', handle(), { pageY: 0 });
       mouse('mousemove', window, { pageY: 25 });
+      mouse('mouseup', window);
 
       expect(owner.setManualSize.mock.calls).toEqual([[1, 25], [2, 25], [3, 25], [4, 25]]);
     });
@@ -320,6 +363,7 @@ describe('ResizeGesture', () => {
       mouse('mousedown', horizontal.handle(), { pageX: 100 });
       // Moving towards the inline start (left under RTL) widens the column.
       mouse('mousemove', window, { pageX: 70 });
+      mouse('mouseup', window);
 
       expect(horizontal.owner.setManualSize).toHaveBeenLastCalledWith(3, 30);
     });
@@ -330,6 +374,7 @@ describe('ResizeGesture', () => {
       mouse('mouseover', vertical.th);
       mouse('mousedown', vertical.handle(), { pageY: 100 });
       mouse('mousemove', window, { pageY: 130 });
+      mouse('mouseup', window);
 
       expect(vertical.owner.setManualSize).toHaveBeenLastCalledWith(2, 30);
     });
@@ -340,7 +385,18 @@ describe('ResizeGesture', () => {
       // `updatePlugin()` runs `disablePlugin(); enablePlugin();` - and so `detach()` - on every
       // `updateSettings()` carrying the plugin's own key, which a framework wrapper sends on every
       // re-render. Resetting the drag there dropped the drag with no after-resize hook.
-      const { hot, th, gesture, handle, guide } = createGesture();
+      const { hot, th, gesture, owner, handle, guide, operationScope } = createGesture();
+      const opened = jest.fn();
+      const settled = jest.fn();
+      const writtenInto = [];
+
+      operationScope.addOpenListener(opened);
+      operationScope.addSettleListener(settled);
+      owner.setManualSize.mockImplementation((_index, size) => {
+        writtenInto.push(operationScope.current());
+
+        return size;
+      });
 
       mouse('mouseover', th);
       mouse('mousedown', handle(), { pageY: 0 });
@@ -354,10 +410,17 @@ describe('ResizeGesture', () => {
 
       expect(rootElement.querySelector('.testResizer')).toBe(null);
       expect(rootElement.querySelector('.testResizerGuide')).toBe(null);
+      // The detach closes the step the press holds. Nothing was stored in it yet.
+      expect(settled).toHaveBeenCalledTimes(1);
+      expect(settled.mock.calls[0][0].journal).toEqual([]);
 
       mouse('mouseup', window);
 
       expect(afterResizeCalls(hot)).toEqual([['afterTestResize', 20, 2, false]]);
+      // The release records the drag in a step of its own.
+      expect(opened).toHaveBeenCalledTimes(2);
+      expect(settled).toHaveBeenCalledTimes(2);
+      expect(writtenInto).toEqual([opened.mock.calls[1][0]]);
     });
 
     it('should keep both elements attached, but inactive, after a completed drag', () => {
@@ -508,6 +571,7 @@ describe('ResizeGesture', () => {
       expect(guide().classList.contains('active')).toBe(true);
 
       mouse('mousemove', window, { pageY: 40 });
+      mouse('mouseup', window);
 
       expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
     });
@@ -528,11 +592,12 @@ describe('ResizeGesture', () => {
       mouse('mousedown', handle(), { pageY: 10 });
       mouse('mousemove', window, { pageY: 40 });
 
-      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+      expect(owner.clampSize).toHaveBeenLastCalledWith(30);
+      expect(owner.setManualSize).not.toHaveBeenCalled();
 
       timeouts[0]();
 
-      expect(owner.setManualSize).toHaveBeenCalledWith(2, 55);
+      expect(owner.setManualSize.mock.calls).toEqual([[2, 55]]);
       expect(afterResizeCalls(hot)).toEqual([['afterTestResize', 55, 2, true]]);
       expect(handle().classList.contains('active')).toBe(false);
       expect(guide().classList.contains('active')).toBe(false);
@@ -541,10 +606,12 @@ describe('ResizeGesture', () => {
       hot.runHooks.mockReset();
       mouse('mousemove', window, { pageY: 70 });
 
-      expect(owner.setManualSize).toHaveBeenCalledWith(2, 60);
+      expect(owner.clampSize).toHaveBeenLastCalledWith(60);
+      expect(owner.setManualSize).not.toHaveBeenCalled();
 
       mouse('mouseup', window);
 
+      expect(owner.setManualSize.mock.calls).toEqual([[2, 60]]);
       expect(hot.runHooks).toHaveBeenCalledWith('beforeTestResize', 60, 2, false);
       expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 60, 2, false);
     });

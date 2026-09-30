@@ -172,7 +172,7 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
       getPlugin: () => undefined,
       getTranslatedPhrase: phrase => phrase,
       // The click groups its writes into one undo step; the grouping itself is not under test.
-      runOperation: (name, source, callback) => callback(),
+      runOperation: (name, callback) => callback(),
       _getOperationScope: () => ({ describe() {} }),
     };
   }

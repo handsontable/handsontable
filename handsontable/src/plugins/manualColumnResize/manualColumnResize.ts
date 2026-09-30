@@ -81,6 +81,7 @@ export class ManualColumnResize extends BasePlugin {
 
     this.#gesture = new ResizeGesture(this.hot, COLUMN_RESIZE_AXIS, {
       isActive: () => this.enabled,
+      clampSize: width => this.#clampSize(width),
       setManualSize: (column, width) => this.#setManualSize(column, width),
     });
   }
@@ -242,12 +243,22 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {number} Returns new width.
    */
   #setManualSize(column: number, width: number): number {
-    const newWidth = Math.max(width, 20);
+    const newWidth = this.#clampSize(width);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.#columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
 
     return newWidth;
+  }
+
+  /**
+   * Returns the width `setManualSize()` stores for the given width.
+   *
+   * @param {number} width Column width.
+   * @returns {number}
+   */
+  #clampSize(width: number): number {
+    return Math.max(width, 20);
   }
 
   /**

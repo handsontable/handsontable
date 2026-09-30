@@ -75,6 +75,16 @@ export default class StateManager {
    * since it last read them without comparing the maps.
    */
   #membershipOverridesVersion = 0;
+  /**
+   * Advances on every `setState()` call - a new authored configuration. The membership overrides are
+   * keyed by that configuration, so a caller can tell they were recorded under another one.
+   */
+  #configVersion = 0;
+  /**
+   * Advances whenever the collapsed state of the tree may have changed: a node modification, and
+   * every re-derive of the tree. A caller can then skip walking the tree when it did not move.
+   */
+  #collapsedGroupsVersion = 0;
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -84,6 +94,7 @@ export default class StateManager {
    * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
    */
   setState(nestedHeadersSettings: unknown[][]) {
+    this.#configVersion += 1;
     this.#sourceSettings.setData(nestedHeadersSettings);
     // A fresh authored configuration invalidates move-driven membership overrides (their owner
     // identities index the previous structure), so reset them.
@@ -142,6 +153,25 @@ export default class StateManager {
     this.#deriveVisibility();
     this.#reapplyCollapsedGroupsByIdentity(collapsedGroups);
     this.#applySyncVisibility();
+  }
+
+  /**
+   * Returns a number that changes on every `setState()` call.
+   *
+   * @returns {number}
+   */
+  getConfigVersion(): number {
+    return this.#configVersion;
+  }
+
+  /**
+   * Returns a number that changes whenever the collapsed header groups may have changed. When it
+   * did not change, `exportCollapsedGroups()` returns the same groups as before.
+   *
+   * @returns {number}
+   */
+  getCollapsedGroupsVersion(): number {
+    return this.#collapsedGroupsVersion;
   }
 
   /**
@@ -455,6 +485,8 @@ export default class StateManager {
       return { actionResult: undefined, modified: false };
     }
 
+    this.#collapsedGroupsVersion += 1;
+
     return {
       actionResult: triggerNodeModification(action, nodeToProcess, columnIndex) ?? undefined,
       modified: true,
@@ -516,6 +548,8 @@ export default class StateManager {
    * non-identity arrangement (a column move) makes the structure follow the data.
    */
   #deriveTree() {
+    this.#collapsedGroupsVersion += 1;
+
     const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
 
     this.#derivedSettings.setNormalizedData(
@@ -1071,6 +1105,7 @@ export default class StateManager {
    * Clears the column state manager to the initial state.
    */
   clear() {
+    this.#collapsedGroupsVersion += 1;
     this.#stateMatrix = [];
     this.#sourceSettings.clear();
     this.#derivedSettings.clear();
