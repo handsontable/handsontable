@@ -6,7 +6,7 @@ import { deepClone, isPlainObject } from '../../helpers/object';
 export interface Sheet {
   id: number;
   name: string;
-  data: unknown[][];
+  data: unknown[];
   settings?: Record<string, unknown>;
   viewState?: Record<string, unknown>;
 }

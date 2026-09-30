@@ -151,13 +151,16 @@ export function handleAfterPageChangeExternalPagination(
 }
 
 /**
- * Loads page 1 with the new page size when Pagination runs in external paged mode.
+ * Loads page 1 with the new page size when Pagination runs in external paged mode. Skips when the new page size
+ * already matches the query and the query is on page 1. While the plugin applies a response (a loaded one or a
+ * replayed one), it also skips when the pager's page matches the query's page: that is Pagination taking the page
+ * and page size of the response (possibly after a view with another page size was shown), not a user's change.
  *
  * @param {object} ctx Context.
- * @param {function(): boolean} ctx.isEnabled DataProvider enabled check.
  * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): number} ctx.getQueryPage Current 1-based page.
  * @param {function(): number} ctx.getQueryPageSize Current page size.
+ * @param {function(): boolean} ctx.isApplyingResponse Whether the plugin is applying a response right now.
  * @param {function(number): Promise<void>} ctx.setPageSize Fetch with new page size (page 1).
  * @param {number | 'auto'} oldPageSize Previous page size.
  * @param {number | 'auto'} newPageSize New page size.
@@ -166,12 +169,12 @@ export function handleAfterPageChangeExternalPagination(
 export function handleAfterPageSizeChangeExternalPagination(
   ctx: {
     hot: HotInstance; getQueryPage: () => number; getQueryPageSize: () => number;
-    setPageSize: (ps: number) => Promise<void>;
+    isApplyingResponse: () => boolean; setPageSize: (ps: number) => Promise<void>;
   },
   oldPageSize: number | 'auto',
   newPageSize: number | 'auto'
 ): void {
-  const { hot, getQueryPage, getQueryPageSize, setPageSize } = ctx;
+  const { hot, getQueryPage, getQueryPageSize, isApplyingResponse, setPageSize } = ctx;
 
   const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
@@ -181,7 +184,9 @@ export function handleAfterPageSizeChangeExternalPagination(
 
   const ps = normalizeExternalPaginationPageSize(newPageSize, DEFAULT_PAGE_SIZE);
 
-  if (ps === getQueryPageSize() && getQueryPage() === 1) {
+  const isPagerSync = isApplyingResponse() && paginationPlugin.getCurrentPage() === getQueryPage();
+
+  if (ps === getQueryPageSize() && (getQueryPage() === 1 || isPagerSync)) {
     return;
   }
 

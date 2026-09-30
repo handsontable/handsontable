@@ -267,6 +267,14 @@ captured when the plugin is enabled.
 - A condition descriptor's `inputType` (`'date'` / `'time'`) controls the native input type rendered in the menu: `ConditionComponent` applies it via `InputUI.setType()` on condition select and on saved-state restore. A condition with inputs that expects ISO date/time values MUST declare `inputType`, or users get a free-text field whose locale-formatted input never matches.
 - `InputUI` syncs its value on `keyup`, `input`, AND `change`. A value picked from the native date/time calendar fires no `keyup` — do not remove the `input`/`change` hooks.
 
+## Server-backed filtering is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `filters` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+## A failed server fetch rolls back only the view on screen
+
+`#onAfterDataProviderFetchError` skips the rollback when the hook's third argument, `isVisible`, is `false`: that failure belongs to a view the grid does not show, and importing `#dataProviderFilterRollbackStack` would replace the visible view's conditions while its rows stay filtered. When DataProvider's owner changes the view, DataProvider calls the internal `_resetDataProviderRollback()` (`@private`, not API; a no-op while this plugin is disabled) — after the change and again after replaying the arriving view's response — so the stack holds the arriving view's own conditions. Otherwise it is left by the last server filter action in ANY view, and a page-change failure on the arriving view imported the previous view's conditions. The reset sets `#previousConditionStack` to the conditions on screen too, because `#filterInternal` rebuilds the rollback stack from it at the start of every filter pass, and a switch between two unfiltered views runs no pass at all — without it, the first failed server filter on the arriving view rolled back to the previous view's conditions. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.
