@@ -15,7 +15,7 @@ new Handsontable(container, {
     ['Boron', 'B', 5, 10.81, 15],
   ],
   rowHeaders: true,
-  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   contextMenu: ['row_above', 'row_below', 'remove_row', 'clear_column'],
   height: 'auto',
   autoWrapRow: true,

@@ -48,7 +48,7 @@ const hotSettings = ref<GridSettings>({
   data,
   startRows: 8,
   startCols: 5,
-  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   minSpareRows: 1,
   contextMenu: true,
   height: 'auto',

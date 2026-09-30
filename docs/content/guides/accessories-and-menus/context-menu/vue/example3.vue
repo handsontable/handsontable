@@ -125,7 +125,7 @@ const hotSettings = ref<GridSettings>({
     ['Boron', 'B', 5, 10.81, 15],
   ],
   rowHeaders: true,
-  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

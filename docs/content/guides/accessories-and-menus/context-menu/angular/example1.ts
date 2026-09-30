@@ -24,7 +24,7 @@ export class AppComponent {
 
   readonly hotSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+    colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
     contextMenu: true,
     height: 'auto',
     autoWrapRow: true,

@@ -40,7 +40,7 @@ const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   data,
-  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   minSpareRows: 1,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',

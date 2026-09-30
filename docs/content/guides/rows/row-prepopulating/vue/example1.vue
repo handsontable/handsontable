@@ -16,7 +16,7 @@ const data = [
 
 const hotSettings = ref<GridSettings>({
   data,
-  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   minSpareRows: 1,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',

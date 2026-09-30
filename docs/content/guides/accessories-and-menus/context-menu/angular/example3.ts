@@ -152,7 +152,7 @@ export class AppComponent implements OnInit {
 
     this.hotSettings = {
       rowHeaders: true,
-      colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
+      colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
       height: 'auto',
       contextMenu: contextMenuSettings,
       // Required for the HTML in the `about` item's label to be rendered safely
