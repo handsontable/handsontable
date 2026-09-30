@@ -305,13 +305,14 @@ export function conditionalFormattingXml(
 }
 
 /**
- * Rebuilds the ExcelJS rule object for one `<cfRule>`, so a re-export can hand it back to the
- * `conditionalFormatting` option unchanged.
+ * Sets a rule's `type` and `operator`: a text rule (`containsText`, `beginsWith`, ...) is carried as
+ * ExcelJS carries it, `type: 'containsText'` with the XML type as its operator, plus its `text`.
+ *
+ * @param {object} rule The rule being rebuilt.
+ * @param {string} type The `<cfRule type>` attribute.
+ * @param {object} attrs The `<cfRule>` attributes.
  */
-export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: DxfStyle[]): RuleObject {
-  const type = attrs.type ?? 'expression';
-  const rule: RuleObject = {};
-
+function applyRuleKind(rule: RuleObject, type: string, attrs: XmlAttributes): void {
   if (CONTAINS_TEXT_TYPES.has(type)) {
     rule.type = 'containsText';
     rule.operator = type;
@@ -319,22 +320,26 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
     if (attrs.text !== undefined) {
       rule.text = attrs.text;
     }
-  } else {
-    rule.type = type;
 
-    if (attrs.operator !== undefined) {
-      rule.operator = attrs.operator;
-    }
+    return;
   }
 
-  if (attrs.priority !== undefined) {
-    rule.priority = Number(attrs.priority);
-  }
+  rule.type = type;
 
-  if (formulae.length > 0) {
-    rule.formulae = formulae;
+  if (attrs.operator !== undefined) {
+    rule.operator = attrs.operator;
   }
+}
 
+/**
+ * Sets the attributes only one rule kind carries: `top10`'s rank and flags, `aboveAverage`'s
+ * direction, and `timePeriod`'s period.
+ *
+ * @param {object} rule The rule being rebuilt.
+ * @param {string} type The `<cfRule type>` attribute.
+ * @param {object} attrs The `<cfRule>` attributes.
+ */
+function applyKindSpecificAttributes(rule: RuleObject, type: string, attrs: XmlAttributes): void {
   if (type === 'top10') {
     rule.rank = attrs.rank === undefined ? DEFAULT_TOP10_RANK : Number(attrs.rank);
     rule.percent = attrs.percent === '1' || attrs.percent === 'true';
@@ -348,6 +353,27 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
   if (type === 'timePeriod' && attrs.timePeriod !== undefined) {
     rule.timePeriod = attrs.timePeriod;
   }
+}
+
+/**
+ * Rebuilds the ExcelJS rule object for one `<cfRule>`, so a re-export can hand it back to the
+ * `conditionalFormatting` option unchanged.
+ */
+export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: DxfStyle[]): RuleObject {
+  const type = attrs.type ?? 'expression';
+  const rule: RuleObject = {};
+
+  applyRuleKind(rule, type, attrs);
+
+  if (attrs.priority !== undefined) {
+    rule.priority = Number(attrs.priority);
+  }
+
+  if (formulae.length > 0) {
+    rule.formulae = formulae;
+  }
+
+  applyKindSpecificAttributes(rule, type, attrs);
 
   if (attrs.dxfId !== undefined) {
     const style = dxfs[Number(attrs.dxfId)];

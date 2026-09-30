@@ -41,7 +41,8 @@ const PACKAGE_REL = 'http://schemas.openxmlformats.org/package/2006/relationship
  * prefix to the transitional one and comparing against `REL_TYPES` as usual. The package
  * relationship types (core properties) keep their namespace in a strict file and need no rewrite.
  */
-const STRICT_OFFICE_REL = 'http://purl.oclc.org/ooxml/officeDocument/relationships';
+// An XML namespace name compared as text and never fetched; ECMA-376 fixes it with `http`.
+const STRICT_OFFICE_REL = 'http://purl.oclc.org/ooxml/officeDocument/relationships'; // NOSONAR
 
 export const REL_TYPES = {
   officeDocument: `${OFFICE_REL}/officeDocument`,

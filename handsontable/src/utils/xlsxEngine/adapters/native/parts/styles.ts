@@ -89,6 +89,21 @@ export function builtInNumFmtId(code: string): number | undefined {
 }
 
 /**
+ * Orders two strings by UTF-16 code unit, the order `Array#sort` uses without a compare function.
+ *
+ * @param {string} a The first string.
+ * @param {string} b The second string.
+ * @returns {number}
+ */
+function compareCodeUnits(a: string, b: string): number {
+  if (a === b) {
+    return 0;
+  }
+
+  return a < b ? -1 : 1;
+}
+
+/**
  * `JSON.stringify` with object keys in sorted order at every depth, so two objects that carry the
  * same values in a different property order serialize identically. Arrays keep their order, and
  * an `undefined` property is skipped as `JSON.stringify` skips it. Every key and value takes part,
@@ -106,7 +121,9 @@ function stableStringify(value: unknown): string {
   const record = value as Record<string, unknown>;
   const parts: string[] = [];
 
-  Object.keys(record).sort().forEach((key) => {
+  // Code-unit order, stated explicitly: the key must not depend on the locale, which
+  // `localeCompare` would make it do.
+  Object.keys(record).sort(compareCodeUnits).forEach((key) => {
     if (record[key] !== undefined) {
       parts.push(`${JSON.stringify(key)}:${stableStringify(record[key])}`);
     }

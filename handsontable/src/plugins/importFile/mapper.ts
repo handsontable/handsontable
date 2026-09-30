@@ -569,7 +569,7 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, options, context, dropped } = scope;
+  const { sheet, options, context } = scope;
   const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
   const inferred = inferredMeta?.inferred ?? null;
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
