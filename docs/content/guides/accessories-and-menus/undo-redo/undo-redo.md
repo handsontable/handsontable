@@ -142,7 +142,7 @@ An edit that waits for an asynchronous [validator](@/guides/cell-functions/cell-
 
 An action that changed the grid before it started to wait, such as a `batch()` that removes a row and then edits a validated cell, owns the grid until its validation finishes. Anything you change in that time becomes part of its step, so one undo reverts both. Undone apart, one of the two would land on the wrong row. A validator that throws an error ends the wait: the step is recorded with what the action did before the error.
 
-While an action that inserted or removed rows or columns waits for its validator, [`isUndoAvailable()`](@/api/undoRedo.md#isundoavailable) and [`isRedoAvailable()`](@/api/undoRedo.md#isredoavailable) return `false`, and [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing. The grid then has a shape no recorded step describes. An undo requested in that time is not queued.
+While such an action waits for its validator, [`isUndoAvailable()`](@/api/undoRedo.md#isundoavailable) and [`isRedoAvailable()`](@/api/undoRedo.md#isredoavailable) return `false`, and [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing. The grid then holds half of a step that no recorded state describes. An undo requested in that time is not queued. An edit on its own changes nothing before its validation finishes, so it does not block them.
 
 ## How an undo restores the grid
 
