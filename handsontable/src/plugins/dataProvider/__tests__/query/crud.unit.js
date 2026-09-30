@@ -387,9 +387,56 @@ describe('dataProvider crud', () => {
       expect(revertChanges).toHaveBeenCalledWith(changes);
       expect(hot.setDataAtRowProp).not.toHaveBeenCalled();
     });
+
+    it('should neither revert, report, nor commit once the grid is destroyed while validating', async() => {
+      const commitRowsUpdate = jest.fn();
+      const revertChanges = jest.fn();
+      const hot = {
+        isDestroyed: false,
+        runHooks: jest.fn(),
+        render: jest.fn(),
+      };
+
+      const update = runUpdateFromChanges(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+        revertChanges,
+      }, [[0, 'name', 'A', 'B']], {
+        sortedRows: [0],
+        rowPayloads: [{ id: 'ORD-1', changes: { name: 'B' }, rowData: {} }],
+        validation: Promise.resolve([false]),
+      });
+
+      hot.isDestroyed = true;
+      await update;
+
+      expect(hot.runHooks.mock.calls.map(([name]) => name)).toEqual(['beforeRowsMutation']);
+      expect(hot.render).not.toHaveBeenCalled();
+      expect(revertChanges).not.toHaveBeenCalled();
+      expect(commitRowsUpdate).not.toHaveBeenCalled();
+    });
   });
 
   describe('runManualUpdateRowsMutation', () => {
+    it('should not commit once the grid is destroyed while validating', async() => {
+      const commitRowsUpdate = jest.fn();
+      const hot = {
+        isDestroyed: false,
+        runHooks: jest.fn(),
+        countRows: () => 0,
+      };
+
+      const update = runManualUpdateRowsMutation(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+      }, [{ id: 1, changes: { name: 'B' }, rowData: {} }]);
+
+      hot.isDestroyed = true;
+      await update;
+
+      expect(commitRowsUpdate).not.toHaveBeenCalled();
+    });
+
     it('should not commit when beforeRowsMutation returns false', async() => {
       const commitRowsUpdate = jest.fn();
       const hot = {

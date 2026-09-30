@@ -516,6 +516,10 @@ export async function runManualUpdateRowsMutation(
     return validateRowChanges(hot, visualRow, p.changes ?? {});
   }));
 
+  if (hot.isDestroyed) {
+    return;
+  }
+
   if (validationResults.some(ok => !ok)) {
     runAfterRowsMutationError(hot, 'update', new Error('Row update validation failed'), payload);
     logError('Row update failed: validation failed for one or more cells');
@@ -617,7 +621,7 @@ type UpdateFromChangesCtx = {
  * default writes them back into the grid.
  * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
  * @param {object} [prepared] Payloads built earlier by `prepareUpdateFromChanges()`; built now when omitted.
- * @returns {Promise<void>}
+ * @returns {Promise<void>} Settles without touching the grid when it is destroyed while the validation runs.
  */
 export async function runUpdateFromChanges(
   hot: HotInstance, ctx: UpdateFromChangesCtx, changes: ChangeTuple[], prepared?: PreparedRowsUpdate
@@ -650,6 +654,10 @@ export async function runUpdateFromChanges(
   }
 
   const ok = await (validation ?? validatePreparedRows(hot, sortedRows, rowPayloads));
+
+  if (hot.isDestroyed) {
+    return;
+  }
 
   if (ok.some(v => !v)) {
     revert();
