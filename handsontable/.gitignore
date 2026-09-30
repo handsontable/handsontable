@@ -9,13 +9,17 @@ test/dist/
 src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
-dev*.html
-dev*.js
-dev*.ts
+# The dev pages here and the build's `languages/` output below exist at the package root only, so
+# their rules start with a slash. Git applies a rule without one at every depth, where these also
+# match sources such as `src/i18n/languages/xx-XX.ts` and keep new ones out of `git status`.
+# Pinned by test/__tests__/gitignoreScope.unit.js.
+/dev*.html
+/dev*.js
+/dev*.ts
 npm-debug.log
 
 dist/
-languages/
+/languages/
 node_modules/
 commonjs/
 es/
