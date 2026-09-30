@@ -62,8 +62,8 @@ export function resolveAxisOwner(
  * grid narrower. A holder as wide as the owner then overflows the grid by the difference, and
  * `.ht_master`, which clips at the grid's own width, cuts off the grid's inline-end edge. When the host
  * sized the grid as a plain block (`widthFollowsRoot`), the grid's root element – the Walkontable
- * root's parent, the element `preventOverflow` forces an axis to – bounds the width as well, the way
- * `resolveRootWidthBound()` resolves it.
+ * root's parent, the element `preventOverflow` forces an axis to – bounds the width as well:
+ * `viewport/rootWidthBound.ts` caps the holder at it and measures the room the grid has.
  *
  * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
  * @param {HTMLElement | Window} ownerX The owner of the horizontal axis.

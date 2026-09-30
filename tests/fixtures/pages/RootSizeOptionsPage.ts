@@ -252,6 +252,73 @@ export class RootSizeOptionsPage {
   }
 
   /**
+   * Adds or removes a class on the grid's parent, the way a stylesheet state change would: nothing
+   * tells the grid but the resize it causes.
+   */
+  async toggleContainerClass(className: string, force: boolean): Promise<void> {
+    await this.page.evaluate(([name, on]) => {
+      document.getElementById('container')?.classList.toggle(name, on);
+    }, [className, force] as const);
+  }
+
+  /**
+   * The content-box width of the modal `<dialog>` `rebuild(..., 'modal-dialog')` put the grid in.
+   */
+  async dialogContentWidth(): Promise<number> {
+    return this.page.evaluate(() => {
+      const dialog = document.querySelector('dialog');
+
+      if (!dialog) {
+        throw new Error('the grid is not in a dialog');
+      }
+
+      const style = getComputedStyle(dialog);
+
+      return dialog.getBoundingClientRect().width
+        - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+        - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+    });
+  }
+
+  /**
+   * The width of the top overlay (the column headers), in the same evaluation as the root's.
+   */
+  async topOverlayAndRootWidths(): Promise<{ topOverlayWidth: number, rootWidth: number }> {
+    return this.page.evaluate(() => {
+      const root = window.hot.rootElement;
+      const clone = root.querySelector<HTMLElement>('.ht_clone_top');
+
+      if (!clone) {
+        throw new Error('the top overlay is not rendered');
+      }
+
+      return {
+        topOverlayWidth: clone.getBoundingClientRect().width,
+        rootWidth: root.getBoundingClientRect().width,
+      };
+    });
+  }
+
+  /**
+   * Renders the grid, the way any unrelated change would (an edit, new data, a scroll that lands on
+   * new rows).
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.render();
+    });
+  }
+
+  /**
+   * Resizes the browser window's width, keeping its height, the way a user drags it.
+   */
+  async setViewportWidth(width: number): Promise<void> {
+    const size = this.page.viewportSize();
+
+    await this.page.setViewportSize({ width, height: size?.height ?? 720 });
+  }
+
+  /**
    * Waits for the grid to stop redrawing, then redraws it once, so the engine's cached layout
    * measurements describe the settled layout, as on a grid that has been on the page for a while. A
    * fresh grid's resize observers drop that cache once on their first delivery, and a change made

@@ -1,183 +1,251 @@
 /**
- * How the grid's root element bounds the holder width inside an ancestor that owns the horizontal
- * axis. `MasterTable` bounds the holder with it and `measureWorkspaceWidth` the columns, so the two
- * resolve the same answer from the same reads.
+ * How the grid's root element bounds the holder inside an ancestor that owns the horizontal axis,
+ * when the host sized the grid as a plain block (`widthFollowsRoot`). Two widths are resolved here,
+ * and they are kept apart on purpose.
+ *
+ * - The width the holder is USED at never passes the grid's own box: the holder carries
+ *   `max-width: 100%` (`applyHolderWidthCap`), so `.ht_master` bounds it, and the columns follow
+ *   through `boundWorkspaceWidth`. In a chain sized by its content, that percentage is cyclic, and
+ *   the browser leaves it out of the chain's intrinsic width, so the cap never feeds back into the
+ *   width it caps.
+ * - The holder's PIXEL width is what the grid contributes to that intrinsic width. It decides how
+ *   wide a chain sized by its content becomes, and whether a flex item or a grid track that does not
+ *   shrink below its content is pushed past its share. `resolveHolderWidth` measures the room the
+ *   grid's container has for it, instead of taking the owner's box.
+ *
+ * `MasterTable` sizes the holder with both, and `measureWorkspaceWidth` bounds the columns with the
+ * first.
  */
 import type { GeometryReader } from '../domMeasure/geometryReader';
 
 /**
- * How far past its container's box the probe in `containerFollowsContent()` pushes `.ht_master`.
- * Any amount above a pixel would do; a few more keep the answer clear of rounded fractional widths.
+ * The style of the probe `measureAvailableWidths()` lays out in `.ht_master`: in the flow, so its
+ * width counts, but with no height, so nothing below it moves, and with the font and wrapping pinned,
+ * so a theme or a host rule cannot keep its words on one line.
  */
-const CONTAINER_PROBE_PX = 16;
+const PROBE_STYLE = [
+  'display:block',
+  'height:0',
+  'margin:0',
+  'padding:0',
+  'border:0',
+  'overflow:hidden',
+  'visibility:hidden',
+  'font:16px/1 sans-serif',
+  'white-space:normal',
+  'word-break:normal',
+  'overflow-wrap:normal',
+].join(';');
 
 /**
- * The answer `containerFollowsContent()` gave for a grid root, and the widths it was taken at. The
- * probe writes a style, so it is not repeated while those widths stay the same.
+ * The probe's text: short words, so its narrowest layout (a word per line) takes almost no width,
+ * and many of them, so its widest layout (one line) is wider than any page.
  */
-interface ContainerProbeRecord {
+const PROBE_TEXT = 'x '.repeat(4096);
+
+/**
+ * One probe element per document, reused by every measurement.
+ */
+const probes = new WeakMap<Document, HTMLElement>();
+
+/**
+ * The room the probe finds for the grid.
+ */
+export interface AvailableWidths {
   /**
-   * The root's `clientWidth` when the probe ran.
+   * The content-box width of the element the grid's root sits in.
    */
-  rootWidth: number;
+  container: number;
   /**
-   * The container's `clientWidth` when the probe ran.
+   * The owner's content-box width: what the grid may take inside the owner's padding.
    */
-  containerWidth: number;
+  ownerContent: number;
   /**
-   * The holder's inline pixel width when the probe ran.
+   * The owner's box, read like the holder width without a bound (the smaller of `offsetWidth` and
+   * `scrollWidth`).
    */
-  holderWidth: number;
-  /**
-   * Whether the container grew with the probe, so its width follows the grid's content.
-   */
-  followsContent: boolean;
+  ownerBox: number;
 }
 
 /**
- * The last probe record per grid root element.
- */
-const containerProbeRecords = new WeakMap<HTMLElement, ContainerProbeRecord>();
-
-/**
- * The widths the grid's root element allows the holder, resolved by `resolveRootWidthBound()`.
- */
-export interface RootWidthBound {
-  /**
-   * The `clientWidth` of the element the root sits in. It always bounds the holder.
-   */
-  containerWidth: number;
-  /**
-   * Whether the root's own width bounds the holder as well: the root is narrower than its container,
-   * and the container does not follow the grid's content.
-   */
-  boundedByRoot: boolean;
-}
-
-/**
- * Reads the pixel width the engine last wrote on the holder, or `null` while it has none.
+ * Returns the document's probe element, creating it on the first call.
  *
- * @param {HTMLElement} holder The master holder.
- * @returns {number | null}
+ * @param {Document} rootDocument The document the grid is rendered in.
+ * @returns {HTMLElement}
  */
-function readHolderPixelWidth(holder: HTMLElement): number | null {
-  const { width } = holder.style;
+function getProbe(rootDocument: Document): HTMLElement {
+  let probe = probes.get(rootDocument);
 
-  return width.endsWith('px') ? Number.parseFloat(width) : null;
-}
-
-/**
- * Tells whether the element the grid root sits in follows the grid's content: an inline block, a
- * float, a flex item without `flex-grow`, a fit-content box. `.ht_master` is pushed past the
- * container's box for one read. A container whose width is its own keeps it, and a content-sized one
- * grows. A container with a content-based minimum width (a `flex: 1` item without `min-width: 0`, a
- * `1fr` grid track, an auto table cell) grows too, so the answer is conservative for it; the caller
- * only asks when the container is exactly as wide as the grid itself.
- *
- * Growing it is the only probe that can tell: core writes the workspace width onto the edge slots in
- * pixels after every render, and those in-flow siblings hold a content-sized container at its old
- * width, so collapsing `.ht_master` instead reads "unchanged" either way. The push resizes neither
- * the holder nor anything inside it, so no height changes inside the grid and no scroll offset moves
- * (the ranges of the ancestors only grow while it lasts), and the style is restored before anything
- * else reads the layout.
- *
- * @param {GeometryReader} geometryReader The geometry reader.
- * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
- * @param {HTMLElement} root The grid's root element.
- * @param {HTMLElement} container The element the root sits in.
- * @param {ContainerProbeRecord} widths The root, container and holder widths the answer is for.
- * @returns {boolean}
- */
-function containerFollowsContent(
-  geometryReader: GeometryReader,
-  wtRootElement: HTMLElement,
-  root: HTMLElement,
-  container: HTMLElement,
-  widths: Omit<ContainerProbeRecord, 'followsContent'>,
-): boolean {
-  const record = containerProbeRecords.get(root);
-
-  if (
-    record &&
-    record.rootWidth === widths.rootWidth &&
-    record.containerWidth === widths.containerWidth &&
-    record.holderWidth === widths.holderWidth
-  ) {
-    return record.followsContent;
+  if (!probe) {
+    probe = rootDocument.createElement('div');
+    probe.style.cssText = PROBE_STYLE;
+    probe.textContent = PROBE_TEXT;
+    probes.set(rootDocument, probe);
   }
 
-  const masterStyle = wtRootElement.style;
-  const inlineMinWidth = masterStyle.minWidth;
-
-  masterStyle.minWidth = `${widths.containerWidth + CONTAINER_PROBE_PX}px`;
-
-  const followsContent = geometryReader.clientWidth(container) !== widths.containerWidth;
-
-  masterStyle.minWidth = inlineMinWidth;
-  containerProbeRecords.set(root, { ...widths, followsContent });
-
-  return followsContent;
+  return probe;
 }
 
 /**
- * Resolves how the grid's root element bounds the holder width inside an ancestor that owns the
- * horizontal axis (the root comes from `resolveWidthBoundingRoot()`).
+ * Reads an element's content-box width: its `clientWidth` without the inline padding.
  *
- * The element the root sits in always bounds the holder, and it is a safe bound: when that element
- * is sized by its content, it is as wide as the holder or the host's bars, so bounding by it can keep
- * a width but never shrink one. The root's own width is a bound too when it is narrower than its
- * container (a relative `width` under 100%, a margin), but not while the container follows the grid's
- * content. In a content-sized chain a relative width is a fraction of the grid's own width, so
- * bounding the holder by it shrinks the container, which shrinks the root again, on every draw: a
- * `'90%'` grid decayed to a few pixels, and a `'calc(100% - 20px)'` one redrew forever.
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} element The element to measure.
+ * @returns {number}
+ */
+function contentBoxWidth(geometryReader: GeometryReader, element: HTMLElement): number {
+  const style = geometryReader.getComputedStyle(element);
+  const padding = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+
+  return geometryReader.clientWidth(element) - padding;
+}
+
+/**
+ * Sets or clears the cap that keeps the holder inside `.ht_master`. It is written only when it
+ * changes, since the element and split modes ask on every full draw.
  *
- * Only the grid can hold a container that follows it down, through its holder or through the host's
- * edge slots, which take the workspace width, and such a container is then exactly as wide as the
- * holder. A container of any other width is held by something that does not follow the grid (a flex
- * share, a grid track, a table), so the root bounds the holder without a probe. A container as wide
- * as the holder is probed by `containerFollowsContent()`.
+ * @param {HTMLElement} holder The master holder.
+ * @param {boolean} capped Whether the holder is capped at `.ht_master`'s width.
+ */
+export function applyHolderWidthCap(holder: HTMLElement, capped: boolean): void {
+  const maxWidth = capped ? '100%' : '';
+
+  if (holder.style.maxWidth !== maxWidth) {
+    holder.style.maxWidth = maxWidth;
+  }
+}
+
+/**
+ * Bounds the workspace width the horizontal owner allows by the width the holder is used at, from
+ * the layout around the grid alone, so the columns never wait for the holder of the draw before:
  *
- * A container with no width yet (a chain sized by its content, before the first draw) is no bound:
- * the owner's width stands, and the chain follows the holder from there.
+ * - `.ht_master`'s width, which caps the holder (`applyHolderWidthCap`);
+ * - the room inside the owner's padding, which `resolveHolderWidth` bounds the holder by, unless the
+ *   root spills past the element it sits in on purpose (a `width` above 100%), where the holder may
+ *   reach the owner's box.
+ *
+ * The owner's content box matters where the elements around the grid still hold the root wider than
+ * that room: in a chain sized by its content, core's edge slots take the workspace width after each
+ * render, so without it they would keep the root at the width the grid had before the owner shrank.
+ * A width not laid out yet (a chain sized by its content before the grid's first draw) is no bound,
+ * or the first frame would stretch the columns to nothing.
  *
  * @param {GeometryReader} geometryReader The geometry reader.
  * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
- * @param {HTMLElement} holder The master holder, whose last pixel width tells whether the grid may be
- * holding its root's container.
- * @param {HTMLElement} root The grid's root element.
- * @returns {RootWidthBound | null} `null` when the root has no container, or the container no width.
+ * @param {HTMLElement} owner The owner of the horizontal axis.
+ * @param {HTMLElement} root The grid's root element (`resolveWidthBoundingRoot()`).
+ * @param {number} width The workspace width the owner allows.
+ * @returns {number}
  */
-export function resolveRootWidthBound(
+export function boundWorkspaceWidth(
+  geometryReader: GeometryReader,
+  wtRootElement: HTMLElement,
+  owner: HTMLElement,
+  root: HTMLElement,
+  width: number,
+): number {
+  const gridWidth = geometryReader.clientWidth(wtRootElement);
+  const container = root.parentElement;
+  const spillsPastContainer = container !== null && gridWidth > contentBoxWidth(geometryReader, container);
+  let bounded = width;
+
+  if (!spillsPastContainer) {
+    const ownerContent = contentBoxWidth(geometryReader, owner);
+
+    if (ownerContent > 0) {
+      bounded = Math.min(bounded, ownerContent);
+    }
+  }
+
+  return gridWidth > 0 ? Math.min(bounded, gridWidth) : bounded;
+}
+
+/**
+ * Measures how much room the grid's container and the owner have for the grid. For one read the
+ * holder takes no width, so the grid contributes nothing to the width of the elements around it, and
+ * a probe that would take any width it gets takes its place in `.ht_master`: a long run of short
+ * words, which can be as narrow as one word and as wide as all of them on one line.
+ *
+ * Each container then shows the width it has room for, whatever sizes it. One with a width of its own
+ * keeps it; a flex item or a grid track keeps its share, since the probe's narrowest layout sits
+ * below any share; and one sized by its content (an inline block, a float, a flex item without
+ * `flex-grow`, a modal `<dialog>` with no width) grows to the room around it, where it would
+ * otherwise stay at the width the grid gave it on the draw before. That last case is why the probe
+ * exists: bounding by the container's current width, the grid could shrink with the owner but never
+ * grow back. The core's edge slots still hold such a container at their pixel width, which is why the
+ * owner is read under the probe too, and bounds the answer.
+ *
+ * The probe grows or keeps the width of everything around the grid, so no scroll offset is clamped
+ * while it lasts: the holder only loses its width, which widens its own scroll range, and nothing
+ * changes height. Both styles are restored before anything else reads the layout, so no resize
+ * observer sees the probe.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
+ * @param {HTMLElement} holder The master holder.
+ * @param {HTMLElement} owner The owner of the horizontal axis.
+ * @param {HTMLElement} container The element the grid's root sits in.
+ * @returns {AvailableWidths}
+ */
+export function measureAvailableWidths(
   geometryReader: GeometryReader,
   wtRootElement: HTMLElement,
   holder: HTMLElement,
-  root: HTMLElement,
-): RootWidthBound | null {
-  const container = root.parentElement;
-  const containerWidth = container ? geometryReader.clientWidth(container) : 0;
+  owner: HTMLElement,
+  container: HTMLElement,
+): AvailableWidths {
+  const probe = getProbe(wtRootElement.ownerDocument);
+  const holderStyle = holder.style;
+  const holderWidth = holderStyle.width;
 
-  if (container === null || containerWidth <= 0) {
+  holderStyle.width = '0px';
+  wtRootElement.appendChild(probe);
+
+  try {
+    return {
+      container: contentBoxWidth(geometryReader, container),
+      ownerContent: contentBoxWidth(geometryReader, owner),
+      ownerBox: Math.min(geometryReader.offsetWidth(owner), geometryReader.scrollWidth(owner)),
+    };
+
+  } finally {
+    probe.remove();
+    holderStyle.width = holderWidth;
+  }
+}
+
+/**
+ * Resolves the holder's pixel width inside an owner of the horizontal axis that may be wider than
+ * the grid: the room the grid's container has (`measureAvailableWidths`), no more than the owner's
+ * content box. A root wider than its container (a `width` above 100%) spills over it on purpose, so
+ * the holder then fills the root, as far as the owner's box reaches.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
+ * @param {HTMLElement} holder The master holder.
+ * @param {HTMLElement} owner The owner of the horizontal axis.
+ * @param {HTMLElement} root The grid's root element (`resolveWidthBoundingRoot()`).
+ * @returns {number | null} `null` for a root that sits in no element: the owner's box stands.
+ */
+export function resolveHolderWidth(
+  geometryReader: GeometryReader,
+  wtRootElement: HTMLElement,
+  holder: HTMLElement,
+  owner: HTMLElement,
+  root: HTMLElement,
+): number | null {
+  const container = root.parentElement;
+
+  if (container === null) {
     return null;
   }
 
   const rootWidth = geometryReader.clientWidth(root);
+  const available = measureAvailableWidths(geometryReader, wtRootElement, holder, owner, container);
 
-  if (rootWidth >= containerWidth) {
-    return { containerWidth, boundedByRoot: false };
+  if (rootWidth > available.container) {
+    return Math.floor(Math.min(available.ownerBox, rootWidth));
   }
 
-  const holderWidth = readHolderPixelWidth(holder);
-
-  if (holderWidth === null || Math.abs(containerWidth - holderWidth) > 1) {
-    return { containerWidth, boundedByRoot: true };
-  }
-
-  return {
-    containerWidth,
-    boundedByRoot: !containerFollowsContent(geometryReader, wtRootElement, root, container, {
-      rootWidth,
-      containerWidth,
-      holderWidth,
-    }),
-  };
+  return Math.floor(Math.min(available.ownerContent, available.container));
 }

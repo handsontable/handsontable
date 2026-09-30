@@ -144,9 +144,9 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     heightFollowsContent: false,
     // Whether the host sized the grid as a plain block (Handsontable's `height: 'auto'`), whose width
     // is its root element's. An ancestor that owns the horizontal axis then sizes the holder no wider
-    // than that root (`resolveRootWidthBound()`): the ancestor's own box can be wider than the grid (its
-    // padding, a padded wrapper in between, a relative `width` under 100%). Engine default: the owner
-    // alone.
+    // than that root (`viewport/rootWidthBound.ts`): the ancestor's own box can be wider than the
+    // grid (its padding, a padded wrapper in between, a relative `width` under 100%). Engine default:
+    // the owner alone.
     widthFollowsRoot: false,
 
     // data source
