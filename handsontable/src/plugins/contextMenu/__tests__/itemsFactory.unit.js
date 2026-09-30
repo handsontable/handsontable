@@ -187,6 +187,23 @@ describe('contextMenu/ItemsFactory', () => {
       expect(override.disabled).toBe(userDisabled);
     });
 
+    it('keeps the callbacks an item defines on its prototype', () => {
+      class CustomItem {
+        callback() {}
+      }
+
+      const factory = new ItemsFactory(hotMock());
+      const custom = new CustomItem();
+      const settings = { items: { myItem: custom } };
+
+      factory.setPredefinedItems(factory.getItems(settings));
+
+      const [item] = factory.getItems(settings);
+
+      // On develop the user's own object was the item, so its prototype came along.
+      expect(item.callback).toBe(CustomItem.prototype.callback);
+    });
+
     it('applies to the dropdown menu too, where the Filters items define their own hidden()', () => {
       const factory = new ItemsFactory(hotMock(), null, 'dropdownMenu');
       const userHidden = () => false;

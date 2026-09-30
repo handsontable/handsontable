@@ -34,7 +34,8 @@
     DEV-3140. `contextMenu.items.commentsAddEdit` overrides the item the Comments plugin contributes.
     The user's `disabled()` used to be replaced by the plugin's own, so it was never called, while
     `hidden()` (which the plugin does not define) worked. Row 0 must disable the item, row 2 hide it,
-    and every other row leaves it as the plugin defines it. `window.overrideCalls` counts the calls.
+    and every other row leaves it enabled: the user's `disabled()` replaces the plugin's own, so the
+    plugin's guards (header selection, no range) do not apply here. `window.overrideCalls` counts the calls.
   -->
   <div id="grid" data-testid="grid"></div>
 
