@@ -121,6 +121,17 @@ A few variables are renamed for more consistent naming:
 | `--ht-icon-active-button-hover-background-color` | `--ht-icon-button-active-hover-background-color` |
 | `--ht-icon-active-button-hover-icon-color`       | `--ht-icon-button-active-hover-icon-color`       |
 
+### Read-only cell styling
+In the modern themes (`ht-theme-main` and `ht-theme-horizon`), read-only cells now get a background color, set by the new `--ht-cell-read-only-background-color` variable. The text color and background color of read-only cells are also applied with `!important`, so custom CSS rules that target read-only cells directly (for example, through the `htDimmed` class) no longer take effect. The classic theme is not affected.
+
+To restore the 15.3 look, override the variable on the [theme class](@/guides/styling/theme-customization/theme-customization.md#target-the-theme-class-not-the-container):
+
+```css
+.ht-theme-main {
+  --ht-cell-read-only-background-color: transparent;
+}
+```
+
 ### Migration notes
 If you were using custom CSS variables in version 15.3, you'll need to:
 
