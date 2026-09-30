@@ -743,7 +743,7 @@ export class Pagination extends BasePlugin {
    * @returns {object|undefined}
    */
   captureState(previous: unknown): unknown {
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       return undefined;
     }
 
@@ -763,7 +763,7 @@ export class Pagination extends BasePlugin {
    * @param {*} state The recorded state.
    */
   restoreState(state: unknown): void {
-    if (this.#isDataProviderActive || !isPageState(state)) {
+    if (this.#isDataProviderActive() || !isPageState(state)) {
       return;
     }
 
