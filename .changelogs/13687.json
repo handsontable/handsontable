@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a page-wide `scrollbar-width` rule with `!important` painted scrollbars into the column header and row header layers.",
+  "type": "fixed",
+  "issueOrPR": 13687,
+  "breaking": false,
+  "framework": "none"
+}
