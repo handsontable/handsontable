@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-30T10:31:24.460Z",
+  "updatedAt": "2026-09-30T10:34:06.767Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "visual",
+      "leg": "js/chromium-theme-main",
+      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
+      "line": null,
+      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "status": "failed",
+      "attempts": 1,
+      "error": "differs from base/develop (full tier); render sha256 e6a4f1d71ed1",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "36579315875",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36579315875",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3139_Editors-visual-consolidation",
+      "headSha": "65de930cf9750e2ec49bba4cba84ecda9c8d82d3",
+      "event": "pull_request",
+      "seenAt": "2026-09-30T10:33:16Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-horizon-min",
