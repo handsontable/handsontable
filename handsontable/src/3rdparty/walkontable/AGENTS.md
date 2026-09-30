@@ -336,9 +336,14 @@ scroll was always cheap: `.ht_master .wtHolder` is `overflow: auto`.
 
 So `src/styles/base/_base.scss` makes each of those holders a scroll container on the ONE axis the
 engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
-bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none` plus
-the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body fails the
-SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same writes then take the compositor's
+bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none
+!important` plus the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body
+fails the SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. Keep the
+`!important` (DEV-3160): Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not
+`auto`, so a page-wide `.wtHolder { scrollbar-width: thin !important }` otherwise paints an 11px
+scrollbar into these holders and shrinks the row-header layer. The selector carries a `.handsontable` prefix (0,3,0), so it beats a page rule like
+`.handsontable .wtHolder` whatever the load order. It does not beat a host `!important` rule with
+higher specificity, or one inside a CSS `@layer` (important declarations reverse layer order). Do not claim the holders are immune to host CSS. The same writes then take the compositor's
 scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
 −45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
 long tasks do not move — they are the two full draws' renderer work — so the win is per-frame
