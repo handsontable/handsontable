@@ -165,7 +165,10 @@ function getItems(
       let item: Record<string, unknown> = items[typeof value === 'string' ? value : key];
 
       if (!item) {
-        item = value as Record<string, unknown>;
+        // Copy the user's object: the placeholder is later overwritten by the plugin's rich entry
+        // (see `setPredefinedItems`), which would otherwise replace the user's own callbacks.
+        item = isObject(value) ? extend({}, value as Record<string, unknown>) as Record<string, unknown> :
+          value as Record<string, unknown>;
       }
       if (isObject(value)) {
         extend(item, value as Record<string, unknown>);

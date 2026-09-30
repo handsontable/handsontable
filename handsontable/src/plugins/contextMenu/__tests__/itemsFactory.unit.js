@@ -136,6 +136,40 @@ describe('contextMenu/ItemsFactory', () => {
     });
   });
 
+  describe('overriding a plugin-provided item through the object form of `items`', () => {
+    // Mirrors what `ContextMenu#updatePlugin` does: build the list from the user's settings, let
+    // a plugin splice its rich entry into it (`afterContextMenuDefaultOptions`), register the
+    // result, then build the final list from the same settings.
+    it('keeps the user callbacks that the plugin entry also defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userDisabled = jest.fn(() => true);
+      const settings = { items: { commentsAddEdit: { disabled: userDisabled, hidden: () => false } } };
+      const pluginDisabled = () => false;
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', disabled: pluginDisabled });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.disabled).toBe(userDisabled);
+      expect(item.hidden).toBe(settings.items.commentsAddEdit.hidden);
+      expect(typeof item.name).toBe('function');
+    });
+
+    it('does not mutate the user settings', () => {
+      const factory = new ItemsFactory(hotMock());
+      const override = { disabled: () => true };
+      const settings = { items: { commentsAddEdit: override } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', disabled: () => false });
+      factory.setPredefinedItems(pluginItems);
+
+      expect(Object.keys(override)).toEqual(['disabled']);
+    });
+  });
+
   describe('keys that name a built-in item with no entry', () => {
     it('are dropped without a warning, as they always were', () => {
       const factory = new ItemsFactory(hotMock());
