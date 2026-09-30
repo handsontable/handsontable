@@ -17,6 +17,8 @@ vue:
   metaTitle: Server-side CRUD - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
+menuTag: updated
+addedIn: "17.1.0"
 ---
 
 With a complete [`dataProvider`](@/api/options.md#dataprovider) configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend. For loading and `fetchRows`, see [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) and [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md).

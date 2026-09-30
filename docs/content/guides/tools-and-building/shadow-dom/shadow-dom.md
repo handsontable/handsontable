@@ -21,6 +21,7 @@ vue:
 searchCategory: Guides
 category: Tools and building
 menuTag: new
+addedIn: "18.1.0"
 ---
 
 Handsontable works inside a Shadow DOM tree. You can render the grid in a web component, a custom element, or a sandboxed component platform such as Salesforce Lightning Web Components.
