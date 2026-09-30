@@ -606,7 +606,7 @@ test('a new source that an unanchored ignore rule matches still counts, since gi
 
   // `languages/` and `dev*.ts` target the package root's build output and dev pages. Unanchored, as the fixture
   // keeps them, git applies both under src/ too: `git check-ignore` reported these two paths ignored in the real
-  // checkout until the rules were anchored.
+  // checkout until the rules gained a leading slash.
   ['i18n/languages/xx-XX.ts', 'plugins/dev-panel.ts'].forEach((file) => {
     write(join(root, 'handsontable/src', file), 'export {};');
     setTime(join(root, 'handsontable/src', file), '2026-03-01T00:00:00Z');

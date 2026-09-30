@@ -124,8 +124,8 @@ function globSource(glob) {
  * prefix, such as `src/styles/handsontableStyles.js` and `src/3rdparty/walkontable/dist/`. The age check skips
  * exactly those. It does not ask git which files are ignored, for two measured reasons. Git's answer takes in every
  * ignore rule, a machine's global excludes file and `.git/info/exclude` included, so a rule written for another path
- * hides real sources too: until they were anchored to the package root, the core's own `languages/` and `dev*.ts`
- * hid a new `src/i18n/languages/xx-XX.ts` and a new `src/plugins/dev-panel.ts`. And a checkout without its own
+ * hides real sources too: until each gained a leading slash, the core's own `languages/` and `dev*.ts` hid a new
+ * `src/i18n/languages/xx-XX.ts` and a new `src/plugins/dev-panel.ts`. And a checkout without its own
  * `.git` inside another repository would get that repository's answer, which can be to ignore everything.
  *
  * @param {string} packageDir The package directory.

@@ -10,10 +10,11 @@
 !.claude/agents/
 !.claude/settings.json
 .playwright-mcp
-# Dev pages at the repository root only. A package's own .gitignore covers its
-# root (handsontable/.gitignore has /dev*.html, /dev*.js and /dev*.ts). Without
-# the slash these matched at every depth and kept new sources such as
-# handsontable/src/**/dev*.js out of `git status`.
+# Dev pages at the repository root only. handsontable/.gitignore covers the core
+# package's root (/dev*.html, /dev*.js, and /dev*.ts); a dev page in any other
+# package shows in `git status`. Without the slash these matched at every depth and
+# kept new sources such as handsontable/src/**/dev*.js out of it. Pinned by
+# scripts/__tests__/gitignore-scope.test.mjs.
 /dev*.html
 /dev*.js
 npm-debug.log
