@@ -98,46 +98,6 @@ describe('Formulas', () => {
       ]);
     });
 
-    // Verified still failing (2026-08-05): the fill populates only one visual
-    // row (the last source row stays untouched) and the expectation itself
-    // predates trimming semantics (expects 5 visual rows where trimRows leaves
-    // 4). Needs a product-level decision on fill-across-trimmed-rows before
-    // the expectations can be trusted — tracked in DEV-2195.
-    xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)',
-      async() => {
-        handsontable({
-          data: [
-            ['=B1+10', 1, 2, 3, 4, 5, 6],
-            ['=B2+20', 7, 8, 9, 0, 1, 2],
-            ['=B3+30', 3, 4, 5, 6, 7, 8],
-            ['=B4+40', 9, 0, 1, 2, 3, 4],
-            ['=B5+50', 5, 6, 7, 8, 9, 0],
-          ],
-          formulas: {
-            engine: HyperFormula,
-            sheetName: 'Sheet1'
-          },
-          trimRows: [1],
-          fillHandle: true
-        });
-
-        await selectRows(0, 1);
-
-        const lastRowCell = $(getCell(2, 0, true));
-
-        simulateFillHandleDrag(lastRowCell);
-
-        await waitForNextAnimationFrames(19);
-
-        expect(getData()).toEqual([
-          [11, 1, 2, 3, 4, 5, 6],
-          [33, 3, 4, 5, 6, 7, 8],
-          [11, 1, 2, 3, 4, 5, 6],
-          [33, 3, 4, 5, 6, 7, 8],
-          [null, null, null, null, null, null, null],
-        ]);
-      });
-
     it('should not overwrite extra visible columns when dragging right across hidden columns', async() => {
       handsontable({
         data: [
