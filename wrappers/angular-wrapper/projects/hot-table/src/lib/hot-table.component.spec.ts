@@ -751,4 +751,91 @@ describe('HotTableComponent', () => {
       expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
     });
   });
+
+  describe('container height', () => {
+    const FILL_HEIGHT = 'ht-fill-height';
+    const getContainer = (): HTMLElement => fixture.componentInstance.container.nativeElement;
+    const getHost = (): HTMLElement => fixture.nativeElement;
+
+    const createTable = (height?: GridSettings['height']): void => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings, ...(height === undefined ? {} : { height }) };
+      fixture.detectChanges();
+    };
+
+    it.each([
+      ['100%', '100%'],
+      ['50%', '50%'],
+      ['calc(100% - 20px)', 'calc(100% - 20px)'],
+      ['a var()', 'var(--grid-height)'],
+      ['a function returning a percentage', () => '100%'],
+    ])('should make the container and the host fill the parent for %s', (_name, height) => {
+      createTable(height as GridSettings['height']);
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(true);
+      expect(getHost().classList.contains(FILL_HEIGHT)).toBe(true);
+    });
+
+    it.each([300, '300px', 'auto', '50vh', undefined])(
+      'should leave the container and the host alone for a `height` of %s',
+      (height) => {
+        createTable(height);
+
+        expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(false);
+        expect(getHost().classList.contains(FILL_HEIGHT)).toBe(false);
+      }
+    );
+
+    it('should follow the `height` option when the settings input changes', () => {
+      const changeSettings = (height: number | string): void => {
+        fixture.componentInstance.ngOnChanges({
+          settings: new SimpleChange(fixture.componentInstance.settings, { ...settings, height }, false),
+        } as SimpleChanges);
+      };
+
+      createTable(300);
+
+      changeSettings('100%');
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(true);
+
+      changeSettings(300);
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(false);
+    });
+
+    it('should follow a `height` set through `hotInstance.updateSettings()`', () => {
+      createTable(300);
+
+      fixture.componentInstance.hotInstance.updateSettings({ height: '100%' });
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(true);
+      expect(getHost().classList.contains(FILL_HEIGHT)).toBe(true);
+
+      fixture.componentInstance.hotInstance.updateSettings({ height: 300 });
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(false);
+      expect(getHost().classList.contains(FILL_HEIGHT)).toBe(false);
+    });
+
+    it('should clear the fill when the `height` is reset', () => {
+      createTable('100%');
+
+      fixture.componentInstance.hotInstance.updateSettings({ height: null as unknown as number });
+
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(false);
+    });
+
+    it('should pass the `height` on to the `beforeHeightChange` hook of the app', () => {
+      const beforeHeightChange = jest.fn((height) => (height === '100%' ? '50%' : height));
+
+      createTable();
+      fixture.componentInstance.hotInstance.updateSettings({ beforeHeightChange });
+      fixture.componentInstance.hotInstance.updateSettings({ height: '100%' });
+
+      expect(beforeHeightChange).toHaveBeenCalledWith('100%');
+      expect(fixture.componentInstance.hotInstance.rootElement.style.height).toBe('50%');
+      expect(getContainer().classList.contains(FILL_HEIGHT)).toBe(true);
+    });
+  });
 });
