@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the last column of a grid with `height: 'auto'` being cut off inside an `overflow: hidden` parent, when padding sits between the two or the grid's `width` is under 100%.",
+  "type": "fixed",
+  "issueOrPR": 13681,
+  "breaking": false,
+  "framework": "none"
+}

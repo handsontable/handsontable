@@ -1037,6 +1037,72 @@ whenever any axis is element-owned, so the wheel translation, the sticky scroll 
 bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
 read off each overlay's own `mainTableScrollableElement`.
 
+**An element owner's box is not the grid's box, and on the horizontal axis `height: 'auto'` is where
+that shows.** An element that owns the horizontal axis sizes the holder to its own box (the smaller
+of `offsetWidth` and `scrollWidth`) and the workspace to its `clientWidth`. That is the grid's box
+only while the grid fills the owner edge to edge. The owner's padding, a padded wrapper between the
+two (the docs layout: `.hot-example` clips, `.hot-example-preview` pads), or a relative `width` under
+100% leave the grid narrower. A holder as wide as the owner then overflows the grid, and `.ht_master`
+(`overflow: hidden`, exactly as wide as the root) cuts off the part past the grid's inline-end edge:
+a stretched grid loses its end border, and a scrolling one never brings its last column fully into
+view. Before #13381 `height: 'auto'` clipped the root, so the root owned both axes and this never
+showed; an unset height has always had it and still does. The host now says so through
+`widthFollowsRoot` (the same `TableView#isHeightContentDriven` answer that `heightFollowsContent`
+reads), `resolveWidthBoundingRoot()` (`overlay/axisOwner.ts`) names the grid's root element – the
+Walkontable root's parent, the element `preventOverflow` forces an axis to – and
+`viewport/rootWidthBound.ts` resolves two widths from it, kept apart on purpose:
+
+- **The width the holder is used at is capped by CSS, not computed.** The holder carries
+  `max-width: 100%` (`applyHolderWidthCap`, element and split modes), so `.ht_master` bounds it, and
+  `boundWorkspaceWidth` bounds the columns the same way. In a chain sized by its content that
+  percentage is cyclic, so the browser leaves it out of the chain's intrinsic width: the cap never
+  narrows the element it depends on. A first version bounded the holder's pixel width by the root
+  instead, and in an inline-block host a `'90%'` grid decayed to a few pixels while a
+  `'calc(100% - 20px)'` one redrew forever through `ResizeMonitor`.
+- **The holder's pixel width is measured, because it is the grid's intrinsic width.** It decides how
+  wide a chain sized by its content becomes, and whether a flex item or a grid track with a
+  content-based minimum (`flex: 1` without `min-width: 0`, a `1fr` track) is pushed past its share.
+  The owner's box is wrong both ways: it pushes such a share open by its neighbors' width, and it
+  pushes a content-sized chain into a padded owner's padding. The container's current width is wrong
+  too: a content-sized container is only as wide as the holder made it on the draw before, so a grid
+  bounded by it shrank with the owner and never grew back, and a modal `<dialog>` with no width kept
+  the grid at its padding. `resolveHolderWidth()` measures the room instead
+  (`measureAvailableWidths()`): for one read the holder takes no width, and a probe that takes
+  whatever width it gets – a run of short words, one word wide at its narrowest and wider than any
+  page on one line – sits in `.ht_master`. The element the root sits in (core's `.ht-grid-content`
+  for a root instance, which takes its width from the host's chain above `.ht-root-wrapper`) then
+  shows the room that chain gives it: its own width, its share, or the room around it. The answer is bounded by the owner's content box, because core's
+  edge slots hold a content-sized container at their pixel width and the probe then overstates it –
+  except for a root wider than its container (a `width` above 100%), which fills up to the owner's
+  box as before.
+- **The probe only grows or keeps what is around the grid, and restores synchronously.** The holder
+  losing its width widens its own scroll range, nothing changes height, and both styles are back
+  before anything else reads the layout, so no scroll offset is clamped and no resize observer sees
+  it. It runs in the slow path of the element mode's trimming cache, whose fingerprint now carries
+  the root's width, its container's width, and the window's (a content-sized owner keeps its box
+  while the room around it grows), and on every full draw of the split mode, which caches nothing.
+  Scroll draws never align the holder.
+- **The workspace is bounded from the layout around the grid, never from the holder's inline
+  width.** It is measured before the holder is aligned in the same draw (the layout snapshot, the
+  column calculators), so a bound read off the holder would be the previous draw's, and a draw that
+  widened the holder would leave the columns short with nothing to redraw them. `boundWorkspaceWidth`
+  takes `.ht_master`'s width and the owner's content box (the latter again not for a root that
+  spills past its container). In a chain sized by its content a draw that widens the holder still
+  stretches the columns only on the draw the root's resize brings; a root that is back at its old
+  size within the same frame brings none, which only a test does.
+
+Known limits. A `flex: 1` item without `min-width: 0` (or a `1fr` track, or an auto-layout table
+cell) does not shrink below the width the grid has, because the holder and core's edge slots are its
+content minimum; it follows the item back up, and `min-width: 0` on the item removes the limit – 18.1.1
+behaves the same. In a chain sized by its content, a resize of the owner alone redraws nothing,
+because `refreshDimensions()` compares the root's size and the chain keeps it; the next render takes
+the new room. An unset `height` keeps the owner's box: the gate is `height: 'auto'`, and extending the
+cap to unset heights changes a released behavior, so it is left to its own change. And the vertical
+axis has the same inset problem inside a padded owner with a height of its own (the holder takes the
+owner's `offsetHeight`, padding included); nothing bounds it yet. Pinned by the `inside a parent that
+clips the grid and insets it` block of `tests/e2e/root-size-options.spec.ts`,
+`test/unit/viewport/rootWidthBound.unit.ts`, and `src/__tests__/core/widthFollowsRoot.unit.js`.
+
 **"Left to the DOM" is not symmetric between the axes, and one place has to know it.** Vertically it
 means `height: auto` — the holder's content *is* its height, so it can never scroll and the window
 is the only candidate. Horizontally it means a block-fill width, and the holder's stylesheet
