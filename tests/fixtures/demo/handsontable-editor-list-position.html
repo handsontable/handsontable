@@ -19,7 +19,9 @@
     const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
     const htLayouts = Object.assign(Object.create(null), { window: 'window', sized: 'sized' });
-    const htTypes = Object.assign(Object.create(null), { handsontable: 'handsontable', dropdown: 'dropdown' });
+    const htTypes = Object.assign(Object.create(null), {
+      handsontable: 'handsontable', dropdown: 'dropdown', multiselect: 'multiselect',
+    });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
@@ -65,10 +67,13 @@
     `AutocompleteEditor#updateDropdownDimensions`), in the two layouts its horizontal flip
     (`HandsontableEditor#flipDropdownHorizontallyIfNeeded`,
     `handsontable/src/editors/handsontableEditor/handsontableEditor.ts`) measures differently.
+    `?type=multiselect` opens the `multiselect` editor, which places its list with its own code
+    (`MultiSelectEditor#refreshDimensions`) but applies the same horizontal rule in both layouts.
 
     `window`: the grid has no width or height, so it is as large as its 100 x 50 cells and the PAGE
     scrolls both ways. The flip then measures the free space from the viewport, through
-    `view.isHorizontallyScrollableByWindow()` and `rootWindow.scrollX`.
+    `view.isHorizontallyScrollableByWindow()`: from its left edge in LTR, and from the right edge of
+    the box the list is laid out in under RTL.
 
     `sized`: the grid is 1000 x 700, narrower than the 1280 px viewport, and scrolls its own holder.
     The flip then measures the grid's own workspace, on purpose (the comment above that branch says
@@ -97,6 +102,34 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    // The options the visual demo's dropdown opened, so the dropdown's list is as tall as it was
+    // there. The multiselect shows the same ten.
+    const choices = [
+      'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness',
+      'Books & Literature', 'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure',
+      'Art & Collectibles',
+    ];
+    const editorSettings = {
+      dropdown: { type: 'dropdown', source: choices },
+      multiselect: { type: 'multiselect', source: choices },
+      handsontable: {
+        type: 'handsontable',
+        // The list the visual demo opened, so the list is as wide and as tall as it was there.
+        handsontable: {
+          colHeaders: ['Marque', 'Country', 'Parent company'],
+          autoColumnSize: true,
+          data: [
+            { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+            { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+            { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+            { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+            { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+            { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
+          ],
+        },
+      },
+    };
+
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it,
     // so a broken build reads as its own error instead of a cell that never appeared.
@@ -109,30 +142,7 @@
         rowHeaders: true,
         colHeaders: true,
         renderer: testIdRenderer,
-        ...(window.htType === 'dropdown' ? {
-          type: 'dropdown',
-          // The options the visual demo's dropdown opened, so the list is as tall as it was there.
-          source: [
-            'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness',
-            'Books & Literature', 'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure',
-            'Art & Collectibles',
-          ],
-        } : {
-          type: 'handsontable',
-          // The list the visual demo opened, so the list is as wide and as tall as it was there.
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            autoColumnSize: true,
-            data: [
-              { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
-              { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
-              { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
-              { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
-              { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
-              { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
-            ],
-          },
-        }),
+        ...editorSettings[window.htType],
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {

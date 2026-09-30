@@ -8,11 +8,22 @@ import { awaitBundle } from '../bundle';
 export type Layout = 'window' | 'sized';
 
 /**
- * Which editor opens the list: `handsontable` (a nested grid as wide as its own columns) or `dropdown`
+ * Which editor opens the list: `handsontable` (a nested grid as wide as its own columns), `dropdown`
  * (the same flip, but `AutocompleteEditor#updateDropdownDimensions` sizes the list, trimmed to the
- * cell's width by default).
+ * cell's width by default), or `multiselect` (its own placement code, `MultiSelectEditor#refreshDimensions`,
+ * with the same horizontal rule; a list of checkboxes wider than the cell).
  */
-export type EditorType = 'handsontable' | 'dropdown';
+export type EditorType = 'handsontable' | 'dropdown' | 'multiselect';
+
+/**
+ * The element each editor type draws its list in. The `multiselect` list sits inside an outer
+ * container that carries the `handsontableEditor` class too, so it is found by its own class.
+ */
+const LIST_SELECTORS: Record<EditorType, string> = {
+  handsontable: '.handsontableEditor',
+  dropdown: '.handsontableEditor',
+  multiselect: '.ht-multi-select-editor',
+};
 
 /**
  * One way to lay the fixture out.
@@ -75,6 +86,10 @@ export interface ListPlacement {
  * - flipped toward the inline start, its inline end is flush with the cell's;
  * - below the cell, its top is the cell's bottom; flipped above, its bottom is 1 px above the cell's
  *   top.
+ *
+ * The one sub-pixel residue is the `multiselect` list's far edge after a horizontal flip on `classic`,
+ * 0.4 px off the cell's: that list is 176.6 px wide and the flip moves it back by its `offsetWidth`, 177.
+ * A 1 px shift still fails there.
  */
 export const EDGE_TOLERANCE_PX = 0.5;
 
@@ -140,9 +155,9 @@ export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPla
 }
 
 /**
- * Page Object for the list-position fixture of the `handsontable` and `dropdown` editors, in either
- * layout: a grid the WINDOW scrolls, whose list has to fit the viewport, and a sized grid that scrolls
- * its own holder, whose list's horizontal flip measures the grid.
+ * Page Object for the list-position fixture of the `handsontable`, `dropdown`, and `multiselect`
+ * editors, in either layout: a grid the WINDOW scrolls, whose list has to fit the viewport, and a sized
+ * grid that scrolls its own holder, whose list's horizontal flip measures the grid.
  *
  * Cells are picked by a point, not by index, because which cell sits under a point after a scroll
  * depends on the theme's row height. The point is an offset from the edges of the box that scrolls
@@ -179,8 +194,8 @@ export class HandsontableEditorListPositionPage {
     this.layout = variant.layout;
     this.type = variant.type ?? 'handsontable';
     this.grid = page.getByTestId('grid');
-    // The editor's own container, which holds the nested grid that is the list.
-    this.list = page.locator('.handsontableEditor');
+    // The element that is the list: the container of the nested grid, or the multiselect's list.
+    this.list = page.locator(LIST_SELECTORS[this.type]);
   }
 
   /**
@@ -310,7 +325,7 @@ export class HandsontableEditorListPositionPage {
    * @returns {Promise<ListGeometry>} The boxes.
    */
   async geometry(coords: { row: number; col: number }): Promise<ListGeometry> {
-    return this.page.evaluate(({ row, col }) => {
+    return this.page.evaluate(({ row, col, listSelector, nestedGrid }) => {
       const box = (element: Element | null | undefined) => {
         if (!element) {
           throw new Error('An element the list geometry needs is not in the DOM');
@@ -324,13 +339,16 @@ export class HandsontableEditorListPositionPage {
         hot: { getCell(row: number, col: number): HTMLElement | null;
           getActiveEditor(): { htContainer?: HTMLElement } | undefined; };
       };
+      // The nested grid's container is read off the active editor, so a list left over from another
+      // cell can never be the one measured; the multiselect exposes no such field.
+      const list = nestedGrid ? hot.getActiveEditor()?.htContainer : document.querySelector(listSelector);
 
       return {
         cell: box(hot.getCell(row, col)),
-        list: box(hot.getActiveEditor()?.htContainer),
+        list: box(list),
         viewport: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight },
       };
-    }, coords);
+    }, { ...coords, listSelector: LIST_SELECTORS[this.type], nestedGrid: this.type !== 'multiselect' });
   }
 
   /**

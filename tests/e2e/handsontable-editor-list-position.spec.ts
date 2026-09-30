@@ -2,9 +2,9 @@ import { test, expect } from '../fixtures/test';
 import { HandsontableEditorListPositionPage, type Layout, type Variant } from '../fixtures/pages/HandsontableEditorListPositionPage';
 
 /**
- * Where the `handsontable` and `dropdown` editors' lists open, relative to the cell being edited, on a
- * page the WINDOW scrolls and in a sized grid that scrolls its own holder, after scrolling to the
- * bottom and inline end.
+ * Where the `handsontable`, `dropdown`, and `multiselect` editors' lists open, relative to the cell being
+ * edited, on a page the WINDOW scrolls and in a sized grid that scrolls its own holder, after scrolling
+ * to the bottom and inline end.
  *
  * The `handsontable` list opens toward the inline end (right in LTR, left in RTL) when it fits there,
  * even when it would fit toward the inline start as well, and flips toward the inline start when it
@@ -18,13 +18,21 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  * (`AutocompleteEditor#updateDropdownDimensions`): trimmed to the cell's width by default, so it stays
  * on the cell's inline start and only the vertical flip moves it.
  *
- * The two layouts reach different branches of the horizontal flip. On a page the window scrolls,
- * the room is measured from the viewport, through `view.isHorizontallyScrollableByWindow()` and
- * `rootWindow.scrollX`. In a sized grid it is measured from the grid's own workspace, on purpose: the
- * fixture's grid is 1000 px wide in a 1280 px viewport, so from a cell near the grid's inline end the
- * list flips although the viewport still has room. A sized grid also runs with the page in the other
- * direction (an RTL grid on an LTR page, and the mirror), since the flip reads the grid's direction and
- * not the document's.
+ * The `multiselect` editor places its list with its own code (`MultiSelectEditor#refreshDimensions`,
+ * `handsontable/src/editors/multiSelectEditor/multiSelectEditor.ts`) and the same horizontal rule. Its
+ * list is 177–202 px wide, narrower than the `handsontable` one, so it has points of its own. Only the
+ * top row is used: below the cell its list starts flush with the cell's bottom, but flipped above, the
+ * offset `DropdownController` computes leaves it overlapping the cell by a few pixels that depend on the
+ * theme, which is not what these tests are about.
+ *
+ * The two layouts reach different branches of the horizontal flip. On a page the window scrolls, the
+ * room is measured from the viewport, through `view.isHorizontallyScrollableByWindow()`: from the
+ * grid's left edge in LTR, and from the right edge of the box the list is laid out in under RTL, where
+ * the page's `scrollX` runs negative and the cell is measured from the grid's right edge. In a sized
+ * grid it is measured from the grid's own workspace, on purpose: the fixture's grid is 1000 px wide in a
+ * 1280 px viewport, so from a cell near the grid's inline end the list flips although the viewport still
+ * has room. A sized grid also runs with the page in the other direction (an RTL grid on an LTR page, and
+ * the mirror), since the flip reads the grid's direction and not the document's.
  *
  * The Jasmine positioning specs pin the horizontal flip of a sized grid in one layout direction each,
  * and the vertical side only as "touching the cell", because there the side depends on the theme.
@@ -35,7 +43,9 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  * more (the least is `horizon`'s mid-height points, which fit below by 60 px and above by 61). The
  * `dropdown` list is 263–371 px tall (ten options), so at mid-height on `horizon` it fits neither below
  * nor above and is trimmed to whole rows instead of flipped; its points are the top and bottom ones,
- * which clear or miss it by 139 px or more.
+ * which clear or miss it by 139 px or more. The `multiselect` list is 320–475 px tall and fits below the
+ * top row by 170 px or more; its flipping points leave about 100 px of room, 77 px short of its
+ * narrowest width, and its other points leave 500 px or more.
  */
 
 /**
@@ -69,6 +79,23 @@ const DROPDOWN_POINTS: Point[] = POINTS
   .filter(({ name }) => !name.startsWith('middle'))
   .map(point => ({ ...point, aligned: { ltr: 'cell width', rtl: 'cell width' } }));
 
+// The multiselect's list is narrower, so its flipping point is 40 px from the inline-end edge of the box
+// that scrolls, which leaves about 100 px of room. On the inline-start side 40 px lands on the row
+// header, so each direction keeps the handsontable editor's point there. Top row only (see the docblock
+// above).
+const MULTISELECT_POINTS: Record<'ltr' | 'rtl', Point[]> = {
+  ltr: [
+    { name: 'top-left', x: 120, y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
+    { name: 'top-center', x: 'center', y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
+    { name: 'top-right', x: -40, y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+  ],
+  rtl: [
+    { name: 'top-left', x: 40, y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
+    { name: 'top-center', x: 'center', y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+    { name: 'top-right', x: -150, y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+  ],
+};
+
 /**
  * Opens the editor from every point and asserts the placement each one forces.
  *
@@ -100,6 +127,7 @@ const LAYOUT_NAMES: Record<Layout, string> = {
  */
 const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
   { title: `${LAYOUT_NAMES.window} (LTR)`, variant: { dir: 'ltr', layout: 'window' } },
+  { title: `${LAYOUT_NAMES.window} (RTL)`, variant: { dir: 'rtl', layout: 'window' } },
   { title: `${LAYOUT_NAMES.sized} (LTR)`, variant: { dir: 'ltr', layout: 'sized' } },
   { title: `${LAYOUT_NAMES.sized} (RTL)`, variant: { dir: 'rtl', layout: 'sized' } },
   { title: `${LAYOUT_NAMES.sized} (an RTL grid on an LTR page)`, variant: { dir: 'rtl', layout: 'sized', doc: 'ltr' } },
@@ -130,26 +158,13 @@ test.describe('dropdown editor list position', () => {
   }
 });
 
-// Known product bug (measured 2026-09-28 and 2026-09-29 on all three themes): on an RTL page scrolled by
-// the window, the list always opens aligned to the cell's LEFT edge and extends right. The handsontable
-// editor's list therefore runs off-screen from a cell near the viewport's right edge (cell 1100–1200,
-// list 1100–1466 on a 1280 px viewport). The dropdown's list is trimmed to the cell, so the bug shows
-// only where the list is narrower than the cell: 2 px on `horizon`, where it lands on the cell's inline
-// end instead of its start. The window branch of the horizontal flip measures from the left and adds
-// the RTL document's negative `scrollX`. The sized RTL grids above are correct. Unpark with the fix.
-// eslint-disable-next-line no-restricted-syntax -- DEV-3138: RTL window-scrolled list opens off-screen; unpark with the fix
-test.fixme(`both editors open toward the room they have from every point, ${LAYOUT_NAMES.window} (RTL)`, async({
-  page, theme, bundle,
-}) => {
-  const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { dir: 'rtl', layout: 'window' });
+test.describe('multiselect editor list position', () => {
+  for (const { title, variant } of CASES) {
+    test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'multiselect' });
 
-  await grid.goto();
-  await expectEveryPoint(grid, POINTS);
-
-  const dropdown = new HandsontableEditorListPositionPage(page, theme, bundle, {
-    dir: 'rtl', layout: 'window', type: 'dropdown',
-  });
-
-  await dropdown.goto();
-  await expectEveryPoint(dropdown, DROPDOWN_POINTS);
+      await grid.goto();
+      await expectEveryPoint(grid, MULTISELECT_POINTS[variant.dir]);
+    });
+  }
 });

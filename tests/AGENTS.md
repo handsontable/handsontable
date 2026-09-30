@@ -90,8 +90,10 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   cell. Set `<html dir="rtl">` too, as a real RTL page does; the window then
   scrolls toward the inline end with a NEGATIVE `scrollX`, which is the
   arithmetic a window-scroll branch has to get right
-  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case is
-  parked on exactly such a bug).
+  (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case
+  caught exactly such a bug: the list's flip added the viewport position of the
+  grid's LEFT edge to a distance measured from its right edge, so every list
+  flipped).
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator

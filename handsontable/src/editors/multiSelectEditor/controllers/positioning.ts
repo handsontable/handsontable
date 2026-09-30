@@ -29,7 +29,10 @@ export type CellInlineBox = {
  * Optional window-scroll adjustment for `getDropdownInlineSpace()`.
  *
  * When the table scrolls with the window, `spaceInlineStart` is viewport-relative
- * and the right boundary must be the viewport width, not the holder's offsetWidth.
+ * and the inline-end boundary must be the viewport's, not the holder's offsetWidth.
+ * `inlineStartOffset` is the distance from the viewport's inline-start edge to the
+ * grid's: the grid's left edge in LTR, and in RTL the distance from the right
+ * edge of the box the list is laid out in to the root's right edge.
  */
 export type WindowScrollInlineMetrics = {
   inlineStartOffset: number;
@@ -85,7 +88,7 @@ export function getFlippedInlineStartOffset(
  * @param {number} cellRect.width Pixel width of the cell.
  * @param {number} workspaceWidth Width of the grid workspace in pixels.
  * @param {object} [windowScroll] Viewport metrics when the table scrolls with the window.
- * @param {number} [windowScroll.inlineStartOffset] Table offset minus window scroll on the inline axis.
+ * @param {number} [windowScroll.inlineStartOffset] Distance from the viewport's inline-start edge to the grid's.
  * @param {number} [windowScroll.viewportWidth] Viewport width used as the workspace when window-scrolled.
  * @returns {object} Remaining inline-start and inline-end space in pixels.
  */

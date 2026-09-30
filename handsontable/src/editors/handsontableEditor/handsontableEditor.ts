@@ -535,7 +535,8 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Calculates the space above and below the editor and flips it vertically if needed.
+   * Calculates the space on the inline-start and inline-end sides of the editor and flips it
+   * horizontally if needed.
    *
    * @private
    * @returns {{ isFlipped: boolean, spaceInlineStart: number, spaceInlineEnd: number}}
@@ -556,12 +557,10 @@ export class HandsontableEditor extends TextEditor {
     let workspaceWidth = view.getWorkspaceWidth();
 
     if (view.isHorizontallyScrollableByWindow()) {
-      const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
+      const windowWorkspace = this.#getWindowWorkspace();
 
-      spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
-      // For window-scrollable tables, spaceInlineStart is viewport-relative so the right
-      // boundary must also be viewport width, not the holder's offsetWidth.
-      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
+      spaceInlineStart = Math.max(spaceInlineStart + windowWorkspace.inlineStartOffset, 0);
+      workspaceWidth = windowWorkspace.width;
     }
 
     const dropdownTargetWidth = this.getDropdownWidth();
@@ -578,6 +577,39 @@ export class HandsontableEditor extends TextEditor {
       isFlipped: flipNeeded,
       spaceInlineStart,
       spaceInlineEnd,
+    };
+  }
+
+  /**
+   * The workspace the horizontal flip measures when the window scrolls the grid's columns: how far
+   * its inline-start edge is from the grid root's, and how wide it is.
+   *
+   * `getEditedCellRect()` measures the cell from the root's inline-start edge, which is its RIGHT
+   * edge in RTL, so the offset added to it has to start from the same edge. Adding the root's left
+   * edge instead, shifted by an RTL page's negative `scrollX`, flipped the list on every cell: it
+   * always opened from the cell's left edge, off screen from a cell near the viewport's right edge.
+   * RTL reads both edges off the box `#writeDropdownInlineStart()` resolves `right` against, so the
+   * decision and the placement measure the same box.
+   *
+   * @returns {{ inlineStartOffset: number, width: number }}
+   */
+  #getWindowWorkspace(): { inlineStartOffset: number, width: number } {
+    const { hot } = this;
+
+    if (hot.isRtl()) {
+      const block = this.#containingBlockRect();
+
+      return {
+        inlineStartOffset: (block.left + block.width) - hot.rootElement.getBoundingClientRect().right,
+        width: block.width,
+      };
+    }
+
+    return {
+      inlineStartOffset: hot.view.getTableOffset().left - hot.rootWindow.scrollX,
+      // The space is viewport-relative here, so the inline-end boundary is the viewport's width too,
+      // not the holder's `offsetWidth`.
+      width: hot.rootDocument.documentElement.clientWidth,
     };
   }
 
