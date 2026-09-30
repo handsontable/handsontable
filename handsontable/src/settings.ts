@@ -4,6 +4,7 @@
  */
 import type Handsontable from './base';
 import type { CommentObject } from './plugins/comments';
+import type { FiltersColumnSettings } from './plugins/filters';
 import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
@@ -91,9 +92,9 @@ export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
-  // Only `false` is read per column (it hides that column's filter UI); the grid-level object form
-  // is ignored there, so it is not accepted here.
-  filters?: boolean;
+  // `false` hides that column's filter UI, and an object carries the column's own
+  // `availableConditions`. The other grid-level settings are ignored there, so they are not accepted.
+  filters?: boolean | FiltersColumnSettings;
 }
 
 /**
