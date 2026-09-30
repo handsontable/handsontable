@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed how undo and redo work: every action is now one undo step that restores the grid state it started from, so an undo puts values back on the right records after rows or columns were moved, sorted, filtered, or trimmed. Hiding, trimming, resizing, freezing, collapsing, custom borders, comments, cell meta, and the pagination page are now undoable, `batch()` and the new `runOperation()` method group changes into one step, and the new `undo: { maxHistory }` option caps the history.",
+  "title": "Changed how undo and redo work: every action is now one undo step that restores the grid state it started from, so an undo puts values back on the right records after rows or columns were moved, sorted, filtered, or trimmed. Hiding, trimming, resizing, freezing, collapsing, custom borders, comments, cell meta, and the pagination page and page size are now undoable, `batch()`, `batchExecution()`, and the new `runOperation()` method group changes into one step, and the new `undo: { maxHistory }` option caps the history. With `undo: false`, nothing is recorded any more.",
   "type": "changed",
   "issueOrPR": 13672,
   "breaking": true,

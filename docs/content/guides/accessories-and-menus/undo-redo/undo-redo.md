@@ -140,6 +140,10 @@ Operations nest. A `batch()` or `runOperation()` call inside another one joins t
 
 An edit that waits for an asynchronous [validator](@/guides/cell-functions/cell-validator/cell-validator.md) is recorded when the validation finishes. So when two edits overlap, the undo stack holds them in the order they finished. When a validator rejects every change of an edit, nothing is recorded. What the validator or an [`afterValidate`](@/api/hooks.md#aftervalidate) listener changes while the edit is validated, such as a corrected value, is part of the edit's step, so one undo reverts both.
 
+An action that changed the grid before it started to wait, such as a `batch()` that removes a row and then edits a validated cell, owns the grid until its validation finishes. Anything you change in that time becomes part of its step, so one undo reverts both. Undone apart, one of the two would land on the wrong row. A validator that throws an error ends the wait: the step is recorded with what the action did before the error.
+
+While an action that inserted or removed rows or columns waits for its validator, [`isUndoAvailable()`](@/api/undoRedo.md#isundoavailable) and [`isRedoAvailable()`](@/api/undoRedo.md#isredoavailable) return `false`, and [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing. The grid then has a shape no recorded step describes. An undo requested in that time is not queued.
+
 ## How an undo restores the grid
 
 For each step, UndoRedo stores the grid state before and after the action, and a record of the values and the cell metadata the action changed. The grid state covers the row and column order, the hidden and trimmed rows and columns, the sizes, the sort order, the filter conditions, the merged cells, and the state of the other plugins. An undo puts back the state from before the action, and a redo puts back the state from after it.
@@ -180,7 +184,7 @@ Both stacks are cleared when:
 - An action you recorded with [`done()`](@/api/undoRedo.md#done) adds or removes rows or columns anywhere but at the end when you undo or redo it.
 - You disable the plugin or destroy the grid.
 
-A [`columns`](@/api/options.md#columns) update, for example one that shows fewer fields, keeps the stacks. An edit is recorded by field, so it can always be undone. A step that changed something on a column whose field changed or is gone -- a cell's metadata, a hidden or frozen column, a merge, or a filter -- is dropped, together with every step that can only be undone or redone after it. Once `columns` is set, a step that inserted or removed columns is dropped too.
+A [`columns`](@/api/options.md#columns) update, for example one that shows fewer fields, keeps the stacks. An edit is recorded by field, so a `columns` update never drops it on its own. A step that changed something on a column whose field changed or is gone -- a cell's metadata, a hidden or frozen column, a merge, or a filter -- is dropped, together with every step that can only be undone or redone after it, edits included. Once `columns` is set, a step that inserted or removed columns is dropped too.
 
 The stack hooks announce every drop, so a toolbar that follows them stays in step.
 
@@ -281,10 +285,12 @@ The following changes are not recorded:
 - Sizes that Handsontable calculates, such as the ones from [`autoRowSize`](@/api/options.md#autorowsize), [`autoColumnSize`](@/api/options.md#autocolumnsize), and [`stretchH`](@/api/options.md#stretchh).
 - Changes you make to the data array directly, without the Handsontable API.
 
-Two more behaviors to plan for:
+More behaviors to plan for:
 
 - An undo of an action that inserted or removed rows or columns puts back the row and column order and the sizes as they were when the action ran. An order or a size applied with `updateSettings()` after that action is lost on the undo. Hidden and trimmed rows and columns are kept.
 - In a [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) grid, a `batch()` that both moves or detaches rows and edits cells can put an edit on another row when you undo it.
+- A column whose [`data`](@/api/options.md#data) is a function your app creates again on every render, such as an inline function in a React component, reads as a new field on every `columns` update. So each render drops the steps that changed something on that column. Define the function once, outside the render.
+- When a removal that an undo or a redo replays removes a different number of rows or columns than it recorded, for example because a listener removes more rows along with them, the undo or redo stops and the rows that removal took are not put back.
 
 ## Related keyboard shortcuts
 
