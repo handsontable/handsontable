@@ -8,17 +8,19 @@ import { join } from 'node:path';
 import execa from 'execa';
 import chalk from 'chalk';
 import { REFERENCE_FRAMEWORK, WRAPPERS } from '../src/config.mjs';
-import { findBuildProblems, preflightOptions } from '../lib/local-builds.mjs';
+import {
+  findBuildProblems, formatProblems, preflightOptions, readConfirmations,
+} from '../lib/local-builds.mjs';
 import { getTier } from './utils/utils.mjs';
 
 const ALL_FRAMEWORKS = [REFERENCE_FRAMEWORK, ...WRAPPERS];
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
 
+// Absolute, like REPO_ROOT, so the script builds the same tree whichever directory it is started from.
 const dirs = {
-  monorepoRoot: '..',
-  examples: '../examples/next/visual-tests',
+  monorepoRoot: REPO_ROOT,
+  examples: join(REPO_ROOT, 'examples', 'next', 'visual-tests'),
   codeToRun: 'demo',
-  screenshots: './screenshots',
 };
 
 const tier = getTier();
@@ -71,13 +73,15 @@ async function installAndBuild() {
     console.log(chalk.green(`Building "${frameworkName}" examples...`));
 
     // The demo's own `build` script runs `check-linked-packages.mjs` first, which refuses when the install
-    // left a registry copy of a monorepo package in place. Its message goes to stderr, which stays visible.
-    await execa.command('npm run build', {
-      stdout: 'ignore',
+    // left a registry copy of a monorepo package in place. Its refusal goes to stderr, which stays visible;
+    // its confirmations go to stdout with the bundler's output, so they are picked out of it and printed.
+    const { stdout } = await execa.command('npm run build', {
+      stdout: 'pipe',
       stderr: 'inherit',
-      cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`
+      cwd: join(dirs.examples, frameworkName, dirs.codeToRun)
     });
 
+    readConfirmations(stdout).forEach(line => console.log(`  ${line}`));
     console.log(chalk.green(`Finished building "${frameworkName}" examples.`));
     console.log('');
   }
@@ -88,7 +92,7 @@ async function installAndBuild() {
 // The preflight. Without it a first local run of the js demo looks like it works: the linker skips a package
 // whose local build is missing, so the demo installs, builds, and renders the registry's handsontable, and
 // nothing fails (lib/local-builds.mjs has the measurement). Checked before the installs, so a missing build
-// costs a line rather than the two minutes of an Angular install. `preflightOptions()` says why the age check
+// costs a line rather than the two minutes of an Angular install. `ageCheckEnabled()` says why the age check
 // is off on CI.
 const options = preflightOptions({
   env: process.env,
@@ -99,14 +103,7 @@ const problems = findBuildProblems({ repoRoot: REPO_ROOT, ...options });
 
 if (problems.length > 0) {
   console.error(chalk.red(`Visual tier "${tier.name}" cannot build its demos yet:`));
-
-  problems.forEach(({ summary, detail, remedy }) => {
-    console.error(chalk.red(`\n- ${summary}`));
-    detail.forEach(line => console.error(`  ${line}`));
-    console.error(`  ${remedy}`);
-  });
-
-  console.error('\nRun the commands from the repository root. See visual-tests/AGENTS.md (Local builds).');
+  formatProblems(problems, { highlight: chalk.red }).forEach(line => console.error(line));
   process.exitCode = 1;
 } else {
   console.log(chalk.green('The local builds are in place'

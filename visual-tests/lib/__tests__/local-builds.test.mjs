@@ -7,21 +7,27 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import {
-  checkLinkedPackages, danglingLinks, findBuildProblems, isCompiledSource, newestFile, packageCopies,
-  preflightOptions, sourceFiles, workspacePackages,
+  ageCheckEnabled, checkLinkedPackages, confirmationLines, danglingLinks, findBuildProblems, formatProblems,
+  generatedSourcePatterns, isCompiledSource, newestFile, packageCopies, preflightOptions, readConfirmations,
+  sourceFiles, workspacePackages,
 } from '../local-builds.mjs';
 
-// The two checks that keep the visual demos off the registry's builds (DEV-16): the guard each demo's `build`
-// script runs first, and the preflight `scripts/build.mjs` runs before it installs anything. Each case builds a
-// throwaway repository in the shape the checks read (root `workspaces`, pnpm's links in `examples/node_modules`,
-// the linker's links under each framework directory) and puts it in one of the states that used to pass
-// silently. The last tests pin the wiring: every demo's `build` runs the guard, `build.mjs` refuses before its
-// first install, and no workflow builds a demo around its guard.
+// The two checks that keep the visual-test examples off the registry's builds (DEV-16): the guard each example's
+// `build` script runs first, and the preflight `scripts/build.mjs` runs before it installs anything. Each case
+// builds a throwaway repository in the shape the checks read (root `workspaces`, pnpm's links in
+// `examples/node_modules`, the linker's links under each framework directory) and puts it in one of the states
+// that used to pass silently. The last tests pin the wiring: every example's `build` runs the guard,
+// `build.mjs` refuses before its first install, and nothing builds an example any other way.
 
 const PACKAGE_ROOT = join(import.meta.dirname, '..', '..');
 const REPO_ROOT = join(PACKAGE_ROOT, '..');
 const INSTALL_JS = 'npm run examples:install next/visual-tests/js';
 const GUARD = 'node ../../../../../visual-tests/scripts/check-linked-packages.mjs';
+const BUILD_TOOL = /\b(vite build|ng build|react-app-rewired build)\b/;
+// The core's own ignore rules for what its build writes under `src/`, as `handsontable/.gitignore` has them,
+// with the two unanchored rules that also match real sources there.
+const CORE_GITIGNORE = 'src/3rdparty/walkontable/test/dist/\nsrc/3rdparty/walkontable/dist/\ndev*.ts\nlanguages/\n'
+  + 'src/styles/handsontableStyles.js\nsrc/styles/handsontableStyles.ts\n';
 
 /**
  * Writes a file, creating its directory.
@@ -62,11 +68,13 @@ function setTime(path, iso) {
  * removed when the test ends.
  *
  * @param {object} t The test context, for the cleanup.
+ * @param {object} [options] Options.
+ * @param {string} [options.parent] The directory to create the repository in, `os.tmpdir()` by default.
  * @returns {{root: string, demo: (framework: string) => string, frameworkModules: (framework: string) =>
  *   string}} The root and two path helpers.
  */
-function makeRepo(t) {
-  const root = mkdtempSync(join(tmpdir(), 'visual-local-builds-'));
+function makeRepo(t, { parent = tmpdir() } = {}) {
+  const root = mkdtempSync(join(parent, 'visual-local-builds-'));
   const examples = join(root, 'examples');
 
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -75,6 +83,7 @@ function makeRepo(t) {
 
   write(join(root, 'handsontable/package.json'),
     { name: 'handsontable', version: '18.1.1', publishConfig: { directory: 'tmp', linkDirectory: true } });
+  write(join(root, 'handsontable/.gitignore'), CORE_GITIGNORE);
   write(join(root, 'handsontable/src/core.ts'), 'export {};');
   write(join(root, 'handsontable/tmp/package.json'), { name: 'handsontable', version: '18.1.1', module: 'index.mjs' });
   write(join(root, 'handsontable/tmp/index.mjs'), 'export {};');
@@ -114,6 +123,8 @@ function makeRepo(t) {
     { dependencies: { handsontable: 'latest', '@handsontable/react-wrapper': 'latest', react: '^18.2.0' } });
   write(join(demo('angular-wrapper'), 'package.json'),
     { dependencies: { handsontable: 'latest', '@handsontable/angular-wrapper': 'latest' } });
+  // The framework directory's own manifest, the npm workspace root the demo sits in.
+  write(join(frameworkDir('js'), 'package.json'), { name: 'examples-js', workspaces: ['@(!(node_modules))/'] });
 
   // What the linker writes: absolute links to the pnpm links, under each framework directory, and for Angular
   // under the demo too, for every package it linked at the framework level.
@@ -130,22 +141,6 @@ function makeRepo(t) {
     join(demo('angular-wrapper'), 'node_modules/@handsontable/angular-wrapper'));
 
   return { root, demo, frameworkModules };
-}
-
-/**
- * Makes the throwaway repository a git repository with the core's own ignore rules for what its build writes
- * under `src/`, so the age check lists its sources the way it does in a checkout. Asserts the command worked,
- * so a machine without git fails here instead of quietly testing the fallback.
- *
- * @param {string} root The throwaway repository.
- */
-function gitInit(root) {
-  write(join(root, 'handsontable/.gitignore'),
-    'src/3rdparty/walkontable/dist/\nsrc/styles/handsontableStyles.js\nsrc/styles/handsontableStyles.ts\n');
-
-  const result = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8' });
-
-  assert.equal(result.status, 0, `git init failed: ${result.stderr}`);
 }
 
 /**
@@ -197,7 +192,7 @@ test('workspacePackages maps every workspace package to the directory pnpm links
   assert.equal(packages.has('vue'), false, 'a wrappers/ directory without a manifest is no package');
 });
 
-test('a demo the linker linked passes, and only its monorepo packages are checked', (t) => {
+test('an example the linker linked passes, and only its monorepo packages are checked', (t) => {
   const { root, demo } = makeRepo(t);
 
   ['js', 'react-wrapper', 'angular-wrapper'].forEach((framework) => {
@@ -229,7 +224,7 @@ test('an install without the linker is refused, naming the copy and the command 
       'examples/next/visual-tests/js/node_modules/handsontable is a plain copy of version 18.1.0, not a link.',
       'The linker replaces these with links to the local build when examples:install runs it.',
     ],
-    remedy: `Install and link the demo: ${INSTALL_JS}`,
+    remedy: `Install and link the example: ${INSTALL_JS}`,
   }]);
 });
 
@@ -258,7 +253,7 @@ test('a missing core build is refused with the build command, since the linker s
   assert.equal(problems[0].summary, 'handsontable: the local build is missing (handsontable/tmp/package.json).');
   assert.match(problems[0].detail.join(' '), /The linker skips a package whose local build is missing/);
   assert.equal(problems[0].remedy,
-    `Build it, then relink the demo: npm --prefix handsontable run build && ${INSTALL_JS}`);
+    `Build it, then relink the example: npm --prefix handsontable run build && ${INSTALL_JS}`);
 });
 
 test('an unbuilt React wrapper is refused before the bundler fails on the missing entry', (t) => {
@@ -272,9 +267,9 @@ test('an unbuilt React wrapper is refused before the bundler fails on the missin
   assert.equal(problems[0].summary,
     '@handsontable/react-wrapper: the local build is missing (wrappers/react-wrapper/es/react-handsontable.mjs).');
   assert.deepEqual(problems[0].detail,
-    ['The linker links the package anyway, and the demo build fails on the missing file.'],
+    ['The linker links the package anyway, and the build fails on the missing file.'],
     'the manifest is there, so the link is made; saying the linker skipped it would send the reader the wrong way');
-  assert.equal(problems[0].remedy, 'Build it, then relink the demo: npm --prefix wrappers/react-wrapper run build '
+  assert.equal(problems[0].remedy, 'Build it, then relink the example: npm --prefix wrappers/react-wrapper run build '
     + '&& npm run examples:install next/visual-tests/react-wrapper');
 });
 
@@ -289,11 +284,11 @@ test('a registry copy of a wrapper is refused like one of the core', (t) => {
   assert.match(problems[0].summary, /^@handsontable\/react-wrapper: resolves to a copy/);
 });
 
-test('the Angular demo is checked at both levels the linker writes, the nearest first', (t) => {
+test('the Angular demo is checked at both levels the linker writes, and the relink replaces its nested copy', (t) => {
   const { root, demo, frameworkModules } = makeRepo(t);
 
   // The linker links the framework level, but a nested copy under the demo shadows it for the bundler and for
-  // the stylesheet paths in angular.json.
+  // the stylesheet paths in angular.json. For Angular the linker replaces that level too.
   installRegistryCopy(join(demo('angular-wrapper'), 'node_modules'), 'handsontable');
 
   const { problems } = checkLinkedPackages({ repoRoot: root, demoDir: demo('angular-wrapper') });
@@ -302,6 +297,8 @@ test('the Angular demo is checked at both levels the linker writes, the nearest 
   assert.equal(problems[0].detail[0],
     'examples/next/visual-tests/angular-wrapper/demo/node_modules/handsontable is a plain copy of version 18.1.0, '
     + 'not a link.');
+  assert.equal(problems[0].remedy, 'Install and link the example: npm run examples:install next/visual-tests/'
+    + 'angular-wrapper');
   assert.deepEqual(packageCopies(demo('angular-wrapper'), join(root, 'examples'), 'handsontable'), [
     join(demo('angular-wrapper'), 'node_modules/handsontable'),
     join(frameworkModules('angular-wrapper'), 'handsontable'),
@@ -309,7 +306,27 @@ test('the Angular demo is checked at both levels the linker writes, the nearest 
   ]);
 });
 
-test('a registry copy where the linker reads from needs the root install, not a reinstall of the demo', (t) => {
+test('a copy nested under a non-Angular example is to be deleted, since the linker never replaces it', (t) => {
+  const { root, demo } = makeRepo(t);
+  const nested = 'examples/next/visual-tests/js/demo/node_modules/handsontable';
+
+  // The shape the Angular lockfile records today; for js the linker links the framework level only.
+  installRegistryCopy(join(demo('js'), 'node_modules'), 'handsontable');
+
+  const { problems } = checkLinkedPackages({ repoRoot: root, demoDir: demo('js') });
+
+  assert.deepEqual(problems, [{
+    summary: 'handsontable: resolves to a copy that is not the local build handsontable/tmp.',
+    detail: [
+      `${nested} is a plain copy of version 18.1.0, not a link.`,
+      'The linker replaces a copy nested under an example for Angular only, so it never replaces this one. If it '
+        + 'comes back after the relink, the framework\'s lockfile records it there.',
+    ],
+    remedy: `Delete ${nested}, then relink the example: ${INSTALL_JS}`,
+  }]);
+});
+
+test('a registry copy where the linker reads from needs the root install, not a reinstall of the example', (t) => {
   const { root, demo } = makeRepo(t);
 
   // `npm install` run in examples/ replaces pnpm's link with a copy, and the linker would then link that copy.
@@ -326,7 +343,7 @@ test('a registry copy where the linker reads from needs the root install, not a 
       'The linker copies its links from examples/node_modules/handsontable, which does not resolve to the local '
         + 'build either.',
     ],
-    remedy: `Recreate the workspace links, then install and link the demo: pnpm install && ${INSTALL_JS}`,
+    remedy: `Recreate the workspace links, then install and link the example: pnpm install && ${INSTALL_JS}`,
   }]);
 });
 
@@ -342,12 +359,12 @@ test('a registry copy with the linker\'s source gone needs the root install too,
 
   assert.deepEqual(rest, []);
   assert.equal(problem.remedy,
-    `Recreate the workspace links, then install and link the demo: pnpm install && ${INSTALL_JS}`);
+    `Recreate the workspace links, then install and link the example: pnpm install && ${INSTALL_JS}`);
   assert.equal(problem.detail.at(-1), 'The linker copies its links from examples/node_modules/handsontable, which '
     + 'does not resolve to the local build either.');
 });
 
-test('a dangling link on the demo\'s path is refused, since a copy by path finds nothing through it', (t) => {
+test('a dangling link on the example\'s path is refused, since a copy by path finds nothing through it', (t) => {
   const { root, demo, frameworkModules } = makeRepo(t);
   const moved = join(root, 'elsewhere/examples/node_modules/handsontable');
 
@@ -361,16 +378,16 @@ test('a dangling link on the demo\'s path is refused, since a copy by path finds
   const { problems } = checkLinkedPackages({ repoRoot: root, demoDir: demo('js') });
 
   assert.deepEqual(problems, [{
-    summary: 'handsontable: a link on the demo\'s path points at nothing, not at the local build handsontable/tmp.',
+    summary: 'handsontable: a link on the example\'s path points at nothing, not at the local build handsontable/tmp.',
     detail: [
       `examples/next/visual-tests/js/node_modules/handsontable links to ${moved}, which does not exist.`,
       'The linker replaces these with links to the local build when examples:install runs it.',
     ],
-    remedy: `Install and link the demo: ${INSTALL_JS}`,
+    remedy: `Install and link the example: ${INSTALL_JS}`,
   }]);
 });
 
-test('a demo with no copy of the package anywhere in its tree is refused as not installed', (t) => {
+test('an example with no copy of the package anywhere in its tree is refused as not installed', (t) => {
   const { root, demo, frameworkModules } = makeRepo(t);
 
   rmSync(frameworkModules('js'), { recursive: true });
@@ -379,9 +396,9 @@ test('a demo with no copy of the package anywhere in its tree is refused as not 
   const { problems } = checkLinkedPackages({ repoRoot: root, demoDir: demo('js') });
 
   assert.equal(problems.length, 1);
-  assert.equal(problems[0].summary, 'handsontable: not installed for this demo.');
+  assert.equal(problems[0].summary, 'handsontable: not installed for this example.');
   assert.equal(problems[0].remedy,
-    `Recreate the workspace links, then install and link the demo: pnpm install && ${INSTALL_JS}`);
+    `Recreate the workspace links, then install and link the example: pnpm install && ${INSTALL_JS}`);
 });
 
 test('a Handsontable package that is no workspace package is refused, not left unchecked', (t) => {
@@ -414,7 +431,39 @@ test('a versioned copy of the examples is skipped, since the linker links next/ 
   const result = checkLinkedPackages({ repoRoot: root, demoDir: versioned });
 
   assert.deepEqual(result.problems, []);
-  assert.match(result.skipped, /examples\/18\.1\.0\/visual-tests\/js\/demo is not under examples\/next\//);
+  assert.equal(result.skipped, 'examples/18.1.0/visual-tests/js/demo is a versioned copy of the examples, which '
+    + 'pins a published release; the linker links next/ only.');
+});
+
+test('a guard run from anywhere but an example is refused, so it cannot pass by checking nothing', (t) => {
+  const { root, demo } = makeRepo(t);
+  const remedy = 'Build the example through its own script: npm --prefix examples/next/visual-tests/<framework>/demo '
+    + 'run build';
+  const summaries = [
+    root,
+    join(root, 'examples'),
+    join(root, 'visual-tests'),
+    dirname(demo('js')),
+    join(root, 'examples/next/visual-tests/js/demo/src'),
+  ].map((dir) => {
+    mkdirSync(dir, { recursive: true });
+
+    const { skipped, problems } = checkLinkedPackages({ repoRoot: root, demoDir: dir });
+
+    assert.equal(skipped, null, dir);
+    assert.equal(problems.length, 1, dir);
+    assert.equal(problems[0].remedy, remedy, dir);
+
+    return problems[0].summary;
+  });
+
+  assert.deepEqual(summaries, [
+    'the repository root is not an example under examples/next/, so there is nothing to check.',
+    'examples is not an example under examples/next/, so there is nothing to check.',
+    'visual-tests is not an example under examples/next/, so there is nothing to check.',
+    'examples/next/visual-tests/js declares no handsontable or @handsontable/* package, so there is nothing to check.',
+    'examples/next/visual-tests/js/demo/src has no package.json, so it is not an example.',
+  ]);
 });
 
 test('the checks read real paths, so a symlinked checkout passes like a real one', (t) => {
@@ -427,7 +476,7 @@ test('the checks read real paths, so a symlinked checkout passes like a real one
   const throughAlias = join(alias, 'examples/next/visual-tests/js/demo');
   const mixed = checkLinkedPackages({ repoRoot: root, demoDir: throughAlias });
 
-  assert.equal(mixed.skipped, null, 'a demo reached through the alias still sits under examples/next/');
+  assert.equal(mixed.skipped, null, 'an example reached through the alias still sits under examples/next/');
   assert.equal(mixed.demo, 'examples/next/visual-tests/js/demo');
   assert.deepEqual(mixed.problems, []);
   assert.deepEqual(checkLinkedPackages({ repoRoot: alias, demoDir: demo('js') }).problems, []);
@@ -448,6 +497,20 @@ test('packageCopies skips a dangling link the way the resolver does, and stops a
 
   assert.deepEqual(packageCopies(demo('js'), join(root, 'examples'), 'handsontable'), [],
     'both links dangle once handsontable/tmp is gone, and the root copy is past the stop');
+});
+
+test('the guard refuses an example whose core build is older than its sources, unless the age check is off', (t) => {
+  const { root, demo } = makeRepo(t);
+
+  setTime(join(root, 'handsontable/src/core.ts'), '2026-03-01T00:00:00Z');
+
+  const { problems } = checkLinkedPackages({ repoRoot: root, demoDir: demo('react-wrapper') });
+
+  assert.deepEqual(problems.map(({ summary }) => summary),
+    ['The core build is older than its sources: handsontable/tmp predates handsontable/src/core.ts.'],
+    'checked once, for the core, however many packages the example declares');
+  assert.equal(problems[0].remedy, 'Build the core first: npm --prefix handsontable run build');
+  assert.deepEqual(checkLinkedPackages({ repoRoot: root, demoDir: demo('js'), checkAge: false }).problems, []);
 });
 
 test('the preflight passes a built, linked, current core and refuses a missing one with the build command', (t) => {
@@ -472,8 +535,7 @@ test('the preflight names the entry a partial core build lacks', (t) => {
   const [problem] = findBuildProblems({ repoRoot: root });
 
   assert.equal(problem.summary, 'The core is not built: handsontable/tmp/index.mjs is missing.');
-  assert.deepEqual(problem.detail,
-    ['The linker links the package anyway, and the demo build fails on the missing file.']);
+  assert.deepEqual(problem.detail, ['The linker links the package anyway, and the build fails on the missing file.']);
 });
 
 test('the preflight refuses before any install when the linker would have nothing to link from', (t) => {
@@ -502,7 +564,7 @@ test('the preflight refuses a core build older than its sources, unless the age 
   assert.deepEqual(problem.detail, [
     'Newest source: handsontable/src/core.ts (2026-03-01T00:00:00.000Z)',
     'Build composed: handsontable/tmp/package.json (2026-02-01T00:00:00.000Z)',
-    'A source changed after the build, so the demos may render the previous one.',
+    'A source changed after the build, so the examples may render the previous one.',
   ]);
   assert.equal(problem.remedy, 'Build the core first: npm --prefix handsontable run build');
   assert.deepEqual(findBuildProblems({ repoRoot: root, checkAge: false }), []);
@@ -521,36 +583,7 @@ test('a rebuild that skipped postbuild still counts as stale, since only the ful
   assert.match(problem.summary, /^The core build is older than its sources/);
 });
 
-test('in a checkout, git decides the sources: generated files never count, and new untracked ones do', (t) => {
-  const { root } = makeRepo(t);
-
-  gitInit(root);
-  writeGeneratedSources(root);
-  write(join(root, 'handsontable/src/plugins/filters/__tests__/filters.unit.js'), '');
-  write(join(root, 'handsontable/src/plugins/filters/AGENTS.md'), '');
-  write(join(root, 'handsontable/src/.DS_Store'), '');
-  ['plugins/filters/__tests__/filters.unit.js', 'plugins/filters/AGENTS.md', '.DS_Store'].forEach((file) => {
-    setTime(join(root, 'handsontable/src', file), '2026-03-01T00:00:00Z');
-  });
-
-  // Any ignore rule counts, not only the names the fallback knows: a developer's scratch file, excluded locally.
-  write(join(root, '.git/info/exclude'), '*.local.ts\n');
-  write(join(root, 'handsontable/src/scratch.local.ts'), '');
-  setTime(join(root, 'handsontable/src/scratch.local.ts'), '2026-03-01T00:00:00Z');
-
-  assert.deepEqual(sourceFiles(root, join(root, 'handsontable/src')), [join(root, 'handsontable/src/core.ts')]);
-  assert.deepEqual(findBuildProblems({ repoRoot: root }), [],
-    'the files build:styles and build:walkontable write, and tests, Markdown, and dotfiles, do not make it stale');
-
-  // A new source file, not yet added to git, is a source.
-  write(join(root, 'handsontable/src/plugins/filters/condition.ts'), 'export {};');
-  setTime(join(root, 'handsontable/src/plugins/filters/condition.ts'), '2026-03-01T00:00:00Z');
-
-  assert.match(findBuildProblems({ repoRoot: root })[0].summary,
-    /predates handsontable\/src\/plugins\/filters\/condition\.ts\.$/);
-});
-
-test('without git, the walk skips the generated files, the tests, the Markdown, and dotfiles by name', (t) => {
+test('the age check skips what the build writes under src, and the tests, Markdown, and dotfiles', (t) => {
   const { root } = makeRepo(t);
 
   writeGeneratedSources(root);
@@ -560,12 +593,72 @@ test('without git, the walk skips the generated files, the tests, the Markdown, 
     setTime(join(root, 'handsontable/src', file), '2026-03-01T00:00:00Z');
   });
 
-  assert.deepEqual(sourceFiles(root, join(root, 'handsontable/src')), [join(root, 'handsontable/src/core.ts')]);
-  assert.deepEqual(findBuildProblems({ repoRoot: root }), []);
-  assert.equal(isCompiledSource('styles/handsontableStyles.ts'), true, 'git would have left it out, so it counts');
-  assert.equal(isCompiledSource('styles/handsontableStyles.ts', { skipGenerated: true }), false);
-  assert.equal(newestFile([join(root, 'handsontable/src/core.ts'), join(root, 'missing.ts')]).path,
-    join(root, 'handsontable/src/core.ts'), 'a listed file that is gone is skipped');
+  assert.deepEqual(sourceFiles(join(root, 'handsontable')), [join(root, 'handsontable/src/core.ts')]);
+  assert.deepEqual(findBuildProblems({ repoRoot: root }), [],
+    'the files build:styles and build:walkontable write do not make a current build stale');
+  assert.equal(newestFile([join(root, 'handsontable/src/core.ts'), join(root, 'gone.ts')]).path,
+    join(root, 'handsontable/src/core.ts'), 'a file removed between the listing and the read is skipped');
+});
+
+test('a new source that an unanchored ignore rule matches still counts, since git is not asked', (t) => {
+  const { root } = makeRepo(t);
+
+  // `languages/` and `dev*.ts` target the package root's build output and dev pages, and git applies both under
+  // src/ too: `git check-ignore` reports these two paths ignored in the real checkout.
+  ['i18n/languages/xx-XX.ts', 'plugins/dev-panel.ts'].forEach((file) => {
+    write(join(root, 'handsontable/src', file), 'export {};');
+    setTime(join(root, 'handsontable/src', file), '2026-03-01T00:00:00Z');
+
+    const [problem] = findBuildProblems({ repoRoot: root });
+
+    assert.equal(problem?.summary,
+      `The core build is older than its sources: handsontable/tmp predates handsontable/src/${file}.`);
+    rmSync(join(root, 'handsontable/src', file));
+  });
+});
+
+test('a checkout inside another repository that ignores everything still has its sources read', (t) => {
+  const outer = mkdtempSync(join(tmpdir(), 'visual-local-builds-outer-'));
+
+  t.after(() => rmSync(outer, { recursive: true, force: true }));
+  assert.equal(spawnSync('git', ['init', '-q'], { cwd: outer }).status, 0, 'git init failed');
+  write(join(outer, '.gitignore'), '*\n');
+
+  // An extracted source archive with no .git of its own, under a home directory kept in git.
+  const { root } = makeRepo(t, { parent: outer });
+
+  assert.deepEqual(sourceFiles(join(root, 'handsontable')), [join(root, 'handsontable/src/core.ts')]);
+
+  setTime(join(root, 'handsontable/src/core.ts'), '2026-03-01T00:00:00Z');
+
+  assert.match(findBuildProblems({ repoRoot: root })[0]?.summary ?? '', /^The core build is older than its sources/);
+});
+
+test('the real core .gitignore marks the generated files under src, and no real source', () => {
+  const generated = generatedSourcePatterns(join(REPO_ROOT, 'handsontable'));
+
+  ['styles/handsontableStyles.js', 'styles/handsontableStyles.ts', '3rdparty/walkontable/dist/walkontable.js']
+    .forEach(path => assert.equal(isCompiledSource(path, generated), false, `${path} is a build output`));
+  ['core.ts', 'i18n/languages/de-DE.ts', 'i18n/languages/xx-XX.ts', 'plugins/dev-panel.ts', 'styles/main.scss']
+    .forEach(path => assert.equal(isCompiledSource(path, generated), true, `${path} is a source`));
+});
+
+test('generatedSourcePatterns reads directory, file, and glob entries, and nothing without the src/ prefix', (t) => {
+  const { root } = makeRepo(t);
+
+  write(join(root, 'handsontable/.gitignore'),
+    '# generated\n/src/gen/\nsrc/**/*.gen.ts\nsrc/x?.ts\nsrc/one.ts\ntmp/\n!src/keep.ts\n');
+
+  const generated = generatedSourcePatterns(join(root, 'handsontable'));
+  const compiled = path => isCompiledSource(path, generated);
+
+  assert.equal(generated.length, 4, 'the comment, the tmp/ entry, and the negation are no generated source');
+  assert.deepEqual(['gen/a.ts', 'a/b/c.gen.ts', 'x1.ts', 'one.ts', 'one.ts/inner.ts'].map(compiled),
+    [false, false, false, false, false]);
+  // An entry with a slash in it is anchored to src/, the way git reads it, so the same name deeper down counts.
+  assert.deepEqual(['gen.ts', 'a/c.gen.tsx', 'x/1.ts', 'x12.ts', 'one.tsx', 'keep.ts', 'deep/gen/a.ts', 'sub/one.ts']
+    .map(compiled), [true, true, true, true, true, true, true, true]);
+  assert.deepEqual(generatedSourcePatterns(join(root, 'wrappers/react-wrapper')), [], 'no .gitignore, no patterns');
 });
 
 test('the preflight checks the wrapper builds the tier renders, and only those', (t) => {
@@ -609,33 +702,64 @@ test('preflightOptions turns the age check off on CI only, and passes the tier\'
   assert.equal(preflightOptions({ env: {}, frameworks, referenceFramework: 'js' }).checkAge, true);
   assert.equal(preflightOptions({ env: { CI: 'false' }, frameworks, referenceFramework: 'js' }).checkAge, true);
   assert.deepEqual(preflightOptions({ env: {}, frameworks: ['js'], referenceFramework: 'js' }).wrappers, []);
+  assert.deepEqual([{ CI: 'true' }, {}, { CI: '1' }].map(ageCheckEnabled), [false, true, true],
+    'only the value GitHub Actions sets turns it off');
+});
+
+test('formatProblems lays out every problem the same way for both scripts', () => {
+  const problems = [
+    { summary: 'one', detail: ['a', 'b'], remedy: 'fix one' },
+    { summary: 'two', detail: [], remedy: 'fix two' },
+  ];
+
+  assert.deepEqual(formatProblems(problems), [
+    '', '- one', '  a', '  b', '  fix one',
+    '', '- two', '  fix two',
+    '', 'Run the commands from the repository root. See visual-tests/AGENTS.md (Local builds).',
+  ]);
+  assert.deepEqual(formatProblems(problems, { highlight: text => `<${text}>` }).filter(line => line.startsWith('<')),
+    ['<- one>', '<- two>'], 'the highlight colors the summary lines and nothing else');
+});
+
+test('the guard\'s confirmations survive a build\'s other output', () => {
+  const lines = confirmationLines([
+    { name: 'handsontable', buildDir: 'handsontable/tmp' },
+    { name: '@handsontable/vue3', buildDir: 'wrappers/vue3' },
+  ]);
+  const stdout = ['> vue3-ts-example@0.0.0 build', lines[0], 'vite v6.4.3 building for production...', lines[1],
+    '✓ built in 2.05s'].join('\n');
+
+  assert.deepEqual(lines, ['handsontable resolves to the local build handsontable/tmp.',
+    '@handsontable/vue3 resolves to the local build wrappers/vue3.']);
+  assert.deepEqual(readConfirmations(stdout), lines);
 });
 
 /**
- * Runs the real guard from a demo directory of a throwaway repository. The script finds the repository from
- * its own location, so it and the module it imports are copied into the repository first.
+ * Runs the real guard from a directory of a throwaway repository. The script finds the repository from its own
+ * location, so it and the module it imports are copied into the repository first.
  *
  * @param {string} root The throwaway repository.
- * @param {string} demoDir The demo to run it from.
+ * @param {string} cwd The directory to run it from.
+ * @param {object} [env] More environment variables.
  * @returns {{status: number, stdout: string, stderr: string}} What it did.
  */
-function runGuard(root, demoDir) {
+function runGuard(root, cwd, env = {}) {
   mkdirSync(join(root, 'visual-tests/scripts'), { recursive: true });
   mkdirSync(join(root, 'visual-tests/lib'), { recursive: true });
   cpSync(join(PACKAGE_ROOT, 'scripts/check-linked-packages.mjs'),
     join(root, 'visual-tests/scripts/check-linked-packages.mjs'));
   cpSync(join(PACKAGE_ROOT, 'lib/local-builds.mjs'), join(root, 'visual-tests/lib/local-builds.mjs'));
 
-  const result = spawnSync(process.execPath, ['../../../../../visual-tests/scripts/check-linked-packages.mjs'], {
-    cwd: demoDir,
+  const result = spawnSync(process.execPath, [join(root, 'visual-tests/scripts/check-linked-packages.mjs')], {
+    cwd,
     encoding: 'utf8',
-    env: { PATH: process.env.PATH },
+    env: { PATH: process.env.PATH, ...env },
   });
 
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
-test('the guard script exits 0 on a linked demo and 1 with the remedy on an unlinked one', (t) => {
+test('the guard script exits 0 on a linked example and 1 with the remedy on an unlinked one', (t) => {
   const { root, demo, frameworkModules } = makeRepo(t);
   const linked = runGuard(root, demo('js'));
 
@@ -648,58 +772,78 @@ test('the guard script exits 0 on a linked demo and 1 with the remedy on an unli
 
   assert.equal(refused.status, 1);
   assert.equal(refused.stdout, '');
-  assert.match(refused.stderr, /^Refusing to build examples\/next\/visual-tests\/js\/demo: /);
-  assert.ok(refused.stderr.includes(`  Install and link the demo: ${INSTALL_JS}\n`), refused.stderr);
+  assert.match(refused.stderr, /^Refusing to build examples\/next\/visual-tests\/js\/demo:\n\n- handsontable: /);
+  assert.ok(refused.stderr.includes(`  Install and link the example: ${INSTALL_JS}\n`), refused.stderr);
   assert.match(refused.stderr, /See visual-tests\/AGENTS\.md \(Local builds\)\.\n$/);
 });
 
-test('the guard script exits 0 on a versioned copy, which `examples:build <version>` builds', (t) => {
+test('the guard script checks the core\'s age off CI only', (t) => {
+  const { root, demo } = makeRepo(t);
+
+  setTime(join(root, 'handsontable/src/core.ts'), '2026-03-01T00:00:00Z');
+
+  const local = runGuard(root, demo('js'));
+  const onCi = runGuard(root, demo('js'), { CI: 'true' });
+
+  assert.equal(local.status, 1);
+  assert.match(local.stderr, /- The core build is older than its sources: /);
+  assert.equal(onCi.status, 0, onCi.stderr);
+});
+
+test('the guard script exits 0 on a versioned copy and 1 outside any example', (t) => {
   const { root } = makeRepo(t);
   const versioned = join(root, 'examples/18.1.0/visual-tests/js/demo');
 
   write(join(versioned, 'package.json'), { dependencies: { handsontable: '18.1.0' } });
 
   const skipped = runGuard(root, versioned);
+  const fromRoot = runGuard(root, root);
 
   assert.equal(skipped.status, 0, skipped.stderr);
   assert.equal(skipped.stderr, '');
   assert.match(skipped.stdout, /^Linked-package check skipped: examples\/18\.1\.0\/visual-tests\/js\/demo /);
+  assert.equal(fromRoot.status, 1, 'a run from the wrong directory must not pass');
+  assert.match(fromRoot.stderr, /^Refusing to build the repository root:\n/);
 });
 
 /**
- * The four visual-test demos and their manifests.
+ * Every example in the visual-tests tree and its manifest: each framework's `demo/` and `basic-example/`.
  *
- * @returns {Array<{demoDir: string, manifest: object}>} One entry per demo.
+ * @returns {Array<{exampleDir: string, manifest: object}>} One entry per example.
  */
-function realDemos() {
+function realExamples() {
   const frameworksDir = join(REPO_ROOT, 'examples/next/visual-tests');
 
   return readdirSync(frameworksDir, { withFileTypes: true })
-    .filter(entry => entry.isDirectory() && existsSync(join(frameworksDir, entry.name, 'demo/package.json')))
-    .map(entry => join(frameworksDir, entry.name, 'demo'))
-    .map(demoDir => ({ demoDir, manifest: JSON.parse(readFileSync(join(demoDir, 'package.json'), 'utf8')) }));
+    .filter(entry => entry.isDirectory())
+    .flatMap(entry => readdirSync(join(frameworksDir, entry.name), { withFileTypes: true })
+      .filter(child => child.isDirectory() && child.name !== 'node_modules')
+      .map(child => join(frameworksDir, entry.name, child.name)))
+    .filter(exampleDir => existsSync(join(exampleDir, 'package.json')))
+    .map(exampleDir => ({ exampleDir, manifest: JSON.parse(readFileSync(join(exampleDir, 'package.json'), 'utf8')) }));
 }
 
-test('every visual-test demo runs the guard first in its build script, and no other script builds it', () => {
-  const demos = realDemos();
-  const buildTool = /\b(vite build|ng build|react-app-rewired build)\b/;
+test('every example in the visual-tests tree runs the guard first in its build, and no other script builds it', () => {
+  const examples = realExamples();
 
-  // The four frameworks the suite renders. Fewer means the directory moved and this test checks nothing.
-  assert.equal(demos.length, 4, `found ${demos.length} demos`);
+  // Four frameworks, a demo and a basic example each. Fewer means the tree moved and this test checks nothing.
+  assert.equal(examples.length, 8, `found ${examples.length} examples`);
 
-  demos.forEach(({ demoDir, manifest: { scripts } }) => {
+  examples.forEach(({ exampleDir, manifest: { scripts } }) => {
     const rest = scripts.build.slice(`${GUARD} && `.length);
 
-    assert.ok(scripts.build.startsWith(`${GUARD} && `), `${demoDir}: the build script must start with the guard, `
+    assert.ok(scripts.build.startsWith(`${GUARD} && `), `${exampleDir}: the build script must start with the guard, `
       + `found "${scripts.build}"`);
-    assert.equal(resolve(demoDir, GUARD.split(' ')[1]), join(PACKAGE_ROOT, 'scripts/check-linked-packages.mjs'),
-      `${demoDir}: the guard path does not resolve to the guard`);
-    assert.match(rest, buildTool, `${demoDir}: the build itself must follow the guard`);
-    assert.doesNotMatch(scripts.build, /\|\||;/,
-      `${demoDir}: an \`||\` or \`;\` would let the build run after a refusal`);
+    assert.equal(resolve(exampleDir, GUARD.split(' ')[1]), join(PACKAGE_ROOT, 'scripts/check-linked-packages.mjs'),
+      `${exampleDir}: the guard path does not resolve to the guard`);
+    assert.match(rest, BUILD_TOOL, `${exampleDir}: the build itself must follow the guard`);
+    // Only `&&` joins the chain: `;` and a lone `&` run the build whatever the guard said, `|` takes the exit
+    // code of the last command, and `||` runs the build only after a refusal.
+    assert.doesNotMatch(scripts.build, /;|\||(?<!&)&(?!&)|\n/,
+      `${exampleDir}: the build script must chain the guard with \`&&\` alone`);
 
     Object.entries(scripts).filter(([name]) => name !== 'build').forEach(([name, command]) => {
-      assert.doesNotMatch(command, buildTool, `${demoDir}: script "${name}" builds the demo without the guard`);
+      assert.doesNotMatch(command, BUILD_TOOL, `${exampleDir}: script "${name}" builds the example without the guard`);
     });
   });
 });
@@ -720,13 +864,96 @@ test('build.mjs refuses before its first install, and builds each demo through i
   assert.equal(build.split('await installAndBuild();').length, 2, 'installAndBuild() must be called exactly once');
   assert.ok(preflightAt < refusalAt && refusalAt < elseAt && elseAt < callAt,
     'installAndBuild() must be called in the else branch of the refusal, or the installs run after it');
-  assert.match(build, /preflightOptions\(\{\n\s+env: process\.env,\n\s+frameworks: frameworksToTest,/,
+  assert.match(build, /preflightOptions\(\{\s*env: process\.env,\s*frameworks: frameworksToTest,/,
     'the options, the age check among them, must come from preflightOptions(), which the tests pin');
-  assert.match(build, /await execa\.command\('npm run build', \{/,
-    'a demo builds through its own build script, which runs the guard');
+  assert.match(build, /formatProblems\(problems/, 'the refusal must print through the shared formatter');
+  assert.match(build, /const \{ stdout \} = await execa\.command\('npm run build', \{\s*stdout: 'pipe',/,
+    'a demo builds through its own build script, which runs the guard, and its output is read');
+  assert.match(build, /readConfirmations\(stdout\)/, 'the guard\'s confirmations must reach the log');
+  assert.match(build, /monorepoRoot: REPO_ROOT,\s*examples: join\(REPO_ROOT, 'examples', 'next', 'visual-tests'\),/,
+    'the paths must derive from REPO_ROOT, or a run from another directory builds another tree');
 });
 
-test('no workflow or action builds a visual-test demo around its guard', () => {
+test('the guard script prints through the shared formatter and checks the age off CI only', () => {
+  const guard = readFileSync(join(PACKAGE_ROOT, 'scripts/check-linked-packages.mjs'), 'utf8');
+
+  assert.match(guard, /checkAge: ageCheckEnabled\(process\.env\)/);
+  assert.match(guard, /formatProblems\(problems\)/);
+  assert.doesNotMatch(guard, /Run the commands from the repository root/,
+    'the pointer line belongs to formatProblems(), so the two scripts cannot drift apart');
+});
+
+/**
+ * Splits a workflow or action into its list items, which for steps is one step each: a line that opens a
+ * sequence entry (`- name:`, `- run:`, `- uses:`) starts the next one.
+ *
+ * @param {string} text The YAML.
+ * @returns {string[]} The items, comment lines dropped.
+ */
+function yamlItems(text) {
+  return text.split('\n').filter(line => !line.trim().startsWith('#'))
+    .reduce((items, line) => {
+      if (/^\s*-\s+[\w-]+:/.test(line) || items.length === 0) {
+        items.push(line);
+      } else {
+        items[items.length - 1] += `\n${line}`;
+      }
+
+      return items;
+    }, []);
+}
+
+/**
+ * Finds the steps and scripts that build a visual-test example without its guard: a demo's build tool called in
+ * a step or script that works on the visual-tests tree, or a demo script other than `build`.
+ *
+ * @param {Array<{file: string, text: string}>} sources The workflow and action files, as YAML text.
+ * @param {Array<{file: string, scripts: object}>} manifests The package manifests whose scripts to read.
+ * @returns {string[]} One line per bypass, naming where it is.
+ */
+function bypasses(sources, manifests) {
+  const touchesVisualTests = text => /visual-tests/.test(text);
+  const otherDemoScript = /examples\/next\/visual-tests\/[\w-]+\/(demo|basic-example) run (?!build(\s|$))/;
+
+  return [
+    ...sources.flatMap(({ file, text }) => yamlItems(text)
+      .filter(item => touchesVisualTests(item) && (BUILD_TOOL.test(item) || otherDemoScript.test(item)))
+      .map(item => `${file}: ${item.trim().split('\n')[0]}`)),
+    ...manifests.flatMap(({ file, scripts }) => Object.entries(scripts ?? {})
+      .filter(([, command]) => touchesVisualTests(command) && BUILD_TOOL.test(command))
+      .map(([name]) => `${file}: scripts.${name}`)),
+  ];
+}
+
+test('the bypass scan flags a visual-tests step that builds around the guard, and nothing else', () => {
+  const yaml = [
+    '    steps:',
+    '      - name: Build the docs',
+    '        run: ng build',
+    '        working-directory: docs/angular-type-check',
+    '      - name: Build the js demo',
+    '        run: |',
+    '          cd examples/next/visual-tests/js/demo',
+    '          vite build',
+    '      - name: Build it right',
+    '        run: npm --prefix examples/next/visual-tests/js/demo run build',
+    '      - name: A second script',
+    '        run: npm --prefix examples/next/visual-tests/js/demo run build:ci',
+  ].join('\n');
+  const scripts = {
+    'serve-example': 'npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082',
+    'build-demo': 'cd ../examples/next/visual-tests/js/demo && vite build',
+    'docs:build': 'cd ../docs && ng build',
+  };
+
+  assert.deepEqual(bypasses([{ file: 'x.yml', text: yaml }], [{ file: 'package.json', scripts }]), [
+    'x.yml: - name: Build the js demo',
+    'x.yml: - name: A second script',
+    'package.json: scripts.build-demo',
+  ]);
+});
+
+test('no workflow, action, or package script builds a visual-test example around its guard', () => {
   const workflowsDir = join(REPO_ROOT, '.github/workflows');
   const actionsDir = join(REPO_ROOT, '.github/actions');
   const files = [
@@ -734,19 +961,14 @@ test('no workflow or action builds a visual-test demo around its guard', () => {
     ...readdirSync(actionsDir, { withFileTypes: true }).filter(entry => entry.isDirectory())
       .map(entry => join(actionsDir, entry.name, 'action.yml')).filter(file => existsSync(file)),
   ];
-  const lines = files.flatMap(file => readFileSync(file, 'utf8').split('\n')
-    .map((line, index) => ({ file, line: index + 1, text: line.trim() }))
-    .filter(({ text }) => !text.startsWith('#')));
-  // A demo's build tool called directly skips the guard, and so does any demo script other than `build`.
-  const toolCalls = lines.filter(({ text }) => /\b(vite build|ng build|react-app-rewired build)\b/.test(text));
-  const otherScripts = lines.filter(({ text }) => /examples\/next\/visual-tests\/[\w-]+\/demo run (?!build\b)/
-    .test(text) || /examples\/next\/visual-tests\/[\w-]+\/demo run build\S/.test(text));
-  const demoBuilds = lines.filter(({ text }) => /examples\/next\/visual-tests\/[\w-]+\/demo run build$/.test(text));
+  const sources = files.map(file => ({ file: file.slice(REPO_ROOT.length + 1), text: readFileSync(file, 'utf8') }));
+  const manifests = ['package.json', 'visual-tests/package.json', 'examples/package.json']
+    .map(file => ({ file, scripts: JSON.parse(readFileSync(join(REPO_ROOT, file), 'utf8')).scripts }));
+  const demoBuilds = sources.filter(({ text }) => /examples\/next\/visual-tests\/[\w-]+\/demo run build$/m.test(text));
 
   assert.ok(files.length > 10, `only ${files.length} workflow and action files found — did .github move?`);
-  assert.deepEqual(toolCalls, [], 'build a demo through `npm --prefix <demo> run build` so its guard runs');
-  assert.deepEqual(otherScripts, [], 'a workflow runs a demo script other than `build`, which skips the guard');
+  assert.deepEqual(bypasses(sources, manifests), [],
+    'build an example through `npm --prefix <example> run build` so its guard runs');
   // The two direct builds today: the cross-browser leg of visual.yml and the stability matrix.
-  assert.deepEqual([...new Set(demoBuilds.map(({ file }) => file.split('/').pop()))].sort(),
-    ['visual-stability.yml', 'visual.yml']);
+  assert.deepEqual(demoBuilds.map(({ file }) => file.split('/').pop()).sort(), ['visual-stability.yml', 'visual.yml']);
 });

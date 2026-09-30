@@ -225,9 +225,9 @@ First, prepare your local visual testing environment:
    local build, so build it again after you change the core, or after a checkout, pull, or rebase that changes
    its sources. To render a wrapper demo, build that wrapper too, for example
    `npm --prefix wrappers/react-wrapper run build`; a bare `npm run build` on a feature branch renders all
-   three. `npm run build` checks for these builds before it installs anything, and each demo's own build
-   refuses to run against a copy of Handsontable from the npm registry. Each problem they report ends with the
-   command that fixes it.
+   three. `npm run build` checks for these builds before it installs anything. Each demo's own build refuses
+   to run against a copy of Handsontable from the npm registry, or against a core build older than its sources.
+   Each problem they report ends with the command that fixes it.
 4. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
    ```bash
    AWS_ACCESS_KEY_ID=xxx
