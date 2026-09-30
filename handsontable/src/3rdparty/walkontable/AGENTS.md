@@ -1058,8 +1058,9 @@ Walkontable root's parent, the element `preventOverflow` forces an axis to – a
   the grid at its padding. `resolveHolderWidth()` measures the room instead
   (`measureAvailableWidths()`): for one read the holder takes no width, and a probe that takes
   whatever width it gets – a run of short words, one word wide at its narrowest and wider than any
-  page on one line – sits in `.ht_master`. Each container then shows the room it has: its own width,
-  its share, or the room around it. The answer is bounded by the owner's content box, because core's
+  page on one line – sits in `.ht_master`. The element the root sits in (core's `.ht-grid-content`
+  for a root instance, which takes its width from the host's chain above `.ht-root-wrapper`) then
+  shows the room that chain gives it: its own width, its share, or the room around it. The answer is bounded by the owner's content box, because core's
   edge slots hold a content-sized container at their pixel width and the probe then overstates it –
   except for a root wider than its container (a `width` above 100%), which fills up to the owner's
   box as before.

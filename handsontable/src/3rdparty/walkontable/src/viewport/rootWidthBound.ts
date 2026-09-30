@@ -11,7 +11,12 @@
  * - The holder's PIXEL width is what the grid contributes to that intrinsic width. It decides how
  *   wide a chain sized by its content becomes, and whether a flex item or a grid track that does not
  *   shrink below its content is pushed past its share. `resolveHolderWidth` measures the room the
- *   grid's container has for it, instead of taking the owner's box.
+ *   element the root sits in has for it, instead of taking the owner's box.
+ *
+ * For a root instance, the element the root sits in is core's internal `.ht-grid-content`, and it
+ * takes its width from the host's chain above `.ht-root-wrapper`. A chain "sized by its content"
+ * below is that host chain: the grid mounted in an inline block, a float, or a flex item without
+ * `flex-grow`.
  *
  * `MasterTable` sizes the holder with both, and `measureWorkspaceWidth` bounds the columns with the
  * first.
@@ -53,7 +58,8 @@ const probes = new WeakMap<Document, HTMLElement>();
  */
 export interface AvailableWidths {
   /**
-   * The content-box width of the element the grid's root sits in.
+   * The content-box width of the element the grid's root sits in (`.ht-grid-content` for a root
+   * instance).
    */
   container: number;
   /**
@@ -161,19 +167,20 @@ export function boundWorkspaceWidth(
 }
 
 /**
- * Measures how much room the grid's container and the owner have for the grid. For one read the
- * holder takes no width, so the grid contributes nothing to the width of the elements around it, and
- * a probe that would take any width it gets takes its place in `.ht_master`: a long run of short
- * words, which can be as narrow as one word and as wide as all of them on one line.
+ * Measures how much room the element the grid's root sits in and the owner have for the grid. For
+ * one read the holder takes no width, so the grid contributes nothing to the width of the elements
+ * around it, and a probe that would take any width it gets takes its place in `.ht_master`: a long
+ * run of short words, which can be as narrow as one word and as wide as all of them on one line.
  *
- * Each container then shows the width it has room for, whatever sizes it. One with a width of its own
- * keeps it; a flex item or a grid track keeps its share, since the probe's narrowest layout sits
- * below any share; and one sized by its content (an inline block, a float, a flex item without
- * `flex-grow`, a modal `<dialog>` with no width) grows to the room around it, where it would
- * otherwise stay at the width the grid gave it on the draw before. That last case is why the probe
- * exists: bounding by the container's current width, the grid could shrink with the owner but never
- * grow back. The core's edge slots still hold such a container at their pixel width, which is why the
- * owner is read under the probe too, and bounds the answer.
+ * That element then shows the width the host's chain gives it, whatever sizes the chain. A chain
+ * with a width of its own keeps it; a flex item or a grid track keeps its share, since the probe's
+ * narrowest layout sits below any share; and a chain sized by its content (the grid mounted in an
+ * inline block, a float, a flex item without `flex-grow`, a modal `<dialog>` with no width) grows to
+ * the room around it, where it would otherwise stay at the width the grid gave it on the draw
+ * before. That last case is why the probe exists: bounded by that element's current width, the grid
+ * could shrink with the owner but never grow back. Core's edge slots, beside `.ht-grid` in the same
+ * chain, still hold such a chain at their pixel width, which is why the owner is read under the
+ * probe too, and bounds the answer.
  *
  * The probe grows or keeps the width of everything around the grid, so no scroll offset is clamped
  * while it lasts: the holder only loses its width, which widens its own scroll range, and nothing
@@ -184,7 +191,8 @@ export function boundWorkspaceWidth(
  * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
  * @param {HTMLElement} holder The master holder.
  * @param {HTMLElement} owner The owner of the horizontal axis.
- * @param {HTMLElement} container The element the grid's root sits in.
+ * @param {HTMLElement} container The element the grid's root sits in (`.ht-grid-content` for a root
+ * instance).
  * @returns {AvailableWidths}
  */
 export function measureAvailableWidths(
@@ -216,9 +224,9 @@ export function measureAvailableWidths(
 
 /**
  * Resolves the holder's pixel width inside an owner of the horizontal axis that may be wider than
- * the grid: the room the grid's container has (`measureAvailableWidths`), no more than the owner's
- * content box. A root wider than its container (a `width` above 100%) spills over it on purpose, so
- * the holder then fills the root, as far as the owner's box reaches.
+ * the grid: the room the element the root sits in has (`measureAvailableWidths`), no more than the
+ * owner's content box. A root wider than that element (a `width` above 100%) spills over it on
+ * purpose, so the holder then fills the root, as far as the owner's box reaches.
  *
  * @param {GeometryReader} geometryReader The geometry reader.
  * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
