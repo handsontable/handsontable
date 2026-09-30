@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the editor window-scroll fixture: a grid with
@@ -29,6 +30,7 @@ export class EditorScrollPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/editor-scroll.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     // The master table does not render frozen columns at all — cell (0,0)
     // exists only in the corner clone, so that is the render signal.
     await expect(this.frozenCornerCell(0, 0)).toBeVisible();
