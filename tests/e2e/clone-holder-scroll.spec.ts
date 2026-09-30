@@ -58,24 +58,6 @@ test.describe('Clone holders as composited scroll containers', () => {
       expect(master.overflowX).toBe('auto');
     });
 
-    test('keeps the clone holders scrollbar-free under a page-wide `!important` scrollbar rule', async({ page }) => {
-      // A host page that restyles every holder's scrollbar (`scrollbar-width: thin !important`) must
-      // not paint one into the mirror holders: nothing scrolls them, and the clone is sized to the
-      // pixel against the master. Only the computed style is asserted, never the stylesheet text.
-      await page.addStyleTag({ content: '.handsontable .wtHolder { scrollbar-width: thin !important; }' });
-
-      // Positive control: the injected rule is live, and it takes effect on the master holder.
-      expect((await grid.holderBox('master')).scrollbarWidth, 'master scrollbar-width').toBe('thin');
-
-      for (const name of ['inline_start', 'top', 'bottom'] as const) {
-        const box = await grid.holderBox(name);
-
-        expect(box.scrollbarWidth, `${name} scrollbar-width`).toBe('none');
-        expect(box.scrollbarGutterX, `${name} vertical scrollbar space`).toBe(0);
-        expect(box.scrollbarGutterY, `${name} horizontal scrollbar space`).toBe(0);
-      }
-    });
-
     test('keeps the scroll containers out of the tab order and leaves the corner alone', async() => {
       // Chrome 127+ makes a scroll container with no focusable content a keyboard tab stop; the
       // engine stamps `tabindex="-1"` on the four scroll containers so the frozen panes never

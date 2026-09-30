@@ -338,18 +338,24 @@ So `src/styles/base/_base.scss` makes each of those holders a scroll container o
 engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
 bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none
 !important` plus the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body
-fails the SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. Keep the
-`!important` (DEV-3160): Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not
-`auto`, so a page-wide `.wtHolder { scrollbar-width: thin !important }` otherwise paints an 11px
-scrollbar into these holders and shrinks the row-header layer. The selector carries a `.handsontable` prefix (0,3,0), so it beats a page rule like
-`.handsontable .wtHolder` whatever the load order. It does not beat a host `!important` rule with
-higher specificity, or one inside a CSS `@layer` (important declarations reverse layer order). Do not claim the holders are immune to host CSS. The same writes then take the compositor's
-scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
-−45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
-long tasks do not move — they are the two full draws' renderer work — so the win is per-frame
-headroom, not a shorter stall. The corner clones are untouched (their holders were never clipped):
-nothing scrolls them. `css/walkontable.scss` carries the same rule for the engine's own test runner
-and must be kept in sync, or `npm run test:walkontable` runs against the old clip.
+fails the SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same
+writes then take the compositor's scroll-offset fast path: measured on that grid, paint 850 → 90 ms
+per run and total main-thread time −45…−65 % on every renderer, with renderer calls, draws and frames
+identical. The worst frame and the long tasks do not move — they are the two full draws' renderer
+work — so the win is per-frame headroom, not a shorter stall. The corner clones are untouched (their
+holders were never clipped): nothing scrolls them. `css/walkontable.scss` carries the same rule for
+the engine's own test runner and must be kept in sync, or `npm run test:walkontable` runs against the
+old clip.
+
+Keep the `.handsontable` prefix and the `!important` on that `scrollbar-width` (DEV-3160). A page-wide
+`.handsontable .wtHolder { scrollbar-width: thin }` would otherwise win, and paint an 11px scrollbar
+into these holders that shrinks the row-header layer. The bare selector tied such a rule on
+specificity, so the winner was the source order, and `!important` was needed against a rule that
+carried it. Only `scrollbar-width` matters here: the theme's `scrollbar-styles` mixin sets
+`scrollbar-color` on every `.wtHolder`, which already makes Chrome 121+ skip `::-webkit-scrollbar`, so
+the pseudo-element rule is a fallback for older engines. The rule still loses to a host `!important`
+rule with higher specificity and to one inside a CSS `@layer` (important declarations reverse layer
+order), so do not claim the holders are immune to host CSS.
 
 Four rules come with it.
 

@@ -884,12 +884,15 @@
     // `.htScrollbarClearanceFillers` below.
     overflow-anchor: none;
     // No scrollbar of its own, the way the sheets bar hides one: `scrollbar-width` is the standard
-    // property, the `::-webkit-scrollbar` rule covers engines without it and beats the
-    // `.handsontable .wtHolder::-webkit-scrollbar` sizing above on specificity, not source order.
+    // property and the one that matters, because the `scrollbar-styles` mixin sets `scrollbar-color`
+    // on every `.wtHolder` and that already makes Chrome 121+ skip `::-webkit-scrollbar`. The
+    // `::-webkit-scrollbar` rule is a fallback for older engines; it sets `display`, the sizing rule
+    // above sets `width` and `height`, so the two never compete.
     // Written out rather than shared through a mixin: a nesting `&` inside a mixin body has no
     // scoping root for the SonarCloud CSS analyzer (S8776), which fails the quality gate on it.
-    // `!important` because a page-wide `.wtHolder { scrollbar-width: thin !important }` would
-    // otherwise win and paint a scrollbar into these holders (DEV-3160).
+    // The `.handsontable` prefix and `!important` keep a page-wide rule such as
+    // `.handsontable .wtHolder { scrollbar-width: thin }` from winning, whether or not it is
+    // `!important` and whatever the load order, and painting a scrollbar into these holders (DEV-3160).
     scrollbar-width: none !important;
 
     &::-webkit-scrollbar {
