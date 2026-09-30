@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed user overrides of context menu items added by plugins, such as `disabled()` on the Comments plugin's `commentsAddEdit` item, being ignored.",
+  "title": "Fixed user overrides of context menu and dropdown menu items added by plugins, such as `disabled()` on the Comments plugin's `commentsAddEdit` item, being ignored.",
   "type": "fixed",
   "issueOrPR": 13688,
   "breaking": false,

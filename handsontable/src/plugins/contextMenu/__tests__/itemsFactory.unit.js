@@ -174,14 +174,32 @@ describe('contextMenu/ItemsFactory', () => {
 
     it('does not mutate the user settings', () => {
       const factory = new ItemsFactory(hotMock());
-      const override = { disabled: () => true };
+      const userDisabled = () => true;
+      const override = { disabled: userDisabled };
       const settings = { items: { commentsAddEdit: override } };
       const pluginItems = factory.getItems(settings);
 
       pluginItems.push({ key: 'commentsAddEdit', disabled: () => false });
       factory.setPredefinedItems(pluginItems);
 
+      // The key stamp and the plugin's own `disabled` are two separate ways to mutate this object.
       expect(Object.keys(override)).toEqual(['disabled']);
+      expect(override.disabled).toBe(userDisabled);
+    });
+
+    it('applies to the dropdown menu too, where the Filters items define their own hidden()', () => {
+      const factory = new ItemsFactory(hotMock(), null, 'dropdownMenu');
+      const userHidden = () => false;
+      const settings = { items: { filter_by_value: { hidden: userHidden } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'filter_by_value', name: () => 'Filter by value', hidden: () => true });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.hidden).toBe(userHidden);
+      expect(typeof item.name).toBe('function');
     });
   });
 
