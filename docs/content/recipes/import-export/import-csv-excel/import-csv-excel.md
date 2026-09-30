@@ -73,6 +73,8 @@ This recipe shows a small UI with:
 
 :::
 
+In Angular, apply the parsed rows inside `NgZone.run()`, as `handleFile` does. read-excel-file unzips the workbook in Web Workers, so its promise resolves outside Angular's zone. Without `NgZone.run()`, the grid does not update until the next DOM event.
+
 :::
 
 ## CDN scripts (no bundler)
@@ -267,6 +269,8 @@ function parseCsvText(text, PapaRef) {
 The `ensureReadExcelFile` function follows the same lazy-load pattern as `ensurePapa`:
 
 ```javascript
+const CDN_READ_EXCEL_FILE = 'https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js';
+
 async function ensureReadExcelFile() {
   if (typeof window.readXlsxFile !== 'undefined') return window.readXlsxFile;
   await loadScript(CDN_READ_EXCEL_FILE);
@@ -278,6 +282,14 @@ async function ensureReadExcelFile() {
 ### Parse an Excel file
 
 ```javascript
+function normalizeCellValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  const text = String(value).trim();
+  return text === '' ? null : text;
+}
+
 async function parseXlsxFile(file, readXlsxFileRef) {
   let sheets;
   try {
@@ -302,22 +314,12 @@ async function parseXlsxFile(file, readXlsxFileRef) {
   const rows = [];
   for (let r = 1; r < matrix.length; r++) {
     const line = matrix[r];
-    const allEmpty = !line || line.every((c) => String(c ?? '').trim() === '');
+    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
     if (allEmpty) continue;
 
     const obj = {};
     for (let c = 0; c < keys.length; c++) {
-      const raw = line[c];
-      if (raw === null || raw === undefined) {
-        obj[keys[c]] = null;
-      } else if (typeof raw === 'number' || typeof raw === 'boolean') {
-        obj[keys[c]] = raw;
-      } else if (raw instanceof Date) {
-        obj[keys[c]] = raw.toISOString().slice(0, 10);
-      } else {
-        const s = String(raw).trim();
-        obj[keys[c]] = s === '' ? null : s;
-      }
+      obj[keys[c]] = normalizeCellValue(line[c]);
     }
     rows.push(obj);
   }
@@ -333,7 +335,7 @@ async function parseXlsxFile(file, readXlsxFileRef) {
 3. `data` is a two-dimensional array (matrix), so row 0 is the raw header line and rows 1+ are data. Empty cells are `null`.
 4. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...) to avoid unnamed keys.
 5. Rows that are entirely empty (all cells blank) are skipped -- common in Excel files with blank rows between data.
-6. Native numbers and booleans are preserved, date cells become `YYYY-MM-DD` strings, other strings are trimmed, and blank cells become `null` for consistency with the CSV parser.
+6. `normalizeCellValue` keeps native numbers and booleans, turns date cells into `YYYY-MM-DD` strings, trims other strings, and turns blank cells into `null` for consistency with the CSV parser. The empty-row check uses the same helper.
 
 ### Route to the right parser
 
