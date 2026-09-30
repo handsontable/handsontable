@@ -7,7 +7,6 @@ import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
   clearMergedCells,
-  forgetMergedCells,
   keepSelectionOnPage,
   resetViewState,
   resetViewport,
@@ -1138,12 +1137,11 @@ export class SheetsBar extends BasePlugin {
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
    * the arriving sheet's data before its `afterLoadData`.
    *
-   * With `restoresMerges` set, the merged cells the settings update regenerated are dropped
-   * right after the load: a sheet that returns with a stored view state restores its own
-   * merges, and every merge declared in the settings would otherwise outlive the load and win
-   * over the ones the user changed. They are dropped from the collection only, because the load
-   * has reset the cell meta, and the update may have trimmed or remapped the departing grid
-   * under them, so their coordinates can address rows that no longer exist.
+   * The merges the settings declare are built after the load, against the arriving sheet's data.
+   * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
+   * state restores its own merges, and the declared ones would win over the ones the user changed.
+   * Without a view the grid is still being built, and MergeCells builds them from its own
+   * `afterInit`, against the data loaded here.
    */
   #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
@@ -1151,13 +1149,15 @@ export class SheetsBar extends BasePlugin {
 
       if (settings) {
         this.#withoutAutoPadding(() => {
-          this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+          this.#withoutMergeCellsSettingsPass(() => {
+            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+          });
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
 
-      if (restoresMerges) {
-        forgetMergedCells(this.hot);
+      if (this.hot.view) {
+        this.#runMergeCellsSettingsPass(!restoresMerges);
       }
     };
 
@@ -1918,6 +1918,48 @@ export class SheetsBar extends BasePlugin {
     } finally {
       formulas.skipSheetSwitchLoad = false;
     }
+  }
+
+  /**
+   * Runs a settings update with MergeCells' settings pass held back. The pass builds the merges
+   * the settings declare, and the grid still holds the departing sheet's data during that update:
+   * the merges would be validated against the departing sheet's size, and their clearing write
+   * would land in the departing sheet's data, which the host holds by reference.
+   * `#runMergeCellsSettingsPass` runs it once the arriving sheet is loaded.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutMergeCellsSettingsPass(update: () => void) {
+    const mergeCells = this.hot.getPlugin('mergeCells') as { deferSettingsPass: boolean } | undefined;
+
+    if (!mergeCells || mergeCells.deferSettingsPass) {
+      update();
+
+      return;
+    }
+
+    mergeCells.deferSettingsPass = true;
+
+    try {
+      update();
+    } finally {
+      mergeCells.deferSettingsPass = false;
+    }
+  }
+
+  /**
+   * Runs the MergeCells settings pass `#withoutMergeCellsSettingsPass` held back, against the
+   * arriving sheet's data. With `apply` unset, the declared merges are not built: a sheet that
+   * returns with a stored view state restores its own merges, and the declared ones would win over
+   * the ones the user unmerged or moved.
+   *
+   * @param {boolean} apply Whether to build the declared merges.
+   */
+  #runMergeCellsSettingsPass(apply: boolean) {
+    const mergeCells = this.hot.getPlugin('mergeCells') as
+      { runDeferredSettingsPass: (apply: boolean) => void } | undefined;
+
+    mergeCells?.runDeferredSettingsPass(apply);
   }
 
   /**
