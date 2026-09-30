@@ -76,6 +76,23 @@ describe('UndoRedo – frozen columns and filtered rows', () => {
     });
   });
 
+  // The undo of a row removal leaves the conditions alone, so one added but not applied yet is still
+  // there for the `filter()` call that applies it.
+  it('should keep a condition added but not applied when a row removal is undone', () => {
+    const hot = grid.create({ data: spreadsheet(5, 3), filters: true });
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(2, 'eq', ['C3']);
+    hot.alter('remove_row', 0, 1);
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.countRows()).toBe(5);
+
+    filters.filter();
+
+    expect(hot.getData()).toEqual([['A3', 'B3', 'C3']]);
+  });
+
   describe('a filter recorded before a column was inserted or removed', () => {
     const data = () => [
       ['A1', 'B1', 'x'],

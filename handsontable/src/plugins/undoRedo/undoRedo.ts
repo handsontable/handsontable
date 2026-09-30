@@ -701,23 +701,25 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Checks if undo action is available. It is not while an action that inserted or removed rows or
-   * columns waits for an asynchronous validator: the grid then has a shape no recorded step describes.
+   * Checks if undo action is available. It is not while an action that already changed the grid
+   * waits for an asynchronous validator: the grid then holds half of a step no recorded state
+   * describes.
    *
    * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
    */
   isUndoAvailable(): boolean {
-    return this.doneActions.length > 0 && !this.#hasPendingStructuralStep();
+    return this.doneActions.length > 0 && this.#findHost() === undefined;
   }
 
   /**
-   * Checks if redo action is available. It is not while an action that inserted or removed rows or
-   * columns waits for an asynchronous validator: the grid then has a shape no recorded step describes.
+   * Checks if redo action is available. It is not while an action that already changed the grid
+   * waits for an asynchronous validator: the grid then holds half of a step no recorded state
+   * describes.
    *
    * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
    */
   isRedoAvailable(): boolean {
-    return this.undoneActions.length > 0 && !this.#hasPendingStructuralStep();
+    return this.undoneActions.length > 0 && this.#findHost() === undefined;
   }
 
   /**
@@ -876,27 +878,12 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Tells whether a pending transaction already inserted or removed rows or columns and still waits
-   * for a validator. The grid then has a shape no recorded state describes: an undo would restore
-   * around it, and the structure check would read it as a change made outside any step.
-   *
-   * @returns {boolean}
-   */
-  #hasPendingStructuralStep(): boolean {
-    for (const transaction of this.#pending) {
-      if (transaction.holds > 0 && transaction.journal.some(isStructural)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
    * Returns the pending transaction that already changed the grid and still waits for a validator -
    * the host a transaction that settles meanwhile joins. Its changes were made before the other
    * transaction's and it makes more after them, so the two can only be undone together: undone
-   * apart, one of them replays at addresses the other has renumbered.
+   * apart, one of them replays at addresses the other has renumbered. While there is one, undo and
+   * redo wait: a restore would work around a half-made step, and an undone row change would move
+   * what the host already wrote away from the rows its journal names.
    *
    * @returns {OperationTransaction|undefined}
    */
@@ -1042,11 +1029,12 @@ export class UndoRedo extends BasePlugin {
 
     // Suppressed, so what the validators and their `afterValidate` listeners write in reply is not
     // recorded – a recorded step would empty the redo stack. They answer in a microtask, and the hold
-    // `validateCell()` takes keeps them suppressed then too.
+    // `validateCell()` takes keeps them suppressed then too. The same goes for what a selection
+    // listener writes when the selection is put back.
     this.hot._getOperationScope().suppress(() => {
       this.#revalidateChangedCells(restoredCells, record.journal.some(isStructural));
+      this.#restoreSelection(record.selection[direction], direction);
     });
-    this.#restoreSelection(record.selection[direction], direction);
 
     return true;
   }

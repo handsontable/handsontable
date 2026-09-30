@@ -37,6 +37,35 @@ describe('UndoRedo – removing rows and columns', () => {
     expect(hot.getSourceData()).toEqual(original);
   });
 
+  // With no rows the source has no first row to count the columns in, so the replay must count them
+  // in the index mapper, or every column change reads as vetoed and the step never leaves its stack.
+  it('should undo a column insert and a column removal made after every row was removed', () => {
+    const hot = grid.create({ data: spreadsheet(3, 3), colHeaders: true });
+    const original = hot.getSourceData();
+    const undoRedo = hot.getPlugin('undoRedo');
+    const columnCount = () => hot.columnIndexMapper.getNumberOfIndexes();
+
+    hot.alter('remove_row', 0, 3);
+    hot.alter('insert_col_start', 0, 1);
+    hot.alter('remove_col', 0, 2);
+
+    expect(hot.countRows()).toBe(0);
+    expect(columnCount()).toBe(2);
+
+    undoRedo.undo();
+
+    expect(columnCount()).toBe(4);
+
+    undoRedo.undo();
+
+    expect(columnCount()).toBe(3);
+
+    undoRedo.undo();
+
+    expect(hot.getSourceData()).toEqual(original);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+  });
+
   // The edit is recorded after the removal, so it addresses the rows as the removal left them: row 1
   // is `A3`. Replayed in the wrong order, the undo writes `A3` back onto the restored `A2` row.
   it('should record a `runOperation()` that removes a row and edits a cell as one step', () => {

@@ -60,19 +60,31 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    stamps every entry; `getEntryOrder()`), and a forward cell write merges into its last entry only
    while that entry is still the latest recorded anywhere (`isLatestEntry()`). Two plain async
    edits journal nothing until they resume, so they still stack in commit order.
-4. **Undo and redo wait for a pending structural step.** While a held transaction whose journal
-   inserts or removes rows or columns waits for its validator (`#hasPendingStructuralStep()`),
-   `isUndoAvailable()`/`isRedoAvailable()` answer `false` and `undo()`/`redo()` do nothing - the
-   grid has a shape no recorded state describes. A call made then is dropped, not queued. A plain
-   edit waiting for its validator blocks nothing. Corner: a validator that never answers (as opposed
-   to one that throws), in an operation that also changed rows or columns, blocks undo until
-   `loadData`/`updateData`.
+4. **Undo and redo wait for a pending host.** While a held transaction that already journaled a
+   change waits for its validator (`#findHost()`, the host of step 3), `isUndoAvailable()`/
+   `isRedoAvailable()` answer `false` and `undo()`/`redo()` do nothing - the grid holds half of a
+   step no recorded state describes. It is any change, not only rows or columns: a row removal that
+   joins a host whose own journal holds only meta left `#lastState` behind, so an undo read it as a
+   change made outside any step and dropped the whole history; and undoing an earlier row insert
+   moved the meta the host had written away from the row its journal names. A call made then is
+   dropped, not queued. A plain edit waiting for its validator journals nothing yet and blocks
+   nothing. Corner: a validator that never answers (as opposed to one that throws), in an operation
+   that also changed something first, blocks undo until `loadData`/`updateData`.
 5. **Each `writeChangesToData()` call journals its own cell run** (`ReversedCellRun`): it appends
    only while its own entry is still the last one. A nested write from `afterChange` therefore gets
    an entry of its own after the outer one, instead of being merged into the outer run's reversed
-   order. Writes without a run (`setSourceDataAtCell`) keep merging forward.
-6. **`batchExecution()` is an operation like `batch()`** - everything inside it is one `'batch'` step.
-7. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
+   order. Writes without a run (`setSourceDataAtCell`) keep merging forward. **A write that leaves the
+   raw value as it was is not journaled** (`writeChange`/`writeSourceChange` compare the raw values by
+   reference): the value the cell already held (Enter on an unedited cell), or a row past the end
+   that `setAtCell()` never reaches. Journaled, it made a step that undid nothing and emptied the redo
+   stack; `develop`'s recorder skipped such an edit too (`hasDifferences`).
+6. **The step's source is the one `beforeChange` reports.** `setDataAtCell()` and
+   `setDataAtRowProp()` record `'edit'` for a call with no source, and every data setter takes an
+   array-form source from its second argument (`readOperationSource()` in `core.ts`, the one place
+   that reads it - the `setSourceDataAtCell` wrapper once missed the lift). The bodies keep their own
+   lift, which also takes a non-string second argument, for the hooks.
+7. **`batchExecution()` is an operation like `batch()`** - everything inside it is one `'batch'` step.
+8. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
    the previous step ended in, read at settle time - so a step that committed while this one waited for
    a validator is not undone together with it, unless it joined this one (step 3). A transaction with an empty journal and an unchanged
    snapshot is not recorded. `BLOCKED_SOURCES` (`UndoRedo.undo`, `UndoRedo.redo`, `auto`) are judged
@@ -102,7 +114,10 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
      one keeps the value it had before the restore. The replay moves the frozen counts; a later
      `updateSettings({ fixedRowsBottom })` must survive.
    - **Plugin states the step did not change are put back to their pre-restore value** when the replay
-     reset the order (`forceOrder`) - a replayed removal shifts merges it never touched.
+     reset the order (`forceOrder`) - a replayed removal shifts merges it never touched. Only when the
+     replay moved them: `captureState(base)` returning `base` means it did not, and the state is left
+     alone. Re-applied anyway, an unmoved state loses what no capture holds - Filters re-imports its
+     applied conditions and drops one added but not applied yet.
    - **Trims and hides the step did not change are kept** after a structural replay. The replay lifts
      every trim, and every map snapshot has another length after an insert or a removal, so identity
      cannot tell what the step changed. `readKeptFlags()` compares the flags before the step, moved
@@ -126,7 +141,9 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
 
 After the restore: `afterChange` fires once, with every cell the restore wrote (`restoredCells.ts`),
 the visible ones are re-validated, and the selection is put back for the step types that always did
-(`change`, `row_move`, `col_move`, `move_cells`) - see `describeStepSelection` in `entry.ts`.
+(`change`, `row_move`, `col_move`, `move_cells`) - see `describeStepSelection` in `entry.ts`. All
+three run suppressed: what an `afterChange`, an `afterValidate` or a selection listener writes in reply
+is part of the undo, and a recorded step there would empty the redo stack the undo is filling.
 
 ## Traps
 
@@ -176,7 +193,9 @@ the visible ones are re-validated, and the selection is put back for the step ty
   journal itself would break the replay of a cell written twice in one call.
 - **A replayed insertion can land in part** (`maxRows` clamps it). `alterRuns()` takes the rows that
   did land out again before it reverts the earlier runs. A removal that lands in part cannot be taken
-  back - its rows are gone.
+  back - its rows are gone. `alterRuns()` counts the columns in the index mapper, not with
+  `countSourceCols()`: that one reads the first source row, so with every row removed it answered 0
+  before and after each column change, and every column replay read as vetoed.
 - **A menu item that writes cell meta over a selection groups it into one operation.** The context
   menu's **Read only** item runs one `read_only_toggle` operation, so one undo step reverts the whole
   selection, and it still fires the public `beforeReadOnlyToggle` hook with its `stateBefore` snapshot
@@ -227,7 +246,10 @@ snapshot: it resizes the axis to the length the data implies (`countSourceRows()
 (`fitSequence()` - indexes past the snapshot's end keep their current state). Resizing to the
 snapshot is what left the index mapper shorter than the data. The data length is needed on the other
 side too: removing the last column empties the ROW axis while the rows stay in the data, and the
-replay of that removal brings the column back but not the rows.
+replay of that removal brings the column back but not the rows. The reverse needs the opposite rule:
+with every row removed, plain array data implies no column count (it counts the columns in the first
+row) while the grid keeps its columns, so the column axis keeps the index mapper's length then.
+Sized from the data, every undo made on a grid with no rows emptied the column axis.
 
 **A settings update is checked at once** (`#checkSettingsUpdate`, from `updatePlugin()` - `SETTING_KEYS`
 is `true`, so it runs for every `updateSettings()`). Three rules keep it cheap and correct:

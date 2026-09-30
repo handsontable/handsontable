@@ -228,12 +228,18 @@ export class GridStateTracker {
       changedFrom?: GridStateSnapshot, base?: GridStateSnapshot, forceOrder?: boolean, direction?: 'undo' | 'redo',
     } = {},
   ) {
-    // Each axis takes the length the data implies, the one `updateData()` fits it to.
+    // Each axis takes the length the data implies, the one `updateData()` fits it to. With no source
+    // rows the data implies no column count (plain arrays count the columns in the first row), while
+    // the grid keeps its columns – the replay left them where the step recorded them.
+    const rowCount = this.#hot.countSourceRows();
+
     this.#rows.restore(snapshot.rows, {
-      changedFrom: changedFrom?.rows, forceOrder, length: this.#hot.countSourceRows(),
+      changedFrom: changedFrom?.rows, forceOrder, length: rowCount,
     });
     this.#columns.restore(snapshot.columns, {
-      changedFrom: changedFrom?.columns, forceOrder, length: this.#hot.getInitialColumnCount(),
+      changedFrom: changedFrom?.columns,
+      forceOrder,
+      length: rowCount === 0 ? this.#hot.columnIndexMapper.getNumberOfIndexes() : this.#hot.getInitialColumnCount(),
     });
 
     this.#forEachEnabledPlugin(snapshot.plugins, (plugin, state, name) => {
@@ -250,8 +256,14 @@ export class GridStateTracker {
 
       } else if (forceOrder && base?.plugins.has(name)) {
         // The step left this state alone, but the row and column replay may have moved it (a merge
-        // shifted by a replayed removal), so it goes back to what it was before the restore.
-        plugin.restoreState(base.plugins.get(name));
+        // shifted by a replayed removal), so it goes back to what it was before the restore. Only a
+        // state the replay did move: re-applied, an unmoved one loses what no capture holds (Filters
+        // would drop a condition added but not applied yet).
+        const baseState = base.plugins.get(name);
+
+        if (plugin.captureState?.(baseState) !== baseState) {
+          plugin.restoreState(baseState);
+        }
       }
     });
 

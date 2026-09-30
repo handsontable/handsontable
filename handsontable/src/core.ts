@@ -2871,16 +2871,25 @@ export default function Core(
 
     // The journal keeps what the SOURCE held before and after the write, read raw – see
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
-    const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
+    const rawOldValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+    const oldValue = detachValue(rawOldValue);
 
     datamap.set(visualRow, prop, value);
+
+    const rawNewValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+
+    // A write of the value the cell holds changes nothing, and journaled it would make a step that
+    // undoes nothing and empties the redo stack.
+    if (rawNewValue === rawOldValue) {
+      return;
+    }
 
     // `writeChangesToData()` writes its changes from the last one to the first.
     recordCellChange(operationScope, {
       physicalRow,
       prop,
       oldValue,
-      newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
+      newValue: detachValue(rawNewValue),
     }, run);
   }
 
@@ -3286,6 +3295,26 @@ export default function Core(
   }
 
   /**
+   * Returns the source the operation of a data setter records. The array form takes its source as
+   * the second argument, where the single-cell form takes the column. A call with no source records
+   * `fallback` – `'edit'` for the setters whose `beforeChange` reports it.
+   *
+   * @ignore
+   * @param {number|Array} row The row index, or the array of changes.
+   * @param {*} propOrCol The column or the prop, or the source in the array form.
+   * @param {string} [source] The source the call passed.
+   * @param {string} [fallback] The source of a call that passed none.
+   * @returns {string|undefined}
+   */
+  function readOperationSource(
+    row: unknown, propOrCol: unknown, source: string | undefined, fallback?: string,
+  ): string | undefined {
+    const passedSource = !source && typeof row === 'object' && typeof propOrCol === 'string' ? propOrCol : source;
+
+    return passedSource || fallback;
+  }
+
+  /**
    * Process changes prepared for applying to the dataset (unifying list of changes, closing an editor - when needed,
    * calling a hook).
    *
@@ -3366,7 +3395,7 @@ export default function Core(
   this.setDataAtCell = function(
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
-    const operationSource = !source && typeof row === 'object' && typeof column === 'string' ? column : source;
+    const operationSource = readOperationSource(row, column, source, 'edit');
 
     operationScope.run('change', operationSource, () => setDataAtCell.call(this, row, column, value, source));
   };
@@ -3496,7 +3525,7 @@ export default function Core(
   this.setDataAtRowProp = function(
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
   ) {
-    const operationSource = !source && typeof row === 'object' && typeof prop === 'string' ? prop : source;
+    const operationSource = readOperationSource(row, prop, source, 'edit');
 
     operationScope.run('change', operationSource, () => setDataAtRowProp.call(this, row, prop, value, source));
   };
@@ -5859,7 +5888,7 @@ export default function Core(
     row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
     column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
   ) {
-    const operationSource = !source && typeof row === 'object' && typeof column === 'string' ? column : source;
+    const operationSource = readOperationSource(row, column, source);
 
     operationScope.run('change', operationSource, () => setSourceDataAtCell.call(this, row, column, value, source));
   };
@@ -5976,15 +6005,24 @@ export default function Core(
       return;
     }
 
-    const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
+    const rawOldValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+    const oldValue = detachValue(rawOldValue);
 
     dataSource.setAtCell(row, prop, value, byProp);
+
+    const rawNewValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+
+    // Nothing is journaled for a write that left the source as it was – the value the cell held, or
+    // a row past the end, which `setAtCell()` never reaches.
+    if (rawNewValue === rawOldValue) {
+      return;
+    }
 
     recordCellChange(operationScope, {
       physicalRow,
       prop,
       oldValue,
-      newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
+      newValue: detachValue(rawNewValue),
     });
   }
 

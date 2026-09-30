@@ -355,14 +355,16 @@ function replayCells(
 }
 
 /**
- * Counts the rows or the columns of the source data.
+ * Counts the rows of the source data, or the columns of the grid. The columns are counted in the
+ * index mapper: the source counts them in its first row, so with every row removed it reads 0 before
+ * and after any column change, and each one would look vetoed.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {string} axis `row` or `column`.
  * @returns {number}
  */
 function countSourceItems(hot: HotInstance, axis: 'row' | 'column'): number {
-  return axis === 'row' ? hot.countSourceRows() : hot.countSourceCols();
+  return axis === 'row' ? hot.countSourceRows() : hot.columnIndexMapper.getNumberOfIndexes();
 }
 
 /**

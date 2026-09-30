@@ -774,6 +774,72 @@ describe('UndoRedo plugin', () => {
       expect(plugin.doneActions.map(action => action.source)).toEqual(['myImport']);
     });
 
+    // `beforeChange` reports an edit with no source as `edit`, and so did the step before the
+    // operations recorded it.
+    it('should record an edit made with no source as an `edit`', () => {
+      createGrid();
+      const plugin = hot.getPlugin('undoRedo');
+      const beforeUndoStackChange = jest.fn();
+
+      hot.addHook('beforeUndoStackChange', beforeUndoStackChange);
+      hot.setDataAtCell(0, 0, 'x');
+      hot.setDataAtCell([[1, 0, 'y']]);
+      hot.setDataAtRowProp(2, 0, 'z');
+
+      expect(beforeUndoStackChange.mock.calls.map(call => call[1])).toEqual(['edit', 'edit', 'edit']);
+      expect(plugin.doneActions.map(action => action.source)).toEqual(['edit', 'edit', 'edit']);
+    });
+
+    // A write past the last row lands nowhere, and a write of the value a cell holds changes nothing.
+    // Recorded, either one would empty the redo stack for a step that undoes nothing.
+    it('should record no step for a write that changes nothing', () => {
+      createGrid();
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'x');
+      plugin.undo();
+      hot.setDataAtCell(1, 1, 'B2');
+      hot.setSourceDataAtCell(1, 1, 'B2');
+      hot.setSourceDataAtCell(50, 0, 'y');
+
+      expect(hot.getSourceData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']]);
+      expect(plugin.isUndoAvailable()).toBe(false);
+      expect(plugin.isRedoAvailable()).toBe(true);
+    });
+
+    // The undo selects the cell it put back. What a selection listener writes in reply is part of
+    // the undo, not a step: recorded, it would empty the redo stack the undo is filling.
+    it('should record nothing a selection listener writes while an undo puts the selection back', () => {
+      createGrid();
+      const plugin = hot.getPlugin('undoRedo');
+      let listening = false;
+      let hits = 0;
+
+      hot.addHook('afterSelection', (row) => {
+        if (listening) {
+          hits += 1;
+          hot.setCellMeta(row, 1, 'hits', hits);
+        }
+      });
+      hot.selectCell(0, 0);
+      hot.setDataAtCell(0, 0, 'x');
+      hot.selectCell(1, 0);
+      hot.setDataAtCell(1, 0, 'y');
+      hot.selectCell(3, 1);
+      listening = true;
+      plugin.undo();
+
+      expect(hot.getSelected()).toEqual([[1, 0, 1, 0]]);
+      expect(hits).toBeGreaterThan(0);
+      expect(plugin.doneActions.map(action => action.actionType)).toEqual(['change']);
+      expect(plugin.isRedoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4']);
+      expect(plugin.undoneActions.length).toBe(2);
+    });
+
     it('should keep recording after a `batch()` callback throws', () => {
       createGrid();
       const plugin = hot.getPlugin('undoRedo');
@@ -978,6 +1044,96 @@ describe('UndoRedo plugin', () => {
       plugin.redo();
 
       expect(hot.getData()).toEqual([['P', 'P1'], ['A2', 'B2']]);
+    });
+
+    // A step that already changed the grid and waits for its validator takes in the steps made
+    // meanwhile. An undo then would restore around that half-made step: undoing a row removal that
+    // joined it drops the whole history, and undoing an earlier row insert moves the meta the step
+    // already wrote to a row its journal does not name.
+    describe('while a step that already changed the grid waits for its validator', () => {
+      const markedRows = () => [0, 1, 2, 3, 4, 5]
+        .filter(row => row < hot.countRows() && hot.getCellMeta(row, 0).className === 'Q');
+      let release = null;
+
+      /**
+       * Creates a 5x2 grid whose second column waits for `release()` to validate.
+       */
+      function createGrid() {
+        hot = new Handsontable(container, {
+          licenseKey: 'non-commercial-and-evaluation',
+          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4'], ['A5', 'B5']],
+          columns: [{}, { validator: (value, callback) => { release = () => callback(true); } }],
+          undo: true,
+        });
+      }
+
+      /**
+       * Starts a batch that marks the row at index 3 and edits a validated cell at index 1, and waits
+       * until the validator holds it.
+       */
+      async function startPendingBatch() {
+        hot.batch(() => {
+          hot.setCellMeta(3, 0, 'className', 'Q');
+          hot.setDataAtCell(1, 1, 'v');
+        });
+        await settle();
+      }
+
+      it('should neither undo nor redo, and record a row removal made meanwhile in that step', async() => {
+        createGrid();
+        const plugin = hot.getPlugin('undoRedo');
+
+        hot.setDataAtCell(0, 0, 'prior');
+        await startPendingBatch();
+        hot.alter('remove_row', 4);
+
+        expect(plugin.isUndoAvailable()).toBe(false);
+        expect(plugin.isRedoAvailable()).toBe(false);
+
+        plugin.undo();
+
+        expect(hot.countRows()).toBe(4);
+
+        release();
+        await settle();
+
+        expect(actionTypes()).toEqual(['change', 'batch']);
+
+        plugin.undo();
+
+        expect(hot.getDataAtCol(0)).toEqual(['prior', 'A2', 'A3', 'A4', 'A5']);
+        expect(hot.getDataAtCol(1)).toEqual(['B1', 'B2', 'B3', 'B4', 'B5']);
+        expect(markedRows()).toEqual([]);
+
+        plugin.undo();
+
+        expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      });
+
+      it('should not undo an earlier row insert, so the meta the step wrote keeps its row', async() => {
+        createGrid();
+        const plugin = hot.getPlugin('undoRedo');
+
+        hot.alter('insert_row_above', 0, 1);
+        await startPendingBatch();
+
+        expect(plugin.isUndoAvailable()).toBe(false);
+
+        plugin.undo();
+
+        expect(hot.countRows()).toBe(6);
+
+        release();
+        await settle();
+        plugin.undo();
+
+        expect(markedRows()).toEqual([]);
+
+        plugin.undo();
+
+        expect(hot.countRows()).toBe(5);
+        expect(markedRows()).toEqual([]);
+      });
     });
 
     it('should record two edits that wait for their validators in the order they commit', async() => {
