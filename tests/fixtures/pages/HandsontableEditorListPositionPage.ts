@@ -45,6 +45,16 @@ export interface Variant {
    * The editor under test; `handsontable` when omitted.
    */
   type?: EditorType;
+  /**
+   * `start` starts the grid 600 px from the page's inline-start edge, so its root is narrower than the
+   * viewport; `none` when omitted.
+   */
+  inset?: 'none' | 'start';
+  /**
+   * `transform` makes the grid's container the containing block of the `fixed` list, a box that
+   * scrolls with the page; `none` when omitted.
+   */
+  wrap?: 'none' | 'transform';
 }
 
 /**
@@ -87,9 +97,11 @@ export interface ListPlacement {
  * - below the cell, its top is the cell's bottom; flipped above, its bottom is 1 px above the cell's
  *   top.
  *
- * The one sub-pixel residue is the `multiselect` list's far edge after a horizontal flip on `classic`,
- * 0.4 px off the cell's: that list is 176.6 px wide and the flip moves it back by its `offsetWidth`, 177.
- * A 1 px shift still fails there.
+ * The one sub-pixel residue is the `multiselect` list's far edge after a horizontal flip. That list is
+ * `width: max-content`, so its width depends on the fonts (176.58 px on `classic`, 202.03 on `main`,
+ * 196.03 on `horizon`, measured locally). The flip moves it back by its whole-pixel `offsetWidth`, which
+ * leaves its far edge under 0.5 px off the cell's by construction: 0.42 px on `classic`, 0.03 on the
+ * others. A 1 px shift still fails there.
  */
 export const EDGE_TOLERANCE_PX = 0.5;
 
@@ -173,6 +185,8 @@ export class HandsontableEditorListPositionPage {
   readonly doc: 'ltr' | 'rtl';
   readonly layout: Layout;
   readonly type: EditorType;
+  readonly inset: 'none' | 'start';
+  readonly wrap: 'none' | 'transform';
   readonly grid: Locator;
   readonly list: Locator;
 
@@ -193,20 +207,22 @@ export class HandsontableEditorListPositionPage {
     this.doc = variant.doc ?? variant.dir;
     this.layout = variant.layout;
     this.type = variant.type ?? 'handsontable';
+    this.inset = variant.inset ?? 'none';
+    this.wrap = variant.wrap ?? 'none';
     this.grid = page.getByTestId('grid');
     // The element that is the list: the container of the nested grid, or the multiselect's list.
     this.list = page.locator(LIST_SELECTORS[this.type]);
   }
 
   /**
-   * Navigate to the fixture and wait for the grid. Theme, bundle, both directions, layout, and editor
-   * type travel as query params, so the fixture loads the matching stylesheet and build and lays the
-   * page out that way.
+   * Navigate to the fixture and wait for the grid. Theme, bundle, both directions, layout, editor type,
+   * inset, and wrapper travel as query params, so the fixture loads the matching stylesheet and build
+   * and lays the page out that way.
    */
   async goto(): Promise<void> {
     await this.page.goto('/tests/fixtures/demo/handsontable-editor-list-position.html'
       + `?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&doc=${this.doc}`
-      + `&layout=${this.layout}&type=${this.type}`);
+      + `&layout=${this.layout}&type=${this.type}&inset=${this.inset}&wrap=${this.wrap}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -315,6 +331,39 @@ export class HandsontableEditorListPositionPage {
   async closeEditor(): Promise<void> {
     await this.page.keyboard.press('Escape');
     await expect(this.list).toBeHidden();
+  }
+
+  /**
+   * Scrolls the window sideways by `dx` px with the editor open, and waits until the edited cell has
+   * moved by that much, which is the render state the scroll produces (the list follows the cell on
+   * the page's `scroll` event). Window layout only.
+   *
+   * @param {number} dx The horizontal scroll, as `window.scrollBy` takes it.
+   * @param {{ row: number; col: number }} coords The edited cell.
+   */
+  async scrollWindowBy(dx: number, coords: { row: number; col: number }): Promise<void> {
+    const before = (await this.geometry(coords)).cell.left;
+
+    await this.page.evaluate(x => window.scrollBy(x, 0), dx);
+    await expect.poll(async() => (await this.geometry(coords)).cell.left, { message: 'the edited cell follows the scroll' })
+      .toBeCloseTo(before - dx, 0);
+  }
+
+  /**
+   * Scrolls the window with the editor open until the edited cell's inline-end edge lies on the
+   * viewport's (its left edge at 0 in RTL, its right edge at the viewport's width in LTR), so the list
+   * has no room on that side. Window layout only.
+   *
+   * @param {{ row: number; col: number }} coords The edited cell.
+   * @returns {Promise<number>} The scroll it took, to undo with `scrollWindowBy(-dx)`.
+   */
+  async moveCellToInlineEndEdge(coords: { row: number; col: number }): Promise<number> {
+    const { cell, viewport } = await this.geometry(coords);
+    const dx = this.dir === 'rtl' ? cell.left : -(viewport.width - cell.right);
+
+    await this.scrollWindowBy(dx, coords);
+
+    return dx;
   }
 
   /**

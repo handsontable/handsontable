@@ -581,35 +581,38 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * The workspace the horizontal flip measures when the window scrolls the grid's columns: how far
-   * its inline-start edge is from the grid root's, and how wide it is.
+   * The workspace the horizontal flip measures when the window scrolls the grid's columns: the
+   * viewport, as the distance from its inline-start edge to the grid root's, and its width.
    *
    * `getEditedCellRect()` measures the cell from the root's inline-start edge, which is its RIGHT
    * edge in RTL, so the offset added to it has to start from the same edge. Adding the root's left
-   * edge instead, shifted by an RTL page's negative `scrollX`, flipped the list on every cell: it
-   * always opened from the cell's left edge, off screen from a cell near the viewport's right edge.
-   * RTL reads both edges off the box `#writeDropdownInlineStart()` resolves `right` against, so the
-   * decision and the placement measure the same box.
+   * edge instead, shifted by an RTL page's negative `scrollX`, flipped the list on every cell once
+   * the page was scrolled toward its inline end: it opened from the cell's left edge, off screen from
+   * a cell near the viewport's right edge.
+   *
+   * The room is the viewport's, not the containing block's that `#writeDropdownInlineStart()`
+   * resolves `right` against. A transformed ancestor makes that block a box that scrolls with the
+   * page, and the list is not clipped to it, so a decision measured against the block flips every
+   * list again once the page scrolls.
    *
    * @returns {{ inlineStartOffset: number, width: number }}
    */
   #getWindowWorkspace(): { inlineStartOffset: number, width: number } {
     const { hot } = this;
+    // The space is viewport-relative here, so the inline-end boundary is the viewport's too, not the
+    // holder's `offsetWidth`.
+    const viewportWidth = hot.rootDocument.documentElement.clientWidth;
 
     if (hot.isRtl()) {
-      const block = this.#containingBlockRect();
-
       return {
-        inlineStartOffset: (block.left + block.width) - hot.rootElement.getBoundingClientRect().right,
-        width: block.width,
+        inlineStartOffset: viewportWidth - hot.rootElement.getBoundingClientRect().right,
+        width: viewportWidth,
       };
     }
 
     return {
       inlineStartOffset: hot.view.getTableOffset().left - hot.rootWindow.scrollX,
-      // The space is viewport-relative here, so the inline-end boundary is the viewport's width too,
-      // not the holder's `offsetWidth`.
-      width: hot.rootDocument.documentElement.clientWidth,
+      width: viewportWidth,
     };
   }
 

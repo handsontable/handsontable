@@ -290,7 +290,7 @@ export class MultiSelectEditor extends BaseEditor {
     const rootRect = this.hot.rootElement.getBoundingClientRect();
     const block = getFixedContainingBlockRect(this.#editorContainer!);
     const editorStyle = this.#editorContainer!.style;
-    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect, rootRect, block);
+    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect, rootRect);
     const dropdownWidth = this.dropdownController!.getOuterWidth();
     const flipHorizontally = reevaluateHorizontalFlip
       ? shouldFlipDropdownHorizontally(dropdownWidth, spaceInlineStart, spaceInlineEnd)
@@ -585,34 +585,30 @@ export class MultiSelectEditor extends BaseEditor {
    *
    * When the window scrolls the columns, the space is measured from the viewport instead of the grid.
    * `cellRect.start` counts from the grid root's inline-start edge, which is its RIGHT edge in RTL,
-   * so under RTL the offset runs from the containing block's right edge to the root's right edge -
-   * the same two edges `refreshDimensions()` writes `right` from. Starting it from the root's left
-   * edge, shifted by an RTL page's negative `scrollX`, flipped the list on every cell.
+   * so under RTL the offset runs from the viewport's right edge to the root's right edge. Starting it
+   * from the root's left edge, shifted by an RTL page's negative `scrollX`, flipped the list on every
+   * cell once the page was scrolled toward its inline end. The room is the viewport's even when an
+   * ancestor is the `fixed` container's containing block: `refreshDimensions()` writes `right` from
+   * that box, but a transformed one scrolls with the page and does not clip the container.
    *
    * @param {object} cellRect Edited-cell box already returned by `getEditedCellRect()`.
    * @param {number} cellRect.start Inline-start position of the cell.
    * @param {number} cellRect.width Pixel width of the cell.
    * @param {DOMRect} rootRect The grid root's box in viewport coordinates.
-   * @param {object} block The box the `fixed` container is laid out in, in viewport coordinates.
-   * @param {number} block.left The box's left edge.
-   * @param {number} block.width The box's width.
    * @returns {object} Remaining inline-start and inline-end space in pixels.
    */
-  #getInlineSpace(
-    cellRect: CellInlineBox,
-    rootRect: DOMRect,
-    block: { left: number, width: number },
-  ): { spaceInlineStart: number; spaceInlineEnd: number } {
+  #getInlineSpace(cellRect: CellInlineBox, rootRect: DOMRect): { spaceInlineStart: number; spaceInlineEnd: number } {
     const { view } = this.hot;
     let windowScroll: WindowScrollInlineMetrics | undefined;
 
     if (view.isHorizontallyScrollableByWindow()) {
-      windowScroll = this.hot.isRtl() ? {
-        inlineStartOffset: (block.left + block.width) - rootRect.right,
-        viewportWidth: block.width,
-      } : {
-        inlineStartOffset: view.getTableOffset().left - this.hot.rootWindow.scrollX,
-        viewportWidth: this.hot.rootDocument.documentElement.clientWidth,
+      const viewportWidth = this.hot.rootDocument.documentElement.clientWidth;
+
+      windowScroll = {
+        inlineStartOffset: this.hot.isRtl()
+          ? viewportWidth - rootRect.right
+          : view.getTableOffset().left - this.hot.rootWindow.scrollX,
+        viewportWidth,
       };
     }
 

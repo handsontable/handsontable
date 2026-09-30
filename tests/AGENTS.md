@@ -93,7 +93,11 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e/handsontable-editor-list-position.spec.ts`, whose RTL window case
   caught exactly such a bug: the list's flip added the viewport position of the
   grid's LEFT edge to a distance measured from its right edge, so every list
-  flipped).
+  flipped once the page was scrolled toward its inline end). Such a case must
+  SCROLL the window, not only render the RTL page: at `scrollX` 0 that bug made
+  no difference. And give it a layout where the grid root is not exactly as
+  wide as the viewport (that spec's `?inset=start`), or `scrollX` and the
+  root's width can stand in for the right terms and pass.
 - **A SHORT fixed-height fixture has no room to spare on the row axis, and
   `hover()` turns that into a delayed failure somewhere else.** Playwright
   scrolls a target into view before pressing it, so a `cell(row, col)` locator

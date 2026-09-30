@@ -31,8 +31,8 @@ export type CellInlineBox = {
  * When the table scrolls with the window, `spaceInlineStart` is viewport-relative
  * and the inline-end boundary must be the viewport's, not the holder's offsetWidth.
  * `inlineStartOffset` is the distance from the viewport's inline-start edge to the
- * grid's: the grid's left edge in LTR, and in RTL the distance from the right
- * edge of the box the list is laid out in to the root's right edge.
+ * grid's: the grid's left edge in LTR, and in RTL the distance from the viewport's
+ * right edge to the root's right edge.
  */
 export type WindowScrollInlineMetrics = {
   inlineStartOffset: number;
