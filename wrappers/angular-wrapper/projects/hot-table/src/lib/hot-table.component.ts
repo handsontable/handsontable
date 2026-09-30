@@ -99,6 +99,9 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * its parent through, or the grid collapses to `0px`. The `<hot-table>` host is an inline element,
    * so the container's `100%` resolves against the nearest block ancestor. Other heights do not
    * depend on the container, so they leave it at its default size.
+   *
+   * A `height` function is not evaluated here, because this getter runs on every change detection
+   * and would call user code each time. Give the container its own height in that case.
    * @returns `'100%'` when the `height` option is relative to the container, `null` otherwise.
    */
   get containerHeight(): string | null {
