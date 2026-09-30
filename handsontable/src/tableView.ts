@@ -2159,7 +2159,7 @@ class TableView {
       const container = TH.firstChild as HTMLElement;
       const rowHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      // A wrapper that lost its label element (or was never ours) is rebuilt instead of reused.
+      // A wrapper that lost its label element is rebuilt instead of reused.
       if (rowHeader === null) {
         empty(TH);
         this.appendRowHeader(visualRowIndex, TH);
@@ -2222,17 +2222,19 @@ class TableView {
       const container = TH.firstChild as HTMLElement;
       const colHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.colHeader') : null;
 
-      // A wrapper that lost its label element (or was never ours) falls to the rebuild branch below.
-      if (colHeader !== null) {
-        this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
-
-        container.className = '';
-        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
-
-      } else {
+      // A wrapper that lost its label element is rebuilt instead of reused. The rebuild runs the
+      // `afterGetColHeader` hook itself, so this call returns before it fires a second time.
+      if (colHeader === null) {
         empty(TH);
         this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
+
+        return;
       }
+
+      this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
+
+      container.className = '';
+      addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
     } else {
       const { rootDocument } = this.hot;

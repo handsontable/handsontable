@@ -69,6 +69,38 @@ export class StaleHeaderWrapperPage {
   }
 
   /**
+   * The wrapper element of one column header.
+   *
+   * @param {number} column The column index.
+   * @returns {Locator}
+   */
+  columnHeaderWrapper(column: number): Locator {
+    return this.grid.locator('.ht_master thead th').nth(column + 1).locator('.relative');
+  }
+
+  /**
+   * How many times `afterGetColHeader` fired for one column since the last call to
+   * `clearColumnHeaderHookCalls()`.
+   *
+   * @param {number} column The column index.
+   * @returns {Promise<number>}
+   */
+  async columnHeaderHookCallCount(column: number): Promise<number> {
+    return this.page.evaluate(
+      col => (window as unknown as { columnHeaderHookCalls: number[] })
+        .columnHeaderHookCalls.filter(calledFor => calledFor === col).length,
+      column
+    );
+  }
+
+  /** Forgets the `afterGetColHeader` calls recorded so far. */
+  async clearColumnHeaderHookCalls(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { columnHeaderHookCalls: number[] }).columnHeaderHookCalls.length = 0;
+    });
+  }
+
+  /**
    * Renders the grid and reports the error it threw, if any. Returned rather than asserted here so
    * the spec states the expectation.
    *

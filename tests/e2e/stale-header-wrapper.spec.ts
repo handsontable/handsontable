@@ -19,13 +19,29 @@ test.describe('header cell with a missing label element', () => {
   test('rebuilds a column header on the next render instead of throwing', async () => {
     await grid.removeColumnHeaderLabel(1);
     await expect(grid.columnHeaderLabel(1)).toHaveCount(0);
+    await grid.clearColumnHeaderHookCalls();
 
     expect(await grid.render()).toBeNull();
 
     await expect(grid.columnHeaderLabel(1)).toHaveText('Beta');
     await expect(grid.columnHeaderLabel(0)).toHaveText('Alpha');
     await expect(grid.columnHeaderLabel(2)).toHaveText('Gamma');
+    await expect(grid.columnHeaderWrapper(1)).toHaveCount(1);
     expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('fires afterGetColHeader once for a rebuilt column header', async () => {
+    await grid.removeColumnHeaderLabel(1);
+    await grid.clearColumnHeaderHookCalls();
+
+    expect(await grid.render()).toBeNull();
+
+    // A render calls the header renderer more than once per column (the column width sampling draws
+    // the headers into its ghost table too), so the count is judged against a header nobody touched.
+    const untouched = await grid.columnHeaderHookCallCount(0);
+
+    expect(untouched).toBeGreaterThan(0);
+    expect(await grid.columnHeaderHookCallCount(1)).toBe(untouched);
   });
 
   test('rebuilds a row header on the next render instead of throwing', async () => {

@@ -45,7 +45,13 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    // Column indexes `afterGetColHeader` fired for, so a spec can count the calls one render made.
+    window.columnHeaderHookCalls = [];
+
     window.hot = new Handsontable(container, {
+      afterGetColHeader(column) {
+        window.columnHeaderHookCalls.push(column);
+      },
       data: [['a', 'b', 'c'], ['d', 'e', 'f']],
       colHeaders: ['Alpha', 'Beta', 'Gamma'],
       rowHeaders: ['First', 'Second'],
