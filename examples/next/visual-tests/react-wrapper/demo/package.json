@@ -15,7 +15,7 @@
     "prepare-assets": "copyfiles -f ../node_modules/handsontable/dist/*.css dist/static/css/handsontable/dist && copyfiles -f ../node_modules/handsontable/styles/*.css dist/static/css/handsontable/styles",
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
     "serve": "node server.js",
-    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build && npm run prepare-assets",
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build && npm run prepare-assets",
     "eject": "react-app-rewired eject"
   },
   "dependencies": {
