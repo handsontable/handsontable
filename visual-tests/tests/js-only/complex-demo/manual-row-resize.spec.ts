@@ -1,4 +1,4 @@
-import { visualTest, test, JS_VARIANTS } from '../../../src/test-runner';
+import { visualTest, test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -7,12 +7,16 @@ test.beforeEach(async({ page }) => {
 });
 
 /**
- * Checks the manual row resize on the complex demo: the first capture shows the resize handle on a row
- * header's bottom edge under the pointer, the second the guide line while the button is held down. Owned by
- * DEV-2981.
+ * Checks how the row resize guide and the active handle look on the complex demo while the button is
+ * held on the third row header's bottom edge: the guide's accent line across the table and the handle's
+ * two indicator bars, on the light and dark `main` tokens. Where both are drawn — the handle centered on
+ * the row boundary, the guide's line level with it, spanning to the table's end and following a drag —
+ * is asserted from DOM rects in `tests/e2e/manual-resize-guide-geometry.spec.ts` on every theme. The
+ * handle at rest under the pointer paints the same pixels as the active handle here (`:hover` and
+ * `.active` share one rule), so it has no capture of its own. Owned by DEV-3205.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -21,24 +25,34 @@ visualTest(__filename, {
       .setBaseUrl('/complex-demo')
       .getFullUrl()
   );
-  const table = await tablePage.locator(helpers.selectors.mainTable);
+  const table = tablePage.locator(helpers.selectors.mainTable);
+  const handle = tablePage.locator('.manualRowResizer');
+  const guide = tablePage.locator('.manualRowResizerGuide');
 
-  // get third row header position and size
+  // The third row header, addressed in the master table; the inline-start overlay paints its copy over
+  // it at the same coordinates, so the pointer goes there by coordinate — `hover()` would wait for the
+  // master cell to receive events, which it never does. The first move attaches the handle to the
+  // header's bottom edge, at opacity 0 until the pointer is over the handle itself.
   const cell = await selectCell(2, 0, table, 'th');
-  const THboundingBox = await cell.boundingBox();
+  const headerBox = await cell.boundingBox();
 
-  // hover over third row header bottom line
   await tablePage.mouse.move(
-    THboundingBox!.x + (THboundingBox!.width / 2),
-    THboundingBox!.y + THboundingBox!.height - 3
+    headerBox!.x + (headerBox!.width / 2),
+    headerBox!.y + (headerBox!.height / 2)
   );
+  await expect(handle).toHaveCount(1);
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.move(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
+  // 3px above the header's bottom edge is inside the handle's 10px strip: `:hover` shows it.
+  await tablePage.mouse.move(
+    headerBox!.x + (headerBox!.width / 2),
+    headerBox!.y + headerBox!.height - 3
+  );
+  await expect(handle).toHaveCSS('opacity', '1');
 
-  // click third row header bottom line
+  // The press attaches the guide and marks both elements active — the state this capture is of.
   await tablePage.mouse.down();
+  await expect(guide).toHaveClass(/active/);
+  await expect(handle).toHaveClass(/active/);
 
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.down(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

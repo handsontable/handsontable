@@ -71,3 +71,7 @@ this plugin's double-click autofit keeps working.
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualRowResize'`
+- Where the handle and guide are drawn, on every theme and bundle leg:
+  `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-guide-geometry.spec.ts`
+  (`../../utils/manualResize/AGENTS.md`, Testing, says what it pins and why a stylesheet change needs
+  `build:umd` before it shows there).

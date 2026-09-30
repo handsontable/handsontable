@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — where the row resize handle and guide are drawn</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back — a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document - the silently mislabeled leg this is meant to
+    // prevent. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Where the row resize handle and its guide are drawn, relative to the row header they belong to.
+
+    The plugin positions both from the header's box: the handle is a 10px strip centered one pixel
+    above the row's bottom boundary (`ResizeGesture#setupHandlePosition` puts its top at the
+    header's bottom minus 6), and the guide is a 0px-high element whose 1px bottom border is meant
+    to sit exactly on that boundary (`top` copied from the handle, `margin-top: 5px`). The guide's
+    alignment was off by one pixel until #11500 moved that margin from 4px to 5px, and the only
+    check that fix left behind was a screenshot of the complex demo.
+
+    A row header lives in one of three overlays, and the plugin resolves the header's position
+    against each one separately (`ROW_RESIZE_AXIS.getHeaderPosition`): the top-start corner for a
+    row frozen at the top, the bottom-start corner for a row frozen at the bottom, and the
+    inline-start overlay for every other row. The grid here has all three, and scrolls, so each
+    branch has a header to hover.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const ROWS = 30;
+    const COLUMNS = 8;
+
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(ROWS, COLUMNS),
+      colHeaders: true,
+      rowHeaders: true,
+      // Every column the same width, so the table's extent (which the guide spans) is the same on
+      // every theme leg and never depends on a theme's text metrics.
+      colWidths: 90,
+      // Narrower than 30 rows, so the body scrolls and the two frozen bands sit in their own
+      // corner overlays; wide enough for all eight columns, so the guide's far end is the table's.
+      width: 800,
+      height: 400,
+      fixedRowsTop: 1,
+      fixedRowsBottom: 1,
+      fixedColumnsStart: 1,
+      manualRowResize: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.htRowCount = ROWS;
+
+    /**
+     * The rendered height of a visual row, read from the row element that paints it. The topmost
+     * copy, because the master does not render the row frozen at the bottom while the grid sits at
+     * its scroll start — only the bottom overlay does.
+     *
+     * @param {number} row The visual row index.
+     * @returns {number}
+     */
+    window.renderedRowHeight = function(row) {
+      return window.hot.getCell(row, 1, true).parentNode.getBoundingClientRect().height;
+    };
+  </script>
+</body>
+</html>

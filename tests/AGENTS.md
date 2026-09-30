@@ -48,6 +48,16 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   real, say so in the test instead of pinning one bundle's answer. A real one is
   still a defect: that editor split is tracked as DEV-2862, since the fixture
   enables no Formulas and only the bundle differs.
+- **A stylesheet edit needs `build:umd` too, not only the stylesheet build.** The
+  UMD bundle inlines the base stylesheet (`src/styles/handsontableStyles.js`,
+  which `build:styles` rewrites) and injects it as a `<style>` after the
+  fixture's `<link>`s, so for a declaration both copies carry, the bundle's copy
+  wins the cascade. After `build:styles.min` alone, `handsontable.min.css` on
+  disk shows the new value while every leg still renders the old one — measured
+  on the row resize guide's `margin-top`: 4px in the stylesheet, 5px computed,
+  and the spec that guards it stayed green on the planted bug. An additive rule
+  takes effect from the stylesheet alone, which is what makes the trap look
+  intermittent. Rebuild the bundle before believing a CSS mutant survived.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30
@@ -299,7 +309,15 @@ constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it thr
 effective-zoom machinery as browser page zoom, so a cell's 1px border is inflated exactly as it
 is under Ctrl+minus or Windows display scaling — `getComputedStyle` reads `1.111px` at 0.9
 either way. Assert that inflation as the test's own precondition; without it every geometry
-assertion passes on unfixed code.
+assertion passes on unfixed code. Above 100% the snapping goes the other way: at 1.25 the same
+1px border is computed as 0.8px (1.25 device pixels snapped down to one, measured on every
+theme in `overlay-alignment-css-zoom.spec.ts`), so the precondition there is a value away from
+1, not above it. `getBoundingClientRect()` is scaled by CSS zoom and `offsetWidth` is not, so
+their ratio is the zoom the grid really got — a stronger precondition than reading the style
+attribute back. A grid does not redraw when the page zoom changes after construction
+(`afterViewRender` count unchanged), so a zoom applied late is the browser re-laying out the
+sizes the grid wrote at 100%, and a fixture that wants the grid to MEASURE zoomed cells applies
+the zoom before constructing it.
 
 The two things that do **not** work: Playwright's context-level `deviceScaleFactor` reports the
 ratio faithfully but never inflates the border, so a test built on it is vacuous; and

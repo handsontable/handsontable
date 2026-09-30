@@ -109,8 +109,8 @@ const DETERMINISM_RESTRICTIONS = [
 // state fail loudly rather than close a race; they are the shape every later repair takes. The other 100, 15
 // of them in the other six filters specs, got a tracked disable line. The filters consolidation (#13647)
 // retired those six with their 15 lines, and its replacements assert every state they capture; the
-// submenu-placement trim (#13656) retired the menu family's 24 the same way, and the editors trim that
-// family's 15, so 46 remain.
+// submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
+// family's 15, and the resize-guide trim the complex demo's 2, so 44 remain.
 //
 // esquery 1.7.0 (ESLint 8.57.1): `A + B` reports B when A is the statement right before it, so the message
 // lands on the capture line, which is where the disable line goes. Three traps, all measured. The relative
