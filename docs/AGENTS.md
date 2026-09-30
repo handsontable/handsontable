@@ -355,6 +355,11 @@ Content for React only.
 :::
 ```
 
+### Vue example rules
+
+- **Swapping in a new `data` array does not reload the grid.** The `@handsontable/vue3` `$props` watcher assumes data is synchronized by reference and deletes `data` from the update unless column modification is disallowed *and* the source column count changed. So an example that replaces its dataset (an import, a "load sample" button) gets new `colHeaders` and `columns` over the old rows, or over empty cells when the keys change. Remount the grid with `:key` bumped on every load, as `recipes/import-export/import-csv-excel/vue/example1.vue` does, or call `hotInstance.loadData()` through a template ref.
+- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Unlike Angular's `NgZone.run`, nothing extra is required.
+
 ### Angular component rules (standalone pattern)
 
 All Angular docs examples use `standalone: true` bootstrapped via `bootstrapApplication`. The Angular JIT compiler runs in the browser and **cannot resolve file-based resources at runtime**. Violating these rules causes the component to silently fail to render.

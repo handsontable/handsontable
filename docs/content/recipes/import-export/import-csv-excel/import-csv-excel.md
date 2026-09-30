@@ -77,6 +77,17 @@ In Angular, apply the parsed rows inside `NgZone.run()`, as `handleFile` does. r
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3 --css 1
+
+@[code](@/content/recipes/import-export/import-csv-excel/vue/example1.css)
+@[code](@/content/recipes/import-export/import-csv-excel/vue/example1.vue)
+
+:::
+
+:::
+
 ## CDN scripts (no bundler)
 
 For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versions to match what you test):
@@ -86,7 +97,7 @@ For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versio
 <script src="https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js"></script>
 ```
 
-The JavaScript and React examples load the same URLs on demand when `window.Papa` / `window.readXlsxFile` are missing, so the pattern matches a script-tag setup. The Angular example imports `papaparse` and `read-excel-file/browser` from npm instead.
+The JavaScript and React examples load the same URLs on demand when `window.Papa` / `window.readXlsxFile` are missing, so the pattern matches a script-tag setup. The Angular and Vue examples import `papaparse` and `read-excel-file/browser` from npm instead.
 
 ## Step 1: Accept files and detect type
 
@@ -417,6 +428,20 @@ function loadIntoGrid({ headers, rows }) {
 - `hot` is created on the first successful import only. Before that, the page shows an empty-state panel (`emptyEl`) and `gridContainer` (the `#example1` div) is kept `hidden` so users don't see a single blank cell.
 - On the first call: hide the empty state, reveal the grid container, and instantiate Handsontable with the parsed data, columns, and headers.
 - On subsequent calls: reuse the existing instance -- `updateSettings({ colHeaders, columns })` reconfigures the grid's column shape, then `loadData(rows)` replaces the data and triggers a full re-render. `updateSettings` must run before `loadData` so Handsontable knows which keys to read from the row objects.
+
+::: only-for vue
+
+In the Vue example, `loadIntoGrid` stores the parsed payload in a `shallowRef` and increments a counter that is bound to `:key` on `HotTable`:
+
+```html
+<HotTable v-else :key="importCount" :settings="hotSettings" />
+```
+
+A new `key` makes Vue mount a fresh grid for every import. You need it because `HotTable` treats `data` as synchronized by reference: when you pass a new array, it updates `colHeaders` and `columns` but keeps the old rows. The `shallowRef` keeps Vue from wrapping every parsed row in a reactive proxy.
+
+read-excel-file unzips the workbook in a Web Worker, so the result arrives in a later task. Vue picks up a ref that changes after an `await` without extra code.
+
+:::
 
 ### Load the bundled sample
 
