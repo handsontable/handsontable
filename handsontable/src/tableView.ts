@@ -2157,16 +2157,17 @@ class TableView {
   appendRowHeader(visualRowIndex: number, TH: HTMLTableCellElement) {
     if (TH.firstChild) {
       const container = TH.firstChild as HTMLElement;
+      const rowHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      if (!hasClass(container, 'relative')) {
+      // A wrapper that lost its label element (or was never ours) is rebuilt instead of reused.
+      if (rowHeader === null) {
         empty(TH);
         this.appendRowHeader(visualRowIndex, TH);
 
         return;
       }
 
-      this.updateCellHeader(
-        container.querySelector<HTMLElement>('.rowHeader')!, visualRowIndex, this.hot.getRowHeader);
+      this.updateCellHeader(rowHeader, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -2219,10 +2220,11 @@ class TableView {
 
     if (TH.firstChild) {
       const container = TH.firstChild as HTMLElement;
+      const colHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.colHeader') : null;
 
-      if (hasClass(container, 'relative')) {
-        this.updateCellHeader(
-          container.querySelector<HTMLElement>('.colHeader')!, visualColumnIndex, label, headerLevel);
+      // A wrapper that lost its label element (or was never ours) falls to the rebuild branch below.
+      if (colHeader !== null) {
+        this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
 
         container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);
