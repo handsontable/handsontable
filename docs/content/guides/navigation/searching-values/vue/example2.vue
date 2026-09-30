@@ -9,15 +9,16 @@ registerAllModules();
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const data = [
-  ['Tesla', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'yellow', 'gray'],
+  ['Hydrogen', 'H', 1, 1.008],
+  ['Helium', 'He', 2, 4.003],
+  ['Lithium', 'Li', 3, 6.94],
+  ['Beryllium', 'Be', 4, 9.012],
+  ['Boron', 'B', 5, 10.81],
 ];
 
 const hotSettings = ref<GridSettings>({
   data,
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
   search: {
     searchResultClass: 'my-class',
   },
