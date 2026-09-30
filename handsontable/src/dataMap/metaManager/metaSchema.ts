@@ -2154,7 +2154,11 @@ export default (): Record<string, unknown> => {
      *
      * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
      * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
-     * each sheet that loads from a server instead.
+     * each sheet that loads from a server instead. While a sheet that declares its own `dataProvider` is shown, a
+     * `dataProvider` passed through [`updateSettings()`](@/api/core.md#updatesettings) replaces that sheet's own one.
+     * The only exception is the same object as the ignored grid-level value, which the sheet ignores too. So if you
+     * keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new
+     * object on every render re-configures the sheet you see.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.

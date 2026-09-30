@@ -369,6 +369,13 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
+   * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
+   * size Pagination takes from that response is not read as a user's change.
+   *
+   * @type {boolean}
+   */
+  #isApplyingResponse = false;
+  /**
    * Serializes create/update/remove mutations so they run one after another.
    *
    * @type {{ tail: Promise<void> }}
@@ -784,7 +791,7 @@ export class DataProvider extends BasePlugin {
     const payload = this.#buildFetchResult({ ...result, rows }, rows, totalRows, this.#snapshotQueryParameters(query));
 
     this.#queryParameters = this.#snapshotQueryParameters(query);
-    this.hot.runHooks('afterDataProviderFetch', { ...payload, isRestored: true });
+    this.#runAfterDataProviderFetch({ ...payload, isRestored: true });
 
     this.hot.getPlugin('filters')?._resetDataProviderRollback();
     this.hot.render();
@@ -1148,7 +1155,7 @@ export class DataProvider extends BasePlugin {
         );
       }
 
-      this.hot.runHooks('afterDataProviderFetch', this.#buildFetchResult(result, rows, totalRows, persistedParams));
+      this.#runAfterDataProviderFetch(this.#buildFetchResult(result, rows, totalRows, persistedParams));
       this.hot.render();
 
       return;
@@ -1161,6 +1168,24 @@ export class DataProvider extends BasePlugin {
     this.#contextOwner?.onDetachedRequest('fetch', {
       result: { ...result, rows, totalRows, queryParameters: this.#snapshotQueryParameters(persistedParams) },
     }, binding.context);
+  }
+
+  /**
+   * Runs {@link Hooks#afterDataProviderFetch} with `#isApplyingResponse` set. The query parameters must already
+   * describe the response by then: the page-size handler compares Pagination's sync against them.
+   *
+   * @param {object} payload The hook payload.
+   */
+  #runAfterDataProviderFetch(payload: DataProviderFetchPayload): void {
+    const wasApplying = this.#isApplyingResponse;
+
+    this.#isApplyingResponse = true;
+
+    try {
+      this.hot.runHooks('afterDataProviderFetch', payload);
+    } finally {
+      this.#isApplyingResponse = wasApplying;
+    }
   }
 
   /**
@@ -1707,8 +1732,9 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * Loads page 1 with the new page size when Pagination runs in external paged mode.
-   * Skips when `#queryParameters` already match (e.g. duplicate `afterPageSizeChange` from Pagination sync).
+   * Loads page 1 with the new page size when Pagination runs in external paged mode. Skips when the new size
+   * matches `#queryParameters` on page 1, and, while a response is applied, when Pagination only takes that
+   * response's page and page size (see `handleAfterPageSizeChangeExternalPagination`).
    *
    * @param {number | 'auto'} oldPageSize Previous page size.
    * @param {number | 'auto'} newPageSize New page size.
@@ -1720,6 +1746,7 @@ export class DataProvider extends BasePlugin {
         hot: this.hot,
         getQueryPage: () => this.#queryParameters.page,
         getQueryPageSize: () => this.#queryParameters.pageSize,
+        isApplyingResponse: () => this.#isApplyingResponse,
         setPageSize: async(pageSize) => {
           await this.fetchData({ pageSize, page: 1 });
         },

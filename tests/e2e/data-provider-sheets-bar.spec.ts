@@ -297,7 +297,7 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.clearConsoleProblems();
 
       await grid.clickTab(1);
-      await expect(grid.toast()).toHaveCount(0);
+      expect(await grid.toast().count()).toBe(0);
 
       await grid.clickTab(0);
       await expect(grid.toast()).toHaveCount(1);
@@ -1368,6 +1368,8 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
       await grid.clickTab(2);
       await grid.clickTab(0);
+
+      expect((await grid.pagination()).pageSize).toBe(10);
 
       const fetchesBefore = await grid.fetchCount('ORD');
 

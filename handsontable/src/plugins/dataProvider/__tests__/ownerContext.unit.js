@@ -1126,6 +1126,27 @@ describe('DataProvider context owner contract', () => {
       expect(provider.lastQuery().page).toBe(2);
     });
 
+    it('still fetches a page size a listener of the replayed payload sets', async() => {
+      const provider = createDeferredProvider();
+
+      await createGrid(provider, { settings: { pagination: { pageSize: 10 } } });
+
+      hot.addHook('afterDataProviderFetch', (result) => {
+        if (result.isRestored) {
+          hot.getPlugin('pagination').setPageSize(20);
+        }
+      });
+
+      hot.getPlugin('dataProvider')._restoreFetchResult({
+        totalRows: 100,
+        queryParameters: { page: 3, pageSize: 10, sort: null, filters: null },
+      });
+      await settle();
+
+      expect(provider.config.fetchRows).toHaveBeenCalledTimes(2);
+      expect(provider.lastQuery()).toEqual(jasmine.objectContaining({ page: 1, pageSize: 20 }));
+    });
+
     it('does nothing while the plugin is disabled', async() => {
       const provider = createDeferredProvider();
 

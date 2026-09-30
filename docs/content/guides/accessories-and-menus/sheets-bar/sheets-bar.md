@@ -369,7 +369,7 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 - Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
 - The bar shares its container with the grid. When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the bar follows the last row, so on a long sheet you scroll past the data to reach it. To keep the bar in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`. The [`Pagination`](@/api/pagination.md) bar behaves the same way.
-- A grid-level `dataProvider` is disabled while the sheets bar is enabled. Declare it in the `settings` of each sheet that needs one - see [Server-backed sheets](#server-backed-sheets).
+- A grid-level `dataProvider` is disabled while the sheets bar is enabled. Declare it in the `settings` of each sheet that needs one - see [Server-backed sheets](#server-backed-sheets). If you keep a grid-level `dataProvider` anyway, pass the same object every time: a new object passed while a server sheet is shown replaces that sheet's own `dataProvider`, and a framework wrapper that builds one on every render does that on every render.
 
 ## Related keyboard shortcuts
 
