@@ -672,17 +672,23 @@ export class DataProvider extends BasePlugin {
   /**
    * Fills `#queryParameters` from Pagination, ColumnSorting, and (when `fetchRows` exists) Filters so `fetchRows`
    * matches plugin UI state after enable or before a server-driven refetch.
+   * Assigns a new object rather than writing into the current one, so an open fetch-error toast can tell that the
+   * query changed since its failure (see `#showDataProviderRequestErrorNotification()`).
    *
    * @returns {void}
    */
   #applyQueryParametersFromPlugins(): void {
-    applyPaginationToQueryFromPlugin(this.hot, this.#queryParameters);
-    applyColumnSortToQueryFromPlugin(this.hot, this.#queryParameters);
+    const queryParameters = { ...this.#queryParameters };
+
+    applyPaginationToQueryFromPlugin(this.hot, queryParameters);
+    applyColumnSortToQueryFromPlugin(this.hot, queryParameters);
     applyFiltersFromFiltersPluginToQueryParameters(
       this.hot,
-      this.#queryParameters,
+      queryParameters,
       () => this.#getFetchFn()
     );
+
+    this.#queryParameters = queryParameters;
   }
 
   /**
@@ -767,11 +773,12 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Shows an error toast in the {@link Options#notification} plugin when it is enabled.
-   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls {@link DataProvider#fetchData} again.
-   * The Refetch action retries the query that failed, not the last successful one: `#queryParameters` changes only after a
-   * successful fetch, so without `failedQuery` a failed page or page-size change would reload the previous state.
-   * `#queryParameters` gets a new object on every successful fetch and on `disablePlugin()`, so when it is no longer the
-   * object seen at failure time, the grid has moved on and Refetch reloads the current state instead of the stale query.
+   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the
+   * toast and calls `#fetchDataSilently()` with the failed query, or with the current query once the grid has moved on.
+   * The failed query is needed because `#queryParameters` changes only after a successful fetch, so a failed page or
+   * page-size change would otherwise reload the previous state. Every write to `#queryParameters` assigns a new object
+   * (a successful fetch, `disablePlugin()`, and the sort and filter changes made before they fetch), so when it is no
+   * longer the object seen at failure time, the user has requested something newer and Refetch reloads that instead.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
@@ -969,8 +976,11 @@ export class DataProvider extends BasePlugin {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
       applyFiltersAndRefetch: (filtersForProvider) => {
-        this.#queryParameters.filters = filtersForProvider ?? null;
-        this.#queryParameters.page = 1;
+        this.#queryParameters = {
+          ...this.#queryParameters,
+          filters: filtersForProvider ?? null,
+          page: 1,
+        };
         void this.#fetchDataSilently();
       },
     },

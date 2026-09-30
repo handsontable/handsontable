@@ -99,12 +99,7 @@ export class DataProviderRefetchFailedQueryPage {
    */
   async filterByValue(col: number, value: string): Promise<void> {
     await this.page.evaluate(({ c, v }) => {
-      const filters = (window.hot as unknown as {
-        getPlugin(name: 'filters'): {
-          addCondition(column: number, name: string, args: unknown[]): void;
-          filter(): void;
-        };
-      }).getPlugin('filters');
+      const filters = window.hot.getPlugin('filters');
 
       filters.addCondition(c, 'eq', [v]);
       filters.filter();
@@ -115,9 +110,7 @@ export class DataProviderRefetchFailedQueryPage {
    * The Filters plugin's current conditions, as `exportConditions()` returns them.
    */
   async filterConditions(): Promise<unknown[]> {
-    return this.page.evaluate(() => (window.hot as unknown as {
-      getPlugin(name: 'filters'): { exportConditions(): unknown[] };
-    }).getPlugin('filters').exportConditions());
+    return this.page.evaluate(() => window.hot.getPlugin('filters').exportConditions());
   }
 
   /**
