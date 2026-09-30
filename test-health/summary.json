@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-30T10:34:06.767Z",
+  "generatedAt": "2026-09-30T10:54:35.152Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 303,
-    "needsTicket": 7,
+    "needsTicket": 8,
     "quarantined": 0,
-    "entries": 1704
+    "entries": 1706
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 8,
-      "count30": 24,
-      "countAll": 24,
+      "count7": 9,
+      "count30": 25,
+      "countAll": 25,
       "runs30": 14,
       "flakyRuns30": 14,
       "branches30": 12,
@@ -42,8 +42,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-30T10:30:39Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805",
+        "seenAt": "2026-09-30T10:53:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
         "branch": "docs/SheetJS-CDN-xlsx",
         "leg": "e2e-horizon-min",
         "status": "flaky",
@@ -198,6 +198,39 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
+      "line": null,
+      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 3,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium-theme-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-30T10:53:44Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36700182805/attempts/2",
+        "branch": "docs/SheetJS-CDN-xlsx",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 78539c431a55",
         "source": "ci"
       },
       "needsTicket": true
@@ -10756,39 +10789,6 @@
         "leg": "e2e-horizon",
         "status": "failed",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts|js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/editors/handsontable/rtl/position-scrolled-viewport.spec.ts",
-      "line": null,
-      "title": "js-only/editors/handsontable/rtl/position-scrolled-viewport-2",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium-theme-main"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-30T10:33:16Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36579315875",
-        "branch": "feature/DEV-3139_Editors-visual-consolidation",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 e6a4f1d71ed1",
         "source": "ci"
       },
       "needsTicket": false
