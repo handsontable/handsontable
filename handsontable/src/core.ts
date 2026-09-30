@@ -5859,7 +5859,9 @@ export default function Core(
     row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
     column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
   ) {
-    operationScope.run('change', source, () => setSourceDataAtCell.call(this, row, column, value, source));
+    const operationSource = !source && typeof row === 'object' && typeof column === 'string' ? column : source;
+
+    operationScope.run('change', operationSource, () => setSourceDataAtCell.call(this, row, column, value, source));
   };
 
   /**

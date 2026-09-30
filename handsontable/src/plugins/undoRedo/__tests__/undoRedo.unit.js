@@ -756,6 +756,24 @@ describe('UndoRedo plugin', () => {
       expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4']);
     });
 
+    it('should read the source of an array-form `setSourceDataAtCell()` call from its second argument', () => {
+      createGrid();
+      const plugin = hot.getPlugin('undoRedo');
+      const beforeUndoStackChange = jest.fn();
+
+      hot.addHook('beforeUndoStackChange', beforeUndoStackChange);
+      hot.setSourceDataAtCell([[0, 0, 'x']], 'auto');
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('x');
+      expect(plugin.isUndoAvailable()).toBe(false);
+
+      hot.setSourceDataAtCell([[1, 0, 'y']], 'myImport');
+
+      expect(beforeUndoStackChange).toHaveBeenCalledTimes(1);
+      expect(beforeUndoStackChange.mock.calls[0][1]).toBe('myImport');
+      expect(plugin.doneActions.map(action => action.source)).toEqual(['myImport']);
+    });
+
     it('should keep recording after a `batch()` callback throws', () => {
       createGrid();
       const plugin = hot.getPlugin('undoRedo');
