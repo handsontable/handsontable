@@ -2149,12 +2149,23 @@ export default (): Record<string, unknown> => {
      * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * Set it to `null` to turn server-backed loading off again, for example through
+     * [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
+     * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
+     * each sheet that loads from a server instead. While a sheet that declares its own `dataProvider` is shown, a
+     * `dataProvider` passed through [`updateSettings()`](@/api/core.md#updatesettings) replaces that sheet's own one.
+     * The only exception is the same object as the ignored grid-level value, which the sheet ignores too. So if you
+     * keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new
+     * object on every render re-configures the sheet you see.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 17.1.0
      * @memberof Options#
-     * @type {object}
+     * @type {object|null}
      * @default undefined
      * @category Core
      * @configScope grid
@@ -3435,7 +3446,8 @@ export default (): Record<string, unknown> => {
      *
      * The option takes different values at the two levels it works at, so they are listed
      * separately below. At the grid level it switches the plugin on and carries its settings. Inside
-     * [`columns`](#columns) it does one thing only: `false` takes that column out of filtering.
+     * [`columns`](#columns), `false` takes that column out of filtering, and an object can set the
+     * column's own `availableConditions`.
      *
      * **At the grid level:**
      *
@@ -3445,13 +3457,46 @@ export default (): Record<string, unknown> => {
      * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
      * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
-     * If you set the `filters` option to an object, you can configure the following settings. Both
-     * of them are read once, for the whole grid, so neither can be set per column:
+     * If you set the `filters` option to an object, you can configure the following settings.
+     * `searchMode` and `filterFixedRows` are read once, for the whole grid, so they cannot be set per
+     * column. `availableConditions` can be set at both levels:
      *
-     * | Property           | Possible values       | Default  | Description                                                                                                                                                         |
-     * | ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `searchMode`       | `'show'` \| `'apply'` | `'show'` | Enable filtering only visible elements                                                                                                                              |
-     * | `filterFixedRows`  | `true` \| `false`     | `true`   | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
+     * | Property              | Possible values                         | Default     | Description                                                                                                                                                         |
+     * | --------------------- | --------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `searchMode`          | `'show'` \| `'apply'`                   | `'show'`    | Enable filtering only visible elements                                                                                                                              |
+     * | `filterFixedRows`     | `true` \| `false`                       | `true`      | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
+     * | `availableConditions` | An array \| An object                   | `undefined` | The operators the **Filter by condition** lists offer. See below.                                                                                                  |
+     *
+     * `availableConditions` takes one of three shapes:
+     *
+     * | Shape                               | Description                                                                                                  |
+     * | ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+     * | An array of condition names         | Offer only these conditions, in this order. `'---------'` adds a separator.                                   |
+     * | `{ exclude: [...] }`                | Offer the default list for the column's data type, minus these conditions.                                    |
+     * | An object keyed by data type        | One of the two shapes above per data type: `text`, `numeric`, `date`, `intl-date`, `intl-time`, `intl-datetime`. |
+     *
+     * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
+     * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
+     * own (for example `dropdown`) uses the `text` list. **None** always stays first. A name the
+     * column's data type does not offer is left out. The setting changes the lists only: a condition
+     * added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
+     * still shows it.
+     *
+     * When the grid is created, and when the setting changes, a console warning names each condition
+     * that no data type offers, each listed condition a column's data type does not offer, and each
+     * data type key without a list of its own. Such a key is ignored; the other entries still apply.
+     *
+     * A column's own `availableConditions` replaces the grid-level one for that column. The two are
+     * not merged. A column whose own value is `undefined` uses the grid-level value.
+     *
+     * Updating the `filters` option through [`updateSettings()`](@/api/core.md#updatesettings)
+     * clears the filters that are applied. A `filters` object that leaves out `availableConditions`
+     * keeps the previous value, and setting `filters` to `false` does not clear it either. Pass
+     * `availableConditions: undefined` or `filters: true` to go back to the default lists.
+     *
+     * `availableConditions` changes what the condition lists contain, not which parts the menu
+     * shows. The [`dropdownMenu`](#dropdownmenu) option decides that, so if its configuration leaves
+     * out or hides `filter_by_condition`, the setting has nothing to act on.
      *
      * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
      * Those rows are then never hidden by a filter, and their values are not offered in the
@@ -3473,19 +3518,22 @@ export default (): Record<string, unknown> => {
      *
      * **Inside `columns`:**
      *
-     * | Setting        | Description                                                                          |
-     * | -------------- | ------------------------------------------------------------------------------------ |
-     * | `false`        | Hide the filter controls in this column's dropdown menu                              |
-     * | Anything else  | No effect – the column keeps whatever the grid-level setting gave it                  |
+     * | Setting                             | Description                                                                          |
+     * | ----------------------------------- | ------------------------------------------------------------------------------------ |
+     * | `false`                             | Hide the filter controls in this column's dropdown menu                              |
+     * | `{ availableConditions: ... }`      | Choose the operators this column's **Filter by condition** lists offer               |
+     * | Anything else                       | No effect – the column keeps whatever the grid-level setting gave it                  |
      *
      * The column's dropdown menu still opens, so entries such as **Clear column** stay available.
      * The plugin's API is not affected either: [`addCondition()`](@/api/filters.md#addcondition)
      * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
      * leaves sorting through the API working.
      *
-     * An object written inside `columns` is **ignored**, and logs a warning once per grid. Since 19.0,
-     * TypeScript rejects it too: a column's `filters` is typed `boolean`, and the grid-level object
-     * accepts only `searchMode` and `filterFixedRows`.
+     * Inside `columns`, an object is read for `availableConditions` only. Any other key in it, such
+     * as `searchMode` or `filterFixedRows`, is **ignored**, and logs a warning once per grid. Since
+     * 19.0, TypeScript rejects it too: a column's `filters` is typed `boolean` or
+     * `{ availableConditions }`, and the grid-level object accepts only `searchMode`,
+     * `filterFixedRows`, and `availableConditions`.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3520,7 +3568,21 @@ export default (): Record<string, unknown> => {
      *   { filters: false },
      * ],
      *
-     * // WRONG: the sub-options are grid-level, so this object is ignored, warns, and does not compile
+     * // remove "Is not between" from every numeric column
+     * filters: {
+     *   availableConditions: {
+     *     numeric: { exclude: ['not_between'] },
+     *   },
+     * },
+     *
+     * // offer only a few operators in one column, in this order
+     * filters: true,
+     * columns: [
+     *   { filters: { availableConditions: ['eq', 'neq', '---------', 'empty', 'not_empty'] } },
+     *   {},
+     * ],
+     *
+     * // WRONG: `filterFixedRows` is grid-level, so it is ignored here, warns, and does not compile
      * columns: [
      *   { filters: { filterFixedRows: false } },
      * ],
@@ -5691,6 +5753,9 @@ export default (): Record<string, unknown> => {
      * | `true` (default) | On a mouse click outside of the grid, clear the current [selection](@/guides/cell-features/selection/selection.md) |
      * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection/selection.md)  |
      * | A function       | A function that takes the click event target and returns a boolean                                       |
+     *
+     * A click on the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md) doesn't count as a click
+     * outside of the grid: it keeps the current selection and saves a cell you are editing, whatever this option is set to.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.

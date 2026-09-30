@@ -49,12 +49,11 @@ const sanitizeMenuLabel = (html: string): string => {
 export class AppComponent implements OnInit {
 
   readonly hotData = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16],
+    ['Hydrogen', 'H', 1, 1.008, 7],
+    ['Helium', 'He', 2, 4.003, 9],
+    ['Lithium', 'Li', 3, 6.94, 9],
+    ['Beryllium', 'Be', 4, 9.012, 11],
+    ['Boron', 'B', 5, 10.81, 15],
   ];
 
   hotSettings!: GridSettings;
@@ -153,7 +152,7 @@ export class AppComponent implements OnInit {
 
     this.hotSettings = {
       rowHeaders: true,
-      colHeaders: true,
+      colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
       height: 'auto',
       contextMenu: contextMenuSettings,
       // Required for the HTML in the `about` item's label to be rendered safely

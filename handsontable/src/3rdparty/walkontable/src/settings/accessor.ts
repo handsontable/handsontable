@@ -78,6 +78,7 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
   getSetting(key: 'layoutReservedHeight', trimmingContainer: HTMLElement): number;
   getSetting(key: 'heightFollowsContent'): boolean;
+  getSetting(key: 'widthFollowsRoot'): boolean;
   getSetting(key: 'rtlMode'): boolean;
   getSetting(key: 'guid'): string;
   getSetting(key: 'isDataViewInstance'): boolean;

@@ -160,9 +160,11 @@ captured when the plugin is enabled.
   carries no notion of a pinned row, so `#getPinnedRowCounts()` returns zeros rather than letting the
   local reads disagree with the server's own result.
 - **The option's types are closed since 19.0 (DEV-2941), and that is a breaking type change.** The
-  grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`; public as
-  `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is `boolean`. Before,
-  both were `boolean | object`, so no sub-option was ever type-checked. **Writing and reading differ:**
+  grid-level object is `FiltersSettings` (`searchMode`, `filterFixedRows`, `availableConditions`;
+  public as `Handsontable.plugins.Filters.Settings`), and `ColumnSettings['filters']` is
+  `boolean | FiltersColumnSettings`, an object with `availableConditions` only (public as
+  `Handsontable.plugins.Filters.ColumnSettings`). Before, both were `boolean | object`, so no
+  sub-option was ever type-checked. **Writing and reading differ:**
   `CellMeta` (and so `CellProperties` and `getCellMeta()`) re-declares `filters` with the GRID type,
   because cell meta inherits the grid-level object through the prototype chain — narrowing it there
   made `typeof meta.filters === 'object'` narrow to `never`. It is built on
@@ -172,7 +174,8 @@ captured when the plugin is enabled.
   TypeScript users cannot write it. `filters.types.ts` pins each rule with `@ts-expect-error`, which
   fails the run by itself when the error it expects goes away.
 - **`columns: [{ filters: false }]` turns the filter UI off for one column.** Read through
-  `hot.getColumnMeta(visualColumn)`. Only `false` is honored; the effect is UI-only — `addCondition()`
+  `hot.getColumnMeta(visualColumn)`. Of the boolean values only `false` is honored (an object is
+  read for `availableConditions`, see below); the effect is UI-only — `addCondition()`
   still filters such a column, mirroring `columnSorting`'s `headerAction: false`, which leaves
   `sort()` working. Hiding the UI does NOT clear an existing condition, so such a column keeps
   filtering with no way to see it in its own menu; `clearConditions()` is the way out.
@@ -183,12 +186,44 @@ captured when the plugin is enabled.
   `false` and the whole filter menu renders blank. Whether the plugin runs at all is `BasePlugin`'s
   question (`isEnabled()`); this one answers only "did *this column* opt out", and only an own
   property is a per-column answer.
+- **A column `filters` OBJECT is read for `availableConditions` only (DEV-3056).** Every other key
+  in it (`searchMode`, `filterFixedRows`, anything unknown), and an EMPTY object, still warns, the
+  way `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)`
+  resolves the value: a VALID own column value wins and REPLACES the grid-level one (no merging); an
+  own `undefined` (a wrapper prop left unset) and an invalid value both fall back to
+  `getSetting('availableConditions')`. The list itself is built in one place, `getOptionsList()`
+  called from `ConditionComponent#reset()`, which both condition selects share, and it is silent.
+  Five rules ride along. (1) `none` is always kept FIRST, because `reset()` selects `items[0]`, and
+  the no-selection branch passes a COPY of its descriptor, because `SelectUI#setItems()` translates
+  names in place and the registry's descriptor is shared. (2) An allow-list may only pick names from
+  the column type's STOCK list; any other name is dropped. (3) A per-type key matches the LIST type
+  after the `text` fallback (`getConditionListType()`), so `dropdown`, `checkbox`, custom types and
+  `mixed` follow the `text` entry. An unknown key does NOT invalidate the setting - rejecting it
+  dropped the valid entries next to it - it is ignored and warned. (4) Every warning comes from the
+  column scan (`#warnAboutPerColumnSettingsObjects`), never from a menu opening: names no type
+  offers (typos, in `exclude` too), off-list names in a column's allow-list (named with the column's
+  meta `type` and its list type - the scan reads column meta, not `getDataType()`, which walks every
+  cell), and unknown per-type keys. An excluded name some OTHER type offers is not reported, so one
+  grid-level `{ exclude }` can cover columns of every type. `enablePlugin()` scans right away when
+  `this.hot.view` exists and defers to `afterInit` only on the first enable, which runs before the
+  view is built. Deferring every time silently skipped the scan for any later enable, because
+  `afterInit` has already fired: a direct `enablePlugin()` call on a grid built with `filters: false`
+  never warned. The same branch covers `updateSettings({ filters })`, which goes through
+  `updatePlugin()`'s disable and enable. Scanning from `#onAfterUpdateSettings` instead cannot work
+  for that payload, because the disable removes that listener for the round that carries it.
+  (5) The setting shapes the list, never the filter: a condition added through
+  `addCondition()` still filters, and `setState()` still names it in the caption (the caption reads
+  `value.name`, not the item list). `false` is rejected on purpose, so it stays free to mean "hide
+  the section" later. Coverage: `availableConditions.unit.ts` (the pure helpers),
+  `perColumnFilters.unit.js` (the read and the warnings), `tests/e2e/filters-available-conditions.spec.ts`
+  (the menu).
 - **The ignored-object warning is raised by scanning every column, never from a visibility check.**
   A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
   menu — or a column whose menu is never opened — is never warned, while the docs promise once per
-  grid. It runs from `afterInit` (NOT from `enablePlugin()`, which is `afterPluginsInitialized`, where
-  the column meta layer is not resolvable yet and every column reads as carrying nothing) and from
-  `#onAfterUpdateSettings` when the payload carries `columns`.
+  grid. On the first enable it runs from `afterInit`, NOT inline in `enablePlugin()`: that first
+  enable runs on `afterPluginsInitialized`, where the column meta layer is not resolvable yet and
+  every column reads as carrying nothing. Any later enable scans inline (see the bullet above), and
+  `#onAfterUpdateSettings` scans again when the payload carries `columns`.
 - **The option's `@configScope` is `grid columns`, and it cannot be widened.** `getColumnMeta()` reads
   the COLUMN meta layer, which the `cells` function and the `cell` option never reach — they write on
   the cell layer below it. `optionLevels.unit.js` enforces that listing `cells` also lists `cell`, so
@@ -238,6 +273,14 @@ captured when the plugin is enabled.
 - Date and time conditions parse BOTH the cell value and the user input with `parseToLocalDate()`/`parseToLocalTime()` (`helpers/dateTime.ts`), which accept **only strict ISO strings** (`YYYY-MM-DD` / `HH:mm[:ss]`) and return `null` otherwise — a `null` makes the condition reject every row. Never feed these parsers locale-formatted text.
 - A condition descriptor's `inputType` (`'date'` / `'time'`) controls the native input type rendered in the menu: `ConditionComponent` applies it via `InputUI.setType()` on condition select and on saved-state restore. A condition with inputs that expects ISO date/time values MUST declare `inputType`, or users get a free-text field whose locale-formatted input never matches.
 - `InputUI` syncs its value on `keyup`, `input`, AND `change`. A value picked from the native date/time calendar fires no `keyup` — do not remove the `input`/`change` hooks.
+
+## Server-backed filtering is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `filters` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+## A failed server fetch rolls back only the view on screen
+
+`#onAfterDataProviderFetchError` skips the rollback when the hook's third argument, `isVisible`, is `false`: that failure belongs to a view the grid does not show, and importing `#dataProviderFilterRollbackStack` would replace the visible view's conditions while its rows stay filtered. When DataProvider's owner changes the view, DataProvider calls the internal `_resetDataProviderRollback()` (`@private`, not API; a no-op while this plugin is disabled) — after the change and again after replaying the arriving view's response — so the stack holds the arriving view's own conditions. Otherwise it is left by the last server filter action in ANY view, and a page-change failure on the arriving view imported the previous view's conditions. The reset sets `#previousConditionStack` to the conditions on screen too, because `#filterInternal` rebuilds the rollback stack from it at the start of every filter pass, and a switch between two unfiltered views runs no pass at all — without it, the first failed server filter on the arriving view rolled back to the previous view's conditions. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
 
 ## Where to look next
 

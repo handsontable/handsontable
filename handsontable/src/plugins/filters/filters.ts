@@ -24,8 +24,19 @@ import {
   createArrayAssertion,
   getPinnedPhysicalRows,
   toEmptyString,
+  warnAboutInvalidColumnAvailableConditions,
   warnAboutPerColumnFilterSettings,
+  warnAboutUnavailableCondition,
+  warnAboutUnknownCondition,
+  warnAboutUnknownConditionsDataType,
 } from './utils';
+import type { AvailableConditions } from './availableConditions';
+import {
+  findAvailableConditionsProblems,
+  findOffListNames,
+  isAvailableConditionsSetting,
+  resolveAvailableConditionsRule,
+} from './availableConditions';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
@@ -34,7 +45,9 @@ import {
   CONDITION_BY_VALUE,
   OPERATION_AND,
   OPERATION_OR,
-  OPERATION_OR_THEN_VARIABLE
+  OPERATION_OR_THEN_VARIABLE,
+  TYPES,
+  getConditionListType,
 } from './constants';
 import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
@@ -70,10 +83,29 @@ export interface FiltersSettings {
    * `false` leaves the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of the filter.
    */
   filterFixedRows?: boolean;
+  /**
+   * The operators the "Filter by condition" lists offer: an allow-list, `{ exclude }`, or one rule
+   * per data type.
+   */
+  availableConditions?: AvailableConditions;
+}
+
+/**
+ * The `filters` object accepted inside `columns`. Only `availableConditions` is read per column; the
+ * other settings are resolved once for the whole grid.
+ */
+export interface FiltersColumnSettings {
+  /**
+   * The operators this column's "Filter by condition" lists offer. Replaces the grid-level value.
+   */
+  availableConditions?: AvailableConditions;
 }
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
+const AVAILABLE_CONDITIONS_KEY = 'availableConditions';
+const DATA_TYPES = Object.keys(TYPES);
+const KNOWN_CONDITION_NAMES = new Set(Object.values(TYPES).flat().filter(name => name !== SEPARATOR));
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
@@ -120,10 +152,14 @@ function isAppliedConditionsState(value: unknown): value is AppliedConditionsSta
  * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
  * | `searchMode`      | `'show'`: Filter only the values shown in the list<br>`'apply'`: Apply the search term as the filter                                                         |
  * | `filterFixedRows` | `true`: Filter the whole dataset, including the frozen rows<br>`false`: Leave the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of the filter<br>Grid-level only |
+ * | `availableConditions` | The operators the **Filter by condition** lists offer: an array of condition names, `{ exclude: [...] }`, or an object keyed by data type<br>Grid level and column level |
  *
  * To turn filtering off for a single column, set `filters` to `false` for that column in the
  * `columns` option. That hides the filter controls in the column's dropdown menu; the API is
  * unaffected, so {@link Filters#addCondition} still filters the column.
+ *
+ * To choose the operators one column offers, set `filters: { availableConditions: [...] }` for that
+ * column in the `columns` option. It replaces the grid-level `availableConditions` for that column.
  *
  * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
  *
@@ -151,6 +187,22 @@ function isAppliedConditionsState(value: unknown): value is AppliedConditionsSta
  *   columns: [
  *     { filters: false },
  *     {},
+ *   ],
+ * });
+ *
+ * // remove "Is not between" from numeric columns, and offer three operators in the first column
+ * const hot3 = new Handsontable(container3, {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   dropdownMenu: true,
+ *   filters: {
+ *     availableConditions: {
+ *       numeric: { exclude: ['not_between'] },
+ *     },
+ *   },
+ *   columns: [
+ *     { filters: { availableConditions: ['eq', 'contains', 'empty'] } },
+ *     { type: 'numeric' },
  *   ],
  * });
  * ```
@@ -206,6 +258,7 @@ export class Filters extends BasePlugin {
     return {
       searchMode: 'show',
       filterFixedRows: FILTER_FIXED_ROWS_DEFAULT,
+      availableConditions: undefined,
     };
   }
 
@@ -216,6 +269,7 @@ export class Filters extends BasePlugin {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
       filterFixedRows: (value: unknown) => typeof value === 'boolean',
+      availableConditions: (value: unknown) => isAvailableConditionsSetting(value),
     };
   }
 
@@ -300,12 +354,6 @@ export class Filters extends BasePlugin {
   #dataProviderFilterRollbackStack: ColumnConditions[] = [];
 
   /**
-   * Indicates if the DataProvider plugin is active.
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
    * Memoized result of `#getPinnedRows()`, or `undefined` while nothing is memoized.
    *
    * Resolving the pinned rows walks every physical row against the other plugins' trimming maps,
@@ -372,6 +420,35 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Makes the conditions on screen the ones a failed DataProvider fetch rolls back to. The DataProvider plugin
+   * calls it when the view the grid shows changes: the rollback target is otherwise whatever the last server
+   * filter action left, possibly in another view. The conditions on screen also become the previous ones the next
+   * filter pass starts from, since that pass derives its rollback target from them. Does nothing while this plugin
+   * is disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _resetDataProviderRollback(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#previousConditionStack = this.exportConditions();
+    this.#dataProviderFilterRollbackStack = this.exportConditions();
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
    * Whether this grid exempts its frozen rows from filtering at all.
    *
    * Deliberately separate from "how many rows are pinned right now": those counts are zero both
@@ -384,7 +461,7 @@ export class Filters extends BasePlugin {
   #isFixedRowExemptionActive(): boolean {
     // A data provider filters server-side, and the request carries no notion of a pinned row, so
     // exempting rows locally would only make the grid disagree with the server's own result.
-    return !this.#isDataProviderActive && this.getSetting('filterFixedRows') === false;
+    return !this.#isDataProviderActive() && this.getSetting('filterFixedRows') === false;
   }
 
   /**
@@ -549,6 +626,20 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Gets the `filters` value a column declares itself, or `undefined` when it declares none.
+   *
+   * Only an OWN property of the column meta is a per-column answer. Column meta inherits from the
+   * grid meta through the prototype chain, so a plain read would also see the grid-level `filters`
+   * value - and report every column as opted out on a grid built with `filters: false` whose plugin
+   * was switched on afterwards through `enablePlugin()`.
+   */
+  #getOwnColumnSettings(visualColumn: number): unknown {
+    const columnMeta = this.hot.getColumnMeta(visualColumn) as Record<string, unknown>;
+
+    return hasOwnProperty(columnMeta, PLUGIN_KEY) ? columnMeta[PLUGIN_KEY] : undefined;
+  }
+
+  /**
    * Writes the trimming map from the current conditions, with the pinned rows exempt, records the
    * exempted set, and answers whether any row is left visible. Must run inside `#runTrimmingPass()`.
    */
@@ -624,11 +715,7 @@ export class Filters extends BasePlugin {
   /**
    * Whether a column takes part in filtering at all.
    *
-   * Only an OWN property of the column meta answers this. Column meta inherits from the grid meta
-   * through the prototype chain, so a plain read would also see the grid-level `filters` value -
-   * and report every column as opted out on a grid built with `filters: false` whose plugin was
-   * switched on afterwards through `enablePlugin()`. Whether the plugin runs at all is
-   * `BasePlugin`'s question, not this one's.
+   * Whether the plugin runs at all is `BasePlugin`'s question, not this one's.
    *
    * @private
    */
@@ -637,38 +724,99 @@ export class Filters extends BasePlugin {
       return true;
     }
 
-    const columnMeta = this.hot.getColumnMeta(visualColumn) as Record<string, unknown>;
-
-    if (!hasOwnProperty(columnMeta, PLUGIN_KEY)) {
-      return true;
-    }
-
-    return columnMeta[PLUGIN_KEY] !== false;
+    return this.#getOwnColumnSettings(visualColumn) !== false;
   }
 
   /**
-   * Warns once per grid when a column carries a `filters` settings OBJECT, which is ignored.
+   * Warns once per grid about per-column `filters` objects and `availableConditions` values that do
+   * not do what they say.
    *
-   * Scanned over every column rather than raised from the visibility check, so a grid with no
-   * dropdown menu, or a column whose menu is never opened, still gets the message – the docs
-   * promise it is logged once per grid, not once per menu opening. A visibility predicate is also
-   * the wrong place for a side effect.
+   * Scanned over every column rather than raised from the visibility check or a menu opening, so a
+   * grid with no dropdown menu, or a column whose menu is never opened, still gets the message – the
+   * docs promise it is logged once per grid, not once per menu opening. A visibility predicate is
+   * also the wrong place for a side effect.
    *
    * @private
    */
   #warnAboutPerColumnSettingsObjects = () => {
     const columnCount = this.hot.countCols();
 
+    this.#warnAboutAvailableConditionsProblems(this.getSetting(AVAILABLE_CONDITIONS_KEY));
+
     for (let visualColumn = 0; visualColumn < columnCount; visualColumn++) {
-      const columnMeta = this.hot.getColumnMeta(visualColumn) as Record<string, unknown>;
+      const columnSettings = this.#getOwnColumnSettings(visualColumn);
 
-      if (hasOwnProperty(columnMeta, PLUGIN_KEY) && isObject(columnMeta[PLUGIN_KEY])) {
-        warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
-
-        return;
+      if (isObject(columnSettings)) {
+        this.#warnAboutColumnSettingsObject(columnSettings as Record<string, unknown>);
       }
+
+      this.#warnAboutOffListConditions(visualColumn);
     }
   };
+
+  /**
+   * Warns about one per-column `filters` object.
+   *
+   * It is read for `availableConditions` only. An object with any other key, or with no key at all,
+   * warns, because it does nothing there. An invalid `availableConditions` value warns too, because
+   * the column then falls back to the grid-level one.
+   */
+  #warnAboutColumnSettingsObject(settings: Record<string, unknown>) {
+    const keys = Object.keys(settings);
+
+    if (keys.length === 0 || keys.some(key => key !== AVAILABLE_CONDITIONS_KEY)) {
+      warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
+    }
+
+    if (!hasOwnProperty(settings, AVAILABLE_CONDITIONS_KEY)) {
+      return;
+    }
+
+    const value = settings[AVAILABLE_CONDITIONS_KEY];
+
+    if (isAvailableConditionsSetting(value)) {
+      this.#warnAboutAvailableConditionsProblems(value);
+    } else {
+      warnAboutInvalidColumnAvailableConditions(this.hot.rootElement, PLUGIN_KEY);
+    }
+  }
+
+  /**
+   * Warns about the condition names no data type offers, and the per-type keys no list exists for,
+   * in a valid `availableConditions` value.
+   */
+  #warnAboutAvailableConditionsProblems(setting: unknown) {
+    findAvailableConditionsProblems(setting, TYPES, SEPARATOR).forEach((problem) => {
+      if (problem.kind === 'unknownName') {
+        warnAboutUnknownCondition(this.hot.rootElement, problem.name);
+      } else {
+        warnAboutUnknownConditionsDataType(this.hot.rootElement, problem.dataType, DATA_TYPES);
+      }
+    });
+  }
+
+  /**
+   * Warns about the allow-listed conditions that exist, but not in the list a column uses.
+   *
+   * The column's type is read from its column meta, not from every cell as the menu does, because
+   * this runs for every column on every scan.
+   */
+  #warnAboutOffListConditions(visualColumn: number) {
+    const setting = this._getAvailableConditions(visualColumn);
+
+    if (setting === undefined) {
+      return;
+    }
+
+    const { type } = this.hot.getColumnMeta(visualColumn);
+    const columnType = typeof type === 'string' ? type : 'text';
+    const listType = getConditionListType(columnType);
+    const rule = resolveAvailableConditionsRule(setting, listType);
+
+    findOffListNames(rule, TYPES[listType], SEPARATOR)
+      .filter(name => KNOWN_CONDITION_NAMES.has(name))
+      .forEach(name => warnAboutUnavailableCondition(this.hot.rootElement, name, columnType, listType));
+  }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -688,8 +836,6 @@ export class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
-
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
@@ -758,7 +904,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
-        hiddenWhen: () => this.#isDataProviderActive || hiddenForColumn(),
+        hiddenWhen: () => this.#isDataProviderActive() || hiddenForColumn(),
       })));
     }
 
@@ -862,9 +1008,15 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
-    // Deferred to `afterInit`: `enablePlugin()` runs on `afterPluginsInitialized`, where the column
-    // meta layer is not resolvable yet and every column reads as carrying nothing.
-    this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
+    // On the first enable this runs on `afterPluginsInitialized`, before the view exists, where the
+    // column meta layer is not resolvable yet and every column reads as carrying nothing - so the scan
+    // waits for `afterInit`. Any later enable (`updatePlugin()`, a direct `enablePlugin()` call, the
+    // off-to-on `updateSettings()` path) comes after `afterInit` has fired, so it scans right away.
+    if (this.hot.view) {
+      this.#warnAboutPerColumnSettingsObjects();
+    } else {
+      this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
+    }
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -1342,7 +1494,7 @@ export class Filters extends BasePlugin {
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
-    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive()) {
       return;
     }
 
@@ -1550,7 +1702,7 @@ export class Filters extends BasePlugin {
     navigableHeaders: boolean | undefined, needToFilter: boolean, conditions: ColumnConditions[]
   ): void {
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
 
@@ -1591,7 +1743,7 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap?.clear();
 
-    } else if (this.#isDataProviderActive) {
+    } else if (this.#isDataProviderActive()) {
       this.#previousConditionStack = this.exportConditions();
 
     } else {
@@ -1911,7 +2063,7 @@ export class Filters extends BasePlugin {
    * @param {boolean} firstRun `true` for the initial data load.
    */
   #onAfterUpdateData = (_data: unknown, firstRun: boolean) => {
-    if (firstRun || this.#isDataProviderActive || !this.conditionCollection) {
+    if (firstRun || this.#isDataProviderActive() || !this.conditionCollection) {
       return;
     }
 
@@ -1985,9 +2137,19 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * After dataProvider fetch error listener.
+   * After dataProvider fetch error listener. Rolls the conditions back to the state before the failed server
+   * filter. A failed fetch made for a view the grid no longer shows (`isVisible` is `false`) changes nothing: the
+   * conditions on screen belong to the view the grid shows.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
    */
-  #onAfterDataProviderFetchError = () => {
+  #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible === false) {
+      return;
+    }
+
     this.importConditions(this.#dataProviderFilterRollbackStack);
   };
 
@@ -2138,7 +2300,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive) {
+      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive()) {
         this.conditionCollection?.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -2231,6 +2393,32 @@ export class Filters extends BasePlugin {
   };
 
   /**
+   * Gets the `availableConditions` setting that applies to a column.
+   *
+   * A valid value in the column's own `filters` object wins, and replaces the grid-level one for
+   * that column. Otherwise the grid-level value applies. An invalid column value is ignored here;
+   * the warning comes from the column scan, not from this read.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {Array|object|undefined}
+   */
+  _getAvailableConditions(column: number): unknown {
+    const columnSettings = this.#getOwnColumnSettings(column);
+
+    if (isObject(columnSettings) && hasOwnProperty(columnSettings as object, AVAILABLE_CONDITIONS_KEY)) {
+      const value = (columnSettings as Record<string, unknown>)[AVAILABLE_CONDITIONS_KEY];
+
+      // An own `undefined` (a wrapper prop left unset) means "not set", so the grid-level value applies.
+      if (value !== undefined && isAvailableConditionsSetting(value)) {
+        return value;
+      }
+    }
+
+    return this.getSetting(AVAILABLE_CONDITIONS_KEY);
+  }
+
+  /**
    * Gets the values the "filter by value" list of a column is built from.
    *
    * A column that carries conditions of its own reads the rows that survive the conditions of the
@@ -2250,7 +2438,7 @@ export class Filters extends BasePlugin {
 
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
-    if (stackPosition === -1 || this.#isDataProviderActive) {
+    if (stackPosition === -1 || this.#isDataProviderActive()) {
       const visibleValues = this.hot.getDataAtCol(column);
       // The SAME physical set the has-conditions branch below uses, translated per row rather than
       // dropped by position. Two different ways of deciding "pinned" made the two branches disagree

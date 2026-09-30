@@ -71,6 +71,18 @@ export class SheetsBarPage {
     return this.columnHeader(col).locator('span.colHeader');
   }
 
+  async selected(): Promise<number[][] | null> {
+    return this.page.evaluate(() => (window as never as { hot: any }).hot.getSelected() ?? null);
+  }
+
+  async isEditorOpened(): Promise<boolean> {
+    return this.page.evaluate(() => !!(window as never as { hot: any }).hot.getActiveEditor()?.isOpened());
+  }
+
+  async dataAtCell(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => (window as never as { hot: any }).hot.getDataAtCell(r, c), [row, col]);
+  }
+
   async clickTab(index: number): Promise<void> {
     await this.tab(index).locator('.ht-sheets-bar__tab-label').click();
   }

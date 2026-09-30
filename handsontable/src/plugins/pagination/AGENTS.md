@@ -167,6 +167,16 @@ sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-
 `.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
 added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
 
+## Server-backed paging is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `pagination` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whenever it finds no DataProvider backing the grid. Without that, a `dataProvider` removed and added again through `updateSettings()` pages by the old server's total until the new `fetchRows` lands, and keeps it if that fetch fails.
+
+## The server total belongs to the view it came from
+
+DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
 ## Where to look next
 
 - The plugins it hard-conflicts with: `../nestedRows/AGENTS.md`, `../mergeCells/AGENTS.md`.

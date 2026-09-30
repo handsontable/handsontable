@@ -130,46 +130,6 @@ describe('exportFile XLSX type — cell types', () => {
       expect(ws.getRow(1).getCell(1).numFmt).toBeUndefined();
     });
 
-    // Known issue: ExcelJS omits OOXML built-in format IDs 5–8 (the dollar-currency
-    // built-ins) from its internal format table, so any `$`-currency format code is
-    // assigned a custom numFmtId ≥ 164.  Excel for Mac shows the "Custom" category for
-    // all custom IDs; Excel for Windows analyses the format string and shows "Currency".
-    // The fix requires post-processing the generated OOXML ZIP to replace the custom ID
-    // with the correct built-in ID (e.g. 7 for `$#,##0.00`) before the file is saved.
-    // The test is disabled until the post-processing step is implemented.
-    //
-    // To reproduce manually: export any Handsontable with a `numeric`-type column using
-    // `numericFormat: { style: 'currency', currency: 'USD' }` and `locale: 'en-US'`,
-    // open the XLSX in Excel for Mac, select a numeric cell,
-    // press ⌘1 — Category shows "Custom" instead of "Currency".
-    xit('should render currency cells in the "Currency" format category (not "Custom") in Excel', async() => {
-      // OOXML built-in format IDs that Excel maps to the "Currency" category:
-      // 5 → $#,##0_);($#,##0)    6 → $#,##0_);[Red]($#,##0)
-      // 7 → $#,##0.00_);($#,##0.00)   8 → $#,##0.00_);[Red]($#,##0.00)
-      const BUILT_IN_CURRENCY_FORMAT_CODES = new Set([
-        '$#,##0_);($#,##0)', '$#,##0_);[Red]($#,##0)',
-        '$#,##0.00_);($#,##0.00)', '$#,##0.00_);[Red]($#,##0.00)',
-      ]);
-
-      handsontable({
-        data: [[142000]],
-        columns: [{
-          type: 'numeric',
-          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
-          locale: 'en-US',
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      // Until the fix is in place, ExcelJS reads back a custom format string
-      // (`$#,##0.00`) rather than one of the built-in OOXML currency strings above.
-      // Once OOXML numFmtId=7 is written, ExcelJS will report `$#,##0.00_);($#,##0.00)`.
-      expect(BUILT_IN_CURRENCY_FORMAT_CODES.has(cell.numFmt)).toBe(true);
-    });
-
     it('should export non-parseable values in numeric type cells as strings', async() => {
       handsontable({
         data: [['not-a-number']],

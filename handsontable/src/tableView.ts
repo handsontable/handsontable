@@ -709,6 +709,12 @@ class TableView {
       // function did not return until here, we have an outside click!
       this.#outsideClickHandled = true;
 
+      if (this.hot.getFocusManager().isPathOutsideClickExempt(eventPath)) {
+        this.hot.destroyEditor(false, false);
+
+        return;
+      }
+
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
         this.settings.outsideClickDeselects(originalTarget as HTMLElement) :
         this.settings.outsideClickDeselects;
@@ -1012,6 +1018,10 @@ class TableView {
       preventOverflow: () => this.settings.preventOverflow,
       layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
       heightFollowsContent: () => this.#isHeightContentDriven(),
+      // The same `height: 'auto'` makes the grid a plain block whose width is its root element's. Before
+      // #13381 it also clipped the root, so the root sized the holder on both axes; now an ancestor that
+      // owns the horizontal axis sizes it, and the engine keeps it inside the root's own box.
+      widthFollowsRoot: () => this.#isHeightContentDriven(),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -2155,18 +2165,17 @@ class TableView {
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendRowHeader(visualRowIndex: number, TH: HTMLTableCellElement) {
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const rowHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      if (!hasClass(container, 'relative')) {
-        empty(TH);
-        this.appendRowHeader(visualRowIndex, TH);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !rowHeader) {
+      empty(TH);
+    }
 
-        return;
-      }
-
-      this.updateCellHeader(
-        container.querySelector<HTMLElement>('.rowHeader')!, visualRowIndex, this.hot.getRowHeader);
+    if (rowHeader) {
+      this.updateCellHeader(rowHeader, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -2217,20 +2226,20 @@ class TableView {
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
 
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const colHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.colHeader') : null;
 
-      if (hasClass(container, 'relative')) {
-        this.updateCellHeader(
-          container.querySelector<HTMLElement>('.colHeader')!, visualColumnIndex, label, headerLevel);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !colHeader) {
+      empty(TH);
+    }
 
-        container.className = '';
-        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
+    if (container && colHeader) {
+      this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
 
-      } else {
-        empty(TH);
-        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
-      }
+      container.className = '';
+      addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
     } else {
       const { rootDocument } = this.hot;
@@ -2750,6 +2759,12 @@ class TableView {
    * writes on the root as inline `height: auto`. The engine reads it to keep the holder at `auto`
    * inside an ancestor that clips or scrolls but has no height of its own, where sizing the holder
    * to that ancestor collapses the grid to 0px (DEV-3062).
+   *
+   * It is also the answer to the engine's `widthFollowsRoot`. Without a definite `width`, such a root
+   * clips neither axis, so the nearest ancestor that clips or scrolls owns the horizontal axis, with or
+   * without a height of its own. That ancestor can be wider than the grid (its padding, a padded
+   * wrapper, a relative `width`), and a holder as wide as the ancestor was cut at the grid's
+   * inline-end edge (DEV-3107).
    *
    * @returns {boolean}
    */
