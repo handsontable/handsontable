@@ -120,13 +120,26 @@ back into a reference, and `getCellDependents()` cannot list references into a s
 call that can rewrite references runs through `#trackPeerRewrites()`: before the call it lists the
 candidates (peer-sheet cells whose formula text, lowercased, names this sheet, plus every named
 expression in the global scope and every sheet scope), after it re-reads them, and the text that
-changed goes into `#pendingPeerRewrites` (first `before`, last `after` per key). Four rules:
+changed goes into `#pendingPeerRewrites` (first `before`, last `after` per key). Five rules:
 
-- **It costs nothing on a single grid.** The probe runs only while a step is recording
-  (`getRecordingTransaction() !== null`) and the engine holds another sheet or a named expression.
-  Sorts and the restore's identity reset go through `setRowOrder`, which never rewrites peers, so
-  they are not wrapped. Wrapped: `addRows`, `addColumns`, the removal batches, the `moveCells`
-  batch, and the `calculateAndSyncMoves` calls (`moveRows` is add + move + remove in HyperFormula).
+- **It costs nothing on a single-sheet engine, and one scan per changed peer sheet otherwise.** The
+  probe runs only while a step is recording (`getRecordingTransaction() !== null`) and the engine
+  holds another sheet or a named expression. Reading a peer sheet's formulas is the whole cost -
+  measured about 35 ms for ten value-only sheets of 100k cells, 52 ms with a formula in one cell of
+  ten - so `#sheetsNotNamingOwnSheet` remembers the sheets a scan found with no formula naming this
+  one and skips them. An entry goes away when `valuesUpdated` reports any cell of that sheet
+  (HyperFormula reports every cell whose content is set, even when its value does not change, and a
+  new formula's first value always differs from none); the set is cleared on `sheetRenamed`,
+  `sheetRemoved`, enable, and a new own sheet. It is not used while `isEvaluationSuspended()`,
+  because the engine holds its events back then. Sorts and the restore's identity reset go through
+  `setRowOrder`, which never rewrites peers, so they are not wrapped. Wrapped: `addRows`,
+  `addColumns`, the removal batches, the `moveCells` batch, and the `calculateAndSyncMoves` calls
+  (`moveRows` is add + move + remove in HyperFormula).
+- **A quoted sheet name is matched in both forms.** HyperFormula writes `O'Brien` as
+  `'O''Brien'!A1`, so the text is searched for the name as typed and with every `'` doubled. A named
+  expression scoped to a sheet that was removed since is skipped on restore:
+  `getNamedExpressionFormula()` throws for a removed scope, inside `engine.batch()`, which left the
+  undo half-applied.
 - **`captureState()` takes the pending rewrites into the state** and never returns `previous` while
   any are pending. `restoreState()` reads them from `context.other` on undo and from `state` on redo,
   and writes a text back only when the current text is still the one the step left - a formula
@@ -134,7 +147,10 @@ changed goes into `#pendingPeerRewrites` (first `before`, last `after` per key).
 - **The peer grid's source data follows.** `#syncPeerSources()` finds the other grid through
   `getRegisteredHotInstances()`, checks `peer instanceof Formulas` (a grid from a second bundle is
   another class, and the `#` access would throw), and writes the engine's formulas into its source
-  inside `suppress()`, so that grid gets no step of its own.
+  inside `suppress()`, so that grid gets no step of its own. It writes only the rewritten cells
+  (`#syncFormulasToSourceData(true, cells)`), because it allows `#REF!`: a whole-sheet write would
+  also persist a `#REF!` the peer's engine holds for another reason, which `REF_ERROR_PATTERN`
+  exists to keep out of the developer's array.
 - **Limits:** a formula written in another grid after the step is not adjusted by the undo; a later
   structural change in the other grid can move the recorded address (the content guard catches
   most); a sorted peer gets its engine updated but not its source written.

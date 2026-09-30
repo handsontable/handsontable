@@ -650,7 +650,7 @@ export class Filters extends BasePlugin {
    * Warns once per grid when a column carries a `filters` settings OBJECT, which is ignored.
    *
    * Scanned over every column rather than raised from the visibility check, so a grid with no
-   * dropdown menu, or a column whose menu is never opened, still gets the message - the docs
+   * dropdown menu, or a column whose menu is never opened, still gets the message – the docs
    * promise it is logged once per grid, not once per menu opening. A visibility predicate is also
    * the wrong place for a side effect.
    *
@@ -1459,7 +1459,7 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Returns the conditions the grid is filtered by - the ones the last `filter()` call applied, not
+   * Returns the conditions the grid is filtered by – the ones the last `filter()` call applied, not
    * the ones edited since. Undo and redo restore these, so undoing a filter also drops the conditions
    * that were added for it.
    *

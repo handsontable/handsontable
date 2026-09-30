@@ -2,8 +2,8 @@ import type { JournalOp } from '../dataMap/dataJournal';
 
 /**
  * One user action, from the first mutating call to the moment it settles. Every operation that runs
- * while it is open - a nested `setDataAtCell`, an `alter` inside a `batch`, the rows `minSpareRows`
- * adds behind a paste - joins it instead of opening one of its own, so the action is recorded as a
+ * while it is open – a nested `setDataAtCell`, an `alter` inside a `batch`, the rows `minSpareRows`
+ * adds behind a paste – joins it instead of opening one of its own, so the action is recorded as a
  * single step.
  */
 export interface OperationTransaction {
@@ -34,7 +34,7 @@ export interface OperationTransaction {
   readonly journal: JournalOp[];
   /**
    * Public details the outermost operation attached to the transaction (see
-   * `OperationScope#describe`) - for example the index an `alter()` call was given. UndoRedo hands
+   * `OperationScope#describe`) – for example the index an `alter()` call was given. UndoRedo hands
    * them to its hooks as fields of the undo step.
    */
   readonly details: Record<string, unknown>;
@@ -79,7 +79,7 @@ const DETACHED_HOLD: OperationHold = Object.freeze({
 });
 
 /**
- * Groups the grid's mutating operations into transactions - one per user action.
+ * Groups the grid's mutating operations into transactions – one per user action.
  *
  * Core opens an operation in each mutating entry point (`setDataAtCell`, `alter`, `setCellMeta`,
  * `batch`, ...) and plugins open one in each public mutator. The first operation opens a
@@ -88,7 +88,9 @@ const DETACHED_HOLD: OperationHold = Object.freeze({
  * settles only once the change has been applied.
  *
  * The scope never swallows an error: an operation that throws marks the transaction as aborted and
- * still closes it, so a failed operation cannot leave the scope stuck open.
+ * still closes it, so a failed operation cannot leave the scope stuck open. A continuation that throws
+ * settles its transaction without waiting for the transaction's other holds, which may never be
+ * released; a hold of it resumed later runs as an operation of its own.
  */
 export class OperationScope {
   /**
@@ -122,6 +124,21 @@ export class OperationScope {
    * The transactions that settled, so none settles twice.
    */
   #settled = new WeakSet<OperationTransaction>();
+  /**
+   * The transactions whose continuation threw. Another hold of such a transaction may never be
+   * released – a validator that throws never leaves the validators queue, so the change waiting for
+   * the queue never resumes – so it settles as soon as none of its operations runs.
+   */
+  #broken = new WeakSet<OperationTransaction>();
+  /**
+   * The order each journal entry was recorded in, across every transaction – what puts the entries of
+   * two transactions that ran interleaved back into one sequence.
+   */
+  #entryOrder = new WeakMap<JournalOp, number>();
+  /**
+   * The order the next journal entry gets.
+   */
+  #nextEntryOrder = 1;
   /**
    * The hold handed out while the scope is suppressed. Its continuation runs suppressed too: an
    * asynchronous continuation keeps the recording context of the call that started it, so a validator
@@ -191,11 +208,49 @@ export class OperationScope {
    * @param {object} journalOp The entry to append.
    */
   record(journalOp: JournalOp) {
-    this.getRecordingTransaction()?.journal.push(journalOp);
+    const transaction = this.getRecordingTransaction();
+
+    if (transaction !== null) {
+      this.append(transaction, journalOp);
+    }
   }
 
   /**
-   * Attaches public details to the open transaction - but only when called from the outermost
+   * Appends a journal entry to a transaction and stamps the order it was recorded in.
+   *
+   * @param {OperationTransaction} transaction The transaction.
+   * @param {object} journalOp The entry to append.
+   */
+  append(transaction: OperationTransaction, journalOp: JournalOp) {
+    transaction.journal.push(journalOp);
+    this.#entryOrder.set(journalOp, this.#nextEntryOrder);
+    this.#nextEntryOrder += 1;
+  }
+
+  /**
+   * Returns the order a journal entry was recorded in, across every transaction.
+   *
+   * @param {object} journalOp The entry.
+   * @returns {number} `0` for an entry this scope did not record.
+   */
+  getEntryOrder(journalOp: JournalOp): number {
+    return this.#entryOrder.get(journalOp) ?? 0;
+  }
+
+  /**
+   * Tells whether no journal entry was recorded after the given one, in any transaction. A change may
+   * be merged into an earlier entry only then, or it would be replayed out of order when its step is
+   * put together with another transaction's.
+   *
+   * @param {object} journalOp The entry.
+   * @returns {boolean}
+   */
+  isLatestEntry(journalOp: JournalOp): boolean {
+    return this.#entryOrder.get(journalOp) === this.#nextEntryOrder - 1;
+  }
+
+  /**
+   * Attaches public details to the open transaction – but only when called from the outermost
    * operation itself. A nested operation describes nothing: the transaction is the outer action,
    * and the details of one of its parts (the index of an `alter()` inside a `batch()`) would
    * misdescribe it.
@@ -236,7 +291,7 @@ export class OperationScope {
   }
 
   /**
-   * Starts an operation. Each call must be matched by one `leave()` call - prefer `run()`.
+   * Starts an operation. Each call must be matched by one `leave()` call – prefer `run()`.
    *
    * @param {string} name The operation name.
    * @param {string|undefined} source The operation source.
@@ -310,10 +365,7 @@ export class OperationScope {
     }
 
     this.#stack.pop();
-
-    if (transaction.holds === 0) {
-      this.#settle(transaction);
-    }
+    this.#settleIfDone(transaction);
   }
 
   /**
@@ -344,6 +396,12 @@ export class OperationScope {
           return callback();
         }
 
+        // A transaction that settled early (its other continuation threw) is recorded already, so
+        // what arrives late is an operation of its own.
+        if (this.#settled.has(transaction)) {
+          return this.run(transaction.name, transaction.source, callback);
+        }
+
         return this.#runInside(transaction, callback);
       },
       release: () => {
@@ -353,16 +411,13 @@ export class OperationScope {
 
         released = true;
         transaction.holds -= 1;
-
-        if (transaction.holds === 0 && transaction.depth === 0) {
-          this.#settle(transaction);
-        }
+        this.#settleIfDone(transaction);
       },
     };
   }
 
   /**
-   * Runs the callback with nothing recorded and no transaction opened - used while a recorded state
+   * Runs the callback with nothing recorded and no transaction opened – used while a recorded state
    * is being restored, so the restore cannot record itself.
    *
    * @param {Function} callback The callback to run.
@@ -453,6 +508,7 @@ export class OperationScope {
     } finally {
       if (threw) {
         transaction.aborted = true;
+        this.#broken.add(transaction);
       }
 
       transaction.depth -= 1;
@@ -466,9 +522,19 @@ export class OperationScope {
       }
 
       // The last hold can be released inside its own continuation, while `depth` still counted it.
-      if (transaction.depth === 0 && transaction.holds === 0) {
-        this.#settle(transaction);
-      }
+      this.#settleIfDone(transaction);
+    }
+  }
+
+  /**
+   * Settles a transaction once none of its operations runs and no hold is left – or, for one whose
+   * continuation threw, once none of its operations runs.
+   *
+   * @param {OperationTransaction} transaction The transaction.
+   */
+  #settleIfDone(transaction: OperationTransaction) {
+    if (transaction.depth === 0 && (transaction.holds === 0 || this.#broken.has(transaction))) {
+      this.#settle(transaction);
     }
   }
 

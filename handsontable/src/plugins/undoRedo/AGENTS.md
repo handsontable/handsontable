@@ -42,12 +42,31 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    suppressed resumes suppressed (`OperationScope#hold()`), so the re-validation after a restore
    stays unrecorded. The no-validator branch takes no hold on purpose: Formulas validates dependents
    on every edit, and a hold there made every edit settle a tick later.
+   **A continuation that throws settles its transaction at once** (`OperationScope#broken`): a
+   validator that throws never leaves the `ValidatorsQueue`, so the hold of the change waiting for
+   the queue is never released, and a structural step would block undo for the grid's life. The step
+   is recorded with what it did before the throw (UndoRedo never reads `aborted`). A hold of it
+   resumed later runs as an operation of its own, never inside the settled transaction - the record
+   holds `transaction.journal` by reference, so an entry appended after the push would change a
+   recorded step.
+   **Commit order has one exception: a transaction that settles while another is held AFTER it
+   already journaled a change joins that one's step** (`#findHost()`, `#joined`). The host's early
+   changes (a `batch()` that removed a row before its validated edit) come before the other
+   transaction's and its later ones after, so undone apart, one of them replays at addresses the
+   other renumbered - a meta write on the row below a removal was undone at the post-removal row.
+   While such a host is pending, `#onTransactionOpen` neither moves `#lastState` nor runs the
+   structure check: the host's partial changes are its own, not changes made outside any step. The
+   joined journals are merged by the order their entries were recorded (`OperationScope#append()`
+   stamps every entry; `getEntryOrder()`), and a forward cell write merges into its last entry only
+   while that entry is still the latest recorded anywhere (`isLatestEntry()`). Two plain async
+   edits journal nothing until they resume, so they still stack in commit order.
 4. **Undo and redo wait for a pending structural step.** While a held transaction whose journal
    inserts or removes rows or columns waits for its validator (`#hasPendingStructuralStep()`),
-   `undo()` and `redo()` do nothing and `#onTransactionOpen` skips the structure check - the grid
-   has a shape no recorded state describes. A plain edit waiting for its validator blocks nothing.
-   Corner: a validator that never answers, in an operation that also changed rows or columns,
-   blocks undo until `loadData`/`updateData`.
+   `isUndoAvailable()`/`isRedoAvailable()` answer `false` and `undo()`/`redo()` do nothing - the
+   grid has a shape no recorded state describes. A call made then is dropped, not queued. A plain
+   edit waiting for its validator blocks nothing. Corner: a validator that never answers (as opposed
+   to one that throws), in an operation that also changed rows or columns, blocks undo until
+   `loadData`/`updateData`.
 5. **Each `writeChangesToData()` call journals its own cell run** (`ReversedCellRun`): it appends
    only while its own entry is still the last one. A nested write from `afterChange` therefore gets
    an entry of its own after the outer one, instead of being merged into the outer run's reversed
@@ -55,7 +74,7 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
 6. **`batchExecution()` is an operation like `batch()`** - everything inside it is one `'batch'` step.
 7. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
    the previous step ended in, read at settle time - so a step that committed while this one waited for
-   a validator is not undone together with it. A transaction with an empty journal and an unchanged
+   a validator is not undone together with it, unless it joined this one (step 3). A transaction with an empty journal and an unchanged
    snapshot is not recorded. `BLOCKED_SOURCES` (`UndoRedo.undo`, `UndoRedo.redo`, `auto`) are judged
    by the ROOT source only - a nested `auto` write inside a user action is part of that action's step.
 
@@ -88,7 +107,10 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
      every trim, and every map snapshot has another length after an insert or a removal, so identity
      cannot tell what the step changed. `readKeptFlags()` compares the flags before the step, moved
      through the journal, with the flags after it, and puts the live flags of each unchanged map back
-     last. A `trimRows` or `hiddenRows` settings update made after the step survives its undo.
+     last. A `trimRows` or `hiddenRows` settings update made after the step survives its undo. A map
+     whose only change was losing flagged rows the step removed counts as unchanged too
+     (`readRemovedFlags()`): its live flags are kept, and an undo flags the rows it brings back
+     (`restoredIndexes`), so the removed hidden row returns hidden and a later hide stays.
 5. **A veto** of any replayed row or column change reverts the replay and puts the grid back; the step
    stays on its stack, `beforeUndo` has fired and `afterUndo` does not. The stack hooks had already
    announced the pop, so the step goes back through a before/after pair of its own (`#putBackStep`):
@@ -210,10 +232,17 @@ replay of that removal brings the column back but not the rows.
 **A settings update is checked at once** (`#checkSettingsUpdate`, from `updatePlugin()` - `SETTING_KEYS`
 is `true`, so it runs for every `updateSettings()`). Three rules keep it cheap and correct:
 
-- **It runs only while no transaction is open and the history is not empty.** Inside a transaction
-  (`batch(() => updateSettings(...))`) the settle and the next open do the check, as before. With an
-  empty history there is nothing to protect, and the React wrapper calls `updateSettings()` on every
-  render, so the capture is skipped there.
+- **It runs only while no transaction is pending and the history is not empty.** While one is
+  (`batch(() => updateSettings(...))`, or an edit waiting for its validator), the next transaction to
+  open checks the row count and the map names, and the `columns` check is owed
+  (`#owesColumnsCheck`): it runs from `#onTransactionSettle` once the last pending transaction
+  settles, and `#columnProps` is not refreshed before it, so it still holds the fields the steps
+  were made on (a narrower `columns` would otherwise refresh it to the new fields and pass every
+  step). Without that, a field swap made while an edit was validated was never checked, and a
+  re-send of the same `columns` (a wrapper re-render) then dropped the steps. The pending step itself
+  goes when the update changed the column count: its states span the change. With an empty history
+  there is nothing to protect, and the React wrapper calls `updateSettings()` on every render, so
+  the capture is skipped there.
 - **A row count or index map names change drops everything, now** - `isUndoAvailable()` is accurate
   right after the update. A structural change made while recording is suppressed (from a hook) still
   waits for the next transaction.
@@ -245,13 +274,17 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   reset the order. A plugin uses it to apply only what the step changed, so a change made outside
   any step survives: MergeCells adds and removes only the merges that differ between `other` and
   `state` (and falls back to a full rebuild when `reordered` or when a merge to remove is not where
-  it was), Formulas reads the peer rewrites from `other` on undo. No context is passed when the
-  restore puts back a state no step changed.
+  it was, or when a merge to put back overlaps a live merge the step did not make), Formulas reads
+  the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
+  step changed.
 - `getStateColumns(state, other)` - the physical columns whose state differs between the two sides
   of a step, for the `columns` check above. `null` or no method means "cannot tell" and the step
-  drops. Pagination, NestedRows, and CustomBorders answer `[]`; Filters the columns whose conditions
-  differ; Formulas `[]` only for a data-only step in physical order. MergeCells, NestedHeaders, and
-  CollapsibleColumns have none.
+  drops, with every older one. Pagination, NestedRows, and CustomBorders answer `[]`; Filters the
+  columns whose conditions differ; Formulas `[]` only for a data-only step in physical order;
+  MergeCells the physical columns of the merges that differ (each captured merge carries
+  `physicalColumns`, since the anchor holds the first one only); NestedHeaders and
+  CollapsibleColumns `[]` (the membership changes only with moves, inserts and removals, which fail
+  on their own, and the columns a collapse hides are in the hiding maps, checked per column).
 - `captureSourceStructure(previous)` / `restoreSourceStructure(state)` - only for a plugin that
   reshapes the source array itself (NestedRows: the tree shape, by reference).
 
@@ -279,10 +312,16 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
 - While a Formulas grid is sorted or moved, every step that writes data re-serializes the engine sheet
   (O(cells) time; the unchanged rows share their arrays with the previous snapshot, so the memory
   grows with the rows that changed).
-- A `columns` update made inside an open transaction is not checked per step: the eager check skips
-  it, and once the step settles the lazy check sees no count change. Rare, and pre-existing.
 - An accessor function re-created on every render (an inline `data: row => ...` in React) reads as
-  another field, so each render drops the steps that address its column.
+  another field, so each render drops the steps that address its column. Documented in the guide's
+  known limitations and section 24.
+- A replayed removal that removes a different number of rows or columns than it recorded cannot be
+  taken back (`alterRuns()`): its rows are gone. Also in the guide's known limitations.
+- A settings update that changes the row count while a transaction that already journaled a change
+  is pending (a join host) is folded into that step's "after" state instead of dropping the history.
+- Every transaction that joins a host adds its names to the step's `operations` and `sources`, a
+  no-op one included (an AutoRowSize `batchExecution()` during a scroll reads as a `'batch'` entry).
+  Only a capture per settle could tell a no-op from a hide, which changes no journal either.
 
 ## Testing
 

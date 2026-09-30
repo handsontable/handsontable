@@ -184,6 +184,53 @@ describe('OperationScope', () => {
     expect(settled[0].aborted).toBe(true);
   });
 
+  // A validator that throws never leaves the validators queue, so the hold of the change waiting for
+  // the queue is never released. The transaction settles without it.
+  describe('when a continuation throws', () => {
+    let outer;
+    let inner;
+
+    beforeEach(() => {
+      scope.setJournaling(true);
+      scope.run('batch', 'edit', () => {
+        outer = scope.hold();
+        inner = scope.hold();
+        scope.record({ type: 'insertRows', physicalIndex: 0, amount: 1 });
+      });
+
+      expect(() => inner.resume(() => {
+        throw new Error('validator boom');
+      })).toThrow('validator boom');
+
+      inner.release();
+    });
+
+    it('should settle the transaction, aborted, without waiting for its other holds', () => {
+      expect(settled.length).toBe(1);
+      expect(settled[0].aborted).toBe(true);
+
+      outer.release();
+
+      expect(settled.length).toBe(1);
+    });
+
+    it('should run a hold resumed afterwards as an operation of its own', () => {
+      const late = outer.resume(() => {
+        scope.record({ type: 'insertRows', physicalIndex: 5, amount: 1 });
+
+        return scope.current();
+      });
+
+      outer.release();
+
+      expect(settled.length).toBe(2);
+      expect(settled[1]).toBe(late);
+      expect(late.name).toBe('batch');
+      expect(late.journal).toEqual([{ type: 'insertRows', physicalIndex: 5, amount: 1 }]);
+      expect(settled[0].journal).toEqual([{ type: 'insertRows', physicalIndex: 0, amount: 1 }]);
+    });
+  });
+
   it('should open no transaction and record nothing while suppressed', () => {
     scope.setJournaling(true);
 

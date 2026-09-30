@@ -300,6 +300,30 @@ describe('data journal', () => {
     expect(settled[0].journal[0].changes.map(change => change.prop)).toEqual([0, 1]);
   });
 
+  // UndoRedo merges the journals of two transactions that ran interleaved by the order their entries
+  // were recorded in, so a write must not join an entry another transaction recorded after.
+  it('should start a new forward entry once another transaction journaled after the last one', () => {
+    createJournalingGrid({ data: [['A1', 'B1']] });
+
+    const scope = hot._getOperationScope();
+    let hold;
+
+    scope.run('import', undefined, () => {
+      hold = scope.hold();
+      hot.setSourceDataAtCell(0, 0, 'x');
+    });
+    hot.setSourceDataAtCell(0, 1, 'y');
+    hold.resume(() => hot.setSourceDataAtCell(0, 1, 'z'));
+    hold.release();
+
+    const [other, held] = settled;
+    const orderOf = op => scope.getEntryOrder(op);
+
+    expect(held.journal.map(op => op.changes.map(change => change.newValue))).toEqual([['x'], ['z']]);
+    expect(orderOf(held.journal[0])).toBeLessThan(orderOf(other.journal[0]));
+    expect(orderOf(other.journal[0])).toBeLessThan(orderOf(held.journal[1]));
+  });
+
   /**
    * Waits for the microtask in which `validateCell` calls the validator.
    *

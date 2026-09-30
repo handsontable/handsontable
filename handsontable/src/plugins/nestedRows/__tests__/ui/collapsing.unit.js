@@ -53,4 +53,29 @@ describe('NestedRows collapsing UI', () => {
     expect(trimmedRows.get(1)).toBe(false);
     expect(trimmedRows.get(150000)).toBe(false);
   });
+
+  // Whether the spread above overflows depends on the engine's stack size, so the width of the widest
+  // `push()` call is measured too. A Jest spy cannot do it: it records each call with `push()` itself.
+  it('should add the rows of a subtree one `push()` argument at a time', () => {
+    const { collapsingUI } = collapsingUIWithChildren(2000);
+    const originalPush = Array.prototype.push;
+    let widestCall = 0;
+
+    // eslint-disable-next-line no-extend-native
+    Array.prototype.push = function(...items) {
+      widestCall = Math.max(widestCall, items.length);
+
+      return originalPush.apply(this, items);
+    };
+
+    try {
+      collapsingUI.collapseMultipleChildren([0]);
+      collapsingUI.expandMultipleChildren([0]);
+    } finally {
+      // eslint-disable-next-line no-extend-native
+      Array.prototype.push = originalPush;
+    }
+
+    expect(widestCall).toBeLessThan(100);
+  });
 });

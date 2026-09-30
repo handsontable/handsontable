@@ -221,9 +221,13 @@ of its own to capture. What the plugin owns is how many steps a user action make
   through `#saveEditorComment()`, which compares the text with `#commentValueBeforeSave` (the text at
   focus) and suppresses an unchanged save. The save itself still runs, so a new comment with no
   text is created exactly as before; only its undo step is gone.
-- **An undo refreshes an open editor** (`#onAfterUndoRedo`). Otherwise the editor keeps the text
-  from before the undo, and the next blur writes it back as a new step. The editor is hidden when its
-  cell is gone.
+- **An undo refreshes an open editor** (`#onAfterUndoRedo`) when it changed the comment of the
+  editor's cell. Otherwise the editor keeps the text from before the undo, and the next blur writes
+  it back as a new step. The editor is hidden when its cell is gone. The comment is read in
+  `beforeUndo`/`beforeRedo` (`#commentBeforeUndoRedo`), and an undo that left it as it was only
+  repositions the editor: an editor opened by **Add comment** on an empty cell holds text nobody
+  saved yet, and an API `undo()` of an unrelated step (from a timer, with no blur) closed it and
+  dropped the text.
 - **An undo that removes the comment under an open editor closes the editor without saving**
   (`#closeEditorWithoutSave()`). Hiding a focused editor fires a blur, and that blur saves: with the
   editor refreshed to `''` it wrote an empty comment, and with the old text left in it wrote the undone

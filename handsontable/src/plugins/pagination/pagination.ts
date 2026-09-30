@@ -714,7 +714,7 @@ export class Pagination extends BasePlugin {
   /**
    * Returns the current page and page size, for UndoRedo. The rows a page hides are not recorded:
    * the plugin rebuilds them from the restored page. A grid paged by a data provider records
-   * nothing - its pages come from the server.
+   * nothing – its pages come from the server.
    *
    * @private
    * @param {*} previous The value the previous capture returned.

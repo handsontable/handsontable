@@ -76,10 +76,16 @@ export default class StateManager {
    */
   #membershipOverridesVersion = 0;
   /**
-   * Advances on every `setState()` call - a new authored configuration. The membership overrides are
-   * keyed by that configuration, so a caller can tell they were recorded under another one.
+   * Advances on every `setState()` call with a configuration that differs from the previous one. The
+   * membership overrides and the collapsed groups are keyed by that configuration, so a caller can
+   * tell they were recorded under another one. A wrapper re-sends an unchanged configuration on every
+   * render, and that does not count as another one.
    */
   #configVersion = 0;
+  /**
+   * The configuration the last `setState()` call received, serialized, to tell a re-sent one apart.
+   */
+  #configKey: string | null = null;
   /**
    * Advances whenever the collapsed state of the tree may have changed: a node modification, and
    * every re-derive of the tree. A caller can then skip walking the tree when it did not move.
@@ -94,7 +100,13 @@ export default class StateManager {
    * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
    */
   setState(nestedHeadersSettings: unknown[][]) {
-    this.#configVersion += 1;
+    const configKey = JSON.stringify(nestedHeadersSettings) ?? null;
+
+    if (configKey === null || configKey !== this.#configKey) {
+      this.#configVersion += 1;
+    }
+
+    this.#configKey = configKey;
     this.#sourceSettings.setData(nestedHeadersSettings);
     // A fresh authored configuration invalidates move-driven membership overrides (their owner
     // identities index the previous structure), so reset them.
@@ -156,7 +168,7 @@ export default class StateManager {
   }
 
   /**
-   * Returns a number that changes on every `setState()` call.
+   * Returns a number that changes on every `setState()` call with another configuration.
    *
    * @returns {number}
    */
@@ -175,7 +187,7 @@ export default class StateManager {
   }
 
   /**
-   * Returns every collapsed header group, by header level and authored group identity - stable
+   * Returns every collapsed header group, by header level and authored group identity – stable
    * across column moves, unlike a visual column index. For UndoRedo.
    *
    * @returns {Array<{headerLevel: number, authoredColumnIndex: number}>}
@@ -185,7 +197,7 @@ export default class StateManager {
   }
 
   /**
-   * Re-derives the headers tree with exactly the given groups collapsed - the way `rebuildState()`
+   * Re-derives the headers tree with exactly the given groups collapsed – the way `rebuildState()`
    * re-applies the current ones. A group a move has split apart stays expanded.
    *
    * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The groups.

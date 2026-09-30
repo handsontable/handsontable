@@ -890,24 +890,143 @@ describe('UndoRedo plugin', () => {
       expect(plugin.isRedoAvailable()).toBe(true);
     });
 
-    it('should keep the history while a step that removes a row waits for its validator', async() => {
+    // The meta write settles while the batch waits for its validator, after the batch removed a row, so
+    // it addresses the row in the numbering the removal left. Undone apart, one of the two would replay
+    // at the wrong row, so it is recorded in the batch's step.
+    it('should record a step made while a step that removes a row waits for its validator in that step', async() => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
-        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']],
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4'], ['A5', 'B5']],
         columns: [{ validator: (value, callback) => callback(true) }, {}],
         undo: true,
       });
+      const plugin = hot.getPlugin('undoRedo');
+      const markedRows = () => [0, 1, 2, 3, 4]
+        .filter(row => row < hot.countRows() && hot.getCellMeta(row, 1).className === 'Q');
 
-      hot.setDataAtCell(3, 1, 'prior');
+      hot.setDataAtCell(4, 1, 'prior');
       hot.batch(() => {
-        hot.alter('remove_row', 2);
-        hot.setDataAtCell(0, 0, 'x');
+        hot.alter('remove_row', 1);
+        hot.setDataAtCell(0, 0, 'P');
       });
-      // Opens a transaction while the batch still waits for its validator.
-      hot.setCellMeta(1, 1, 'className', 'marked');
+      // Row `A4`, below the removed one.
+      hot.setCellMeta(2, 1, 'className', 'Q');
       await settle();
 
-      expect(actionTypes()).toEqual(['change', 'set_cell_meta', 'batch']);
+      expect(actionTypes()).toEqual(['change', 'batch']);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+      expect(markedRows()).toEqual([]);
+
+      plugin.redo();
+
+      expect(hot.getDataAtCol(0)).toEqual(['P', 'A3', 'A4', 'A5']);
+      expect(markedRows()).toEqual([2]);
+
+      plugin.undo();
+      plugin.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['B1', 'B2', 'B3', 'B4', 'B5']);
+      expect(markedRows()).toEqual([]);
+    });
+
+    // The batch writes `B1` after the edit made while it waited, so the undo takes the batch's value off
+    // first and the edit's second.
+    it('should undo and redo a joined step in the order its changes were made', async() => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        columns: [{ validator: (value, callback) => callback(true) }, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batch(() => {
+        hot.alter('remove_row', 2);
+        hot.setDataAtCell([[0, 0, 'P'], [0, 1, 'P1']]);
+      });
+      // Column 1 has no validator, so this edit settles at once, while the batch waits.
+      hot.setDataAtCell(0, 1, 'Q');
+      await settle();
+
+      expect(hot.getData()).toEqual([['P', 'P1'], ['A2', 'B2']]);
+
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']]);
+
+      plugin.redo();
+
+      expect(hot.getData()).toEqual([['P', 'P1'], ['A2', 'B2']]);
+    });
+
+    it('should record two edits that wait for their validators in the order they commit', async() => {
+      const answers = new Map();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2']],
+        columns: [{ validator: (value, callback) => answers.set(value, callback) }],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'slow');
+      hot.setDataAtCell(1, 0, 'fast');
+      await settle();
+      answers.get('fast')(true);
+      answers.get('slow')(true);
+
+      expect(plugin.doneActions.map(action => action.changes[0][3])).toEqual(['fast', 'slow']);
+
+      plugin.undo();
+
+      expect(hot.getDataAtCol(0)).toEqual(['A1', 'fast']);
+    });
+
+    // A validator that throws never answers, so the change waiting for it would hold its step open for
+    // good - and a step that inserted a row blocks every undo while it is open.
+    it('should record a step whose validator throws, and keep undo working', async() => {
+      const errors = [];
+      // The validator throws in a microtask, which reports it as an uncaught error.
+      const onError = (event) => {
+        errors.push(event.error.message);
+        event.preventDefault();
+      };
+
+      window.addEventListener('error', onError);
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['a', 'b'], ['c', 'd']],
+        columns: [{
+          validator() {
+            throw new Error('validator boom');
+          },
+        }, {}],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.batch(() => {
+        hot.alter('insert_row_above', 0);
+        hot.setDataAtCell(0, 0, 'v');
+      });
+      hot.setDataAtCell(1, 1, 'later');
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+
+      await settle();
+      window.removeEventListener('error', onError);
+
+      expect(errors).toEqual(['validator boom']);
+      expect(plugin.isUndoAvailable()).toBe(true);
+
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([['a', 'b'], ['c', 'd']]);
+      expect(plugin.isUndoAvailable()).toBe(false);
     });
 
     it('should ignore an undo made while a step that removes a row waits for its validator', async() => {
@@ -924,6 +1043,9 @@ describe('UndoRedo plugin', () => {
         hot.alter('remove_row', 1);
         hot.setDataAtCell(0, 0, 'x');
       });
+
+      expect(plugin.isUndoAvailable()).toBe(false);
+
       plugin.undo();
 
       expect(hot.getData()).toEqual([['A1', 'B1'], ['A3', 'prior']]);
@@ -931,6 +1053,7 @@ describe('UndoRedo plugin', () => {
       await settle();
 
       expect(actionTypes()).toEqual(['change', 'batch']);
+      expect(plugin.isUndoAvailable()).toBe(true);
 
       plugin.undo();
 
@@ -1273,6 +1396,90 @@ describe('UndoRedo plugin', () => {
       expect(hiddenColumns.isHidden(1)).toBe(true);
     });
 
+    // A merge step addresses the columns its merge covers, and no other.
+    it('should keep a merge step, and the steps older than it, when a column outside the merge changes', () => {
+      const data = people();
+
+      hot = createPeopleGrid(data, { columns: [ID, NAME, CITY], mergeCells: true });
+      const plugin = hot.getPlugin('undoRedo');
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      hot.setDataAtCell(0, 1, 'Ann Lee');
+      mergeCells.merge(0, 0, 1, 1);
+      hot.updateSettings({ columns: [ID, NAME, { data: 'country' }] });
+
+      expect(plugin.doneActions.length).toBe(2);
+
+      plugin.undo();
+
+      expect(mergeCells.mergedCellsCollection.mergedCells.length).toBe(0);
+
+      plugin.undo();
+
+      expect(data[0].name).toBe('Ted Right');
+    });
+
+    // The check cannot run while a step is pending, so it runs once the step settles - and records the
+    // fields it checked, so the same `columns` sent again (a wrapper re-render) drops nothing more.
+    describe('made while an edit waits for its validator', () => {
+      let answer;
+      const validatedId = { data: 'id', validator: (value, callback) => { answer = callback; } };
+
+      /**
+       * Records a meta step on the `name` column, then starts an edit that waits for its validator.
+       *
+       * @returns {Promise<UndoRedo>} The plugin.
+       */
+      async function startPendingEdit() {
+        answer = null;
+        hot = createPeopleGrid(people(), { columns: [validatedId, NAME, CITY] });
+        hot.setCellMeta(0, 1, 'className', 'flagged');
+        hot.setDataAtCell(0, 0, 5);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        return hot.getPlugin('undoRedo');
+      }
+
+      it('should check the update once the edit settles, and not again when it is sent again', async() => {
+        const plugin = await startPendingEdit();
+
+        hot.updateSettings({ columns: [validatedId, CITY, NAME] });
+
+        expect(plugin.doneActions.length).toBe(1);
+
+        answer(true);
+
+        // The meta step addresses a column that shows another field now. The edit is recorded by field.
+        expect(plugin.doneActions.map(action => action.actionType)).toEqual(['change']);
+
+        hot.updateSettings({ columns: [validatedId, CITY, NAME] });
+
+        expect(plugin.doneActions.map(action => action.actionType)).toEqual(['change']);
+      });
+
+      // The check compares against the fields the steps were made on, so the settle must not refresh
+      // them first. The edit's own states span the narrowing, so it goes too.
+      it('should check a narrower update against the fields the steps were made on', async() => {
+        const plugin = await startPendingEdit();
+
+        hot.updateSettings({ columns: [validatedId, NAME] });
+        answer(true);
+
+        expect(plugin.doneActions.length).toBe(0);
+      });
+    });
+
+    it('should drop a merge step when a column the merge covers changes', () => {
+      hot = createPeopleGrid(people(), { columns: [ID, NAME, CITY], mergeCells: true });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 2, 'Austin');
+      hot.getPlugin('mergeCells').merge(0, 0, 1, 1);
+      hot.updateSettings({ columns: [ID, CITY, NAME] });
+
+      expect(plugin.doneActions.length).toBe(0);
+    });
+
     it('should drop a cell meta step on a column that now shows another field, and keep an edit', () => {
       const data = people();
 
@@ -1410,6 +1617,49 @@ describe('UndoRedo plugin', () => {
 
       expect(hot.getDataAtCell(0, 0)).toBe('x');
       expect(hot.countRows()).toBe(5);
+    });
+
+    // While a `batch()` that already removed a row waits for its validator, an unrecorded change is
+    // judged from where it started, not from where the batch started.
+    describe('while a step that removed a row waits for its validator', () => {
+      /**
+       * Records an edit, then starts a batch that removes a row and waits for its validator.
+       *
+       * @returns {UndoRedo} The plugin.
+       */
+      function startPendingRemoval() {
+        hot = new Handsontable(container, {
+          licenseKey: 'non-commercial-and-evaluation',
+          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3'], ['A4', 'B4']],
+          columns: [{ validator: (value, callback) => callback(true) }, {}],
+          undo: true,
+        });
+        hot.setDataAtCell(3, 1, 'prior');
+        hot.batch(() => {
+          hot.alter('remove_row', 1);
+          hot.setDataAtCell(0, 0, 'x');
+        });
+
+        return hot.getPlugin('undoRedo');
+      }
+
+      it('should keep the history when the grid appends a row at the end', async() => {
+        const plugin = startPendingRemoval();
+
+        hot.alter('insert_row_above', hot.countRows(), 1, 'auto');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(plugin.doneActions.map(action => action.actionType)).toEqual(['change', 'batch']);
+      });
+
+      it('should drop the history when an unrecorded change inserts a row in the middle', async() => {
+        const plugin = startPendingRemoval();
+
+        hot.alter('insert_row_above', 1, 1, 'auto');
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(plugin.doneActions.length).toBe(0);
+      });
     });
 
     it('should keep a column a settings update added inside the step when the step is undone', () => {
@@ -1625,6 +1875,30 @@ describe('UndoRedo plugin', () => {
       plugin.undo();
 
       expect(listMerges()).toEqual([[3, 0, 2, 2]]);
+    });
+
+    // A merge is put back with no overlap check, so a merge a settings update made on the same cells
+    // makes the undo rebuild the whole list instead of stacking the two.
+    it('should not put a merge back over one a settings update made on its cells', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: sheet(6, 4),
+        mergeCells: true,
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(0, 0, 1, 1);
+      mergeCells.unmerge(0, 0, 1, 1);
+      hot.updateSettings({ mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }] });
+      plugin.undo();
+
+      const collection = mergeCells.mergedCellsCollection;
+
+      expect(listMerges()).toEqual([[0, 0, 2, 2]]);
+      expect(collection.get(1, 1)).toBe(collection.get(0, 0));
+      expect(collection.get(2, 2)).toBe(false);
     });
 
     it('should be one step, and one undo should bring back the merges it replaced', () => {

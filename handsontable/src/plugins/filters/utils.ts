@@ -42,7 +42,7 @@ export function getPinnedPhysicalRows(
  * Warn that a per-column `filters` entry holds an object, which the plugin ignores.
  *
  * Only `false` is read at column level. The sub-options are resolved once, for the whole grid, so
- * an object written inside `columns` is silently dropped - and a user who found the per-column
+ * an object written inside `columns` is silently dropped – and a user who found the per-column
  * switch is likely to try configuring it there the same way.
  */
 export function warnAboutPerColumnFilterSettings(scope: object, pluginKey: string) {

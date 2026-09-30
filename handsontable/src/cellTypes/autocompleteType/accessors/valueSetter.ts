@@ -42,7 +42,7 @@ export function valueSetter(
     return newValue;
   }
 
-  // A write with an `UndoRedo.*` source restores what the cell held before, verbatim - the rule
+  // A write with an `UndoRedo.*` source restores what the cell held before, verbatim – the rule
   // `utils/valueAccessors.ts` states, and honors for `emptyValue`. Resolving it here wrapped a restored
   // plain label as `{ key: <label>, value: <label> }`, a fabricated pair that a `strict` column then
   // rejected, so neither branch below may run on that path. The UndoRedo plugin's own undo and redo

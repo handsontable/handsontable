@@ -240,7 +240,7 @@ function isIndexList(value: unknown): value is number[] {
 
 /**
  * Returns the ranges a change step selects: the selection it started with when it wrote more than
- * one cell, and the written cell otherwise - the `selected` field the replaced action exposed.
+ * one cell, and the written cell otherwise – the `selected` field the replaced action exposed.
  *
  * @param {Array} changes The `changes` field of the step.
  * @param {Array} selectionAtOpen The selection when the step started.
@@ -320,7 +320,7 @@ function describeStepSelection(step: UndoRedoStep): StepSelection {
 
 /**
  * Builds the public undo step for a settled transaction. Its `actionType` is the name of the
- * transaction's outermost operation - the names the replaced action classes used (`change`,
+ * transaction's outermost operation – the names the replaced action classes used (`change`,
  * `remove_row`, `col_sort`, ...) for the operations they covered. The fields beyond that are the
  * ones those actions exposed and hooks have been reading, derived from the journal or attached by the
  * operation itself; the snapshots and the journal are deliberately not on it, because hooks receive

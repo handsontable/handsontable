@@ -42,7 +42,7 @@ export interface IndexMapperSnapshot {
  * The maps that hold measurements rather than state: their plugin derives the values from the
  * rendered grid (or, for a sorting plugin's `<key>.columnMeta`, from the column settings). Restoring
  * one would put back a measurement of a layout that no longer exists, so they are never captured, and
- * a change to one never makes the tracker dirty - the size plugins write on the render path.
+ * a change to one never makes the tracker dirty – the size plugins write on the render path.
  * Pagination's map is derived too: the plugin rebuilds it from the page it restores and from the
  * other maps, and with `pageSize: 'auto'` it rebuilds it on every render. It is registered under the
  * plugin's registry name, which is capitalized (`'Pagination'`), not under its settings key.
@@ -116,7 +116,7 @@ function areValuesEqual(left: ArrayLike<unknown>, right: ArrayLike<unknown>): bo
 /**
  * Tells whether two snapshots describe the same map state. A map fires `change` for a write that
  * leaves it as it was (a sequence set to itself, a flag re-written), and such a write must not look
- * like a change - UndoRedo records a step only when the state differs.
+ * like a change – UndoRedo records a step only when the state differs.
  *
  * @param {IndexMapSnapshot} left One snapshot.
  * @param {IndexMapSnapshot} right The other snapshot.
@@ -347,7 +347,7 @@ function restoreFittedIndexMap(map: IndexMap, snapshot: IndexMapSnapshot, snapsh
         kept.push([physicalIndex, map.getValueAtIndex(physicalIndex)]);
       }
     });
-    // A reset clears the link order, and each write links its index again - in the captured order.
+    // A reset clears the link order, and each write links its index again – in the captured order.
     map.setDefaultValues(length);
 
     if (snapshot.kind === 'linked') {
@@ -391,7 +391,7 @@ function restoreIndexMap(map: IndexMap, snapshot: IndexMapSnapshot) {
       break;
 
     case 'linked':
-      // A reset clears the link order, and each write links its index again - in the captured order.
+      // A reset clears the link order, and each write links its index again – in the captured order.
       map.setDefaultValues(snapshot.length);
       snapshot.entries.forEach(([physicalIndex, value]) => {
         map.setValueAtIndex(physicalIndex, deepClone(value));
@@ -462,8 +462,8 @@ export function haveSameIndexMaps(first: IndexMapperSnapshot, second: IndexMappe
 }
 
 /**
- * Captures and restores the state of one `IndexMapper` - its indexes sequence and every map it
- * holds - copy-on-change: it listens to the mapper and copies a map only when the map changed since
+ * Captures and restores the state of one `IndexMapper` – its indexes sequence and every map it
+ * holds – copy-on-change: it listens to the mapper and copies a map only when the map changed since
  * the previous capture. A capture of an axis nothing changed on returns the previous snapshot
  * itself, and within a snapshot every map that did not change is the previous snapshot's object,
  * so a chain of snapshots costs memory only for what actually changed.
@@ -560,20 +560,20 @@ export class IndexMapperStateTracker {
    * length was taken before rows or columns the journal does not describe were added or removed at the
    * end of the axis (the grid's own `auto` rows, a settings update inside the step), and resizing the
    * axis to it would leave the index mapper out of step with the data. Such a snapshot is fitted to the
-   * axis instead (`fitSequence()`). When the axis itself is at another length - removing the last column
-   * empties the row axis while the rows stay in the data - it is resized first, and every map is then
+   * axis instead (`fitSequence()`). When the axis itself is at another length – removing the last column
+   * empties the row axis while the rows stay in the data – it is resized first, and every map is then
    * written back.
    *
    * Which maps are written depends on `changedFrom`. Given the snapshot from the other side of an undo
    * step, only the maps the step changed are written (the two snapshots hold different objects for
-   * them) - a map the step left alone keeps its current state, including a change made to it outside
+   * them) – a map the step left alone keeps its current state, including a change made to it outside
    * any step since. Without it, every map whose state differs from the current one is written.
    *
    * @param {IndexMapperSnapshot} snapshot The state to restore.
    * @param {object} [options] Restore options.
    * @param {IndexMapperSnapshot} [options.changedFrom] The snapshot from the other side of the step.
    * @param {boolean} [options.forceOrder=false] Write the sequence and the trimming maps back even
-   *   when the step did not change them - a replay reset them to the physical order.
+   *   when the step did not change them – a replay reset them to the physical order.
    * @param {number} [options.length] The axis length the data implies. Defaults to the current length.
    */
   restore(

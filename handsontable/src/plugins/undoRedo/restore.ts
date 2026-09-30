@@ -50,6 +50,11 @@ interface KeptFlags {
   key: typeof KEPT_FLAG_COLLECTIONS[number];
   name: string;
   physicalIndexes: number[];
+  /**
+   * The flagged rows or columns the step removed, which an undo brings back flagged – in the numbering
+   * the undo leaves behind. Empty for a redo.
+   */
+  restoredIndexes: number[];
 }
 
 /**
@@ -92,46 +97,46 @@ function readFlaggedIndexes(snapshot: IndexMapSnapshot): number[] {
 }
 
 /**
- * Tells whether a step left the flags of one map as they were: the flags before the step, moved
- * through the rows or columns it inserted and removed, are the flags after it. The two snapshots are
- * different objects whenever the step changed the axis length, so they cannot be compared by identity.
+ * Tells whether a step left the flags of one map as they were, apart from the flagged rows or columns
+ * it removed: the flags before the step that survived it, moved through the rows or columns it
+ * inserted and removed, are the flags after it. The two snapshots are different objects whenever the
+ * step changed the axis length, so they cannot be compared by identity.
  *
  * @param {IndexMapSnapshot} before The map before the step.
  * @param {IndexMapSnapshot} after The map after the step.
  * @param {JournalOp[]} journal The step journal.
  * @param {'row'|'column'} axis The axis.
- * @returns {boolean}
+ * @returns {number[]|null} The flagged indexes the step removed, numbered as before it, or `null` when
+ *   the step changed the flags.
  */
-function isFlagMapLeftAlone(
+function readRemovedFlags(
   before: IndexMapSnapshot, after: IndexMapSnapshot, journal: JournalOp[], axis: 'row' | 'column',
-): boolean {
+): number[] | null {
   if (before === after) {
-    return true;
+    return [];
   }
 
   const moved: number[] = [];
-  let removedFlag = false;
+  const removed: number[] = [];
 
   readFlaggedIndexes(before).forEach((index) => {
     const finalIndex = toFinalIndex(journal, -1, index, axis, 'redo');
 
     if (finalIndex === null) {
-      removedFlag = true;
+      removed.push(index);
     } else {
       moved.push(finalIndex);
     }
   });
 
-  // The step removed a flagged row or column, so an undo has to put the flag back with it.
-  if (removedFlag) {
-    return false;
-  }
-
   const flaggedAfter = readFlaggedIndexes(after);
 
   moved.sort((left, right) => left - right);
 
-  return moved.length === flaggedAfter.length && moved.every((index, position) => index === flaggedAfter[position]);
+  const isLeftAlone = moved.length === flaggedAfter.length &&
+    moved.every((index, position) => index === flaggedAfter[position]);
+
+  return isLeftAlone ? removed : null;
 }
 
 /**
@@ -170,8 +175,9 @@ function readKeptFlags(
         }
 
         const [before, after] = direction === 'undo' ? [snapshot, otherSnapshot] : [otherSnapshot, snapshot];
+        const removedFlags = readRemovedFlags(before, after, journal, axis);
 
-        if (!isFlagMapLeftAlone(before, after, journal, axis)) {
+        if (removedFlags === null) {
           return;
         }
 
@@ -183,7 +189,8 @@ function readKeptFlags(
           }
         });
 
-        kept.push({ axis, key, name, physicalIndexes });
+        // An undo brings the removed rows back, and with them their flags.
+        kept.push({ axis, key, name, physicalIndexes, restoredIndexes: direction === 'undo' ? removedFlags : [] });
       });
     });
   });
@@ -204,7 +211,7 @@ function applyKeptFlags(hot: HotInstance, kept: KeptFlags[], journal: JournalOp[
   // An undo leaves the grid as it was before the step, so every entry is reversed; a redo applies them all.
   const fromEntry = direction === 'undo' ? journal.length : -1;
 
-  kept.forEach(({ axis, key, name, physicalIndexes }) => {
+  kept.forEach(({ axis, key, name, physicalIndexes, restoredIndexes }) => {
     const mapper = axis === 'row' ? hot.rowIndexMapper : hot.columnIndexMapper;
     const map = (key === 'trimming' ? mapper.trimmingMapsCollection : mapper.hidingMapsCollection).get(name);
 
@@ -220,6 +227,11 @@ function applyKeptFlags(hot: HotInstance, kept: KeptFlags[], journal: JournalOp[
 
       if (finalIndex !== null && finalIndex < length) {
         values[finalIndex] = true;
+      }
+    });
+    restoredIndexes.forEach((index) => {
+      if (index < length) {
+        values[index] = true;
       }
     });
 
@@ -380,7 +392,7 @@ function alterRuns(
   for (const [start, length] of orderedRuns) {
     const countBefore = countSourceItems(hot, axis);
 
-    // `keepEmptyRows` - the replay must not grow spare rows between two recorded entries.
+    // `keepEmptyRows` – the replay must not grow spare rows between two recorded entries.
     hot.alter(insert ? insertAction : removeAction, start, length, source, true);
 
     const applied = countSourceItems(hot, axis) - countBefore;
@@ -616,7 +628,7 @@ function replayRowsOnMeta(
 
 /**
  * Asks the row hooks about the row changes a restore of a reshaped source makes, before anything
- * changes - the rows do not go through `alter()`, which would ask them. Every change is asked, even
+ * changes – the rows do not go through `alter()`, which would ask them. Every change is asked, even
  * after a veto, so each listener hears about all of them.
  *
  * @param {HotInstance} hot The Handsontable instance.
@@ -753,7 +765,7 @@ function replayJournal(
 /**
  * Returns the row mapper for a step whose source shape is restored from the snapshot in one go. The
  * journal's cell writes address rows as they were when each was recorded, but the restored shape is
- * the one the whole step ends in - before it for an undo, after it for a redo - so a write recorded
+ * the one the whole step ends in – before it for an undo, after it for a redo – so a write recorded
  * after a row change in the same step (the formula text Formulas rewrites when a nested parent is
  * removed) must move with the row changes recorded around it.
  *
@@ -780,7 +792,7 @@ function createRestoredShapeRowMapper(record: StepRecord, direction: RestoreDire
  *    physical order, so a visual index names the physical row or column of the same number while
  *    the journal is replayed. The maps are put back in step 5.
  * 2. For a plugin that reshapes the source array itself (NestedRows), the rows its shape adds or
- *    removes are asked about through `beforeCreateRow` and `beforeRemoveRow` - they do not go
+ *    removes are asked about through `beforeCreateRow` and `beforeRemoveRow` – they do not go
  *    through `alter()`, which would ask. Then the shape is put back from the snapshot.
  * 3. The journal, backwards for an undo, forwards for a redo. With a restored shape, a row entry
  *    moves the cell meta rows only: the shape already holds the rows' data. A cell write is then

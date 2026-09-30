@@ -317,7 +317,7 @@ function toVisualRow(hot: HotInstance, physicalRow: number): number | null {
 }
 
 /**
- * Returns restored cells in the `afterChange` format - `[visualRow, prop, oldValue, newValue]`. A cell
+ * Returns restored cells in the `afterChange` format – `[visualRow, prop, oldValue, newValue]`. A cell
  * with no visual row (trimmed) is left out, as it is for any write that bypasses the visual grid.
  *
  * @param {HotInstance} hot The Handsontable instance.
@@ -352,7 +352,7 @@ export function toVisibleCells(hot: HotInstance, cells: RestoredCell[]): Array<[
   cells.forEach(({ physicalRow, prop }) => {
     const visualRow = toVisualRow(hot, physicalRow);
     // The column cache is keyed by the `columns[].data` value itself, so an accessor function resolves
-    // to its column too - and its cells are re-validated like any other.
+    // to its column too – and its cells are re-validated like any other.
     const visualColumn = hot.propToCol(prop as string | number);
     const key = `${visualRow}:${visualColumn}`;
 

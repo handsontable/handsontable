@@ -306,7 +306,7 @@ export class NestedRows extends BasePlugin {
     }
 
     // Every recorded undo step addresses rows by their physical index in the previous numbering, and
-    // flattening the tree renumbers them - even when the row count stays the same, which the undo
+    // flattening the tree renumbers them – even when the row count stays the same, which the undo
     // stack cannot detect on its own. `loadData` drops the history for the same reason.
     this.hot.getPlugin('undoRedo')?.clear();
 

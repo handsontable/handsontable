@@ -37,6 +37,32 @@ describe('UndoRedo – removing rows and columns', () => {
     expect(hot.getSourceData()).toEqual(original);
   });
 
+  // The edit is recorded after the removal, so it addresses the rows as the removal left them: row 1
+  // is `A3`. Replayed in the wrong order, the undo writes `A3` back onto the restored `A2` row.
+  it('should record a `runOperation()` that removes a row and edits a cell as one step', () => {
+    const hot = grid.create({ data: spreadsheet(4, 2) });
+    const original = hot.getSourceData();
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.runOperation('my_op', () => {
+      hot.alter('remove_row', 1);
+      hot.setDataAtCell(1, 0, 'x');
+    });
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['x', 'B3'], ['A4', 'B4']]);
+    expect(undoRedo.doneActions.map(({ actionType }) => actionType)).toEqual(['my_op']);
+
+    undoRedo.undo();
+
+    expect(hot.getSourceData()).toEqual(original);
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+
+    undoRedo.redo();
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['x', 'B3'], ['A4', 'B4']]);
+    expect(undoRedo.isRedoAvailable()).toBe(false);
+  });
+
   // DEV-880: one removal of several ranges is one action, as the context menu sends it.
   describe('of ranges that are not next to each other', () => {
     it('should record one step for the rows and bring them all back with one undo', () => {

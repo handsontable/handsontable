@@ -378,8 +378,8 @@ export default class MetaManager {
   }
 
   /**
-   * Returns what one key of a cell's meta holds - whether it is stored, its value and its origin
-   * bucket - without creating the meta object. See `CellMeta#getMetaKeyState`.
+   * Returns what one key of a cell's meta holds – whether it is stored, its value and its origin
+   * bucket – without creating the meta object. See `CellMeta#getMetaKeyState`.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.

@@ -254,7 +254,7 @@ class DataSource {
    *   accessor function (called as `column(dataRow, value)`).
    * @param {*} value The value to be set at the provided coordinates.
    * @param {boolean} [byProp=false] `true` to write a numeric `column` as the property it names even past
-   *   the keys of the first row - the way `DataMap` wrote it and the undo journal recorded it.
+   *   the keys of the first row – the way `DataMap` wrote it and the undo journal recorded it.
    */
   setAtCell(row: number | string, column: string | number | DataAccessorFn, value: unknown, byProp = false) {
     // Normalize row: accept string numeric indices (e.g. '0', '1') passed by setSourceDataAtCell,
@@ -410,9 +410,9 @@ class DataSource {
 
   /**
    * Returns the value a cell stores, addressed by its property, without running the
-   * `modifySourceData` hook. The hook may project another value onto a read - the Formulas plugin
+   * `modifySourceData` hook. The hook may project another value onto a read – the Formulas plugin
    * reports the engine's formula there, and the engine already holds the NEW value while a change is
-   * being applied - so a caller that must know what the source really held (the change journal)
+   * being applied – so a caller that must know what the source really held (the change journal)
    * reads through this method. The `modifyRowData` hook still runs: it decides which row object the
    * physical index names.
    *

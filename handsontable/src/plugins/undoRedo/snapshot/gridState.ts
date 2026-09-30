@@ -68,7 +68,7 @@ function areHeadersEqual(left: readonly string[] | null, right: readonly string[
 
 /**
  * Builds the settings an undo step leaves behind: each setting the step changed takes the target
- * value, and every other one keeps the value it had before the restore - a row replay moves the
+ * value, and every other one keeps the value it had before the restore – a row replay moves the
  * frozen counts, and a change made outside any step since must survive.
  *
  * @param {GridSettingsSnapshot} target The settings on the side of the step being restored.
@@ -205,7 +205,7 @@ export class GridStateTracker {
    * Puts the index maps, the plugin states and the settings back, in that order: a plugin's restore
    * reads the visual index space, which the maps define.
    *
-   * Given `changedFrom` - the snapshot from the other side of an undo step - only the parts the step
+   * Given `changedFrom` – the snapshot from the other side of an undo step – only the parts the step
    * changed are written back (the two snapshots share every part the step left alone), so a change
    * made outside any step since, such as a trim a settings update applied, survives the undo. A step
    * that inserts or removes rows or columns changes the length of every index map, so the two
@@ -217,9 +217,9 @@ export class GridStateTracker {
    * @param {GridStateSnapshot} [options.changedFrom] The snapshot from the other side of the step.
    * @param {GridStateSnapshot} [options.base] The state before the restore started. The settings the
    *   step did not change are put back to it, and so are, with `forceOrder`, the plugin states the
-   *   step did not change - a journal replay can move both. Without it, they are left as they are.
+   *   step did not change – a journal replay can move both. Without it, they are left as they are.
    * @param {boolean} [options.forceOrder=false] Write the row and column order and the trimming maps back
-   *   even when the step did not change them - a replay reset them to the physical order.
+   *   even when the step did not change them – a replay reset them to the physical order.
    * @param {string} [options.direction] `'undo'` or `'redo'`, handed to the plugins with `changedFrom`.
    */
   restore(
@@ -344,7 +344,7 @@ export class GridStateTracker {
 
     if ((tableMeta.fixedColumnsStart ?? 0) !== settings.fixedColumnsStart) {
       // `fixedColumnsStart` reads back `_fixedColumnsStart`, the internal property `alter()` and
-      // ManualColumnFreeze write - it is not part of the settings type.
+      // ManualColumnFreeze write – it is not part of the settings type.
       Reflect.set(tableMeta, '_fixedColumnsStart', settings.fixedColumnsStart);
     }
 
@@ -393,7 +393,7 @@ export class GridStateTracker {
 
   /**
    * Calls the callback for every plugin a snapshot recorded a state for that is still enabled. A
-   * plugin disabled or unregistered since is skipped - its part of the grid is restored anyway.
+   * plugin disabled or unregistered since is skipped – its part of the grid is restored anyway.
    *
    * @param {Map} states The recorded states, by plugin name.
    * @param {Function} callback Called with the plugin, its state and its name.

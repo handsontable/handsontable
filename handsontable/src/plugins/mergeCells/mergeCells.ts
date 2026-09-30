@@ -60,6 +60,11 @@ export interface PhysicalRowMergeSnapshot extends MergeAreaGeometry {
  */
 interface MergeStateEntry extends MergeAreaGeometry {
   anchor: MergeAnchor | null;
+  /**
+   * The physical column of each of the merge's columns when it was captured (`null` for one with no
+   * physical index). The anchor holds the first one only, and the order may have changed since.
+   */
+  physicalColumns?: ReadonlyArray<number | null>;
 }
 
 /**
@@ -77,6 +82,32 @@ function areAnchorsEqual(left: MergeAnchor | null | undefined, right: MergeAncho
   return left.physicalColumn === right.physicalColumn &&
     left.physicalRows.length === right.physicalRows.length &&
     left.physicalRows.every((row, index) => row === right.physicalRows[index]);
+}
+
+/**
+ * Tells whether a captured merge list holds a merge of the same geometry and anchor as the given one.
+ *
+ * @param {Array} list The captured merges.
+ * @param {object} entry The merge to look for.
+ * @returns {boolean}
+ */
+function isMergeListed(list: readonly MergeStateEntry[], entry: MergeStateEntry): boolean {
+  return list.some(listed => (
+    listed.row === entry.row && listed.col === entry.col && listed.rowspan === entry.rowspan &&
+    listed.colspan === entry.colspan && areAnchorsEqual(listed.anchor, entry.anchor)
+  ));
+}
+
+/**
+ * Tells whether two merge areas share a cell.
+ *
+ * @param {object} left One area.
+ * @param {object} right The other area.
+ * @returns {boolean}
+ */
+function areMergesOverlapping(left: MergeAreaGeometry, right: MergeAreaGeometry): boolean {
+  return left.row < right.row + right.rowspan && right.row < left.row + left.rowspan &&
+    left.col < right.col + right.colspan && right.col < left.col + left.colspan;
 }
 
 /**
@@ -434,7 +465,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforePaste', this.#onBeforePaste, 1000);
     // Runs at 900: after every ordinary `beforeChange` listener, so the recorded geometry is
     // measured against the change set that actually survives. A listener that vetoes part of a
-    // paste by nulling its entries therefore shrinks - or empties - what this records, instead of
+    // paste by nulling its entries therefore shrinks – or empties – what this records, instead of
     // dropping a merge the write never reaches.
     this.addHook('beforeChange', this.#onBeforeChange, 900);
     this.addHook('afterChange', this.#onAfterChange);
@@ -1199,8 +1230,46 @@ export class MergeCells extends BasePlugin {
         rowspan: merge.rowspan,
         colspan: merge.colspan,
         anchor: anchor ? { physicalRows: anchor.physicalRows.slice(), physicalColumn: anchor.physicalColumn } : null,
+        physicalColumns: Array.from(
+          { length: merge.colspan }, (_, offset) => this.hot.toPhysicalColumn(merge.col + offset)
+        ),
       };
     });
+  }
+
+  /**
+   * Lists the physical columns of the merges that differ between the two sides of an undo step, for
+   * the UndoRedo check of a `columns` settings update.
+   *
+   * @private
+   * @param {*} state The merges on one side of the step.
+   * @param {*} other The merges on the other side.
+   * @returns {number[]|null} `null` when a merge's columns are not known.
+   */
+  getStateColumns(state: unknown, other: unknown): readonly number[] | null {
+    if (!isMergeState(state) || !isMergeState(other)) {
+      return null;
+    }
+
+    const changed = state.filter(entry => !isMergeListed(other, entry))
+      .concat(other.filter(entry => !isMergeListed(state, entry)));
+    const columns = new Set<number>();
+
+    for (const { physicalColumns } of changed) {
+      if (physicalColumns === undefined) {
+        return null;
+      }
+
+      for (const physicalColumn of physicalColumns) {
+        if (physicalColumn === null) {
+          return null;
+        }
+
+        columns.add(physicalColumn);
+      }
+    }
+
+    return Array.from(columns);
   }
 
   /**
@@ -1261,11 +1330,7 @@ export class MergeCells extends BasePlugin {
    *   rows are all trimmed, so the lookup does not reach it); nothing is changed then.
    */
   #restoreChangedMerges(target: readonly MergeStateEntry[], from: readonly MergeStateEntry[]): boolean {
-    const isListed = (list: readonly MergeStateEntry[], entry: MergeStateEntry) => list.some(listed => (
-      listed.row === entry.row && listed.col === entry.col && listed.rowspan === entry.rowspan &&
-      listed.colspan === entry.colspan && areAnchorsEqual(listed.anchor, entry.anchor)
-    ));
-    const liveToRemove = from.filter(entry => !isListed(target, entry)).map(entry => (
+    const liveToRemove = from.filter(entry => !isMergeListed(target, entry)).map(entry => (
       this.mergedCellsCollection.mergedCells.find(merge => (
         merge.row === entry.row && merge.col === entry.col && merge.rowspan === entry.rowspan &&
         merge.colspan === entry.colspan && areAnchorsEqual(entry.anchor, this.#mergeAnchors.get(merge))
@@ -1277,16 +1342,23 @@ export class MergeCells extends BasePlugin {
       return false;
     }
 
+    // `add()` does not check a restored merge for overlap, so one made outside any step over the same
+    // cells would stay under it.
+    const toAdd = target.filter(entry => !isMergeListed(from, entry));
+    const liveToKeep = this.mergedCellsCollection.mergedCells
+      .filter(merge => !liveToRemove.includes(merge) && !this.#purgedMerges.has(merge));
+
+    if (toAdd.some(entry => (entry.anchor === null || this.#hasVisibleTopLeft(entry.anchor)) &&
+        liveToKeep.some(merge => areMergesOverlapping(entry, merge)))) {
+      return false;
+    }
+
     liveToRemove.forEach((merge) => {
       if (merge !== undefined) {
         this.mergedCellsCollection.remove(merge.row, merge.col);
       }
     });
-    target.forEach((entry) => {
-      if (!isListed(from, entry)) {
-        this.#addRecordedMerge(entry);
-      }
-    });
+    toAdd.forEach(entry => this.#addRecordedMerge(entry));
 
     // A put-back merge lands at the end. Keep the order the state lists, as a full rebuild would; a
     // merge made outside any step stays after them.
@@ -1310,7 +1382,7 @@ export class MergeCells extends BasePlugin {
    */
   #addRecordedMerge({ row, col, rowspan, colspan, anchor }: MergeStateEntry) {
     // A merge whose rows are all trimmed keeps its stale coordinates, and another merge can be drawn
-    // there now - placed in the lookup matrix first, it would turn that merge away. The re-anchor
+    // there now – placed in the lookup matrix first, it would turn that merge away. The re-anchor
     // leaves it out of the matrix anyway.
     const merge = anchor !== null && !this.#hasVisibleTopLeft(anchor)
       ? this.mergedCellsCollection.addOutsideMatrix({ row, col, rowspan, colspan })

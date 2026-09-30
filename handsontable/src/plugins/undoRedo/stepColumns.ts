@@ -11,7 +11,7 @@ export type ColumnChangeTest = (physicalColumn: number) => boolean;
 
 /**
  * Lists the non-default entries of an index map snapshot by index, or returns `null` for a snapshot
- * that stores every value (`dense`) or an order (`sequence`) - those are compared as a whole.
+ * that stores every value (`dense`) or an order (`sequence`) – those are compared as a whole.
  *
  * @param {IndexMapSnapshot} snapshot The snapshot.
  * @returns {Map<number, *>|null}
@@ -158,7 +158,7 @@ function forcesColumnOrder(snapshot: IndexMapperSnapshot, isChanged: ColumnChang
 }
 
 /**
- * Tells whether a recorded step addresses a column that changed - so restoring it after a `columns`
+ * Tells whether a recorded step addresses a column that changed – so restoring it after a `columns`
  * settings update would put a value, a cell meta key, or a column state on another field's column.
  * A cell write is recorded by prop and addresses no column. A column insert or removal addresses the
  * whole axis, and so does a part of the state that cannot be read per column.

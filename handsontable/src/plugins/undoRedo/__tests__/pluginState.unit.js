@@ -1,6 +1,6 @@
 import {
-  CollapsibleColumns, Comments, CustomBorders, HiddenColumns, ManualColumnMove, NestedHeaders,
-  registerPlugin, UndoRedo,
+  CollapsibleColumns, Comments, CustomBorders, HiddenColumns, ManualColumnFreeze, ManualColumnMove, NestedHeaders,
+  Pagination, registerPlugin, UndoRedo,
 } from 'handsontable/plugins';
 import { setUpUndoGrid, spreadsheet } from './helpers/grid';
 
@@ -8,9 +8,11 @@ registerPlugin(UndoRedo);
 registerPlugin(Comments);
 registerPlugin(CustomBorders);
 registerPlugin(HiddenColumns);
+registerPlugin(ManualColumnFreeze);
 registerPlugin(ManualColumnMove);
 registerPlugin(NestedHeaders);
 registerPlugin(CollapsibleColumns);
+registerPlugin(Pagination);
 
 /**
  * Undo of state that is neither cell values nor rows and columns: comments, cell meta, hidden
@@ -92,6 +94,65 @@ describe('UndoRedo – plugin state and cell meta', () => {
     hot.getPlugin('undoRedo').undo();
 
     expect(hiddenColumns.getHiddenColumns()).toEqual([]);
+  });
+
+  // The larger page size leaves two pages, so the change also moves the page from 4 to 2.
+  it('should undo and redo a page size change as one step, with the page it moved', () => {
+    const hot = grid.create({ data: spreadsheet(10, 1), pagination: { pageSize: 2 } });
+    const pagination = hot.getPlugin('pagination');
+    const undoRedo = hot.getPlugin('undoRedo');
+    const pageState = () => {
+      const { currentPage, pageSize } = pagination.getPaginationData();
+
+      return { currentPage, pageSize };
+    };
+
+    pagination.setPage(4);
+    pagination.setPageSize(5);
+
+    expect(pageState()).toEqual({ currentPage: 2, pageSize: 5 });
+    expect(undoRedo.doneActions.map(({ actionType }) => actionType)).toEqual(['set_page', 'set_page_size']);
+
+    undoRedo.undo();
+
+    expect(pageState()).toEqual({ currentPage: 4, pageSize: 2 });
+    expect(pagination.getCurrentPageData()).toEqual([['A7'], ['A8']]);
+
+    undoRedo.redo();
+
+    expect(pageState()).toEqual({ currentPage: 2, pageSize: 5 });
+    expect(pagination.getCurrentPageData()).toEqual([['A6'], ['A7'], ['A8'], ['A9'], ['A10']]);
+  });
+
+  // With one frozen column the unfreeze moves nothing, so two are frozen: the undo has to put back
+  // both the frozen count and the order.
+  it('should undo and redo unfreezing a column', () => {
+    const hot = grid.create({ data: spreadsheet(2, 5), manualColumnFreeze: true });
+    const manualColumnFreeze = hot.getPlugin('manualColumnFreeze');
+    const undoRedo = hot.getPlugin('undoRedo');
+    const order = () => [0, 1, 2, 3, 4].map(column => hot.toPhysicalColumn(column));
+
+    manualColumnFreeze.freezeColumn(3);
+    manualColumnFreeze.freezeColumn(4);
+
+    expect(order()).toEqual([3, 4, 0, 1, 2]);
+
+    manualColumnFreeze.unfreezeColumn(0);
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
+    expect(order()).toEqual([4, 3, 0, 1, 2]);
+
+    undoRedo.undo();
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(2);
+    expect(order()).toEqual([3, 4, 0, 1, 2]);
+    expect(hot.getDataAtRow(0)).toEqual(['D1', 'E1', 'A1', 'B1', 'C1']);
+
+    undoRedo.redo();
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
+    expect(order()).toEqual([4, 3, 0, 1, 2]);
+    expect(hot.getDataAtRow(0)).toEqual(['E1', 'D1', 'A1', 'B1', 'C1']);
   });
 
   describe('a progressive border load', () => {
@@ -226,6 +287,32 @@ describe('UndoRedo – plugin state and cell meta', () => {
       // `C` was never collapsed. The redo leaves the grid as the new configuration left it.
       expect(stateManager.exportCollapsedGroups()).toEqual([]);
       expect(collapsibleColumns.getCollapsedColumns()).toEqual(hiddenBeforeUndo);
+    });
+
+    // A wrapper re-sends an unchanged configuration on every render. It is not another configuration,
+    // so the groups recorded before it still name its headers.
+    it('should put back a collapsed group after the same configuration was sent again', () => {
+      const hot = grid.create({
+        data: spreadsheet(3, 4), colHeaders: true, nestedHeaders, collapsibleColumns: true,
+      });
+      const collapsibleColumns = hot.getPlugin('collapsibleColumns');
+      const stateManager = hot.getPlugin('nestedHeaders').getStateManager();
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      collapsibleColumns.collapseSection({ row: -2, col: 1 });
+
+      const collapsedColumns = collapsibleColumns.getCollapsedColumns();
+
+      hot.updateSettings({ nestedHeaders: nestedHeaders.map(row => row.slice()) });
+      undoRedo.undo();
+
+      expect(stateManager.exportCollapsedGroups()).toEqual([]);
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([]);
+
+      undoRedo.redo();
+
+      expect(stateManager.exportCollapsedGroups()).toEqual([{ headerLevel: 0, authoredColumnIndex: 1 }]);
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual(collapsedColumns);
     });
 
     it('should record a collapse made after a new configuration expanded every group', () => {

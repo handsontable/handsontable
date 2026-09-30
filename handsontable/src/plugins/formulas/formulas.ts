@@ -214,7 +214,7 @@ const isBlockedSource = (source: unknown) => source === 'auto';
 // followed one by one: the engine would shift formula references a second time, and a `#REF!` it
 // wrote cannot be turned back into the reference it replaced. Once the restore is done, the plugin
 // writes the restored cells into the engine or, when the rows or columns changed, reloads its sheet
-// from the restored source data - see `Formulas#restoreState()`.
+// from the restored source data – see `Formulas#restoreState()`.
 const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
 
 /**
@@ -230,8 +230,8 @@ interface EngineSheetSnapshot {
 
 /**
  * What UndoRedo records for this plugin: a version that changes whenever the engine's rows or columns
- * are added, removed or reordered, a version that changes whenever a cell write reaches it, and - while
- * the engine's order is not the physical one - the engine's sheet itself.
+ * are added, removed or reordered, a version that changes whenever a cell write reaches it, and – while
+ * the engine's order is not the physical one – the engine's sheet itself.
  */
 interface FormulasUndoState {
   readonly structureVersion: number;
@@ -521,7 +521,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
-   * held until the restore is done - see `restoreState()`.
+   * held until the restore is done – see `restoreState()`.
    */
   #restoredWrites: CellChange[] = [];
 
@@ -532,8 +532,16 @@ export class Formulas extends BasePlugin {
   #pendingPeerRewrites = new Map<string, PeerRewrite>();
 
   /**
+   * The other sheets of the engine that the last peer scan found with no formula naming this grid's
+   * sheet. `#collectPeerFormulas()` skips them – in a workbook of large sheets reading their formulas
+   * is the whole cost of the scan – until the engine reports a change in one of them. Setting a cell's
+   * content always reports that cell, even when its value does not change.
+   */
+  #sheetsNotNamingOwnSheet = new Set<number>();
+
+  /**
    * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
-   * done - see `#validateRestoredDependents`.
+   * done – see `#validateRestoredDependents`.
    */
   #restoredDependentCells: unknown[] = [];
 
@@ -600,6 +608,16 @@ export class Formulas extends BasePlugin {
     const exportedChanges = changes.map(change => this.#exportChangeValue(
       change as { address?: { sheet: number; row: number; col: number }; newValue: unknown }
     ));
+
+    if (this.#sheetsNotNamingOwnSheet.size > 0) {
+      changes.forEach((change) => {
+        const address = (change as { address?: { sheet: number } }).address;
+
+        if (address) {
+          this.#sheetsNotNamingOwnSheet.delete(address.sheet);
+        }
+      });
+    }
 
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
@@ -692,6 +710,7 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
@@ -714,6 +733,7 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   };
 
@@ -828,6 +848,7 @@ export class Formulas extends BasePlugin {
 
     this.engine = setupEngine(this.hot) ?? this.engine;
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -961,7 +982,7 @@ export class Formulas extends BasePlugin {
     // they have run. See `#onAfterUpdateSettingsRowCount`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
-    // A restore that never reached `restoreState()` - an action registered through `done()` - still
+    // A restore that never reached `restoreState()` – an action registered through `done()` – still
     // gets its cell writes into the engine.
     this.addHook('afterUndo', this.#flushRestoredWrites);
     this.addHook('afterRedo', this.#flushRestoredWrites);
@@ -1157,6 +1178,7 @@ export class Formulas extends BasePlugin {
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     // Every caller has just made the engine authoritative for the grid - `switchSheet()` is about
     // to load the grid FROM the sheet, `addSheet()` callers filled it from the grid - so a resync
@@ -1823,22 +1845,38 @@ export class Formulas extends BasePlugin {
       return candidates;
     }
 
-    // The engine matches sheet names without regard to case.
+    // The engine matches sheet names without regard to case, and it writes a quote inside a quoted
+    // sheet name twice (`'O''Brien'!A1`).
     const ownNameInFormula = ownName.toLowerCase();
+    const quotedNameInFormula = ownNameInFormula.replace(/'/g, '\'\'');
+    const namesThisSheet = (formula: string) => {
+      const text = formula.toLowerCase();
+
+      return text.includes(ownNameInFormula) || text.includes(quotedNameInFormula);
+    };
     const sheetIds: number[] = engine.getSheetNames().map((name: string) => engine.getSheetId(name));
+    // While evaluation is suspended the engine holds its change events back, so the list of sheets
+    // with no such formula cannot be trusted.
+    const useKnownSheets = !engine.isEvaluationSuspended();
 
     sheetIds.forEach((sheet) => {
-      if (sheet === this.sheetId) {
+      if (sheet === this.sheetId || (useKnownSheets && this.#sheetsNotNamingOwnSheet.has(sheet))) {
         return;
       }
 
+      const count = candidates.length;
+
       engine.getSheetFormulas(sheet).forEach((formulasRow, row) => {
         formulasRow.forEach((formula, col) => {
-          if (formula !== undefined && formula.toLowerCase().includes(ownNameInFormula)) {
+          if (formula !== undefined && namesThisSheet(formula)) {
             candidates.push({ kind: 'cell', sheet, row, col, before: formula, after: formula });
           }
         });
       });
+
+      if (useKnownSheets && candidates.length === count) {
+        this.#sheetsNotNamingOwnSheet.add(sheet);
+      }
     });
 
     // A named expression can reach this sheet with or without naming it, so each one is a candidate.
@@ -1929,6 +1967,11 @@ export class Formulas extends BasePlugin {
           return;
         }
 
+        // A name scoped to a sheet went with the sheet, and the engine throws when asked about it.
+        if (rewrite.scope !== undefined && engine.getSheetName(rewrite.scope) === undefined) {
+          return;
+        }
+
         if (engine.getNamedExpressionFormula(rewrite.name, rewrite.scope) !== expected) {
           keptEdited = true;
         } else if (text !== undefined &&
@@ -1952,28 +1995,32 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Writes the engine's formulas back into the source data of the other grids whose sheets hold the
-   * given rewrites, the way each grid does it after its own row and column changes. Suppressed there,
-   * so the other grid records no undo step for it.
+   * Writes the rewritten formulas back into the source data of the other grids whose sheets hold them,
+   * the way each grid does it after its own row and column changes – but only at the rewritten cells,
+   * so a `#REF!` the step did not cause is not written into that grid's data. Suppressed there, so the
+   * other grid records no undo step for it.
    *
    * @param {PeerRewrite[]} rewrites The rewrites.
    */
   #syncPeerSources(rewrites: readonly PeerRewrite[]) {
-    const sheets = new Set<number>();
+    const cellsBySheet = new Map<number, Array<{ row: number, col: number }>>();
 
     rewrites.forEach((rewrite) => {
       if (rewrite.kind === 'cell') {
-        sheets.add(rewrite.sheet);
+        const cells = cellsBySheet.get(rewrite.sheet) ?? [];
+
+        cells.push({ row: rewrite.row, col: rewrite.col });
+        cellsBySheet.set(rewrite.sheet, cells);
       }
     });
 
-    if (sheets.size === 0) {
+    if (cellsBySheet.size === 0) {
       return;
     }
 
     const peers = getRegisteredHotInstances(this.engine!);
 
-    sheets.forEach((sheet) => {
+    cellsBySheet.forEach((cells, sheet) => {
       const peerHot = peers.get(sheet);
       const peer = peerHot?.getPlugin('formulas');
 
@@ -1983,12 +2030,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      peerHot._getOperationScope().suppress(() => peer.#syncFormulasToSourceData(true));
+      peerHot._getOperationScope().suppress(() => peer.#syncFormulasToSourceData(true, cells));
     });
   }
 
   /**
-   * Returns the engine's sheet while its order is not the physical one, and `null` otherwise - the
+   * Returns the engine's sheet while its order is not the physical one, and `null` otherwise – the
    * source data rebuilds a sheet in physical order. A row that reads the same as in the previous
    * capture is that capture's row array, so consecutive steps share what they did not change: each
    * step keeps the rows it changed, not a copy of the whole sheet.
@@ -2121,7 +2168,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Validates the cells a sheet reload recalculated during an undo or a redo, leaving out the ones the
-   * restore wrote - the UndoRedo plugin validates those itself. A restore that wrote no cell (a sort, a
+   * restore wrote – the UndoRedo plugin validates those itself. A restore that wrote no cell (a sort, a
    * move) validates nothing, as the forward operation did not either.
    */
   #validateRestoredDependents = () => {
@@ -3938,8 +3985,14 @@ export class Formulas extends BasePlugin {
    * exists, one row further down.
    *
    * @private
+   * @param {boolean} [allowBrokenReferences] `true` to write a `#REF!` the engine holds.
+   * @param {Array} [cells] The only engine cells to write (another grid's rewrites); every cell of
+   *   the sheet when omitted.
    */
-  #syncFormulasToSourceData(allowBrokenReferences = false) {
+  #syncFormulasToSourceData(
+    allowBrokenReferences = false,
+    cells?: ReadonlyArray<{ row: number, col: number }>,
+  ) {
     if (
       this.#internalOperationPending ||
       this.#nestedRowsDetachPending ||
@@ -3955,68 +4008,42 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const sheetId = this.engine.getSheetId(this.sheetName)!;
-    const dimensions = this.engine.getSheetDimensions(sheetId);
+    const engine = this.engine;
+    const sheetId = engine.getSheetId(this.sheetName)!;
+    const dimensions = engine.getSheetDimensions(sheetId);
 
     if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
 
-    const formulas = this.engine.getSheetFormulas(sheetId);
     const changes: Array<[number, string | number, unknown]> = [];
     // Resolved once for the run, and only if a formula cell is actually found - it reads the data.
     let engineHoldsPhysicalColumns: boolean | null = null;
+    const holdsPhysicalColumns = () => {
+      engineHoldsPhysicalColumns ??= this.#doesEngineHoldPhysicalColumns();
+
+      return engineHoldsPhysicalColumns;
+    };
+    const collect = (hfRow: number, hfColumn: number, formula: string | undefined) => {
+      const change = formula === undefined ? null :
+        this.#readSourceChange(hfRow, hfColumn, formula, allowBrokenReferences, holdsPhysicalColumns);
+
+      if (change !== null) {
+        changes.push(change);
+      }
+    };
 
     // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
     // would otherwise answer with the engine's formula and hide every diff.
     this.#internalOperationPending = true;
 
     try {
-      for (let hfRow = 0; hfRow < formulas.length; hfRow++) {
-        const formulasRow = formulas[hfRow];
-
-        if (!formulasRow) {
-          continue;
-        }
-
-        // The order guard above means the engine's index IS the physical index, so trimmed rows
-        // (Filters, `trimRows`) are reached too - they hold formulas that need the same catch-up.
-        const physicalRow = hfRow;
-
-        for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
-          const formula = formulasRow[hfColumn];
-
-          if (formula === undefined) {
-            continue;
-          }
-
-          if (engineHoldsPhysicalColumns === null) {
-            engineHoldsPhysicalColumns = this.#doesEngineHoldPhysicalColumns();
-          }
-
-          const column = this.#resolveEngineColumn(hfColumn, engineHoldsPhysicalColumns);
-
-          if (column === null) {
-            continue;
-          }
-
-          // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
-          // a physical row and a prop.
-          const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
-
-          if (stored === formula || this.#isSameFormula(stored, formula)) {
-            continue;
-          }
-
-          // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it
-          // would overwrite a still-good formula in the developer's array with an unrecoverable one,
-          // so it is only written for the operations that can legitimately break a reference.
-          if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
-            continue;
-          }
-
-          changes.push([physicalRow, column.prop, formula]);
-        }
+      if (cells === undefined) {
+        engine.getSheetFormulas(sheetId).forEach((formulasRow, hfRow) => {
+          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, formula));
+        });
+      } else {
+        cells.forEach(({ row, col }) => collect(row, col, engine.getCellFormula({ sheet: sheetId, row, col })));
       }
     } finally {
       this.#internalOperationPending = false;
@@ -4035,6 +4062,51 @@ export class Formulas extends BasePlugin {
     } finally {
       this.#sourceDataSyncPending = false;
     }
+  }
+
+  /**
+   * Returns the source data write that brings one engine formula into the source data, or `null`
+   * when the source already holds it or must not get it. The engine order must be the physical one.
+   *
+   * @param {number} hfRow The engine row – the physical row, in the physical order.
+   * @param {number} hfColumn The engine column.
+   * @param {string} formula The engine's formula.
+   * @param {boolean} allowBrokenReferences `true` to write a `#REF!` the source does not hold yet.
+   * @param {Function} holdsPhysicalColumns Tells whether the engine holds the columns in physical order.
+   * @returns {Array|null} The write, as `[physicalRow, prop, formula]`.
+   */
+  #readSourceChange(
+    hfRow: number,
+    hfColumn: number,
+    formula: string,
+    allowBrokenReferences: boolean,
+    holdsPhysicalColumns: () => boolean,
+  ): [number, string | number, unknown] | null {
+    // The engine's index IS the physical index in the physical order, so trimmed rows (Filters,
+    // `trimRows`) are reached too – they hold formulas that need the same catch-up.
+    const physicalRow = hfRow;
+    const column = this.#resolveEngineColumn(hfColumn, holdsPhysicalColumns());
+
+    if (column === null) {
+      return null;
+    }
+
+    // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell` a physical
+    // row and a prop.
+    const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
+
+    if (stored === formula || this.#isSameFormula(stored, formula)) {
+      return null;
+    }
+
+    // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it would
+    // overwrite a still-good formula in the developer's array with an unrecoverable one, so it is only
+    // written for the operations that can legitimately break a reference.
+    if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
+      return null;
+    }
+
+    return [physicalRow, column.prop, formula];
   }
 
   /**
@@ -4285,8 +4357,8 @@ export class Formulas extends BasePlugin {
    * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
    * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
    *
-   * Undo and redo never run a move again - they restore the recorded cells, which reach the engine
-   * through `restoreState()` - so this method runs for a user's move only.
+   * Undo and redo never run a move again – they restore the recorded cells, which reach the engine
+   * through `restoreState()` – so this method runs for a user's move only.
    *
    * This is the second half of a two-phase protocol with the MoveCells plugin: `beforeMoveCells`
    * prepares `#pendingMoveCells`, and this method commits it. It is internal despite being reachable

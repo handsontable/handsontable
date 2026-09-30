@@ -244,8 +244,8 @@ export class MoveCells extends BasePlugin {
     }
 
     // `Hooks.run` threads a listener's return value into the next listener's first argument, and
-    // returns it. Anything but a range there - the documented `false`, or garbage a global listener
-    // returned - vetoes the move.
+    // returns it. Anything but a range there – the documented `false`, or garbage a global listener
+    // returned – vetoes the move.
     if (!isCellRangeLike(this.hot.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy))) {
       return false;
     }

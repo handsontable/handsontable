@@ -333,6 +333,23 @@ test.describe('undo of plugin state', () => {
     expect(await grid.comment(0, 0)).toBe('Check this');
   });
 
+  // The API undo does not blur the editor (a timer can call it), and the step it undoes did not touch
+  // the comment being typed, so the editor stays as it was.
+  test('an undo of another step leaves an editor adding a new comment open, with its text', async ({ page }) => {
+    await grid.initGrid({ comments: true });
+
+    const original = await grid.cellValue(3, 3);
+
+    await grid.setCell(3, 3, 'Edited');
+    await grid.openCommentEditor(0, 0);
+    await page.keyboard.type('Draft');
+    await grid.undo();
+
+    expect(await grid.cellValue(3, 3)).toBe(original);
+    await expect(grid.commentTextArea()).toBeVisible();
+    await expect(grid.commentTextArea()).toHaveValue('Draft');
+  });
+
   test('changing the page is one step that an undo reverts and a redo repeats', async () => {
     await grid.initGrid({ pagination: { pageSize: 2 } });
     await grid.setPage(2);

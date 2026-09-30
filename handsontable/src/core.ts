@@ -2869,7 +2869,7 @@ export default function Core(
       return;
     }
 
-    // The journal keeps what the SOURCE held before and after the write, read raw - see
+    // The journal keeps what the SOURCE held before and after the write, read raw – see
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
     const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
 
@@ -3455,7 +3455,7 @@ export default function Core(
   /**
    * Validates the changes and applies the ones that pass. An asynchronous validator answers after the
    * operation that made the change has returned, so the operation's transaction is held until the
-   * changes land - they are part of the same user action. `validateChanges` calls back once every
+   * changes land – they are part of the same user action. `validateChanges` calls back once every
    * validator has answered, including when every change is rejected; when it throws before that (a
    * `beforeValidate` listener that throws), it never calls back and the hold is released here.
    *
@@ -5907,8 +5907,8 @@ export default function Core(
     };
 
     // An undo or redo writes back values the source already stored. The `valueSetter` already
-    // translated them when they were first written, so it does not run again - a setter that is not
-    // idempotent would apply twice - and the source data validator does not judge them again: it
+    // translated them when they were first written, so it does not run again – a setter that is not
+    // idempotent would apply twice – and the source data validator does not judge them again: it
     // could blank a value that was accepted when it was first written.
     const isReplay = isUndoRedoSource(source);
     const toStoredValue = (
@@ -5936,7 +5936,7 @@ export default function Core(
         source ?? 'setSourceDataAtCell')) {
         // changeProp is a physical column index, a prop name, or a `columns[].data` accessor
         // function for array-based data sources. An undo or a redo writes the prop the journal
-        // recorded - a numeric one can name a key past the columns an object row declares (#5409).
+        // recorded – a numeric one can name a key past the columns an object row declares (#5409).
         writeSourceChange(changeRow, changeProp, newValue, isReplay);
       }
     });
@@ -6125,7 +6125,7 @@ export default function Core(
 
   /**
    * Runs one cell meta write and journals it when a transaction records. Only an imperative write
-   * is journaled - one made while a `cell`-option or plugin-declarative scope is open is
+   * is journaled – one made while a `cell`-option or plugin-declarative scope is open is
    * configuration being applied, not a user action. The values are kept by reference: a meta value
    * can be a function or a class instance (a `renderer`, an `editor`) whose identity matters, and
    * meta values are replaced, not mutated in place.

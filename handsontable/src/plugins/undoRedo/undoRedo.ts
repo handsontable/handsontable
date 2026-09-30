@@ -87,10 +87,12 @@ function isCustomAction(value: unknown): value is CustomAction {
  * recorded steps address.
  *
  * @param {JournalOp[]} journal The journal.
- * @param {GridStateSnapshot} before The state the journal started from.
+ * @param {GridStateSnapshot} before The state the journal started from (only the axis lengths are read).
  * @returns {boolean}
  */
-function changesOnlyAxisEnds(journal: JournalOp[], before: GridStateSnapshot): boolean {
+function changesOnlyAxisEnds(
+  journal: JournalOp[], before: { rows: { length: number }, columns: { length: number } },
+): boolean {
   const counts = { row: before.rows.length, column: before.columns.length };
 
   return journal.every((op) => {
@@ -116,6 +118,29 @@ function changesOnlyAxisEnds(journal: JournalOp[], before: GridStateSnapshot): b
 
     return true;
   });
+}
+
+/**
+ * Returns the axis lengths a journal started from, walked back from the lengths it ended at.
+ *
+ * @param {JournalOp[]} journal The journal.
+ * @param {GridStateSnapshot} after The state the journal ended in.
+ * @returns {object} The row and column counts, as `{ rows: { length }, columns: { length } }`.
+ */
+function readStartLengths(journal: JournalOp[], after: GridStateSnapshot) {
+  const counts = { row: after.rows.length, column: after.columns.length };
+
+  for (let index = journal.length - 1; index >= 0; index -= 1) {
+    const op = journal[index];
+
+    if (op.type === 'insertRows' || op.type === 'insertColumns') {
+      counts[op.type === 'insertRows' ? 'row' : 'column'] -= op.amount;
+    } else if (op.type === 'removeRows' || op.type === 'removeColumns') {
+      counts[op.type === 'removeRows' ? 'row' : 'column'] += op.physicalIndexes.length;
+    }
+  }
+
+  return { rows: { length: counts.row }, columns: { length: counts.column } };
 }
 
 /**
@@ -203,7 +228,7 @@ export class UndoRedo extends BasePlugin {
   #tracker: GridStateTracker | null = null;
 
   /**
-   * The grid state after the last recorded (or restored) change - the state the next step starts from.
+   * The grid state after the last recorded (or restored) change – the state the next step starts from.
    */
   #lastState: GridStateSnapshot | null = null;
 
@@ -219,8 +244,8 @@ export class UndoRedo extends BasePlugin {
    */
   #ignoredTransactions = new WeakSet<OperationTransaction>();
   /**
-   * The structure epoch each transaction opened in. A transaction that outlives its epoch - a `batch()`
-   * that calls `updateData()` - journaled changes to a dataset that is gone, so it is not recorded.
+   * The structure epoch each transaction opened in. A transaction that outlives its epoch – a `batch()`
+   * that calls `updateData()` – journaled changes to a dataset that is gone, so it is not recorded.
    */
   #openEpochs = new WeakMap<OperationTransaction, number>();
 
@@ -241,15 +266,27 @@ export class UndoRedo extends BasePlugin {
   #pending = new Set<OperationTransaction>();
 
   /**
+   * The transactions that settled while another one was held after it had already changed the grid,
+   * listed under that one (the host). They are recorded in the host's step.
+   */
+  #joined = new Map<OperationTransaction, OperationTransaction[]>();
+
+  /**
    * The largest number of steps the undo stack keeps (`undo: { maxHistory }`).
    */
   #maxHistory = Infinity;
 
   /**
-   * The field each physical column showed when the recorded steps were made - what a `columns`
+   * The field each physical column showed when the recorded steps were made – what a `columns`
    * settings update is compared against. `null` while no recorded step is kept.
    */
   #columnProps: unknown[] | null = null;
+
+  /**
+   * Set when a `columns` settings update came while a transaction was pending, so its check could not
+   * run. It runs once the last pending transaction settles.
+   */
+  #owesColumnsCheck = false;
 
   /**
    * The flag that determines if new actions should be ignored.
@@ -317,7 +354,7 @@ export class UndoRedo extends BasePlugin {
 
     // A lowered limit drops the oldest steps now, not only when the next one is recorded.
     this.#dropSteps(Math.max(0, this.doneActions.length - this.#maxHistory), 0);
-    this.#checkSettingsUpdate(newSettings);
+    this.#checkSettingsUpdate(newSettings !== undefined && 'columns' in newSettings);
 
     super.updatePlugin(newSettings);
   }
@@ -329,19 +366,26 @@ export class UndoRedo extends BasePlugin {
    * drops only the steps that address such a column, with every step older than them, and keeps
    * the rest: a cell write is recorded by field, so it survives any reshape.
    *
-   * It runs only while no transaction is open. Inside one, the settle and the next transaction do
-   * the check, as they always did.
+   * It runs only while no transaction is pending. While one is, the next transaction to open checks
+   * the row count and the index maps, and the `columns` check is owed: it runs once the last pending
+   * transaction settles (`#owesColumnsCheck`).
    *
-   * @param {object} [newSettings] The settings passed to `updateSettings()`.
+   * @param {boolean} namesColumns `true` when the update names `columns`.
    */
-  #checkSettingsUpdate(newSettings: Record<string, unknown> | undefined) {
+  #checkSettingsUpdate(namesColumns: boolean) {
     const tracker = this.#tracker;
     const lastState = this.#lastState;
+
+    if (this.#pending.size > 0) {
+      this.#owesColumnsCheck ||= namesColumns;
+
+      return;
+    }
 
     // An empty history has nothing to protect, and the next transaction captures the state anyway.
     // `updateSettings()` runs on every render in the React wrapper, so this skips a capture there.
     if (
-      tracker === null || lastState === null || this.#pending.size > 0 ||
+      tracker === null || lastState === null ||
       (this.doneActions.length === 0 && this.undoneActions.length === 0)
     ) {
       return;
@@ -361,7 +405,7 @@ export class UndoRedo extends BasePlugin {
 
     const columnCountChanged = current.columns.length !== lastState.columns.length;
 
-    if (columnCountChanged || (newSettings !== undefined && 'columns' in newSettings)) {
+    if (columnCountChanged || namesColumns) {
       const recordedProps = this.#columnProps;
       const props = this.#readColumnProps();
 
@@ -415,7 +459,7 @@ export class UndoRedo extends BasePlugin {
 
   /**
    * Drops every recorded step that fails the test, together with every step that can only be undone
-   * or redone after it - so the stacks keep no hole. Legacy `done()` actions are kept unless such a
+   * or redone after it – so the stacks keep no hole. Legacy `done()` actions are kept unless such a
    * step sits above them.
    *
    * @param {Function} fails Tells whether a step cannot be restored any more.
@@ -554,7 +598,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterUndo
    */
   undo(): void {
-    if (!this.isUndoAvailable() || this.#hasPendingStructuralStep()) {
+    if (!this.isUndoAvailable()) {
       return;
     }
 
@@ -611,7 +655,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterRedo
    */
   redo(): void {
-    if (!this.isRedoAvailable() || this.#hasPendingStructuralStep()) {
+    if (!this.isRedoAvailable()) {
       return;
     }
 
@@ -657,21 +701,23 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Checks if undo action is available.
+   * Checks if undo action is available. It is not while an action that inserted or removed rows or
+   * columns waits for an asynchronous validator: the grid then has a shape no recorded step describes.
    *
    * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
    */
   isUndoAvailable(): boolean {
-    return this.doneActions.length > 0;
+    return this.doneActions.length > 0 && !this.#hasPendingStructuralStep();
   }
 
   /**
-   * Checks if redo action is available.
+   * Checks if redo action is available. It is not while an action that inserted or removed rows or
+   * columns waits for an asynchronous validator: the grid then has a shape no recorded step describes.
    *
    * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
    */
   isRedoAvailable(): boolean {
-    return this.undoneActions.length > 0;
+    return this.undoneActions.length > 0 && !this.#hasPendingStructuralStep();
   }
 
   /**
@@ -847,8 +893,51 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Drops the whole history when the grid changed shape outside any recorded step - `updateData`, or
-   * settings that reshape the data - since the step was recorded. Its snapshots are sized for a
+   * Returns the pending transaction that already changed the grid and still waits for a validator -
+   * the host a transaction that settles meanwhile joins. Its changes were made before the other
+   * transaction's and it makes more after them, so the two can only be undone together: undone
+   * apart, one of them replays at addresses the other has renumbered.
+   *
+   * @returns {OperationTransaction|undefined}
+   */
+  #findHost(): OperationTransaction | undefined {
+    for (const transaction of this.#pending) {
+      if (transaction.holds > 0 && transaction.journal.length > 0) {
+        return transaction;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Lists a transaction and the ones that joined it, with their journals merged in the order the
+   * entries were recorded.
+   *
+   * @param {OperationTransaction} transaction The transaction that settled.
+   * @param {OperationTransaction[]} joined The transactions that joined it.
+   * @returns {OperationTransaction} The transaction itself, or a view of the whole group.
+   */
+  #mergeJoined(transaction: OperationTransaction, joined: OperationTransaction[]): OperationTransaction {
+    if (joined.length === 0) {
+      return transaction;
+    }
+
+    const scope = this.hot._getOperationScope();
+    const group = [transaction, ...joined];
+
+    return {
+      ...transaction,
+      journal: group.flatMap(member => member.journal)
+        .sort((left, right) => scope.getEntryOrder(left) - scope.getEntryOrder(right)),
+      operations: group.flatMap(member => member.operations),
+      sources: group.flatMap(member => member.sources),
+    };
+  }
+
+  /**
+   * Drops the whole history when the grid changed shape outside any recorded step – `updateData`, or
+   * settings that reshape the data – since the step was recorded. Its snapshots are sized for a
    * dataset that is gone, so restoring one could only corrupt the grid.
    *
    * @param {StepRecord} record The step about to be restored.
@@ -906,6 +995,8 @@ export class UndoRedo extends BasePlugin {
     this.#epoch += 1;
     this.#lastState = null;
     this.#pending.clear();
+    this.#joined.clear();
+    this.#owesColumnsCheck = false;
   }
 
   /**
@@ -995,7 +1086,7 @@ export class UndoRedo extends BasePlugin {
   /**
    * Validates the visible cells a restore wrote, so their `valid` flag describes the restored values.
    * The restore writes the source directly, which the validation of a change never sees, and the
-   * journal does not carry `valid` - a recorded flag would be the verdict on another value.
+   * journal does not carry `valid` – a recorded flag would be the verdict on another value.
    *
    * @param {RestoredCell[]} restoredCells The cells the restore wrote.
    * @param {boolean} structural `true` when the restore inserted or removed rows or columns.
@@ -1012,7 +1103,7 @@ export class UndoRedo extends BasePlugin {
     ));
 
     // The restore rendered already. A validation changes what a cell shows (its `valid` class), and a
-    // restored row or column changes which columns are on screen - AutoColumnSize measures only what the
+    // restored row or column changes which columns are on screen – AutoColumnSize measures only what the
     // previous draw showed, so it sizes a column the restore brought back on the next render. An undo
     // of an edit needs neither, and skips the second render.
     if (validated.length === 0) {
@@ -1161,12 +1252,18 @@ export class UndoRedo extends BasePlugin {
     this.#tracker = null;
     this.#lastState = null;
     this.#pending.clear();
+    this.#joined.clear();
+    this.#owesColumnsCheck = false;
   }
 
   /**
    * Starts a step: remembers the selection and whether the step is to be recorded at all, and brings
    * the base state up to date, so a change made outside any operation (a plugin reacting to a
    * setting) belongs to no step.
+   *
+   * While a held transaction that already changed the grid is pending, the base state stays where it
+   * was: those changes are that transaction's, not changes made outside any step, and the step it
+   * records – which this transaction joins – starts before them.
    *
    * @param {OperationTransaction} transaction The transaction that opened.
    */
@@ -1175,47 +1272,90 @@ export class UndoRedo extends BasePlugin {
       this.#ignoredTransactions.add(transaction);
     }
 
-    const current = this.#tracker?.capture() ?? null;
+    if (this.#findHost() === undefined) {
+      const current = this.#tracker?.capture() ?? null;
 
-    // A pending step that removed rows changed the grid's shape itself; that is not a change made
-    // outside any step, and it must not drop the history it is about to join.
-    if (!this.#hasPendingStructuralStep()) {
       this.#detectStructureChange(current);
+      this.#lastState = current;
     }
 
     this.#openEpochs.set(transaction, this.#epoch);
     this.#selectionsBefore.set(transaction, this.hot.getSelected());
-    this.#lastState = current;
     // Added last, so a capture that throws leaves nothing pending.
     this.#pending.add(transaction);
   };
 
   /**
-   * Records a finished step. The state before it is the state the previous step ended in - read now,
-   * not when the transaction opened, so a step that committed while this one waited for a validator
-   * is not undone together with it.
+   * Records a finished step, then runs the `columns` check a settings update made while a transaction
+   * was pending owes, once none is pending any more.
    *
    * @param {OperationTransaction} transaction The settled transaction.
    */
   #onTransactionSettle = (transaction: OperationTransaction) => {
+    this.#recordSettled(transaction);
+
+    if (this.#owesColumnsCheck && this.#pending.size === 0) {
+      this.#owesColumnsCheck = false;
+      this.#checkSettingsUpdate(true);
+    }
+  };
+
+  /**
+   * Records a finished step. The state before it is the state the previous step ended in – read now,
+   * not when the transaction opened, so a step that committed while this one waited for a validator
+   * is not undone together with it.
+   *
+   * The exception is a transaction that settles while another one is held after it already changed
+   * the grid (`#findHost()`): it joins that one's step, and the two are undone together.
+   *
+   * @param {OperationTransaction} transaction The settled transaction.
+   */
+  #recordSettled(transaction: OperationTransaction) {
     const tracker = this.#tracker;
+    const joined = this.#joined.get(transaction) ?? [];
+    const isUnrecorded = this.#ignoredTransactions.has(transaction) || BLOCKED_SOURCES.has(transaction.source);
 
     this.#pending.delete(transaction);
+    this.#joined.delete(transaction);
 
     if (tracker === null) {
       return;
     }
 
+    const host = this.#findHost();
+
+    if (host !== undefined) {
+      const hostJoined = this.#joined.get(host) ?? [];
+
+      // An unrecorded transaction stays unrecorded, and is judged the way it is below: `#lastState`
+      // is where the host started, so the lengths it started from are read back from its own journal.
+      if (isUnrecorded) {
+        const startLengths = readStartLengths(transaction.journal, tracker.capture());
+
+        if (!changesOnlyAxisEnds(transaction.journal, startLengths)) {
+          this.#resetHistory();
+
+          return;
+        }
+      }
+
+      // The ones that joined an unrecorded transaction go on to the host.
+      this.#joined.set(host, hostJoined.concat(isUnrecorded ? joined : [transaction, ...joined]));
+
+      return;
+    }
+
     const after = tracker.capture();
     const before = this.#lastState ?? after;
+    const group = this.#mergeJoined(transaction, joined);
 
     this.#lastState = after;
 
-    if (this.#ignoredTransactions.has(transaction) || BLOCKED_SOURCES.has(transaction.source)) {
+    if (isUnrecorded) {
       // Rows or columns an unrecorded change added or removed anywhere but at the end renumber the ones
       // every recorded step addresses, so the history is dropped. At the end they are harmless: a
       // restore fits the axis to them.
-      if (!changesOnlyAxisEnds(transaction.journal, before)) {
+      if (!changesOnlyAxisEnds(group.journal, before)) {
         this.#resetHistory();
       }
 
@@ -1223,19 +1363,19 @@ export class UndoRedo extends BasePlugin {
     }
 
     if (
-      (transaction.journal.length === 0 && after === before) ||
+      (group.journal.length === 0 && after === before) ||
       this.#openEpochs.get(transaction) !== this.#epoch
     ) {
       return;
     }
 
-    const { step, selection } = createStep(this.hot, transaction, before, this.#selectionsBefore.get(transaction));
+    const { step, selection } = createStep(this.hot, group, before, this.#selectionsBefore.get(transaction));
 
     this.#records.set(step, {
       epoch: this.#epoch,
       before,
       after,
-      journal: transaction.journal,
+      journal: group.journal,
       selection,
     });
 
@@ -1245,11 +1385,14 @@ export class UndoRedo extends BasePlugin {
 
     // The fields the kept steps were made on. A step that inserted or removed columns renumbers them,
     // and it drops with every older step on any `columns` change, so the latest numbering is the one
-    // every kept step shares.
-    if (this.#columnProps === null || this.#columnProps.length !== this.hot.columnIndexMapper.getNumberOfIndexes()) {
+    // every kept step shares. An owed check still needs the fields from before the update.
+    if (
+      !this.#owesColumnsCheck &&
+      (this.#columnProps === null || this.#columnProps.length !== this.hot.columnIndexMapper.getNumberOfIndexes())
+    ) {
       this.#columnProps = this.#readColumnProps();
     }
-  };
+  }
 
   /**
    * Listens to the data change and if the source is `loadData` then clears the undo and redo history.

@@ -48,7 +48,12 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   so a state from another configuration is never returned as `previous`. The collapse hiding map is still
   restored from the step's snapshot, like every index map. A config change expands the tree but does not
   clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
-  collapsed.
+  collapsed. The same config sent again (a wrapper re-render) is not another configuration: the version
+  stays, so an undo and a redo across it put the group back with its hidden columns.
+- **`getStateColumns()` answers `[]`.** A group is recorded by header position, and the columns a
+  collapse hides are in this plugin's hiding maps, which the UndoRedo check of a `columns` settings
+  update reads column by column. Without the method a collapse step - and every step older than it -
+  dropped on any `columns` update that changed a field.
 
 ## Testing
 

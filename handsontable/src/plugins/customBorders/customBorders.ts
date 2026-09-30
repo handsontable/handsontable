@@ -512,7 +512,7 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Rebuilds the border model from the `borders` cell meta an undo or a redo restored, at the cells'
-   * current visual coordinates - a restored row or column order moved them without any move hook.
+   * current visual coordinates – a restored row or column order moved them without any move hook.
    *
    * @private
    * @param {*} state The recorded state.

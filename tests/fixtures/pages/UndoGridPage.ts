@@ -180,14 +180,7 @@ export class UndoGridPage {
    * appears. The drag moves the pointer in several steps.
    */
   async dragColumnResizeHandle(visualColumn: number, deltaX: number): Promise<void> {
-    const handle = this.grid.locator('.manualColumnResizer');
-
-    // Park the pointer first, so hovering the header produces the `mouseover` the plugin reacts to.
-    await this.page.mouse.move(0, 0);
-    // `nth(column + 1)` skips the corner cell.
-    await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
-    await expect(handle).toBeVisible();
-    await dragResizeHandle(this.page, handle, { x: deltaX });
+    await dragResizeHandle(this.page, await this.#revealColumnResizeHandle(visualColumn), { x: deltaX });
   }
 
   /**
@@ -197,28 +190,7 @@ export class UndoGridPage {
   async dragColumnResizeHandleWhile(
     visualColumn: number, deltaX: number, whileHeld: () => Promise<void>
   ): Promise<void> {
-    const handle = this.grid.locator('.manualColumnResizer');
-
-    await this.page.mouse.move(0, 0);
-    // `nth(column + 1)` skips the corner cell.
-    await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
-    await expect(handle).toBeVisible();
-
-    const box = await handle.boundingBox();
-
-    if (!box) {
-      throw new Error('The resize handle has no layout box.');
-    }
-
-    const startX = box.x + (box.width / 2);
-    const startY = box.y + (box.height / 2);
-
-    await this.page.mouse.move(startX, startY);
-    await this.page.mouse.down();
-    await this.page.mouse.move(startX + (deltaX / 2), startY);
-    await whileHeld();
-    await this.page.mouse.move(startX + deltaX, startY);
-    await this.page.mouse.up();
+    await dragResizeHandle(this.page, await this.#revealColumnResizeHandle(visualColumn), { x: deltaX }, whileHeld);
   }
 
   /**
@@ -226,13 +198,22 @@ export class UndoGridPage {
    * The autosize runs from a timer after the second press, so wait for the width to change.
    */
   async doubleClickColumnResizeHandle(visualColumn: number): Promise<void> {
+    await (await this.#revealColumnResizeHandle(visualColumn)).dblclick();
+  }
+
+  /**
+   * Hover a column header, so the ManualColumnResize handle appears on it, and return the handle.
+   */
+  async #revealColumnResizeHandle(visualColumn: number): Promise<Locator> {
     const handle = this.grid.locator('.manualColumnResizer');
 
+    // Park the pointer first, so hovering the header produces the `mouseover` the plugin reacts to.
     await this.page.mouse.move(0, 0);
     // `nth(column + 1)` skips the corner cell.
     await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1).hover();
     await expect(handle).toBeVisible();
-    await handle.dblclick();
+
+    return handle;
   }
 
   /**

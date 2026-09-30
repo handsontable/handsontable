@@ -178,8 +178,8 @@ class DataManager {
   }
 
   /**
-   * Returns the shape of the nested source - the top-level rows and the child list of every row, by
-   * reference - for UndoRedo. When the shape did not change since the previous capture, the previous
+   * Returns the shape of the nested source – the top-level rows and the child list of every row, by
+   * reference – for UndoRedo. When the shape did not change since the previous capture, the previous
    * one itself is returned. The rows' values are not copied: they travel in the undo journal, so
    * restoring a shape never brings an old cell value back.
    *
@@ -237,7 +237,7 @@ class DataManager {
       const state = shape.children.get(node);
 
       if (state === undefined) {
-        // The row had no child list when the shape was taken - a child added since created it.
+        // The row had no child list when the shape was taken – a child added since created it.
         if (typeof node === 'object' && node !== null && '__children' in node) {
           Reflect.deleteProperty(node, '__children');
         }

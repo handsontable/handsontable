@@ -554,6 +554,19 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * The group membership changes only with a column move, insertion or removal, or a new
+   * `nestedHeaders` configuration. The UndoRedo check of a `columns` settings update drops a step
+   * that moved, inserted or removed columns on its own, and a configuration names headers, not
+   * fields – so the membership itself never makes a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
    * Puts back the header group membership a `captureState()` call recorded and derives the headers
    * from it. The column order is already restored by then. Overrides recorded under another
    * `nestedHeaders` configuration are not put back, but the headers are still derived again, for

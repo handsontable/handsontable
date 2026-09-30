@@ -279,6 +279,11 @@ export class Comments extends BasePlugin {
    */
   #commentValueBeforeSave = '';
   /**
+   * The comment of the open editor's cell right before an undo or a redo, so the editor is left as it
+   * is when the step did not touch that comment.
+   */
+  #commentBeforeUndoRedo: string | undefined = undefined;
+  /**
    * The shadow root the grid renders inside, or `null` when it renders in the light DOM.
    * Listeners bound on the document sit outside that tree, so the browser retargets the
    * event to the shadow host and the real cell has to be recovered from the composed path.
@@ -341,6 +346,8 @@ export class Comments extends BasePlugin {
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('beforeUndo', this.#onBeforeUndoRedo);
+    this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('afterUndo', this.#onAfterUndoRedo);
     this.addHook('afterRedo', this.#onAfterUndoRedo);
     this.addHook('afterBeginEditing', () => this.hide());
@@ -1192,9 +1199,17 @@ export class Comments extends BasePlugin {
   };
 
   /**
+   * Reads the comment of the open editor's cell before an undo or a redo changes it.
+   */
+  #onBeforeUndoRedo = () => {
+    this.#commentBeforeUndoRedo = this.#editor?.isVisible() && this.range.from ? this.getComment() : undefined;
+  };
+
+  /**
    * An undo or a redo can change the comment under an open editor. Show the comment the cell holds
    * now, so a later save cannot write the text from before the undo back. The editor is hidden when
-   * its cell is gone, or when the cell has no comment any more.
+   * its cell is gone, or when the step removed the cell's comment. A step that did not touch the
+   * comment leaves the editor's text as it is – it may be a comment still being typed.
    */
   #onAfterUndoRedo = () => {
     if (!this.#editor?.isVisible() || !this.range.from) {
@@ -1209,13 +1224,21 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    if (this.getComment() === undefined) {
+    const comment = this.getComment();
+
+    if (comment === this.#commentBeforeUndoRedo) {
+      this.refreshEditor(true);
+
+      return;
+    }
+
+    if (comment === undefined) {
       this.#closeEditorWithoutSave();
 
       return;
     }
 
-    this.#commentValueBeforeSave = this.getComment() ?? '';
+    this.#commentValueBeforeSave = comment;
     this.#editor.setValue(this.#commentValueBeforeSave);
     this.refreshEditor(true);
   };

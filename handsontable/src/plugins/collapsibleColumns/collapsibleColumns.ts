@@ -570,6 +570,18 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * A group is recorded by its header position, and the columns a collapse hides are in this plugin's
+   * hiding maps, which the UndoRedo check of a `columns` settings update reads column by column. So the
+   * groups themselves never make a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
    * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
    * hooks fired when the user acted. Groups recorded under another `nestedHeaders` configuration are
    * not put back: they would collapse whatever group of the new one sits at the same position.

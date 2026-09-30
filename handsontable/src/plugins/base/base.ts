@@ -646,7 +646,7 @@ export class BasePlugin {
    * without such state does not implement the method.
    *
    * The capture runs after every user action, so it must be cheap when nothing changed: return
-   * `previous` itself - the value this method returned last time - when the state did not change
+   * `previous` itself – the value this method returned last time – when the state did not change
    * since then. Snapshots are shared between undo steps and must never be mutated afterwards.
    *
    * @private
@@ -676,7 +676,7 @@ export class BasePlugin {
    * state differs between `state` and `other`, the plugin's states on the two sides of the step.
    * UndoRedo asks when a `columns` settings update changes which field a column shows, and keeps
    * the step only when none of these columns changed. Return `null`, or leave the method out, when
-   * the state cannot be read per column - the step is then dropped.
+   * the state cannot be read per column – the step is then dropped.
    *
    * @private
    * @param {*} state The state on one side of the step.

@@ -56,7 +56,7 @@ export type CellMetaOrigin = 'user' | 'cellOption' | 'none';
 /**
  * What one cell meta key holds at a moment: whether it is stored on the cell, its value, and the
  * origin bucket it is filed in. Captured before and after a write, so the write can be reverted
- * exactly - including the bucket, which decides whether an `updateSettings` call replays the value.
+ * exactly – including the bucket, which decides whether an `updateSettings` call replays the value.
  */
 export interface CellMetaKeyState {
   hadOwn: boolean;
@@ -213,7 +213,7 @@ export default class CellMeta {
   }
 
   /**
-   * Tells whether a `setMeta` call made now would be filed as a user-defined write - that is, no
+   * Tells whether a `setMeta` call made now would be filed as a user-defined write – that is, no
    * `cell`-option scope and no plugin-declarative suspension is open.
    *
    * @returns {boolean}
@@ -524,7 +524,7 @@ export default class CellMeta {
   /**
    * Returns what one key of a cell's meta holds. Nothing is created: a cell with no stored meta, or
    * one that does not store the key, reports the key as absent. A key only counts as stored when a
-   * `setMeta` call wrote it - a value the `type` expansion or the `cells` function put on the object
+   * `setMeta` call wrote it – a value the `type` expansion or the `cells` function put on the object
    * is re-derived on every read, so it is reported as absent too.
    *
    * @param {number} physicalRow The physical row index.

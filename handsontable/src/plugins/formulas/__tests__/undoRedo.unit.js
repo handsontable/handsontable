@@ -1,6 +1,8 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from 'handsontable/base';
-import { Formulas, MoveCells, registerPlugin, UndoRedo } from 'handsontable/plugins';
+import {
+  Formulas, ManualColumnFreeze, ManualColumnMove, ManualRowMove, MoveCells, registerPlugin, UndoRedo,
+} from 'handsontable/plugins';
 
 registerPlugin(Formulas);
 registerPlugin(UndoRedo);
@@ -93,12 +95,13 @@ describe('Formulas – undo', () => {
      *
      * @param {Array[]} dataA A's data.
      * @param {Array[]} dataB B's data (kept by reference, so a test can read B's source).
-     * @param {object} [options] `bFirst`, and extra settings for A.
+     * @param {object} [options] `bFirst`, A's sheet name, and extra settings for A.
      * @param options.bFirst
+     * @param options.sheetA
      * @param options.settingsA
      * @returns {object[]} Grids A and B.
      */
-    function buildPair(dataA, dataB, { bFirst = false, settingsA = {} } = {}) {
+    function buildPair(dataA, dataB, { bFirst = false, sheetA = 'S1', settingsA = {} } = {}) {
       engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       otherContainer = document.createElement('div');
       document.body.appendChild(otherContainer);
@@ -106,7 +109,7 @@ describe('Formulas – undo', () => {
       const buildA = () => new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
         data: dataA,
-        formulas: { engine, sheetName: 'S1' },
+        formulas: { engine, sheetName: sheetA },
         undo: true,
         ...settingsA,
       });
@@ -152,6 +155,40 @@ describe('Formulas – undo', () => {
 
       expect(formulaInB(0, 0)).toBe('=S1!A4');
       expect(hotB.getDataAtCell(0, 0)).toBe(50);
+    });
+
+    // The engine writes a quote in a quoted sheet name twice, so the name as typed is not in the text.
+    it('should put back a reference to a sheet whose name holds a quote', () => {
+      const [hotA, hotB] = buildPair([[10], [20], [30], [40], [50]], [['=\'O\'\'Brien\'!A5']], {
+        sheetA: 'O\'Brien',
+      });
+      const undoRedo = hotA.getPlugin('undoRedo');
+
+      hotA.alter('remove_row', 1);
+
+      expect(formulaInB(0, 0)).toBe('=\'O\'\'Brien\'!A4');
+
+      undoRedo.undo();
+
+      expect(formulaInB(0, 0)).toBe('=\'O\'\'Brien\'!A5');
+      expect(hotB.getDataAtCell(0, 0)).toBe(50);
+
+      undoRedo.redo();
+
+      expect(formulaInB(0, 0)).toBe('=\'O\'\'Brien\'!A4');
+    });
+
+    // Only the cells the step rewrote are written into the other grid's data: a `#REF!` its engine holds
+    // for another reason must not replace the formula its data still holds.
+    it('should write only the rewritten cells into the other grid\'s data', () => {
+      const dataB = [['=S1!A5'], ['=A1*2']];
+
+      buildPair([[10], [20], [30], [40], [50]], dataB);
+      engine.setCellContents({ sheet: engine.getSheetId('S2'), row: 1, col: 0 }, '=#REF!*2');
+      hot.alter('remove_row', 1);
+
+      expect(dataB[0][0]).toBe('=S1!A4');
+      expect(dataB[1][0]).toBe('=A1*2');
     });
 
     it('should put back a reference another sheet holds when a row insertion is undone', () => {
@@ -234,6 +271,30 @@ describe('Formulas – undo', () => {
       expect(engine.getNamedExpressionFormula('Fifth')).toBe('=S1!$A$4');
     });
 
+    it('should put back a named expression scoped to another sheet, and skip it once that sheet is gone', () => {
+      const [hotA, hotB] = buildPair([[10], [20], [30], [40], [50]], [['x']]);
+      const undoRedo = hotA.getPlugin('undoRedo');
+      const scope = engine.getSheetId('S2');
+
+      engine.addNamedExpression('Fifth', '=S1!$A$5', scope);
+      hotA.alter('remove_row', 1);
+
+      expect(engine.getNamedExpressionFormula('Fifth', scope)).toBe('=S1!$A$4');
+
+      undoRedo.undo();
+
+      expect(engine.getNamedExpressionFormula('Fifth', scope)).toBe('=S1!$A$5');
+
+      undoRedo.redo();
+      hotB.destroy();
+      otherHot = null;
+      engine.removeSheet(scope);
+
+      expect(() => undoRedo.undo()).not.toThrow();
+      expect(hotA.getDataAtCol(0)).toEqual([10, 20, 30, 40, 50]);
+      expect(undoRedo.isRedoAvailable()).toBe(true);
+    });
+
     it('should put back a reference another sheet holds when a cell move is undone', () => {
       registerPlugin(MoveCells);
 
@@ -254,6 +315,89 @@ describe('Formulas – undo', () => {
       undoRedo.redo();
 
       expect(formulaInB(0, 0)).toBe('=S1!B1');
+    });
+
+    it('should put back a reference another sheet holds when a column insertion is undone', () => {
+      const [hotA, hotB] = buildPair([[1, 2, 3]], [['=S1!B1']]);
+      const undoRedo = hotA.getPlugin('undoRedo');
+
+      hotA.alter('insert_col_start', 0);
+
+      expect(formulaInB(0, 0)).toBe('=S1!C1');
+
+      undoRedo.undo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!B1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(2);
+
+      undoRedo.redo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!C1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(2);
+    });
+
+    it('should put back a reference another sheet holds when a row move is undone', () => {
+      registerPlugin(ManualRowMove);
+
+      const [hotA, hotB] = buildPair([[10], [20], [30]], [['=S1!A1']], { settingsA: { manualRowMove: true } });
+      const undoRedo = hotA.getPlugin('undoRedo');
+
+      hotA.getPlugin('manualRowMove').moveRow(0, 2);
+
+      expect(formulaInB(0, 0)).toBe('=S1!A3');
+
+      undoRedo.undo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!A1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(10);
+
+      undoRedo.redo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!A3');
+      expect(hotB.getDataAtCell(0, 0)).toBe(10);
+    });
+
+    it('should put back a reference another sheet holds when a column move is undone', () => {
+      registerPlugin(ManualColumnMove);
+
+      const [hotA, hotB] = buildPair([[1, 2, 3]], [['=S1!A1']], { settingsA: { manualColumnMove: true } });
+      const undoRedo = hotA.getPlugin('undoRedo');
+
+      hotA.getPlugin('manualColumnMove').moveColumn(0, 2);
+
+      expect(formulaInB(0, 0)).toBe('=S1!C1');
+
+      undoRedo.undo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!A1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(1);
+
+      undoRedo.redo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!C1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(1);
+    });
+
+    // Freezing a column moves it to the start.
+    it('should put back a reference another sheet holds when a column freeze is undone', () => {
+      registerPlugin(ManualColumnFreeze);
+
+      const [hotA, hotB] = buildPair([[1, 2, 3]], [['=S1!C1']], { settingsA: { manualColumnFreeze: true } });
+      const undoRedo = hotA.getPlugin('undoRedo');
+
+      hotA.getPlugin('manualColumnFreeze').freezeColumn(2);
+
+      expect(formulaInB(0, 0)).toBe('=S1!A1');
+
+      undoRedo.undo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!C1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(3);
+
+      undoRedo.redo();
+
+      expect(formulaInB(0, 0)).toBe('=S1!A1');
+      expect(hotB.getDataAtCell(0, 0)).toBe(3);
     });
 
     // B's removal rewrites A's reference in the engine and in A's source data, so A's own undo – which
@@ -285,6 +429,36 @@ describe('Formulas – undo', () => {
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('edited after the step'));
 
       warnSpy.mockRestore();
+    });
+
+    // In a workbook of large sheets, reading every other sheet's formulas is the whole cost of a row or
+    // column change. A sheet found with no formula naming this one is not read again until the engine
+    // reports a change in it.
+    it('should not read another sheet again until the engine reports a change in it', () => {
+      const [hotA, hotB] = buildPair([[10], [20], [30]], [[1], [2]]);
+      const peer = engine.getSheetId('S2');
+      const getSheetFormulas = jest.spyOn(engine, 'getSheetFormulas');
+      const peerReads = () => getSheetFormulas.mock.calls.filter(([sheet]) => sheet === peer).length;
+
+      hotA.alter('insert_row_above', 0);
+
+      const readsAfterFirstChange = peerReads();
+
+      expect(readsAfterFirstChange).toBeGreaterThan(0);
+
+      hotA.alter('insert_row_above', 0);
+
+      expect(peerReads()).toBe(readsAfterFirstChange);
+
+      hotB.setDataAtCell(1, 0, '=S1!A3');
+      hotA.alter('remove_row', 0);
+
+      expect(peerReads()).toBeGreaterThan(readsAfterFirstChange);
+      expect(formulaInB(1, 0)).toBe('=S1!A2');
+
+      hotA.getPlugin('undoRedo').undo();
+
+      expect(formulaInB(1, 0)).toBe('=S1!A3');
     });
 
     it('should not read another sheet when the engine holds this grid\'s sheet alone', () => {

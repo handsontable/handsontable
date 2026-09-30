@@ -50,9 +50,15 @@ the other side of the step but not in `state`, adds the ones `state` lists that 
 and sorts the list back into the order `state` gives it. A merge made outside any step - for example by
 `updateSettings({ mergeCells })` after the step - therefore survives the undo. It falls back to
 rebuilding the whole collection from `state` when there is no `context.other`, when the replay reset the
-row order (`context.reordered`), or when a merge to remove is not the one the lookup finds at its
-coordinates. Either way it re-attaches the anchors, re-anchors onto the visible rows and marks every
-cell changed. Match a merge to its own anchor by the merge object, never
+row order (`context.reordered`), when a merge to remove is not the one the lookup finds at its
+coordinates, or when a merge to put back overlaps a live merge the step did not make - `add(…, true)`
+skips the overlap check, so the diff path would stack a recorded merge on top of one a settings update
+made on the same cells. Either way it re-attaches the anchors, re-anchors onto the visible rows and marks every
+cell changed. Each captured merge also carries `physicalColumns`, the physical column of every column
+it spans at capture time, for `getStateColumns()`: the UndoRedo check of a `columns` settings update
+drops a merge step only when a column one of its changed merges covers shows another field. Without
+it the step (and every older one) dropped on any field change. The anchor cannot answer that: it
+holds the first column only, and the column order may have changed since. Match a merge to its own anchor by the merge object, never
 through `mergedCellsCollection.get()` - that answers for every covered cell, so after a removal has slid
 another merge onto those coords the lookup hands back the wrong object.
 

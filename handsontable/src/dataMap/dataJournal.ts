@@ -6,8 +6,8 @@ import { isDataAccessorFn } from './dataSource';
 import type { DataAccessorFn } from './dataSource';
 
 /**
- * One cell value change, addressed by physical row and by prop. Both values are SOURCE values - what
- * the data source stored before and after the write - never the values a change hook reports: those
+ * One cell value change, addressed by physical row and by prop. Both values are SOURCE values – what
+ * the data source stored before and after the write – never the values a change hook reports: those
  * have passed through `valueGetter`/`valueSetter` and `modifyData`, so writing one back into the
  * source would store the display value (a key/value autocomplete cell would get its label instead of
  * its key).
@@ -69,7 +69,7 @@ export interface RemoveRowsJournalOp {
    */
   physicalIndexes: number[];
   /**
-   * The physical row of the first visual row removed - the removal's public `index`, as the undo
+   * The physical row of the first visual row removed – the removal's public `index`, as the undo
    * step has always reported it.
    */
   firstPhysicalIndex: number;
@@ -79,7 +79,7 @@ export interface RemoveRowsJournalOp {
   rows: unknown[];
   /**
    * For each removed row, the `[physicalColumn, value]` pairs of every column whose `data` is an
-   * accessor function - those values live behind the function and are invisible to `rows`.
+   * accessor function – those values live behind the function and are invisible to `rows`.
    */
   accessorValues: Array<Array<[number, unknown]>>;
   /**
@@ -129,7 +129,7 @@ export interface MetaJournalOp {
 }
 
 /**
- * Cell meta rows inserted or removed without a row insertion or removal around them - by a plugin
+ * Cell meta rows inserted or removed without a row insertion or removal around them – by a plugin
  * that restructures the rows by hand (NestedRows), or through `spliceCellsMeta()`. The data does not
  * move with them.
  */
@@ -241,8 +241,9 @@ export function captureAccessorValues(
 /**
  * Appends one cell value change to the transaction's journal. Consecutive forward changes are kept
  * in one `cells` entry; a structural entry in between starts a new one, so the journal keeps the
- * order the writes happened in. A change of a `run` joins only that run's own entry, and only while
- * it is still the last one.
+ * order the writes happened in. So does an entry another transaction recorded in between: the two
+ * can end up in one step, merged by the order their entries were recorded in. A change of a `run`
+ * joins only that run's own entry, and only while it is still the last one.
  *
  * @param {OperationScope} scope The operation scope.
  * @param {CellDelta} delta The change.
@@ -263,12 +264,12 @@ export function recordCellChange(scope: OperationScope, delta: CellDelta, run?: 
       run.op.changes.push(delta);
     } else {
       run.op = { type: 'cells', changes: [delta], reversed: true };
-      transaction.journal.push(run.op);
+      scope.append(transaction, run.op);
     }
-  } else if (lastOp?.type === 'cells' && lastOp.reversed !== true) {
+  } else if (lastOp?.type === 'cells' && lastOp.reversed !== true && scope.isLatestEntry(lastOp)) {
     lastOp.changes.push(delta);
   } else {
-    transaction.journal.push({ type: 'cells', changes: [delta] });
+    scope.append(transaction, { type: 'cells', changes: [delta] });
   }
 }
 
