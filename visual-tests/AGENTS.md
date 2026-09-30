@@ -857,11 +857,13 @@ without complaint. Two checks keep the one from standing in for the other.
   and skips the tests, the Markdown, the dotfiles, and what the build writes there: the core's `.gitignore`
   entries that start with `src/`, such as `src/styles/handsontableStyles.{js,ts}` (which `build:styles`
   rewrites on every run, and `lint`, `test:unit`, and `test:e2e` all run it first) and
-  `src/3rdparty/walkontable/dist/`. It does not ask git which files are ignored. The same `.gitignore` carries
-  unanchored rules for the package root, `languages/` and `dev*.ts`, and git applies them under `src/` too, so
-  a new `src/i18n/languages/xx-XX.ts` would never count. And a checkout without its own `.git` inside another
-  repository would get that repository's answer. No source may be newer than `handsontable/tmp/package.json`,
-  which `postbuild` and `postbuild:partial` write when they compose the package. A rebuild of one task through
+  `src/3rdparty/walkontable/dist/`. It does not ask git which files are ignored. Git's answer takes in every
+  ignore rule, a machine's global excludes file included, so a rule written for another path can hide a real
+  source: until they were anchored to the package root, the core's `languages/` and `dev*.ts` kept a new
+  `src/i18n/languages/xx-XX.ts` out of it (`handsontable/test/__tests__/gitignoreScope.unit.js` now pins the
+  anchoring). And a checkout without its own `.git` inside another repository would get that repository's
+  answer. No source may be newer than `handsontable/tmp/package.json`, which `postbuild` and
+  `postbuild:partial` write when they compose the package. A rebuild of one task through
   `scripts/run.mjs` runs neither, so it still counts as stale. The check reads modification times, so a
   checkout, rebase, or stash that rewrites a source counts too, whatever it wrote. It reads no build input
   outside `src/`: not `handsontable/package.json` (a version bump leaves the old version in the stamp and passes),
