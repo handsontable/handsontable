@@ -825,6 +825,50 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Returns the geometry of every merged cell the lookup matrix holds, as plain
+   * `{ row, col, rowspan, colspan }` records. A merge whose rows are all trimmed stays in the
+   * merge list at its last visual position, but the lookup matrix no longer holds it, so it is
+   * left out: restored at that stale position it would come back over unrelated rows.
+   *
+   * @private
+   * @returns {object[]}
+   */
+  getVisibleMergedAreas(): MergeAreaGeometry[] {
+    const collection = this.mergedCellsCollection;
+
+    return collection.mergedCells
+      .filter(mergedCell => collection.get(mergedCell.row, mergedCell.col) === mergedCell)
+      .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
+  }
+
+  /**
+   * Merges the given areas through the automatic path, the one the settings use: no cell is
+   * written, and `beforeMergeCells`/`afterMergeCells` report `auto: true`. An area that does not
+   * fit the grid is skipped without the settings validation's warning, and so is one that
+   * overlaps a merge already in the lookup matrix, since the automatic path skips the overlap
+   * check.
+   *
+   * @private
+   * @param {object[]} areas The `{ row, col, rowspan, colspan }` records to merge, in visual indexes.
+   */
+  restoreMergedAreas(areas: MergeAreaGeometry[]): void {
+    const rowCount = this.hot.countRows();
+    const colCount = this.hot.countCols();
+
+    areas
+      .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
+      .forEach(({ row, col, rowspan, colspan }) => {
+        const from = this.hot._createCellCoords(row, col);
+        const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
+        const range = this.hot._createCellRange(from, from, to);
+
+        if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
+          this.mergeRange(range, true, true);
+        }
+      });
+  }
+
+  /**
    * Returns `true` if a range is mergeable.
    *
    * @private
