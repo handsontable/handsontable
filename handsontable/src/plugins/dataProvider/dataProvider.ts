@@ -450,7 +450,7 @@ export class DataProvider extends BasePlugin {
       }
 
       this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
-      this.#showDataProviderRequestErrorNotification('fetch', err);
+      this.#showDataProviderRequestErrorNotification('fetch', err, this.#snapshotQueryParameters(params));
 
       throw err;
     } finally {
@@ -672,17 +672,23 @@ export class DataProvider extends BasePlugin {
   /**
    * Fills `#queryParameters` from Pagination, ColumnSorting, and (when `fetchRows` exists) Filters so `fetchRows`
    * matches plugin UI state after enable or before a server-driven refetch.
+   * Assigns a new object rather than writing into the current one, so an open fetch-error toast can tell that the
+   * query changed since its failure (see `#showDataProviderRequestErrorNotification()`).
    *
    * @returns {void}
    */
   #applyQueryParametersFromPlugins(): void {
-    applyPaginationToQueryFromPlugin(this.hot, this.#queryParameters);
-    applyColumnSortToQueryFromPlugin(this.hot, this.#queryParameters);
+    const queryParameters = { ...this.#queryParameters };
+
+    applyPaginationToQueryFromPlugin(this.hot, queryParameters);
+    applyColumnSortToQueryFromPlugin(this.hot, queryParameters);
     applyFiltersFromFiltersPluginToQueryParameters(
       this.hot,
-      this.#queryParameters,
+      queryParameters,
       () => this.#getFetchFn()
     );
+
+    this.#queryParameters = queryParameters;
   }
 
   /**
@@ -767,13 +773,23 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Shows an error toast in the {@link Options#notification} plugin when it is enabled.
-   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls {@link DataProvider#fetchData} again.
+   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the
+   * toast and calls `#fetchDataSilently()` with the failed query, or with the current query once the grid has moved on.
+   * The failed query is needed because `#queryParameters` changes only after a successful fetch, so a failed page or
+   * page-size change would otherwise reload the previous state. Every write to `#queryParameters` assigns a new object
+   * (a successful fetch, `disablePlugin()`, and the sort and filter changes made before they fetch), so when it is no
+   * longer the object seen at failure time, the user has requested something newer and Refetch reloads that instead.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
+   * @param {DataProviderQueryParameters} [failedQuery] Query parameters of the failed `fetchRows` call (`fetch` only).
    * @returns {void}
    */
-  #showDataProviderRequestErrorNotification(kind: 'fetch' | 'create' | 'update' | 'remove', err: unknown): void {
+  #showDataProviderRequestErrorNotification(
+    kind: 'fetch' | 'create' | 'update' | 'remove',
+    err: unknown,
+    failedQuery?: DataProviderQueryParameters
+  ): void {
     const notificationPlugin = this.hot.getPlugin('notification');
 
     if (!notificationPlugin?.enabled) {
@@ -799,6 +815,8 @@ export class DataProvider extends BasePlugin {
     };
 
     if (kind === 'fetch') {
+      const queryAtFailure = this.#queryParameters;
+
       options.duration = 0;
       options.actions = [
         {
@@ -809,7 +827,7 @@ export class DataProvider extends BasePlugin {
               notificationPlugin.hide(toastId);
             }
 
-            void this.#fetchDataSilently();
+            void this.#fetchDataSilently(this.#queryParameters === queryAtFailure ? failedQuery : {});
           },
         },
       ];
@@ -958,8 +976,11 @@ export class DataProvider extends BasePlugin {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
       applyFiltersAndRefetch: (filtersForProvider) => {
-        this.#queryParameters.filters = filtersForProvider ?? null;
-        this.#queryParameters.page = 1;
+        this.#queryParameters = {
+          ...this.#queryParameters,
+          filters: filtersForProvider ?? null,
+          page: 1,
+        };
         void this.#fetchDataSilently();
       },
     },

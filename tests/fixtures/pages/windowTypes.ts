@@ -82,6 +82,7 @@ export interface FixtureHotInstance {
     addCondition(column: number, name: string, args: unknown[]): void,
     clearConditions(column?: number): void,
     filter(): void,
+    exportConditions(): unknown[],
   };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
