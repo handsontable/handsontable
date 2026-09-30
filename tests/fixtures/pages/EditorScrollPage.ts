@@ -45,9 +45,7 @@ export class EditorScrollPage {
 
   /**
    * The visible instance of a cell inside the frozen top/inline-start CORNER
-   * overlay. `goto()` waits on it as the signal that the overlays rendered. No
-   * spec asserts that the editor tracks it: the editor drifts away from a
-   * pinned cell on window scroll (DEV-2201).
+   * overlay — the one the user actually sees and the editor must cover.
    */
   frozenCornerCell(row: number, col: number): Locator {
     return this.page.locator('.ht_clone_top_inline_start_corner').getByTestId(`cell-${row}-${col}`);
@@ -68,6 +66,16 @@ export class EditorScrollPage {
         requestAnimationFrame(() => requestAnimationFrame(resolve));
       });
     }, [x, y]);
+  }
+
+  /** The window's vertical scroll position. */
+  async windowScrollY(): Promise<number> {
+    return this.page.evaluate(() => window.scrollY);
+  }
+
+  /** A cell's top edge in viewport coordinates. */
+  async viewportTop(cell: Locator): Promise<number> {
+    return cell.evaluate(element => element.getBoundingClientRect().top);
   }
 
   /**
