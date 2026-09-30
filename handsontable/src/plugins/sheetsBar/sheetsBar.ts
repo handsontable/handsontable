@@ -6,7 +6,11 @@ import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearMergedCells,
+  forgetMergedCells,
+  keepSelectionOnPage,
   resetViewState,
+  resetViewport,
   restoreViewState,
   restoreViewport,
   type TrackedCellMeta,
@@ -86,8 +90,13 @@ function applyEngineRewritesToSheetData(data: unknown[][], serialized: unknown[]
  * recomputes them from the data, so replaying a captured value after a switch would restore a
  * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
  * tracking balloon to six figures on large sheets.
+ *
+ * `hidden` and `spanned` are MergeCells' own bookkeeping, not options: the plugin writes them when it
+ * merges and removes them when it unmerges, and the switch restores the merges itself. Tracked, they
+ * came back on every read after MergeCells removed them from a row that was trimmed at the time,
+ * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
  */
-const UNTRACKED_META_KEYS = new Set(['valid']);
+const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -557,6 +566,7 @@ export class SheetsBar extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: this.#registeredSide, weight: LAYOUT_WEIGHT });
     }
 
+    this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());
     this.#registerFocusScope();
     this.#registerShortcuts();
 
@@ -571,6 +581,8 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
+    this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
 
     this.#refreshUI();
 
@@ -727,6 +739,10 @@ export class SheetsBar extends BasePlugin {
       this.#unregisterShortcuts();
     }
 
+    if (this.#ui) {
+      this.hot.getFocusManager().unregisterOutsideClickExemptElement(this.#ui.getContainer());
+    }
+
     this.#model = null;
     this.#trackedCellMeta = new Map();
     this.#declaredEntries = new Map();
@@ -824,6 +840,10 @@ export class SheetsBar extends BasePlugin {
         const oldSheet = oldId === null ? null : model.getSheetById(oldId);
 
         if (oldSheet) {
+          if (this.hot.getActiveEditor()?.isOpened()) {
+            this.hot.destroyEditor(false, false);
+          }
+
           this.#syncActiveSheetData();
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
@@ -1008,6 +1028,10 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
+      if (!viewState?.selection && this.hot.view) {
+        this.hot.deselectCell();
+      }
+
       // The neutral reset runs BEFORE the sheet arrives. `loadData` resets only the index
       // mappers, so the reset is what clears the previous sheet's filters, hidden and trimmed
       // indexes, merges, borders, manual sizes, and a runtime freeze — and running it first
@@ -1017,9 +1041,11 @@ export class SheetsBar extends BasePlugin {
       // its own empty state.
       if (!viewState) {
         resetViewState(this.hot, this.#neutralFixedColumnsStart);
+      } else {
+        clearMergedCells(this.hot);
       }
 
-      this.#applySheet(newSheet, source);
+      this.#applySheet(newSheet, source, { restoresMerges: viewState !== undefined });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
@@ -1037,11 +1063,24 @@ export class SheetsBar extends BasePlugin {
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
     // need the arriving sheet painted at its own sizes, and a listener reading the DOM from the
     // hook has to see the sheet it is being told about.
-    if (viewState) {
-      if (this.hot.view) {
-        this.#batchRender(() => restoreViewport(this.hot, viewState));
-      }
+    if (this.hot.view) {
+      let selectionRestored = false;
 
+      this.#batchRender(() => {
+        if (viewState) {
+          selectionRestored = restoreViewport(this.hot, viewState);
+
+          if (!selectionRestored) {
+            this.hot.deselectCell();
+          }
+        } else {
+          resetViewport(this.hot);
+        }
+      });
+      keepSelectionOnPage(this.hot, selectionRestored);
+    }
+
+    if (viewState) {
       this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
     }
   }
@@ -1098,8 +1137,15 @@ export class SheetsBar extends BasePlugin {
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
    * the arriving sheet's data before its `afterLoadData`.
+   *
+   * With `restoresMerges` set, the merged cells the settings update regenerated are dropped
+   * right after the load: a sheet that returns with a stored view state restores its own
+   * merges, and every merge declared in the settings would otherwise outlive the load and win
+   * over the ones the user changed. They are dropped from the collection only, because the load
+   * has reset the cell meta, and the update may have trimmed or remapped the departing grid
+   * under them, so their coordinates can address rows that no longer exist.
    */
-  #applySheet(sheet: Sheet, source: string) {
+  #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
       const settings = this.#withBaselineFor(sheet.settings);
 
@@ -1109,6 +1155,10 @@ export class SheetsBar extends BasePlugin {
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (restoresMerges) {
+        forgetMergedCells(this.hot);
+      }
     };
 
     if (this.hot.view) {
@@ -2125,6 +2175,26 @@ export class SheetsBar extends BasePlugin {
         cellProperties[key] = value;
       }
     });
+  };
+
+  /**
+   * Keeps the keys typed inside the bar away from the grid. A press on the bar keeps the grid's
+   * selection, and the editor manager opens the cell editor on any printable key while the grid
+   * listens and has a selection, whatever shortcut context is active - so without this a letter
+   * typed into the rename input, or pressed on a focused tab, would start editing the selected
+   * cell. Registered ahead of the editor manager's own listener, which skips an event marked this
+   * way. Only the mark is set: `stopImmediatePropagation()` from `helpers/dom/event` also sets
+   * `cancelBubble`, and the grid's key listener sits on the `documentElement`, so the host page's
+   * own `document` and `window` listeners would stop seeing every key pressed in the bar.
+   *
+   * @param {Event} event The keyboard or composition event.
+   */
+  #onKeyDownWithinBar = (event: Event) => {
+    const container = this.#ui?.getContainer();
+
+    if (container && event.composedPath().includes(container)) {
+      (event as Event & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
+    }
   };
 
   /**

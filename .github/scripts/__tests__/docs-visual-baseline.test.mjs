@@ -29,7 +29,13 @@ const require = createRequire(import.meta.url);
 //      recorded approval, or the functional project starts blocking merges
 //      before its sprint of report-only runs is over;
 //   4. the seed chain stops matching the deployed commit, cancels itself, or
-//      seeds from a pull request's deploy.
+//      seeds from a pull request's deploy;
+//   5. a render writes golden records without the example grid layout spec
+//      passing first (a flaky pass or a skipped test is not a pass), or from a
+//      moving branch alias instead of the deploy's own URL, so blank or mixed
+//      grids become the baseline again (#13381 to #13626); a refused bootstrap
+//      claims a baseline it never wrote; or a failed seed says nothing, or says
+//      it again on every deploy of a streak.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root.
@@ -239,6 +245,139 @@ test('the seed step refuses an empty manifest, reconciles with --delete, and bot
   }
 });
 
+test('every render that writes golden records first passes the example grid layout spec, and a failure writes nothing', () => {
+  // Between #13381 and #13626 every `height: 'auto'` example grid rendered 0px tall, and 21 seeds
+  // wrote the blank grids into docs/base/develop. The render takes whatever the target serves as
+  // the truth, so the layout spec is the only thing between a broken deploy and the baseline.
+  const layout = actionStep('Check that the example grids are laid out');
+  const render = actionStep('Render the baseline');
+  const all = actionSteps();
+
+  assert.ok(all.indexOf(actionStep('Check for golden records')) < all.indexOf(layout),
+    'the layout check reads DOCS_VISUAL_BOOTSTRAP, which the probe step sets');
+  assert.ok(all.indexOf(layout) < all.indexOf(render), 'the layout check must run before the render it gates');
+  assert.equal(stepIf(layout), stepIf(render),
+    'the check must guard exactly the runs that render golden records: a seed, a re-seed dispatch, and a bootstrap');
+  assert.match(layout, /\n\s+id: layout\n/, 'the verdict step reads steps.layout.outcome');
+  // A retry must not count as a pass, and with --fail-on-flaky-tests it cannot change the verdict, so
+  // --retries=0 only makes a red run fail four times sooner.
+  assert.match(layout,
+    /^\s+npx playwright test --project=functional --fail-on-flaky-tests --retries=0 exampleGridLayout\.spec\.ts$/m);
+  assert.match(layout, /jq -e '\.stats\.skipped == 0 and \.stats\.expected > 0' \.\/tests\/test-artifacts\/report\.json/,
+    'Playwright exits 0 when every test was skipped, so the report must show tests that ran');
+  // The YAML key, not the word: the splitter attaches the next step's leading comment to this step.
+  assert.doesNotMatch(layout, /^\s+continue-on-error:/m, 'a layout failure must fail the job, or the render runs anyway');
+  assert.match(layout, /BASE_URL: \$\{\{ inputs\.test-url \}\}/, 'the check must read the URL the render reads');
+  assert.match(layout, /PASS_COOKIE: \$\{\{ inputs\.pass-cookie \}\}/);
+
+  // What turns a failed check into "nothing written": GitHub ANDs an implicit success() onto a
+  // condition with no status-check function, so both writers are skipped after the check fails.
+  for (const [name, step] of [['Render the baseline', render], ['Seed the golden records', actionStep('Seed the golden records')]]) {
+    assert.doesNotMatch(stepIf(step), /\b(?:always|success|failure|cancelled)\s*\(\s*\)/,
+      `${name} carries a status-check function, so it would still run after a failed layout check`);
+  }
+
+  // The facts live in one module both specs read, so a fact dropped there leaves both checks blind at
+  // once, and nothing else would go red.
+  // The judgement (which facts fail) is unit-tested in docs/tests/lib/__tests__/example-grid-layout-problems.test.mjs;
+  // what is pinned here is that the browser half measures those facts and both specs use the result.
+  const libPath = 'docs/tests/lib/example-grid-layout.ts';
+  const judgementPath = 'docs/tests/lib/example-grid-layout-problems.mjs';
+  const specPath = 'docs/tests/exampleGridLayout.spec.ts';
+
+  for (const rel of [libPath, judgementPath, specPath, 'docs/tests/lib/__tests__/example-grid-layout-problems.test.mjs']) {
+    assert.ok(existsSync(path.join(root, rel)), `${rel} is missing`);
+  }
+
+  const lib = read(libPath);
+  const judgement = read(judgementPath);
+  const spec = read(specPath);
+
+  assert.match(lib, /import \{ layoutProblems as judgeLayout \} from '\.\/example-grid-layout-problems\.mjs';/);
+  assert.match(lib, /return judgeLayout\(examples\);/, 'the browser half must judge with the tested module');
+
+  assert.match(lib, /querySelectorAll<HTMLElement>\('\.hot-example-preview'\)/, 'the check no longer measures every example');
+  assert.match(lib, /querySelectorAll<HTMLElement>\('\.ht_master \.wtHolder'\)/, 'the check no longer finds the example grids');
+  assert.match(judgement, /return \['no example on the page'\];/, 'a page with no example would pass the check');
+  assert.match(judgement, /if \(grids\.length === 0\) \{\n\s+return \[`\$\{example\}: no grid rendered`\];/,
+    'an example that failed to mount would pass the check');
+  assert.match(judgement, /if \(holderHeight === 0\) \{/, 'the check no longer fails a collapsed grid');
+  // Only a grid with rows can be too short to show one: nine pages on a healthy deploy have none.
+  assert.match(judgement, /\} else if \(rowCount > 0 && !showsARow\) \{/, 'the check no longer fails a holder too short to show a row');
+  assert.match(lib, /rowCount: rows\.length,/);
+  assert.match(judgement, /if \(holderWidth > rootWidth\) \{/, 'the check no longer fails a holder wider than its grid root');
+  assert.match(judgement, /if \(cutOffLeft > 0\) \{/, 'the check no longer fails a grid the example cuts off on the left');
+  assert.match(judgement, /if \(cutOffRight > 0\) \{/, 'the check no longer fails a grid the example cuts off on the right');
+  // The cut-off is the root's, not the holder's: `.ht_master` already clips a too-wide holder at the root's
+  // edge, and counting it twice sends a core sizing bug to the docs wrapper CSS.
+  assert.match(lib, /cutOffLeft: Math\.max\(0, Math\.floor\(clipLeft - rootRect\.left\)\),/);
+  assert.match(lib, /cutOffRight: Math\.max\(0, Math\.floor\(rootRect\.right - clipRight\)\),/);
+  // Settled is where the measurement stops, broken or not, so a page that settles broken fails at once.
+  assert.match(lib, /return settled;\n\s+\}, \{\n\s+message: 'the example grids stop changing',\n\s+timeout,\n\s+\}\)\.toBe\(true\);/);
+  assert.match(spec, /import \{ layoutProblems, settledExamples \} from '\.\/lib\/example-grid-layout';/);
+  assert.match(spec, /expect\(layoutProblems\(await settledExamples\(page\)\), `every example on \$\{path\} lays out its grid`\)\.toEqual\(\[\]\);/,
+    'the spec no longer requires an empty list of problems');
+  assert.doesNotMatch(spec, /\b(?:test|describe)(?:\.describe)?\.(?:skip|fixme|fail|only)\s*\(/,
+    'a skipped, fixme\'d, expected-to-fail, or focused test turns the gate off');
+  for (const slug of ['row-height', 'column-width', 'batch-operations', 'demo', 'grid-size']) {
+    assert.ok(spec.includes(`'${slug}',`), `the spec no longer covers ${slug}; replace a page and update this list, never drop one`);
+  }
+  for (const urlPath of ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid']) {
+    assert.ok(spec.includes(`urlPath: '${urlPath}'`), `the spec no longer covers ${urlPath}`);
+  }
+});
+
+test('the render that writes golden records checks every page it photographs, on the same load', () => {
+  // The fast check visits five page shapes on one load each. A grid that collapses on some loads can pass
+  // it on a lucky one, and a page shape outside the five is never visited, and either would then be
+  // photographed as the truth. So the render checks each page it writes, before its screenshot.
+  const render = actionStep('Render the baseline');
+  const compare = actionStep('Compare against the golden records');
+  const visual = read('docs/tests/visualDocs.spec.ts');
+
+  assert.match(render, /^\s+DOCS_VISUAL_LAYOUT_GATE: 'true'$/m, 'the render must turn the per-page check on');
+  // The YAML key, not the word: the splitter attaches the next step's leading comment to this step.
+  assert.doesNotMatch(compare, /^\s+DOCS_VISUAL_LAYOUT_GATE:/m,
+    'a compare judges screenshots against the goldens; gating it on layout would red every docs pull request on '
+      + 'a develop that is broken, which is the seed\'s job to refuse');
+  assert.match(visual, /import \{ layoutProblems, settledExamples \} from '\.\/lib\/example-grid-layout';/);
+  assert.match(visual, /^const LAYOUT_GATE = process\.env\.DOCS_VISUAL_LAYOUT_GATE === 'true';$/m);
+
+  const gate = visual.indexOf('if (LAYOUT_GATE && await page.locator(\'.hot-example-preview\').count() > 0) {');
+
+  assert.notEqual(gate, -1, 'visualDocs.spec.ts no longer checks the layout of the page it renders');
+  assert.ok(visual.indexOf('.hot-example-preview--loading') < gate, 'the check must wait for the examples to load');
+  assert.ok(gate < visual.indexOf('await expect(page).toHaveScreenshot('), 'the check must come before the screenshot');
+  assert.ok(visual.slice(gate, visual.indexOf('await expect(page).toHaveScreenshot(')).includes(
+    'expect(layoutProblems(await settledExamples(page)), `every example on ${path} lays out its grid`).toEqual([]);'),
+  'the per-page check must require an empty list of problems');
+});
+
+test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
+  // The core gate reads a trusted bootstrap as "this build became the baseline", assuming that the
+  // render and the seed ran. After a refused layout check or a failed render, they did not.
+  const gate = actionStep('Docs visual verdict');
+
+  assert.match(actionStep('Seed the golden records'), /\n\s+id: seed\n/, 'the verdict step reads steps.seed.outcome');
+  assert.match(gate, /LAYOUT_OUTCOME: \$\{\{ steps\.layout\.outcome \}\}/);
+  assert.match(gate, /SEED_OUTCOME: \$\{\{ steps\.seed\.outcome \}\}/);
+  assert.match(gate,
+    /if \[ "\$VISUAL_BOOTSTRAP" = "true" \] && \[ "\$IS_UNTRUSTED" != "true" \] && \[ "\$SEED_OUTCOME" != "success" \]; then/);
+  // A compare that is not a pull request never seeds (the seed step's bootstrap arm is pull-request-only),
+  // so it must hear "nothing to compare", not that its render or its seed failed.
+  assert.match(gate, /EVENT_NAME: \$\{\{ github\.event_name \}\}/);
+  const dispatch = gate.indexOf('if [ "$VISUAL_BOOTSTRAP" = "true" ] && [ "$IS_UNTRUSTED" != "true" ] && [ "$EVENT_NAME" != "pull_request" ]; then');
+
+  assert.notEqual(dispatch, -1, 'a non-pull-request bootstrap is not told apart from a failed seed');
+  assert.ok(dispatch < gate.indexOf('[ "$SEED_OUTCOME" != "success" ]'), 'the dispatch case must answer first');
+  assert.match(gate.slice(dispatch), /a compare dispatch does not create them\.[\s\S]*?echo "verdict=bootstrap" >> "\$GITHUB_OUTPUT"/);
+  assert.match(gate, /no baseline created/);
+  assert.match(gate, /echo "verdict=error" >> "\$GITHUB_OUTPUT"/);
+  // It must answer before the core gate runs, which would overwrite comment.md.
+  assert.ok(gate.indexOf('verdict=error') < gate.indexOf('node ../visual-tests/scripts/visual-gate.mjs'),
+    'the refused-bootstrap comment must be written instead of the core gate\'s, not before it');
+});
+
 test('the docs Playwright config fails a missing golden on CI, keeps the snapshot path, and splits the two projects', () => {
   const config = read('docs/playwright.config.ts');
 
@@ -386,7 +525,7 @@ test('manual-qa, the visual approval and the docs visual approval assert their a
 test('the functional docs specs run on every docs pull request, report-only for now', () => {
   const functional = job(docs, 'functional');
 
-  assert.ok(functional, 'docs.yml has no functional job; the 11 functional specs would again run only under the visual label');
+  assert.ok(functional, 'docs.yml has no functional job; the functional specs would again run only under the visual label');
   assert.match(functional, /needs: \[ preview \]/);
   assert.match(functional, /needs\.preview\.result == 'success'/);
   assert.doesNotMatch(functional, /visual-label/, 'the functional specs must not depend on the visual label');
@@ -435,18 +574,17 @@ test('the docs seed chains on the staging deploy, seeds only a successful push b
   assert.match(condition, /github\.event\.workflow_run\.event == 'push'/, 'a pull request\'s deploy is not a base branch\'s');
   assert.match(condition, /github\.event_name == 'workflow_dispatch'/);
 
-  assert.match(seedJob, /ref: \$\{\{ github\.event\.workflow_run\.head_sha \|\| inputs\.branch \}\}/,
-    'the specs must be the deployed commit\'s');
+  assert.match(seedJob, /ref: \$\{\{ steps\.target\.outputs\.sha \}\}/,
+    'the specs must be the commit the seeded deploy was built from');
   assert.match(seedJob, /BRANCH: \$\{\{ github\.event\.workflow_run\.head_branch \|\| inputs\.branch \}\}/,
     'the branch goes through env, never into the script body');
-  assert.match(seedJob, /url="https:\/\/handsontable-docs-staging\.pages\.dev\/docs"/, 'develop is the apex deploy');
-  assert.match(seedJob, /url="https:\/\/rc-\$\{version\/\/\.\/-\}\.handsontable-docs-staging\.pages\.dev\/docs"/,
-    'release/x.y.z deploys to rc-x-y-z, dots to dashes, as docs-staging.yml\'s cf-target does');
-  assert.match(seedJob, /else\n\s+echo "::error::[^\n]*\n\s+exit 1/, 'any other branch has no baseline to seed');
+  assert.match(seedJob,
+    /if \[ "\$BRANCH" != "develop" \] && \[\[ ! "\$BRANCH" =~ \^release\/\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$ \]\]; then\n\s+echo "::error::[^\n]*\n\s+exit 1/,
+    'any branch but develop and release/x.y.z has no baseline to seed');
   assert.match(seedJob, /mode: seed$/m);
   assert.match(seedJob, /base-key: docs\/base\/\$\{\{ steps\.target\.outputs\.branch \}\}\n\s+actual-key: docs\/base\/\$\{\{ steps\.target\.outputs\.branch \}\}/,
     'a seed publishes under the key it writes');
-  assert.match(seedJob, /permissions:\n\s+contents: read/);
+  assert.match(seedJob, /permissions:\n\s+contents: read\n\s+actions: read/, 'read-only, plus the deploy record download');
   assert.doesNotMatch(seed, /aws s3/, 'the seed workflow writes nothing itself; the action owns the bucket writes');
 
   assert.match(seed,
@@ -454,11 +592,103 @@ test('the docs seed chains on the staging deploy, seeds only a successful push b
     'the seed group must never cancel a seed halfway through its --delete reconcile');
 });
 
+test('a seed renders the staging deploy\'s own URL, which the deploy records for it', () => {
+  // The branch alias moves with every deploy. On 2026-09-18 a seed rendered from 12:08 to 12:20 while
+  // the next deploy took the alias at 12:18, and wrote a baseline mixed from two deploys. A deploy's own
+  // URL never moves, so docs-staging.yml records it and the seed renders it.
+  const staging = read('.github/workflows/docs-staging.yml');
+  const [, stagingJob = ''] = staging.split(/^jobs:$/m);
+  const stagingSteps = stagingJob.split(/^ {6}(?=- )/m);
+  const stagingStep = name => stagingSteps.find(step => step.includes(`name: ${name}\n`)) ?? '';
+  const deploy = stagingStep('Deploy to Cloudflare Pages');
+  const record = stagingStep('Record the deploy\'s own URL for the docs visual seed');
+  const upload = stagingStep('Upload the deploy record');
+
+  assert.match(deploy, /WRANGLER_OUTPUT_FILE_PATH: \$\{\{ runner\.temp \}\}\/wrangler-output\.ndjson/,
+    'wrangler writes the deploy\'s own URL only to the file this names');
+  assert.ok(record, 'docs-staging.yml no longer records the deploy URL, so no seed can find a fixed URL');
+  assert.match(record, /if: \$\{\{ steps\.cf-pages-deploy\.outcome == 'success' && github\.event_name != 'pull_request' \}\}/);
+  assert.match(record, /jq -r 'select\(\.type == "pages-deploy-detailed"\) \| \.url \/\/ empty' "\$OUTPUT_FILE"/);
+  assert.match(record, /--arg url "\$url" --arg sha "\$GITHUB_SHA"/, 'the record names the commit the deploy was built from');
+  assert.doesNotMatch(record, /exit 1/, 'a missing record must not fail the deploy; the seed fails and says why');
+  assert.match(upload, /if: \$\{\{ steps\.deploy-record\.outputs\.recorded == 'true' \}\}/);
+  assert.match(upload, /name: docs-staging-deploy\n\s+path: \$\{\{ runner\.temp \}\}\/docs-staging-deploy\/deploy\.json/);
+
+  const resolve = steps(job(seed, 'seed')).find(step => step.includes('name: Resolve the staging deploy to seed from'));
+  const seedSteps = steps(job(seed, 'seed'));
+
+  assert.ok(resolve, 'the seed no longer resolves a deploy');
+  assert.ok(seedSteps.indexOf(resolve) < seedSteps.findIndex(step => step.includes('uses: actions/checkout@')),
+    'the checkout needs the deploy\'s commit, so the deploy is resolved first');
+  assert.match(resolve, /DEPLOY_RUN_ID: \$\{\{ github\.event\.workflow_run\.id \}\}/);
+  assert.match(resolve, /DEPLOYED_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+  assert.match(resolve, /gh run list --repo "\$REPO" --workflow docs-staging\.yml --branch "\$BRANCH" \\\n\s+--status success --limit 1/,
+    'a dispatch seeds from the branch\'s latest successful deploy');
+  assert.match(resolve, /gh run download "\$DEPLOY_RUN_ID" --repo "\$REPO" --name docs-staging-deploy /,
+    'the seed downloads the record under the name docs-staging.yml uploads it');
+  assert.match(resolve, /\[\[ ! "\$url" =~ \^https:\/\/\[0-9a-f\]\{8\}\\\.handsontable-docs-staging\\\.pages\\\.dev\$ \]\]/,
+    'only a deploy\'s own URL is seeded from, never an alias');
+  assert.match(resolve, /if \[ -n "\$DEPLOYED_SHA" \] && \[ "\$sha" != "\$DEPLOYED_SHA" \]; then\n(?:\s+echo[^\n]*\n)+\s+exit 1/,
+    'a record for another commit must not be seeded from');
+  assert.match(resolve, /echo "url=\$url\/docs" >> "\$GITHUB_OUTPUT"/);
+  // A release branch cut before the record step leaves no record; the error says so and names the remedy.
+  assert.match(resolve, /repos\/\$REPO\/contents\/\.github\/workflows\/docs-staging\.yml\?ref=\$staged_sha" 2>\/dev\/null \| grep -q 'name: docs-staging-deploy'/);
+  assert.match(resolve, /cherry-pick the deploy-record steps from develop's docs-staging\.yml onto \$BRANCH/);
+  assert.match(job(seed, 'seed'), /test-url: \$\{\{ steps\.target\.outputs\.url \}\}/);
+  assert.doesNotMatch(seed, /url="https:\/\/(?:rc-[^"]*\.)?handsontable-docs-staging\.pages\.dev\/docs"/,
+    'a seed from a branch alias can mix two deploys again');
+});
+
+test('a failed docs seed posts to Slack once per streak, through a condition that can actually fire', () => {
+  // A seed the layout check refuses leaves docs/base/<branch> where it was, and nothing else says so:
+  // the workflow is not a required check. visual-seed.yml's notify job is the model. While a render
+  // stays broken every docs deploy fails its seed, so only the first failure of a streak posts.
+  const notify = job(seed, 'notify');
+  const notifySteps = steps(notify);
+  const streak = notifySteps.find(step => step.includes('name: Check whether the previous seed of this branch failed too'));
+  const message = notifySteps.find(step => step.includes('name: Write the Slack message'));
+  const send = notifySteps.find(step => step.includes('name: Send the failure to Slack'));
+
+  assert.ok(notify, 'docs-visual-seed.yml has no notify job, so a failed or refused seed is silent');
+  assert.match(notify, /needs: \[ seed \]/);
+  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.seed\.result == 'failure' && github\.event_name == 'workflow_run' \}\}/,
+    'without a status-check function GitHub ANDs an implicit success() onto the condition, and the job never runs; '
+      + 'a hand dispatch has someone watching it');
+  assert.doesNotMatch(job(seed, 'seed'), /^\s+continue-on-error:/m, 'a seed job that cannot fail never triggers the notify job');
+  assert.match(notify, /permissions:\n\s+actions: read\n/, 'listing earlier runs needs actions: read and nothing more');
+  assert.match(notify, /SLACK_WEBHOOK_URL: \$\{\{ secrets\.SLACK_VISUAL_WEBHOOK_URL \}\}/, 'the core visual seed\'s hook');
+
+  // The streak is keyed on the run name, which must carry the seeded branch the same way on both sides.
+  assert.match(seed, /^run-name: Docs visual seed \(\$\{\{ github\.event\.workflow_run\.head_branch \|\| inputs\.branch \}\}\)$/m);
+  assert.ok(streak, 'the notify job no longer checks for a streak, so every failed deploy posts');
+  assert.match(streak, /RUN_NAME: Docs visual seed \(\$\{\{ github\.event\.workflow_run\.head_branch \}\}\)/);
+  assert.match(streak, /gh run list --repo "\$REPO" --workflow docs-visual-seed\.yml/);
+  assert.match(streak, /\.displayTitle == env\.RUN_NAME/);
+  // A skipped or cancelled run neither starts nor ends a streak, and a failed hand dispatch does not start
+  // one: counting it would mute the first real breakage after someone tried a seed by hand.
+  assert.match(streak, /--json databaseId,displayTitle,conclusion,event/);
+  assert.match(streak, /\.conclusion == "success" or \(\.conclusion == "failure" and \.event == "workflow_run"\)/);
+
+  for (const [name, step] of [['streak', streak], ['message', message], ['send', send]]) {
+    assert.match(stepIf(step), /env\.SLACK_WEBHOOK_URL != ''/, `the ${name} step must skip itself without the secret`);
+  }
+  for (const [name, step] of [['message', message], ['send', send]]) {
+    assert.match(stepIf(step), /steps\.streak\.outputs\.previous != 'failure'/, `the ${name} step must stay quiet mid-streak`);
+  }
+  assert.match(message, /jq -n --arg text "\$text" '\{text: \$text\}' > "\$RUNNER_TEMP\/slack-payload\.json"/,
+    'jq builds the payload, so no branch name can break its JSON');
+  assert.match(send, /payload-file-path: \$\{\{ runner\.temp \}\}\/slack-payload\.json/);
+  assert.doesNotMatch(send, /\n\s+payload: /, 'an inline payload interpolates values into JSON unescaped');
+  assert.match(send, /uses: slackapi\/slack-github-action@[0-9a-f]{40} /, 'the Slack action is pinned by SHA');
+});
+
 test('the dispatch workflow is a thin caller of the action: no workflow_call, no label, no cache', () => {
   // The trigger key, not a mention: the header names the fragment mode it replaced.
   assert.doesNotMatch(dispatch, /^\s*workflow_call:/m, 'nothing calls docs-visual-tests.yml — docs.yml uses the action');
   assert.doesNotMatch(dispatch, /run-docs-visual|pulls\.get/, 'the label gate belongs to docs.yml');
-  assert.match(dispatch, /^\s+update-snapshots:\n\s+description: 'Re-seed docs\/base\/<this branch> from the chosen environment'\n\s+type: boolean/m);
+  // A deployed environment moves with the next deploy, so the input points at the seed that pins one.
+  assert.match(dispatch,
+    /^\s+update-snapshots:\n\s+description: 'Re-seed docs\/base\/<this branch> from the chosen environment\.[^'\n]*dispatch Docs visual seed'\n\s+type: boolean/m);
   assert.match(dispatch, /uses: \.\/\.github\/actions\/docs-visual-run/);
   assert.match(dispatch, /mode: \$\{\{ inputs\.update-snapshots && 'seed' \|\| 'compare' \}\}/);
   assert.match(dispatch, /base-key: docs\/base\/\$\{\{ github\.ref_name \}\}/);

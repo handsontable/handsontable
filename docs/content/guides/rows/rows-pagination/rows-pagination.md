@@ -27,6 +27,7 @@ vue:
 searchCategory: Guides
 category: Rows
 menuTag: updated
+addedIn: "16.1.0"
 ---
 Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 

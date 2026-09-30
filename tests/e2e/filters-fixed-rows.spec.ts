@@ -78,6 +78,47 @@ test.describe('filtering with fixedRowsTop / fixedRowsBottom', () => {
     expect(grid.pageErrors).toEqual([]);
   });
 
+  // DEV-2941: when the rows change, the exemption is re-applied quietly on the next render - no
+  // `afterFilter`, no selection jump, no undo step.
+  test('hides the row that an insert pushes out of the frozen pane', async() => {
+    await grid.rebuild({ filters: { filterFixedRows: false } });
+    await grid.openMenu('Color');
+    await grid.clearAllValues();
+    await grid.checkValue('Red');
+    await grid.confirmMenu();
+    await grid.countAfterFilterCalls();
+
+    // The new, empty row takes the top frozen slot, so `Header` (Gold) is no longer exempt.
+    await grid.insertRowAbove(0);
+
+    await expect.poll(() => grid.columnValues(0)).toEqual([null, 'Apple', 'Cherry', 'Total']);
+    await expect(grid.topOverlayCell(0, 0)).toHaveText('');
+    await expect(grid.master).not.toContainText('Header');
+    expect(await grid.afterFilterCalls()).toBe(0);
+
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('keeps the selection where it was when an insert re-applies the exemption', async() => {
+    await grid.rebuild({ filters: { filterFixedRows: false } });
+    await grid.openMenu('Color');
+    await grid.clearAllValues();
+    await grid.checkValue('Red');
+    await grid.confirmMenu();
+    await grid.countAfterFilterCalls();
+    await grid.selectCell(2, 1);
+
+    // Visual rows are `Header, Apple, Cherry, Total`; the new row lands above `Total` and the
+    // filter hides it. Running the whole filter here used to re-select the top of the column.
+    await grid.insertRowAbove(3);
+
+    await expect.poll(() => grid.columnValues(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+    expect(await grid.selectedLast()).toEqual([2, 1, 2, 1]);
+    expect(await grid.afterFilterCalls()).toBe(0);
+
+    expect(grid.pageErrors).toEqual([]);
+  });
+
   test('keeps its own filtered value checked when the menu is reopened', async() => {
     // Reopening the menu of a column that carries a condition takes the OTHER list path - the one
     // built from the full column read rather than from the visible rows. The pinned values have to

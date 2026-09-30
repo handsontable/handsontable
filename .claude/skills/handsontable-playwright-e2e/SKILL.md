@@ -69,7 +69,7 @@ exactly along the bundle axis is about the bundles, not about timing. Why that
 happens, how to tell a stale bundle from a genuine `full.min` difference, and
 what it cost: `tests/AGENTS.md`.
 
-## Four rules (non-negotiable)
+## Five rules (non-negotiable)
 
 1. **Page Object Model.** A spec expresses intent; selectors and interactions live in a page object under `tests/fixtures/pages/`. Never put raw selectors or multi-step flows in a spec — when the DOM shifts, one file changes.
 2. **Hook by `data-testid`, not structural CSS.** Stamp ids in the fixture (or add them to the component when it removes ambiguity). Fall back to role/text locators before ever reaching into grid internals.
@@ -81,7 +81,8 @@ what it cost: `tests/AGENTS.md`.
 
 - **User-visible** (rendering, interaction, keyboard, menus, overlays) → **E2E here**.
 - **Invisible to users** (data, indexing, algorithms) → **Jest `*.unit.js`** — still mandatory.
-- **Pure refactor / non-runtime** → no new test; declare `Refactor-only: <reason>` in the commit.
+- **Public type surface** → a `*.types.ts` type test in the package whose types changed.
+- **Pure refactor / internal non-runtime** → no new test; declare `Refactor-only: <reason>` in the commit.
 - **New API / plugin / editor** → new spec. **Bug fix** → a failing case in the closest existing spec.
 - **Broken or flaky legacy Jasmine → migrate to Playwright**, don't patch it.
 

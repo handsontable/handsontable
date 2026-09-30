@@ -89,11 +89,12 @@ class Endpoints {
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
   /**
-   * Destination columns keyed by physical destination row, built once per refresh pass. Used to
-   * keep summary results out of other summaries when their row is trimmed and the
-   * `columnSummaryResult` class is unreachable.
+   * Destination columns keyed by physical destination row, built once per refresh pass, each mapped
+   * to whether its endpoint is `readOnly`. Used to keep summary results out of other summaries when
+   * their row is trimmed and the `columnSummaryResult` class is unreachable, and to lock the
+   * `readOnly` state of a read-only summary cell.
    */
-  #summaryDestinations: Map<number, Set<number>> | null = null;
+  #summaryDestinations: Map<number, Map<number, boolean>> | null = null;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -212,11 +213,13 @@ class Endpoints {
       let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
 
       if (columns === undefined) {
-        columns = new Set();
+        columns = new Map();
         this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
       }
 
-      columns.add(endpoint.destinationColumn!);
+      // Two endpoints sharing one destination is a misconfiguration. The last one wins, as it does
+      // when `setEndpointValue` writes the cell's `readOnly`, so the lock always matches the meta.
+      columns.set(endpoint.destinationColumn!, Boolean(endpoint.readOnly));
     });
   }
 
@@ -237,6 +240,25 @@ class Endpoints {
     }
 
     return this.#summaryDestinations!.get(physicalRow)?.has(column) === true;
+  }
+
+  /**
+   * Checks whether a physical cell holds the result of an endpoint configured as `readOnly`.
+   *
+   * The plugin owns the `readOnly` state of such a cell, so it is locked against any other write
+   * (see `ColumnSummary#isLockedSummaryCell`). An endpoint configured `readOnly: false` is not
+   * reported, which leaves its cell as toggleable as any other.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} column Column index.
+   * @returns {boolean}
+   */
+  isReadOnlyDestination(physicalRow: number, column: number): boolean {
+    if (this.#summaryDestinations === null) {
+      this.cacheSummaryDestinations(this.getAllEndpoints());
+    }
+
+    return this.#summaryDestinations!.get(physicalRow)?.get(column) === true;
   }
 
   /**
@@ -375,23 +397,25 @@ class Endpoints {
   }
 
   /**
-   * AfterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
+   * AfterCreateRow/afterCreateCol/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
    * after changing the table structure.
    *
    * @private
    * @param {string} action Type of the action performed.
-   * @param {number} index Row/column index.
+   * @param {number} index Visual row/column index the alteration hook reported.
    * @param {number} number Number of rows/columns added/removed.
-   * @param {Array} [logicRows] Array of the logical indexes.
+   * @param {Array} [removedPhysicalIndexes] Physical indexes a removal took out.
    * @param {string} [source] Source of change.
    * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
   resetSetupAfterStructureAlteration(
     action: string, index: number, number: number,
-    logicRows: number[] | null | undefined, source: string, forceRefresh = true
+    removedPhysicalIndexes: number[] | null | undefined, source: string, forceRefresh = true
   ) {
     // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
-    if (source === 'auto') {
+    // An automatic removal still does: a lowered minimum size gives its rows back that way, and the endpoints
+    // must follow it like any other removal.
+    if (source === 'auto' && action.indexOf('insert') === 0) {
       return;
     }
 
@@ -412,35 +436,23 @@ class Endpoints {
     const type = action.indexOf('row') > -1 ? 'row' : 'col';
     const multiplier = action.indexOf('remove') > -1 ? -1 : 1;
     const endpoints = this.getAllEndpoints();
-    const rowMoving = action.indexOf('move_row') === 0;
-    const placeOfAlteration = index;
+    const shiftIndex = this.#createPhysicalIndexShift(type, action, index, number, removedPhysicalIndexes);
 
-    arrayEach(endpoints, (val: EndpointConfig) => {
-      if (type === 'row' && val.destinationRow! >= placeOfAlteration) {
-        val.alterRowOffset = multiplier * number;
-      }
-
-      if (type === 'col' && val.destinationColumn! >= placeOfAlteration) {
-        val.alterColumnOffset = multiplier * number;
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      if (type === 'row') {
+        endpoint.alterRowOffset = shiftIndex(endpoint.destinationRow!) - endpoint.destinationRow!;
+      } else {
+        endpoint.alterColumnOffset = shiftIndex(endpoint.destinationColumn!) - endpoint.destinationColumn!;
       }
     });
 
-    this.resetAllEndpoints(endpoints, !rowMoving);
+    this.resetAllEndpoints(endpoints);
 
-    if (rowMoving) {
-      arrayEach(endpoints, (endpoint: EndpointConfig) => {
-        this.extendEndpointRanges(endpoint, placeOfAlteration, logicRows?.[0] ?? 0, logicRows?.length ?? 0);
-        this.recreatePhysicalRanges(endpoint);
-        this.clearOffsetInformation(endpoint);
-      });
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      this.shiftEndpointCoordinates(endpoint, type, shiftIndex);
+    });
 
-    } else {
-      arrayEach(endpoints, (endpoint: EndpointConfig) => {
-        this.shiftEndpointCoordinates(endpoint, placeOfAlteration);
-      });
-    }
-
-    if (type === 'row' && !rowMoving) {
+    if (type === 'row') {
       const isRemoval = multiplier === -1;
 
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
@@ -449,8 +461,8 @@ class Endpoints {
         // A reversed endpoint is anchored to the bottom of the table, so a row inserted or removed
         // re-derives its destination from the current physical row count (DEV-144). The generic
         // shift above only moves an endpoint whose destination sits at or below the alteration,
-        // which misses a row appended past the anchor. A move leaves the row count unchanged, so it
-        // is excluded above - the anchor cannot have moved.
+        // which misses a row appended past the anchor. A row move never reaches this method - it
+        // leaves the row count unchanged, so the anchor cannot have moved.
         if (!endpoint.reversedRowCoords || typeof reversedRowOffset !== 'number') {
           return;
         }
@@ -482,12 +494,18 @@ class Endpoints {
         // `resetAllEndpoints` cleared the old cell and the refresh rewrites the summary there, which
         // matches the pre-fix (non-destructive) behavior. An INSERT re-anchoring onto data is
         // allowed - it matches what the initial parse does when it plants the anchor on the reversed
-        // slot, whatever that slot holds. `destinationColumn` is passed as a visual column, the same
-        // way `setEndpointValue`/`_setCellMetaDeclarative` address it in this block.
-        if (isRemoval) {
-          const targetValue = this.hot.getSourceDataAtCell(newDestinationRow, endpoint.destinationColumn!);
+        // slot, whatever that slot holds. `getSourceDataAtCell` takes a physical row but a VISUAL column,
+        // so the physical `destinationColumn` is translated first.
+        const destinationVisualColumn = this.hot.toVisualColumn(endpoint.destinationColumn!);
 
-          if (targetValue !== null && targetValue !== undefined && targetValue !== '') {
+        if (isRemoval) {
+          // A column that cannot be read cannot be proven empty either, so the endpoint stays parked.
+          const targetValue = destinationVisualColumn === null
+            ? null
+            : this.hot.getSourceDataAtCell(newDestinationRow, destinationVisualColumn);
+
+          if (destinationVisualColumn === null ||
+            (targetValue !== null && targetValue !== undefined && targetValue !== '')) {
             return;
           }
         }
@@ -499,9 +517,9 @@ class Endpoints {
         // shadowed that override since the initial parse, so this is not a new shadow.
         const oldDestinationVisualRow = this.hot.toVisualRow(oldDestinationRow);
 
-        if (oldDestinationVisualRow !== null) {
-          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, endpoint.destinationColumn!, 'readOnly', false);
-          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, endpoint.destinationColumn!, 'className', '');
+        if (oldDestinationVisualRow !== null && destinationVisualColumn !== null) {
+          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, destinationVisualColumn, 'readOnly', false);
+          this.hot._setCellMetaDeclarative(oldDestinationVisualRow, destinationVisualColumn, 'className', '');
         }
 
         endpoint.destinationRow = newDestinationRow;
@@ -514,120 +532,36 @@ class Endpoints {
   }
 
   /**
-   * Clear the offset information from the endpoint object.
+   * Moves every coordinate of an endpoint on the altered axis to the physical index it holds after a
+   * structure alteration. Each coordinate is shifted on its own, because the destination, the source column
+   * and the range bounds can sit on different sides of the alteration.
    *
-   * @private
-   * @param {object} endpoint And endpoint object.
-   */
-  clearOffsetInformation(endpoint: EndpointConfig) {
-    endpoint.alterRowOffset = undefined;
-    endpoint.alterColumnOffset = undefined;
-  }
-
-  /**
-   * Extend the row ranges for the provided endpoint.
-   *
-   * @private
-   * @param {object} endpoint The endpoint object.
-   * @param {number} placeOfAlteration Index of the row where the alteration takes place.
-   * @param {number} previousPosition Previous endpoint result position.
-   * @param {number} offset Offset generated by the alteration.
-   */
-  extendEndpointRanges(endpoint: EndpointConfig, placeOfAlteration: number, previousPosition: number, offset: number) {
-    arrayEach(endpoint.ranges!, (range: number[]) => {
-      // is a range, not a single row
-      if (range[1]) {
-
-        if (placeOfAlteration >= range[0] && placeOfAlteration <= range[1]) {
-          if (previousPosition > range[1]) {
-            range[1] += offset;
-          } else if (previousPosition < range[0]) {
-            range[0] -= offset;
-          }
-        } else if (previousPosition >= range[0] && previousPosition <= range[1]) {
-          range[1] -= offset;
-
-          if (placeOfAlteration <= range[0]) {
-            range[0] += 1;
-            range[1] += 1;
-          }
-        }
-      }
-    });
-  }
-
-  /**
-   * Recreate the physical ranges for the provided endpoint. Used (for example) when a row gets moved and extends an existing range.
-   *
-   * @private
-   * @param {object} endpoint An endpoint object.
-   */
-  recreatePhysicalRanges(endpoint: EndpointConfig) {
-    const ranges = endpoint.ranges!;
-    const newRanges: number[][] = [];
-    const allIndexes: number[][] = [];
-
-    arrayEach(ranges, (range: number[]) => {
-      const newRange: number[] = [];
-
-      if (range[1]) {
-        for (let i = range[0]; i <= range[1]; i++) {
-          newRange.push(this.hot.toPhysicalRow(i));
-        }
-      } else {
-        newRange.push(this.hot.toPhysicalRow(range[0]));
-      }
-
-      allIndexes.push(newRange);
-    });
-
-    arrayEach(allIndexes, (range: number[]) => {
-      let newRange: number[] = [];
-
-      arrayEach(range, (coord: number, index: number) => {
-        if (index === 0) {
-          newRange.push(coord);
-
-        } else if (range[index] !== range[index - 1] + 1) {
-          newRange.push(range[index - 1]);
-          newRanges.push(newRange);
-          newRange = [];
-          newRange.push(coord);
-        }
-
-        if (index === range.length - 1) {
-          newRange.push(coord);
-          newRanges.push(newRange);
-        }
-      });
-    });
-
-    endpoint.ranges = newRanges;
-  }
-
-  /**
-   * Shifts the endpoint coordinates by the defined offset.
+   * A range start is shifted as a start: when its own row is removed, it moves onto the next surviving row
+   * rather than the previous one. A range whose rows were all removed is dropped.
    *
    * @private
    * @param {object} endpoint Endpoint object.
-   * @param {number} offsetStartIndex Index of the performed change (if the change is located after the endpoint, nothing about the endpoint has to be changed.
+   * @param {string} axis The altered axis, `'row'` or `'col'`.
+   * @param {Function} shiftIndex Maps a physical index from before the alteration to the one it holds after it.
    */
-  shiftEndpointCoordinates(endpoint: EndpointConfig, offsetStartIndex: number) {
-    if (endpoint.alterRowOffset && endpoint.alterRowOffset !== 0) {
-      endpoint.destinationRow! += endpoint.alterRowOffset || 0;
+  shiftEndpointCoordinates(
+    endpoint: EndpointConfig, axis: 'row' | 'col', shiftIndex: (index: number, isRangeStart?: boolean) => number
+  ) {
+    if (axis === 'row') {
+      endpoint.destinationRow = shiftIndex(endpoint.destinationRow!);
 
-      arrayEach(endpoint.ranges!, (element: number[]) => {
-        arrayEach(element, (subElement: number, j: number) => {
-          if (subElement >= offsetStartIndex) {
-            element[j] += endpoint.alterRowOffset || 0;
-          }
-        });
-      });
+      // `ranges: []` leaves the setting unset, so there can be nothing to shift.
+      if (endpoint.ranges) {
+        endpoint.ranges = this.#shiftRanges(endpoint.ranges, shiftIndex);
+      }
 
-    } else if (endpoint.alterColumnOffset && endpoint.alterColumnOffset !== 0) {
-      endpoint.destinationColumn! += endpoint.alterColumnOffset || 0;
-      endpoint.sourceColumn! += endpoint.alterColumnOffset || 0;
+    } else {
+      endpoint.destinationColumn = shiftIndex(endpoint.destinationColumn!);
+      endpoint.sourceColumn = shiftIndex(endpoint.sourceColumn!);
     }
+
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -700,9 +634,16 @@ class Endpoints {
         return;
       }
 
+      // `propToCol` answers with a visual column, while `sourceColumn` is physical.
+      const visualColumn = this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number);
+      const physicalColumn = typeof visualColumn === 'number' ? this.hot.toPhysicalColumn(visualColumn) : null;
+
+      if (physicalColumn === null) {
+        return;
+      }
+
       arrayEach(endpoints, (endpoint: EndpointConfig, j: number) => {
-        if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn &&
-          needToRefresh.indexOf(j) === -1) {
+        if (physicalColumn === endpoint.sourceColumn && needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
         }
       });
@@ -720,12 +661,12 @@ class Endpoints {
   }
 
   /**
-   * Calculate and refresh endpoints whose `sourceColumn` (visual) matches any of the provided columns.
+   * Calculate and refresh endpoints whose `sourceColumn` (physical) matches any of the provided columns.
    *
-   * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
+   * @param {Set<number>|number[]} physicalColumns Physical column indexes to match against.
    */
-  refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
-    const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
+  refreshEndpointsBySourceColumns(physicalColumns: Set<number> | number[]) {
+    const columnsSet = physicalColumns instanceof Set ? physicalColumns : new Set(physicalColumns);
     const endpoints = this.getAllEndpoints();
     const matched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
 
@@ -758,13 +699,16 @@ class Endpoints {
     // recorded as user-defined, so an `updateSettings` cache reset clears them and they are re-applied
     // for the current endpoints. `_setCellMetaDeclarative` does not fire `beforeSetCellMeta`/
     // `afterSetCellMeta` and cannot be vetoed - matching the previous direct-write behavior.
-    this.endpoints.forEach((endpoint: EndpointConfig) => {
+    // `getAllEndpoints()`, not `this.endpoints`: the function form leaves that array unset.
+    this.getAllEndpoints().forEach((endpoint: EndpointConfig) => {
       const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
-      const destinationColumn = endpoint.destinationColumn!;
+      const destinationVisualColumn = this.hot.toVisualColumn(endpoint.destinationColumn!);
 
-      if (destinationVisualRow !== null) {
-        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
-        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
+      if (destinationVisualRow !== null && destinationVisualColumn !== null) {
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationVisualColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(
+          destinationVisualRow, destinationVisualColumn, 'className', 'columnSummaryResult'
+        );
       }
     });
   }
@@ -791,18 +735,17 @@ class Endpoints {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
     const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0));
+    const destinationVisualColumn = this.hot.toVisualColumn(
+      endpoint.destinationColumn! + (useOffset ? alterColOffset : 0)
+    );
 
     // The destination row is trimmed (for example it sits inside a collapsed NestedRows group), so
     // there is no cell to clear.
-    if (destinationVisualRow === null) {
+    if (destinationVisualRow === null || destinationVisualColumn === null) {
       return;
     }
 
-    this.cellsToSetCache.push([
-      destinationVisualRow,
-      this.hot.toVisualColumn(endpoint.destinationColumn! + (useOffset ? alterColOffset : 0)),
-      ''
-    ]);
+    this.cellsToSetCache.push([destinationVisualRow, destinationVisualColumn, '']);
   }
 
   /**
@@ -820,16 +763,20 @@ class Endpoints {
     }
 
     const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+    // The endpoint coordinates are physical, while every call below addresses a visual cell.
+    const destinationVisualColumn = this.hot.toVisualColumn(endpoint.destinationColumn!);
+    const hasDestinationCell = destinationVisualRow !== null && destinationVisualColumn !== null;
 
-    if (destinationVisualRow !== null) {
-      const destinationColumn = endpoint.destinationColumn!;
-      const cellMeta = this.hot.getCellMetaTransient(destinationVisualRow, destinationColumn);
+    if (hasDestinationCell) {
+      const cellMeta = this.hot.getCellMetaTransient(destinationVisualRow, destinationVisualColumn);
 
       if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
         // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction
         // without firing the public `setCellMeta` hooks or being vetoable.
-        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
-        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationVisualColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(
+          destinationVisualRow, destinationVisualColumn, 'className', 'columnSummaryResult'
+        );
       }
     }
 
@@ -839,13 +786,11 @@ class Endpoints {
     // result stays on the endpoint; the cell keeps its previous value until the next recalculation
     // that runs while the row is visible. Nothing re-runs the endpoints on untrim, so a destination
     // hidden at the moment of a change shows a stale value until then.
-    if (destinationVisualRow !== null) {
+    if (hasDestinationCell) {
       if (render) {
-        this.hot.setDataAtCell(
-          destinationVisualRow, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set'
-        );
+        this.hot.setDataAtCell(destinationVisualRow, destinationVisualColumn, endpoint.result, 'ColumnSummary.set');
       } else {
-        this.cellsToSetCache.push([destinationVisualRow, endpoint.destinationColumn, endpoint.result]);
+        this.cellsToSetCache.push([destinationVisualRow, destinationVisualColumn, endpoint.result]);
       }
     }
 
@@ -860,6 +805,80 @@ class Endpoints {
    */
   throwOutOfBoundsWarning() {
     warn('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+  }
+
+  /**
+   * Shifts row ranges through a structure alteration and drops the ones whose rows were all removed. A
+   * single-row range (`[row]`) keeps its one-element form, and a range configured backwards is shifted
+   * but never dropped.
+   *
+   * @param {number[][]} ranges The ranges to shift.
+   * @param {Function} shiftIndex Maps a physical index from before the alteration to the one it holds after it.
+   * @returns {number[][]}
+   */
+  #shiftRanges(ranges: number[][], shiftIndex: (index: number, isRangeStart?: boolean) => number): number[][] {
+    const shiftedRanges: number[][] = [];
+
+    arrayEach(ranges, (range: number[]) => {
+      const isSingleRow = range.length < 2;
+      const originalEnd = isSingleRow ? range[0] : range[1];
+      const start = shiftIndex(range[0], true);
+      const end = shiftIndex(originalEnd);
+
+      // Every row of the range was removed. A range that was already backwards (`[5, 2]`) is kept as it
+      // was configured: only a removal can turn a valid range backwards.
+      if (end < start && originalEnd >= range[0]) {
+        return;
+      }
+
+      shiftedRanges.push(isSingleRow ? [start] : [start, end]);
+    });
+
+    return shiftedRanges;
+  }
+
+  /**
+   * Builds the function that maps a physical index recorded before a structure alteration to the physical
+   * index it holds after it.
+   *
+   * Endpoint coordinates are physical, while the alteration hooks report a visual index. The two agree only
+   * until a row or column is moved (or rows are sorted), so the shift is worked out in the physical space:
+   * an insertion moves every index at or past the first inserted physical index, and a removal moves an
+   * index down by the number of removed physical indexes at or before it. A range start passes
+   * `isRangeStart`, so a removal counts only the indexes BEFORE it: a removed start then lands on the next
+   * surviving row instead of pulling the range onto the previous record.
+   *
+   * @param {string} axis The altered axis, `'row'` or `'col'`.
+   * @param {string} action Type of the action performed.
+   * @param {number} index The visual index the alteration hook reported.
+   * @param {number} amount Number of rows or columns inserted or removed.
+   * @param {number[]} [removedPhysicalIndexes] Physical indexes the removal took out.
+   * @returns {Function}
+   */
+  #createPhysicalIndexShift(
+    axis: 'row' | 'col', action: string, index: number, amount: number,
+    removedPhysicalIndexes: number[] | null | undefined
+  ): (physicalIndex: number, isRangeStart?: boolean) => number {
+    if (action.indexOf('remove') === 0) {
+      const removed = removedPhysicalIndexes ?? Array.from({ length: amount }, (_, offset) => index + offset);
+
+      return (physicalIndex, isRangeStart = false) => physicalIndex - removed.filter(
+        removedIndex => (isRangeStart ? removedIndex < physicalIndex : removedIndex <= physicalIndex)
+      ).length;
+    }
+
+    // Nothing was inserted (for example `maxRows` was already reached), so nothing moves.
+    if (typeof index !== 'number' || amount === 0) {
+      return physicalIndex => physicalIndex;
+    }
+
+    // After an insertion the hook's visual index points at the first inserted row or column, so translating
+    // it back gives the physical index the insertion started at. A trimmed insertion has no visual index to
+    // translate; it falls back to the visual one, which is what the plugin compared against before.
+    const firstInsertedIndex = (axis === 'row' ? this.hot.toPhysicalRow(index) : this.hot.toPhysicalColumn(index))
+      ?? index;
+
+    return physicalIndex => (physicalIndex >= firstInsertedIndex ? physicalIndex + amount : physicalIndex);
   }
 }
 

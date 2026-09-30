@@ -30,6 +30,7 @@ vue:
 searchCategory: Guides
 category: Styling
 menuTag: updated
+addedIn: "15.0.0"
 ---
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 

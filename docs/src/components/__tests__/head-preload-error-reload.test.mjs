@@ -25,7 +25,7 @@ function readPreloadErrorScript() {
  * Runs the shipped script against a fake window and returns a way to fire the event.
  *
  * @param {object} sessionStorage The storage double the script reads and writes.
- * @returns {{ fire: () => { prevented: boolean }, reloads: () => number }} The harness.
+ * @returns {{ fire: (payload?: Error) => { prevented: boolean }, reloads: () => number }} The harness.
  */
 function runScript(sessionStorage) {
   const listeners = [];
@@ -44,8 +44,9 @@ function runScript(sessionStorage) {
   new Function('window', 'sessionStorage', readPreloadErrorScript())(window, sessionStorage);
 
   return {
-    fire() {
+    fire(payload = new Error('Unable to preload CSS for /docs/_astro/page.css')) {
       const event = {
+        payload,
         prevented: false,
         preventDefault() {
           this.prevented = true;
@@ -75,6 +76,24 @@ test('reloads the page and suppresses the error on the first preload failure', (
 
   assert.equal(harness.reloads(), 1);
   assert.equal(event.prevented, true);
+});
+
+test('reloads without suppressing a failed module import, so the import keeps rejecting', () => {
+  // A cancelled import rejection makes Vite resolve the import to `undefined`, and the caller
+  // then crashes on `.default` (Sentry HANDSONTABLE-DOCS-24F, HANDSONTABLE-DOCS-246).
+  const harness = runScript(createStorage());
+  const event = harness.fire(new TypeError('Failed to fetch dynamically imported module: /docs/_astro/esm.js'));
+
+  assert.equal(harness.reloads(), 1);
+  assert.equal(event.prevented, false);
+});
+
+test('does not suppress a preload event without a payload', () => {
+  const harness = runScript(createStorage());
+  const event = harness.fire(null);
+
+  assert.equal(harness.reloads(), 1);
+  assert.equal(event.prevented, false);
 });
 
 test('lets a second preload failure in the same session through without reloading', () => {

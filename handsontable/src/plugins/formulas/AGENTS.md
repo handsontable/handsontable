@@ -103,6 +103,16 @@ twice.
 there. A late `{ wasUndone: false }` would leave HyperFormula restored and Handsontable empty.
 `UndoRedo.undo()` also skips `afterUndo` when the action reports that failure.
 
+**`auto` is blocked in both directions, and a lowered minimum size relies on that (DEV-2206).** The rows and
+columns `minRows`/`minSpareRows`/`minCols`/`minSpareCols` append are created with `auto`, so
+`#onAfterCreateRow`/`#onAfterCreateCol` never send them to the engine; the removal that gives them back
+(`grid.removeSurplusRowsAndCols()` in `core.ts`) is `auto` too, so `#onAfterRemoveRow`/`#onAfterRemoveCol`
+never send it either. The engine holds a sheet sparsely and those rows are always empty, so it never had
+anything to lose: `getSheetSerialized()` reads the same before and after a lowering (measured). Do not unblock
+the removal alone — the engine would record an undo entry the grid's history does not have. One visible effect,
+accepted: a formula that points INTO a filler row keeps its reference and reads empty after a lowering, where an
+ordinary `alter('remove_row')` turns it into `#REF!` (both measured).
+
 ## Sequence syncing
 
 The row/column sequence is mirrored into HF as a **permutation**, and two hooks matter:

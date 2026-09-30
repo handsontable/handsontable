@@ -526,6 +526,10 @@ To display your column summary result in a cell, provide the destination cell's 
 
 Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColumn`](@/api/columnSummary.md#options) options to the physical coordinates of your required cell.
 
+Because all column summary coordinates are physical, [moving columns](@/guides/columns/column-moving/column-moving.md) or [rows](@/guides/rows/row-moving/row-moving.md) doesn't change what a column summary covers. The summary moves together with its column, the result moves together with its destination row, and the summary keeps summarizing the same rows, wherever they're displayed.
+
+The [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) feature is the exception: it moves a row by moving its data, so with a column summary set up as an array, a fixed range keeps covering the same positions instead. To keep a summary accurate there, [set up column summaries using a function](#set-up-column-summaries-using-a-function).
+
 ::: only-for javascript
 
 ```js
@@ -623,6 +627,14 @@ columnSummary: [
 Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
 
 If you need to style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
+
+:::
+
+::: tip
+
+By default, a summary cell is [read-only](@/api/options.md#readonly), and the [`ColumnSummary`](@/api/columnSummary.md) plugin keeps it that way. The **Read only** item of the context menu and the column menu doesn't appear when the selection is only summary cells, and it leaves a summary cell unchanged when you toggle a wider selection, such as a whole column. Calling [`setCellMeta()`](@/api/core.md#setcellmeta) or [`removeCellMeta()`](@/api/core.md#removecellmeta) to make a summary cell editable has no effect either.
+
+To make a summary cell editable, set the `readOnly` option of its column summary object (in the [`columnSummary`](@/api/options.md#columnsummary) configuration) to `false`.
 
 :::
 

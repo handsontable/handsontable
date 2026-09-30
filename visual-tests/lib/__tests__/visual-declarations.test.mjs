@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CLASSIC, CROSS_BROWSERS, JS_VARIANTS, THEMES, VISUAL_TIERS, WRAPPERS } from '../../src/config.mjs';
@@ -22,7 +22,7 @@ import { budgetTotal } from '../visual-budget.mjs';
 // renders, in which case nothing extra appears and every count derived from the declarations is too high
 // from then on. Or a declaration can drop a variant the spec still has goldens for, in which case
 // reg-suit reports each of those goldens as deleted. The pure-module tests below pin the rules; the sweep
-// pins what the 112 checked-in specs say; the arithmetic at the end derives the whole golden set from
+// pins what the checked-in specs say; the arithmetic at the end derives the whole golden set from
 // those declarations and compares it against the live manifest, which is what makes the declaration
 // codemod a provable no-op rather than a claim.
 
@@ -33,7 +33,8 @@ const TESTS_ROOT = join(PACKAGE_ROOT, 'tests');
 // which the `Visual budget` step of the Compare job enforces against what a build actually renders. They
 // were read from the live baseline on 2026-09-18:
 // `curl -H 'Cache-Control: no-cache' 'https://visual.handsontable.com/base/develop/out.json?cb=1'`,
-// 1676 records, all passing.
+// 1676 records, all passing. Every trim since lowers the file in the pull request that deletes the
+// records, so the file, not a baseline read, is what the sweep compares against.
 //
 // Reading them here rather than repeating them is the point. The numbers are true of three different
 // things — what the specs DECLARE, what a build RENDERS, and what the budget ALLOWS — and a copy per
@@ -46,15 +47,19 @@ const LIVE_GOLDENS = JSON.parse(
 // no capture, and carries its own eslint-disable line naming the task that owns it.
 const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
-// How many live specs the sweep expects to read a declaration out of, on 2026-09-18: 112 files, one of
-// them parked. Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too — the
-// pair is the review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 111;
+// How many live specs the sweep expects to read a declaration out of: 112 files on 2026-09-18, one of
+// them parked. The filters consolidation (#13647) deleted nine multi-framework specs and added three
+// js-only ones, and the submenu-placement trim deleted four scrolled-viewport menu specs, which
+// leaves 102 files, one of them parked, so 101 live. Adding or deleting a spec
+// moves this number, and moves a number in LIVE_GOLDENS too — the pair is the review a description
+// cannot give, so update both in the pull request that adds the spec.
+const LIVE_SPEC_COUNT = 101;
 
-// How many of the 23 specs under `tests/multi-frameworks/` still carry the shared unaudited reason.
+// How many of the specs under `tests/multi-frameworks/` (23 on 2026-09-18, 14 since the filters
+// consolidation retired that family's nine) still carry the shared unaudited reason.
 // The consolidation audit replaces it with a per-spec reason one spec at a time, so this number falls as
 // the debt is paid; it must never rise.
-const UNAUDITED_WRAPPER_SPECS = 23;
+const UNAUDITED_WRAPPER_SPECS = 14;
 
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.
@@ -947,6 +952,12 @@ test('every spec declares a shape its own directory can host', () => {
     'js-only': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] },
       { ...DEFAULT_DECLARATION },
+      // A look check: a spec whose behavior a functional test asserts on every theme, in tests/e2e or
+      // in a Jasmine spec under handsontable/src, which the next test makes it name. It gives up
+      // main-dark on the pr tier and every other theme everywhere, so its docblock also names the spec
+      // that photographs the same component on every variant. The first user is the menu-position
+      // family, whose placement tests/e2e/submenu-position.spec.ts asserts.
+      { themes: ['main'], browsers: ['chromium'], wrappers: [] },
     ],
     'multi-frameworks': [
       { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: WRAPPERS, wrappersReason: 'any' },
@@ -957,8 +968,10 @@ test('every spec declares a shape its own directory can host', () => {
     ],
   };
   const remedies = {
-    'js-only': 'A js-only spec renders the five js variants (what the codemod wrote) or the documented '
-      + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }.',
+    'js-only': 'A js-only spec renders the five js variants (what the codemod wrote), the documented '
+      + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }, or '
+      + '[\'main\'] alone for a look check whose behavior a functional test (tests/e2e or Jasmine) '
+      + 'asserts, named in its docblock.',
     'multi-frameworks': 'Every spec here declares all three wrappers, because the seed copies the whole '
       + 'js/chromium/multi-frameworks directory into the three wrapper baselines (scripts/run-tests.mjs). '
       + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '
@@ -998,6 +1011,44 @@ test('every spec declares a shape its own directory can host', () => {
   });
 });
 
+test('a single-theme spec names the functional test that asserts its behavior', () => {
+  // `['main']` alone is safe only when a functional test asserts, on every theme, what the capture
+  // shows. A sentence in a comment cannot hold that condition, so the spec has to name the test, and the
+  // named file has to exist: a deleted or renamed functional spec fails here rather than leaving a
+  // look check that guards nothing.
+  const repoRoot = join(PACKAGE_ROOT, '..');
+  // A Playwright spec in tests/e2e, or a Jasmine spec in a __tests__ directory under handsontable/src.
+  const functionalTest = new RegExp('`(tests/e2e/[\\w.-]+\\.spec\\.ts'
+    + '|handsontable/src/[\\w./-]+/__tests__/[\\w./-]+\\.spec\\.js)`', 'g');
+  const singleTheme = specPaths().filter((relativePath) => {
+    if (relativePath === PARKED_SPEC) {
+      return false;
+    }
+
+    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
+
+    return JSON.stringify(normalizeDeclaration(first.declaration, relativePath).themes) === '["main"]';
+  });
+
+  assert.ok(singleTheme.length > 0, 'No spec declares themes: [\'main\'] alone, yet '
+    + 'js-only/dropdown-menu/menus-position.spec.ts did when this pin landed. If the shape has no user '
+    + 'left, remove it from allowedShapes in the previous test; otherwise the declaration reader broke.');
+
+  singleTheme.forEach((relativePath) => {
+    const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
+    const named = [...source.matchAll(functionalTest)].map(match => match[1]);
+
+    assert.ok(named.length > 0, `${relativePath} declares themes: ['main'] alone but names no functional `
+      + 'test. Name the tests/e2e spec (or the Jasmine spec under handsontable/src) that asserts its '
+      + 'behavior on every theme in its docblock, in backticks, or declare the two-theme default.');
+    named.forEach((path) => {
+      assert.ok(existsSync(join(repoRoot, path)), `${relativePath} names \`${path}\` as the test that `
+        + 'asserts its behavior, and that file does not exist. Point it at the spec that does, or give the '
+        + 'capture its themes back.');
+    });
+  });
+});
+
 test('the multi-framework specs still carry the shared unaudited wrappers reason', () => {
   // The audit that trims those 69 wrapper goldens greps for this constant, so the constant has to be the
   // literal every one of those specs names. A per-spec reason replaces it one spec at a time, so this
@@ -1018,7 +1069,7 @@ test('the multi-framework specs still carry the shared unaudited wrappers reason
 });
 
 test('every capture-cap exception matches what the spec actually takes', () => {
-  // The nine exception counts in visual-budget.json are a second statement of a fact the spec tree
+  // The exception counts in visual-budget.json are a second statement of a fact the spec tree
   // already makes, so derive it rather than trusting the file.
   //
   // The quantity is captures per REG-SUIT STEM, which is the number of `screenshotPath()` calls in the

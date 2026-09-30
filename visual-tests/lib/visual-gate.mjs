@@ -253,8 +253,12 @@ export function evaluate({
           + 'with slider, blend, and toggle views.'
         : `The report URL is unavailable; download the \`${artifact}\` artifact instead.`,
       '',
+      // "The report and the images of every difference", not "the same thing": the core artifact carries
+      // only the differing items (`lib/visual-diff-report.mjs`), so its report lists the passing ones
+      // without their images. The docs artifact holds its failed comparisons the same way.
       `If the report is unreachable, the \`${artifact}\` artifact on the `
-        + `${runUrl ? `[workflow run](${runUrl})` : 'workflow run'} holds the same thing.`,
+        + `${runUrl ? `[workflow run](${runUrl})` : 'workflow run'} holds the report and the images of `
+        + 'every difference.',
       '',
       ...listed,
       '### What to do next',
@@ -286,7 +290,8 @@ export function evaluate({
         ? []
         : [
           '> This run published no hosted report — normally a fork or Dependabot pull request,',
-          `> whose token cannot publish one — so the \`${artifact}\` artifact holds the images.`,
+          `> whose token cannot publish one — so the \`${artifact}\` artifact holds the images of every`,
+          '> difference.',
           '> A maintainer approves the deployment as above.',
           '',
         ]),
