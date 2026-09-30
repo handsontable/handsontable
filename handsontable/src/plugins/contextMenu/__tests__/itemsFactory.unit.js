@@ -136,6 +136,90 @@ describe('contextMenu/ItemsFactory', () => {
     });
   });
 
+  describe('overriding a plugin-provided item through the object form of `items`', () => {
+    // Mirrors what `ContextMenu#updatePlugin` does: build the list from the user's settings, let
+    // a plugin splice its rich entry into it (`afterContextMenuDefaultOptions`), register the
+    // result, then build the final list from the same settings.
+    it('keeps the user callbacks that the plugin entry also defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userDisabled = jest.fn(() => true);
+      const settings = { items: { commentsAddEdit: { disabled: userDisabled, hidden: () => false } } };
+      const pluginDisabled = () => false;
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', disabled: pluginDisabled });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.disabled).toBe(userDisabled);
+      expect(item.hidden).toBe(settings.items.commentsAddEdit.hidden);
+      expect(typeof item.name).toBe('function');
+    });
+
+    it('keeps the user name and callback over the ones the plugin entry defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userCallback = jest.fn();
+      const settings = { items: { commentsAddEdit: { name: 'My label', callback: userCallback } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', callback: () => {} });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.name).toBe('My label');
+      expect(item.callback).toBe(userCallback);
+    });
+
+    it('does not mutate the user settings', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userDisabled = () => true;
+      const override = { disabled: userDisabled };
+      const settings = { items: { commentsAddEdit: override } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', disabled: () => false });
+      factory.setPredefinedItems(pluginItems);
+
+      // The key stamp and the plugin's own `disabled` are two separate ways to mutate this object.
+      expect(Object.keys(override)).toEqual(['disabled']);
+      expect(override.disabled).toBe(userDisabled);
+    });
+
+    it('keeps the callbacks an item defines on its prototype', () => {
+      class CustomItem {
+        callback() {}
+      }
+
+      const factory = new ItemsFactory(hotMock());
+      const custom = new CustomItem();
+      const settings = { items: { myItem: custom } };
+
+      factory.setPredefinedItems(factory.getItems(settings));
+
+      const [item] = factory.getItems(settings);
+
+      // On develop the user's own object was the item, so its prototype came along.
+      expect(item.callback).toBe(CustomItem.prototype.callback);
+    });
+
+    it('applies to the dropdown menu too, where the Filters items define their own hidden()', () => {
+      const factory = new ItemsFactory(hotMock(), null, 'dropdownMenu');
+      const userHidden = () => false;
+      const settings = { items: { filter_by_value: { hidden: userHidden } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'filter_by_value', name: () => 'Filter by value', hidden: () => true });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.hidden).toBe(userHidden);
+      expect(typeof item.name).toBe('function');
+    });
+  });
+
   describe('keys that name a built-in item with no entry', () => {
     it('are dropped without a warning, as they always were', () => {
       const factory = new ItemsFactory(hotMock());
