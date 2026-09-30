@@ -546,7 +546,7 @@ They are written in different places and can drift. Keep this in mind:
   before an edit brings the edited cell's old value back on an unrelated undo. `restoreShape()`
   refills the host's own arrays in place and deletes a `__children` key a row did not have. The
   collapsed parents travel in `captureState()`; the trimming map in the index-map snapshot.
-  Four things ride along:
+  Five things ride along:
   - **Every hand-built tree operation runs in an operation** - `addChild`, `addChildAtIndex`
     (`insert_row`) and `detachFromParent` (`nested_rows_detach`) - so each is one undo step.
   - **A collapse or expand is a `collapse_rows` / `expand_rows` step, whichever entry point it
@@ -564,6 +564,14 @@ They are written in different places and can drift. Keep this in mind:
     `beforeRedo` are its only vetoes. A step whose shape this plugin recorded is refused outright once the plugin is
     disabled. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
     because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
+  - **A row removal while a parent is collapsed settles one macrotask later.** `#onAfterRemoveRow`
+    re-applies the collapsed-rows stash in a `setTimeout`, so it takes a hold (`scope.hold()`) and
+    runs the re-collapse in `hold.resume()`: the re-collapse joins the removal's step instead of
+    becoming a step of its own. The hold is taken only when `lastCollapsedRows` is not empty (or
+    while recording is suppressed), so a removal with nothing collapsed still settles at once and the
+    same-tick `alter(); undo()` specs are unchanged. An `undo()` in the same tick as a removal that
+    did hold does nothing until the step settles - the pending structural gate in
+    `../undoRedo/AGENTS.md`.
 - **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
   here.** That method derives a width from the nesting depth alone
   (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in

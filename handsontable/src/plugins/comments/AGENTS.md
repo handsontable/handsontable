@@ -224,6 +224,12 @@ of its own to capture. What the plugin owns is how many steps a user action make
 - **An undo refreshes an open editor** (`#onAfterUndoRedo`). Otherwise the editor keeps the text
   from before the undo, and the next blur writes it back as a new step. The editor is hidden when its
   cell is gone.
+- **An undo that removes the comment under an open editor closes the editor without saving**
+  (`#closeEditorWithoutSave()`). Hiding a focused editor fires a blur, and that blur saves: with the
+  editor refreshed to `''` it wrote an empty comment, and with the old text left in it wrote the undone
+  comment back. So the blur is fired right there, under `#preventEditorSaveOnBlur`, and the flag is
+  cleared at once - a flag left set would skip the save of the next real edit. Pinned in
+  `tests/e2e/undo-plugin-state.spec.ts`.
 
 ## Where to look next
 

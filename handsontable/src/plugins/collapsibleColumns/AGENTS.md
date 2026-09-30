@@ -34,6 +34,21 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 - Hook-payload coordinate spaces are mixed under active moves/trim: `currentCollapsedColumns` is PHYSICAL,
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.
+- **`captureState()` runs on every undo transaction, so it must not walk the header tree each time.** It
+  returns `previous` when the state manager's `getCollapsedGroupsVersion()` is the one recorded for
+  `previous`, and walks the tree (`exportCollapsedGroups()`) only after the version moved. The version is
+  kept in a `WeakMap` beside the state, not inside it: after a version change with the same groups,
+  `previous` must be returned by reference (see `../undoRedo/AGENTS.md`), and a version stored inside it would
+  then be stale, so every later step would walk the tree again.
+- **The state carries the header config version (`getConfigVersion()`), and `restoreState()` skips a state
+  from another configuration.** A group is recorded by header level and authored column, so after
+  `updateSettings({ nestedHeaders })` the same identity can name a different group of the new
+  configuration, and a redo would mark a group collapsed that the user never collapsed. The config version
+  is stored inside the state (unlike the collapsed-groups version) because it changes what the state means,
+  so a state from another configuration is never returned as `previous`. The collapse hiding map is still
+  restored from the step's snapshot, like every index map. A config change expands the tree but does not
+  clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
+  collapsed.
 
 ## Testing
 

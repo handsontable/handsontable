@@ -91,6 +91,8 @@ Press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd
 
 UndoRedo records every action you take in the grid, whether you use the UI or the API. Each action is one undo step.
 
+Recording starts when the grid is created, so the calls your app makes to set the grid up are steps too. To start with an empty history, call [`clear()`](@/api/undoRedo.md#clear) after your setup code. With [`undo: false`](@/api/options.md#undo), nothing is recorded, and the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing.
+
 The tracked actions include:
 
 - Cell value changes: editing, pasting, autofill, clearing cells, and API calls such as [`setDataAtCell()`](@/api/core.md#setdataatcell), [`populateFromArray()`](@/api/core.md#populatefromarray), and [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell).
@@ -113,7 +115,7 @@ The tracked actions include:
 
 UndoRedo records everything a single action changes as one step. When a paste adds rows to satisfy [`minSpareRows`](@/api/options.md#minsparerows), one undo removes the pasted values and the added rows together.
 
-Calls you group with [`batch()`](@/api/core.md#batch) are one step too. The step's `actionType` is `'batch'`.
+Calls you group with [`batch()`](@/api/core.md#batch) or [`batchExecution()`](@/api/core.md#batchexecution) are one step too. The step's `actionType` is `'batch'`.
 
 ```js
 // One undo reverts the edit, the removal, and the sort
@@ -127,16 +129,16 @@ hot.batch(() => {
 To group your own changes without suspending rendering, use [`runOperation()`](@/api/core.md#runoperation). The operation name becomes the step's `actionType`, and the source is passed to the stack hooks.
 
 ```js
-hot.runOperation('import', 'myImport', () => {
+hot.runOperation('import', () => {
   hot.setDataAtCell(0, 0, 'A');
   hot.setDataAtCell(1, 0, 'B');
   hot.alter('remove_row', 5);
-});
+}, 'myImport');
 ```
 
 Operations nest. A `batch()` or `runOperation()` call inside another one joins the outer step.
 
-An edit that waits for an asynchronous [validator](@/guides/cell-functions/cell-validator/cell-validator.md) is recorded when the validation finishes. So when two edits overlap, the undo stack holds them in the order they finished. When a validator rejects every change of an edit, nothing is recorded.
+An edit that waits for an asynchronous [validator](@/guides/cell-functions/cell-validator/cell-validator.md) is recorded when the validation finishes. So when two edits overlap, the undo stack holds them in the order they finished. When a validator rejects every change of an edit, nothing is recorded. What the validator or an [`afterValidate`](@/api/hooks.md#aftervalidate) listener changes while the edit is validated, such as a corrected value, is part of the edit's step, so one undo reverts both.
 
 ## How an undo restores the grid
 
@@ -162,25 +164,31 @@ UndoRedo exposes hooks for both stack updates and action execution:
 
 You can return `false` from `beforeUndoStackChange`, `beforeUndo`, or `beforeRedo` to block recording or execution.
 
-The action hooks receive the step. Every step has these properties:
+The action hooks receive the step. `beforeUndo` and `beforeRedo` fire before the stack hooks, so in `beforeUndo` the step is still on the undo stack. The hooks receive the step object the stack holds, not a copy, so treat it as read-only. Every step the grid records has these properties:
 
 - `actionType`: the name of the action, for example `'change'`, `'remove_row'`, `'col_move'`, `'hide_rows'`, or `'batch'`.
 - `source`: the source of the action.
 - `operations` and `sources`: the name and the source of every operation the step contains, in order.
 
-Some action types add their own properties. A `'change'` step has `changes` (an array of `[row, column, oldValue, newValue]`, with visual indexes, in the order the cells were passed) and `selected`. A `'remove_row'` step has `index`, `amount`, `indexes`, and `data`.
+Some action types add their own properties. A `'change'` step has `changes` (an array of `[row, column, oldValue, newValue]`, with visual indexes, in the order the cells were passed) and `selected`. A `'remove_row'` step has `index`, `amount`, `indexes`, and `data`. A `cellRange`, `range`, or `ranges` property holds plain objects with the range's coordinates, for example `step.cellRange.from.row`, not [`CellRange`](@/api/cellRange.md) instances.
 
 Both stacks are cleared when:
 
 - You call [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata). The recorded steps describe the dataset those methods replace.
-- You turn on or turn off, at runtime, a plugin that hides, trims, or reorders rows or columns -- for example with `updateSettings({ hiddenRows: true })`. Passing a plugin's settings again, as a framework wrapper does on every render, keeps the stacks.
-- The number of rows or columns changes outside any recorded action, for example through [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array. Empty rows and columns that Handsontable adds at the end on its own, for example for [`minSpareRows`](@/api/options.md#minsparerows), keep the stacks.
+- You turn on or turn off, at runtime, a plugin that keeps its own index map -- for example with `updateSettings({ hiddenRows: true })`. That covers [`hiddenRows`](@/api/options.md#hiddenrows), [`hiddenColumns`](@/api/options.md#hiddencolumns), [`trimRows`](@/api/options.md#trimrows), the sorting plugins, and [`filters`](@/api/options.md#filters), but not the move plugins. Passing a plugin's settings again, as a framework wrapper does on every render, keeps the stacks.
+- The number of rows changes outside any recorded action, or the number of columns changes through a setting other than [`columns`](@/api/options.md#columns). Empty rows and columns that Handsontable adds at the end on its own, for example for [`minSpareRows`](@/api/options.md#minsparerows), keep the stacks.
 - An action you recorded with [`done()`](@/api/undoRedo.md#done) adds or removes rows or columns anywhere but at the end when you undo or redo it.
 - You disable the plugin or destroy the grid.
+
+A [`columns`](@/api/options.md#columns) update, for example one that shows fewer fields, keeps the stacks. An edit is recorded by field, so it can always be undone. A step that changed something on a column whose field changed or is gone -- a cell's metadata, a hidden or frozen column, a merge, or a filter -- is dropped, together with every step that can only be undone or redone after it. Once `columns` is set, a step that inserted or removed columns is dropped too.
+
+The stack hooks announce every drop, so a toolbar that follows them stays in step.
 
 ## Limit the history
 
 By default, the undo stack has no size limit. To keep only the most recent steps, set [`undo`](@/api/options.md#undo) to an object with a `maxHistory` number. Once the stack grows past the limit, UndoRedo drops the oldest step.
+
+`maxHistory` takes a whole number of `0` or more, or `Infinity`. With `0`, UndoRedo keeps no steps. A lower limit set with [`updateSettings()`](@/api/core.md#updatesettings) drops the oldest steps at once. Any other value logs a warning and keeps the previous limit.
 
 ```js
 const hot = new Handsontable(container, {
@@ -255,6 +263,11 @@ With the [`Formulas`](@/api/formulas.md) plugin, the grid's undo stack covers th
 
 The engine's own undo stack is not used. If you call HyperFormula's `undo()` or `redo()` yourself on an engine that a grid is connected to, the grid and the engine get out of sync. Use the grid's undo instead.
 
+When several grids share one engine, adding, removing, or moving rows, columns, or cells in one grid can change the formulas of the other grids and of named expressions that refer to it. An undo puts those formulas back, and a redo applies the change again. The other grids get no undo step of their own. Two limits apply:
+
+- A formula edited in another grid after the step keeps its new text, and the grid logs a warning.
+- A formula written in another grid after the step is not adjusted by the undo.
+
 ## Known limitations
 
 UndoRedo does not record every change.
@@ -270,7 +283,7 @@ The following changes are not recorded:
 
 Two more behaviors to plan for:
 
-- An undo of an action that inserted or removed rows or columns puts back the hidden, trimmed, and ordered rows and columns as they were when the action ran. A hide or a trim applied with `updateSettings()` after that action is lost on the undo.
+- An undo of an action that inserted or removed rows or columns puts back the row and column order and the sizes as they were when the action ran. An order or a size applied with `updateSettings()` after that action is lost on the undo. Hidden and trimmed rows and columns are kept.
 - In a [nested rows](@/guides/rows/row-parent-child/row-parent-child.md) grid, a `batch()` that both moves or detaches rows and edits cells can put an edit on another row when you undo it.
 
 ## Related keyboard shortcuts

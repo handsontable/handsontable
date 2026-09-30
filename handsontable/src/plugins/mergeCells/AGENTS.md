@@ -45,8 +45,14 @@ itself through `#describeMerge()` - the same `cellRange` and `data` fields `merg
 Any new method that calls two mutators must wrap them the same way.
 
 Undo and redo carry the anchors too: `captureState()` returns every merge with its anchor, and
-`restoreState()` rebuilds the collection from that list, re-attaches the anchors, re-anchors onto the
-visible rows and marks every cell changed. Match a merge to its own anchor by the merge object, never
+`restoreState(state, context)` applies only what the step changed: it removes the live merges listed on
+the other side of the step but not in `state`, adds the ones `state` lists that the other side did not,
+and sorts the list back into the order `state` gives it. A merge made outside any step - for example by
+`updateSettings({ mergeCells })` after the step - therefore survives the undo. It falls back to
+rebuilding the whole collection from `state` when there is no `context.other`, when the replay reset the
+row order (`context.reordered`), or when a merge to remove is not the one the lookup finds at its
+coordinates. Either way it re-attaches the anchors, re-anchors onto the visible rows and marks every
+cell changed. Match a merge to its own anchor by the merge object, never
 through `mergedCellsCollection.get()` - that answers for every covered cell, so after a removal has slid
 another merge onto those coords the lookup hands back the wrong object.
 

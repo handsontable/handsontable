@@ -20,7 +20,8 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
 | `entry.ts` | Builds the public step (`actionType`, `changes`, ...) and the selection each direction puts back |
 | `restore.ts` | `restoreStep()`: the restore order below, veto handling |
 | `restoredCells.ts` | The cells a restore wrote, addressed in the grid it leaves behind |
-| `undoRedo.ts` | The stacks, the hooks, the epoch, the legacy `done()` path |
+| `stepColumns.ts` | Whether a step addresses a column whose field a `columns` update changed |
+| `undoRedo.ts` | The stacks, the hooks, the epoch, the settings check, the legacy `done()` path |
 
 ## How a step is recorded
 
@@ -34,8 +35,25 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    `recordMetaRowsShift()` covers meta rows moved by hand (NestedRows, `spliceCellsMeta`).
 3. **Validation is asynchronous**, so a write holds its transaction (`hold()`) and applies the changes in
    `resume()`. A held transaction is off the stack, so a new action opens a new one: **the undo stack
-   is in commit order**, not call order.
-4. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
+   is in commit order**, not call order. `validateCell()` takes a hold of its own and runs the
+   validator, `afterValidate` and the callback inside `resume()`, so **an async continuation keeps
+   the recording context of the call that started it**: a `setCellMeta()` from `afterValidate`
+   joins the edit's step instead of becoming a step of its own. A hold taken while recording is
+   suppressed resumes suppressed (`OperationScope#hold()`), so the re-validation after a restore
+   stays unrecorded. The no-validator branch takes no hold on purpose: Formulas validates dependents
+   on every edit, and a hold there made every edit settle a tick later.
+4. **Undo and redo wait for a pending structural step.** While a held transaction whose journal
+   inserts or removes rows or columns waits for its validator (`#hasPendingStructuralStep()`),
+   `undo()` and `redo()` do nothing and `#onTransactionOpen` skips the structure check - the grid
+   has a shape no recorded state describes. A plain edit waiting for its validator blocks nothing.
+   Corner: a validator that never answers, in an operation that also changed rows or columns,
+   blocks undo until `loadData`/`updateData`.
+5. **Each `writeChangesToData()` call journals its own cell run** (`ReversedCellRun`): it appends
+   only while its own entry is still the last one. A nested write from `afterChange` therefore gets
+   an entry of its own after the outer one, instead of being merged into the outer run's reversed
+   order. Writes without a run (`setSourceDataAtCell`) keep merging forward.
+6. **`batchExecution()` is an operation like `batch()`** - everything inside it is one `'batch'` step.
+7. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
    the previous step ended in, read at settle time - so a step that committed while this one waited for
    a validator is not undone together with it. A transaction with an empty journal and an unchanged
    snapshot is not recorded. `BLOCKED_SOURCES` (`UndoRedo.undo`, `UndoRedo.redo`, `auto`) are judged
@@ -66,6 +84,11 @@ Everything runs inside `operationScope.suppress()` (nothing the restore does is 
      `updateSettings({ fixedRowsBottom })` must survive.
    - **Plugin states the step did not change are put back to their pre-restore value** when the replay
      reset the order (`forceOrder`) - a replayed removal shifts merges it never touched.
+   - **Trims and hides the step did not change are kept** after a structural replay. The replay lifts
+     every trim, and every map snapshot has another length after an insert or a removal, so identity
+     cannot tell what the step changed. `readKeptFlags()` compares the flags before the step, moved
+     through the journal, with the flags after it, and puts the live flags of each unchanged map back
+     last. A `trimRows` or `hiddenRows` settings update made after the step survives its undo.
 5. **A veto** of any replayed row or column change reverts the replay and puts the grid back; the step
    stays on its stack, `beforeUndo` has fired and `afterUndo` does not. The stack hooks had already
    announced the pop, so the step goes back through a before/after pair of its own (`#putBackStep`):
@@ -142,6 +165,23 @@ the visible ones are re-validated, and the selection is put back for the step ty
   outside any operation is not enough - the core entry points (`setCellMeta`) open one themselves.
 - **A restore that cannot land is refused before any hook**: a step whose source shape was recorded by
   a plugin that is disabled now stays on its stack (`#canRestore`).
+- **The cells an undo fills back into removed rows and columns are validated again, on purpose.**
+  The journal does not carry `valid` (the validator writes it directly, outside `setMeta`), so
+  skipping them brings an invalid cell back without its marker, and leaves a formula in a restored row
+  validated by nobody: Formulas leaves every cell the restore reported to this plugin
+  (`formulas/__tests__/validation.spec.js`, #dev-2036). It also keeps the second render a structural
+  undo needs - with no cell to validate, `#revalidateChangedCells` returned before it, and
+  AutoColumnSize never measured the column the undo brought back. The cost is one validator call per
+  restored visible cell that has a validator.
+- **`maxHistory` is validated by the plugin itself** (`#readMaxHistory`, `warnOnce`), not through
+  `SETTINGS_VALIDATORS`: `PLUGIN_KEY` is `undoRedo` while the setting is `undo`, so BasePlugin never
+  hands the value to a validator. `updatePlugin()` re-reads it only when the payload has an `undo`
+  key, drops the steps past a lowered limit at once, and a redo trims too - with `0` a push is
+  trimmed away right after it.
+- **Every drop of a step announces itself** (`#dropSteps`): the `before`/`after` stack hook pair of
+  each stack that changes, not vetoable (the return value is ignored). `#resetHistory` goes through
+  it, so a toolbar that follows the hooks never keeps an Undo button for a history that is gone. The
+  public `clear()` stays silent, as it always was.
 
 ## The epoch
 
@@ -167,6 +207,29 @@ snapshot is what left the index mapper shorter than the data. The data length is
 side too: removing the last column empties the ROW axis while the rows stay in the data, and the
 replay of that removal brings the column back but not the rows.
 
+**A settings update is checked at once** (`#checkSettingsUpdate`, from `updatePlugin()` - `SETTING_KEYS`
+is `true`, so it runs for every `updateSettings()`). Three rules keep it cheap and correct:
+
+- **It runs only while no transaction is open and the history is not empty.** Inside a transaction
+  (`batch(() => updateSettings(...))`) the settle and the next open do the check, as before. With an
+  empty history there is nothing to protect, and the React wrapper calls `updateSettings()` on every
+  render, so the capture is skipped there.
+- **A row count or index map names change drops everything, now** - `isUndoAvailable()` is accurate
+  right after the update. A structural change made while recording is suppressed (from a hook) still
+  waits for the next transaction.
+- **A `columns` update keeps the history.** Cell writes are journaled by prop, so they survive any
+  reshape. `#columnProps` holds the field each physical column showed when the kept steps were
+  recorded (read at record time when it is `null` or its length differs; `null` whenever both
+  stacks are empty). When the new mapping differs, `addressesChangedColumn()` (`stepColumns.ts`)
+  tests every step: a meta entry, a removed row's metas or accessor values, a column index map the
+  step changed, the column order and trims a structural restore forces back, `fixedColumnsStart`,
+  `colHeaders`, and the plugin states through `getStateColumns()`. A column insert or removal always
+  fails. A failing step drops **with every step that can only be restored after it**
+  (`#dropStepsWhere`: undo stack `[0..i]`, redo stack `[0..j]`), so the stacks keep no hole. When
+  the mapping is the same but `columns` is now set, the column insert and removal steps drop anyway:
+  `alter()` refuses them. Then `#lastState` becomes the current state, or the lazy check would read
+  the new column count as a change made outside any step.
+
 ## The plugin contract (`../base/base.ts`)
 
 Optional methods, found by `typeof plugin.captureState === 'function'`:
@@ -177,6 +240,18 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   NestedRows (collapsed parents), CustomBorders (a model version - the borders live in the `borders`
   cell meta, and `restoreState()` rebuilds the model from it), Pagination (the page and the page
   size), Formulas (see `../formulas/AGENTS.md`).
+- `restoreState(state, context?)` gets a `PluginRestoreContext` - `{ other, direction, reordered }`:
+  the plugin's state on the other side of the step, `'undo'` or `'redo'`, and whether the replay
+  reset the order. A plugin uses it to apply only what the step changed, so a change made outside
+  any step survives: MergeCells adds and removes only the merges that differ between `other` and
+  `state` (and falls back to a full rebuild when `reordered` or when a merge to remove is not where
+  it was), Formulas reads the peer rewrites from `other` on undo. No context is passed when the
+  restore puts back a state no step changed.
+- `getStateColumns(state, other)` - the physical columns whose state differs between the two sides
+  of a step, for the `columns` check above. `null` or no method means "cannot tell" and the step
+  drops. Pagination, NestedRows, and CustomBorders answer `[]`; Filters the columns whose conditions
+  differ; Formulas `[]` only for a data-only step in physical order. MergeCells, NestedHeaders, and
+  CollapsibleColumns have none.
 - `captureSourceStructure(previous)` / `restoreSourceStructure(state)` - only for a plugin that
   reshapes the source array itself (NestedRows: the tree shape, by reference).
 
@@ -197,10 +272,17 @@ stack hook pair, and with no `afterUndo`/`afterRedo`.
   can put an edit on another row. The cell writes are mapped to the restored tree shape through the
   step's `insertRows`/`removeRows` entries only; a move is journaled as `metaRows` entries, which
   `spliceCellsMeta()` also records for a meta-only shift, so they cannot be read as data moves.
-- The index maps of a structural step are restored from its snapshot, so a trim or hide made outside
-  any step after the step is lost on undo.
+- The value maps and the row and column order of a structural step are restored from its snapshot,
+  so a size or an order set outside any step after the step (a `manualColumnResize` or
+  `manualColumnMove` settings update) is lost on undo. Trims and hides are kept (step 4 of the
+  restore above).
 - While a Formulas grid is sorted or moved, every step that writes data re-serializes the engine sheet
-  (O(cells)).
+  (O(cells) time; the unchanged rows share their arrays with the previous snapshot, so the memory
+  grows with the rows that changed).
+- A `columns` update made inside an open transaction is not checked per step: the eager check skips
+  it, and once the step settles the lazy check sees no count change. Rare, and pre-existing.
+- An accessor function re-created on every render (an inline `data: row => ...` in React) reads as
+  another field, so each render drops the steps that address its column.
 
 ## Testing
 

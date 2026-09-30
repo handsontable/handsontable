@@ -89,6 +89,15 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
 
+## A progressive load is never an undo step
+
+Every `borders` meta write goes through `setCellMeta()`, which opens an operation of its own. So both
+progressive paths write under `operationScope.suppress()`: a batch run from the timer
+(`#processProgressiveChunk`) would otherwise record one undo step per bordered cell, and the flush
+(`#flushProgressiveApply`) runs from a user action's `before*` hook, so its writes would join that
+action's step - an undo of the row insert that finished the load then removed the borders it wrote.
+Pinned in `../undoRedo/__tests__/pluginState.unit.js` ("a progressive border load").
+
 ## `setCellMeta('borders', …)` written directly is supported
 
 The value may be a complete plugin-shaped object (UndoRedo restoring an undone removal) **or** a partial

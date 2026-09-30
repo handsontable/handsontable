@@ -25,9 +25,37 @@ Each plugin owns its sizes: the index map, every public size accessor, `SETTING_
 row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps its stretching hooks.
 
 **The seam runs both ways.** Facts flow in through the axis descriptor. Calls flow out through the owner the
-plugin passes in: `isActive()` and `setManualSize()`. That second one is the plugin's **public**
-`setManualSize` on purpose - the gesture never writes a size map itself, so the clamping rules (the 20px
-column floor, the theme's default row height) stay in one place.
+plugin passes in: `isActive()`, `clampSize()` and `setManualSize()`. The last two are the plugin's
+**private** bodies (`#clampSize`, `#setManualSize`), not the public `setManualSize()`: the public method opens
+an undo step of its own, and the gesture records its own step. The gesture still never writes a size map
+itself, and `setManualSize()` clamps through `clampSize()`, so the clamping rules (the 20px column floor, the
+theme's default row height) stay in one place.
+
+## One press, one undo step - and nothing stored before the release
+
+A drag stores **no size until the `mouseup`**. `#onMouseMove` only tracks the pointer: it sets `#currentSize`
+(which positions the handle and the guide) and `#newSize = clampSize(#currentSize)`, and writes nothing.
+UndoRedo reads a step's "before" state at settle time, from the state the previous step ended in. So a step
+that settles during the drag - a `setDataAtCell()` made while the button is down - recorded the half-dragged
+size as its own "after", the drag's undo then went back only to that size, and undoing the edit moved the
+width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a column resize is dragged...").
+
+- **`#onMouseUp` stores the size first, then runs the hooks.** Every selected index gets `setManualSize()`
+  with the dragged size, then `before*Resize` / `after*Resize` fire per index as before: `false` puts the
+  start size back, a number is stored instead. The order matters for rows: `ROW_RESIZE_AXIS#getHookSize`
+  reports `max(dragged, wtTable.getRowHeight())`, and that height is read back from the size map (every
+  write clears the row-height cache). Firing the hooks before the write reports the old height, and a
+  manually tall row could no longer be reported smaller.
+- **`#newSize` is still updated on every mousemove**, even though nothing is stored: the double-click timer's
+  "still hold or drag?" test (`#newSize === #startSize`) and the release's "did it move?" test read it.
+- **The press holds the step** (`#openStep()` on `mousedown`, `#closeStep()` on `mouseup`), so the autosize a
+  held second press runs and the size its release stores are one step. **Three more places close it:** a
+  fresh `mousedown` (a step still held there was left by a drag whose `mouseup` never arrived), `detach()`,
+  and the context menu. After a `detach()` in the middle of a drag - the `disablePlugin(); enablePlugin();`
+  cycle of a wrapper re-render - the `mouseup` records the drag in a step of its own through
+  `hot.runOperation()`. That is only safe because nothing was stored before the release.
+- **A drag the context menu aborts stores nothing**, so it keeps the size it started from. Before, the
+  mousemove writes left the half-dragged size in the map with no resize hook.
 
 ## One gesture for both axes: along and across
 
@@ -148,7 +176,7 @@ it when `#dblclick >= 2`. It still must not detach – that is the flicker trap 
 is held is a drag, so the same timer must leave the guide alone when the count is below two.
 
 **Do not clear `#pressed` on every dblclick timeout.** `#newSize` is reset to `#startSize` on each press
-and written on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
+and updated on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
 cannot overwrite the autosize and mouseup takes the idle branch (no second round of drag-end hooks).
 They differing means the second press already started a drag: keep `#pressed`. The `#setupHandlePosition`
 that follows then resets `#startSize`, so later mousemove/mouseup keep following the pointer – the

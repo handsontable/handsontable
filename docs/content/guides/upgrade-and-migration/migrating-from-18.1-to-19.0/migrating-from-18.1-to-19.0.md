@@ -1293,40 +1293,62 @@ Now UndoRedo stores the grid state before and after each action, and a record of
 
 This changes the following:
 
+- **With `undo: false`, nothing is recorded, so the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) do nothing.** Before, the plugin recorded changes even with `undo: false`, and only its keyboard shortcuts were off, so an app could call `undo()` from its own buttons.
 - More actions are undoable: hiding, showing, and trimming rows and columns, resizing, freezing, collapsing nested rows and column headers, custom borders, comments, the pagination page, and cell metadata written with [`setCellMeta()`](@/api/core.md#setcellmeta). The full list is in [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md#what-undoredo-tracks).
-- Every call inside [`batch()`](@/api/core.md#batch) is one undo step, with the `'batch'` action type. The new [`runOperation()`](@/api/core.md#runoperation) method groups calls the same way.
+- Changes your app makes through the API are recorded from the moment the grid exists, including the ones that set it up: a `setCellMeta()` call, hidden rows, a page, or a column width set after `new Handsontable()`. The first undo then reverts your setup.
+- Every call inside [`batch()`](@/api/core.md#batch) or [`batchExecution()`](@/api/core.md#batchexecution) is one undo step, with the `'batch'` action type. The new [`runOperation()`](@/api/core.md#runoperation) method groups calls the same way.
 - An undo or a redo writes values straight to the source data. [`beforeChange`](@/api/hooks.md#beforechange) and the cell's `valueSetter` do not run. [`afterChange`](@/api/hooks.md#afterchange) runs once, with the `UndoRedo.undo` or `UndoRedo.redo` source. The restored visible cells are validated again, and only their `valid` state changes.
 - The action's own hooks do not run on an undo or a redo, so they cannot cancel it: for example [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`beforeFilter`](@/api/hooks.md#beforefilter), [`beforeRowMove`](@/api/hooks.md#beforerowmove), and [`beforeMoveCells`](@/api/hooks.md#beforemovecells). Returning `false` from `beforeMoveCells` no longer blocks the redo of a cell move.
 - A `beforeMoveCells` listener that returns anything other than `undefined` or the range it received cancels the move, whether or not UndoRedo is on. Before, with the default `undo: true`, the UndoRedo plugin's own listener cancelled such a move. With `undo: false`, only `false` did.
 - A row or column hook that returns `false` during an undo, such as [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow), cancels the whole undo. The grid is put back as it was, and the step stays on its stack. [`beforeUndo`](@/api/hooks.md#beforeundo) has fired, and [`afterUndo`](@/api/hooks.md#afterundo) does not fire.
 - Returning `false` from `beforeUndo` keeps the step on the undo stack, the way returning `false` from [`beforeRedo`](@/api/hooks.md#beforeredo) keeps a step on the redo stack. Before, a canceled undo removed the step for good. The stack hooks, such as [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange), no longer fire for a canceled undo.
+- `beforeUndo` and `beforeRedo` fire before the stack hooks. So in `beforeUndo`, the plugin's `doneActions` array still holds the step. Before, the step was taken off the stack first.
+- The undo hooks receive the step object that the stack holds, not a copy. A listener that changes it changes the stored step.
 - The action hooks and the undo stacks hold plain step objects. A step no longer has `undo()` and `redo()` methods, and the internal properties are gone:
-  - `'change'`: `countCols`, `countRows`, `countSourceRows`, `mergedCells`, and `physicalRows`.
-  - `'remove_row'`: `fixedRowsTop`, `fixedRowsBottom`, `removedCellMetas`, `removedMergedCells`, `rowIndexesSequence`, and the `nested...` properties.
+  - `'change'`: `countCols`, `countRows`, `countSourceRows`, `mergedCells`, `physicalRows`, and `props`.
+  - `'remove_row'`: `fixedRowsTop`, `fixedRowsBottom`, `removedCellMetas`, `removedMergedCells`, `removedHiddenRows`, `rowIndexesSequence`, and the `nested...` properties.
   - `'remove_col'`: `columnPositions`, `rowPositions`, `fixedColumnsStart`, `removedCellMetas`, and `removedMergedCells`.
   - `'move_cells'`: `data`, `meta`, `fromRow`, `fromCol`, `toRow`, `toCol`, `sourceSnapshot`, and `targetSnapshot`. It has `sourceRange` and `targetRange` instead.
+  - `'nested_rows_detach'`: `amount`, `rowPath`, `detachedRowPath`, `formulasUndoRedoSteps`, and `removeAction`.
 
-  Every step now has `source`, `operations`, and `sources`.
+  Every step recorded by the grid now has `source`, `operations`, and `sources`. A `cellRange`, `range`, or `ranges` field holds plain objects with the same coordinates, not [`CellRange`](@/api/cellRange.md) instances, so it has no methods.
 - An edit that waits for an asynchronous validator is recorded when the validation finishes. When two edits overlap, the undo stack holds them in the order they finished.
-- [`updateData()`](@/api/core.md#updatedata) clears both stacks, as [`loadData()`](@/api/core.md#loaddata) always did. Turning on or turning off a plugin that hides, trims, or reorders rows or columns at runtime clears them too.
-- With the [`Formulas`](@/api/formulas.md) plugin, the grid no longer calls HyperFormula's `undo()` and `redo()`. The grid restores the formulas itself and updates the engine to match.
+- What a validator or an [`afterValidate`](@/api/hooks.md#aftervalidate) listener changes while an edit is validated is part of that edit's step: for example a value the validator corrects, or cell metadata the listener sets. Before, each such change was an undo step of its own, recorded after the edit.
+- [`updateData()`](@/api/core.md#updatedata) clears both stacks, as [`loadData()`](@/api/core.md#loaddata) always did. Turning on or turning off a plugin that keeps its own index map at runtime clears them too: for example [`HiddenRows`](@/api/hiddenRows.md), [`HiddenColumns`](@/api/hiddenColumns.md), [`TrimRows`](@/api/trimRows.md), the sorting plugins, or [`Filters`](@/api/filters.md). The move plugins do not. The stack hooks announce each of these drops.
+- A [`columns`](@/api/options.md#columns) settings update keeps the history. It drops a step that changed something on a column whose field changed or is gone - a cell's metadata, a hidden or frozen column, a merge, or a filter - together with every step older than it. Once `columns` is set, it also drops a step that inserted or removed columns. An edit is recorded by field, so it is never dropped. The stack hooks announce the drop.
+- With the [`Formulas`](@/api/formulas.md) plugin, the grid no longer calls HyperFormula's `undo()` and `redo()`. The grid restores the formulas itself and updates the engine to match. When several grids share one engine, an undo also puts back the formulas that the step changed in the other grids' sheets and in named expressions. A formula edited since the step keeps its new text, and the grid logs a warning.
 
 ### Who is affected
 
-Everyone who keeps the default [`undo`](@/api/options.md#undo) setting. Check your code if you:
+Everyone who uses the [`UndoRedo`](@/api/undoRedo.md) plugin, and everyone who sets [`undo: false`](@/api/options.md#undo) but calls the plugin's `undo()` or `redo()`. The change to `beforeMoveCells` applies with `undo: false` too. Check your code if you:
 
+- set `undo: false` to turn off the keyboard shortcuts, and undo from your own buttons
+- change the grid through the API right after you create it
 - use `beforeChange`, a `valueSetter`, or an action hook such as `beforeColumnSort` to change or block what an undo writes
 - read a step's properties in `beforeUndo`, `afterUndo`, `beforeRedo`, `afterRedo`, or the stack hooks, or read `doneActions` or `undoneActions`
+- call a `CellRange` method on a step's `cellRange`, `range`, or `ranges`
 - register a change to the grid with [`done()`](@/api/undoRedo.md#done)
 - call HyperFormula's `undo()` or `redo()` on an engine that a grid is connected to
 - expect an undo to reach across `updateData()`
-- run several changes in `batch()` and expect each one to be undone separately
+- run several changes in `batch()` or `batchExecution()` and expect each one to be undone separately
 
 ### How to migrate
 
+- **Undo from your own buttons, without the keyboard shortcuts.** Keep `undo: true`, and remove the shortcuts you do not want:
+
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
+
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'z']);
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'y']);
+  gridContext.removeShortcutsByKeys(['Control/Meta', 'Shift', 'z']);
+  ```
+
+- **Setup calls.** Call `hot.getPlugin('undoRedo').clear()` after the code that sets the grid up, or move the setup into the grid's settings.
 - **Blocking or changing an undo.** Move the logic from `beforeChange` or an action hook to [`beforeUndo`](@/api/hooks.md#beforeundo) and [`beforeRedo`](@/api/hooks.md#beforeredo). They receive the step, including its `actionType`, and return `false` to cancel it. To react to restored values, listen to `afterChange` and check for the `UndoRedo.undo` and `UndoRedo.redo` sources.
-- **Reading step properties.** Use `actionType`, `source`, and the properties listed in [Hooks and stack lifecycle](@/guides/accessories-and-menus/undo-redo/undo-redo.md#hooks-and-stack-lifecycle). Do not call `undo()` or `redo()` on a step. Call the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) instead.
+- **Reading step properties.** Use `actionType`, `source`, and the properties listed in [Hooks and stack lifecycle](@/guides/accessories-and-menus/undo-redo/undo-redo.md#hooks-and-stack-lifecycle). Do not call `undo()` or `redo()` on a step. Call the plugin's [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo) instead. Treat the step as read-only. To read the stack after the step left it, listen to `afterUndoStackChange`.
+- **Ranges.** Read the coordinates of a step's `cellRange`, `range`, or `ranges` directly, for example `step.cellRange.from.row` and `step.cellRange.to.col`.
 - **Custom actions.** Remove `done()` calls that record a change to the grid, such as a `setCellMeta()` call. UndoRedo records the change already, so keeping the `done()` call makes the change take two undo steps. Keep `done()` for state outside the grid.
 - **HyperFormula.** Remove calls to the engine's `undo()` and `redo()`, and call the grid's undo and redo instead.
-- **Separate steps inside `batch()`.** Move the calls you want to undo one by one out of `batch()`.
+- **Separate steps inside `batch()` or `batchExecution()`.** Move the calls you want to undo one by one out of the batch.
 - **A long session.** To cap the memory the history uses, set `undo: { maxHistory: <number> }`. By default, the stack has no size limit, as before.

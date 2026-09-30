@@ -222,10 +222,15 @@ details?, source?)` - the outermost operation becomes one undo step, named `name
 fields of the step the undo hooks receive; put plain copies there, never live objects.
 
 State the undo stack cannot see on its own - neither an index map nor cell meta nor the settings
-`alter()` changes - is exposed through four optional methods (found by `typeof`, no default bodies):
-`captureState(previous)` / `restoreState(state)`, and for a plugin that reshapes the source array
-itself, `captureSourceStructure(previous)` / `restoreSourceStructure(state)`. Return `previous` by
-reference when nothing changed. Details and traps: `../undoRedo/AGENTS.md`.
+`alter()` changes - is exposed through optional methods (found by `typeof`, no default bodies):
+`captureState(previous)` / `restoreState(state, context?)`, and for a plugin that reshapes the source
+array itself, `captureSourceStructure(previous)` / `restoreSourceStructure(state)`. Return `previous`
+by reference when nothing changed. `context` (`PluginRestoreContext`: `other`, `direction`,
+`reordered`) names the step being restored, so a plugin can apply only what the step changed and
+keep a change made outside any step. A plugin with `captureState()` should also implement
+`getStateColumns(state, other)` - the physical columns its state differs in across a step - or every
+step that changed its state is dropped on a `columns` settings update that changes a column's field.
+Details and traps: `../undoRedo/AGENTS.md`.
 
 ## Where to look next
 

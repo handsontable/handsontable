@@ -107,7 +107,55 @@ const isRestoreSource = source => source === 'UndoRedo.undo' || source === 'Undo
 
 A move is covered the same way: the cells a move writes, and the formulas elsewhere the engine
 rewrote, are all journaled inside the move's own step, so an undo writes them back and `restoreState()`
-feeds them to the engine. `commitPendingMoveCells()` runs for a user's move only.
+feeds them to the engine. `commitPendingMoveCells()` runs for a user's move only. **A move made while
+the order is not physical marks the structure changed** (not only the data): the engine's references
+depend on the order there, so the undo must load the recorded `engineSheet` instead of writing cells
+into a sheet whose references the move already rewrote.
+
+**Another sheet on the same engine is not this grid's to reload, so its rewrites are recorded as
+text (`peerRewrites`).** When this grid adds, removes or moves rows, columns or cells, HyperFormula
+rewrites every formula that points into this sheet - in other grids' sheets and in named
+expressions - and restoring this sheet never touches them (a reverse `addRows` cannot turn a `#REF!`
+back into a reference, and `getCellDependents()` cannot list references into a sheet). So each engine
+call that can rewrite references runs through `#trackPeerRewrites()`: before the call it lists the
+candidates (peer-sheet cells whose formula text, lowercased, names this sheet, plus every named
+expression in the global scope and every sheet scope), after it re-reads them, and the text that
+changed goes into `#pendingPeerRewrites` (first `before`, last `after` per key). Four rules:
+
+- **It costs nothing on a single grid.** The probe runs only while a step is recording
+  (`getRecordingTransaction() !== null`) and the engine holds another sheet or a named expression.
+  Sorts and the restore's identity reset go through `setRowOrder`, which never rewrites peers, so
+  they are not wrapped. Wrapped: `addRows`, `addColumns`, the removal batches, the `moveCells`
+  batch, and the `calculateAndSyncMoves` calls (`moveRows` is add + move + remove in HyperFormula).
+- **`captureState()` takes the pending rewrites into the state** and never returns `previous` while
+  any are pending. `restoreState()` reads them from `context.other` on undo and from `state` on redo,
+  and writes a text back only when the current text is still the one the step left - a formula
+  edited since keeps its new text, and one `warnOnce` says so. A named expression keeps its options.
+- **The peer grid's source data follows.** `#syncPeerSources()` finds the other grid through
+  `getRegisteredHotInstances()`, checks `peer instanceof Formulas` (a grid from a second bundle is
+  another class, and the `#` access would throw), and writes the engine's formulas into its source
+  inside `suppress()`, so that grid gets no step of its own.
+- **Limits:** a formula written in another grid after the step is not adjusted by the undo; a later
+  structural change in the other grid can move the recorded address (the content guard catches
+  most); a sorted peer gets its engine updated but not its source written.
+
+**The engine sheet snapshot shares its unchanged rows** with the previous snapshot
+(`#captureEngineSheet()`), so the memory a long history takes grows with the rows each step changed,
+not with the sheet size. The time to serialize is still O(cells) per data step on a sorted grid.
+
+**A removed sheet is left alone.** When the host removed this grid's sheet from the engine,
+`restoreState()` only follows the recorded versions (`!#hasOwnSheet()`), and the axis syncer skips its
+`'update'` sync (`#isSheetRemoved()`, `getSheetName(sheetId) === undefined`) - an undo of a sort or
+an insert after `removeSheet()` threw before.
+
+**A restored write goes through the column's `valueGetter`** (`#writeSourceChangesToEngine()` uses
+`#getValueGetterValue()`), the same way a load does, so an object value keyed by `value` reaches the
+engine as the value and not as `[object Object]`.
+
+**`getStateColumns()` answers `[]` only for a data-only step in physical order** (both states without
+an `engineSheet` and with the same `structureVersion`): its cells are restored by prop. Any step that
+reloads the sheet or loads a serialized one restores a column layout, so it is dropped by a `columns`
+update that changes a column's field (`../undoRedo/AGENTS.md`, "The epoch").
 
 `IndexSyncer` has no undo/redo flags any more. Restoring the row or column order fires the sequence
 change like any other, and the axis syncer sends the new order to the engine; a reload afterwards
