@@ -2155,18 +2155,16 @@ class TableView {
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendRowHeader(visualRowIndex: number, TH: HTMLTableCellElement) {
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
-      const rowHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.rowHeader') : null;
+    const container = TH.firstChild as HTMLElement | null;
+    const rowHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      // A wrapper that lost its label element is rebuilt instead of reused.
-      if (rowHeader === null) {
-        empty(TH);
-        this.appendRowHeader(visualRowIndex, TH);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !rowHeader) {
+      empty(TH);
+    }
 
-        return;
-      }
-
+    if (rowHeader) {
       this.updateCellHeader(rowHeader, visualRowIndex, this.hot.getRowHeader);
 
     } else {
@@ -2218,19 +2216,16 @@ class TableView {
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
 
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
-      const colHeader = hasClass(container, 'relative') ? container.querySelector<HTMLElement>('.colHeader') : null;
+    const container = TH.firstChild as HTMLElement | null;
+    const colHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.colHeader') : null;
 
-      // A wrapper that lost its label element is rebuilt instead of reused. The rebuild runs the
-      // `afterGetColHeader` hook itself, so this call returns before it fires a second time.
-      if (colHeader === null) {
-        empty(TH);
-        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !colHeader) {
+      empty(TH);
+    }
 
-        return;
-      }
-
+    if (container && colHeader) {
       this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
 
       container.className = '';

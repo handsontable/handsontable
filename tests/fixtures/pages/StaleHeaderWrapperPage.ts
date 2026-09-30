@@ -1,32 +1,31 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the stale header wrapper fixture.
  *
- * Headers are read from the master table. The fixture has no frozen rows or columns, so nothing is
- * drawn twice and a header label is addressed by its position alone.
+ * Headers are read from the master table. The top and inline-start overlay clones draw the headers
+ * too, so every locator is scoped to `.ht_master`, and the helpers change only the master header.
  */
 export class StaleHeaderWrapperPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
-  /** Uncaught errors the page raised, collected from the moment the page object is built. */
-  readonly pageErrors: string[] = [];
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
-    page.on('pageerror', error => this.pageErrors.push(error.message));
   }
 
-  /** Navigate and wait for the headers to have rendered - a real DOM condition, never a sleep. */
+  /** Navigate, wait for the bundle, then for the headers to have rendered - never a sleep. */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/stale-header-wrapper.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+    await awaitBundle(this.page);
     await expect(this.columnHeaderLabel(0)).toHaveText('Alpha');
   }
 
@@ -76,6 +75,28 @@ export class StaleHeaderWrapperPage {
    */
   columnHeaderWrapper(column: number): Locator {
     return this.grid.locator('.ht_master thead th').nth(column + 1).locator('.relative');
+  }
+
+  /**
+   * The wrapper element of one row header.
+   *
+   * @param {number} row The row index.
+   * @returns {Locator}
+   */
+  rowHeaderWrapper(row: number): Locator {
+    return this.grid.locator('.ht_master tbody tr').nth(row).locator('th .relative');
+  }
+
+  /**
+   * Replaces everything a column header cell holds with one element that is not the grid's wrapper,
+   * the way a header hook that assigns `innerHTML` leaves it.
+   *
+   * @param {number} column The column index.
+   */
+  async replaceColumnHeaderContent(column: number): Promise<void> {
+    await this.grid.locator('.ht_master thead th').nth(column + 1).evaluate((th) => {
+      th.replaceChildren(th.ownerDocument.createElement('b'));
+    });
   }
 
   /**
