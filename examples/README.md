@@ -163,6 +163,9 @@ Run the following commands from the **root** of the repository (not the `example
 
 2. **`npm run examples:build <version_number>`** - Builds each example in `/examples/<version_number>` and copies the production output to `/examples/tmp/<version_number>`. The path within `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
 
+   - For the `next` examples, it checks every example before it builds the first one. Each `handsontable` and `@handsontable/*` package an example declares must resolve to the local build, and, outside CI, the `handsontable` build must be no older than its sources. Otherwise it refuses to build anything, and each problem ends with the command that fixes it, for example `npm run examples:install next/docs/js`. Without the check, an example whose symlink is missing builds against the copy installed from npm, and nothing fails.
+   - For the `docs` examples, the check runs in `examples:build` and not in the example's own `build` script, so an example you [copy to a separate repo](#copying-an-example-to-a-separate-repo) still builds. Running `npm run build` inside one of them skips the check. The `visual-tests` examples also run it from their own `build` script. See [`visual-tests/AGENTS.md`](../visual-tests/AGENTS.md#local-builds-the-demos-render) for the details.
+
 3. **`npm run examples:start`** - Starts `http-server` at `/examples/tmp` on port `8080`. Example URL: `http://localhost:8080/<version_number>/docs/js/basic-example/`
 
 **Important:** The `next` examples depend on local builds of `handsontable` and the wrappers. Build all root-level packages (for example, by running `npm run all build`) before running the examples build script.
