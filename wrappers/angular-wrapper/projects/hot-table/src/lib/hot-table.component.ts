@@ -57,7 +57,7 @@ function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
 
 @Component({
   selector: 'hot-table',
-  template: '<div #container></div>',
+  template: '<div #container [style.height]="containerHeight"></div>',
   encapsulation: ViewEncapsulation.None,
   providers: [HotSettingsResolver],
   styles: [
@@ -90,6 +90,22 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     private readonly environmentInjector: EnvironmentInjector,
     private readonly _dynamicComponentService: DynamicComponentService
   ) {}
+
+  /**
+   * The height of the container element.
+   *
+   * The core wraps the container in its own root element and sizes that root. A relative `height`
+   * (for example `'100%'`) resolves against the container, so the container must pass the height of
+   * its parent through, or the grid collapses to `0px`. The `<hot-table>` host is an inline element,
+   * so the container's `100%` resolves against the nearest block ancestor. Other heights do not
+   * depend on the container, so they leave it at its default size.
+   * @returns `'100%'` when the `height` option is relative to the container, `null` otherwise.
+   */
+  get containerHeight(): string | null {
+    const height = this.settings?.height;
+
+    return typeof height === 'string' && height.includes('%') ? '100%' : null;
+  }
 
   /**
    * Gets the Handsontable instance.

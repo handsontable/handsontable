@@ -751,4 +751,48 @@ describe('HotTableComponent', () => {
       expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
     });
   });
+
+  describe('container height', () => {
+    const getContainer = (): HTMLElement => fixture.componentInstance.container.nativeElement;
+
+    const createTable = (height?: GridSettings['height']): void => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings, ...(height === undefined ? {} : { height }) };
+      fixture.detectChanges();
+    };
+
+    it.each(['100%', '50%', 'calc(100% - 20px)'])(
+      'should pass the parent height through to the container for a relative `height` of %s',
+      (height) => {
+        createTable(height);
+
+        expect(getContainer().style.height).toBe('100%');
+      }
+    );
+
+    it.each([300, '300px', 'auto', '50vh', undefined])(
+      'should leave the container height alone for a `height` of %s',
+      (height) => {
+        createTable(height);
+
+        expect(getContainer().style.height).toBe('');
+      }
+    );
+
+    it('should follow the `height` option when the settings change', () => {
+      createTable(300);
+
+      expect(getContainer().style.height).toBe('');
+
+      fixture.componentRef.setInput('settings', { ...settings, height: '100%' });
+      fixture.detectChanges();
+
+      expect(getContainer().style.height).toBe('100%');
+
+      fixture.componentRef.setInput('settings', { ...settings, height: 300 });
+      fixture.detectChanges();
+
+      expect(getContainer().style.height).toBe('');
+    });
+  });
 });
