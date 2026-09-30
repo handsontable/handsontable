@@ -216,6 +216,32 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   is active by then. Without the guard the rename input opened on top of the menu the second
   click had just opened. The reverse order needs no guard — opening the menu moves the focus,
   the input blurs, and the blur commits the rename first.
+- **The bar is registered as grid UI, so a press on it never deselects.** The bar sits outside
+  `rootElement` (a layout slot or `uiContainer`), and with the default `outsideClickDeselects`
+  the document `mousedown` in `tableView.ts` used to deselect before a tab's `click` switched
+  sheets — every switch from the bar then stored an empty selection. `enablePlugin` registers the
+  bar container through `FocusGridManager#registerOutsideClickExemptElement()` and
+  `#releaseState` removes it; a press inside it only closes an open editor (saving it, as
+  `outsideClickDeselects: false` does), so the outgoing sheet keeps its selection. Do not replace
+  this with a selection snapshot taken on `pointerdown`: that covers the tab click only, leaks
+  when the release lands off the tab, and still drops the selection on the active tab, the add
+  button, and the all-sheets button. Pagination is deliberately not registered —
+  `layout-slot-focus.spec.ts` pins its deselect. Three things ride along. (1) With the selection
+  alive and the focus in the bar, the editor manager would open the cell editor on any printable
+  key — a letter typed into the rename input started editing the selected cell and the rename
+  was lost — so `#onKeyDownWithinBar` marks keys and composition starts inside the bar at
+  `orderIndex` -1. It sets only the `isImmediatePropagationEnabled` mark, never `cancelBubble`:
+  the grid's key listener sits on the `documentElement`, and stopping the bubble there hides every
+  bar keystroke from the host page. (2) `setActiveSheet` closes an open editor before it captures
+  the outgoing sheet, so an API switch mid-edit saves into the sheet being left. (3) A switch onto
+  a sheet with no stored selection deselects at the start of the switch batch, before
+  `loadData`: `loadData` only clamps the selection, so the previous sheet's cells used to carry
+  over, and deselecting after the load would let a still-open editor save into the arriving
+  sheet. A stored selection that no longer fits (the host shrank the sheet's data while it was
+  away, so `restoreViewport()` reports `false`) is deselected inside the viewport batch for the
+  same reason. The grid focus scope drops its remembered Tab re-entry cell on `afterLoadData` on
+  every grid, not only on a switch: a cell remembered from the previous data does not name a
+  record of the new data.
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.
@@ -253,18 +279,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
   and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
-  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
-  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
-  while the departing merges still match the grid (the neutral reset does it otherwise). And
-  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
-  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
-  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
-  load and win over the ones the user unmerged or moved. That second pass empties the
-  collection only, never the meta: the load has already reset the cell meta, and the same
-  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
-  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
-  leaves MergeCells' own record of applied declared areas alone, so its next settings update
-  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
+  `#applySheet`, while the departing merges still match the grid (the neutral reset does it
+  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
+  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  once any sheet declares it (the baseline carries it too), and that update runs while the grid
+  still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
+  validated the arriving sheet's areas against the departing sheet's size (dropping one that did
+  not fit it with an out-of-bounds warning) and wrote its clearing `null`s into the departing
+  sheet's array, which the host holds by reference. On the init build, where no view exists yet,
+  it threw `Cannot read properties of undefined (reading '_wt')`. So `#applySheet` runs the update
+  under `#withoutMergeCellsSettingsPass`, which sets MergeCells' `@private` `deferSettingsPass`
+  flag (duck-typed, like `#withoutFormulasSwitchLoad`): `updatePlugin()` then rebuilds the plugin
+  and keeps its record of applied areas, but builds nothing. After `loadData()`,
+  `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
+  declared merges against the arriving data; a sheet with a stored state passes `false` and
+  builds none, because it restores its own merges and the declared ones would win over the ones
+  the user unmerged or moved. Skipping the build also writes no cell, so a value the user typed
+  into a formerly merged cell survives a round trip. Without a view (the init build) the bar runs
+  nothing, and MergeCells' own `afterInit` builds the merges against the loaded sheet and clears
+  the pending pass. The pass must run before the view-state restore: it sets MergeCells'
+  `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
   keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
   are all trimmed stays in the collection's list at its last visual position, and restored
   there it came back as a visible merge over unrelated rows, or won over a live merge,

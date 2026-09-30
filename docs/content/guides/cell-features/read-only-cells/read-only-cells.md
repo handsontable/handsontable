@@ -183,7 +183,7 @@ To make an entire row read-only, use the [`cells`](@/api/options.md#cells) funct
 
 ## Make specific cells read-only
 
-To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Nissan" read-only.
+To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Helium" read-only.
 
 ::: only-for javascript
 
@@ -279,7 +279,7 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ## Make specific cells non-editable
 
-To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Nissan".
+To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Helium".
 
 ::: only-for javascript
 

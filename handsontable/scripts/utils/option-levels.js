@@ -41,8 +41,9 @@ const NOTES = {
   filterValueComparator: 'Orders a column\'s "Filter by value" list, which is built once per column. '
     + 'The comparator is read from the first listed row\'s cell meta, so a `cells` or `cell` value is '
     + 'not a reliable way to set it. Set it at the grid level or inside `columns`.',
-  filters: 'Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it '
-    + 'hides the filter controls in that column\'s dropdown menu, and the API still filters the '
+  filters: 'Turn the plugin on at the grid level. Inside `columns`, `false` hides the filter '
+    + 'controls in that column\'s dropdown menu, and the API still filters the column. An object '
+    + 'there is read for `availableConditions` only, which replaces the grid-level value for that '
     + 'column. The sub-options `searchMode` and `filterFixedRows` are grid-level only.',
   columnSorting: 'Turn the plugin on at the grid level. Inside `columns` you can override its '
     + 'sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. '

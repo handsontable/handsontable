@@ -1,4 +1,4 @@
-import { visualTest, JS_VARIANTS } from '../../../../../src/test-runner';
+import { visualTest, expect } from '../../../../../src/test-runner';
 import { helpers } from '../../../../../src/helpers';
 import {
   clickRelativeToViewport,
@@ -9,11 +9,16 @@ import {
 /**
  * Checks that, in RTL and in a grid scrolled to its bottom and inline end, the dropdown editor keeps its
  * full list when a letter is typed (the dropdown type sets `filter: false`): it bolds the typed "a" in each
- * option, highlights the first match, and shows the hover state of the option under the pointer. Owned by
- * DEV-2981.
+ * option, highlights the first match, and shows the hover state of the option under the pointer. Where
+ * the dropdown's list opens (on the cell's width, below it or flipped above) is asserted from DOM rects
+ * in `tests/e2e/handsontable-editor-list-position.spec.ts`, for a sized RTL grid on an RTL and an LTR
+ * page, on all six theme and bundle legs, `horizon`'s taller rows included. What only this capture
+ * shows is the mirror: options aligned to the right and cut at their start.
+ * `main` only: the mirror does not depend on the theme, and the focus and hover tokens are the LTR
+ * `editors/dropdown/focus-cell`'s, on all five variants. Owned by DEV-3139.
  */
 visualTest(__filename, {
-  themes: JS_VARIANTS,
+  themes: ['main'],
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {
@@ -39,6 +44,8 @@ visualTest(__filename, {
     250,
     180
   );
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted mouse.move(); assert the state it shows (toBeFocused / toBeVisible / toHaveClass) when this family is consolidated
+  // "Electronics" has no "a", so the first match the list highlights is "Fashion".
+  await expect(tablePage.locator('.handsontableEditor .ht_master .htCore td.current')).toHaveText('Fashion');
+
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
