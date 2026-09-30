@@ -157,6 +157,21 @@ describe('contextMenu/ItemsFactory', () => {
       expect(typeof item.name).toBe('function');
     });
 
+    it('keeps the user name and callback over the ones the plugin entry defines', () => {
+      const factory = new ItemsFactory(hotMock());
+      const userCallback = jest.fn();
+      const settings = { items: { commentsAddEdit: { name: 'My label', callback: userCallback } } };
+      const pluginItems = factory.getItems(settings);
+
+      pluginItems.push({ key: 'commentsAddEdit', name: () => 'Add comment', callback: () => {} });
+      factory.setPredefinedItems(pluginItems);
+
+      const [item] = factory.getItems(settings);
+
+      expect(item.name).toBe('My label');
+      expect(item.callback).toBe(userCallback);
+    });
+
     it('does not mutate the user settings', () => {
       const factory = new ItemsFactory(hotMock());
       const override = { disabled: () => true };
