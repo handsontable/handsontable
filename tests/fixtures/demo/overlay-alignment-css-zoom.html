@@ -153,7 +153,10 @@
 
     /**
      * Changes the page zoom after the grids have been built, the way the retired visual spec did
-     * (`document.body.style = "zoom: 1.25"` on the loaded complex demo).
+     * (`document.body.style = "zoom: 1.25"` on the loaded complex demo). This zooms the root element
+     * rather than the body, the same mechanism the `?zoom=` param uses and the one `tests/AGENTS.md`
+     * describes; body zoom was measured to behave the same on every theme (cell box ratio 1.25,
+     * border 0.8px, no redraw, the same LayoutUnit residues), so the two are one case here.
      *
      * @param {number} zoom The CSS zoom to apply.
      */

@@ -10,8 +10,8 @@ test.beforeEach(async({ page }) => {
  * borders and text rasterize, which only pixels show. That the overlays line up with the master under
  * that zoom — every header, frozen row, frozen column and corner cell on its master cell's edges — is
  * asserted from DOM rects in `tests/e2e/overlay-alignment-css-zoom.spec.ts` on every theme, and the
- * complex demo itself is photographed on every js variant by `js-only/complex-demo/rtl/open-date-editor`.
- * Owned by DEV-3205.
+ * complex demo itself is photographed on every js variant by `js-only/complex-demo/manual-row-resize`
+ * (the same LTR demo, with the resize guide pressed). Owned by DEV-3205.
  */
 visualTest(__filename, {
   themes: ['main'],

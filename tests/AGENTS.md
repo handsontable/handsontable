@@ -302,7 +302,7 @@ not need a real press.
   poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
   instead of its message.
 
-## Rendering below 100% (zoom / display scaling)
+## Rendering away from 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
 constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it through the same

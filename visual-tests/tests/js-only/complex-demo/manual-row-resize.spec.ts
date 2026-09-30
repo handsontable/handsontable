@@ -1,4 +1,4 @@
-import { visualTest, test, expect } from '../../../src/test-runner';
+import { visualTest, test, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -8,15 +8,18 @@ test.beforeEach(async({ page }) => {
 
 /**
  * Checks how the row resize guide and the active handle look on the complex demo while the button is
- * held on the third row header's bottom edge: the guide's accent line across the table and the handle's
- * two indicator bars, on the light and dark `main` tokens. Where both are drawn — the handle centered on
- * the row boundary, the guide's line level with it, spanning to the table's end and following a drag —
- * is asserted from DOM rects in `tests/e2e/manual-resize-guide-geometry.spec.ts` on every theme. The
- * handle at rest under the pointer paints the same pixels as the active handle here (`:hover` and
- * `.active` share one rule), so it has no capture of its own. Owned by DEV-3205.
+ * held on the third row header's bottom edge: the guide's line, drawn from `--ht-accent-color`, across
+ * the table and the handle's two indicator bars, drawn from `--ht-resize-indicator-color`. Those two
+ * tokens are what this capture is of, and the second one is painted nowhere else in the suite, so the
+ * capture stays on every js variant rather than on the two-theme default. Where both are drawn — the
+ * handle centered on the row boundary, the guide's line level with it, spanning to the table's end,
+ * stacked above the overlays and following a drag — is asserted from DOM rects in
+ * `tests/e2e/manual-resize-guide-geometry.spec.ts` on every theme. The handle at rest under the pointer
+ * paints the same pixels as the active handle here (`:hover` and `.active` share one rule), so it has no
+ * capture of its own. Owned by DEV-3205.
  */
 visualTest(__filename, {
-  themes: ['main', 'main-dark'],
+  themes: JS_VARIANTS,
   browsers: ['chromium'],
   wrappers: [],
 }, async({ goto, tablePage }) => {

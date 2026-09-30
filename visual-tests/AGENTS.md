@@ -660,11 +660,15 @@ does for you):
   `tests/e2e/manual-resize-guide-geometry.spec.ts`, on a header in each of the three overlays that can
   hold one. That every overlay cell coincides with its master cell under 125% CSS zoom (the #11465
   class), on the demo's shape with a frozen column and on one with row headers alone, is asserted in
-  `tests/e2e/overlay-alignment-css-zoom.spec.ts`; the bottom overlay's first row is compared on its
-  columns only, because it draws its own top border and is one border taller than the master's copy
-  by design. What stays under `tests/js-only/complex-demo/` is one capture of the pressed guide and
-  active handle on `main` and `main-dark` (their accent and indicator tokens) and one of the zoomed
-  demo on `main`, a sub-pixel paint smoke.
+  `tests/e2e/overlay-alignment-css-zoom.spec.ts`; the bottom overlays are compared on their columns
+  and row heights (the window pins them to its bottom edge), and their first row on its columns only,
+  because it draws its own top border and is one border taller than the master's copy by design. What
+  stays under `tests/js-only/complex-demo/` is one capture of the pressed guide and active handle on
+  every js variant — it is of two tokens, `--ht-accent-color` and `--ht-resize-indicator-color`, and
+  the second is painted nowhere else — and one of the zoomed demo on `main`, a sub-pixel paint smoke
+  in the look-check shape. That shape's second condition, the spec that photographs the same component
+  on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
+  later trim of that declaration re-opens this one.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

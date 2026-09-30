@@ -69,23 +69,29 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(ROWS, COLUMNS),
-      colHeaders: true,
-      rowHeaders: true,
-      // Every column the same width, so the table's extent (which the guide spans) is the same on
-      // every theme leg and never depends on a theme's text metrics.
-      colWidths: 90,
-      // Narrower than 30 rows, so the body scrolls and the two frozen bands sit in their own
-      // corner overlays; wide enough for all eight columns, so the guide's far end is the table's.
-      width: 800,
-      height: 400,
-      fixedRowsTop: 1,
-      fixedRowsBottom: 1,
-      fixedColumnsStart: 1,
-      manualRowResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    // A constructor that throws stamps its message on the container instead of taking the whole
+    // page down, so a failure reads as the real error rather than a bare "element not visible".
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(ROWS, COLUMNS),
+        colHeaders: true,
+        rowHeaders: true,
+        // Every column the same width, so the table's extent (which the guide spans) is the same on
+        // every theme leg and never depends on a theme's text metrics.
+        colWidths: 90,
+        // Narrower than 30 rows, so the body scrolls and the two frozen bands sit in their own
+        // corner overlays; wide enough for all eight columns, so the guide's far end is the table's.
+        width: 800,
+        height: 400,
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        fixedColumnsStart: 1,
+        manualRowResize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
 
     window.htRowCount = ROWS;
 

@@ -14,17 +14,19 @@ import {
  * becomes the golden. That drift is real: until #11500 the guide's 1px line sat one pixel above the
  * boundary (its `margin-top` was 4px where the handle's offset needs 5), and the fix shipped with no
  * assertion — the frozen Jasmine suite pins the handle's position
- * (`manualRowResize.spec.js`, "handle and guide") and the guide's WIDTH, and that the guide keeps its
- * distance from the handle while dragging, but never where the line is.
+ * (`manualRowResize.spec.js`, "handle and guide") and z-index, the guide's WIDTH, and that the guide
+ * keeps its distance from the handle while dragging, but never where the line is.
  *
  * So this spec asserts the geometry from DOM rects, on every theme and bundle leg:
  *
  * - the handle is as wide as the header, starts at its inline edge, and is centered one pixel above
  *   the row's bottom boundary (a 10px strip from `bottom - 6` to `bottom + 4`);
- * - on a press, the guide's line is LEVEL with that boundary (`guide.bottom === header.bottom`),
- *   starts where the handle ends, and reaches the table's far edge;
+ * - on a press, the guide's line is LEVEL with that boundary (`guide.bottom === header.bottom`) and
+ *   is a line — one pixel high — that starts where the handle ends and reaches the table's far edge;
+ * - both are stacked above every overlay, or the line would vanish under the frozen column and the
+ *   corners it crosses;
  * - while dragging, the line follows the pointer by the dragged distance;
- * - on release, the row grew by that distance.
+ * - on release, the row grew by exactly that distance.
  *
  * A row header lives in one of three overlays, and the plugin resolves its position against each
  * one separately (`ROW_RESIZE_AXIS.getHeaderPosition`): the top-start corner for a row frozen at the
@@ -33,11 +35,11 @@ import {
  *
  * Tolerances are half a pixel: every box here is laid out on whole CSS pixels at zoom 1, so a
  * correct render differs by exactly 0 and the #11500 shape differs by exactly 1. The row height is
- * allowed 1px, because the dragged size is rounded from the pointer delta.
+ * exact too — the dragged size is the pointer delta, a whole number, and the row renders at it on
+ * every leg.
  */
 
 const EDGE_TOLERANCE_PX = 0.5;
-const HEIGHT_TOLERANCE_PX = 1;
 const DRAG_PX = 40;
 
 const CASES: { name: string, overlay: RowHeaderOverlay, rowInOverlay: number, visualRow: (rows: number) => number }[] = [
@@ -94,17 +96,22 @@ test.describe('Manual row resize handle and guide geometry', () => {
       await grid.pressRowHandle();
 
       // The guide: its 1px line level with the row boundary — the #11500 pixel — starting where the
-      // handle ends and reaching the table's far edge.
+      // handle ends and reaching the table's far edge; both elements stacked above the overlays.
       const pressed = await grid.geometry(overlay, rowInOverlay);
 
       expect(pressed.guide, 'the guide is attached after pressing the handle').not.toBeNull();
       expect(Math.abs(pressed.guide!.bottom - pressed.header.bottom), 'guide line vs row boundary')
         .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
-      expect(pressed.guide!.height, 'the guide is its 1px line').toBeLessThanOrEqual(1 + EDGE_TOLERANCE_PX);
+      expect(Math.abs(pressed.guide!.height - 1), 'the guide is a one-pixel line')
+        .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
       expect(Math.abs(pressed.guide!.left - pressed.handle!.right), 'guide inline start vs handle end')
         .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
       expect(Math.abs(pressed.guide!.right - pressed.table.right), 'guide inline end vs table end')
         .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+      expect(pressed.stacking.guide, 'guide z-index vs the highest overlay')
+        .toBeGreaterThan(pressed.stacking.overlays);
+      expect(pressed.stacking.handle, 'handle z-index vs the highest overlay')
+        .toBeGreaterThan(pressed.stacking.overlays);
       // The header has not moved: the row is resized on release, not while dragging.
       expect(pressed.header.bottom).toBe(hovered.header.bottom);
 
@@ -122,8 +129,7 @@ test.describe('Manual row resize handle and guide geometry', () => {
       await grid.releasePointer();
 
       await expect.poll(() => grid.renderedRowHeight(row), { message: 'the row grew by the dragged distance' })
-        .toBeGreaterThanOrEqual(startHeight + DRAG_PX - HEIGHT_TOLERANCE_PX);
-      expect(await grid.renderedRowHeight(row)).toBeLessThanOrEqual(startHeight + DRAG_PX + HEIGHT_TOLERANCE_PX);
+        .toBeCloseTo(startHeight + DRAG_PX, 0);
     });
   }
 });

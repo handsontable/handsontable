@@ -20,6 +20,8 @@ export type Misalignment = {
 export type AlignmentReport = {
   /** How many clone cells had a master counterpart to compare with. */
   compared: number,
+  /** The same count per overlay, so an overlay that rendered no rows cannot pass unnoticed. */
+  comparedByOverlay: Record<string, number>,
   /** The largest edge difference seen, in CSS pixels of the viewport. */
   maxDifference: number,
   /** Every edge past the tolerance. Empty when the overlays line up. */
@@ -27,6 +29,11 @@ export type AlignmentReport = {
   /** Clone rows for which the master had no row at the mapped index — a mapping bug, not a layout one. */
   unmatchedRows: string[],
 };
+
+/**
+ * The five overlays a grid with frozen rows top and bottom and row headers paints over its master.
+ */
+export const OVERLAYS = ['top', 'inline-start', 'top-start-corner', 'bottom', 'bottom-start-corner'] as const;
 
 /**
  * Page Object for the overlay alignment fixture: the complex demo's layout (nested headers, a
@@ -60,8 +67,9 @@ export class OverlayAlignmentCssZoomPage {
   }
 
   /**
-   * Navigate at a given zoom and wait for both grids to have rendered every overlay — a real DOM
-   * condition, never a sleep. The fixture applies the zoom before constructing the grids.
+   * Navigate at a given zoom and wait for both grids to have rendered every overlay's rows — a real
+   * DOM condition, never a sleep. The fixture applies the zoom before constructing the grids, and a
+   * constructor that threw is rethrown here rather than surfacing as a visibility timeout.
    *
    * @param {number} zoom The CSS zoom to render the page at.
    */
@@ -80,7 +88,12 @@ export class OverlayAlignmentCssZoomPage {
         throw new Error(`Grid "${gridId}" failed to build: ${initError}`);
       }
 
+      // Every overlay the comparison reads, so none can contribute zero cells because it had not
+      // laid its rows out yet.
       await expect(this.overlay(gridId, '.ht_clone_top').locator('thead tr')).toHaveCount(4);
+      await expect(this.overlay(gridId, '.ht_clone_top').locator('tbody tr')).toHaveCount(1);
+      await expect(this.overlay(gridId, '.ht_clone_top_inline_start_corner').locator('thead tr')).toHaveCount(4);
+      await expect(this.overlay(gridId, '.ht_clone_top_inline_start_corner').locator('tbody tr')).toHaveCount(1);
       await expect(this.overlay(gridId, '.ht_clone_inline_start').locator('tbody tr')).toHaveCount(rows);
       await expect(this.overlay(gridId, '.ht_clone_bottom').locator('tbody tr')).toHaveCount(2);
       await expect(this.overlay(gridId, '.ht_clone_bottom_inline_start_corner').locator('tbody tr')).toHaveCount(2);
@@ -110,7 +123,7 @@ export class OverlayAlignmentCssZoomPage {
   }
 
   /**
-   * How many times a grid has drawn itself since construction.
+   * How many times a grid has drawn itself since construction (`afterViewRender`).
    *
    * @param {string} gridId The grid's test id.
    * @returns {Promise<number>}
@@ -197,11 +210,11 @@ export class OverlayAlignmentCssZoomPage {
    * one pixel wider than its master copy, or a corner cell shifted against either neighbour all
    * land in `misalignments`. A bottom-anchored clone is pinned to the bottom of whatever scrolls
    * the grid — here the window, which the table is taller than — so its vertical position differs
-   * from the master's last rows by design; what must match there is the columns (`left`, `right`)
-   * and each row's `height`. Its FIRST row is the one exception to the height: with no header row
-   * above it in that table it draws its own top border, and its box is one border taller than the
-   * master's copy of the row (measured 30 against 29 on `main` at 100%) — by design, so that row
-   * is compared on its columns alone.
+   * from the master's last rows by design and is NOT compared; what must match there is the
+   * columns (`left`, `right`) and each row's `height`. Its FIRST row is the one exception to the
+   * height: with no header row above it in that table it draws its own top border, and its box is
+   * one border taller than the master's copy of the row (measured 30 against 29 on `main` at 100%)
+   * — by design, so that row is compared on its columns alone.
    *
    * @param {string} gridId The grid's test id.
    * @param {number} tolerance The largest edge difference that counts as aligned, in CSS pixels.
@@ -225,10 +238,14 @@ export class OverlayAlignmentCssZoomPage {
       const allEdges = ['top', 'bottom', 'left', 'right'] as const;
       const bottomAnchoredEdges = ['left', 'right', 'height'] as const;
       const bottomAnchoredFirstRowEdges = ['left', 'right'] as const;
-      const report: AlignmentReport = { compared: 0, maxDifference: 0, misalignments: [], unmatchedRows: [] };
+      const report: AlignmentReport = {
+        compared: 0, comparedByOverlay: {}, maxDifference: 0, misalignments: [], unmatchedRows: [],
+      };
 
       overlays.forEach(({ name, selector, anchor }) => {
         const clone = grid.querySelector(selector);
+
+        report.comparedByOverlay[name] = 0;
 
         if (!clone) {
           report.unmatchedRows.push(`${name}: overlay not rendered`);
@@ -275,6 +292,7 @@ export class OverlayAlignmentCssZoomPage {
               const masterRect = masterCell.getBoundingClientRect();
 
               report.compared += 1;
+              report.comparedByOverlay[name] += 1;
 
               edges.forEach((edge) => {
                 const difference = Math.abs(cloneRect[edge] - masterRect[edge]);

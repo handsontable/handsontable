@@ -17,13 +17,16 @@ export type Box = {
 /**
  * Every box a geometry assertion about the row resize handle or guide compares, read in ONE
  * `evaluate` so they describe the same frame. `handle` and `guide` are `null` while the plugin has
- * not attached them.
+ * not attached them. `stacking` holds the computed z-index of each, and the highest computed
+ * z-index among the overlays (`NaN` for an element that is not attached), because a rect says
+ * nothing about which of two boxes at the same place is painted on top.
  */
 export type ResizeGeometry = {
   header: Box,
   handle: Box | null,
   guide: Box | null,
   table: Box,
+  stacking: { handle: number, guide: number, overlays: number },
 };
 
 /**
@@ -161,9 +164,16 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
           height: rect.height,
         };
       };
+      const zIndex = (element: Element | null): number => {
+        return element ? Number.parseInt(getComputedStyle(element).zIndex, 10) : Number.NaN;
+      };
       const headerRow = grid.querySelectorAll(`${overlaySelector} tbody tr`)[rowIndex as number];
       const header = box(headerRow?.querySelector('th') ?? null);
       const table = box(grid.querySelector('.ht_master table.htCore'));
+      const handle = grid.querySelector('.manualRowResizer');
+      const guide = grid.querySelector('.manualRowResizerGuide');
+      const overlays = Array.from(grid.querySelectorAll('.ht_clone_top, .ht_clone_inline_start, '
+        + '.ht_clone_top_inline_start_corner, .ht_clone_bottom, .ht_clone_bottom_inline_start_corner'));
 
       if (!header || !table) {
         throw new Error(`No row header at index ${rowIndex} in ${overlaySelector}, or no master table.`);
@@ -171,9 +181,14 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
 
       return {
         header,
-        handle: box(grid.querySelector('.manualRowResizer')),
-        guide: box(grid.querySelector('.manualRowResizerGuide')),
+        handle: box(handle),
+        guide: box(guide),
         table,
+        stacking: {
+          handle: zIndex(handle),
+          guide: zIndex(guide),
+          overlays: Math.max(...overlays.map(zIndex)),
+        },
       };
     }, [OVERLAY_SELECTORS[overlay], row] as const);
   }
@@ -201,7 +216,8 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
 
   /**
    * Navigate and wait for the grid to have rendered all three overlays a header can live in — a
-   * real DOM condition, never a sleep.
+   * real DOM condition, never a sleep. A constructor that threw is rethrown here rather than
+   * surfacing as a visibility timeout on an overlay.
    */
   async goto(): Promise<void> {
     await this.page.goto(
@@ -209,6 +225,12 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
     );
 
     await awaitBundle(this.page);
+
+    const initError = await this.grid.getAttribute('data-init-error');
+
+    if (initError !== null) {
+      throw new Error(`The grid failed to build: ${initError}`);
+    }
 
     await expect(this.rowHeaderIn('top-start-corner', 0)).toBeVisible();
     await expect(this.rowHeaderIn('inline-start', 2)).toBeVisible();
