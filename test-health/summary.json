@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-01T12:32:51.704Z",
+  "generatedAt": "2026-10-01T12:52:58.836Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 307,
-    "needsTicket": 8,
+    "needsTicket": 9,
     "quarantined": 0,
-    "entries": 1724
+    "entries": 1729
   },
   "rows": [
     {
@@ -89,6 +89,43 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 28 to be 27.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts|js-only/complex-demo/manual-row-resize-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts",
+      "line": null,
+      "title": "js-only/complex-demo/manual-row-resize-1",
+      "count7": 10,
+      "count30": 10,
+      "countAll": 10,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-01T12:51:17Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36861259695",
+        "branch": "feature/DEV-3219_React-examples-CRA-to-Vite",
+        "leg": "js/chromium-theme-horizon-dark",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 7395914b4779",
         "source": "ci"
       },
       "needsTicket": true
@@ -9647,43 +9684,6 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 0 to be greater than 0.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts|js-only/complex-demo/manual-row-resize-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/complex-demo/manual-row-resize.spec.ts",
-      "line": null,
-      "title": "js-only/complex-demo/manual-row-resize-1",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-01T12:32:01Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36851946081",
-        "branch": "feature/DEV-3205_Resize-guide-and-zoom-consolidation",
-        "leg": "js/chromium-theme-horizon-dark",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 3539cb032d0e",
         "source": "ci"
       },
       "needsTicket": false
