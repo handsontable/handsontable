@@ -5,13 +5,13 @@
   <title>Handsontable editor list position e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
-    // Theme, bundle, grid direction, document direction, layout, and editor type come from the
-    // ?theme=/?bundle=/?dir=/?doc=/?layout=/?type= query params, mapped through fixed allowlists to
-    // LITERALS so a crafted param can never be reflected into the document — no XSS. An ABSENT param
-    // keeps the default (main / plain UMD / ltr / the grid's direction / window / handsontable) so the
-    // fixture stays browsable by hand; an unknown value THROWS instead of falling back — a typo in the
-    // project config must be one red leg, never a silently mislabeled green one (nothing else asserts
-    // which file loaded).
+    // Theme, bundle, grid direction, document direction, layout, editor type, inset, and wrapper come
+    // from the ?theme=/?bundle=/?dir=/?doc=/?layout=/?type=/?inset=/?wrap= query params, mapped through
+    // fixed allowlists to LITERALS so a crafted param can never be reflected into the document — no XSS.
+    // An ABSENT param keeps the default (main / plain UMD / ltr / the grid's direction / window /
+    // handsontable / none / none) so the fixture stays browsable by hand; an unknown value THROWS
+    // instead of falling back — a typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file loaded).
     const htParams = new URLSearchParams(location.search);
 
     // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
@@ -19,7 +19,15 @@
     const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
     const htLayouts = Object.assign(Object.create(null), { window: 'window', sized: 'sized' });
-    const htTypes = Object.assign(Object.create(null), { handsontable: 'handsontable', dropdown: 'dropdown' });
+    const htTypes = Object.assign(Object.create(null), {
+      handsontable: 'handsontable', dropdown: 'dropdown', autocomplete: 'autocomplete', multiselect: 'multiselect',
+    });
+    // How far the grid's inline-start edge sits from the page's: `start` leaves 600 px on that side, so
+    // the grid root is narrower than the viewport and its inline-start edge is not the page's.
+    const htInsets = Object.assign(Object.create(null), { none: '', start: '600px' });
+    // `transform` gives the grid's container `transform: translateZ(0)`, which makes it the containing
+    // block of the `fixed` list: a box that scrolls with the page instead of staying on the viewport.
+    const htWraps = Object.assign(Object.create(null), { none: '', transform: 'translateZ(0)' });
 
     window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
@@ -55,6 +63,14 @@
     if (!window.htType) {
       throw new Error('Unknown ?type= value: ' + JSON.stringify(htParams.get('type')));
     }
+    window.htInset = htInsets[htParams.get('inset') ?? 'none'];
+    if (window.htInset === undefined) {
+      throw new Error('Unknown ?inset= value: ' + JSON.stringify(htParams.get('inset')));
+    }
+    window.htWrap = htWraps[htParams.get('wrap') ?? 'none'];
+    if (window.htWrap === undefined) {
+      throw new Error('Unknown ?wrap= value: ' + JSON.stringify(htParams.get('wrap')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
@@ -65,10 +81,17 @@
     `AutocompleteEditor#updateDropdownDimensions`), in the two layouts its horizontal flip
     (`HandsontableEditor#flipDropdownHorizontallyIfNeeded`,
     `handsontable/src/editors/handsontableEditor/handsontableEditor.ts`) measures differently.
+    `?type=autocomplete` opens the `autocomplete` editor with `trimDropdown: false`, so its list is
+    wider than the cell. `?type=multiselect` opens the `multiselect` editor, which places its list with its own code
+    (`MultiSelectEditor#refreshDimensions`) but applies the same horizontal rule in both layouts.
 
     `window`: the grid has no width or height, so it is as large as its 100 x 50 cells and the PAGE
     scrolls both ways. The flip then measures the free space from the viewport, through
-    `view.isHorizontallyScrollableByWindow()` and `rootWindow.scrollX`.
+    `view.isHorizontallyScrollableByWindow()`, from the grid root's inline-start edge: its left edge in
+    LTR, its right edge in RTL. Two variants move that edge away from where the viewport's is.
+    `?inset=start` starts the grid 600 px from the page's inline-start edge, so the root is narrower
+    than the viewport. `?wrap=transform` makes the grid's container the containing block of the `fixed`
+    list, a box that scrolls with the page, so the viewport and that box part ways once the page scrolls.
 
     `sized`: the grid is 1000 x 700, narrower than the 1280 px viewport, and scrolls its own holder.
     The flip then measures the grid's own workspace, on purpose (the comment above that branch says
@@ -91,10 +114,45 @@
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
+    // Both set before the grid is built, so its first render already sees them.
+    container.style.marginInlineStart = window.htInset;
+    container.style.transform = window.htWrap;
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // The options the visual demo's dropdown opened, so the dropdown's list is as tall as it was
+    // there. The multiselect shows the same ten.
+    const choices = [
+      'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness',
+      'Books & Literature', 'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure',
+      'Art & Collectibles',
+    ];
+    const editorSettings = {
+      dropdown: { type: 'dropdown', source: choices },
+      // Not trimmed to the cell, so the list is as wide as its longest option and wider than the cell:
+      // the case where the autocomplete's list can open off screen. The cell is empty, so the typed
+      // value filters nothing and all ten options show.
+      autocomplete: { type: 'autocomplete', source: choices, trimDropdown: false },
+      multiselect: { type: 'multiselect', source: choices },
+      handsontable: {
+        type: 'handsontable',
+        // The list the visual demo opened, so the list is as wide and as tall as it was there.
+        handsontable: {
+          colHeaders: ['Marque', 'Country', 'Parent company'],
+          autoColumnSize: true,
+          data: [
+            { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+            { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+            { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+            { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+            { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+            { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
+          ],
+        },
+      },
     };
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
@@ -109,30 +167,7 @@
         rowHeaders: true,
         colHeaders: true,
         renderer: testIdRenderer,
-        ...(window.htType === 'dropdown' ? {
-          type: 'dropdown',
-          // The options the visual demo's dropdown opened, so the list is as tall as it was there.
-          source: [
-            'Electronics', 'Fashion', 'Tech Gadgets', 'Home Decor', 'Sports & Fitness',
-            'Books & Literature', 'Beauty & Personal Care', 'Food & Cooking', 'Travel & Adventure',
-            'Art & Collectibles',
-          ],
-        } : {
-          type: 'handsontable',
-          // The list the visual demo opened, so the list is as wide and as tall as it was there.
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            autoColumnSize: true,
-            data: [
-              { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
-              { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
-              { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
-              { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
-              { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
-              { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
-            ],
-          },
-        }),
+        ...editorSettings[window.htType],
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
