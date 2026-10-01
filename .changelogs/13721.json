@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Formulas` plugin dropping the last column of a grid built without `data` when the first-row cell of that column was emptied and the settings were applied again.",
+  "type": "fixed",
+  "issueOrPR": 13721,
+  "breaking": false,
+  "framework": "none"
+}
