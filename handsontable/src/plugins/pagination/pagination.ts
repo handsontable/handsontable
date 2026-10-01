@@ -1046,12 +1046,14 @@ export class Pagination extends BasePlugin {
    * cannot overflow past the last visible row of the current page. The leading rows of the
    * clipboard are kept; the overflow tail is dropped.
    *
+   * The paste start row is the top row of the active selection, the same cell the CopyPaste plugin
+   * writes at. The copy-source ranges (`copyableRanges`) are not used: with `fragmentSelection: true`
+   * the plugin does not refresh them when the selection moves, so they can point at the copy source.
+   *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges Copy-source ranges (`copyableRanges`);
-   * used as the paste start row when selection and clipboard ranges coincide.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -1061,17 +1063,17 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
-    ranges.forEach(({ startRow }: { startRow: number }) => {
-      if (pastedData.length === 0) {
-        return;
-      }
+    const startRow = this.hot.getSelectedRangeActive()?.getTopStartCorner().row;
 
-      const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+    if (pastedData.length === 0 || startRow === null || startRow === undefined) {
+      return;
+    }
 
-      if (pastedData.length > remainingRowCount) {
-        pastedData.length = remainingRowCount;
-      }
-    });
+    const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+
+    if (pastedData.length > remainingRowCount) {
+      pastedData.length = remainingRowCount;
+    }
   };
 
   /**
