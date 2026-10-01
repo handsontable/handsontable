@@ -122,9 +122,11 @@ A few variables are renamed for more consistent naming:
 | `--ht-icon-active-button-hover-icon-color`       | `--ht-icon-button-active-hover-icon-color`       |
 
 ### Read-only cell styling
-In the modern themes (`ht-theme-main` and `ht-theme-horizon`), read-only cells now get a background color, set by the new `--ht-cell-read-only-background-color` variable. The text color and background color of read-only cells are also applied with `!important`, so custom CSS rules that target read-only cells directly (for example, through the `htDimmed` class) no longer take effect. The classic theme is not affected.
+Read-only cells now get a background color, set by the new `--ht-cell-read-only-background-color` variable. The background color change applies only to the modern themes (`ht-theme-main` and `ht-theme-horizon`); in the classic theme, the background stays transparent.
 
-To restore the 15.3 look, override the variable on the [theme class](@/guides/styling/theme-customization/theme-customization.md#target-the-theme-class-not-the-container):
+The text color and background color of read-only cells are now applied with `!important`, in every theme. Custom CSS rules that target read-only cells directly (for example, through the `htDimmed` class) no longer take effect. To use your own colors, set the `--ht-read-only-color` and `--ht-cell-read-only-background-color` variables on the [theme class](@/guides/styling/theme-customization/theme-customization.md#target-the-theme-class-not-the-container) instead of styling `htDimmed` directly.
+
+To restore the 15.3 look, override the background variable on the theme class you use (`.ht-theme-main` or `.ht-theme-horizon`):
 
 ```css
 .ht-theme-main {
