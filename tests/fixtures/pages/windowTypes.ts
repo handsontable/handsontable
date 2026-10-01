@@ -209,6 +209,7 @@ export interface FixtureHotInstance {
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
+  removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
@@ -322,7 +323,7 @@ declare global {
      */
     wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
     /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
-    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string, wrapperClass?: string): boolean;
     /**
      * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
      * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid

@@ -39,6 +39,9 @@ import type { SettingsPort } from '../ports';
  * @property {Option} heightFollowsContent Option `heightFollowsContent` - `true` when the host asked
  *                                         for the grid's height to follow its content, so a vertical
  *                                         owner with no height of its own leaves the holder at `auto`.
+ * @property {Option} widthFollowsRoot Option `widthFollowsRoot` - `true` when the host sized the grid
+ *                                     as a plain block, so an ancestor that owns the horizontal axis
+ *                                     sizes the holder no wider than the grid's own root element.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
@@ -139,6 +142,12 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     // owner with no height of its own is then content-driven like the window, so the holder keeps
     // `height: auto` instead of collapsing to that owner's 0px. Engine default: not requested.
     heightFollowsContent: false,
+    // Whether the host sized the grid as a plain block (Handsontable's `height: 'auto'`), whose width
+    // is its root element's. An ancestor that owns the horizontal axis then sizes the holder no wider
+    // than that root (`viewport/rootWidthBound.ts`): the ancestor's own box can be wider than the
+    // grid (its padding, a padded wrapper in between, a relative `width` under 100%). Engine default:
+    // the owner alone.
+    widthFollowsRoot: false,
 
     // data source
     data: undefined,

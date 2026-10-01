@@ -6,7 +6,7 @@
   "scripts": {
     "start": "vite",
     "serve": "vite preview",
-    "build": "vite build",
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && vite build",
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {

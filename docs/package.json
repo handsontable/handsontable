@@ -63,14 +63,14 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.1.0",
     "react-redux": "^9.2.0",
+    "read-excel-file": "^9.3.10",
     "redux": "^5.0.1",
     "remark-gfm": "^4.0.0",
     "shiki": "^1.22.0",
     "starlight-page-actions": "^0.6.2",
     "starlight-theme-rapide": "^0.5.2",
     "unist-util-visit": "^5.0.0",
-    "vuex": "^4.1.0",
-    "xlsx": "^0.18.5"
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@octokit/rest": "^21.1.1",

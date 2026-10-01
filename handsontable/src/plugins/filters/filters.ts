@@ -335,12 +335,6 @@ export class Filters extends BasePlugin {
   #dataProviderFilterRollbackStack: ColumnConditions[] = [];
 
   /**
-   * Indicates if the DataProvider plugin is active.
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
    * Memoized result of `#getPinnedRows()`, or `undefined` while nothing is memoized.
    *
    * Resolving the pinned rows walks every physical row against the other plugins' trimming maps,
@@ -407,6 +401,35 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Makes the conditions on screen the ones a failed DataProvider fetch rolls back to. The DataProvider plugin
+   * calls it when the view the grid shows changes: the rollback target is otherwise whatever the last server
+   * filter action left, possibly in another view. The conditions on screen also become the previous ones the next
+   * filter pass starts from, since that pass derives its rollback target from them. Does nothing while this plugin
+   * is disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _resetDataProviderRollback(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#previousConditionStack = this.exportConditions();
+    this.#dataProviderFilterRollbackStack = this.exportConditions();
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
    * Whether this grid exempts its frozen rows from filtering at all.
    *
    * Deliberately separate from "how many rows are pinned right now": those counts are zero both
@@ -419,7 +442,7 @@ export class Filters extends BasePlugin {
   #isFixedRowExemptionActive(): boolean {
     // A data provider filters server-side, and the request carries no notion of a pinned row, so
     // exempting rows locally would only make the grid disagree with the server's own result.
-    return !this.#isDataProviderActive && this.getSetting('filterFixedRows') === false;
+    return !this.#isDataProviderActive() && this.getSetting('filterFixedRows') === false;
   }
 
   /**
@@ -795,8 +818,6 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
-
     this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
@@ -864,7 +885,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
-        hiddenWhen: () => this.#isDataProviderActive || hiddenForColumn(),
+        hiddenWhen: () => this.#isDataProviderActive() || hiddenForColumn(),
       })));
     }
 
@@ -1452,7 +1473,7 @@ export class Filters extends BasePlugin {
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
-    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive()) {
       return;
     }
 
@@ -1585,7 +1606,7 @@ export class Filters extends BasePlugin {
     navigableHeaders: boolean | undefined, needToFilter: boolean, conditions: ColumnConditions[]
   ): void {
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
 
@@ -1621,7 +1642,7 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap?.clear();
 
-    } else if (this.#isDataProviderActive) {
+    } else if (this.#isDataProviderActive()) {
       this.#previousConditionStack = this.exportConditions();
 
     } else {
@@ -1863,7 +1884,7 @@ export class Filters extends BasePlugin {
    * @param {boolean} firstRun `true` for the initial data load.
    */
   #onAfterUpdateData = (_data: unknown, firstRun: boolean) => {
-    if (firstRun || this.#isDataProviderActive || !this.conditionCollection) {
+    if (firstRun || this.#isDataProviderActive() || !this.conditionCollection) {
       return;
     }
 
@@ -1937,9 +1958,19 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * After dataProvider fetch error listener.
+   * After dataProvider fetch error listener. Rolls the conditions back to the state before the failed server
+   * filter. A failed fetch made for a view the grid no longer shows (`isVisible` is `false`) changes nothing: the
+   * conditions on screen belong to the view the grid shows.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
    */
-  #onAfterDataProviderFetchError = () => {
+  #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible === false) {
+      return;
+    }
+
     this.importConditions(this.#dataProviderFilterRollbackStack);
   };
 
@@ -2090,7 +2121,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive) {
+      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive()) {
         this.conditionCollection?.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -2228,7 +2259,7 @@ export class Filters extends BasePlugin {
 
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
-    if (stackPosition === -1 || this.#isDataProviderActive) {
+    if (stackPosition === -1 || this.#isDataProviderActive()) {
       const visibleValues = this.hot.getDataAtCol(column);
       // The SAME physical set the has-conditions branch below uses, translated per row rather than
       // dropped by position. Two different ways of deciding "pinned" made the two branches disagree

@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "vite",
-    "build": "vite build",
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && vite build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
