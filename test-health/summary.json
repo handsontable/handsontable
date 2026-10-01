@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-30T17:22:51.451Z",
+  "generatedAt": "2026-10-01T08:10:48.333Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 304,
+    "tests": 305,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 1712
+    "entries": 1718
   },
   "rows": [
     {
@@ -99,7 +99,7 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 3,
+      "count7": 2,
       "count30": 10,
       "countAll": 10,
       "runs30": 8,
@@ -339,6 +339,44 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/trusted-types.spec.ts|Trusted Types enforcement › the converted sink: the context menu check mark › marks an item as checked whether or not a sanitizer is configured",
+      "tier": "playwright",
+      "file": "e2e/trusted-types.spec.ts",
+      "line": 218,
+      "title": "Trusted Types enforcement › the converted sink: the context menu check mark › marks an item as checked whether or not a sanitizer is configured",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-01T08:09:51Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36831026725",
+        "branch": "feature/DEV-149_cells-readOnly-context-menu",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(locator).toHaveText(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
