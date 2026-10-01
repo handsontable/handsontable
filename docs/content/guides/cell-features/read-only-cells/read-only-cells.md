@@ -328,7 +328,11 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the column menu toggles the `readOnly` state of the selected cells.
 
-The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it returns always takes precedence over the menu. The **Read only** item skips those cells. It changes the other selected cells, and its check mark reflects only them. If every selected cell gets its `readOnly` value from `cells`, the item doesn't appear.
+The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it sets, by returning it or by assigning it to `this`, always takes precedence over the menu. When the selection also holds other cells, the **Read only** item skips the ones that `cells` controls. It changes the rest, and its check mark reflects only them.
+
+If `cells` sets `readOnly` on every selected cell, the item behaves as it always did: it stays in the menu, shows the cell state, and can't change anything. This is the case when `cells` returns a `readOnly` value for every cell, for example `{ readOnly: false }` as a default.
+
+Undo and redo of a menu toggle also write to the cells that `cells` controls. The visible state stays correct, because `cells` is applied again on top, but the value stored for those cells changes.
 
 ## Block the entire grid
 

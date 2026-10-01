@@ -26,4 +26,21 @@ export class CellsReadOnlyPage extends ColumnSummaryReadOnlyPage {
 
     await expect(this.cell(0, 0)).toBeVisible();
   }
+
+  /**
+   * Every `[row, col]` the grid stored a `readOnly` value for, in order, since the last call to
+   * `forgetReadOnlyWrites()`.
+   */
+  async readOnlyWrites(): Promise<number[][]> {
+    return this.page.evaluate(() => (window as unknown as { readOnlyWrites: number[][] }).readOnlyWrites);
+  }
+
+  /**
+   * Forget the writes recorded so far.
+   */
+  async forgetReadOnlyWrites(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { readOnlyWrites: number[][] }).readOnlyWrites.length = 0;
+    });
+  }
 }

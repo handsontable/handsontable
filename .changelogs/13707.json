@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the Read only menu item so that it can make a column read-only when some of its cells get `readOnly` from the `cells` option. The item now leaves those cells alone and is hidden when every selected cell is one of them.",
+  "title": "Fixed the Read only menu item so that it can make a column read-only when some of its cells get `readOnly` from the `cells` option. The item now leaves those cells alone. Undo and redo of the toggle still write to them, which does not change what the grid shows.",
   "type": "fixed",
   "issueOrPR": 13707,
   "breaking": false,

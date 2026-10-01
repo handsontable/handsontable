@@ -2,13 +2,18 @@ import { test, expect } from '../fixtures/test';
 import { CellsReadOnlyPage } from '../fixtures/pages/CellsReadOnlyPage';
 
 /**
- * DEV-149. A `readOnly` returned by the `cells` option is evaluated again on top of every stored
- * value, so the "Read only" menu item can never change it. It still counted as "at least one
- * read-only" in the direction check, so a column holding such a cell always resolved to "make
- * writable" and could never be made read-only from the menu.
+ * DEV-149. A `readOnly` set by the `cells` option is evaluated again on top of every stored value,
+ * so the "Read only" menu item can never change it. It still counted as "at least one read-only"
+ * in the direction check, so a column holding such a cell always resolved to "make writable" and
+ * could never be made read-only from the menu.
  *
  * Product decision: the item acts on the cells `cells()` has no opinion about, and its check mark
- * reflects only those. On a selection made only of cells `cells()` owns, the item does not appear.
+ * reflects only those. A selection made only of cells `cells()` owns keeps the behavior it always
+ * had, so a grid whose `cells()` sets `readOnly` on every cell does not lose the item.
+ *
+ * `getCellMeta()` runs `cells()` again on every read, so it cannot show what the menu stored. The
+ * specs that must prove "the menu did not touch this cell" read the recorded `afterSetCellMeta`
+ * writes instead.
  */
 test.describe('cells() read-only lock', () => {
   let grid: CellsReadOnlyPage;
@@ -44,15 +49,27 @@ test.describe('cells() read-only lock', () => {
     expect(await grid.columnReadOnly(0)).toEqual([true, true, true, true, true]);
   });
 
-  test('leaves a cell that cells() pins writable alone', async () => {
+  test('stores nothing for a cell that cells() pins writable', async () => {
+    await grid.forgetReadOnlyWrites();
     await grid.openContextMenuOnHeader(1);
     await grid.clickReadOnlyItem();
 
-    // Row 0 is read-only by `cells()`, row 2 is pinned writable by it, the rest are toggled.
+    // Row 0 is read-only by `cells()` and row 2 is pinned writable by it, so neither is written.
     expect(await grid.columnReadOnly(1)).toEqual([true, true, false, true, true]);
+    expect(await grid.readOnlyWrites()).toEqual([[1, 1], [3, 1], [4, 1]]);
   });
 
-  test('hides "Read only" on a selection made only of cells() read-only cells', async () => {
+  test('recognizes a readOnly that cells() assigns to this', async () => {
+    await grid.forgetReadOnlyWrites();
+    await grid.openContextMenuOnHeader(2);
+    await grid.clickReadOnlyItem();
+
+    // Row 3 is pinned writable through `this.readOnly = false`, and the function returns nothing.
+    expect(await grid.columnReadOnly(2)).toEqual([true, true, true, false, true]);
+    expect(await grid.readOnlyWrites()).toEqual([[1, 2], [2, 2], [4, 2]]);
+  });
+
+  test('keeps the item for a selection made only of cells() read-only cells', async () => {
     // Positive control first: on a plain cell the item is there.
     await grid.openContextMenuOnCell(1, 0);
 
@@ -61,11 +78,17 @@ test.describe('cells() read-only lock', () => {
     await grid.closeMenu();
     await grid.openContextMenuOnCell(0, 0);
 
-    expect(await grid.visibleItems()).not.toContain('Read only');
+    // Nothing else is selected, so the item behaves as it did before: it is there and shows the
+    // cell's real state. Clicking it cannot change a cell that `cells()` owns.
+    expect(await grid.visibleItems()).toContain('Read only');
+    expect(await grid.readOnlyItemChecked()).toBe('true');
+
+    await grid.clickReadOnlyItem();
+
     expect(await grid.readOnly(0, 0)).toBe(true);
   });
 
-  test('undoes a column toggle without touching the cells() read-only cell', async () => {
+  test('restores the other cells on undo, and toggles them again on redo', async () => {
     await grid.openContextMenuOnHeader(0);
     await grid.clickReadOnlyItem();
 

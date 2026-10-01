@@ -33,8 +33,9 @@
   <!--
     DEV-149. The `cells` option is evaluated on top of every stored value, so a `readOnly` it returns
     always wins over `setCellMeta()`, and the "Read only" menu item must leave such cells alone.
-    Row 0 is read-only through `cells()`. The cell at row 2, column 1 is pinned writable through
-    `cells()` (`readOnly: false`). Every other cell has no opinion and is toggled by the menu.
+    Row 0 is read-only through `cells()`. The cell at row 2, column 1 and the cell at row 3, column 2
+    are pinned writable through `cells()` (`readOnly: false`, the second one by assigning to `this`).
+    Every other cell has no opinion and is toggled by the menu.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -63,6 +64,8 @@
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. The message is stamped on the container and the page object rethrows it.
+    window.readOnlyWrites = [];
+
     try {
       window.hot = new Handsontable(container, {
         data: [
@@ -89,7 +92,21 @@
             return { readOnly: false };
           }
 
+          // The other shape the API reference documents: assign to `this`, return nothing.
+          if (row === 3 && col === 2) {
+            this.readOnly = false;
+
+            return undefined;
+          }
+
           return {};
+        },
+        // Every store of a `readOnly` value, so the specs can tell a menu write that `cells()` then
+        // hides from one that never happened: `getCellMeta()` runs `cells()` again on each read.
+        afterSetCellMeta(row, col, key) {
+          if (key === 'readOnly') {
+            window.readOnlyWrites.push([row, col]);
+          }
         },
         licenseKey: 'non-commercial-and-evaluation',
       });

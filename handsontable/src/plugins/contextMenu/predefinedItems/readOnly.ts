@@ -8,12 +8,37 @@ import * as C from '../../../i18n/constants';
 export const KEY = 'make_read_only';
 
 /**
+ * Reports whether the `cells` option owns a cell's `readOnly` state, `true` or `false`. It is
+ * evaluated on a probe that inherits from the cell meta, so a function that assigns
+ * `this.readOnly = ...` is seen as well as one that returns `{ readOnly }`, and nothing leaks into
+ * the meta being checked.
+ *
+ * @param {object} cellMeta The cell's transient meta.
+ * @returns {boolean}
+ */
+function isReadOnlyOwnedByCells(cellMeta: CellProperties): boolean {
+  if (!isFunction(cellMeta.cells)) {
+    return false;
+  }
+
+  const probe = Object.create(cellMeta) as Record<string, unknown>;
+  const cellSettings: unknown = cellMeta.cells.call(probe, cellMeta.row, cellMeta.col, cellMeta.prop);
+
+  return hasOwnProperty(probe, 'readOnly') ||
+    (isObject(cellSettings) && hasOwnProperty(cellSettings as object, 'readOnly'));
+}
+
+/**
  * Returns a check for whether a cell's read-only state is owned by someone else and cannot be
  * toggled. Two owners exist:
  *  - the ColumnSummary plugin, which writes `readOnly` on a summary cell and vetoes any other write
  *    that would clear it (DEV-148);
  *  - the `cells` option, which is evaluated again on top of every stored value, so a `readOnly` it
- *    returns, `true` or `false`, always wins over `setCellMeta()` (DEV-149).
+ *    sets, `true` or `false`, always wins over `setCellMeta()` (DEV-149).
+ *
+ * The `cells` lock applies only to a selection that also holds a cell `cells` does not own. A
+ * selection made only of owned cells keeps the behavior it always had, because the menu item would
+ * otherwise vanish from every grid whose `cells()` sets `readOnly` on every cell.
  *
  * The plugin is resolved once per call, not once per cell, because the item walks the whole
  * selection on every menu draw. The `cells` function is asked only when one is configured, so a
@@ -26,19 +51,26 @@ export const KEY = 'make_read_only';
 function getLockedCellCheck(hot: HotInstance): (row: number, col: number, cellMeta: CellProperties) => boolean {
   const columnSummary = hot.getPlugin('columnSummary');
   const isSummaryEnabled = columnSummary?.enabled === true;
+  let hasCellFreeOfCells: boolean | undefined;
+  // A hidden cell under a merged block is not a cell the user can toggle, so it does not count.
+  const isFreeOfCells = (row: number, col: number) => {
+    const cellMeta = hot.getCellMetaTransient(row, col);
+
+    return !cellMeta.hidden && !isReadOnlyOwnedByCells(cellMeta);
+  };
 
   return (row: number, col: number, cellMeta: CellProperties) => {
     if (isSummaryEnabled && columnSummary.isLockedSummaryCell(row, col)) {
       return true;
     }
 
-    if (!isFunction(cellMeta.cells)) {
+    if (!isReadOnlyOwnedByCells(cellMeta)) {
       return false;
     }
 
-    const cellSettings = cellMeta.cells(cellMeta.row, cellMeta.col, cellMeta.prop);
+    hasCellFreeOfCells ??= checkSelectionConsistency(hot.getSelectedRange() ?? [], isFreeOfCells);
 
-    return isObject(cellSettings) && hasOwnProperty(cellSettings, 'readOnly');
+    return hasCellFreeOfCells;
   };
 }
 
@@ -142,6 +174,8 @@ export default function readOnlyItem() {
       // the rest - restoring a mixed selection on undo is only possible with a second, full pass.
       // That pass records a locked cell as it really is (read-only), so undo writes it back as is.
       // The empty snapshot has no entry for it, and undo's `false` there is vetoed by ColumnSummary.
+      // A cell owned by `cells()` has no such veto: undo and redo still store a value for it, which
+      // `cells()` then covers, so what the grid shows stays right (DEV-149).
       const stateBefore = atLeastOneReadOnly
         ? getReadOnlyStates(ranges, (row: number, col: number) => {
           const cellMeta = this.getCellMetaTransient(row, col);
@@ -158,7 +192,7 @@ export default function readOnlyItem() {
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {
-          if (row >= 0 && col >= 0 && !lockedCells.has(`${row}:${col}`)) {
+          if (row >= 0 && col >= 0 && (lockedCells.size === 0 || !lockedCells.has(`${row}:${col}`))) {
             this.setCellMeta(row, col, 'readOnly', readOnly);
           }
         });
