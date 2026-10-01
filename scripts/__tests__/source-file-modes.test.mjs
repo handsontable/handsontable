@@ -27,5 +27,6 @@ test('no tracked file under handsontable/src is executable', () => {
 
   // An empty listing (a wrong cwd, a sparse checkout) would pass vacuously.
   assert.ok(entries.length > 1000, `expected the core sources in the index, got ${entries.length} entries`);
-  assert.deepEqual(executable, [], 'clear the bit with `git add --chmod=-x -- <file>`');
+  // `git add --chmod=-x` alone changes only the index, and the next `git add` restores the bit.
+  assert.deepEqual(executable, [], 'clear the bit in the file and the index: `chmod a-x <file> && git add <file>`');
 });

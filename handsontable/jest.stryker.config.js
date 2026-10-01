@@ -11,15 +11,17 @@ const TEST_FILES_ENV = 'HOT_MUTATION_TEST_FILES';
 /**
  * Resolves the unit tests a mutation run is scoped to, and refuses to run without them.
  *
- * Unscoped, Stryker's jest runner asks Jest for `--findRelatedTests <mutated file>` in one
- * process. For a widely imported helper that is most of the unit suite (333 of 461 suites for
- * `src/helpers/errors.ts`), so the initial test run outlasts Stryker's five-minute
- * `dryRunTimeoutMinutes`. Stryker's own `--testFiles` does not scope the mutant runs: under
- * `coverageAnalysis: "all"` every covered mutant is static, and the jest runner passes the test
- * file paths to such a mutant as a test-name filter, which matches no test. Each mutant run then
- * loads every related suite until it times out, and a timeout counts as a detected mutant.
+ * Left unscoped, a run executes far more than the scored test. With
+ * `jest.enableFindRelatedTests`, Stryker's jest runner asks Jest for
+ * `--findRelatedTests <mutated file>` in one process, which for a widely imported helper is
+ * most of the unit suite (333 of 461 suites for `src/helpers/errors.ts`, so the initial run
+ * outlasted Stryker's five-minute `dryRunTimeoutMinutes`); without it, Jest runs every suite.
+ * Stryker's own `--testFiles` does not scope the mutant runs: under `coverageAnalysis: "all"`
+ * every covered mutant is static, and the jest runner passes the test file paths to such a
+ * mutant as a test-name filter, which matches no test. Each mutant run then times out without
+ * running a test, and a timeout counts as a detected mutant.
  *
- * @returns {string[]} The real paths of the test files.
+ * @returns {string[]} The real paths of the test files, in the case the file system stores.
  */
 function resolveTestFiles() {
   const files = (process.env[TEST_FILES_ENV] ?? '').split(',').map(file => file.trim()).filter(Boolean);
@@ -29,22 +31,26 @@ function resolveTestFiles() {
       `relative to handsontable/, for example ${TEST_FILES_ENV}=src/helpers/__tests__/errors.unit.js`);
   }
 
-  const unitTest = new RegExp(base.testRegex);
+  const unitTest = [base.testRegex].flat().map(pattern => new RegExp(pattern));
+  const packageDir = `${fs.realpathSync.native(__dirname)}${path.sep}`;
 
   return files.map((file) => {
     const absolute = path.resolve(__dirname, file);
+    // The native call also returns the name in the case the file system stores, which is the
+    // case Jest's own paths use, so `src/Helpers/…` typed on macOS still matches.
+    const real = fs.existsSync(absolute) ? fs.realpathSync.native(absolute) : '';
 
-    if (!unitTest.test(absolute) || !fs.existsSync(absolute)) {
+    if (!real.startsWith(packageDir) || !unitTest.some(pattern => pattern.test(real))) {
       throw new Error(`${TEST_FILES_ENV}: "${file}" is not a unit test file (*.unit.js or *.unit.ts) in handsontable/`);
     }
 
-    return fs.realpathSync(absolute);
+    return real;
   });
 }
 
 /**
  * Jest config for Stryker mutation runs. Identical to the normal unit config, except for two
- * things. The Babel transform is pinned to this package's babel.config.js — Stryker's jest
+ * things. The Babel transform is pinned to this package's babel.config.js: Stryker's jest
  * worker changes cwd, which breaks babel-jest's cwd-relative config discovery (raw `import`
  * statements then crash the dry run). And `testRegex` matches only the files named in
  * `HOT_MUTATION_TEST_FILES`, so the initial run and every mutant run execute those tests and

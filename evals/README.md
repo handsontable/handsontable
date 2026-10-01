@@ -166,11 +166,14 @@ HOT_MUTATION_TEST_FILES=src/helpers/__tests__/errors.unit.js BABEL_ENV=commonjs 
 `parseMutationReport`/`runMutation` in `score.mjs` compute the standard
 `detected / valid` score (killed+timeout over killed+timeout+survived+
 no-coverage) — a survived or never-covered mutant means the test missed it.
-When a run fails, `mutation.reason` quotes Stryker's own `ERROR` log lines
-(for example `Initial test run timed out!`, or the name of a test that failed
-in the initial run), or the shell's message when Stryker never started, with
-the exit code. It used to keep only the first line of the error, which is the
-command itself.
+When a run fails, `mutation.reason` quotes Stryker's own `ERROR` and `FATAL`
+log lines (for example `Initial test run timed out!`, with the name of a test
+that failed in the initial run). When Stryker logged none, it quotes stderr:
+Node's report of an uncaught error, the shell's `env-cmd: command not found`
+when Stryker never started, or Stryker's recovery line after a `SIGTERM`.
+The exit code comes with it. A run that finished also gets a `reason` when a
+`--mutate` pattern matched no file or the report holds no valid mutant, so a
+mistyped path does not read as a silent `score: null`.
 
 ### What a run executes
 
@@ -178,8 +181,13 @@ The scored test, and nothing else. `jest.stryker.config.js` runs only the unit
 tests named in `HOT_MUTATION_TEST_FILES` (comma-separated, relative to
 `handsontable/`), in the initial test run and in every mutant run, and refuses
 to start without them. The scorer sets the variable to the file it scores, so
-the kill rate is that test's, not the suite's. A file outside `handsontable/`
-(an evals fixture, a Playwright spec) gets a `mutation.reason` instead, and
+the kill rate is that test's, not the suite's. `jest.enableFindRelatedTests`
+is off, so the scored test runs even when Jest's static import graph does not
+link it to the mutated file.
+
+The test path is relative to where you run the scorer; `--mutate` paths are
+relative to `handsontable/`. Anything but a core unit test (an evals fixture,
+a Playwright spec, a legacy `*.spec.js`) gets a `mutation.reason` instead, and
 Stryker does not start.
 
 Measured on 2026-10-01 with `src/helpers/errors.ts`:
@@ -189,9 +197,9 @@ Measured on 2026-10-01 with `src/helpers/errors.ts`:
   this helper that is 333 of the 461 unit suites, and the run hit Stryker's
   five-minute `dryRunTimeoutMinutes` (`Initial test run timed out!`, 5 min 14 s
   of wall time). Run in one process without Stryker, that set took 13 min 52 s
-  (4420 tests). Each mutant run repeats it, so a raised timeout would buy a run
-  of about half an hour for this helper's 3 mutants: one pass for the initial
-  run, then one per mutant.
+  (4420 tests). Each mutant run repeats it, so with a raised timeout this
+  helper's 3 mutants would take an estimated half hour (not measured): one pass
+  for the initial run, then the three mutant runs side by side.
 - **Stryker's own `--testFiles` gives a false score.** It scopes the initial run
   only. Under `coverageAnalysis: "all"` every covered mutant counts as static,
   and the jest runner passes such a mutant the test *file paths* as a test-name
@@ -209,7 +217,8 @@ every file in the report.
 ### What a run leaves behind
 
 - `handsontable/reports/mutation/mutation.json`, the JSON report. The next run
-  overwrites it.
+  overwrites it. `git status` lists it as untracked unless
+  `handsontable/.gitignore` ignores `/reports/mutation/`.
 - Nothing else after a run that finished. In place, Stryker backs up each file
   it rewrites to `handsontable/.stryker-tmp/backup-*/` and moves the backups
   back on exit. With `disableTypeChecks` off it rewrites only the mutated
@@ -217,8 +226,8 @@ every file in the report.
   under `handsontable/` (2668 of them) for the length of the run. The jest
   runner strips types with Babel without checking them, so that comment never
   changed a result.
-- An empty `handsontable/.stryker-tmp/` after a run that failed: Stryker keeps
-  its temp directory for debugging.
+- An empty `handsontable/.stryker-tmp/` after a run that failed once Stryker
+  had started: Stryker keeps its temp directory for debugging.
 - After a run that was killed outright (`SIGKILL`, a crash), the mutated files
   still hold Stryker's instrumented code, and their originals sit in
   `handsontable/.stryker-tmp/backup-*/`. Run `git restore` on the sources, or
@@ -228,9 +237,10 @@ every file in the report.
   restore moves the backup, a new file, over the original. While Stryker's
   default rewrote every file, that is how ten executable plugin sources came
   back from every run with a mode-only diff. No tracked file under
-  `handsontable/src` is executable any more, and
+  `handsontable/src` is executable anymore, and
   `scripts/__tests__/source-file-modes.test.mjs` keeps it that way.
 
-Pilot result (2026-07-14): `src/helpers/errors.ts` → 4 mutants, 4 killed,
-0 survived — mutation score 100, in 43s. Rerun on 2026-10-01, scoped to the
-scored test: 3 mutants (the file has changed since), 3 killed, in about 6 s.
+The pilot result recorded on 2026-07-14 (`src/helpers/errors.ts`: 4 mutants,
+4 killed, in 43 s) does not reproduce: the same unscoped config timed out on
+2026-10-01, as measured above. Scoped to the scored test, the run takes about
+6 s: 3 mutants (the file has changed since), 3 killed.
