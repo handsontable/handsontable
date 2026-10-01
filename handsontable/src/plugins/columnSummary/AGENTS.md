@@ -274,23 +274,31 @@ Three rules the re-derive follows, each with a reason:
 
 ## A default `ranges` follows the table; an explicit one never does (DEV-2995)
 
-An endpoint with no `ranges` gets `[[0, countAddressableRows() - 1]]`, resolved at parse time. The generic
-shift moves a bound only when the alteration sits at or before it, so a row appended past the end left the
-new row outside the range, the same parse-time root as DEV-144. `assignSetting()` therefore marks such an
-endpoint with the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by
-`parseSettings()`), and `resetSetupAfterStructureAlteration()` re-derives its range from
-`countAddressableRows()` after the generic shift, on every ROW alteration.
+An endpoint with no `ranges` gets the whole table, `getDefaultRanges()`: `[[0, countAddressableRows() - 1]]`,
+or no range at all for an empty table (`[0, -1]` would read row `-1`). It was resolved once, at parse time.
+The generic alteration shift moves a bound only when the alteration sits at or before it, so a row appended
+past the end stayed outside the range, the same parse-time root as DEV-144. `loadData()`, `updateData()`
+and the `afterChange` refresh never re-parse either. `assignSetting()` therefore marks such an endpoint with
+the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by `parseSettings()`), and
+`refreshAllEndpoints()` and `refreshChangedEndpoints()` re-derive its range first, through
+`#rederiveDefaultRanges()`.
 
 - **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
   `ranges: []` leaves `ranges` unset and carries no flag.
-- **The default means the whole table**, so a row inserted above row 0 is now included. The shift alone
-  would have moved the start to 1 and left it out.
-- **The re-derive replaces the shifted range, so it must not read it.** Do not narrow it to the end bound.
-- **It also runs for an `auto` row insertion**, ahead of the early return described below, but only the range
-  moves: nothing is reset or refreshed. Without it, a value typed into a `minSpareRows` row appends the next
-  spare row, which falls outside the default range until a manual `alter()` happens to fix it.
-- `defaultRangesAlter.unit.js` pins append, repeated append, insert, removal, `maxRows`, and the
-  explicit-range control.
+- **The default means the whole table**, so a row inserted above row 0 is included, and a removal under
+  `maxRows` pulls in the row the cap used to hide. The shift alone would have moved the start to 1 and
+  shortened the end.
+- **The re-derive lives in the refresh path, not in the alteration handler.** Every path that can change the
+  row count ends in one of the two refreshes: a row alteration (`forceRefresh` is always `true`), a data
+  reload, and the `afterChange` that follows a write into a `minSpareRows` row. That is why the `auto`
+  insertion skip in `resetSetupAfterStructureAlteration()` needs no special case. The generic shift's result
+  is overwritten, so the re-derive must not read it.
+- **A `reversedRowCoords` summary keeps its destination on an `auto` insertion (DEV-2206) while its default
+  range follows the table**, so a spare row created below the summary joins the range. That is the
+  whole-table rule applied to a summary that is not on the last row, and `defaultRangesAlter.unit.js` pins it.
+- `defaultRangesAlter.unit.js` pins append, repeated append, insert (inside and above row 0), removal,
+  `maxRows`, `minSpareRows`, column alterations, trimmed rows, `loadData()`/`updateData()`, the empty table,
+  multiple endpoints and the explicit-range controls.
 
 ## The refresh pass caches every endpoint, not just the matched ones
 
@@ -305,9 +313,9 @@ inline — it defers them to `addHookOnce('beforeViewRender', …)`, because a t
 `afterCreateRow` has to run first for the endpoint value to come out right. **Do not collapse that back
 into the original handler.**
 
-The comment above it (`endpoints.ts:393`) blames TrimRows, and that attribution is stale: `trimRows.ts`
-registers **no hooks at all**. `nestedRows.ts` is the trimmer that does register `afterCreateRow`
-(`nestedRows.ts:167`). So check what still depends on the ordering before you touch the deferral — the
+The comment above the `beforeViewRender` callback in `resetSetupAfterStructureAlteration()` blames TrimRows,
+and that attribution is stale: `trimRows.ts` registers **no hooks at all**. `nestedRows.ts` is the trimmer
+that does register `afterCreateRow`. So check what still depends on the ordering before you touch the deferral — the
 comment names the wrong plugin, which is not the same as naming a problem that no longer exists.
 
 ## An automatic insertion is skipped, an automatic removal is not (DEV-2206)

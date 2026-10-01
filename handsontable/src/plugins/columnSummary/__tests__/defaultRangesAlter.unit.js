@@ -156,18 +156,20 @@ describe('ColumnSummary default ranges with alter()', () => {
   });
 
   it('caps the re-derived range at `maxRows`, not at the physical row count', async() => {
-    // Five physical rows with `maxRows: 4`: the default range stops at row 3, so row 4 never counts.
+    // Six physical rows with `maxRows: 4`: the default range is [0, 3], so rows 4 and 5 never count.
     hot = buildGrid(
       [{ destinationColumn: 0, destinationRow: 0, type: 'sum' }],
-      [[null], [10], [20], [30], [40]],
+      [[null], [10], [20], [30], [40], [50]],
       { maxRows: 4 }
     );
 
     expect(hot.getDataAtCell(0, 0)).toBe(60);
 
-    await hot.alter('insert_row_above', 1);
+    await hot.alter('remove_row', 1);
 
-    expect(hot.getDataAtCell(0, 0)).toBe(60);
+    // Develop shifts the end to 2 and sums 50. The cap gives [0, 3] over [null, 20, 30, 40] = 90, while the
+    // physical count would give [0, 4] = 140.
+    expect(hot.getDataAtCell(0, 0)).toBe(90);
   });
 
   it('follows a row appended by `minSpareRows`', async() => {
@@ -186,7 +188,7 @@ describe('ColumnSummary default ranges with alter()', () => {
     expect(hot.getDataAtCell(0, 0)).toBe(42);
   });
 
-  it('leaves the ranges alone when a column is altered', async() => {
+  it('keeps the summary intact when a column is inserted', async() => {
     hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, type: 'sum' }], [[null, 1], [10, 2], [20, 3]]);
 
     await hot.alter('insert_col_end');
@@ -207,5 +209,56 @@ describe('ColumnSummary default ranges with alter()', () => {
 
     // Row 3 is trimmed and still belongs to the physical range; the typed row lands past it.
     expect(hot.getDataAtCell(0, 0)).toBe(65);
+  });
+
+  it('sums the new rows after `loadData()` replaces the data with a longer set', async() => {
+    hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, type: 'sum' }]);
+
+    hot.loadData([[null], [1], [2], [3], [4], [5]]);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(15);
+  });
+
+  it('sums the new rows after `updateData()` replaces the data with a longer set', async() => {
+    hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, type: 'sum' }]);
+
+    hot.updateData([[null], [1], [2], [3], [4], [5]]);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(15);
+  });
+
+  it('does not grow an explicit range after `loadData()`', async() => {
+    hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, ranges: [[1, 2]], type: 'sum' }]);
+
+    hot.loadData([[null], [1], [2], [3], [4], [5]]);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(3);
+  });
+
+  it('leaves no range for an empty table instead of reading row -1', async() => {
+    hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, type: 'count' }]);
+
+    const endpoint = hot.getPlugin('columnSummary').endpoints.getEndpoint(0);
+
+    hot.getPlugin('columnSummary').endpoints.countAddressableRows = () => 0;
+    hot.getPlugin('columnSummary').endpoints.refreshAllEndpoints();
+
+    expect(endpoint.ranges).toEqual([]);
+  });
+
+  it('keeps a reversed summary on its row while `minSpareRows` appends below it', async() => {
+    hot = buildGrid(
+      [{ destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, type: 'sum' }],
+      [[10], [20]],
+      { minSpareRows: 1 }
+    );
+
+    // The summary starts on the spare row, which is the last row.
+    expect(hot.getDataAtCell(2, 0)).toBe(30);
+
+    hot.setDataAtCell(0, 0, 15);
+
+    // The automatic insertion does not move a reversed summary (DEV-2206), and the range follows the table.
+    expect(hot.getDataAtCell(2, 0)).toBe(35);
   });
 });

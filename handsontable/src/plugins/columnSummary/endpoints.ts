@@ -295,7 +295,7 @@ class Endpoints {
     arrayEach(settingsArray, (val: EndpointConfig) => {
       const newEndpoint: EndpointConfig = {};
 
-      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.countAddressableRows() - 1]]);
+      this.assignSetting(val, newEndpoint, 'ranges', this.getDefaultRanges());
       this.assignSetting(val, newEndpoint, 'reversedRowCoords', false);
       this.assignSetting(val, newEndpoint, 'destinationRow', new Error(`
         You must provide a destination row for the Column Summary plugin in order to work properly!
@@ -419,12 +419,6 @@ class Endpoints {
     // An automatic removal still does: a lowered minimum size gives its rows back that way, and the endpoints
     // must follow it like any other removal.
     if (source === 'auto' && action.indexOf('insert') === 0) {
-      // The range alone still follows the table, or a value typed into the spare row (which appends the next
-      // one) would fall outside a default range (DEV-2995). Nothing is reset or refreshed here.
-      if (action.indexOf('row') > -1 && this.settingsType !== 'function') {
-        this.#rederiveDefaultRanges(this.getAllEndpoints());
-      }
-
       return;
     }
 
@@ -463,8 +457,6 @@ class Endpoints {
 
     if (type === 'row') {
       const isRemoval = multiplier === -1;
-
-      this.#rederiveDefaultRanges(endpoints);
 
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
         const reversedRowOffset = endpoint.reversedRowOffset;
@@ -609,6 +601,7 @@ class Endpoints {
   refreshAllEndpoints() {
     const endpoints = this.getAllEndpoints();
 
+    this.#rederiveDefaultRanges(endpoints);
     this.cellsToSetCache = [];
     this.cacheSummaryDestinations(endpoints);
 
@@ -635,6 +628,7 @@ class Endpoints {
     const endpoints = this.getAllEndpoints();
     const needToRefresh: number[] = [];
 
+    this.#rederiveDefaultRanges(endpoints);
     this.cellsToSetCache = [];
     this.cacheSummaryDestinations(endpoints);
 
@@ -819,16 +813,31 @@ class Endpoints {
   }
 
   /**
+   * Returns the range an endpoint without `ranges` sums: the whole table, or no range at all when the table has
+   * no rows (a `[0, -1]` range would read row `-1`).
+   *
+   * @returns {number[][]}
+   */
+  getDefaultRanges(): number[][] {
+    const count = this.countAddressableRows();
+
+    return count > 0 ? [[0, count - 1]] : [];
+  }
+
+  /**
    * Re-derives the range of every endpoint that took the default. The default is the whole table, so it follows
-   * the row count. The generic shift moves a bound only when the alteration sits at or before it, which misses a
-   * row appended past the end (DEV-2995). An explicit range names records and is never re-derived.
+   * the row count wherever the count can change: a row alteration, `loadData()`, `updateData()` or a `maxRows`
+   * update. The generic alteration shift alone misses a row appended past the end (DEV-2995). An explicit range
+   * names records and is never re-derived.
    *
    * @param {object[]} endpoints The endpoints to re-derive.
    */
   #rederiveDefaultRanges(endpoints: EndpointConfig[]) {
+    const defaultRanges = this.getDefaultRanges();
+
     arrayEach(endpoints, (endpoint: EndpointConfig) => {
       if (endpoint.rangesFromDefault) {
-        endpoint.ranges = [[0, this.countAddressableRows() - 1]];
+        endpoint.ranges = defaultRanges.map(range => range.slice());
       }
     });
   }
