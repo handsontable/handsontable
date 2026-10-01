@@ -5933,7 +5933,8 @@ export default function Core(
     // An undo or redo writes back values the source already stored. The `valueSetter` already
     // translated them when they were first written, so it does not run again – a setter that is not
     // idempotent would apply twice – and the source data validator does not judge them again: it
-    // could blank a value that was accepted when it was first written.
+    // could blank a value that was accepted when it was first written. The source is read as the
+    // operation reads it, so an array-form call takes it from the second argument.
     const isReplay = isUndoRedoSource(source);
     const toStoredValue = (
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,

@@ -2229,6 +2229,30 @@ describe('UndoRedo plugin', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual(['A2', 'B2']);
       expect(valueSetter).not.toHaveBeenCalled();
     });
+
+    it('should write the values of an array-form call with an undo source as they are', () => {
+      const valueSetter = jest.fn(value => `${value}+`);
+      const sourceDataValidator = jest.fn(value => value !== 'y');
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        columns: [{ valueSetter }, { sourceDataValidator, allowInvalid: false }],
+        undo: true,
+      });
+
+      hot.setSourceDataAtCell([[1, 0, 'x'], [1, 1, 'y']], 'myImport');
+
+      expect(hot.getSourceDataAtRow(1)).toEqual(['x+', 'B2']);
+
+      valueSetter.mockClear();
+      sourceDataValidator.mockClear();
+      hot.setSourceDataAtCell([[0, 0, 'x'], [0, 1, 'y']], 'UndoRedo.undo');
+
+      expect(hot.getSourceDataAtRow(0)).toEqual(['x', 'y']);
+      expect(valueSetter).not.toHaveBeenCalled();
+      expect(sourceDataValidator).not.toHaveBeenCalled();
+    });
   });
 
   describe('a prop with a dot in its name', () => {

@@ -85,7 +85,10 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    `setDataAtRowProp()` record `'edit'` for a call with no source, and every data setter takes an
    array-form source from its second argument (`readOperationSource()` in `core.ts`, the one place
    that reads it - the `setSourceDataAtCell` wrapper once missed the lift). The bodies keep their own
-   lift, which also takes a non-string second argument, for the hooks.
+   lift, which also takes a non-string second argument, for the hooks. `setSourceDataAtCell`'s body
+   has none: it reads its replay flag through `readOperationSource()` too (its body once missed that,
+   and ran the `valueSetter` and validator again on an array-form undo), and passes the fourth
+   argument to its hooks and validator, as it always did.
 7. **`batchExecution()` is an operation like `batch()`** - everything inside it is one `'batch'` step.
 8. **On settle** (`#onTransactionSettle`) the tracker captures the "after" state. "Before" is the state
    the previous step ended in, read at settle time - so a step that committed while this one waited for
