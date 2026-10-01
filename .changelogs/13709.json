@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the rows created by a paste past the last row were not validated when the `trimRows` plugin was active.",
+  "type": "fixed",
+  "issueOrPR": 13709,
+  "breaking": false,
+  "framework": "none"
+}

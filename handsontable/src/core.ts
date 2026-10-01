@@ -2146,7 +2146,7 @@ export default function Core(
             // object per target cell - this loop only reads (`skipRowOnPaste`, `skipColumnOnPaste`,
             // `readOnly`, `valueSetter`, `parsePastedValue`); the write itself goes through the
             // data layer.
-            cellMeta = instance.getCellMetaTransient(current.row, current.col);
+            cellMeta = getCellMetaOfChange(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                 cellMeta.skipRowOnPaste) {
@@ -2168,7 +2168,7 @@ export default function Core(
                 break;
               }
 
-              cellMeta = instance.getCellMetaTransient(current.row, current.col);
+              cellMeta = getCellMetaOfChange(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                   cellMeta.skipColumnOnPaste) {
@@ -2707,6 +2707,69 @@ export default function Core(
   }
 
   /**
+   * Reads the cell meta of a cell that a WRITE addresses, which may sit in a row that does not exist yet.
+   *
+   * A write can address a row past the last one, and `applyChanges()` creates it only after the
+   * validation settles. Such a row has no physical index to translate. It is appended after the last
+   * source record, so it takes the next free physical index - not its visual one, which is smaller as
+   * soon as a trimming map removes records from the visual space. The meta stored for the row before
+   * it exists (its validation result, the `readOnly` or `skipRowOnPaste` a paste reads) is keyed by
+   * that index, so the created row has to find it there (DEV-155).
+   *
+   * This is NOT the fallback of `Core#getCellMeta`. There a row index past the last visual row is
+   * also how a caller names a TRIMMED record by its physical index (ColumnSummary relies on it), so
+   * that fallback has to keep reading the index as physical. Only a coordinate that is known to be a
+   * pending visual row, a write, can be resolved this way. Both counts come from the index mapper, so
+   * the call stays O(1) in a long paste (`countSourceRows()` walks the tree under NestedRows).
+   *
+   * @private
+   * @param {number} row The visual row index of the change.
+   * @param {number} column The visual column index of the change.
+   * @param {boolean} [stored=false] Whether the meta object has to be stored (validation writes on it).
+   * @returns {object} The cell properties object.
+   */
+  function getCellMetaOfChange(row: number, column: number, stored = false) {
+    let physicalRow = instance.toPhysicalRow(row);
+    const physicalColumn = instance.toPhysicalColumn(column) ?? column;
+
+    if (physicalRow === null) {
+      const visibleRowsCount = instance.rowIndexMapper.getNotTrimmedIndexesLength();
+
+      physicalRow = row >= visibleRowsCount ?
+        instance.rowIndexMapper.getNumberOfIndexes() + row - visibleRowsCount : row;
+    }
+
+    const options = { visualRow: row, visualColumn: column };
+
+    return stored ?
+      metaManager.getCellMeta(physicalRow, physicalColumn, options) :
+      metaManager.getCellMetaTransient(physicalRow, physicalColumn, options);
+  }
+
+  /**
+   * Drops the validation result of every row that was validated before its creation and never got
+   * created (a `maxRows` clamp, `allowInsertRow: false`). The result is stored for a row that does not
+   * exist, so a row appended later - `minSpareRows`, a raised `maxRows` - would otherwise start with a
+   * mark nothing validated.
+   *
+   * @private
+   * @param {Array<object>} pendingRowMetas The cell meta of the cells validated in not-yet-existing rows.
+   */
+  function discardResultsOfUncreatedRows(pendingRowMetas: Array<{ row?: number, valid?: boolean }>) {
+    if (pendingRowMetas.length === 0) {
+      return;
+    }
+
+    const sourceRowsCount = instance.countSourceRows();
+
+    pendingRowMetas.forEach((cellProperties) => {
+      if ((cellProperties.row as number) >= sourceRowsCount) {
+        delete cellProperties.valid;
+      }
+    });
+  }
+
+  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -2721,6 +2784,7 @@ export default function Core(
 
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
+    const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
     let shouldBeCanceled = true;
 
     // Track value corrections applied by validators via setDataAtCell during the validation window.
@@ -2763,11 +2827,15 @@ export default function Core(
         activeEditor.cancelChanges();
       }
 
-      callback(); // called when async validators are resolved and beforeChange was not async
+      try {
+        callback(); // called when async validators are resolved and beforeChange was not async
+      } finally {
+        discardResultsOfUncreatedRows(pendingRowMetas);
+      }
     };
 
     try {
-      queueValidators(changes, source, waitingForValidator, () => {
+      queueValidators(changes, source, waitingForValidator, pendingRowMetas, () => {
         shouldBeCanceled = false;
       });
     } catch (error) {
@@ -2788,14 +2856,19 @@ export default function Core(
    * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
    * @param {string} [source] The change source.
    * @param {object} waitingForValidator The queue.
+   * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
+   *   not exist yet.
    * @param {Function} onRejected Called for each rejected change.
    */
   function queueValidators(
     changes: CellChange[],
     source: string | undefined,
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
+    pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
     onRejected: () => void,
   ) {
+    const visibleRowsCount = instance.countRows();
+
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
       // A change can address a column that auto column growth is about to create, and `propToCol()`
@@ -2809,10 +2882,10 @@ export default function Core(
         // object per changed cell while the validator is looked up. Cells that DO have a
         // validator switch to the eagerly stored meta object below - validation writes its
         // `valid` result on the meta, and that result must survive on the stored object.
-        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
+        cellProperties = getCellMetaOfChange(row, visualCol as number);
 
         if (instance.getCellValidator(cellProperties)) {
-          cellProperties = instance.getCellMeta(row, visualCol as number);
+          cellProperties = getCellMetaOfChange(row, visualCol as number, true);
         }
 
       } else {
@@ -2824,6 +2897,10 @@ export default function Core(
       if (instance.getCellValidator(cellProperties)) {
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
+
+        if (row >= visibleRowsCount) {
+          pendingRowMetas.push(cellProperties as { row?: number, valid?: boolean });
+        }
 
         const structureVersion = metaManager.getStructureVersion();
 
@@ -3338,7 +3415,7 @@ export default function Core(
         // The transient read keeps a bulk change set (paste, fill, checkbox toggle over a large
         // selection) from permanently materializing one meta object per changed cell - the meta
         // is only read here (`valueSetter`).
-        cellProperties = instance.getCellMetaTransient(row, visualColumn as number);
+        cellProperties = getCellMetaOfChange(row, visualColumn as number);
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };

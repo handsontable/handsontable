@@ -77,6 +77,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## Traps
 
+- **The tab strip hides its scrollbar with `scrollbar-width: none !important`** (DEV-3191). Keep
+  the `!important`. The selector compiles to `.handsontable.ht-sheets-bar .ht-sheets-bar__tabs`
+  (specificity 0,3,0: the bar root carries both classes), so a page-wide rule such as
+  `* { scrollbar-width: thin }` loses on specificity whatever the load order. Two kinds of host rule
+  beat a plain declaration and paint a bar into the strip: one that carries `!important`
+  (`* { scrollbar-width: thin !important }`), and one that ties the selector and loads later
+  (`.handsontable.ht-sheets-bar .ht-sheets-bar__tabs { scrollbar-width: thin }`). The `!important`
+  covers both. A host `.handsontable .wtHolder` rule never matches the strip, which is not a holder.
+  The rule still loses to a host `!important` rule of higher specificity and to one inside a CSS
+  `@layer` (important declarations reverse layer order), so do not claim the strip is immune to host
+  CSS. Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not `auto`, so that rule
+  only backs up older engines.
 - **The keyboard lives in a shortcut context** (`plugin:sheetsBar`) behind a focus scope, like
   Pagination. The scope's `runOnlyIf` stands aside while one of the bar's menus is open — the
   click that opens a menu reaches the scope manager after the menu has taken the keyboard, and
