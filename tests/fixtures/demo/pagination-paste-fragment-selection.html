@@ -43,6 +43,14 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    // An unknown value THROWS instead of falling back, so a typo is one red leg and not a silently
+    // mislabeled control run.
+    const fragmentSelection = ({ on: true, off: false })[query.get('fragmentSelection') ?? 'off'];
+
+    if (fragmentSelection === undefined) {
+      throw new Error('Unknown ?fragmentSelection= value: ' + JSON.stringify(query.get('fragmentSelection')));
+    }
+
     let hot;
 
     try {
@@ -53,7 +61,7 @@
         pagination: { pageSize: 10 },
         copyPaste: true,
         // With `fragmentSelection` CopyPaste stops refreshing `copyableRanges` on selection end.
-        fragmentSelection: query.get('fragmentSelection') === 'on',
+        fragmentSelection,
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {

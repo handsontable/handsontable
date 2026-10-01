@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a pagination paste that could overflow the current page after copying with `fragmentSelection` enabled and moving the selection.",
+  "title": "Fixed a paste that could overflow the current pagination page when `fragmentSelection` was enabled.",
   "type": "fixed",
   "issueOrPR": 13720,
   "breaking": false,

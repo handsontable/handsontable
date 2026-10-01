@@ -6,6 +6,7 @@ interface PaginationPasteFixture {
   listen(): void;
   getDataAtCol(column: number): unknown[];
   getPlugin(name: string): {
+    copyableRanges: { startRow: number, endRow: number }[];
     copy(): void;
     paste(pastableText: string, pastableHtml?: string): void;
   };
@@ -72,6 +73,15 @@ export class PaginationPasteFragmentSelectionPage {
       hot.listen();
       hot.getPlugin('copyPaste').copy();
     }, [startRow, endRow] as [number, number]);
+  }
+
+  /**
+   * Returns the `[startRow, endRow]` pairs the `copyPaste` plugin holds as the copy source, so a spec can
+   * prove the copy reached the plugin instead of leaving the ranges empty.
+   */
+  async copyableRowRanges(): Promise<number[][]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot
+      .getPlugin('copyPaste').copyableRanges.map(({ startRow, endRow }) => [startRow, endRow]));
   }
 
   /**
