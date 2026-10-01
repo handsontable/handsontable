@@ -332,7 +332,7 @@ The [`cells`](@/api/options.md#cells) function runs again on top of every stored
 
 If `cells` sets `readOnly` on every selected cell, the item behaves as it always did: it stays in the menu, shows the cell state, and can't change anything. This is the case when `cells` returns a `readOnly` value for every cell, for example `{ readOnly: false }` as a default.
 
-Undo and redo of a menu toggle also write to the cells that `cells` controls. The visible state stays correct, because `cells` is applied again on top, but the value stored for those cells changes.
+Undo and redo of a menu toggle change only the cells that the toggle changed. A cell that the **Read only** item skips keeps its stored value.
 
 ## Block the entire grid
 
