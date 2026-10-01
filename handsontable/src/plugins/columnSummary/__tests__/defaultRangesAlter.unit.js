@@ -246,7 +246,7 @@ describe('ColumnSummary default ranges with alter()', () => {
     expect(endpoint.ranges).toEqual([]);
   });
 
-  it('keeps a reversed summary on its row while `minSpareRows` appends below it', async() => {
+  it('keeps a reversed summary on the spare row and still sums an edited row', async() => {
     hot = buildGrid(
       [{ destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, type: 'sum' }],
       [[10], [20]],
@@ -258,7 +258,9 @@ describe('ColumnSummary default ranges with alter()', () => {
 
     hot.setDataAtCell(0, 0, 15);
 
-    // The automatic insertion does not move a reversed summary (DEV-2206), and the range follows the table.
+    // A smoke test for the combination: the summary stays on the spare row and the edit is summed. It does not
+    // pin range growth, because a row can only be appended below a reversed summary by writing into the
+    // read-only summary row itself.
     expect(hot.getDataAtCell(2, 0)).toBe(35);
   });
 });

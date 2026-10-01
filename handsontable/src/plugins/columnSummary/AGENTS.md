@@ -294,8 +294,9 @@ the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by 
   insertion skip in `resetSetupAfterStructureAlteration()` needs no special case. The generic shift's result
   is overwritten, so the re-derive must not read it.
 - **A `reversedRowCoords` summary keeps its destination on an `auto` insertion (DEV-2206) while its default
-  range follows the table**, so a spare row created below the summary joins the range. That is the
-  whole-table rule applied to a summary that is not on the last row, and `defaultRangesAlter.unit.js` pins it.
+  range follows the table**, so a spare row created below the summary would join the range. That is the
+  whole-table rule applied to a summary that is not on the last row. Reaching it takes a write into the
+  read-only summary row, so no test pins it; the test beside it is a smoke test of the combination.
 - `defaultRangesAlter.unit.js` pins append, repeated append, insert (inside and above row 0), removal,
   `maxRows`, `minSpareRows`, column alterations, trimmed rows, `loadData()`/`updateData()`, the empty table,
   multiple endpoints and the explicit-range controls.
