@@ -421,6 +421,100 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
     });
   });
 
+  describe('a read-only state owned by the cells option (DEV-149)', () => {
+    /**
+     * A cell meta whose `cells` function sets `readOnly`, the way the transient meta of a grid with
+     * such an option looks to the menu item.
+     *
+     * @param {number} col The column of the cell.
+     * @param {Function} cells The `cells` function.
+     * @param {boolean} [readOnly=false] The effective `readOnly` value.
+     * @returns {object}
+     */
+    function ownedMeta(col, cells, readOnly = true) {
+      return { row: 0, col, prop: col, cells, readOnly };
+    }
+
+    const returnsReadOnly = () => ({ readOnly: true });
+    const assignsReadOnly = function() {
+      this.readOnly = true;
+    };
+
+    function createStub(firstMeta, secondMeta) {
+      return {
+        ...createTwoCellHotStub(firstMeta, secondMeta),
+        setCellMeta: jest.fn(),
+        runHooks: jest.fn(),
+        render: jest.fn(),
+      };
+    }
+
+    [
+      ['returns an object', returnsReadOnly],
+      ['assigns to this', assignsReadOnly],
+    ].forEach(([shape, cells]) => {
+      it(`should leave a cell out of the mark when its cells function ${shape}`, () => {
+        const hot = createStub(ownedMeta(0, cells), { readOnly: false });
+
+        // Without the exclusion this reads as mixed, although nothing the user can toggle is on.
+        expect(getItemCheckedState(readOnlyItem(), hot)).toBe(false);
+      });
+
+      it(`should make the rest read-only when its cells function ${shape}`, () => {
+        const hot = createStub(ownedMeta(0, cells), { readOnly: false });
+
+        readOnlyItem().callback.call(hot);
+
+        expect(hot.setCellMeta.mock.calls).toEqual([[0, 1, 'readOnly', true]]);
+      });
+    });
+
+    it('should report the owned read-only cell as it is in the snapshot of a make-read-only click', () => {
+      const hot = createStub(ownedMeta(0, returnsReadOnly), { readOnly: false });
+
+      readOnlyItem().callback.call(hot);
+
+      const snapshot = hot.runHooks.mock.calls[0][1];
+
+      expect(snapshot[0][0]).toBe(true);
+      expect(snapshot[0][1]).toBeUndefined();
+    });
+
+    it('should toggle a cell whose cells function sets no readOnly', () => {
+      const cells = jest.fn(() => ({}));
+      const hot = createStub({ readOnly: false, cells, row: 0, col: 0 }, { readOnly: false });
+
+      readOnlyItem().callback.call(hot);
+
+      // The function answers without a `readOnly` key, so it owns nothing and both cells are toggled.
+      expect(hot.setCellMeta).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not write to a cell whose cells function sets readOnly to false', () => {
+      const hot = createStub(ownedMeta(0, () => ({ readOnly: false }), false), { readOnly: false });
+
+      readOnlyItem().callback.call(hot);
+
+      expect(hot.setCellMeta.mock.calls).toEqual([[0, 1, 'readOnly', true]]);
+    });
+
+    it('should keep the item, the mark and the click as they were when every cell is owned', () => {
+      const hot = createStub(ownedMeta(0, returnsReadOnly), ownedMeta(1, returnsReadOnly));
+
+      expect(getItemCheckedState(readOnlyItem(), hot)).toBe(true);
+      expect(readOnlyItem().hidden.call(hot)).toBe(false);
+
+      readOnlyItem().callback.call(hot);
+
+      // The old behavior, a write `cells()` then covers: not locking is what keeps the item usable
+      // in a grid whose `cells()` sets `readOnly` on every cell.
+      expect(hot.setCellMeta.mock.calls).toEqual([
+        [0, 0, 'readOnly', false],
+        [0, 1, 'readOnly', false],
+      ]);
+    });
+  });
+
   describe('cells that do not take part in the mark', () => {
     it('should read a merged block by its top-left cell, not by the hidden cells under it', () => {
       // MergeCells stretches the selection over the whole block and marks every covered cell
