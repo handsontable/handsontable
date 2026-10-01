@@ -143,6 +143,14 @@ calls `this.#ui?.refreshIcons()` — forgetting that hook leaves the pager showi
 after a `useTheme()` switch. The refresh updates the same elements in place and does nothing unless the
 theme's icons revision moved, so a color-scheme or density switch rebuilds nothing.
 
+**Do not center the button icon with flexbox.** `_pagination.scss` makes the `.ht-icon` inside a
+navigation button `display: block`, which sizes the button's content box to the icon exactly (what the
+18.1 `::before { display: block }` glyph did) with no line box adding strut height. A
+`display: inline-flex` button gives the same box, but under `forced-colors: active` Chromium kept
+painting the disabled `GrayText` border on first/prev after they were re-enabled - the computed
+`border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
+compares the button's paint after a page change with a fresh paint of it.
+
 ## Styling: the label spans declare their own text metrics
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare

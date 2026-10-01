@@ -208,18 +208,20 @@
               2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
             );
 
-            // Vertical centering is done with a negative margin rather than
+            // Vertical centering uses the individual `translate` property, not
             // `transform: translateY(-50%)`, so the `transform` property stays free for
             // `.ht-icon--flip-rtl` (the icon carries `flipInRtl: true`) to mirror the glyph
-            // under `[dir="rtl"]` - the two would otherwise fight over the same property on
-            // the same element and only one could win.
+            // under RTL - the two `transform` declarations would fight over one property and
+            // only one could win, while `translate` and `transform` compose. Not a negative
+            // `margin-top` either: a margin is snapped to the layout grid, a translate is not,
+            // so on a HiDPI Firefox the margin form lands 1 device px off the 18.1 position.
             .htSubmenuIcon {
               position: absolute;
               top: 50%;
               inset-inline-end: calc(
                 var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
               );
-              margin-top: calc(var(--ht-icon-size) / -2);
+              translate: 0 -50%;
             }
           }
         }
@@ -339,5 +341,19 @@
         }
       }
     }
+  }
+
+  // The sheets-bar menu writes a sheet name into its own `<span dir="auto">` so the wrapper (and
+  // the check mark positioned in it) keeps the menu's direction. The wrapper still caps the width
+  // and ellipsizes, but its ellipsis falls on the wrapper's inline end, which for a name in the
+  // other script is the name's start. An inline-block span with its own overflow ellipsizes the
+  // name at its own end, as the wrapper did while it carried `dir="auto"` itself. `vertical-align: top` keeps
+  // the overflow-clipped inline-block from sitting on its bottom edge and growing the row.
+  &.htSheetsBarMenu table tbody tr td .htItemWrapper .ht-sheets-bar__menu-item-name {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
   }
 }

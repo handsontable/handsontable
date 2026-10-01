@@ -130,9 +130,16 @@
           border-radius: var(--ht-icon-button-large-border-radius);
           padding: var(--ht-icon-button-large-padding);
           cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
+
+          // A block icon makes the button's content box exactly the icon's box - the size the
+          // 18.1 `::before { display: block }` glyph gave it - without an inline line box adding
+          // strut/descender height. Do not make the button `inline-flex` to center the icon
+          // instead: under `forced-colors: active` Chromium keeps painting the disabled
+          // `GrayText` border on a flex button after `--disabled` is removed (see the
+          // pagination plugin's AGENTS.md).
+          .ht-icon {
+            display: block;
+          }
 
           &--disabled {
             cursor: default;

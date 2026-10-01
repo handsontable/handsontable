@@ -1603,7 +1603,10 @@ describe('SheetsBar plugin', () => {
     expect(rows[0].getAttribute('aria-checked')).toBe('true');
     expect(rows[0].getAttribute('aria-label')).toBe('A');
     expect(rows[1].getAttribute('aria-checked')).toBe('false');
-    expect(rows[0].querySelector('.htItemWrapper').dir).toBe('auto');
+    // The name carries its own `dir="auto"`; the wrapper keeps the menu's direction, so the
+    // check mark stays at the menu's inline end whatever script the sheet name uses.
+    expect(rows[0].querySelector('.htItemWrapper').dir).toBe('');
+    expect(rows[0].querySelector('.htItemWrapper .ht-sheets-bar__menu-item-name').dir).toBe('auto');
   });
 
   it('advertises the menu on the active tab only, and nothing when ariaTags is off', () => {
@@ -3315,11 +3318,12 @@ describe('SheetsBar plugin', () => {
     expect(returned).toBe(wrapper);
     // The row of the active sheet also carries the mark, whose own character sits before the
     // name — the name itself still arrives as text and builds no elements. The only elements in
-    // the wrapper are the mark span and the icon element it carries - neither comes
-    // from the sheet name string, so a hostile name still builds nothing.
+    // the wrapper are the mark span, the icon element it carries, and the name span - none of
+    // them comes from the sheet name string, so a hostile name still builds nothing.
     expect(wrapper.textContent.endsWith(hostile)).toBe(true);
     expect(wrapper.querySelector('img')).toBe(null);
-    expect(wrapper.querySelectorAll('*')).toHaveLength(2);
+    expect(wrapper.querySelectorAll('*')).toHaveLength(3);
+    expect(wrapper.querySelector('.ht-sheets-bar__menu-item-name').textContent).toBe(hostile);
     expect(wrapper.querySelector('.selected')).not.toBe(null);
     expect(wrapper.querySelector('.selected > .ht-icon')).not.toBe(null);
   });

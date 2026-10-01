@@ -335,6 +335,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   color-scheme switch keeps an open tab rename" in `tests/e2e/icon-elements.spec.ts`). The active-sheet check mark in `menus.ts` is different:
   it is built fresh every time a menu row is rendered (`#renderSheetName`, per `open()`), so it
   always reflects the current theme with no `refreshIcons()` involvement.
+- **Only the sheet name follows its own script direction, never the menu row.** `#renderSheetName`
+  writes the name into a `<span class="ht-sheets-bar__menu-item-name" dir="auto">` inside the
+  `.htItemWrapper`; the wrapper itself keeps the menu's direction. With `dir="auto"` on the wrapper a
+  Hebrew name in an LTR grid turned the whole wrapper RTL, so the check mark (positioned with
+  `inset-inline-end`) and the wrapper's reserved end padding moved to the left, under the text. The
+  span is an `inline-block` with its own ellipsis (`_dropdown-menu.scss`), so a long name still
+  truncates at its own logical end. Pinned by `tests/e2e/icon-elements-misc.spec.ts`.
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

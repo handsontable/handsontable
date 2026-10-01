@@ -14,6 +14,12 @@
     width: var(--ht-icon-size);
     height: var(--ht-icon-size);
     vertical-align: middle;
+    // Hosts such as `.collapsibleIndicator` hide their legacy text with `text-indent: -100px`,
+    // which the icon would inherit. A mask icon has no inline content and does not care, but a
+    // class-list, ligature or inline-SVG renderer paints inline content and would be pushed out
+    // of its box. Reset here, not on `--external`, so a renderer that throws and falls back to
+    // the built-in mask is covered too.
+    text-indent: 0;
     // Sits over inputs and inside buttons: the click must land on the control, not the glyph.
     pointer-events: none;
   }
