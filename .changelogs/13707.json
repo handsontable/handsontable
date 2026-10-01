@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Read only menu item so that it can make a column read-only when some of its cells get `readOnly` from the `cells` option. The item now leaves those cells alone and is hidden when every selected cell is one of them.",
+  "type": "fixed",
+  "issueOrPR": 13707,
+  "breaking": false,
+  "framework": "none"
+}
