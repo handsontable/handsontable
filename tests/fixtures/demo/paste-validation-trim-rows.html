@@ -55,6 +55,10 @@
         }],
         // Rows 1 and 3 leave the visual space, so the source holds more records than the grid shows.
         trimRows: query.get('trim') === 'off' ? undefined : [1, 3],
+        // `cells()` gets the PHYSICAL row. Marking the trimmed records read-only shows the paste still
+        // writes to the created rows, which sit at other physical indexes.
+        cells: (physicalRow) => (query.get('readonlyTrimmed') === 'on' && [1, 3].includes(physicalRow) ?
+          { readOnly: true } : {}),
         allowInsertRow: true,
         licenseKey: 'non-commercial-and-evaluation',
       });

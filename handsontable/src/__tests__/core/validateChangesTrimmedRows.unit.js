@@ -108,6 +108,56 @@ describe('Core validation of rows created by a change', () => {
     }
   });
 
+  it('should not leave a validation result for a row that was never created', async() => {
+    createGrid({ trimRows: [1, 3], maxRows: 6 });
+
+    hot.populateFromArray(2, 0, [['bad1'], ['bad2'], ['bad3'], ['bad4']]);
+    await settle();
+
+    // `maxRows` lets the grid grow by one row only, so the results for the other pasted rows belong
+    // to rows that do not exist.
+    expect(hot.countSourceRows()).toBe(6);
+
+    hot.updateSettings({ maxRows: 10, minSpareRows: 2 });
+    await settle();
+
+    const lastRow = hot.countRows() - 1;
+
+    expect(hot.getDataAtCell(lastRow, 0)).toBeNull();
+    expect(hot.getCellMeta(lastRow, 0).valid).toBeUndefined();
+    expect(hot.getCellMeta(lastRow - 1, 0).valid).toBeUndefined();
+  });
+
+  it('should paste into the created rows when `cells()` marks the trimmed records read-only', async() => {
+    createGrid({
+      trimRows: [1, 3],
+      cells(physicalRow) {
+        // `cells()` receives the physical row, and the trimmed records are physical rows 1 and 3.
+        return physicalRow === 1 || physicalRow === 3 ? { readOnly: true } : {};
+      },
+    });
+
+    hot.populateFromArray(2, 0, [['bad1'], ['bad2'], ['bad3'], ['bad4']]);
+    await settle();
+
+    expect(hot.getDataAtCol(0)).toEqual(['ok', 'ok', 'bad1', 'bad2', 'bad3', 'bad4']);
+  });
+
+  it('should keep reading a row index past the last visual row as the physical index of a trimmed record', () => {
+    // The public meta methods leave the fallback alone: a plugin names a trimmed record by its
+    // physical index this way (ColumnSummary), so only a write resolves a pending row.
+    createGrid({ trimRows: [1, 3] });
+
+    hot.setCellMeta(3, 0, 'className', 'trimmed-record');
+
+    expect(hot.getCellMeta(3, 0).className).toBe('trimmed-record');
+
+    hot.getPlugin('trimRows').untrimAll();
+
+    expect(hot.getCellMeta(3, 0).className).toBe('trimmed-record');
+    expect(hot.getCellMeta(4, 0).className).toBeUndefined();
+  });
+
   it('should keep marking the created rows when no row is trimmed', async() => {
     createGrid();
 

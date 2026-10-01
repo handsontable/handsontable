@@ -37,6 +37,22 @@ test.describe('paste validation with trimRows', () => {
 
     for (const row of [2, 3, 4, 5]) {
       await expect(grid.cell(row, 0)).toHaveClass(/htInvalid/);
+      expect(await grid.validState(row, 0)).toBe('invalid');
     }
   });
+
+  test('writes and validates the created rows when `cells()` marks the trimmed records read-only',
+    async({ page, theme, bundle }) => {
+      const grid = new PasteValidationTrimRowsPage(page, theme, bundle, { readonlyTrimmed: true });
+
+      await grid.goto();
+      await grid.pasteAt(2, 0, PASTE_BLOCK);
+
+      await expect.poll(() => grid.countRows()).toBe(6);
+      expect(await grid.columnValues()).toEqual(['Tesla', 'Volvo', 'bad1', 'bad2', 'bad3', 'bad4']);
+
+      for (const row of [2, 3, 4, 5]) {
+        await expect(grid.cell(row, 0)).toHaveClass(/htInvalid/);
+      }
+    });
 });

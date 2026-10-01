@@ -5,6 +5,7 @@ interface PasteValidationFixture {
   selectCells(ranges: number[][]): void;
   listen(): void;
   countRows(): number;
+  getDataAtCol(column: number): unknown[];
   getCellMeta(row: number, col: number): { valid?: boolean };
   getPlugin(name: string): { paste(pastableText: string, pastableHtml?: string): void };
 }
@@ -24,12 +25,14 @@ export class PasteValidationTrimRowsPage {
   readonly theme: string;
   readonly bundle: string;
   readonly trimmed: boolean;
+  readonly readonlyTrimmed: boolean;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd', options: { trimmed?: boolean } = {}) {
+  constructor(page: Page, theme = 'main', bundle = 'umd', options: { trimmed?: boolean, readonlyTrimmed?: boolean } = {}) {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.trimmed = options.trimmed ?? true;
+    this.readonlyTrimmed = options.readonlyTrimmed ?? false;
   }
 
   /**
@@ -38,7 +41,7 @@ export class PasteValidationTrimRowsPage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/paste-validation-trim-rows.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&trim=${this.trimmed ? 'on' : 'off'}`
+      `&trim=${this.trimmed ? 'on' : 'off'}&readonlyTrimmed=${this.readonlyTrimmed ? 'on' : 'off'}`
     );
     await awaitBundle(this.page);
 
@@ -70,6 +73,13 @@ export class PasteValidationTrimRowsPage {
       hot.listen();
       hot.getPlugin('copyPaste').paste(pasted as string, '');
     }, [row, column, text] as [number, number, string]);
+  }
+
+  /**
+   * Returns the values of the first column, in visual order.
+   */
+  async columnValues(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getDataAtCol(0));
   }
 
   /**
