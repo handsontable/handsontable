@@ -51,7 +51,15 @@ export class XlsxImportPage {
    * too, just with the negative visual index Walkontable renders the corner at.
    */
   targetHeaders(): Locator {
-    return this.page.locator('[data-testid="target"] .ht_clone_top thead th span.colHeader:not(.cornerHeader)');
+    return this.targetHeaderRows().locator('th span.colHeader:not(.cornerHeader)');
+  }
+
+  /**
+   * The target grid's column-header rows, scoped to the top overlay clone - the only layer that
+   * renders the header exactly once. Every header reader goes through this one locator.
+   */
+  private targetHeaderRows(): Locator {
+    return this.page.locator('[data-testid="target"] .ht_clone_top thead tr');
   }
 
   /** Click the round-trip button and wait for the fixture to report completion. */
@@ -88,17 +96,7 @@ export class XlsxImportPage {
    * identical between them; the master is just the one `targetCell()` already scopes to.
    */
   async targetComputedStyle(row: number, col: number, prop: string): Promise<string> {
-    return this.page.evaluate(([r, c, cssProp]) => {
-      const cell = document.querySelector(
-        `[data-testid="target"] .ht_master [data-testid="target-${r}-${c}"]`
-      ) as HTMLElement | null;
-
-      if (!cell) {
-        throw new Error(`No target cell at row ${r}, col ${c}`);
-      }
-
-      return getComputedStyle(cell).getPropertyValue(cssProp);
-    }, [row, col, prop] as const);
+    return this.targetCell(row, col).evaluate((cell, cssProp) => getComputedStyle(cell).getPropertyValue(cssProp), prop);
   }
 
   /**
@@ -216,12 +214,8 @@ export class XlsxImportPage {
    * top overlay clone - the only layer that renders the header exactly once.
    */
   async targetHeaderLayers(): Promise<string[][]> {
-    return this.page.evaluate(() => {
-      const rows = document.querySelectorAll('[data-testid="target"] .ht_clone_top thead tr');
-
-      return Array.from(rows).map(row => Array.from(row.querySelectorAll('th'))
-        .map(th => (th.textContent ?? '').trim()));
-    });
+    return this.targetHeaderRows().evaluateAll(rows => rows.map(row => Array.from(row.querySelectorAll('th'))
+      .map(th => (th.textContent ?? '').trim())));
   }
 
   /**
@@ -229,10 +223,7 @@ export class XlsxImportPage {
    * a nested header group reached the DOM rather than just the settings object.
    */
   async targetHeaderColspans(): Promise<number[]> {
-    return this.page.evaluate(() => {
-      const row = document.querySelector('[data-testid="target"] .ht_clone_top thead tr');
-
-      return Array.from(row?.querySelectorAll('th') ?? []).map(th => th.colSpan);
-    });
+    return this.targetHeaderRows().first().locator('th')
+      .evaluateAll(cells => cells.map(th => (th as HTMLTableCellElement).colSpan));
   }
 }

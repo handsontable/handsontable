@@ -205,6 +205,9 @@ import ExcelJS from 'exceljs';
     });
 
     describe('header style', () => {
+      // Exact on both engines: neither writer emits a companion `<bgColor>` for a solid fill, so
+      // ExcelJS reads back `fgColor` only (pinned by "writes a solid argb fill identically on all
+      // four legs" in `utils/xlsxEngine/__tests__/enginesParity.unit.js`).
       const DEFAULT_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
       const DEFAULT_BORDER_SIDE = { style: 'thin' };
       const DEFAULT_BORDER = {
@@ -224,7 +227,7 @@ import ExcelJS from 'exceljs';
         const ws = await parseXlsx({ colHeaders: true });
         const headerCell = ws.getRow(1).getCell(1);
 
-        expect(headerCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(headerCell.fill).toEqual(DEFAULT_FILL);
         expect(headerCell.border).toEqual(DEFAULT_BORDER);
       });
 
@@ -239,7 +242,7 @@ import ExcelJS from 'exceljs';
         const ws = await parseXlsx({ rowHeaders: true });
         const rowHeaderCell = ws.getRow(1).getCell(1);
 
-        expect(rowHeaderCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(rowHeaderCell.fill).toEqual(DEFAULT_FILL);
         expect(rowHeaderCell.border).toEqual(DEFAULT_BORDER);
       });
 
@@ -255,7 +258,7 @@ import ExcelJS from 'exceljs';
         const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
         const cornerCell = ws.getRow(1).getCell(1);
 
-        expect(cornerCell.fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(cornerCell.fill).toEqual(DEFAULT_FILL);
         expect(cornerCell.border).toEqual(DEFAULT_BORDER);
       });
 
@@ -268,11 +271,11 @@ import ExcelJS from 'exceljs';
 
         const ws = await parseXlsx({ colHeaders: true, headerStyle: { backgroundColor: '#4472C4' } });
 
-        expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining({
+        expect(ws.getRow(1).getCell(1).fill).toEqual({
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: 'FF4472C4' },
-        }));
+        });
       });
 
       it('should apply a custom header border style and color when configured', async() => {
@@ -322,7 +325,7 @@ import ExcelJS from 'exceljs';
           headerStyle: { backgroundColor: '#F2F2F2', border: null },
         });
 
-        expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(ws.getRow(1).getCell(1).fill).toEqual(DEFAULT_FILL);
         // ExcelJS may return an empty sentinel {} when another property is set — check no sides exist.
         expect(ws.getRow(1).getCell(1).border?.top).toBeUndefined();
       });
@@ -352,9 +355,9 @@ import ExcelJS from 'exceljs';
 
         const ws = await parseXlsx({ colHeaders: true });
 
-        expect(ws.getRow(1).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(ws.getRow(1).getCell(1).fill).toEqual(DEFAULT_FILL);
         expect(ws.getRow(1).getCell(1).border).toEqual(DEFAULT_BORDER);
-        expect(ws.getRow(2).getCell(1).fill).toEqual(jasmine.objectContaining(DEFAULT_FILL));
+        expect(ws.getRow(2).getCell(1).fill).toEqual(DEFAULT_FILL);
         expect(ws.getRow(2).getCell(1).border).toEqual(DEFAULT_BORDER);
       });
     });

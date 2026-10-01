@@ -357,13 +357,31 @@ describe('native reader hardening: row and column zero', () => {
   });
 
   it('should keep ignoring a reference that is not an address at all', async() => {
-    const bytes = await repack('values', (part, text) => (
-      part === 'xl/worksheets/sheet1.xml'
-        ? text.replace('<sheetData>', '<sheetData><row r="1"><c r="1A"><v>1</v></c><c r=""><v>2</v></c></row>')
-        : text
+    // The two cells sit in rows of their own past the fixture's data (A1:F4), so a reader that
+    // placed them anyway — implicitly, after the row's previous cell — would put them at A5 and A6,
+    // where nothing else can overwrite them.
+    const withRows = cells => repack('values', (part, text) => (
+      part === 'xl/worksheets/sheet1.xml' ? text.replace('</sheetData>', `${cells}</sheetData>`) : text
     ));
+    const { rows } = (await read(await withRows(
+      '<row r="5"><c r="1A"><v>1</v></c></row><row r="6"><c r=""><v>2</v></c></row>'
+    ))).sheets[0];
 
-    await expect(read(bytes)).resolves.toBeDefined();
+    expect(rows[0].map(cell => cell.value)).toEqual(['Name', 'Amount', 'Active', 'Hired', 'Start', 'Ratio']);
+    expect(rows[3][0].value).toBe('Li Wei');
+    expect(rows[4]).toEqual([]);
+    expect(rows[5]).toEqual([]);
+    expect(rows.flat().filter(cell => cell && (cell.value === 1 || cell.value === 2))).toEqual([]);
+
+    // The control: the same rows with NO `r` place their cells implicitly, at exactly the slots
+    // inspected above — so the emptiness there is the reader ignoring the reference, not the
+    // probe looking in the wrong place.
+    const { rows: placed } = (await read(await withRows(
+      '<row r="5"><c><v>1</v></c></row><row r="6"><c><v>2</v></c></row>'
+    ))).sheets[0];
+
+    expect(placed[4][0].value).toBe(1);
+    expect(placed[5][0].value).toBe(2);
   });
 });
 
@@ -445,7 +463,13 @@ describe('native reader hardening: the part a sheet resolves to', () => {
     ));
 
     await expect(read(hostile)).rejects.toThrow(/has no worksheet part\./);
-    await expect(read(await repack('values', (part, text) => text))).resolves.toBeDefined();
+
+    const honest = await read(await repack('values', (part, text) => text));
+
+    // The honest file resolves the same sheet to its worksheet part and reads its cells.
+    expect(honest.sheets.map(sheet => sheet.name)).toEqual(['Values']);
+    expect(honest.sheets[0].rows[1][0].value).toBe('Ana García');
+    expect(honest.sheets[0].rows[1][1].value).toBe(4200.5);
   });
 });
 

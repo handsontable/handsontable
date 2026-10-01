@@ -331,25 +331,38 @@ describe('parseStyles', () => {
   });
 
   it('should resolve the locale date and time ids (27-36, 50-58) to a temporal stand-in code', () => {
-    const ids = [27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 50, 51, 52, 53, 54, 55, 56, 57, 58];
+    // Written from the documented intent (the ja-JP column of Excel's locale table, in ASCII), not
+    // copied from `LOCALE_NUM_FMTS`, so a wrong entry there fails here: 30 is the short date every
+    // locale shares, 32 and 33 are the clock times, and every other id is a calendar date.
+    const expected = {
+      27: 'yyyy/m/d',
+      28: 'yyyy/m/d',
+      29: 'yyyy/m/d',
+      30: 'm/d/yy',
+      31: 'yyyy/m/d',
+      32: 'h:mm',
+      33: 'h:mm:ss',
+      34: 'yyyy/m/d',
+      35: 'yyyy/m/d',
+      36: 'yyyy/m/d',
+      50: 'yyyy/m/d',
+      51: 'yyyy/m/d',
+      52: 'yyyy/m/d',
+      53: 'yyyy/m/d',
+      54: 'yyyy/m/d',
+      55: 'yyyy/m/d',
+      56: 'yyyy/m/d',
+      57: 'yyyy/m/d',
+      58: 'yyyy/m/d',
+    };
+    const ids = Object.keys(expected).map(Number);
     const { cellXfs } = parseStyles(
       `<styleSheet><cellXfs>${ids.map(id => `<xf numFmtId="${id}"/>`).join('')}</cellXfs></styleSheet>`,
     );
 
-    ids.forEach((id, index) => {
-      const { numFmt } = cellXfs[index];
-
-      // A bare serial with `numFmt: null` was the previous answer, so neither the import's type
-      // inference nor the reader's `date1904` shift treated the cell as a date.
-      expect(numFmt).toEqual(expect.any(String));
-      expect(/[ymdhs]/.test(numFmt)).toBe(true);
-    });
-
-    // 32 and 33 are clock times in every locale that defines them; the rest are dates.
-    expect(cellXfs[ids.indexOf(32)].numFmt).toBe('h:mm');
-    expect(cellXfs[ids.indexOf(33)].numFmt).toBe('h:mm:ss');
-    expect(cellXfs[ids.indexOf(30)].numFmt).toBe('m/d/yy');
-    expect(cellXfs[ids.indexOf(27)].numFmt).toBe('yyyy/m/d');
+    // A bare serial with `numFmt: null` was the previous answer, so neither the import's type
+    // inference nor the reader's `date1904` shift treated the cell as a date.
+    expect(Object.fromEntries(ids.map((id, index) => [id, cellXfs[index].numFmt]))).toEqual(expected);
   });
 
   it('should never hand a locale id out to the writer for the stand-in code', () => {
