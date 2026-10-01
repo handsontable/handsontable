@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies only if you export to XLSX.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies only if you export to XLSX. Section 25 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -1288,7 +1288,7 @@ const filtersSettings: Handsontable.plugins.Filters.Settings = {
 ## 24. XLSX export no longer needs ExcelJS
 
 This is not a breaking change. Every configuration that exported an XLSX file in 18.1 exports the
-same file in 19.0, apart from two bug fixes described below, and
+same file in 19.0, apart from three bug fixes described below, and
 `exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine.
 Three behaviors of the [`ExportFile`](@/api/exportFile.md) plugin changed additively: paths that
 refused the format now serve it. It applies only if you export to XLSX.
@@ -1296,7 +1296,7 @@ refused the format now serve it. It applies only if you export to XLSX.
 Handsontable 18.1 required ExcelJS for an XLSX export. You passed it as
 `exportFile: { engines: { xlsx: ExcelJS } }`, and without that entry the plugin refused the format.
 Handsontable 19.0 ships its own XLSX engine, so the format works with no engine configured. Three
-behaviors you could rely on in 18.1 changed with it, and two bug fixes change what the exported
+behaviors you could rely on in 18.1 changed with it, and three bug fixes change what the exported
 file holds.
 
 ### `supportsExportFormat('xlsx')` now answers `true` with no engine configured
@@ -1320,7 +1320,7 @@ to "To CSV".
 the built-in engine. A value that is not a supported engine module still rejects, with
 `Invalid xlsx engine module.`
 
-### Two bug fixes change the exported file
+### Three bug fixes change the exported file
 
 These are bug fixes, not breaking changes. They apply to both engines, but they change what an
 18.1 export wrote, so check them if another tool reads the file.
@@ -1349,6 +1349,18 @@ columns that the file contains.
 What to do: to freeze the same number of rows and columns as in 18.1, export the hidden ones with
 `exportHiddenRows: true` and `exportHiddenColumns: true`, and start the `range` at the first row
 and column.
+
+#### `NaN` and infinite numbers export as text
+
+What changed: in 18.1, a `numeric` cell holding `NaN`, `Infinity`, or `-Infinity` exported as a
+number cell with that value, such as `<v>NaN</v>`. That is not a legal number in the file, so Excel
+showed a repair dialog when it opened the file. The cell now exports as a text cell with the same
+text the grid shows (`NaN`, `Infinity`, or `-Infinity`), and Excel opens the file without a repair.
+The same applies to the cached result of a
+[`ColumnSummary`](@/api/columnSummary.md) cell, such as an average over an empty range.
+
+What to do: if a consumer of the file expects a number in every `numeric` cell, replace the
+non-finite values in your data, for example with `null`, before you export.
 
 ### Who is affected
 
@@ -1392,6 +1404,38 @@ The built-in engine needs the [Compression Streams API](https://developer.mozill
 which every browser Handsontable supports provides. See the
 [export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) guide for what
 each engine writes.
+
+## 25. `removeCellMeta()` accepts an index past the grid's range
+
+This is a bug fix, not a breaking change. It applies only if you call
+[`removeCellMeta()`](@/api/core.md#removecellmeta) with a row or column index that lies outside the
+grid's current range.
+
+In 18.1, such a call threw `Assertion failed: Expecting an unsigned number`, while
+[`setCellMeta()`](@/api/core.md#setcellmeta) accepted the same index. Now `removeCellMeta()` matches
+`setCellMeta()`: it uses the index as the physical index as it is, and removes the key from the cell
+meta stored there. A coordinate you captured before the data shrank, for example through
+[`updateData()`](@/api/core.md#updatedata), which keeps the cell meta, still addresses the record
+you wrote it to.
+
+### Who is affected
+
+- You call `removeCellMeta()` with an index past the last row or column and catch the error.
+- You trim rows or columns, through [`trimRows`](@/api/options.md#trimrows) or a filter, and call
+  `removeCellMeta()` with an index past the visible range. That index now names a physical record,
+  which can be a trimmed record that is still live.
+
+### How to migrate
+
+Pass the visual index of a cell the grid shows. To skip an index that lies outside the grid, check it
+against [`countRows()`](@/api/core.md#countrows) and [`countCols()`](@/api/core.md#countcols) before
+the call:
+
+```js
+if (row < hot.countRows() && column < hot.countCols()) {
+  hot.removeCellMeta(row, column, 'className');
+}
+```
 
 ---
 
