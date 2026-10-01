@@ -173,9 +173,7 @@
                * on top of the input's `::before` box. That only holds while the input keeps its
                * full `--ht-checkbox-size` width, hence `flex-shrink: 0` on the input above: the
                * label is `width: 100%`, so flex used to shrink the input (to about 12.6px on main),
-               * and the tick then landed about 3.4px before the box in LTR. The label
-               * sits that much further from the box than in 18.1 as a result, where the box
-               * overflowed the shrunk input into the label's padding. The parent `div` is a flex row
+               * and the tick then landed about 3.4px before the box in LTR. The parent `div` is a flex row
                * with `align-items: center`, so this needs no vertical nudge. `.ht-icon`'s own
                * `pointer-events: none` (`_icon.scss`) lets a click still reach the input
                * underneath. Visibility is driven by `:checked` on the input directly, not by the
@@ -213,7 +211,13 @@
               line-height: var(--ht-line-height);
               letter-spacing: var(--ht-letter-spacing);
               width: 100%;
-              padding: 0 0 0 calc(var(--ht-gap-size) * 2);
+              // One gap between the checkbox box and the text, on the inline-start side in both
+              // directions - the same gap the Filters "Filter by value" list and the checkbox
+              // renderer's label keep. The physical `padding-left` this replaced left no gap at all
+              // in RTL, and its doubled value showed once `flex-shrink: 0` above stopped the input
+              // shrinking into it.
+              padding: 0;
+              padding-inline-start: var(--ht-gap-size);
             }
           }
 

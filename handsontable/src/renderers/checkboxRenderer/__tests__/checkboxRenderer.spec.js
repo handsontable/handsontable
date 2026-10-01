@@ -20,9 +20,9 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    expect($(getRenderedValue(0, 0)).is(':checkbox')).toBe(true);
-    expect($(getRenderedValue(1, 0)).is(':checkbox')).toBe(true);
-    expect($(getRenderedValue(2, 0)).is(':checkbox')).toBe(true);
+    expect($(getRenderedValue(0, 0)).find(':checkbox').length).toBe(1);
+    expect($(getRenderedValue(1, 0)).find(':checkbox').length).toBe(1);
+    expect($(getRenderedValue(2, 0)).find(':checkbox').length).toBe(1);
   });
 
   it('should render check checkboxes for cell which value is true', async() => {
@@ -33,9 +33,9 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    expect($(getRenderedContent(0, 0)).prop('checked')).toBe(true);
-    expect($(getRenderedContent(1, 0)).prop('checked')).toBe(false);
-    expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
+    expect(getRenderedContent(0, 0).find(':checkbox').prop('checked')).toBe(true);
+    expect(getRenderedContent(1, 0).find(':checkbox').prop('checked')).toBe(false);
+    expect(getRenderedContent(2, 0).find(':checkbox').prop('checked')).toBe(true);
   });
 
   it('should use templates to check appropriate checkboxes', async() => {
@@ -50,9 +50,9 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    expect($(getRenderedContent(0, 0)).prop('checked')).toBe(true);
-    expect($(getRenderedContent(1, 0)).prop('checked')).toBe(false);
-    expect($(getRenderedContent(2, 0)).prop('checked')).toBe(true);
+    expect(getRenderedContent(0, 0).find(':checkbox').prop('checked')).toBe(true);
+    expect(getRenderedContent(1, 0).find(':checkbox').prop('checked')).toBe(false);
+    expect(getRenderedContent(2, 0).find(':checkbox').prop('checked')).toBe(true);
   });
 
   it('should select cell after checkbox click', async() => {
@@ -396,7 +396,10 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
-    expect(getCell(0, 0).querySelector('label').nextSibling.type).toEqual('checkbox');
+    // The input and its tick icon share a `span.htCheckboxRendererBox` wrapper, which takes the
+    // bare input's 18.1 place: the separated label's immediate next sibling.
+    expect(getCell(0, 0).querySelector('label').nextSibling.className).toBe('htCheckboxRendererBox');
+    expect(getCell(0, 0).querySelector('label').nextSibling.firstChild.type).toEqual('checkbox');
   });
 
   it('should add label on the end of a checkbox element', async() => {
@@ -439,10 +442,10 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
-    // The checkbox tick icon is inserted as the input's next sibling
-    // (`input.insertAdjacentElement('afterend', ...)`), so the separated label's immediate
-    // previous sibling is now that icon, with the checkbox input one step further back.
-    expect(getCell(0, 0).querySelector('label').previousSibling.previousSibling.type).toEqual('checkbox');
+    // The input and its tick icon share a `span.htCheckboxRendererBox` wrapper, which takes the
+    // bare input's 18.1 place: the separated label's immediate previous sibling.
+    expect(getCell(0, 0).querySelector('label').previousSibling.className).toBe('htCheckboxRendererBox');
+    expect(getCell(0, 0).querySelector('label').previousSibling.firstChild.type).toEqual('checkbox');
   });
 
   it('should not add label when value is incorrect (#bad-value)', async() => {

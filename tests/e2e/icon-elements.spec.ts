@@ -101,7 +101,8 @@ test.describe('Icon elements', () => {
 
       const icon = grid.icon('checkbox').first();
 
-      await expect(icon).toHaveCSS('position', 'relative');
+      // Absolutely positioned inside the `.htCheckboxRendererBox` wrapper, over the input.
+      await expect(icon).toHaveCSS('position', 'absolute');
       await expect(icon).toHaveCSS('z-index', '1');
     });
 
@@ -115,7 +116,9 @@ test.describe('Icon elements', () => {
 
       const geometry = await page.locator('.ht_master td').first().evaluate((td) => {
         const input = td.querySelector('input.htCheckboxRendererInput')!;
-        const icon = td.querySelector('.ht-icon.ht-icon-checkbox')!;
+        // The trailing gap is the `.htCheckboxRendererBox` wrapper's, which holds the input and
+        // its tick and is the cell's only child again, as the bare input was in 18.1.
+        const box = td.querySelector('.htCheckboxRendererBox')!;
         const inputStyle = getComputedStyle(input);
         const tdStyle = getComputedStyle(td);
         const contentLeft = td.getBoundingClientRect().left + parseFloat(tdStyle.borderLeftWidth) +
@@ -125,7 +128,7 @@ test.describe('Icon elements', () => {
           gap: parseFloat(inputStyle.getPropertyValue('--ht-gap-size')),
           // `margin-top: -2px` does not affect the horizontal offset read here.
           startOffset: input.getBoundingClientRect().left - contentLeft,
-          iconEndMargin: parseFloat(getComputedStyle(icon).marginRight),
+          iconEndMargin: parseFloat(getComputedStyle(box).marginRight),
         };
       });
 

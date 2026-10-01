@@ -73,6 +73,10 @@ export function checkboxRenderer(
   registerEvents(hotInstance);
 
   const input: HTMLInputElement = createInput(rootDocument);
+  // What the label branches place: the `span.htCheckboxRendererBox` positioning wrapper around the
+  // input and its tick, or the bare input for a `#bad-value#` cell. Resolved after
+  // `applyCheckedState()`, which is what decides the bad-value case.
+  let checkbox: HTMLElement = input;
   let inputOrWrapper: HTMLElement = input;
   const labelOptions = cellProperties.label as Record<string, unknown> | undefined;
   let badValue = false;
@@ -92,6 +96,29 @@ export function checkboxRenderer(
   const locale = cellProperties.locale as string | undefined;
 
   applyCheckedState();
+
+  // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
+  // children - so the input and the tick share a `span.htCheckboxRendererBox` wrapper, and every
+  // label arrangement below places that wrapper where 18.1 placed the bare input. The wrapper is
+  // a single atomic inline: two adjacent inline-blocks (input, then icon) are a soft-wrap
+  // opportunity in the `white-space: pre-wrap` cell, which dropped the tick onto a second line in
+  // a narrow column. Inside the wrapper the icon is absolutely positioned over the input
+  // (`_checkbox-renderer.scss`), so the wrapper is again the only child where 18.1 had the input
+  // alone, and the 18.1 `:first-child`/`:last-child` gap rules apply to it unchanged.
+  // `.ht-icon` carries `pointer-events: none` (`_icon.scss`), so a click still reaches the input
+  // underneath. Every render builds a fresh input and wrapper after `empty(contentRoot)`, so no
+  // duplicate-removal is needed.
+  //
+  // A `#bad-value#` cell keeps the 18.1 shape - the bare, hidden input and no tick: the input is
+  // `display: none` (`applyCheckedState()`), and a visible wrapper or tick would leave an empty
+  // box next to the bad-value text with nothing to represent.
+  if (!badValue) {
+    checkbox = createBox(rootDocument);
+    checkbox.appendChild(input);
+    checkbox.appendChild(createIcon(hotInstance, 'checkbox'));
+    inputOrWrapper = checkbox;
+  }
+
   applyLabelOptions();
 
   /**
@@ -165,19 +192,19 @@ export function checkboxRenderer(
       if (labelOptions.position === 'before') {
         if (labelOptions.separated) {
           contentRoot.appendChild(label);
-          contentRoot.appendChild(input);
+          contentRoot.appendChild(checkbox);
 
         } else {
-          label.appendChild(input);
+          label.appendChild(checkbox);
           inputOrWrapper = label;
         }
       } else if (!labelOptions.position || labelOptions.position === 'after') {
         if (labelOptions.separated) {
-          contentRoot.appendChild(input);
+          contentRoot.appendChild(checkbox);
           contentRoot.appendChild(label);
 
         } else {
-          label.insertBefore(input, label.firstChild);
+          label.insertBefore(checkbox, label.firstChild);
           inputOrWrapper = label;
         }
       }
@@ -186,25 +213,6 @@ export function checkboxRenderer(
 
   if (!labelOptions || (labelOptions && !labelOptions.separated)) {
     contentRoot.appendChild(inputOrWrapper);
-  }
-
-  // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
-  // children, so it is inserted as the input's next sibling instead. `insertAdjacentElement`
-  // needs the input to already have a parent, which every branch of `applyLabelOptions()` plus
-  // the `contentRoot.appendChild()` above guarantees by this point, whatever the label
-  // arrangement (no label, wrapped before/after, or separated before/after). `.ht-icon` carries
-  // `pointer-events: none` (`_icon.scss`), so a click still reaches the input underneath it. The
-  // renderer clones a fresh input per render (`createInput()`), so no duplicate-removal is
-  // needed here.
-  //
-  // Skipped for a `#bad-value#` cell: with `labelOptions.separated` the input is never appended
-  // anywhere above (see the final branch of the condition just above), so it has no parent to
-  // insert after; and even when it is appended, it is hidden via `display: none` (`applyCheckedState`)
-  // - the retired `::after` pseudo-element inherited that `display: none` from its host and
-  // painted nothing, but a sibling `<i>` element has no such inheritance and would float next to
-  // the bad-value text with nothing to represent.
-  if (!badValue) {
-    input.insertAdjacentElement('afterend', createIcon(hotInstance, 'checkbox'));
   }
 
   if (badValue) {
@@ -506,6 +514,20 @@ function createInput(rootDocument: Document): HTMLInputElement {
   input.setAttribute('tabindex', '-1');
 
   return input.cloneNode(false) as HTMLInputElement;
+}
+
+/**
+ * Create the positioning wrapper that holds the checkbox input and its tick icon.
+ *
+ * @param {Document} rootDocument The document owner.
+ * @returns {HTMLElement}
+ */
+function createBox(rootDocument: Document): HTMLElement {
+  const box = rootDocument.createElement('span');
+
+  box.className = 'htCheckboxRendererBox';
+
+  return box;
 }
 
 /**
