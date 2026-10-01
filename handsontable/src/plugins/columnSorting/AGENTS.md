@@ -340,14 +340,16 @@ because `:has()` is banned in this package (see the **monorepo-root** `../../../
 declared there, not in the core-package file).
 
 `sortAction` is required before reserving: the CSS that pulls the indicator out of the flex row is keyed on
-it, and with `headerAction: false` the label shows an indicator but keeps its full width, so reserving would
-just push it inwards.
+it, and with `headerAction: false` no indicator is rendered at all (18.1 painted the arrow only through
+`.columnSorting.sortAction.ascending::before`), so there is nothing to reserve.
 
 ## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 
 `#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
-order and the `indicator` setting: ascending → `arrowNarrowUp`, descending → `arrowNarrowDown`, anything
-else (no sort, `indicator: false`, or the whole plugin disabled via `disablePlugin()`'s `clearColHeader`) →
+order, the `indicator` setting, and the `headerAction` setting: ascending → `arrowNarrowUp`, descending →
+`arrowNarrowDown`, anything else (no sort, `indicator: false`, `headerAction: false` — 18.1 parity, the
+column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled via `disablePlugin()`'s
+`clearColHeader`) →
 `null`, which removes the slot. `syncIcon` guarantees exactly one `<i class="ht-icon
 ht-sort-indicator">` in the container regardless of how many times a render calls this hook.
 

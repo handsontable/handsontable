@@ -136,9 +136,18 @@
     }
 
     // Same affordance the label shows: the arrow sits outside the label's box, so it cannot
-    // inherit the label's `cursor`.
+    // inherit the label's `cursor`. The `:hover` half is not redundant. Blink's touch adjustment
+    // snaps a tap to the nearest node it considers tappable - one with a click listener, a
+    // focusable one, or one whose style is affected by `:hover`/`:active`. Sorting and the column menu both listen on ancestors, so
+    // without a hover-dependent rule the `<i>` is not tappable and a tap on the arrow is retargeted
+    // to the adjacent dropdown-menu button, opening the menu instead of sorting. In 18.1 the arrow
+    // was the label's `::before`, and the label has a `:hover` rule (above).
     .columnSorting.sortAction ~ .ht-sort-indicator {
       cursor: pointer;
+
+      &:hover {
+        cursor: pointer;
+      }
     }
 
     // A right-aligned column's label sits at the container's start edge (see `.htRight
@@ -228,16 +237,23 @@
     content: "*";
     display: inline-block;
     position: relative;
-    // Before icons became elements the real table's `.sortAction::before` rule (the glyph's box) also matched
-    // this pseudo-element and gave it `width: var(--ht-icon-size, 16px)`; this rule only added the
-    // padding below. The measured reserve was therefore `icon-size + (icon-size + 2px)`, not the
-    // glyph's own width plus the padding. That rule is gone with the pseudo-element glyph, so the
-    // width is restated here - dropping it measured every sortable header with a menu button about
-    // 10px narrower than 18.1 (the visual suite caught it on every nested-headers demo).
-    width: var(--ht-icon-size, 16px);
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
     padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
+  }
+
+  // Before icons became elements the real table's `.sortAction::before` rule (the glyph's box) also
+  // matched the ghost pseudo-element above and gave it `width: var(--ht-icon-size, 16px)`. The
+  // measured reserve of a clickable header was therefore `icon-size + (icon-size + 2px)`, not the
+  // `*` glyph's own width plus the padding. That rule is gone with the pseudo-element glyph, so the
+  // width is restated here - dropping it measured every sortable header with a menu button about
+  // 10px narrower than 18.1 (the visual suite caught it on every nested-headers demo). It stays
+  // scoped to `.sortAction`, as the 18.1 rule was: a `headerAction: false` label measures the `*`
+  // glyph's own width, so its auto-sized column keeps its 18.1 width.
+  .htGhostTable
+    .htCore
+    span.colHeader.columnSorting.sortAction:not(.indicatorDisabled)::before {
+    width: var(--ht-icon-size, 16px);
   }
 }

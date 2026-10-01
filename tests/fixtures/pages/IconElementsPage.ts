@@ -84,4 +84,125 @@ export class IconElementsPage {
   async backgroundColor(locator: Locator): Promise<string> {
     return locator.evaluate(el => getComputedStyle(el).backgroundColor);
   }
+
+  /**
+   * Returns a first-level column header in the top overlay clone. The fixture has
+   * `rowHeaders: true`, so the corner `th` comes first and is skipped.
+   */
+  sortHeader(visualColumn: number): Locator {
+    return this.page.locator('.ht_clone_top thead tr:last-child th').nth(visualColumn + 1);
+  }
+
+  /**
+   * Calls `updateSettings()` on the fixture's grid.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((s) => {
+      (window as unknown as { hot: any }).hot.updateSettings(s);
+    }, settings);
+  }
+
+  /**
+   * Sorts through the plugin API (`columnSorting` or `multiColumnSorting`), bypassing the header
+   * click gate.
+   */
+  async sortThroughApi(
+    pluginName: 'columnSorting' | 'multiColumnSorting',
+    config: { column: number; sortOrder: 'asc' | 'desc' } | { column: number; sortOrder: 'asc' | 'desc' }[],
+  ): Promise<void> {
+    await this.page.evaluate(({ name, cfg }) => {
+      (window as unknown as { hot: any }).hot.getPlugin(name).sort(cfg);
+    }, { name: pluginName, cfg: config });
+  }
+
+  /**
+   * Reads the sort order of a column from the plugin (`undefined` when unsorted).
+   */
+  async sortOrder(pluginName: 'columnSorting' | 'multiColumnSorting', column: number): Promise<string | undefined> {
+    return this.page.evaluate(({ name, col }) => {
+      return (window as unknown as { hot: any }).hot.getPlugin(name).getSortConfig(col)?.sortOrder;
+    }, { name: pluginName, col: column });
+  }
+
+  /**
+   * Builds an offscreen `.htGhostTable` header the way `AutoColumnSize` does, for each label class
+   * list given, and reads the `*` stand-in pseudo-element's computed box. Also measures a plain
+   * inline-block `*` in the same header, which is what the stand-in measures without an explicit
+   * width. Everything is read in one evaluation and the probe is removed before returning.
+   */
+  async ghostSortReserve(labelClasses: string[]): Promise<{
+    iconSize: number;
+    starWidth: number;
+    labels: { content: string; width: number; paddingInlineEnd: number }[];
+  }> {
+    return this.page.evaluate((classLists) => {
+      const hot = (window as unknown as { hot: any }).hot;
+      const ghost = document.createElement('div');
+
+      ghost.className = `htGhostTable htAutoSize ${hot.rootElement.className}`;
+      ghost.innerHTML = '<table class="htCore"><thead><tr>'
+        + classLists.map(c => `<th><div class="relative"><span class="${c}">A</span></div></th>`).join('')
+        + '<th class="star-probe"><div class="relative"><span class="colHeader"><span class="star" '
+        + 'style="display: inline-block">*</span></span></div></th>'
+        + '</tr></thead></table>';
+      hot.rootElement.appendChild(ghost);
+
+      const labels = Array.from(ghost.querySelectorAll('th:not(.star-probe) > .relative > span'))
+        .map((label) => {
+          const before = getComputedStyle(label, '::before');
+
+          return {
+            content: before.content,
+            width: parseFloat(before.width),
+            paddingInlineEnd: parseFloat(before.paddingInlineEnd),
+          };
+        });
+      const star = ghost.querySelector('.star') as HTMLElement;
+      const result = {
+        iconSize: parseFloat(getComputedStyle(star).getPropertyValue('--ht-icon-size')),
+        starWidth: star.getBoundingClientRect().width,
+        labels,
+      };
+
+      ghost.remove();
+
+      return result;
+    }, labelClasses);
+  }
+
+  /**
+   * Recalculates and reads the `AutoColumnSize` widths of the given visual columns.
+   */
+  async autoColumnWidths(columns: number[]): Promise<number[]> {
+    return this.page.evaluate((cols) => {
+      const plugin = (window as unknown as { hot: any }).hot.getPlugin('autoColumnSize');
+
+      plugin.recalculateAllColumnsWidth();
+
+      return cols.map(c => plugin.getColumnWidth(c));
+    }, columns);
+  }
+
+  /**
+   * Taps the center of the sort indicator in a column header with a finger-sized touch point.
+   *
+   * `page.touchscreen.tap()` sends a touch point with no radius, and Blink's touch adjustment
+   * (which retargets a tap to the nearest tappable node inside the touch area) then has no area
+   * to search. A real finger has one, so the tap goes through CDP with a radius instead
+   * (Chromium only - every project in this suite is Chromium).
+   */
+  async tapSortIndicator(visualColumn: number, radius = 12): Promise<void> {
+    const box = await this.sortHeader(visualColumn).locator('.ht-sort-indicator').boundingBox();
+
+    if (box === null) {
+      throw new Error(`Column ${visualColumn} has no rendered sort indicator to tap.`);
+    }
+
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2, radiusX: radius, radiusY: radius };
+    const cdp = await this.page.context().newCDPSession(this.page);
+
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
+  }
 }

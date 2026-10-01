@@ -1082,9 +1082,13 @@ export class ColumnSorting extends BasePlugin {
       const order = this.columnStatesManager?.getSortOrderOfColumn(column);
       let iconName: 'arrowNarrowUp' | 'arrowNarrowDown' | null = null;
 
-      if (showSortIndicator && order === ASC_SORT_STATE) {
+      // With `headerAction: false` the label never gets `sortAction`, and 18.1 painted the arrow
+      // only on `.sortAction`, so such a column shows no indicator (its `aria-sort` stays set).
+      const indicatorVisible = showSortIndicator && headerActionEnabled;
+
+      if (indicatorVisible && order === ASC_SORT_STATE) {
         iconName = 'arrowNarrowUp';
-      } else if (showSortIndicator && order === DESC_SORT_STATE) {
+      } else if (indicatorVisible && order === DESC_SORT_STATE) {
         iconName = 'arrowNarrowDown';
       }
 
@@ -1142,8 +1146,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     // `sortAction` is required: the CSS that pulls the indicator out of the flex row is keyed on
-    // it. With `headerAction: false` the label shows an indicator but keeps its full width, so
-    // reserving would just push it inwards.
+    // it, and with `headerAction: false` no indicator is rendered, so there is nothing to reserve.
     const showsIndicator = hasClass(headerSpanElement, HEADER_ACTION_CLASS) && (
       hasClass(headerSpanElement, HEADER_CLASS_ASC_SORT) ||
       hasClass(headerSpanElement, HEADER_CLASS_DESC_SORT)

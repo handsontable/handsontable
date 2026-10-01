@@ -44,6 +44,9 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
         font-size: 10px;
       }
 
+      .custom-sort-icon-example-3 .handsontable th .relative > .ht-sort-indicator {
+        inset-inline-end: calc(var(--ht-sort-indicator-offset-end) + 5px);
+      }
     }
   `,
   standalone: true,
