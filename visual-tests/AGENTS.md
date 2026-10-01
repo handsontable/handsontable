@@ -860,8 +860,8 @@ without complaint. Two checks keep the one from standing in for the other.
   `src/3rdparty/walkontable/dist/`. It does not ask git which files are ignored. Git's answer takes in every
   ignore rule, a machine's global excludes file included, so a rule written for another path can hide a real
   source: until each gained a leading slash, the core's `languages/` and `dev*.ts` kept a new
-  `src/i18n/languages/xx-XX.ts` and a new `src/plugins/dev-panel.ts` out of it
-  (`scripts/__tests__/gitignore-scope.test.mjs` now pins the anchoring). And a checkout without its own `.git`
+  `src/i18n/languages/xx-XX.ts` and a new `src/plugins/dev-panel.ts` out of it (the repository's
+  `scripts/__tests__/gitignore-scope.test.mjs` now pins the anchoring). And a checkout without its own `.git`
   inside another repository would get that repository's answer. No source may be newer than
   `handsontable/tmp/package.json`, which `postbuild` and `postbuild:partial` write when they compose the
   package. A rebuild of one task through `scripts/run.mjs` runs neither, so it still counts as stale. The check

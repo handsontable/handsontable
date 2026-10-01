@@ -1,6 +1,7 @@
 /**
- * Pins what the ignore rules that apply to the core package match: no tracked file of the package and none of the
- * probes for new sources below, but every output below that lands at a root.
+ * Pins what the ignore rules that apply to the core package match: no tracked file of the package, none of the
+ * probes for new sources below, and no dev page at another package's root, but every output below that lands at a
+ * root.
  *
  * `handsontable/.gitignore` has rules for what exists only at the package root: the build's `languages/` output and
  * the local dev pages, `dev*.html`, `dev*.js`, and `dev*.ts`. The monorepo root's `.gitignore` has `dev*.html` and
@@ -10,31 +11,36 @@
  * `handsontable/.config/development.js`. A tracked file stays tracked whatever the rules say, but a new one never
  * showed in `git status`, so a new dictionary could be left out of a commit without anyone noticing.
  *
- * The tests ask git itself, in a scratch repository that holds a copy of every tracked `.gitignore` at its own place
- * and nothing else. It lives in the tooling suite because CI runs that suite on every pull request, while the core's
- * Unit job skips a change that touches only a `.gitignore`.
+ * The tests ask git itself, in a scratch repository that holds a copy of every `.gitignore` the checkout has, at its
+ * own place, and nothing else. It lives in the tooling suite because CI runs that suite on every pull request, while
+ * the core's Unit job skips a change that touches only a `.gitignore`.
  */
 import { before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { devNull, tmpdir } from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
 
 const ROOT = repoRoot();
 
-// A git hook exports GIT_DIR, which would point every call below at the hook's repository, and a global or system
-// config can name an excludes file. Neither may take part in the answer.
-const GIT_ENV = {
-  ...process.env,
+// A git hook exports GIT_DIR, which would point every call below at the hook's repository. The checkout's own
+// listings keep the rest of the environment: git reads `safe.directory`, which a checkout owned by another user needs
+// (a CI container, a bind mount, a WSL `/mnt/c` checkout), from the global and system configs only.
+const REPO_ENV = { ...process.env };
+
+delete REPO_ENV.GIT_DIR;
+delete REPO_ENV.GIT_WORK_TREE;
+delete REPO_ENV.GIT_INDEX_FILE;
+
+// The scratch repository answers from the copied rules alone, so it reads no global or system config, which could
+// name an excludes file. The current user creates it, so it needs no `safe.directory`.
+const SCRATCH_ENV = {
+  ...REPO_ENV,
   GIT_CONFIG_GLOBAL: devNull,
   GIT_CONFIG_NOSYSTEM: '1',
 };
-
-delete GIT_ENV.GIT_DIR;
-delete GIT_ENV.GIT_WORK_TREE;
-delete GIT_ENV.GIT_INDEX_FILE;
 
 // New sources whose names a rule for the package root would also match without its leading slash: a dictionary lives
 // in a `languages/` directory, and a file whose name starts with `dev` is not a dev page. Each name sits at two
@@ -69,28 +75,35 @@ const ROOT_OUTPUTS = [
   'dev.html',
   'dev.js',
 ];
+// The root rules cover the repository root only, so a dev page at another package's root shows in `git status`. That
+// is the one thing the anchoring changed outside the core, and nothing writes such a page today.
+const OTHER_PACKAGE_PAGES = [
+  'wrappers/react-wrapper/dev.html',
+  'wrappers/react-wrapper/dev.js',
+];
 
 /**
- * Lists the repository's tracked files.
+ * Lists files of the checkout through `git ls-files`.
  *
+ * @param {string[]} args The `ls-files` options and pathspecs.
  * @returns {string[]} Paths relative to the repository root, with forward slashes.
  */
-function trackedFiles() {
-  return execFileSync('git', ['ls-files', '-z'], {
+function listFiles(args) {
+  return execFileSync('git', ['ls-files', '-z', ...args], {
     cwd: ROOT,
-    env: GIT_ENV,
+    env: REPO_ENV,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
   }).split('\0').filter(Boolean);
 }
 
 /**
- * Asks git which committed rule ignores each path. It runs in a scratch repository that holds a copy of every
- * tracked `.gitignore`, each at its own place, so nothing else can answer: `--template=` writes no
- * `.git/info/exclude`, `core.excludesFile` points at an empty file, and `core.ignorecase` is off, so a checkout on a
- * case-insensitive disk matches the way the Linux CI runner does.
+ * Asks git which rule ignores each path. It runs in a scratch repository that holds a copy of each given
+ * `.gitignore`, at its own place, so nothing else can answer: `--template=` writes no `.git/info/exclude`,
+ * `core.excludesFile` points at an empty file, and `core.ignorecase` is off, so a checkout on a case-insensitive disk
+ * matches the way the Linux CI runner does.
  *
- * @param {string[]} ignoreFiles The tracked `.gitignore` files, relative to the repository root.
+ * @param {string[]} ignoreFiles The `.gitignore` files to copy, relative to the repository root.
  * @param {string[]} paths Paths relative to the repository root, with forward slashes.
  * @returns {Map<string, string>} The ignoring rule per path as `<file>:<pattern>`, `''` where no rule ignores it.
  */
@@ -101,7 +114,7 @@ function ignoringRules(ignoreFiles, paths) {
     const worktree = path.join(scratch, 'repository');
     const excludesFile = path.join(scratch, 'excludes');
 
-    execFileSync('git', ['init', '--quiet', '--template=', worktree], { env: GIT_ENV });
+    execFileSync('git', ['init', '--quiet', '--template=', worktree], { env: SCRATCH_ENV });
     ignoreFiles.forEach((file) => {
       const copy = path.join(worktree, file);
 
@@ -118,7 +131,7 @@ function ignoringRules(ignoreFiles, paths) {
       'check-ignore', '--no-index', '--verbose', '--non-matching', '-z', '--stdin',
     ], {
       cwd: worktree,
-      env: GIT_ENV,
+      env: SCRATCH_ENV,
       encoding: 'utf8',
       input: paths.map(file => `${file}\0`).join(''),
       maxBuffer: 64 * 1024 * 1024,
@@ -148,13 +161,13 @@ let coreFiles;
 let rules;
 
 before(() => {
-  const tracked = trackedFiles();
+  // The `.gitignore` files git reads in this checkout: tracked or new, and on disk. Listed from the index alone, a new
+  // one would be left out until it is staged, and a tracked one deleted with plain `rm` could not be copied.
+  const ignoreFiles = [...new Set(listFiles(['--cached', '--others', '--exclude-standard']))]
+    .filter(file => path.posix.basename(file) === '.gitignore' && existsSync(path.join(ROOT, file)));
 
-  coreFiles = tracked.filter(file => file.startsWith('handsontable/'));
-  rules = ignoringRules(
-    tracked.filter(file => path.posix.basename(file) === '.gitignore'),
-    [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS],
-  );
+  coreFiles = listFiles(['--', 'handsontable']);
+  rules = ignoringRules(ignoreFiles, [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS, ...OTHER_PACKAGE_PAGES]);
 });
 
 test('no ignore rule matches a tracked file of the core package', () => {
@@ -174,5 +187,11 @@ NEW_SOURCES.forEach((file) => {
 ROOT_OUTPUTS.forEach((file) => {
   test(`${file} stays ignored`, () => {
     assert.match(rules.get(file) ?? '', /\S/);
+  });
+});
+
+OTHER_PACKAGE_PAGES.forEach((file) => {
+  test(`${file} is not ignored, because the root rules cover the repository root only`, () => {
+    assert.equal(rules.get(file), '');
   });
 });
