@@ -708,7 +708,7 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
  * @param {boolean} [options.checkAge] Whether to compare the core build with its sources.
  * @returns {{lines: string[], problems: Array<{summary: string, detail: string[], remedy: string}>}} The lines
  *   to print when nothing is wrong, one per package that resolves to its local build and one per example left
- *   unchecked, and the problems, each summary led by the example it concerns.
+ *   unchecked, and the problems: a stale core first, once, then each example's, its summary led by the example.
  */
 export function checkExamplesToBuild({ repoRoot: givenRoot, exampleDirs, checkAge = true }) {
   const repoRoot = realpathSync(givenRoot);

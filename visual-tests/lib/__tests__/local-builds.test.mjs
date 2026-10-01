@@ -1010,8 +1010,9 @@ test('every example in the visual-tests tree runs the guard first in its build, 
 test('every documentation example builds on its own, and declares the core that examples:build checks', () => {
   const examples = realExamples('docs');
 
-  // Five frameworks, fifteen examples. Fewer means the tree moved and this test checks nothing.
-  assert.equal(examples.length, 15, `found ${examples.length} examples`);
+  // Fifteen when this was written, in five frameworks. Fewer means the tree moved and this test checks nothing,
+  // or examples were removed and the floor comes down with them; a new example needs no change here.
+  assert.ok(examples.length >= 15, `found ${examples.length} examples`);
 
   examples.forEach(({ exampleDir, manifest: { scripts, dependencies, devDependencies } }) => {
     // The public samples: the documentation links them, CodeSandbox opens them, and examples/README.md has readers
@@ -1124,8 +1125,10 @@ function yamlItems(text) {
 /**
  * Finds the steps and scripts that build an example without its check. For a visual-test example, that is a
  * demo's build tool called in a step or script that works on the visual-tests tree, or a demo script other than
- * `build`. For a documentation example it is any build of one example: its own `build` script runs no guard, so
- * only `examples:build` checks it.
+ * `build`. For the documentation examples it is any build of them outside `examples:build`, from an example's
+ * directory or from its framework's: each framework directory is an npm workspaces root, so `--workspaces`, `-ws`,
+ * or `-w <example>` there builds its examples too. Their own `build` scripts run no guard, so only
+ * `examples:build` checks them.
  *
  * @param {Array<{file: string, text: string}>} sources The workflow and action files, as YAML text.
  * @param {Array<{file: string, scripts: object}>} manifests The package manifests whose scripts to read.
@@ -1134,8 +1137,8 @@ function yamlItems(text) {
 function bypasses(sources, manifests) {
   const touchesVisualTests = text => /visual-tests/.test(text);
   const otherDemoScript = /examples\/next\/visual-tests\/[\w-]+\/(demo|basic-example) run (?!build(\s|$))/;
-  const buildsDocsExample = text => /examples\/next\/docs\/[\w-]+\/[\w-]+/.test(text)
-    && (BUILD_TOOL.test(text) || /\brun build\b/.test(text));
+  const buildsDocsExample = text => /examples\/next\/docs\/[\w-]+/.test(text)
+    && (BUILD_TOOL.test(text) || /\brun(-script)? build\b/.test(text));
 
   return [
     ...sources.flatMap(({ file, text }) => yamlItems(text)
@@ -1171,6 +1174,14 @@ test('the bypass scan flags a step that builds an example around its check, and 
     '        run: npm --prefix examples/next/docs/js/demo run start',
     '      - name: Build the documentation examples',
     '        run: npm run examples:build next/docs/js',
+    // Each framework directory is an npm workspaces root, so one command there builds all its examples.
+    '      - name: Build the js documentation examples as workspaces',
+    '        run: npm --prefix examples/next/docs/js run build --workspaces',
+    '      - name: Build them in the framework directory',
+    '        run: npm run build -ws',
+    '        working-directory: examples/next/docs/vue3',
+    '      - name: Install the js documentation examples',
+    '        run: npm --prefix examples/next/docs/js install',
   ].join('\n');
   const scripts = {
     'serve-example': 'npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082',
@@ -1178,6 +1189,7 @@ test('the bypass scan flags a step that builds an example around its check, and 
     'docs:build': 'cd ../docs && ng build',
     'docs-demo': 'cd examples/next/docs/js/demo && vite build',
     'docs-examples': 'npm run examples:build next/docs',
+    'docs-workspace': 'npm --prefix examples/next/docs/react-wrapper run-script build -w demo',
   };
 
   assert.deepEqual(bypasses([{ file: 'x.yml', text: yaml }], [{ file: 'package.json', scripts }]), [
@@ -1185,8 +1197,11 @@ test('the bypass scan flags a step that builds an example around its check, and 
     'x.yml: - name: A second script',
     'x.yml: - name: Build a documentation example by its own script',
     'x.yml: - name: Build one in its directory',
+    'x.yml: - name: Build the js documentation examples as workspaces',
+    'x.yml: - name: Build them in the framework directory',
     'package.json: scripts.build-demo',
     'package.json: scripts.docs-demo',
+    'package.json: scripts.docs-workspace',
   ]);
 });
 

@@ -875,7 +875,7 @@ extends them to the documentation examples.
   from each demo build whose other output it hides. It lays out its problems through the guard's
   `formatProblems()`, and so does the third check below, so their messages cannot drift apart.
 - **`examples:build` checks every example under `examples/next/` before it builds the first one, and that is
-  the only check the documentation examples get.** The 15 examples under `examples/next/docs/` declare `latest`
+  the only check the documentation examples get.** The examples under `examples/next/docs/` declare `latest`
   the same way and go through the same linker, so they have the same two silent paths, and the visual suite
   never serves them. Their `build` scripts cannot run the guard. They are the public samples: the
   documentation links them, CodeSandbox opens them, and `examples/README.md` tells readers to copy one into a
@@ -886,14 +886,17 @@ extends them to the documentation examples.
   `npm run all build` in each `build-all.yml` leg, and the release cut's `npm run in examples build` in
   `publish.yml`, which smoke-tests them next, so a registry copy there would test the previous release rather
   than the candidate. Both run the `examples` workspace's `build` script, `npm run examples:build next`. It
-  refuses before building anything, and each problem names its example and the command that fixes it, such as
+  refuses before building anything. A stale core is reported once and first, every other problem names the
+  example it is in, and each one ends with the command that fixes it, such as
   `npm run examples:install next/docs/js`. The visual-test examples are checked there too, on top of their own
   guard, so a broken link refuses before the first build rather than after the others built. An example
   outside `examples/next/` is not checked, since the linker links nothing else, and neither is one that
   declares no `handsontable` or `@handsontable/*` package; each gets a line saying so. A documentation example
-  built directly (`npm --prefix examples/next/docs/js/demo run build`) is not checked, which is what keeps it
-  working outside the monorepo, so build them through `examples:build` (for one framework,
-  `npm run examples:build next/docs/js`).
+  built directly is not checked, which is what keeps it working outside the monorepo. That covers
+  `npm --prefix examples/next/docs/js/demo run build`, and also `npm --prefix examples/next/docs/js run build
+  --workspaces`, since each framework directory is an npm workspaces root. So build them through
+  `examples:build` (for one framework, `npm run examples:build next/docs/js`); the bypass scan fails any
+  workflow step or package script that builds them either way.
 - **Why not `"handsontable": "workspace:*"`.** The protocol resolves only inside the pnpm workspace, and the
   demos are not in it: they are npm projects under four committed framework lockfiles, installed by
   `examples/scripts/install-subpackages.mjs`. Making them members would put the React, Angular, and Vue demo
