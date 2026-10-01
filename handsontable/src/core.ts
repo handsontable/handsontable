@@ -2658,6 +2658,30 @@ export default function Core(
   }
 
   /**
+   * Resolves the physical row that a change addresses. A change can name a row that does not exist
+   * yet and that `applyChanges()` creates only after the validation settles. Such a row has no
+   * physical index to translate, and it is appended after the last source row, so it takes the
+   * next free physical index - not its visual one, which is smaller as soon as a trimming map
+   * removes records from the visual space. The validation result is written on the meta stored
+   * under that index, so the created row has to find it there (DEV-155).
+   *
+   * @private
+   * @param {number} visualRow The visual row index of the change.
+   * @returns {number} The physical row index.
+   */
+  function toPhysicalRowOfChange(visualRow: number): number {
+    const physicalRow = instance.toPhysicalRow(visualRow);
+
+    if (physicalRow !== null) {
+      return physicalRow;
+    }
+
+    const visibleRowsCount = instance.countRows();
+
+    return visualRow >= visibleRowsCount ? instance.countSourceRows() + visualRow - visibleRowsCount : visualRow;
+  }
+
+  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -2730,10 +2754,14 @@ export default function Core(
         // object per changed cell while the validator is looked up. Cells that DO have a
         // validator switch to the eagerly stored meta object below - validation writes its
         // `valid` result on the meta, and that result must survive on the stored object.
-        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
+        const physicalRow = toPhysicalRowOfChange(row);
+        const physicalColumn = instance.toPhysicalColumn(visualCol as number) ?? visualCol as number;
+        const metaOptions = { visualRow: row, visualColumn: visualCol as number };
+
+        cellProperties = metaManager.getCellMetaTransient(physicalRow, physicalColumn, metaOptions);
 
         if (instance.getCellValidator(cellProperties)) {
-          cellProperties = instance.getCellMeta(row, visualCol as number);
+          cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn, metaOptions);
         }
 
       } else {
