@@ -75,6 +75,7 @@ const ExampleComponent = () => {
           source: products,
           strict: false,
           trimDropdown: false,
+          width: 120,
         },
       ]}
     />

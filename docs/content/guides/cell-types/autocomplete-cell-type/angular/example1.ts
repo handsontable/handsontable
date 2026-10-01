@@ -79,6 +79,7 @@ export class AppComponent {
         source: products,
         strict: false,
         trimDropdown: false,
+        width: 120,
       },
     ]
   };

@@ -73,6 +73,7 @@ const hotSettings = ref<GridSettings>({
       source: products,
       strict: false,
       trimDropdown: false,
+      width: 120,
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
