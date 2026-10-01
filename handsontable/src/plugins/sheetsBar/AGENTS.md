@@ -78,13 +78,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 ## Traps
 
 - **The tab strip hides its scrollbar with `scrollbar-width: none !important`** (DEV-3191), under
-  the `.handsontable` prefix the bar root carries. Keep both. A page-wide `scrollbar-width` rule
-  without `!important` already loses on specificity, whatever the load order, but one that carries
-  `!important` (`* { scrollbar-width: thin !important }`) beats a plain declaration and paints a bar
-  into the strip. A host `.handsontable .wtHolder` rule never matches the strip, which is not a
-  holder. The rule still loses to a host `!important` rule of higher specificity and to one inside
-  a CSS `@layer` (important declarations reverse layer order), so do not claim the strip is immune
-  to host CSS. The `::-webkit-scrollbar` rule is the fallback for older engines.
+  the `.handsontable` prefix the bar root carries. Keep both the `!important` and the prefix. A
+  page-wide rule such as `* { scrollbar-width: thin }` loses to the strip's selector on specificity
+  whatever the load order, but one that carries `!important` (`* { scrollbar-width: thin !important }`)
+  beats a plain declaration and paints a bar into the strip. A host `.handsontable .wtHolder` rule
+  never matches the strip, which is not a holder. The rule still loses to a host `!important` rule of
+  higher specificity and to one inside a CSS `@layer` (important declarations reverse layer order),
+  so do not claim the strip is immune to host CSS. A host rule that ties or beats the strip's
+  specificity (`.handsontable .ht-sheets-bar__tabs`, loaded later) is also covered by the `!important`.
+  Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not `auto`, so that rule only
+  backs up older engines.
 - **The keyboard lives in a shortcut context** (`plugin:sheetsBar`) behind a focus scope, like
   Pagination. The scope's `runOnlyIf` stands aside while one of the bar's menus is open — the
   click that opens a menu reaches the scope manager after the menu has taken the keyboard, and

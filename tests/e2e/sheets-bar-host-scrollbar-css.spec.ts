@@ -5,10 +5,10 @@ import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
  * The sheets bar tab strip must stay scrollbar-free under a page-wide `!important` scrollbar rule.
  *
  * The strip scrolls horizontally through the paging arrows and hides its scrollbar with
- * `scrollbar-width: none`. A host page that restyles every scroll container with an `!important`
- * rule (`* { scrollbar-width: thin !important }`) beat that plain declaration and painted a bar into
- * the strip. A host rule without `!important` never won, because the strip's selector is more
- * specific, so only the `!important` forms are asserted.
+ * `scrollbar-width: none !important`. A host page that restyles every scroll container with an
+ * `!important` rule (`* { scrollbar-width: thin !important }`) beat the plain declaration it used to
+ * have and painted a bar into the strip. A low-specificity host rule without `!important` never won,
+ * because the strip's selector is more specific, so only the `!important` forms are asserted.
  *
  * Only the computed style and the box geometry are asserted, never the stylesheet text.
  *
