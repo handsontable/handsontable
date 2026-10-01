@@ -1,5 +1,6 @@
 /**
- * Pins the reach of the ignore rules that apply to the core package, in both directions.
+ * Pins what the ignore rules that apply to the core package match: no tracked file of the package and none of the
+ * probes for new sources below, but every output below that lands at a root.
  *
  * `handsontable/.gitignore` has rules for what exists only at the package root: the build's `languages/` output and
  * the local dev pages, `dev*.html`, `dev*.js`, and `dev*.ts`. The monorepo root's `.gitignore` has `dev*.html` and
