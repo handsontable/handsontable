@@ -138,9 +138,31 @@ jobs:
               - *hot-shared
               - 'wrappers/**'
               - './examples/next/visual-tests/**'
+            # Everything the core Jest run loads outside `src/`, which `*hot-shared`
+            # already covers. `handsontable/jest.config.js` has two roots, `src` and
+            # `test`, so a test-tree test, a setup file, or a mock or helper one of
+            # them imports must route Unit on its own: otherwise a pull request that
+            # changes only that file skips the job, and the change first runs on the
+            # develop push after the merge. That happened while this filter named
+            # only `./handsontable/test/unit/**`, which stopped being a Jest root in
+            # 2023. .github/scripts/__tests__/unit-scope.test.mjs derives the set from
+            # the Jest config, and fails on a file it reaches that no entry routes or
+            # on an entry that matches no tracked file.
             test-handsontable-unit:
               - *hot-shared
-              - './handsontable/test/unit/**'
+              - './handsontable/jest.config.js'
+              - './handsontable/test/**/*.unit.{js,ts}'
+              # The setup files, and the mocks and helpers they import.
+              - './handsontable/test/bootstrap.js'
+              - './handsontable/test/cryptoSetup.js'
+              - './handsontable/test/jsdomThemeVars.js'
+              - './handsontable/test/__mocks__/**'
+              - './handsontable/test/helpers/**'
+              # Loaded for every test: babel-jest reads handsontable/babel.config.js,
+              # which extends the root one, which requires the browser floor
+              # (esTarget.unit.js imports it directly too).
+              - './babel.config.js'
+              - './browser-targets.js'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files
