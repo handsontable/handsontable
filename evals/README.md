@@ -188,9 +188,10 @@ Measured on 2026-10-01 with `src/helpers/errors.ts`:
   `--findRelatedTests <mutated file>` and runs the result in one process. For
   this helper that is 333 of the 461 unit suites, and the run hit Stryker's
   five-minute `dryRunTimeoutMinutes` (`Initial test run timed out!`, 5 min 14 s
-  of wall time). The whole unit suite takes over six minutes even with Jest's
-  parallel workers, and each mutant run would repeat the related set, so
-  raising the timeout only postpones the failure.
+  of wall time). Run in one process without Stryker, that set took 13 min 52 s
+  (4420 tests). Each mutant run repeats it, so a raised timeout would buy a run
+  of about half an hour for this helper's 3 mutants: one pass for the initial
+  run, then one per mutant.
 - **Stryker's own `--testFiles` gives a false score.** It scopes the initial run
   only. Under `coverageAnalysis: "all"` every covered mutant counts as static,
   and the jest runner passes such a mutant the test *file paths* as a test-name
@@ -224,9 +225,10 @@ every file in the report.
   move the backups back. `SIGINT` (Ctrl+C), `SIGTERM`, `SIGHUP`, and
   `SIGABRT` are safe: Stryker restores the files before it exits.
 - A new modification time on each mutated file, and its default mode: the
-  restore moves the backup, a new file, over the original. That is how ten
-  executable plugin sources came back from every run with a mode-only diff.
-  No tracked file under `handsontable/src` is executable any more, and
+  restore moves the backup, a new file, over the original. While Stryker's
+  default rewrote every file, that is how ten executable plugin sources came
+  back from every run with a mode-only diff. No tracked file under
+  `handsontable/src` is executable any more, and
   `scripts/__tests__/source-file-modes.test.mjs` keeps it that way.
 
 Pilot result (2026-07-14): `src/helpers/errors.ts` → 4 mutants, 4 killed,

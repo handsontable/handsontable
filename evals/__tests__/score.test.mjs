@@ -620,6 +620,8 @@ const requireCjs = createRequire(import.meta.url);
  */
 function loadStrykerJestConfig(testFiles) {
   const previous = process.env.HOT_MUTATION_TEST_FILES;
+  // The module cache is keyed by the resolved (real) path, not the one asked for.
+  const cacheKey = requireCjs.resolve(STRYKER_JEST_CONFIG);
 
   if (testFiles === undefined) {
     delete process.env.HOT_MUTATION_TEST_FILES;
@@ -627,12 +629,12 @@ function loadStrykerJestConfig(testFiles) {
     process.env.HOT_MUTATION_TEST_FILES = testFiles;
   }
 
-  delete requireCjs.cache[STRYKER_JEST_CONFIG];
+  delete requireCjs.cache[cacheKey];
 
   try {
     return requireCjs(STRYKER_JEST_CONFIG);
   } finally {
-    delete requireCjs.cache[STRYKER_JEST_CONFIG];
+    delete requireCjs.cache[cacheKey];
 
     if (previous === undefined) {
       delete process.env.HOT_MUTATION_TEST_FILES;
