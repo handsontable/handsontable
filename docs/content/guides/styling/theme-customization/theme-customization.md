@@ -306,7 +306,9 @@ Every built-in icon renders as an `<i class="ht-icon ht-icon-<name>">` element, 
 }
 ```
 
-Unlike the size variables above, do not write an icon override as a descendant of your container (`#my-grid .ht-theme-main`). Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, outside your container, so such a rule misses every icon they show. As with any bare `.ht-theme-main` rule, load your stylesheet after the theme stylesheet.
+Unlike the size variables above, do not write an icon override as a descendant of your container (`#my-grid .ht-theme-main`). Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, outside your container, so such a rule misses every icon they show.
+
+The same `.ht-theme-main` rule works whether you load a theme stylesheet or pass a theme object. A theme stylesheet declares the icon variables with a selector of the same specificity, so load your stylesheet after it. A theme object emits them, like every other variable, under `:where(.ht-theme-main)`, which has zero specificity, so your rule wins wherever it loads.
 
 To replace icons with an icon font instead of a static glyph, use the Theme API's `icons` parameter. A class list works for an icon font that ships CSS classes, such as [Tabler Icons](https://tabler.io/icons):
 
@@ -333,7 +335,7 @@ myTheme.params({
 
 This mapping only takes effect when the grid receives its theme as a configuration object through the `theme` option. If you apply a theme by putting a class such as `ht-theme-main` directly on the container instead, class-list and callback icon mappings do nothing -- CSS variable overrides still work in that setup.
 
-See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#24-icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
+See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
 
 ## Option 4: Use the Theme Builder UI
 

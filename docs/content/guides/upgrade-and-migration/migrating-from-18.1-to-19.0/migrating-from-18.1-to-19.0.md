@@ -295,9 +295,31 @@ A property named `checked` holding anything else, such as any other string or a 
 The built-in "Read only" and "Read-only comment" items use `'mixed'` when only some of the selected
 cells are read-only. They show a dash there, where they used to show a check mark.
 
-If you use a theme without icons, such as `ht-theme-main-no-icons.css`, and draw the check mark
-yourself with a rule for `span.selected::after`, add a matching rule for `span.htMixed::after`.
-Otherwise the dash is not visible.
+If you use a theme without icons, such as `ht-theme-main-no-icons.css`, draw both marks on their icon
+elements. The check mark is an `<i class="ht-icon ht-icon-check">` inside `span.selected`, and the
+dash is an `<i class="ht-icon ht-icon-collapse-off">` inside `span.htMixed`. Give each one a mask:
+
+```css
+.htItemWrapper .ht-icon-check {
+  mask-image: url('/icons/check.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+
+.htItemWrapper .ht-icon-collapse-off {
+  mask-image: url('/icons/dash.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: currentColor;
+}
+```
+
+A rule for `span.selected::after` from 18.1 paints nothing in 19.0. The span keeps `font-size: 0`,
+so a pseudo-element added to it inherits that size and renders no box. See
+[Icons are rendered as `<i>` elements](#icons-are-rendered-as-i-elements).
 
 If the property was your own bookkeeping and you want neither effect, rename it:
 
@@ -1294,22 +1316,25 @@ Every built-in icon used to be a CSS `::before`/`::after` pseudo-element, genera
 - You style a built-in icon with a `::before` or `::after` selector, such as `.changeType::before` or `.ht-page-next::before`.
 - Your tests assert on the DOM structure of a cell, header, or menu item that contains an icon -- for example, counting child elements, or using `:first-child`.
 - Your own CSS has a bare `i` rule, or a selector such as `td.querySelector('i')`, that could now match a Handsontable icon it wasn't written for.
-- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. The class stays on the icon element as a legacy hook, but the element is now an `<i class="ht-icon ht-icon-search">` painted from a mask, so a rule that set `background-image` on it no longer paints -- override `--ht-icon-search` instead.
-- You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, just a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
+- You use `.ht-multi-select-editor-search-icon` to style the multi-select editor's search icon. In 18.1 the icon was a `<div>` with that class, already painted from a mask. It's now an `<i class="ht-icon ht-icon-search">` element that keeps the class as a legacy hook. A selector that names the `div` no longer matches. To change the glyph, override `--ht-icon-search`.
+- You build your own markup that reuses one of Handsontable's own input classes for its styling -- `htUIRadio` or `htCheckboxRendererInput` are the two that carried a glyph. Both used to get that glyph from CSS alone (a pseudo-element on the input); now the glyph is a separate `<i class="ht-icon ht-icon-<name>">` element, inserted as the input's next sibling only by Handsontable's own components. Markup you build by hand -- for example, a custom cell renderer that copies these classes for their look -- renders the input with no glyph and nothing tells you why: no error, no console warning, only a missing dot or check mark. Add the icon element yourself, as a sibling immediately after the input, to get it back.
+- You select or style the elements inside a `checkbox` cell. The input and its tick now share a wrapper: `span.htCheckboxRendererBox > input.htCheckboxRendererInput + i.ht-icon.ht-icon-checkbox`. The wrapper sits where the bare input used to be, before or after the label, so the cell has the same number of children as in 18.1. `td.querySelector('input')` and `input + .ht-icon` selectors still match. Code that treats the cell's first child as the input gets the wrapper instead -- use `querySelector('input')`. If a custom renderer hides the input, hide the wrapper too (or the icon, through `.htCheckboxRendererInput + .ht-icon`), or the tick stays visible on its own.
+- You compare screenshots of the multi-select editor's option list. The gap between a checkbox and its label is now one `--ht-gap-size`, on the label's inline-start side, in both LTR and RTL. In 18.1 the list set a physical left padding, so an RTL list had no gap at all.
 - You read or select the Filters condition dropdown's caption by its own text content. The caption's text now lives in a `<span class="htUISelectCaptionLabel">` child; see [The Filters caption text moved into a child element](#the-filters-caption-text-moved-into-a-child-element) below.
 - You pass a string icon value through the Theme API's `icons` parameter. In 18.1, every string was a glyph, wrapped in `url(...)`. In 19.0, a string can also be a class list for an icon font. Markup, `data:`/`http(s):`/`blob:` URLs, absolute and `./`/`../` paths, `url(...)`, and a file name with an image extension (a query string or fragment included, such as `icons/check.svg?v=2`) are still glyphs. A relative path with no file extension, such as `icons/check`, is now a class list and paints nothing -- start it with `./` or wrap it in `url(...)`. See [How a string value is read](@/guides/styling/themes/themes.md#how-a-string-value-is-read).
 - You import `iconsMap` from `handsontable/themes/static/variables/helpers/iconsMap` to generate icon CSS for a custom theme. The pseudo-element selectors it generated no longer exist, so it's deprecated and will be removed in 20.0.0. Until then, it logs a one-time warning and returns the `iconStyles()` output: the `--ht-icon-*` variables and the `.ht-icon-<name>` rules that paint the icon elements. Switch to `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`, which takes a full scope selector (such as `.ht-theme-main`) instead of a theme class prefix.
-- You render a grid whose `layoutDirection` disagrees with the page's `dir` attribute. Mirrored icons (pagination and sheets bar arrows, the submenu arrow) now follow the grid's own direction. Before, the pagination and sheets bar arrows followed any `dir="rtl"` ancestor, so an LTR grid on an RTL page mirrored them; that was a defect and it no longer happens.
-- You mirror icons for RTL yourself, or compare RTL screenshots pixel by pixel. Mirrored icons used to be flipped with `rotate(180deg)`, which also flipped them vertically. They now mirror with `scaleX(-1)`, which flips only horizontally, so the RTL submenu, pagination, and Filters arrows sit about 0.8px higher than in 18.1.
+- You render a grid whose `layoutDirection` disagrees with the page's `dir` attribute. Mirrored icons (pagination and sheets bar arrows, the submenu arrow) now follow the grid's own direction. Before, the pagination arrows followed any `dir="rtl"` ancestor of the icon, through the `[dir="rtl"]` prefix in the icon stylesheet, so an LTR grid on an RTL page mirrored them. That was a defect, and it no longer happens.
+- You mirror icons for RTL yourself, or compare RTL screenshots pixel by pixel. The RTL submenu arrow used to be flipped with `rotate(180deg)`, which also flipped it vertically. It now mirrors with `scaleX(-1)`, which flips only horizontally, so it sits about 0.5px higher than in 18.1. The RTL pagination arrows used to swap to the opposite glyph. They now mirror the same glyph with `scaleX(-1)`, which can move them by a fraction of a pixel. No Filters arrow is mirrored. The hidden-column carets still turn with `rotate(180deg)`.
 - You add an `afterGetColHeader` or `afterGetRowHeader` hook that rewrites the header cell through `TH.innerHTML`. The hidden-column and hidden-row carets are now children of the header cell, and your hook runs after the plugin's, so rewriting the whole cell removes them. The `beforeHiddenColumn`/`afterHiddenColumn` (and `beforeHiddenRow`/`afterHiddenRow`) classes stay on the cell. Write into the header's `.colHeader` label instead of the whole cell to keep the carets.
-- You load a `-no-icons` theme bundle and render `checkbox` cells. The checkbox used to fall back to a native checkbox there. It now renders the theme's styled box with no tick, because its `appearance: none` moved into the base stylesheet. Load the matching `ht-icons-<name>.css` file to get the tick back.
-- **Your TypeScript code reads the theme's `icons` config. This is a type-level breaking change.** A value in `getThemeConfig().icons` is now typed `string | IconRenderer` (a renderer callback is a valid value), so code that passes it where a `string` is expected stops compiling -- narrow it with `typeof value === 'string'` first. `IconKey` also gained `chipClose` and `search`, so an exhaustive `switch` over `IconKey` needs two more cases.
+- You load a `-no-icons` theme bundle and render `checkbox` cells. The checkbox used to fall back to a native checkbox there. It now renders the theme's styled box with no tick, because its `appearance: none` moved into the base stylesheet. The Filters "Filter by value" list changes the same way. Load the matching icon file to get the tick back: `ht-icons-main.css` for the main and classic themes, `ht-icons-horizon.css` for horizon.
+- You load a `-no-icons` theme bundle and use pagination or the sheets bar. Their buttons now hold an empty `.ht-icon` element, and the base `.ht-icon` rule in `handsontable.css` sizes it to `--ht-icon-size` (16px by default). So an icon-less button keeps the size it has with icons, instead of collapsing to its padding, as the pagination buttons did in 18.1.
+- **Your TypeScript code reads the theme's `icons` config. This is a type-level breaking change.** A value in `getThemeConfig().icons` is now typed `string | IconRenderer` (a renderer callback is a valid value), so code that passes it where a `string` is expected stops compiling -- narrow it with `typeof value === 'string'` first. `IconKey` also gained `chipClose`, `search`, `plus`, and `menuList`, so an exhaustive `switch` over `IconKey` needs four more cases.
 
 ### The Filters caption text moved into a child element
 
 The Filters condition dropdown's caption (`.htUISelectCaption`) used to hold its text directly. It now holds a `<span class="htUISelectCaptionLabel">` with the text, followed by the caret icon element. This is a DOM-structure change that ships with the icon change because the caret became a child of the caption: writing the caption's text through `textContent` would have removed the icon on every condition change.
 
-Code that reads the caption through `textContent` still gets the text, with the icon contributing nothing. Code that assumes the caption has no child elements, or that reads its first text node, needs to target `.htUISelectCaptionLabel` instead.
+Code that reads the caption through `textContent` still gets only the text when the caret is a built-in mask glyph, because the icon element holds no text. An icon mapped to a ligature font or a renderer callback that writes text adds its characters to the caption's `textContent`. To read the label alone, read `.htUISelectCaptionLabel`. Code that assumes the caption has no child elements, or that reads its first text node, needs to target `.htUISelectCaptionLabel` instead.
 
 ### The new element can collide with your own selectors
 
@@ -1344,15 +1369,14 @@ The table below lists every selector the old `iconsMap` stylesheet generated and
 | `.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after`, `.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after` | `.ht-icon-arrow-right` |
 | `.ht-page-size-section__select-wrapper::after` | `.ht-icon-arrow-down` |
 | `.changeType::before` | `.ht-icon-menu` |
-| `.htUISelectCaption::after`, `.htAutocompleteArrow::after`, `.ht-multi-select-arrow::after` | `.ht-icon-select-arrow` |
+| `.htUISelectCaption::after`, `.htAutocompleteArrow::after` | `.ht-icon-select-arrow` |
 | `.columnSorting.sortAction.ascending::before` | `.ht-icon-arrow-narrow-up` |
 | `.columnSorting.sortAction.descending::before` | `.ht-icon-arrow-narrow-down` |
 | `.ht-page-navigation-section .ht-page-first::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left-with-bar` |
 | `.ht-page-navigation-section .ht-page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
 | `.ht-page-navigation-section .ht-page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
 | `.ht-page-navigation-section .ht-page-last::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right-with-bar` |
-| `.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after`, `.htContextMenu table tbody tr td .htItemWrapper span.selected::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after`, `.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after` | `.ht-icon-check` |
-| `.htDropdownMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htContextMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.htMixed::after`, `.htSheetsBarMenu table tbody tr td .htItemWrapper span.htMixed::after` | `.ht-icon-collapse-off` |
+| `.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after`, `.htContextMenu table tbody tr td .htItemWrapper span.selected::after`, `.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after` | `.ht-icon-check` |
 | `.htCheckboxRendererInput::after` | `.ht-icon-checkbox` |
 | `th.beforeHiddenColumn::after` | `.ht-icon-caret-hidden-left` |
 | `th.afterHiddenColumn::before` | `.ht-icon-caret-hidden-right` |
@@ -1365,11 +1389,8 @@ The table below lists every selector the old `iconsMap` stylesheet generated and
 | `.ht-notification__close::before` | `.ht-icon-chip-close` |
 | `.ht-multi-select-editor-item-selected input::after` | `.ht-icon-checkbox` |
 | `.ht-multi-select-editor-search-icon` (a class on the search icon's own element, not a pseudo-element; kept on the new element as a legacy class) | `.ht-icon-search` |
-| `.ht-sheets-bar__add::before` | `.ht-icon-plus` |
-| `.ht-sheets-bar__all::before` | `.ht-icon-menu-list` |
-| `.ht-sheets-bar__tab-chevron::after` | `.ht-icon-select-arrow` |
-| `.ht-sheets-bar__page-prev::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-left` |
-| `.ht-sheets-bar__page-next::before` (and its `[dir="rtl"]` pair) | `.ht-icon-arrow-right` |
+
+The sheets bar and the mixed-state menu mark are new in 19.0, so no 18.1 selector exists for them. Their icons use the same classes: `.ht-icon-plus` (add sheet), `.ht-icon-menu-list` (all sheets), `.ht-icon-select-arrow` (tab chevron), `.ht-icon-arrow-left` and `.ht-icon-arrow-right` (tab paging), `.ht-icon-check` (the selected sheet), and `.ht-icon-collapse-off` (a mixed-state menu item).
 
 For example, a rule that used to read:
 
@@ -1386,6 +1407,8 @@ now targets the icon element directly:
   background-color: blue;
 }
 ```
+
+The descendant form works here because the menu icon is a child of the `.changeType` button. Not every icon is a descendant of the element its old pseudo-element hung on. The sort arrow is a following sibling of the `.colHeader` label, so target it with `~`, as in `.columnSorting.sortAction ~ .ht-icon`. The checkbox, radio, and multi-select editor ticks are the next sibling of their input, so target them with `+`, as in `.htCheckboxRendererInput + .ht-icon`. An input can't hold children, so a descendant selector such as `.htCheckboxRendererInput .ht-icon` never matches.
 
 To change only the glyph and keep the built-in color and mask behavior, override the CSS variable instead, scoped to the theme class:
 
