@@ -418,7 +418,11 @@ export class DialogUI {
    * Handles the transition end event.
    */
   #onTransitionEnd() {
-    const { dialogElement } = this.#refs!;
+    if (!this.#refs) {
+      return;
+    }
+
+    const { dialogElement } = this.#refs;
 
     if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
       dialogElement.style.display = 'none';
