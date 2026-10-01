@@ -310,8 +310,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   sheet's array, which the host holds by reference. On the init build, where no view exists yet,
   it threw `Cannot read properties of undefined (reading '_wt')`. So `#applySheet` runs the update
   under `#withoutMergeCellsSettingsPass`, which sets MergeCells' `@private` `deferSettingsPass`
-  flag (duck-typed, like `#withoutFormulasSwitchLoad`): `updatePlugin()` then rebuilds the plugin
-  and keeps its record of applied areas, but builds nothing. After `loadData()`,
+  flag: `updatePlugin()` then rebuilds the plugin and keeps its record of applied areas, but
+  builds nothing. After `loadData()`,
   `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
   declared merges against the arriving data; a sheet with a stored state passes `false` and
   builds none, because it restores its own merges and the declared ones would win over the ones
@@ -328,10 +328,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the host's and can shrink while the sheet is away), and one that would overlap a merge
   already on screen, which only a host listener adding merges during the load can produce,
   since the automatic path skips the overlap check.
-  The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
-  declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
-  `auto: true` (UndoRedo records nothing for that), and no cell is written, where the public
-  `merge()` rewrote every covered cell with `null`.
+  The rest go through `mergeRange(range, true, true)` inside `restoreMergedAreas()`, the path
+  MergeCells uses for merges declared in its settings: no out-of-bounds warning,
+  `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
+  and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
+  **Every MergeCells member the switch uses is one MergeCells owns** — `getVisibleMergedAreas()`
+  (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore), the
+  `deferSettingsPass` flag and `runDeferredSettingsPass()` — read through the typed
+  `hot.getPlugin('mergeCells')`, never a structural cast, so a rename or re-signature there fails
+  the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
+  throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
+  from here again.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
