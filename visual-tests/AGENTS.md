@@ -473,9 +473,9 @@ does for you):
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
   six specs with their 15 lines, and its replacements assert every state they capture; the
-  submenu-placement trim (#13656) retired the menu family's 24 the same way, and the editors trim that
-  family's 15. So 46 remain, in 27 specs (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests`
-  counts them);
+  submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
+  family's 15, and the resize-guide trim the complex demo's 2. So 44 remain, in 26 specs
+  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
   `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
@@ -653,7 +653,26 @@ does for you):
   capture of each list on every js variant (the handsontable list's columns and header row, and the
   dropdown's focus and hover tokens) and the RTL mirror of each on `main`. The native date picker is the
   browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on every js
-  variant, which waits on the input's `:open` state before it photographs.
+  variant, which waits on the input's `:open` state before it photographs. The complex demo's two
+  geometry captures follow the same rule. Where the row resize handle and its guide are drawn — the
+  handle centered on the row boundary, the guide's line level with it (the pixel #11500 fixed),
+  spanning to the table's end and following a drag — is asserted in
+  `tests/e2e/manual-resize-guide-geometry.spec.ts`, on a header in each of the three overlays that can
+  hold one. That every overlay cell coincides with its master cell under 125% CSS zoom (the #11465
+  class), on the demo's shape with a frozen column and on one with row headers alone, is asserted in
+  `tests/e2e/overlay-alignment-css-zoom.spec.ts`. The two bottom overlays are pinned to the window's
+  bottom edge there, so against the master they are compared on columns and row heights, and against
+  each other on all four edges, the bottom-freeze seam row included; their vertical position against the
+  master rows is compared at 100% with the grid's end in view, where it is exact. Under zoom it is not:
+  the engine places that band from whole-pixel sizes, and the result carries a rounding residue of up to
+  0.5px that changes with the zoom level (0 at 80% and 150% on `main`, 0.5px at 125% on every theme), a
+  tolerance for which would also admit the one-snapped-border drift the spec exists to catch. What
+  stays under `tests/js-only/complex-demo/` is one capture of the pressed guide and active handle on
+  every js variant — it is of two tokens, `--ht-accent-color` and `--ht-resize-indicator-color`, and
+  the second is painted nowhere else — and one of the zoomed demo on `main`, a sub-pixel paint smoke
+  in the look-check shape. That shape's second condition, the spec that photographs the same component
+  on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
+  later trim of that declaration re-opens this one.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -751,8 +770,9 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (46 since #13647, #13656, and the editors trim retired the filters family's 15,
-  the menu family's 24, and the editors family's 15). The rules, what they cannot see, and their three
+  counted and greppable (44 since #13647, #13656, the editors trim, and the resize-guide trim retired the
+  filters family's 15, the menu family's 24, the editors family's 15, and the complex demo's 2). The
+  rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root
