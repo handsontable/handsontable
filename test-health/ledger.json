@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-01T08:10:48.333Z",
+  "updatedAt": "2026-10-01T12:19:43.690Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD (theme: classic)",
+      "file": "handsontable/src/editors/textEditor/__tests__/textEditor.spec.js",
+      "line": null,
+      "title": "TextEditor should be displayed and resized properly, so it doesn't exceed the viewport dimensions",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Error: Timeout - Async function did not complete within 15000ms (set by jasmine.DEFAULT_TIMEOUT_INTERVAL)",
+      "isolation": "passes alone",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "36856883095",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36856883095",
+      "workflow": "Tests",
+      "branch": "feature/DEV-3216_Scope-mutation-runs-to-scored-test",
+      "headSha": "2a92a563d7bec06a6b6d4b8d875c96fa4f3384b4",
+      "event": "pull_request",
+      "seenAt": "2026-10-01T12:18:13Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic",
