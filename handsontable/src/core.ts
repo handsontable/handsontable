@@ -5935,7 +5935,7 @@ export default function Core(
     // idempotent would apply twice – and the source data validator does not judge them again: it
     // could blank a value that was accepted when it was first written. The source is read as the
     // operation reads it, so an array-form call takes it from the second argument.
-    const isReplay = isUndoRedoSource(source);
+    const isReplay = isUndoRedoSource(readOperationSource(row, column, source));
     const toStoredValue = (
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
     ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
