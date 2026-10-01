@@ -81,6 +81,15 @@ the same reason; keep the two together, and treat a change as a behavior change.
 `ht-dialog--show` added. The read is what commits the `display` change, so the transition runs instead of
 being skipped. Removing it is invisible in tests and breaks the animation.
 
+## Transition listeners outlive `destroyDialog()`
+
+`install()` binds `transitionstart`/`transitionend` on the container, and `destroyDialog()` removes the
+element and clears `#refs` without unbinding them. A transition still running at that moment can deliver
+`transitionend` afterwards — Chrome 154 does, Chrome 152 did not — so `#onTransitionEnd` returns early when
+`#refs` is gone. Without the guard the listener throws an uncaught `TypeError`, and in the legacy Puppeteer
+suite one uncaught page error aborts the whole run. Any new listener on the container needs the same guard.
+Pinned by `__tests__/ui.unit.js`.
+
 ## The license lock screen is NOT this plugin
 
 Core's `utils/licenseBranding/lockScreen.ts` **reuses this plugin's CSS by wearing its class names**

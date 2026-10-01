@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
+import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
@@ -535,7 +536,8 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Calculates the space above and below the editor and flips it vertically if needed.
+   * Calculates the space on the inline-start and inline-end sides of the editor and flips it
+   * horizontally if needed.
    *
    * @private
    * @returns {{ isFlipped: boolean, spaceInlineStart: number, spaceInlineEnd: number}}
@@ -556,12 +558,10 @@ export class HandsontableEditor extends TextEditor {
     let workspaceWidth = view.getWorkspaceWidth();
 
     if (view.isHorizontallyScrollableByWindow()) {
-      const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
+      const windowScroll = getWindowScrollInlineMetrics(this.hot);
 
-      spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
-      // For window-scrollable tables, spaceInlineStart is viewport-relative so the right
-      // boundary must also be viewport width, not the holder's offsetWidth.
-      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
+      spaceInlineStart = Math.max(spaceInlineStart + windowScroll.inlineStartOffset, 0);
+      workspaceWidth = windowScroll.viewportWidth;
     }
 
     const dropdownTargetWidth = this.getDropdownWidth();
