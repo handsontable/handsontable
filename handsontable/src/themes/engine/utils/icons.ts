@@ -40,7 +40,14 @@ export function getIconCssVariable(name: string): string {
  * Image file extensions a bare path or URL is recognized by, optionally followed by a query
  * string or a fragment (`/icons/check.svg?v=2`, `check.png#dark`).
  */
-const IMAGE_PATH_PATTERN = /\.(svg|png|gif|jpe?g|webp|avif|bmp|ico)([?#].*)?$/i;
+const IMAGE_PATH_PATTERN = /\.(svgz?|a?png|gif|jpe?g|jfif|webp|avif|jxl|bmp|ico|tiff?)([?#].*)?$/i;
+
+/**
+ * The root `<svg` tag of a markup glyph when it does not declare the default SVG namespace. An
+ * `xmlns:xlink` (or any other prefixed) declaration does not count. Without the default namespace
+ * a browser parses the decoded `data:` URI as plain XML and the mask paints nothing.
+ */
+const SVG_ROOT_WITHOUT_XMLNS = /<svg(?![^>]*\sxmlns\s*=)(?=[\s/>])/i;
 
 /**
  * Prefixes that only a URL or a path can start with. A class list cannot: none of them is a
@@ -53,12 +60,14 @@ const URL_PREFIXES = ['data:', 'url(', 'http://', 'https://', 'blob:', '//', '/'
  * - markup: anything starting with `<` (`<svg ...>`, `<?xml ...?><svg ...>`);
  * - a URL or a path: a `data:`, `blob:`, `http(s):`, protocol-relative, absolute or relative
  *   (`./`, `../`) value, or `url(...)`;
- * - a single token (no whitespace) naming an image file, with an optional query or fragment
- *   (`icons/check.svg`, `arrow.png?v=2`).
+ * - a value naming an image file, with an optional query or fragment (`icons/check.svg`,
+ *   `arrow.png?v=2`, `icons/my star.svg`);
+ * - a single token (no whitespace) holding both a `/` and a `?` (`api/icon?name=x`).
  *
  * In 18.1 every string was wrapped in `url(...)`; since 19.0 a string that is none of the above is
  * a class list. The rules above cover the URL shapes an 18.1 config holds in practice; an
- * extension-less relative path (`icons/check`) is the one form that now reads as a class.
+ * extension-less relative path without a query (`icons/check`) is the one form that now reads as
+ * a class.
  */
 export function isGlyphValue(value: string): boolean {
   const trimmed = value.trim();
@@ -73,18 +82,30 @@ export function isGlyphValue(value: string): boolean {
     return true;
   }
 
-  return !/\s/.test(trimmed) && IMAGE_PATH_PATTERN.test(trimmed);
+  // The generator quotes the URL (`url("...")`), so a space in a file name is valid there.
+  if (IMAGE_PATH_PATTERN.test(trimmed)) {
+    return true;
+  }
+
+  // An extension-less endpoint with a query (`api/icon?name=x`). A `/` alone is not enough: a
+  // Tailwind-style fraction (`w-1/2`) is a class token.
+  return !/\s/.test(trimmed) && trimmed.includes('/') && trimmed.includes('?');
 }
 
 /**
  * Normalizes a glyph value to a bare URL (no `url()` wrapper). Markup (SVG, with or without an
- * XML prolog) is encoded into a `data:` URI.
+ * XML prolog) is encoded into a `data:` URI, with the default SVG namespace added to the root
+ * `<svg>` when the markup leaves it out.
  */
 export function toGlyphUrl(value: string): string {
   const trimmed = value.trim();
 
   if (trimmed.startsWith('<')) {
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`;
+    // Only the first `<svg` (the root, after any XML prolog or comment) gets the namespace; a
+    // nested `<svg>` inherits it.
+    const markup = trimmed.replace(SVG_ROOT_WITHOUT_XMLNS, '<svg xmlns="http://www.w3.org/2000/svg"');
+
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
   }
 
   if (trimmed.toLowerCase().startsWith('url(')) {

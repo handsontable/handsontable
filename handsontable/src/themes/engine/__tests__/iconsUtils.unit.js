@@ -46,6 +46,43 @@ describe('icon utils', () => {
     expect(isGlyphValue('size-4 w-1/2')).toBe(false);
     expect(isGlyphValue('fa-solid fa-image')).toBe(false);
     expect(isGlyphValue('i-mdi:check')).toBe(false);
+    expect(isGlyphValue('ti ti-svg')).toBe(false);
+    expect(isGlyphValue('icon-png fa-solid')).toBe(false);
+  });
+
+  it('classifies image paths with less common extensions, spaces, or a query as glyphs', () => {
+    expect(isGlyphValue('icons/my star.svg')).toBe(true);
+    expect(isGlyphValue('sprites/check.svgz')).toBe(true);
+    expect(isGlyphValue('img/a.tif')).toBe(true);
+    expect(isGlyphValue('img/a.tiff?v=1')).toBe(true);
+    expect(isGlyphValue('icons/anim.apng')).toBe(true);
+    expect(isGlyphValue('photo.jfif')).toBe(true);
+    expect(isGlyphValue('icons/check.jxl#dark')).toBe(true);
+    expect(isGlyphValue('api/icon?name=x')).toBe(true);
+  });
+
+  it('adds the SVG namespace to markup whose root lacks it', () => {
+    const encoded = markup => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+
+    expect(toGlyphUrl('<svg viewBox="0 0 16 16"><path d="M0 0"/></svg>'))
+      .toBe(encoded('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 0"/></svg>'));
+    expect(toGlyphUrl('<svg>x</svg>')).toBe(encoded('<svg xmlns="http://www.w3.org/2000/svg">x</svg>'));
+    expect(toGlyphUrl('<?xml version="1.0"?><svg viewBox="0 0 1 1"></svg>'))
+      .toBe(encoded('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>'));
+    // `xmlns:xlink` alone does not declare the default namespace.
+    expect(toGlyphUrl('<svg xmlns:xlink="http://www.w3.org/1999/xlink"></svg>'))
+      .toBe(encoded('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>'));
+    // Only the root is touched; a nested `<svg>` inherits the namespace.
+    expect(toGlyphUrl('<svg><svg viewBox="0 0 1 1"></svg></svg>'))
+      .toBe(encoded('<svg xmlns="http://www.w3.org/2000/svg"><svg viewBox="0 0 1 1"></svg></svg>'));
+  });
+
+  it('keeps markup that already declares the SVG namespace byte-identical', () => {
+    const markup = '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M0 0"/></svg>';
+    const singleQuoted = '<svg xmlns=\'http://www.w3.org/2000/svg\'></svg>';
+
+    expect(toGlyphUrl(markup)).toBe(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`);
+    expect(toGlyphUrl(singleQuoted)).toBe(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(singleQuoted)}`);
   });
 
   it('encodes markup with an XML prolog as an SVG data URI', () => {
@@ -61,7 +98,8 @@ describe('icon utils', () => {
     expect(toGlyphUrl('url(\'/a.svg\')')).toBe('/a.svg');
     expect(toGlyphUrl('/a.svg')).toBe('/a.svg');
     expect(toGlyphUrl('<svg viewBox="0 0 1 1"/>'))
-      .toBe(`data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg viewBox="0 0 1 1"/>')}`);
+      .toBe(`data:image/svg+xml;charset=utf-8,${
+        encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>')}`);
   });
 
   it('splits glyphs from external values', () => {

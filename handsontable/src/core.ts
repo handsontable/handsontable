@@ -7736,6 +7736,11 @@ export default function Core(
   /**
    * Use the theme specified by the provided name.
    *
+   * When the grid runs a theme object (the `theme` option set to a theme config or a `ThemeBuilder`
+   * instance) and you pass a different theme name, or `null`, the grid stops using the theme
+   * object: its injected styles and icon mapping are removed, and later changes to the theme
+   * object no longer affect the grid.
+   *
    * @memberof Core#
    * @function useTheme
    * @since 15.0.0
@@ -7743,6 +7748,17 @@ export default function Core(
    */
   this.useTheme = (themeName: string | null) => {
     const isFirstRun = !!firstRun;
+
+    // Switching away from a theme object tears its manager down, the same way
+    // `updateSettings({ theme: '<class name>' })` does. Left alive, the manager keeps its `<style>`
+    // node and its subscription to the shared theme object, so a later `theme.params()` re-injects
+    // the old styles and fires `afterSetTheme` with the old class name. `destroy()` also clears
+    // `instance.themeManager`, so the icon helpers rebuild the manager's external icons as plain
+    // glyphs on the `afterSetTheme` below. The internal callers pass the manager's own class name,
+    // which keeps it.
+    if (instance.themeManager && instance.themeManager.getClassName() !== themeName) {
+      instance.themeManager.destroy();
+    }
 
     this.stylesHandler.useTheme(themeName ?? undefined);
 

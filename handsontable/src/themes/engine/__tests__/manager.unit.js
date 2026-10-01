@@ -821,13 +821,29 @@ describe('ThemeManager', () => {
         expect(css).toContain('.ht-icon-arrow-right {');
       });
 
+      it('declares the icon variables at :where() specificity, like every other token, so a ' +
+        'page stylesheet can override them', () => {
+        const mockHot = hot();
+        const manager = createThemeManager({
+          hot: mockHot,
+          themeObject: createTheme(createValidThemeConfig({
+            icons: { arrowRight: 'data:image/svg+xml,%3Csvg%3E', check: '/icons/check.svg' },
+          })),
+        });
+
+        const css = manager.themeStyles.textContent;
+
+        expect(css).toMatch(/:where\(\.ht-theme-test-theme\) \{\n(?: {2}--ht-icon-[a-z-]+: url\("[^"]*"\);\n)+\}/);
+        expect(css).not.toMatch(/(^|\n)\.ht-theme-test-theme \{\n {2}--ht-icon-/);
+      });
+
       it('encodes raw SVG markup as a data URI', () => {
         const mockHot = hot();
         const manager = createThemeManager({
           hot: mockHot,
           themeObject: createTheme(createValidThemeConfig({ icons: { check: '<svg viewBox="0 0 1 1"/>' } })),
         });
-        const expectedUri = encodeURIComponent('<svg viewBox="0 0 1 1"/>');
+        const expectedUri = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>');
 
         expect(manager.themeStyles.textContent)
           .toContain(`--ht-icon-check: url("data:image/svg+xml;charset=utf-8,${expectedUri}");`);
@@ -944,7 +960,7 @@ describe('ThemeManager', () => {
         expect(icon.getAttribute('aria-hidden')).toBe('true');
       });
 
-      it('falls back to the built-in glyph and warns once when a renderer callback throws', () => {
+      it('drops the external marker and warns once when a renderer callback throws', () => {
         const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
         const renderer = jest.fn((element) => {
           element.textContent = 'partial';
@@ -968,6 +984,11 @@ describe('ThemeManager', () => {
         const rendererWarnings = warnSpy.mock.calls.filter(([message]) => /"menu" icon renderer threw/.test(message));
 
         expect(rendererWarnings.length).toBe(1);
+        // The slot is external, so no `--ht-icon-menu` variable is emitted: the warning must not
+        // promise a built-in glyph that a Theme-API-only setup never paints.
+        expect(rendererWarnings[0][0]).not.toContain('built-in glyph is shown');
+        expect(rendererWarnings[0][0])
+          .toContain('so the slot is left empty unless a stylesheet declares `--ht-icon-menu`');
         warnSpy.mockRestore();
       });
 

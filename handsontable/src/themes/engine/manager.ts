@@ -4,7 +4,8 @@ import { warn, warnOnce } from '../../helpers/console';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { flattenCssVariables } from './utils/cssVariables';
 import { validateColorScheme, validateDensityType } from './utils/validation';
-import { splitIcons, ICON_CLASS, ICON_EXTERNAL_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName } from './utils/icons';
+import { splitIcons, ICON_CLASS, ICON_EXTERNAL_CLASS, ICON_FLIP_RTL_CLASS, getIconClassName,
+  getIconCssVariable } from './utils/icons';
 import type { ThemeConfig, ThemeColorScheme, DensityType, IconKey, IconValue, ThemeIconsConfig } from '../types';
 import type { ThemeBuilder } from './builder';
 import type { IconOptions } from './icons';
@@ -459,7 +460,8 @@ export class ThemeManager {
       if (!this.#runIconRenderer(external, element, name)) {
         // A throwing callback must not take the draw down with it: every header draw runs this,
         // and on `syncIcon()`'s re-apply path the revision stamp is written only after this
-        // returns, so it would throw again on every render. Fall back to the built-in glyph.
+        // returns, so it would throw again on every render. Drop the external marker; the slot
+        // paints only if a stylesheet declares its `--ht-icon-<name>` variable.
         element.className = classes.filter(className => className !== ICON_EXTERNAL_CLASS).join(' ');
         element.textContent = '';
         element.setAttribute('aria-hidden', 'true');
@@ -481,7 +483,8 @@ export class ThemeManager {
 
   /**
    * Runs an icon renderer callback. A callback that throws is reported once per icon name for this
-   * manager, and the caller falls back to the built-in glyph.
+   * manager, and the caller drops the external marker (the slot then paints only when a stylesheet
+   * declares its `--ht-icon-<name>` variable).
    *
    * @param {Function} renderer The callback from the theme's `icons` config.
    * @param {HTMLElement} element The `<i>` element.
@@ -496,7 +499,8 @@ export class ThemeManager {
       return true;
     } catch (error) {
       warnOnce(this, `icons.${name}`,
-        `The "${name}" icon renderer threw an error, so the built-in glyph is shown instead.`, error);
+        `The "${name}" icon renderer threw an error, so the slot is left empty unless a stylesheet ` +
+        `declares \`${getIconCssVariable(name)}\`.`, error);
 
       return false;
     }
@@ -553,7 +557,7 @@ export class ThemeManager {
     this.themeStyles.textContent += this.#buildOverrideStyles();
 
     if (hasGlyphs) {
-      this.themeStyles.textContent += iconStyles(glyphs, `.${this.themeClassName}`);
+      this.themeStyles.textContent += iconStyles(glyphs, `:where(.${this.themeClassName})`);
     }
 
     // Ensure that the manager always controls its own style node.
