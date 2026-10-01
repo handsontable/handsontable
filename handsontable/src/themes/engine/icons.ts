@@ -126,7 +126,7 @@ export function syncIcon(
     return null;
   }
 
-  if (existing && existing.classList.contains(getIconClassName(name))) {
+  if (existing?.classList.contains(getIconClassName(name))) {
     // A kept slot's classes are right, but the theme's mapping for this name (glyph vs. class
     // list vs. renderer) can still have changed since this element was built - a runtime `icons`
     // config change or theme switch. Re-applying on every draw would turn this cheap class check

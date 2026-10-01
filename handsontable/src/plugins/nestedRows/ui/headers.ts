@@ -151,24 +151,14 @@ class HeadersUI extends BaseUI {
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       const collapsed = this.collapsingUI!.areChildrenCollapsed(rowIndex);
+      const stateButtonClass = collapsed ? HeadersUI.CSS_CLASSES.expandButton : HeadersUI.CSS_CLASSES.collapseButton;
 
-      if (collapsed) {
-        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
+      addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${stateButtonClass}`);
 
-        if (ariaEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(false)
-          ]);
-        }
-
-      } else {
-        addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
-
-        if (ariaEnabled) {
-          setAttribute(TH, [
-            A11Y_EXPANDED(true)
-          ]);
-        }
+      if (ariaEnabled) {
+        setAttribute(TH, [
+          A11Y_EXPANDED(!collapsed)
+        ]);
       }
 
       // `buttonsContainer` is a brand-new `DIV` created a few lines above (never reused across

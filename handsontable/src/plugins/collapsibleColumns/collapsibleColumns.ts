@@ -852,7 +852,7 @@ export class CollapsibleColumns extends BasePlugin {
   #syncIndicatorContent(indicator: HTMLElement, text: string, iconName: 'collapseOn' | 'collapseOff') {
     const first = indicator.firstChild;
 
-    if (first && first.nodeType === 3) {
+    if (first?.nodeType === 3) {
       if (first.textContent !== text) {
         first.textContent = text;
       }

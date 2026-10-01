@@ -17,10 +17,13 @@ export const ICON_NAMES = [
 ] as const satisfies readonly IconKey[];
 
 type MissingIconName = Exclude<IconKey, (typeof ICON_NAMES)[number]>;
-// Compile-time exhaustiveness: adding an `IconKey` without listing it here is a type error.
-const assertAllIconNamesListed: MissingIconName extends never ? true : never = true;
+type AssertTrue<T extends true> = T;
 
-void assertAllIconNamesListed;
+/**
+ * Compile-time exhaustiveness: adding an `IconKey` without listing it in `ICON_NAMES` makes the
+ * argument `false`, which fails the `true` constraint.
+ */
+export type AllIconNamesListed = AssertTrue<[MissingIconName] extends [never] ? true : false>;
 
 /**
  * Returns the per-glyph class for an icon slot, e.g. `ht-icon-arrow-right`.
@@ -40,7 +43,24 @@ export function getIconCssVariable(name: string): string {
  * Image file extensions a bare path or URL is recognized by, optionally followed by a query
  * string or a fragment (`/icons/check.svg?v=2`, `check.png#dark`).
  */
-const IMAGE_PATH_PATTERN = /\.(svgz?|a?png|gif|jpe?g|jfif|webp|avif|jxl|bmp|ico|tiff?)([?#].*)?$/i;
+const IMAGE_EXTENSIONS = new Set([
+  'svg', 'svgz', 'png', 'apng', 'gif', 'jpg', 'jpeg', 'jfif', 'webp', 'avif', 'jxl', 'bmp', 'ico',
+  'tif', 'tiff',
+]);
+
+/**
+ * Checks whether a value ends in a known image file extension, ignoring a trailing query string or
+ * fragment.
+ *
+ * @param {string} value The trimmed value to check.
+ * @returns {boolean}
+ */
+function hasImageExtension(value: string): boolean {
+  const path = value.split(/[?#]/, 1)[0];
+  const dotIndex = path.lastIndexOf('.');
+
+  return dotIndex !== -1 && IMAGE_EXTENSIONS.has(path.slice(dotIndex + 1).toLowerCase());
+}
 
 /**
  * The root `<svg` tag of a markup glyph when it does not declare the default SVG namespace. An
@@ -83,7 +103,7 @@ export function isGlyphValue(value: string): boolean {
   }
 
   // The generator quotes the URL (`url("...")`), so a space in a file name is valid there.
-  if (IMAGE_PATH_PATTERN.test(trimmed)) {
+  if (hasImageExtension(trimmed)) {
     return true;
   }
 

@@ -88,4 +88,23 @@ test.describe('icon elements - sheets-bar all-sheets menu', () => {
     // Hebrew name turned the wrapper RTL and `inset-inline-end` put the mark on the left.
     expect(await grid.centerX(mark)).toBeGreaterThan(await grid.centerX(wrapper));
   });
+
+  test('the sheet name ellipsizes in its own span, so a right-to-left name is cut at its own end', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new IconElementsMiscPage(page, theme, bundle);
+
+    await grid.goto({ sheetsBar: true });
+    await grid.renameActiveSheet('גיליון');
+    await grid.openAllSheetsMenu();
+
+    const name = grid.activeSheetMenuWrapper().locator('.ht-sheets-bar__menu-item-name');
+
+    await expect(name).toHaveAttribute('dir', 'auto');
+    // Only an inline-block with its own overflow can ellipsize the name at the name's end; as a
+    // plain inline span the wrapper's ellipsis would cut a right-to-left name at its start.
+    await expect(name).toHaveCSS('display', 'inline-block');
+    await expect(name).toHaveCSS('overflow', 'hidden');
+    await expect(name).toHaveCSS('text-overflow', 'ellipsis');
+  });
 });

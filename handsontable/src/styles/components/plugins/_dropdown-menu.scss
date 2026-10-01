@@ -349,7 +349,7 @@
   // other script is the name's start. An inline-block span with its own overflow ellipsizes the
   // name at its own end, as the wrapper did while it carried `dir="auto"` itself. `vertical-align: top` keeps
   // the overflow-clipped inline-block from sitting on its bottom edge and growing the row.
-  &.htSheetsBarMenu table tbody tr td .htItemWrapper .ht-sheets-bar__menu-item-name {
+  .handsontable.htSheetsBarMenu table tbody tr td .htItemWrapper .ht-sheets-bar__menu-item-name {
     display: inline-block;
     max-width: 100%;
     overflow: hidden;
