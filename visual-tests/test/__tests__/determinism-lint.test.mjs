@@ -362,8 +362,11 @@ test('every tracked capture exception sits on a capture and still suppresses som
   const unused = await new ESLint({ cwd: packageRoot, reportUnusedDisableDirectives: 'error' })
     .lintFiles(['tests/**/*.spec.ts']);
 
-  // A glob that silently matched nothing would pass everything below.
-  assert.ok(unused.length >= 100, `linted ${unused.length} specs; the tree has more than 100`);
+  // A glob that silently matched nothing would pass everything below. The floor catches that, not a
+  // trim: the golden-set consolidation shrinks the tree on purpose, while a glob or a tree that moved
+  // leaves none at all. The exact count is pinned by LIVE_SPEC_COUNT in
+  // lib/__tests__/visual-declarations.test.mjs.
+  assert.ok(unused.length >= 1, `linted ${unused.length} specs; a moved tree or glob matches none`);
 
   const stale = unused.flatMap(result => result.messages
     .filter(m => m.ruleId === null && /Unused eslint-disable directive/.test(m.message))

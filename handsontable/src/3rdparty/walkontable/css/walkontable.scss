@@ -285,11 +285,12 @@
 // Mirrors the clone-holder rule in `src/styles/base/_base.scss` (DEV-2937): each of the three
 // scroll-mirrored clone holders is a composited scroll container on the one axis the engine writes,
 // with no scrollbar of its own. Keep the two in sync.
-.ht_clone_top .wtHolder,
-.ht_clone_inline_start .wtHolder,
-.ht_clone_bottom .wtHolder {
+.handsontable .ht_clone_top .wtHolder,
+.handsontable .ht_clone_inline_start .wtHolder,
+.handsontable .ht_clone_bottom .wtHolder {
   overflow-anchor: none;
-  scrollbar-width: none;
+  // `!important` so a page-wide `scrollbar-width` rule cannot paint a scrollbar here (DEV-3160).
+  scrollbar-width: none !important;
 
   &::-webkit-scrollbar {
     display: none;

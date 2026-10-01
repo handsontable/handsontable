@@ -1,4 +1,40 @@
 import Handsontable from 'handsontable';
+import type { AvailableConditions, AvailableConditionsRule } from 'handsontable/plugins/filters';
+
+// `availableConditions` is checked at both levels: in `FiltersSettings` and in the per-column
+// `FiltersColumnSettings`. The exported types are what a user annotates a value with.
+const allowList: AvailableConditionsRule = ['eq', 'gt', '---------', 'between'];
+const exclusion: AvailableConditionsRule = { exclude: ['not_between'] };
+const perType: AvailableConditions = {
+  numeric: { exclude: ['not_between'] },
+  text: ['contains', 'begins_with'],
+};
+
+// A `readonly` array works too; the plugin never changes the lists it is given.
+const readonlyNames = ['eq', 'neq'] as const;
+
+Handsontable(document.createElement('div'), {
+  filters: {
+    availableConditions: { text: readonlyNames, numeric: { exclude: readonlyNames } },
+  },
+  columns: [{ filters: { availableConditions: readonlyNames } }],
+});
+
+// @ts-expect-error - `exclude` holds condition names, not one name.
+const badExclusion: AvailableConditionsRule = { exclude: 'not_between' };
+
+// @ts-expect-error - a per-type key must be a data type with its own list; `dropdown` uses `text`.
+const badDataType: AvailableConditions = { numeric: ['gt'], dropdown: ['eq'] };
+
+Handsontable(document.createElement('div'), {
+  filters: {
+    availableConditions: perType,
+  },
+  columns: [
+    { filters: { availableConditions: allowList } },
+    { filters: { availableConditions: exclusion } },
+  ],
+});
 
 interface ColumnConditions {
   column: number;
@@ -65,7 +101,8 @@ const literalConfig = { searchMode: 'apply' } as const;
 Handsontable(document.createElement('div'), { filters: widenedConfig });
 Handsontable(document.createElement('div'), { filters: literalConfig });
 
-// The per-column switch. Only `false` is read there, so the type is `boolean`.
+// The per-column switch. `false` hides the filter UI, and an object carries `availableConditions`
+// only, so the type is `boolean | FiltersColumnSettings`.
 Handsontable(document.createElement('div'), {
   columns: [
     { filters: false },
@@ -88,8 +125,20 @@ Handsontable(document.createElement('div'), {
   ],
 });
 
+Handsontable(document.createElement('div'), {
+  columns: [
+    // @ts-expect-error - a per-column `availableConditions` is checked like the grid-level one
+    { filters: { availableConditions: 'eq' } },
+  ],
+});
+
+const columnFilters: Handsontable.plugins.Filters.ColumnSettings = { availableConditions: ['eq'] };
+
+Handsontable(document.createElement('div'), { columns: [{ filters: columnFilters }] });
+
 // Reading is wider than writing: cell meta inherits the grid-level object through the prototype
-// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean.
+// chain, so `CellMeta['filters']` keeps the grid type while `columns` accepts only a boolean or an
+// object with `availableConditions`.
 const cellFilters = hot.getCellMeta(0, 0).filters;
 
 if (typeof cellFilters === 'object') {

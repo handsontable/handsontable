@@ -5,17 +5,18 @@ import './example1.css';
 
 registerAllModules();
 
+type ReadXlsxFile = (input: Blob) => Promise<{ sheet: string; data: unknown[][] }[]>;
+
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Papa?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    XLSX?: any;
+    readXlsxFile?: ReadXlsxFile;
   }
 }
 
 const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
-const CDN_XLSX = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+const CDN_READ_EXCEL_FILE = 'https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js';
 
 const scriptPromises = new Map<string, Promise<void>>();
 
@@ -72,19 +73,18 @@ async function ensurePapa(): Promise<any> {
   return window.Papa;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function ensureXlsx(): Promise<any> {
-  if (typeof window.XLSX !== 'undefined') {
-    return window.XLSX;
+async function ensureReadExcelFile(): Promise<ReadXlsxFile> {
+  if (typeof window.readXlsxFile !== 'undefined') {
+    return window.readXlsxFile;
   }
 
-  await loadScript(CDN_XLSX);
+  await loadScript(CDN_READ_EXCEL_FILE);
 
-  if (typeof window.XLSX === 'undefined') {
-    throw new Error('SheetJS did not register on window.');
+  if (typeof window.readXlsxFile === 'undefined') {
+    throw new Error('read-excel-file did not register on window.');
   }
 
-  return window.XLSX;
+  return window.readXlsxFile;
 }
 
 function extensionOf(name: string): string {
@@ -112,6 +112,10 @@ function normalizeCellValue(value: unknown): CellValue {
 
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
   }
 
   const text = String(value).trim();
@@ -193,28 +197,22 @@ async function parseCsvFile(file: File, PapaRef: any): Promise<ParsedPayload> {
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseXlsxArrayBuffer(buf: ArrayBuffer, XLSXRef: any): ParsedPayload {
-  let workbook: { SheetNames: string[]; Sheets: Record<string, unknown> };
+async function parseXlsxFile(file: File, readXlsxFileRef: ReadXlsxFile): Promise<ParsedPayload> {
+  let sheets: Awaited<ReturnType<ReadXlsxFile>>;
 
   try {
-    workbook = XLSXRef.read(buf, { type: 'array' });
+    sheets = await readXlsxFileRef(file);
   } catch {
     throw new Error('Could not read the Excel workbook. The file may be corrupted.');
   }
 
-  const sheetName = workbook.SheetNames[0];
+  const firstSheet = sheets[0];
 
-  if (!sheetName) {
+  if (!firstSheet) {
     throw new Error('The workbook has no sheets.');
   }
 
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: null,
-    raw: true,
-  }) as unknown[][];
+  const matrix = firstSheet.data;
 
   if (!matrix.length) {
     throw new Error('The sheet is empty.');
@@ -266,10 +264,9 @@ async function parseFile(file: File): Promise<ParsedPayload> {
   }
 
   if (ext === 'xlsx') {
-    const XLSXRef = await ensureXlsx();
-    const buf = await file.arrayBuffer();
+    const readXlsxFileRef = await ensureReadExcelFile();
 
-    return parseXlsxArrayBuffer(buf, XLSXRef);
+    return parseXlsxFile(file, readXlsxFileRef);
   }
 
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');

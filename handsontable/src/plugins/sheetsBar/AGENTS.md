@@ -77,6 +77,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## Traps
 
+- **The tab strip hides its scrollbar with `scrollbar-width: none !important`** (DEV-3191). Keep
+  the `!important`. The selector compiles to `.handsontable.ht-sheets-bar .ht-sheets-bar__tabs`
+  (specificity 0,3,0: the bar root carries both classes), so a page-wide rule such as
+  `* { scrollbar-width: thin }` loses on specificity whatever the load order. Two kinds of host rule
+  beat a plain declaration and paint a bar into the strip: one that carries `!important`
+  (`* { scrollbar-width: thin !important }`), and one that ties the selector and loads later
+  (`.handsontable.ht-sheets-bar .ht-sheets-bar__tabs { scrollbar-width: thin }`). The `!important`
+  covers both. A host `.handsontable .wtHolder` rule never matches the strip, which is not a holder.
+  The rule still loses to a host `!important` rule of higher specificity and to one inside a CSS
+  `@layer` (important declarations reverse layer order), so do not claim the strip is immune to host
+  CSS. Chrome 121+ ignores `::-webkit-scrollbar` once `scrollbar-width` is not `auto`, so that rule
+  only backs up older engines.
 - **The keyboard lives in a shortcut context** (`plugin:sheetsBar`) behind a focus scope, like
   Pagination. The scope's `runOnlyIf` stands aside while one of the bar's menus is open — the
   click that opens a menu reaches the scope manager after the menu has taken the keyboard, and
@@ -169,6 +181,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
   rebuild would otherwise capture the previous workbook's collections as the opening sheet's
   own state on the first switch away.
+- **The bar owns the grid-level `dataProvider` gate, not the plugin conflict registry.** A `registerConflict('dataProvider', [...])` entry (the mechanism `pagination`, `trimRows` and the rest use) would block *every* sheet's `dataProvider`, including a sheet that declares its own — this needs a per-sheet answer, so the bar decides it directly. The pieces, each pinned by a spec in `tests/e2e/data-provider-sheets-bar.spec.ts`:
+  - `#captureGridDataProvider()` records a **truthy** grid-level value in the settings baseline when a workbook starts (a non-preserved enable) and warns once (`GRID_LEVEL_DATA_PROVIDER_WARNING`) — also when every sheet declares its own, and also for `sheetsBar: true` without `sheets`, whose single wrapped sheet gets `null` through `#withBaselineFor(undefined)` like any other sheet. A falsy value is not recorded: a workbook where nobody declares a `dataProvider` must never write the key to the grid (no `dataProvider: null` in a switch payload, no extra `updateSettings({ dataProvider: null })` on a `sheetsBar: false` teardown, `getSettings().dataProvider` stays `undefined`; pinned by unit tests).
+  - `#withBaselineFor()` forces `dataProvider: null` on a sheet without a **truthy** own `dataProvider` (a sheet declaring `dataProvider: null` is local, not "has its own"), but only while there is one to take off the grid: a baseline entry, or a truthy value on the grid (the previous sheet's own, which a rebuild does not record in the new baseline). A genuine teardown gives the grid-level value back through `#restoreBaselineToGrid()`. **The baseline never reads `dataProvider` from the grid**: the generic loop in `#withBaselineFor()` stores `undefined` for that key. A truthy grid-level value is already in the baseline by then (`#captureGridDataProvider()` runs before the workbook is built), so whatever the grid holds at loop time is a sheet's own — after a rebuild, the departing server sheet's. Read from the grid, that value became the "grid-level" one: `sheetsBar: false` gave it back, so the plain grid kept fetching from the sheet's server, and a second rebuild warned about a grid-level `dataProvider` nobody had set. Skipping the key instead of storing `undefined` brings the same bug back, since the teardown then writes no `dataProvider: null`.
+  - `#onAfterUpdateSettings` blocks a value set later through `updateSettings({ dataProvider })` unless the active sheet declares a truthy own `dataProvider` (the user re-configuring the visible server sheet). It is registered with **`orderIndex` -1**, ahead of every plugin's `onUpdateSettings`: at the default order DataProvider enabled first, started a `fetchRows` call for the blocked value, and raised the loading overlay that the abort never cleared.
+  - `#onBeforeUpdateData` keeps the visible sheet's rows. Core writes the new setting and, while `hasExternalDataSource` answers `true`, replaces the grid's data with a fresh `[]` placeholder (`updateData([], 'updateSettings')`) before any `afterUpdateSettings` listener runs; the sheet record still pointed at the local rows, but the grid held `[]`, and the next switch away stored `[]` as the sheet's data. The redirect answers the placeholder with the array the grid already shows (`updateData` on the same array keeps the index maps, so the sort and filters survive). It only matters while DataProvider's `hasExternalDataSource` listener is registered — the constructor one survives until DataProvider's first disable (`clearHooks()`), so the trap is a workbook that opened on a local sheet.
+  - `#isRestoringBaseline` makes the gate stand aside while the teardown restores the grid-level value, and `disablePlugin()` drops the model before that restore, so the restored `dataProvider` fetches as a plain grid. On a `sheets` **rebuild** the grid-level value is not written back at all: `updatePlugin()` carries it in `#rebuildGridDataProvider`, `#restoreBaselineToGrid()` skips it, and the new workbook's capture reads it from there (written back, it enabled DataProvider and fetched for the moment between the two workbooks).
+  - `#keepActiveSheetDataProvider()` keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as that sheet's own, so a switch away and back applies it again instead of the declared one. It replaces the record's `settings` object (it may be the host's declared one) instead of writing into it. The block itself (`#recordBlockedGridDataProvider()` plus `updateSettings({ dataProvider: null })`) runs on EVERY call that carries a truthy grid-level `dataProvider`, including a wrapper re-sending the same settings on each render: core applies the payload before any listener runs and has no hook to strip a key first, and the value has to be written back through `updateSettings()` because core stores it on the global meta layer a direct write would only shadow. That misconfiguration is warned about once; the fix is on the host's side. On a **server** sheet the same re-send would otherwise read as the user re-configuring that sheet: `#isResentGridDataProvider()` recognizes the recorded grid-level object by identity, and `#restoreActiveSheetDataProvider()` writes the sheet's own `dataProvider` back through a nested `updateSettings()` inside `_runWithoutFetching()` (no abort, no refetch). DataProvider's `updatePlugin()` then skips the outer call, whose payload no longer matches the grid's value, and `#onBeforeUpdateData` keeps the visible rows for both calls (core empties them on any payload that names `dataProvider`). Only a stable object is caught: an inline literal the host rebuilds on every render is a new value each time, and reads as a re-configure. That limit is part of the public docs (the `dataProvider` option's JSDoc in `metaSchema.ts` and the sheets bar and server-side data guides tell a host to keep a grid-level object stable); keep them in step if the gate changes.
+  A sheet's own declared `dataProvider` runs the switch's `updateSettings({ dataProvider })` call like any other overridden key; DataProvider applies it without a refetch because the whole `#switchTo` runs inside `dataProvider._runContextChange()` (`#withoutFetching`), which is passive.
+- **The bar is the DataProvider context owner; everything sheet-shaped about server data lives here.** The contract is internal (`../dataProvider/AGENTS.md`, "Owner contract: contexts (internal)"): `#contextOwner` is registered with `_setContextOwner()` at the top of `enablePlugin()` and removed at the end of `disablePlugin()`, and all calls go through the `_`-prefixed DataProvider methods. Never replace it with hooks — a user listener could rewrite what the bar receives. The pieces:
+  - **Context.** `getContext()` answers a **frozen empty token** per sheet (`#contextOf()`, `#contextTokens` + the reverse `#sheetsByContext`, both `WeakMap`s), never the `Sheet` record, so no outside code can reach a sheet's data or settings through DataProvider. Identity is per record, so a removed sheet or a sheet of a replaced workbook (whose ids restart at 1) can never be mistaken for a current one. It is registered before the workbook is built: a rebuild on a live grid applies the opening server sheet, and starts its first fetch, inside `enablePlugin()`. Without a model it answers `null`, so the settings a teardown restores fetch as a plain grid.
+  - **Server view per sheet** (`#serverViews`, a `WeakMap<Sheet, …>`): the last response, a pending fetch failure, and deferred mutation failures. A visible landing arrives through the owner's `onShownResponse`, which DataProvider calls with the normalized response before `afterDataProviderFetch` fires — never read it from that hook: `Hooks.run` hands a listener's non-`undefined` return to the next listener, so a user listener could rewrite the stored `totalRows` or `queryParameters` and the replay would show a wrong pager, sort, or filters (pinned by the `?userFetchListener=1` spec). Everything that settles for a sheet the grid does not show arrives through `onDetachedRequest` (`#keepDetachedOutcome()`), and an outcome reported for the sheet the grid shows (DataProvider reports one only while it is disabled there) is dropped rather than written over the visible sheet's record: a response's rows **replace** `sheet.data` — and the sheet's kept cell meta (`viewState.cellMeta`) is dropped with the old rows, the way `#onAfterLoadData` drops the tracked meta when the grid shown reloads, or a `readOnly` from the old rows came back on the new ones — never written into it: a host-declared `sheets[i].data` may be frozen (an Immer store threw, and the throw was reported as a fetch failure) or reactive (a Vue array ran an extra `updateSettings`); a failure is stored by the `kind` DataProvider reports (`fetch` → the sheet's fetch failure, shown with Refetch and no automatic refetch; `create`/`update`/`remove` → appended mutation failures). An outcome for a sheet of no current workbook is dropped. The owner also answers `getContextResult(context)` with the sheet's last response, so an off-screen save's refetch asks for the page the user left the sheet on, not the one the save was queued on, and a remove's follow-up counts that page's rows. The frozen case and the fetch-vs-mutation filing are pinned in `tests/e2e/data-provider-sheets-bar.spec.ts`, including a user `afterDataProviderFetchError`/`afterRowsMutationError` listener that returns values.
+  - **Switch.** `#switchTo` runs inside `#withoutFetching`, i.e. `dataProvider._runContextChange()`: DataProvider stays passive (its state in a `try/finally`), resets the pager's server total before the switch, and syncs the loading overlay and the server-filter rollback after it — Pagination, EmptyDataState, and Filters are released plugins and must not listen to this plugin's hooks, so this plugin never relies on them doing so, and `#isSwitching` is `try/finally` too, so a listener that throws mid-switch leaves nothing stuck (pinned by a unit test). **The passive window covers `#switchTo` only**, and `afterSheetTabStateRestore` fires inside it: a sort or filter applied from that listener on a server sheet is canceled (`#answerPassiveSort` / `#answerPassiveFilter`), not sent to the server. A sort or filter made from an `afterSheetTabStateCapture` or `afterSheetTabChange` listener is an ordinary user action on the sheet shown at that moment and goes to the server. `#showServerSheet()` runs after the switch, before `afterSheetTabChange` fires, so the EmptyDataState and Filters listeners of that hook see the final state: deferred mutation toasts (`_showRequestError`), then `isFetching()` → wait, a stored fetch failure → `_restoreFetchResult(lastResult)` when there is one plus the fetch toast (no refetch), a stored response → `_restoreFetchResult()`, else the first fetch (`fetchData({ page: 1 })`, failure logged like DataProvider's own internal refetches). `isFetching()` ignores a silent (`skipLoading`) refetch, so arriving while a save's refetch of the sheet still runs replays the stored response first and the refetch lands after it (`afterDataProviderFetch` fires twice, the first with `isRestored: true`); pinned by a spec. The replay keeps the sort indicator, filters, and pager total correct while the refetch runs.
+  - **Remove / duplicate / workbook replaced.** A removed sheet's context is released (`_releaseContext`). A genuine teardown releases every sheet of the discarded workbook (captured before the model is dropped) plus `null`; a non-preserved enable releases `null`, which aborts a plain grid's fetch still running when the bar is enabled on a live grid. A plain grid's save still pending then is dropped by DataProvider (no refetch, no revert into the new sheet, no toast; pinned by a spec). A preserved `updatePlugin` round trip releases nothing. A duplicate gets the original's last response (`#copyServerView`), not its pending failures or its running fetch.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect
@@ -177,11 +202,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   another plugin that validates the incoming array in the same hook must register behind it —
   `nestedRows` does so with `orderIndex: 1`, because at its `PLUGIN_PRIORITY` (300) it otherwise
   judged the host's placeholder array and self-disabled before this redirect ran (DEV-2939).
-  Keep this listener at the default order, or that ordering silently inverts.
+  Keep this listener at the default order, or that ordering silently inverts. The warning is
+  skipped (redirect still applies) when `hasExternalDataSource` is `true` for the active sheet —
+  that load is core's own placeholder `[]` from a `dataProvider`-backed sheet, not a real
+  top-level `data` clash, and without the check every workbook whose first sheet declares a
+  `dataProvider` would warn on every load.
+- **Known and accepted:** a truthy grid-level `dataProvider` triggers the gate warning even when it is not a complete configuration (the gate does not validate it); and a genuine teardown drops the model before it restores the grid-level settings, so listeners of the restore's `updateSettings()` already see a grid without sheets (`getSheets()` is empty).
 - **`removeSheet` prunes the declared entry out of the configured `sheets` arrays**
   (`#pruneDeclaredSheet`, entries mapped per sheet id in `#declaredEntries`), mirroring how
   `Core` keeps `settings.data` in sync on `loadData` — the settings object would otherwise
-  keep a removed sheet's rows resident for the grid's life.
+  keep a removed sheet's rows resident for the grid's life. This splices the host's own `sheets` array in place
+  (pre-existing behavior, kept): a host that reuses that array after `removeSheet()` sees it one
+  entry shorter.
 - **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
   life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms
@@ -279,18 +311,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   MergeCells does not react to `loadData()`, so the departing sheet's merges outlive its data,
   and `clearCollections()` resets the cell meta of every cell they cover. Cleared after a
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
-  `Expecting an unsigned number`. For a sheet with a stored state the collection is therefore
-  emptied twice around the load. `#switchTo` calls `clearMergedCells()` before `#applySheet`,
-  while the departing merges still match the grid (the neutral reset does it otherwise). And
-  `#applySheet` calls `forgetMergedCells()` right after its `loadData()`: `mergeCells` rides on
-  every switch's `updateSettings()` payload once any sheet declares it (the baseline carries it
-  too), and `MergeCells#updatePlugin` regenerates the declared merges, which would outlive the
-  load and win over the ones the user unmerged or moved. That second pass empties the
-  collection only, never the meta: the load has already reset the cell meta, and the same
-  update can apply the arriving sheet's `trimRows` to the departing grid first, so those merges
-  may sit at visual rows the loaded data lacks, and a meta reset there throws. The forget
-  leaves MergeCells' own record of applied declared areas alone, so its next settings update
-  treats them as applied and nulls only the covered cells that still hold a value. Capture
+  `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
+  `#applySheet`, while the departing merges still match the grid (the neutral reset does it
+  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
+  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  once any sheet declares it (the baseline carries it too), and that update runs while the grid
+  still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
+  validated the arriving sheet's areas against the departing sheet's size (dropping one that did
+  not fit it with an out-of-bounds warning) and wrote its clearing `null`s into the departing
+  sheet's array, which the host holds by reference. On the init build, where no view exists yet,
+  it threw `Cannot read properties of undefined (reading '_wt')`. So `#applySheet` runs the update
+  under `#withoutMergeCellsSettingsPass`, which sets MergeCells' `@private` `deferSettingsPass`
+  flag: `updatePlugin()` then rebuilds the plugin and keeps its record of applied areas, but
+  builds nothing. After `loadData()`,
+  `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
+  declared merges against the arriving data; a sheet with a stored state passes `false` and
+  builds none, because it restores its own merges and the declared ones would win over the ones
+  the user unmerged or moved. Skipping the build also writes no cell, so a value the user typed
+  into a formerly merged cell survives a round trip. Without a view (the init build) the bar runs
+  nothing, and MergeCells' own `afterInit` builds the merges against the loaded sheet and clears
+  the pending pass. The pass must run before the view-state restore: it sets MergeCells'
+  `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
   keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
   are all trimmed stays in the collection's list at its last visual position, and restored
   there it came back as a visible merge over unrelated rows, or won over a live merge,
@@ -299,10 +340,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the host's and can shrink while the sheet is away), and one that would overlap a merge
   already on screen, which only a host listener adding merges during the load can produce,
   since the automatic path skips the overlap check.
-  The rest go through `mergeRange(range, true, true)`, the path MergeCells uses for merges
-  declared in its settings: no out-of-bounds warning, `beforeMergeCells`/`afterMergeCells` report
-  `auto: true` (UndoRedo records nothing for that), and no cell is written, where the public
-  `merge()` rewrote every covered cell with `null`.
+  The rest go through `mergeRange(range, true, true)` inside `restoreMergedAreas()`, the path
+  MergeCells uses for merges declared in its settings: no out-of-bounds warning,
+  `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
+  and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
+  **Every MergeCells member the switch uses is one MergeCells owns** — `getVisibleMergedAreas()`
+  (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore), the
+  `deferSettingsPass` flag and `runDeferredSettingsPass()` — read through the typed
+  `hot.getPlugin('mergeCells')`, never a structural cast, so a rename or re-signature there fails
+  the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
+  throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
+  from here again.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

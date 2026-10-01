@@ -808,26 +808,6 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
       });
 
-      xit('should undo removal of multiple columns (with a used manualColumnMove)', async() => {
-        handsontable({
-          data: createSpreadsheetData(2, 7),
-          manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
-        });
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
-
-        await alter('remove_col', 1, 3);
-
-        expect(countCols()).toEqual(4);
-        expect(getDataAtRow(0)).toEqual(['D1', 'B1', 'F1', 'E1']);
-
-        getPlugin('undoRedo').undo();
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
-      });
-
       it('should undo multiple changes', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)

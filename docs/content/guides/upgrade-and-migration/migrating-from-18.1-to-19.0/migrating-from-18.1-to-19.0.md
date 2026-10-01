@@ -581,6 +581,36 @@ To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
 
+## 13. Leaving a merged cell with a left or right arrow lands on its top row
+
+This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
+
+Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
+entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
+from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
+and pressing left.
+
+A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
+lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
+entered. Vertical navigation still keeps the column you were moving along, and the
+<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
+along.
+
+### Who is affected
+
+- You read [`getSelected()`](@/api/core.md#getselected) or
+  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
+  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
+  cell's top row rather than the entered row.
+
+A grid without merged cells is unaffected.
+
+### How to migrate
+
+Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
+cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
+that workaround.
+
 ## 14. Row elements move with their rows on a vertical scroll
 
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
@@ -618,36 +648,6 @@ A renderer whose output depends on where the rendered area starts or ends, for e
 default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainted by a scroll, so set
 `renderMode: 'always'` on that column or cell, or call
 [`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
-
-## 13. Leaving a merged cell with a left or right arrow lands on its top row
-
-This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
-
-Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
-entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
-from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
-and pressing left.
-
-A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
-lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
-entered. Vertical navigation still keeps the column you were moving along, and the
-<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
-along.
-
-### Who is affected
-
-- You read [`getSelected()`](@/api/core.md#getselected) or
-  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
-  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
-  cell's top row rather than the entered row.
-
-A grid without merged cells is unaffected.
-
-### How to migrate
-
-Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
-cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
-that workaround.
 
 ## 15. AutoColumnSize includes the list-cell arrow in the column width
 
@@ -1211,10 +1211,11 @@ Before 19.0, TypeScript typed the [`filters`](@/api/options.md#filters) option a
 Any object compiled, so a misspelled key or a wrong value passed the compiler and was then ignored at
 runtime. The option now has real types:
 
-- At the grid level, the object accepts only `searchMode` (`'show'` or `'apply'`) and
-  `filterFixedRows` (a boolean).
-- Inside [`columns`](@/api/options.md#columns), `filters` is a boolean. Only `false` has ever had an
-  effect there.
+- At the grid level, the object accepts only `searchMode` (`'show'` or `'apply'`), `filterFixedRows`
+  (a boolean), and `availableConditions`, which is new in 19.0. See
+  [Choose the conditions the filter menu offers](@/guides/columns/column-filter/column-filter.md#choose-the-conditions-the-filter-menu-offers).
+- Inside [`columns`](@/api/options.md#columns), `filters` is a boolean or an object that holds only
+  `availableConditions`. Of the boolean values, only `false` has ever had an effect there.
 
 Nothing changes at runtime. This section applies only if you use TypeScript.
 
@@ -1222,12 +1223,12 @@ Nothing changes at runtime. This section applies only if you use TypeScript.
 
 Your code stops compiling in one of these cases:
 
-- The grid-level `filters` object has a key other than `searchMode` or `filterFixedRows`. The grid
-  ignored that key without a warning.
+- The grid-level `filters` object has a key other than `searchMode`, `filterFixedRows`, or
+  `availableConditions`. The grid ignored that key without a warning.
 - `searchMode` holds a value other than `'show'` or `'apply'`. The grid ignored it and logged a
   warning.
-- A column in `columns` sets `filters` to an object. The grid ignored the object and logged a
-  warning.
+- A column in `columns` sets `filters` to an object with a key other than `availableConditions`.
+  The grid ignored the object and logged a warning.
 
 In each case the setting already had no effect, so fixing the error does not change what your grid
 does.

@@ -7,5 +7,8 @@
   },
   "workspaces": [
     "@(!(node_modules))/"
-  ]
+  ],
+  "overrides": {
+    "webpack-dev-middleware@8": "^8.3.0"
+  }
 }

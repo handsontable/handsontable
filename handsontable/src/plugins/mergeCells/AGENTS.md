@@ -327,10 +327,30 @@ in-range merge still has its `spanned`/`rowspan`/`colspan`/`hidden` meta removed
 the cell values). The core rule itself is pinned by
 `src/__tests__/core/removeCellMeta.unit.js`.
 
+## SheetsBar goes through members MergeCells owns, never the collection
+
+A sheet switch captures and restores merges around its `loadData()`. It calls
+`getVisibleMergedAreas()`, `clearCollections()`, `restoreMergedAreas()`, the `deferSettingsPass`
+flag and `runDeferredSettingsPass()` through the typed `getPlugin('mergeCells')`, so changing their
+names or signatures breaks the type check instead of the switch. Keep the capture reading the lookup matrix
+and the restore on the automatic path (`mergeRange(range, true, true)`): SheetsBar relies on both.
+Pinned by `__tests__/mergedAreasApi.unit.js`.
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous
 areas are copied *before* `disablePlugin()` clears them.
+
+**The settings pass can be held back, for a caller whose settings update runs before its data load.**
+While the `@private` `deferSettingsPass` flag is set, `updatePlugin()` rebuilds the plugin and puts the
+copied areas back into `#appliedMergeKeys`, but skips `generateFromSettings()` and leaves `#initialized`
+unset; `runDeferredSettingsPass(apply)` runs the pass later (`apply: false` builds nothing and writes no
+cell, but still sets `#initialized` and captures anchors). SheetsBar is the one caller: a sheet switch
+applies the arriving sheet's settings while the departing sheet's data is still loaded, and a pass run
+there validated the arriving areas against the departing size and wrote its clearing `null`s into the
+departing sheet's array. `#onAfterInit` clears a pending pass, because it builds the merges itself.
+The pass has to run before anything calls `mergeRange()` — `afterMergeCells` captures an anchor only
+once `#initialized` is set.
 
 ## Focus order is a scan, not a linked list
 
