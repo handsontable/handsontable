@@ -624,7 +624,7 @@ function toggleTheme(isDarkMode) {
 
 :::
 
-Don't mix this with [`useTheme()`](#switch-between-css-file-themes-at-runtime): the Theme API only ever generates styles under the plain `ht-theme-{name}` class, never a `-dark` variant of it, so switching to `ht-theme-{name}-dark` on a Theme API grid loses the theme instead of applying its dark mode. Any `useTheme()` call with a class name drops the theme object, including its `icons` mapping, the same way passing a class name to `updateSettings({ theme })` does.
+Don't mix this with [`useTheme()`](#switch-between-css-file-themes-at-runtime): the Theme API only ever generates styles under the plain `ht-theme-{name}` class, never a `-dark` variant of it, so switching to `ht-theme-{name}-dark` on a Theme API grid loses the theme instead of applying its dark mode. A `useTheme()` call with a different valid class name drops the theme object, including its `icons` mapping, the same way passing a class name to `updateSettings({ theme })` does. A rejected value, such as `dark`, keeps both the current theme and the theme object.
 
 `setColorScheme()` changes the `ThemeBuilder` itself, so every grid that shares that builder switches with it. To change one grid only, leave the builder alone and set the per-instance [`colorScheme`](@/api/options.md#colorscheme) option, as described in [Switch the color scheme or density at runtime](#switch-the-color-scheme-or-density-at-runtime).
 

@@ -82,13 +82,27 @@ describe('Core.useTheme() after a theme object', () => {
     expect(hot.rootWrapperElement.querySelector('[data-hot-theme-style]')).toBeNull();
   });
 
-  it('should destroy the theme manager when called with `null`', () => {
-    createGrid(createThemeObject());
+  it.each([null, 'dark', ''])('should keep the theme manager when called with the rejected value %p', (value) => {
+    const theme = createThemeObject();
 
-    hot.useTheme(null);
+    createGrid(theme);
 
-    expect(hot.themeManager).toBeNull();
-    expect(hot.rootWrapperElement.querySelector('[data-hot-theme-style]')).toBeNull();
+    const manager = hot.themeManager;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot.useTheme(value);
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('a valid theme name'));
+    expect(hot.themeManager).toBe(manager);
+    expect(hot.rootWrapperElement.querySelector('[data-hot-theme-style]')).not.toBeNull();
+
+    const afterSetTheme = jest.fn();
+
+    hot.addHook('afterSetTheme', afterSetTheme);
+    theme.params({ icons: { menu: 'ti ti-dots' } });
+
+    expect(afterSetTheme).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('should keep the theme manager when called with its own class name', () => {
