@@ -10,6 +10,11 @@ import {
   displayConfirmationMessage,
   displayErrorMessage
 } from '../../scripts/utils/console.mjs';
+import {
+  ageCheckEnabled,
+  checkExamplesToBuild,
+  formatProblems
+} from '../../visual-tests/lib/local-builds.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_DIR = __dirname.split('examples')[0];
@@ -183,6 +188,25 @@ switch (shellCommand) {
     }
 
     const examplesFolders = getExamplesFolders(versionedDir);
+
+    // Before the first build, each example under `next/` must resolve the Handsontable packages it declares to
+    // the local builds: the linker leaves a registry copy in place without a word when a local build is missing.
+    // This is the only check the documentation examples get, because their own `build` scripts must keep working
+    // in a copy outside the monorepo. See visual-tests/AGENTS.md (Local builds).
+    const { lines, problems } = checkExamplesToBuild({
+      repoRoot: REPO_ROOT_DIR,
+      exampleDirs: examplesFolders,
+      checkAge: ageCheckEnabled(process.env)
+    });
+
+    if (problems.length > 0) {
+      console.error(chalk.red(`Refusing to build the examples in examples/${hotVersion}:`));
+      formatProblems(problems, { highlight: chalk.red }).forEach(line => console.error(line));
+
+      process.exit(1);
+    }
+
+    lines.forEach(line => console.log(line));
 
     examplesFolders.forEach((exampleDir) => {
       rimraf.sync(path.join(exampleDir, 'dist'));

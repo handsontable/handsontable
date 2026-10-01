@@ -24,7 +24,8 @@ import {
   getFlippedInlineStartOffset,
   shouldFlipDropdownHorizontally,
 } from './controllers/positioning';
-import type { CellInlineBox, WindowScrollInlineMetrics } from './controllers/positioning';
+import type { CellInlineBox } from './controllers/positioning';
+import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -584,7 +585,8 @@ export class MultiSelectEditor extends BaseEditor {
    * Calculates the remaining inline-start and inline-end space around the edited cell.
    *
    * Uses the same workspace / window-scroll split as
-   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`.
+   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`, and reads the window-scroll viewport from
+   * the same helper, `getWindowScrollInlineMetrics()`.
    *
    * @param {object} cellRect Edited-cell box already returned by `getEditedCellRect()`.
    * @param {number} cellRect.start Inline-start position of the cell.
@@ -593,14 +595,9 @@ export class MultiSelectEditor extends BaseEditor {
    */
   #getInlineSpace(cellRect: CellInlineBox): { spaceInlineStart: number; spaceInlineEnd: number } {
     const { view } = this.hot;
-    let windowScroll: WindowScrollInlineMetrics | undefined;
-
-    if (view.isHorizontallyScrollableByWindow()) {
-      windowScroll = {
-        inlineStartOffset: view.getTableOffset().left - this.hot.rootWindow.scrollX,
-        viewportWidth: this.hot.rootDocument.documentElement.clientWidth,
-      };
-    }
+    const windowScroll = view.isHorizontallyScrollableByWindow()
+      ? getWindowScrollInlineMetrics(this.hot)
+      : undefined;
 
     return getDropdownInlineSpace(cellRect, view.getWorkspaceWidth(), windowScroll);
   }
