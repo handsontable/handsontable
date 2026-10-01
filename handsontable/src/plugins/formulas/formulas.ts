@@ -19,6 +19,7 @@ import {
   isFormula,
   isPreservedText,
   normalizeValueForFormulaEngine,
+  padRowsToWidestRow,
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
@@ -1412,9 +1413,11 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const serialized = this.#unescapeEngineSheetArray(
+    // The engine trims each row's trailing empty cells, and the core reads the column count off the
+    // first row, so a first row that ends in an emptied cell would load a grid one column short.
+    const serialized = padRowsToWidestRow(this.#unescapeEngineSheetArray(
       this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
-    );
+    ));
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);

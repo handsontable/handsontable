@@ -409,6 +409,24 @@ Still open: a move applied while the engine's sheet is empty reaches the engine 
 not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
 the grid with no warning.
 
+### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
+
+`getSheetSerialized()` trims the trailing empty cells of **each row on its own**, so a sheet whose first row
+ends in an emptied cell comes back jagged while `getSheetDimensions()` still reports the full width. The core
+takes an array-of-arrays dataset's column count from its **first row**, so loading that array drops the last
+column although the engine holds its data. `switchSheet()` is the one place the grid is loaded FROM the sheet,
+and a grid built without `data` takes it on every `updateSettings()` (`#onAfterCellMetaReset`, the
+`#hotWasInitializedWithEmptyData` branch), which is what a React or Vue re-render triggers. So
+`switchSheet()` pads the serialized rows to the widest one (`padRowsToWidestRow()`, `null` for
+the gaps) before `loadData()`. Pad **after** the unescape step, not before: the gaps are not engine values and
+need no unescaping.
+
+Two limits are deliberate. The width is the widest **row**, not the grid's current width, so a sheet an
+application replaces with a smaller one still shrinks the grid on the next reload. And a column or a row that
+is emptied in **every** cell leaves the engine's own extent, so it still drops on a reload — the engine does
+not count it, and the grid has no record that it was ever there. Pinned by `__tests__/sheetReloadDimensions.unit.js`
+and `tests/e2e/formulas-sheet-reload.spec.ts`.
+
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
 `resolveLinkUrl()` (in `../../utils/cellLinks/`) allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
