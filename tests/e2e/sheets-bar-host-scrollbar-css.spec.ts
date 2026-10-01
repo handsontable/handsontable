@@ -2,13 +2,13 @@ import { test, expect } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
- * The sheets bar tab strip must stay scrollbar-free under a page-wide `!important` scrollbar rule.
+ * The sheets bar tab strip must stay scrollbar-free under a page-wide scrollbar rule.
  *
  * The strip scrolls horizontally through the paging arrows and hides its scrollbar with
- * `scrollbar-width: none !important`. A host page that restyles every scroll container with an
- * `!important` rule (`* { scrollbar-width: thin !important }`) beat the plain declaration it used to
- * have and painted a bar into the strip. A low-specificity host rule without `!important` never won,
- * because the strip's selector is more specific, so only the `!important` forms are asserted.
+ * `scrollbar-width: none !important`. Its selector compiles to `.handsontable.ht-sheets-bar
+ * .ht-sheets-bar__tabs`, so a host rule loses to it on specificity unless the host rule carries
+ * `!important` (`* { scrollbar-width: thin !important }`) or ties the selector and loads later. Both
+ * painted a bar into the strip while the declaration was a plain `scrollbar-width: none`.
  *
  * Only the computed style and the box geometry are asserted, never the stylesheet text.
  *
@@ -25,23 +25,35 @@ test.use({
 });
 
 test.describe('Sheets bar tab strip under a page-wide scrollbar rule', () => {
-  for (const rule of [
-    '* { scrollbar-width: thin !important; }',
-    '.ht-sheets-bar__tabs { scrollbar-width: thin !important; }',
-  ]) {
+  const cases = [
+    { rule: '* { scrollbar-width: thin !important; }', holderFollowsRule: true },
+    { rule: '.ht-sheets-bar__tabs { scrollbar-width: thin !important; }', holderFollowsRule: false },
+    // Ties the strip's compiled selector and loads after the grid's stylesheet.
+    { rule: '.handsontable.ht-sheets-bar .ht-sheets-bar__tabs { scrollbar-width: thin; }', holderFollowsRule: false },
+  ];
+
+  for (const { rule, holderFollowsRule } of cases) {
     test(`keeps no scrollbar under \`${rule}\``, async({ page, theme, bundle }) => {
       const sheetsBar = new SheetsBarPage(page, theme, bundle);
 
       await sheetsBar.goto();
-      // The grid's master holder is a control: the same page-wide rule must take effect there,
-      // which proves the injected stylesheet is live and only the strip is shielded.
-      await page.addStyleTag({ content: `${rule} .handsontable .wtHolder { scrollbar-width: thin !important; }` });
+
+      // Add sheets until the strip overflows: a strip with nothing to scroll draws no bar even
+      // when the host rule wins, so the gutter checks below would pass vacuously.
+      for (let i = 0; i < 10; i += 1) {
+        await sheetsBar.addButton.click();
+      }
+
+      await expect(sheetsBar.pagingSection).toBeVisible();
+
+      await page.addStyleTag({ content: rule });
 
       const metrics = await page.evaluate(() => {
         const strip = document.querySelector('.ht-sheets-bar__tabs') as HTMLElement;
         const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
 
         return {
+          overflows: strip.scrollWidth > strip.clientWidth,
           holderScrollbarWidth: getComputedStyle(holder).scrollbarWidth,
           scrollbarWidth: getComputedStyle(strip).scrollbarWidth,
           gutterX: strip.offsetWidth - strip.clientWidth,
@@ -49,7 +61,13 @@ test.describe('Sheets bar tab strip under a page-wide scrollbar rule', () => {
         };
       });
 
-      expect(metrics.holderScrollbarWidth, 'positive control: grid holder scrollbar-width').toBe('thin');
+      expect(metrics.overflows, 'the strip overflows, so a visible bar would take space').toBe(true);
+
+      if (holderFollowsRule) {
+        // Positive control: the injected rule is live, and it takes effect on the grid's own holder.
+        expect(metrics.holderScrollbarWidth, 'grid holder scrollbar-width').toBe('thin');
+      }
+
       expect(metrics.scrollbarWidth, 'tab strip scrollbar-width').toBe('none');
       expect(metrics.gutterX, 'tab strip vertical scrollbar space').toBe(0);
       expect(metrics.gutterY, 'tab strip horizontal scrollbar space').toBe(0);
