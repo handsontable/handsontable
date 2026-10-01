@@ -128,12 +128,12 @@ describe('data journal', () => {
     // The change loop runs backwards, so the row for `y` is created first; `adjustRowsAndCols`
     // then tops the spare rows up after the writes.
     expect(journalTypes).toEqual(['insertRows', 'cells', 'insertRows']);
-    expect(settled[0].journal[0]).toEqual({ type: 'insertRows', physicalIndex: 3, amount: 1 });
+    expect(settled[0].journal[0]).toEqual({ type: 'insertRows', physicalIndex: 3, amount: 1, atAxisEnd: true });
     expect(settled[0].journal[1].changes).toEqual([
       { physicalRow: 3, prop: 0, oldValue: null, newValue: 'y' },
       { physicalRow: 2, prop: 0, oldValue: null, newValue: 'x' },
     ]);
-    expect(settled[0].journal[2]).toEqual({ type: 'insertRows', physicalIndex: 4, amount: 1 });
+    expect(settled[0].journal[2]).toEqual({ type: 'insertRows', physicalIndex: 4, amount: 1, atAxisEnd: true });
   });
 
   it('should journal a row removal with the rows\' content and the meta they carried', () => {
@@ -207,6 +207,8 @@ describe('data journal', () => {
     expect(settled[0].name).toBe('remove_col');
     expect(removal.physicalIndexes).toEqual([1, 2]);
     expect(removal.values).toEqual([['B1', 'B2'], ['C1', 'C2']]);
+    // The last two physical columns, although the removal named the first two visual ones.
+    expect(removal.atAxisEnd).toBe(true);
   });
 
   it('should journal row and column insertions by the physical index the new items took', () => {
@@ -216,8 +218,8 @@ describe('data journal', () => {
     hot.alter('insert_col_start', 1, 1);
 
     expect(settled.map(transaction => transaction.name)).toEqual(['insert_row', 'insert_col']);
-    expect(settled[0].journal).toEqual([{ type: 'insertRows', physicalIndex: 1, amount: 2 }]);
-    expect(settled[1].journal).toEqual([{ type: 'insertColumns', physicalIndex: 1, amount: 1 }]);
+    expect(settled[0].journal).toEqual([{ type: 'insertRows', physicalIndex: 1, amount: 2, atAxisEnd: false }]);
+    expect(settled[1].journal).toEqual([{ type: 'insertColumns', physicalIndex: 1, amount: 1, atAxisEnd: false }]);
   });
 
   it('should journal a meta write with the state the key had before and after', () => {

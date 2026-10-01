@@ -86,61 +86,17 @@ function isCustomAction(value: unknown): value is CustomAction {
  * grid's own `auto` rows do. Any other row or column change renumbers the rows and columns the
  * recorded steps address.
  *
- * @param {JournalOp[]} journal The journal.
- * @param {GridStateSnapshot} before The state the journal started from (only the axis lengths are read).
- * @returns {boolean}
- */
-function changesOnlyAxisEnds(
-  journal: JournalOp[], before: { rows: { length: number }, columns: { length: number } },
-): boolean {
-  const counts = { row: before.rows.length, column: before.columns.length };
-
-  return journal.every((op) => {
-    if (op.type === 'insertRows' || op.type === 'insertColumns') {
-      const axis = op.type === 'insertRows' ? 'row' : 'column';
-      const atTheEnd = op.physicalIndex === counts[axis];
-
-      counts[axis] += op.amount;
-
-      return atTheEnd;
-    }
-
-    if (op.type === 'removeRows' || op.type === 'removeColumns') {
-      const axis = op.type === 'removeRows' ? 'row' : 'column';
-      const { physicalIndexes } = op;
-      const first = counts[axis] - physicalIndexes.length;
-
-      counts[axis] = first;
-
-      // The indexes are ascending, so the removed ones are the last when each sits at its offset.
-      return physicalIndexes.every((physicalIndex, offset) => physicalIndex === first + offset);
-    }
-
-    return true;
-  });
-}
-
-/**
- * Returns the axis lengths a journal started from, walked back from the lengths it ended at.
+ * Each entry tells it for itself (`atAxisEnd`, read when it was recorded): the axis lengths at settle
+ * time also count what other steps changed while this journal's transaction waited for a validator.
  *
  * @param {JournalOp[]} journal The journal.
- * @param {GridStateSnapshot} after The state the journal ended in.
- * @returns {object} The row and column counts, as `{ rows: { length }, columns: { length } }`.
+ * @returns {boolean}
  */
-function readStartLengths(journal: JournalOp[], after: GridStateSnapshot) {
-  const counts = { row: after.rows.length, column: after.columns.length };
-
-  for (let index = journal.length - 1; index >= 0; index -= 1) {
-    const op = journal[index];
-
-    if (op.type === 'insertRows' || op.type === 'insertColumns') {
-      counts[op.type === 'insertRows' ? 'row' : 'column'] -= op.amount;
-    } else if (op.type === 'removeRows' || op.type === 'removeColumns') {
-      counts[op.type === 'removeRows' ? 'row' : 'column'] += op.physicalIndexes.length;
-    }
-  }
-
-  return { rows: { length: counts.row }, columns: { length: counts.column } };
+function changesOnlyAxisEnds(journal: JournalOp[]): boolean {
+  return journal.every(op => (
+    op.type !== 'insertRows' && op.type !== 'insertColumns' &&
+    op.type !== 'removeRows' && op.type !== 'removeColumns'
+  ) || op.atAxisEnd);
 }
 
 /**
@@ -1349,16 +1305,11 @@ export class UndoRedo extends BasePlugin {
     if (host !== undefined) {
       const hostJoined = this.#joined.get(host) ?? [];
 
-      // An unrecorded transaction stays unrecorded, and is judged the way it is below: `#lastState`
-      // is where the host started, so the lengths it started from are read back from its own journal.
-      if (isUnrecorded) {
-        const startLengths = readStartLengths(transaction.journal, tracker.capture());
+      // An unrecorded transaction stays unrecorded, and is judged the way it is below.
+      if (isUnrecorded && !changesOnlyAxisEnds(transaction.journal)) {
+        this.#resetHistory();
 
-        if (!changesOnlyAxisEnds(transaction.journal, startLengths)) {
-          this.#resetHistory();
-
-          return;
-        }
+        return;
       }
 
       // The ones that joined an unrecorded transaction go on to the host.
@@ -1376,9 +1327,8 @@ export class UndoRedo extends BasePlugin {
     if (isUnrecorded) {
       // Rows or columns an unrecorded change added or removed anywhere but at the end renumber the ones
       // every recorded step addresses, so the history is dropped. At the end they are harmless: a
-      // restore fits the axis to them. The lengths it started from are read back from its own journal:
-      // a step recorded while it waited for a validator has moved `#lastState` past its first changes.
-      if (!changesOnlyAxisEnds(group.journal, readStartLengths(group.journal, after))) {
+      // restore fits the axis to them.
+      if (!changesOnlyAxisEnds(group.journal)) {
         this.#resetHistory();
       }
 

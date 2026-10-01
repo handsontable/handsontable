@@ -761,7 +761,13 @@ class DataManager {
 
     // Journaled as the row insertion it completes, the way `DataMap#createRow` journals its own, so
     // an undo reports the row it takes away through the row hooks.
-    this.hot._getOperationScope().record({ type: 'insertRows', physicalIndex: physicalRow, amount: 1 });
+    // Every caller has already inserted the row's index into the index mapper.
+    this.hot._getOperationScope().record({
+      type: 'insertRows',
+      physicalIndex: physicalRow,
+      amount: 1,
+      atAxisEnd: physicalRow === this.hot.rowIndexMapper.getNumberOfIndexes() - 1,
+    });
     this.hot._getMetaManager().createRow(physicalRow, 1);
   }
 

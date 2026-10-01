@@ -61,9 +61,7 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    `runOperation(name, fn, 'auto')` with an async-validated write dropped the user's edit made
    meanwhile. While one is held, `#onTransactionOpen` moves `#lastState` past its partial changes (the
    next step starts after them) but skips the structure check, and its own settle judges its journal
-   against the lengths it started from, read back with `readStartLengths()` - `#lastState` has moved
-   past its first changes by then, so judged against it, its row added at the end read as a row
-   added in the middle and dropped the history. The
+   by each entry's `atAxisEnd` (the epoch section below). The
    joined journals are merged by the order their entries were recorded (`OperationScope#append()`
    stamps every entry; `getEntryOrder()`), and a forward cell write merges into its last entry only
    while that entry is still the latest recorded anywhere (`isLatestEntry()`). Two plain async
@@ -257,7 +255,12 @@ An UNRECORDED transaction - a blocked one (root source `auto`, the grid's own ro
 (a legacy `done()` action's undo or redo) - does not open an epoch when it only adds or removes rows
 and columns at the END of an axis (`changesOnlyAxisEnds`): Enter on the last row with `minSpareRows`
 must not wipe the history. Anything else it inserts or removes renumbers the rows the recorded steps
-address, so it drops the history. The tail case is safe because a restore never resizes an axis to a
+address, so it drops the history. **Each row and column entry records whether it was at the end
+when it was made** (`atAxisEnd` in `dataMap/dataJournal.ts`, set where `DataMap`, the two removal
+recorders and NestedRows' `shiftCellsMeta()` create it, from the index mapper's count). Do not judge
+it from the axis lengths at settle time: those also count what other steps changed while the
+transaction waited for a validator. Walked back from them, an `auto` row added at the end read as a
+row added in the middle once a recorded row insert landed meanwhile, and the whole history went. The tail case is safe because a restore never resizes an axis to a
 snapshot: it resizes the axis to the length the data implies (`countSourceRows()`,
 `getInitialColumnCount()` - what `updateData()` fits it to) and fits a snapshot of another length to it
 (`fitSequence()` - indexes past the snapshot's end keep their current state). Resizing to the

@@ -1211,6 +1211,30 @@ describe('UndoRedo plugin', () => {
         expect(steps).toEqual(['change']);
         expect(hot.getData()).toEqual([['P', 'B1'], ['A2', 'B2'], ['A3', 'B3'], [null, null]]);
       });
+
+      // A step made while the change waits changes the row count too, so the change's row is judged
+      // where it was added, not against the count when the change finishes.
+      it('should keep the history when a step made meanwhile inserts a row', async() => {
+        createGrid();
+        const plugin = hot.getPlugin('undoRedo');
+
+        hot.setDataAtCell(2, 1, 'prior');
+        hot.runOperation('import', () => {
+          hot.alter('insert_row_below', 2, 1, 'auto');
+          hot.setDataAtCell(0, 0, 'P', 'auto');
+        }, 'auto');
+        await settle();
+        hot.alter('insert_row_above', 1);
+        release();
+        await settle();
+
+        expect(actionTypes()).toEqual(['change', 'insert_row']);
+
+        plugin.undo();
+        plugin.undo();
+
+        expect(hot.getData()).toEqual([['P', 'B1'], ['A2', 'B2'], ['A3', 'B3'], [null, null]]);
+      });
     });
 
     it('should record two edits that wait for their validators in the order they commit', async() => {
@@ -1910,6 +1934,30 @@ describe('UndoRedo plugin', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(plugin.doneActions.length).toBe(0);
+      });
+    });
+
+    // Each row or column change records whether it was at the end of its axis when it was made.
+    [
+      ['removes a row at the end', h => h.alter('remove_row', h.countRows() - 1, 1, 'auto'), true],
+      ['removes a row in the middle', h => h.alter('remove_row', 1, 1, 'auto'), false],
+      ['adds a column at the end', h => h.alter('insert_col_end', h.countCols() - 1, 1, 'auto'), true],
+      ['adds a column in the middle', h => h.alter('insert_col_start', 1, 1, 'auto'), false],
+      ['removes a column at the end', h => h.alter('remove_col', h.countCols() - 1, 1, 'auto'), true],
+      ['removes a column in the middle', h => h.alter('remove_col', 1, 1, 'auto'), false],
+    ].forEach(([change, makeChange, keepsHistory]) => {
+      it(`should ${keepsHistory ? 'keep' : 'drop'} the history when an unrecorded change ${change}`, () => {
+        hot = new Handsontable(container, {
+          licenseKey: 'non-commercial-and-evaluation',
+          data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']],
+          undo: true,
+        });
+        const plugin = hot.getPlugin('undoRedo');
+
+        hot.setDataAtCell(0, 0, 'x');
+        makeChange(hot);
+
+        expect(plugin.doneActions.length).toBe(keepsHistory ? 1 : 0);
       });
     });
 

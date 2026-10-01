@@ -470,8 +470,12 @@ class DataMap {
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     if (numberOfCreatedRows > 0) {
+      // The index mapper already holds the new rows.
       this.hot!._getOperationScope().record({
-        type: 'insertRows', physicalIndex: physicalRowIndex, amount: numberOfCreatedRows,
+        type: 'insertRows',
+        physicalIndex: physicalRowIndex,
+        amount: numberOfCreatedRows,
+        atAxisEnd: physicalRowIndex === this.hot!.rowIndexMapper.getNumberOfIndexes() - numberOfCreatedRows,
       });
     }
 
@@ -555,8 +559,12 @@ class DataMap {
     );
 
     if (numberOfCreatedCols > 0) {
+      // The index mapper takes the new columns below, after the record.
       this.hot!._getOperationScope().record({
-        type: 'insertColumns', physicalIndex: firstNewPhysicalColumnIndex, amount: numberOfCreatedCols,
+        type: 'insertColumns',
+        physicalIndex: firstNewPhysicalColumnIndex,
+        amount: numberOfCreatedCols,
+        atAxisEnd: firstNewPhysicalColumnIndex === this.hot!.columnIndexMapper.getNumberOfIndexes(),
       });
     }
 

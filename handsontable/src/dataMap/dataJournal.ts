@@ -57,6 +57,10 @@ export interface InsertRowsJournalOp {
   type: 'insertRows';
   physicalIndex: number;
   amount: number;
+  /**
+   * Whether the rows were added after the last row the index mapper held at that moment.
+   */
+  atAxisEnd: boolean;
 }
 
 /**
@@ -86,6 +90,10 @@ export interface RemoveRowsJournalOp {
    * The cell meta keys the removed rows carried, by the physical coordinates they had.
    */
   metas: CellMetaKeyStateEntry[];
+  /**
+   * Whether the removed rows were the last ones the index mapper held at that moment.
+   */
+  atAxisEnd: boolean;
 }
 
 /**
@@ -95,6 +103,10 @@ export interface InsertColumnsJournalOp {
   type: 'insertColumns';
   physicalIndex: number;
   amount: number;
+  /**
+   * Whether the columns were added after the last column the index mapper held at that moment.
+   */
+  atAxisEnd: boolean;
 }
 
 /**
@@ -114,6 +126,10 @@ export interface RemoveColumnsJournalOp {
    * The cell meta keys the removed columns carried, by the physical coordinates they had.
    */
   metas: CellMetaKeyStateEntry[];
+  /**
+   * Whether the removed columns were the last ones the index mapper held at that moment.
+   */
+  atAxisEnd: boolean;
 }
 
 /**
@@ -303,6 +319,19 @@ export function recordMetaRowsShift(hot: HotInstance, insert: boolean, physicalR
 }
 
 /**
+ * Tells whether ascending indexes are the last ones of an axis of the given length.
+ *
+ * @param {number[]} physicalIndexes The indexes, in ascending order.
+ * @param {number} length The axis length before the removal.
+ * @returns {boolean}
+ */
+function isAxisEnd(physicalIndexes: number[], length: number): boolean {
+  const first = length - physicalIndexes.length;
+
+  return physicalIndexes.every((physicalIndex, offset) => physicalIndex === first + offset);
+}
+
+/**
  * Records the rows a removal is about to take out of the data source. Must run after the
  * `beforeRemoveRow` hook (a listener may widen the list) and before the rows are spliced out.
  *
@@ -336,6 +365,7 @@ export function recordRemovedRows(hot: HotInstance, physicalRows: number[]) {
     rows,
     accessorValues,
     metas,
+    atAxisEnd: isAxisEnd(physicalIndexes, hot.rowIndexMapper.getNumberOfIndexes()),
   });
 }
 
@@ -371,5 +401,11 @@ export function recordRemovedColumns(hot: HotInstance, dataSource: unknown[], ph
     return columnValues;
   });
 
-  scope.record({ type: 'removeColumns', physicalIndexes, values, metas });
+  scope.record({
+    type: 'removeColumns',
+    physicalIndexes,
+    values,
+    metas,
+    atAxisEnd: isAxisEnd(physicalIndexes, hot.columnIndexMapper.getNumberOfIndexes()),
+  });
 }
