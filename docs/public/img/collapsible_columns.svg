@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="720" viewBox="0 0 1400 720">
+  <!--
+    Coordinate diagram for the collapsibleColumns configuration.
+    Greyscale only (matches both themes through the invert filter). Authored for the LIGHT theme: the docs apply filter: invert(1)
+    to the whole image in dark mode (.img-invert wrapper).
+
+    Grid geometry:
+      - 7 columns, each 140px wide, grid starts at x=330
+      - 4 header rows + 1 data row, each 72px tall, grid starts at y=230
+    Highlighted header cells match the guide's config:
+      { row: -4, col: 1, collapsible: true }  -> "Inventory" group (cols 1-6)
+      { row: -3, col: 5, collapsible: true }  -> "Shipping" group (cols 5-6)
+  -->
+  <defs>
+    <style>
+      .cell-header { fill: #dfe1e8; stroke: #bdbfc6; stroke-miterlimit: 10; }
+      .cell-data { fill: #fff; stroke: #bdbfc6; stroke-miterlimit: 10; }
+      .cell-hl-a { fill: #dfe1e8; stroke: #3b3e45; stroke-width: 3.5; stroke-miterlimit: 10; }
+      .cell-hl-b { fill: #dfe1e8; stroke: #3b3e45; stroke-width: 3.5; stroke-miterlimit: 10; }
+      .label { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 500; font-size: 26px; fill: #3b3e45; }
+      .label-data { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 400; font-size: 22px; fill: #3b3e45; opacity: 0.8; }
+      .index { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 500; font-size: 22px; fill: #3b3e45; }
+      .index-row { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 500; font-size: 24px; fill: #3b3e45; }
+      .config-a { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 24px; fill: #3b3e45; }
+      .config-b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 24px; fill: #3b3e45; }
+      .caption { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 500; font-size: 24px; fill: #3b3e45; opacity: 0.75; }
+      .leader-a { stroke: #6b6e76; stroke-width: 3; fill: none; stroke-dasharray: 7 6; }
+      .leader-b { stroke: #6b6e76; stroke-width: 3; fill: none; stroke-dasharray: 7 6; }
+      .count-arrow { stroke: #3b3e45; stroke-width: 3; fill: none; }
+      .button { fill: #fff; stroke: #9a9da5; stroke-width: 2; }
+      .button-minus { stroke: #3b3e45; stroke-width: 2.5; }
+    </style>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b6e76"/>
+    </marker>
+    <marker id="arrow-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b6e76"/>
+    </marker>
+    <marker id="arrow-count" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b3e45"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="720" fill="#fff"/>
+
+  <!-- Config annotations (top) -->
+  <text class="config-a" x="380" y="80">{ row: -4, col: 1, collapsible: true }</text>
+  <line class="leader-a" x1="493" y1="94" x2="493" y2="246" marker-end="url(#arrow-a)"/>
+  <text class="config-b" x="760" y="146">{ row: -3, col: 5, collapsible: true }</text>
+  <line class="leader-b" x1="1053" y1="160" x2="1053" y2="318" marker-end="url(#arrow-b)"/>
+
+  <!-- Column index labels (above the top header row) -->
+  <text class="index" x="400" y="216" text-anchor="middle">col: 0</text>
+  <text class="index" x="540" y="216" text-anchor="middle">col: 1</text>
+  <text class="index" x="680" y="216" text-anchor="middle">col: 2</text>
+  <text class="index" x="820" y="216" text-anchor="middle">col: 3</text>
+  <text class="index" x="960" y="216" text-anchor="middle">col: 4</text>
+  <text class="index" x="1100" y="216" text-anchor="middle">col: 5</text>
+  <text class="index" x="1240" y="216" text-anchor="middle">col: 6</text>
+
+  <!-- Header row -4 (top of four levels) -->
+  <rect class="cell-header" x="330" y="230" width="140" height="72"/>
+  <rect class="cell-hl-a" x="470" y="230" width="840" height="72"/>
+  <text class="label" x="890" y="275" text-anchor="middle">Inventory</text>
+
+  <!-- Header row -3 -->
+  <rect class="cell-header" x="330" y="302" width="140" height="72"/>
+  <rect class="cell-header" x="470" y="302" width="560" height="72"/>
+  <text class="label" x="750" y="347" text-anchor="middle">Catalog</text>
+  <rect class="cell-hl-b" x="1030" y="302" width="280" height="72"/>
+  <text class="label" x="1170" y="347" text-anchor="middle">Shipping</text>
+
+  <!-- Header row -2 -->
+  <rect class="cell-header" x="330" y="374" width="140" height="72"/>
+  <rect class="cell-header" x="470" y="374" width="280" height="72"/>
+  <text class="label" x="610" y="419" text-anchor="middle">Item</text>
+  <rect class="cell-header" x="750" y="374" width="280" height="72"/>
+  <text class="label" x="890" y="419" text-anchor="middle">Stock</text>
+  <rect class="cell-header" x="1030" y="374" width="280" height="72"/>
+  <text class="label" x="1170" y="419" text-anchor="middle">Location</text>
+
+  <!-- Header row -1 (directly above the first table row) -->
+  <rect class="cell-header" x="330" y="446" width="140" height="72"/>
+  <text class="label" x="400" y="491" text-anchor="middle">SKU</text>
+  <rect class="cell-header" x="470" y="446" width="140" height="72"/>
+  <text class="label" x="540" y="491" text-anchor="middle">Product</text>
+  <rect class="cell-header" x="610" y="446" width="140" height="72"/>
+  <text class="label" x="680" y="491" text-anchor="middle">Category</text>
+  <rect class="cell-header" x="750" y="446" width="140" height="72"/>
+  <text class="label" x="820" y="491" text-anchor="middle">Qty</text>
+  <rect class="cell-header" x="890" y="446" width="140" height="72"/>
+  <text class="label" x="960" y="491" text-anchor="middle">Price</text>
+  <rect class="cell-header" x="1030" y="446" width="140" height="72"/>
+  <text class="label" x="1100" y="491" text-anchor="middle">City</text>
+  <rect class="cell-header" x="1170" y="446" width="140" height="72"/>
+  <text class="label" x="1240" y="491" text-anchor="middle">Region</text>
+
+  <!-- First table row (data cells) -->
+  <rect class="cell-data" x="330" y="518" width="140" height="72"/>
+  <text class="label-data" x="400" y="562" text-anchor="middle">SKU-4821</text>
+  <rect class="cell-data" x="470" y="518" width="140" height="72"/>
+  <text class="label-data" x="540" y="562" text-anchor="middle">Bottle</text>
+  <rect class="cell-data" x="610" y="518" width="140" height="72"/>
+  <text class="label-data" x="680" y="562" text-anchor="middle">Drinkware</text>
+  <rect class="cell-data" x="750" y="518" width="140" height="72"/>
+  <text class="label-data" x="820" y="562" text-anchor="middle">142</text>
+  <rect class="cell-data" x="890" y="518" width="140" height="72"/>
+  <text class="label-data" x="960" y="562" text-anchor="middle">$12.49</text>
+  <rect class="cell-data" x="1030" y="518" width="140" height="72"/>
+  <text class="label-data" x="1100" y="562" text-anchor="middle">Seattle</text>
+  <rect class="cell-data" x="1170" y="518" width="140" height="72"/>
+  <text class="label-data" x="1240" y="562" text-anchor="middle">West</text>
+
+  <!-- Expand/collapse buttons at { row: -4, col: 1 } and { row: -3, col: 5 } -->
+  <rect class="button" x="482" y="255" width="22" height="22" rx="3"/>
+  <line class="button-minus" x1="487" y1="266" x2="499" y2="266"/>
+  <rect class="button" x="1042" y="327" width="22" height="22" rx="3"/>
+  <line class="button-minus" x1="1047" y1="338" x2="1059" y2="338"/>
+
+  <!-- Header-row index labels (left side) -->
+  <text class="index-row" x="312" y="275" text-anchor="end">row: -4</text>
+  <text class="index-row" x="312" y="347" text-anchor="end">row: -3</text>
+  <text class="index-row" x="312" y="419" text-anchor="end">row: -2</text>
+  <text class="index-row" x="312" y="491" text-anchor="end">row: -1</text>
+  <text class="caption" x="312" y="562" text-anchor="end">first table row</text>
+
+  <!-- Upward counting arrow: from the first table row up to the top header row -->
+  <line class="count-arrow" x1="120" y1="554" x2="140" y2="554"/>
+  <line class="count-arrow" x1="120" y1="554" x2="120" y2="252" marker-end="url(#arrow-count)"/>
+
+  <!-- Caption -->
+  <text class="caption" x="330" y="668">Header row indexes are negative - counting from the first table row upwards.</text>
+</svg>
