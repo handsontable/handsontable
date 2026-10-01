@@ -1413,11 +1413,15 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
+    const unescaped = this.#unescapeEngineSheetArray(
+      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
+    );
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
-    const serialized = padRowsToWidestRow(this.#unescapeEngineSheetArray(
-      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
-    ));
+    // A grid whose `columns` or `dataSchema` fix the column count is left as it was: padding the source
+    // rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would write
+    // only the visible columns back into the sheet.
+    const serialized = this.#isColumnCountFixedBySettings() ? unescaped : padRowsToWidestRow(unescaped);
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -1971,6 +1975,18 @@ export class Formulas extends BasePlugin {
    */
   #isSourceDataArrayOfArrays(): boolean {
     return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
+   * Tells whether the `columns` or the `dataSchema` setting decides how many columns the grid has,
+   * rather than the width of the loaded rows.
+   *
+   * @returns {boolean}
+   */
+  #isColumnCountFixedBySettings(): boolean {
+    const { columns, dataSchema } = this.hot.getSettings();
+
+    return isDefined(columns) || isDefined(dataSchema);
   }
 
   /**

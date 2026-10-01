@@ -58,6 +58,19 @@ export class FormulasSheetReloadPage {
     return this.page.evaluate(() => window.hot.countCols());
   }
 
+  /**
+   * The length of the first row as the engine serializes it, which is what a reload hands to the grid.
+   * After the cut it is one cell short of the sheet's width, and that is the trigger of the bug.
+   */
+  async serializedFirstRowLength(): Promise<number> {
+    return this.page.evaluate(() => {
+      const formulas = window.hot.getPlugin('formulas');
+
+      return formulas.engine && formulas.sheetId !== null ?
+        formulas.engine.getSheetSerialized(formulas.sheetId)[0].length : -1;
+    });
+  }
+
   /** The number of columns the engine sheet holds. */
   async engineSheetWidth(): Promise<number> {
     return this.page.evaluate(() => {

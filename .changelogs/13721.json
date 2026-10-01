@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the `Formulas` plugin dropping the last column of a grid built without `data` when the first-row cell of that column was emptied and the settings were applied again.",
+  "title": "Fixed the `Formulas` plugin dropping the last column of a grid built without `data` when the first-row cell of that column was emptied and the settings were applied again. A switch to a sheet with uneven rows now loads the grid as wide as the widest row of that sheet.",
   "type": "fixed",
   "issueOrPR": 13721,
   "breaking": false,

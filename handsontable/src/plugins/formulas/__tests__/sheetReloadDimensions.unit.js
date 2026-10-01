@@ -70,7 +70,7 @@ describe('Formulas sheet reload dimensions', () => {
     expect(hot.getDataAtCell(0, COLUMNS - 1)).toBeNull();
   });
 
-  it('should keep the width of the widest row when an inner first-row cell is emptied', () => {
+  it('should keep the width of the widest row when the last two first-row cells are emptied', () => {
     const settings = buildAndFillSheetThroughEngine();
 
     hot.setDataAtCell(0, COLUMNS - 1, null);
@@ -89,6 +89,58 @@ describe('Formulas sheet reload dimensions', () => {
 
     expect(hot.countRows()).toBe(ROWS);
     expect(hot.countCols()).toBe(COLUMNS);
+  });
+
+  it('should not narrow the engine sheet when switching to a jagged sheet on a grid with a `columns` array', () => {
+    const jagged = [['a', 'b'], ['c', 'd', 'e', 'f', 'g']];
+
+    hot = new Handsontable(container, {
+      data: [[1, 2, 3], [4, 5, 6]],
+      columns: [{}, {}, {}],
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    engine.addSheet('Other');
+    engine.setSheetContent(engine.getSheetId('Other'), jagged);
+    hot.getPlugin('formulas').switchSheet('Other');
+    hot.updateSettings({});
+
+    expect(engine.getSheetSerialized(engine.getSheetId('Other'))).toEqual(jagged);
+  });
+
+  it('should load the widest row of a jagged sheet on a switch to it', () => {
+    hot = new Handsontable(container, {
+      data: [[1], [2]],
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    engine.addSheet('Other');
+    engine.setSheetContent(engine.getSheetId('Other'), [['a'], ['b', 'c', 'd']]);
+    hot.getPlugin('formulas').switchSheet('Other');
+
+    expect(hot.countCols()).toBe(3);
+    expect(hot.getDataAtRow(0)).toEqual(['a', null, null]);
+  });
+
+  it('should serialize a shorter sheet but keep the full dimensions after a whole trailing column is emptied', () => {
+    buildAndFillSheetThroughEngine();
+
+    for (let row = 0; row < ROWS; row++) {
+      hot.setDataAtCell(row, COLUMNS - 1, null);
+    }
+
+    const sheetId = engine.getSheetId('Sheet1');
+
+    // Probe, not a requirement: records what the engine does so the AGENTS.md note stays honest.
+    expect({
+      dimensions: engine.getSheetDimensions(sheetId),
+      serializedRowLengths: engine.getSheetSerialized(sheetId).map(row => row.length),
+    }).toEqual({
+      dimensions: { width: COLUMNS, height: ROWS },
+      serializedRowLengths: Array(ROWS).fill(COLUMNS - 1),
+    });
   });
 
   it('should still shrink the grid when the engine sheet itself is replaced by a smaller one', () => {

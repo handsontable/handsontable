@@ -421,11 +421,27 @@ and a grid built without `data` takes it on every `updateSettings()` (`#onAfterC
 the gaps) before `loadData()`. Pad **after** the unescape step, not before: the gaps are not engine values and
 need no unescaping.
 
-Two limits are deliberate. The width is the widest **row**, not the grid's current width, so a sheet an
-application replaces with a smaller one still shrinks the grid on the next reload. And a column or a row that
-is emptied in **every** cell leaves the engine's own extent, so it still drops on a reload — the engine does
-not count it, and the grid has no record that it was ever there. Pinned by `__tests__/sheetReloadDimensions.unit.js`
-and `tests/e2e/formulas-sheet-reload.spec.ts`.
+The padding applies to every `switchSheet()`, so a switch to a sheet with uneven rows now loads as wide as
+its widest row (it used to load as wide as its first).
+
+Three limits are deliberate.
+
+- **The width is the widest row, not `getSheetDimensions()` and not the grid's current width.**
+  `getSheetDimensions()` never shrinks (a sheet replaced by a 2x3 one still reports the old 15x5), so it cannot
+  say how wide the content is. Taking the widest row keeps a sheet that an application replaces with a smaller
+  one shrinking the grid on the next reload.
+- **A column or row emptied in every cell still drops on a reload.** `getSheetDimensions()` keeps reporting the
+  old size, but `getSheetSerialized()` omits a trailing column or row that is empty throughout, and the grid
+  has no record that it was ever there. Padding to the dimensions would fix that and is not an option for the
+  reason above.
+- **A grid whose `columns` or `dataSchema` fix the column count is not padded
+  (`#isColumnCountFixedBySettings()`).** Those options decide `countCols()` there, so padding only raises
+  `countSourceCols()` past it. That flips `#areSourceColumnsSkipped()`, and the next resync writes just the
+  visible columns back into the sheet, deleting engine data (a sheet of `[['a', 'b'], ['c', 'd', 'e', 'f', 'g']]`
+  came back as three columns under a three-entry `columns` array). The same hazard already exists for a
+  rectangular sheet wider than `columns`; it is untouched here.
+
+Pinned by `__tests__/sheetReloadDimensions.unit.js` and `tests/e2e/formulas-sheet-reload.spec.ts`.
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 

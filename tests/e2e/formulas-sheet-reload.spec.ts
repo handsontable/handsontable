@@ -28,6 +28,9 @@ test.describe('Formulas: reloading the engine sheet after a cut', () => {
 
     await expect(grid.cell(0, 14)).toHaveText('');
 
+    // The trigger: the engine now serializes the first row one cell short of the sheet's width.
+    await expect.poll(() => grid.serializedFirstRowLength()).toBe(14);
+
     await grid.rerender();
 
     // The engine still holds the whole column, and so must the grid.
