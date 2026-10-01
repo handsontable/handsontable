@@ -324,6 +324,12 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 :::
 
+## Toggle read-only from the menus
+
+The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the column menu toggles the `readOnly` state of the selected cells.
+
+The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it returns always takes precedence over the menu. The **Read only** item skips those cells. It changes the other selected cells, and its check mark reflects only them. If every selected cell gets its `readOnly` value from `cells`, the item doesn't appear.
+
 ## Block the entire grid
 
 The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
