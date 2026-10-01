@@ -884,6 +884,48 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Returns the geometry of every merged cell the lookup matrix holds, as plain
+   * `{ row, col, rowspan, colspan }` records. A merge whose rows are all trimmed stays in the
+   * merge list at its last visual position, but the lookup matrix no longer holds it, so it is
+   * left out: restored at that stale position it would come back over unrelated rows.
+   *
+   * @private
+   * @returns {MergeAreaGeometry[]}
+   */
+  getVisibleMergedAreas(): MergeAreaGeometry[] {
+    const collection = this.mergedCellsCollection;
+
+    return collection.mergedCells
+      .filter(mergedCell => collection.get(mergedCell.row, mergedCell.col) === mergedCell)
+      .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
+  }
+
+  /**
+   * Merges the given areas through the automatic path, the one the settings use: no cell is
+   * written, and `beforeMergeCells`/`afterMergeCells` report `auto: true`. An area that does not
+   * fit the grid is skipped without the settings validation's warning, and so is one that
+   * overlaps a merge already in the lookup matrix, since the automatic path skips the overlap
+   * check.
+   *
+   * @private
+   * @param {MergeAreaGeometry[]} areas The areas to merge, in visual indexes.
+   */
+  restoreMergedAreas(areas: MergeAreaGeometry[]): void {
+    const rowCount = this.hot.countRows();
+    const colCount = this.hot.countCols();
+
+    areas
+      .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
+      .forEach((area) => {
+        const range = toMergeAreaRange(this.hot, area);
+
+        if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
+          this.mergeRange(range, true, true);
+        }
+      });
+  }
+
+  /**
    * Returns `true` if a range is mergeable.
    *
    * @private

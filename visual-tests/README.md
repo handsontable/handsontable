@@ -221,7 +221,14 @@ First, prepare your local visual testing environment:
 
 1. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
 2. From the `./visual-tests/` directory, run `npm install`.
-3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
+3. From the repository root, build Handsontable: `npm --prefix handsontable run build`. The demos render this
+   local build, so build it again after you change the core, or after a checkout, pull, or rebase that changes
+   its sources. To render a wrapper demo, build that wrapper too, for example
+   `npm --prefix wrappers/react-wrapper run build`; a bare `npm run build` on a feature branch renders all
+   three. `npm run build` checks for these builds before it installs anything. Each demo's own build refuses
+   to run against a copy of Handsontable from the npm registry, or against a core build older than its sources.
+   Each problem they report ends with the command that fixes it.
+4. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
    ```bash
    AWS_ACCESS_KEY_ID=xxx
    AWS_SECRET_ACCESS_KEY=xxx
@@ -246,7 +253,7 @@ To run the visual tests locally:
    ```bash
    REG_EXPECTED_KEY=base/develop REG_ACTUAL_KEY=local/$(git rev-parse --short HEAD) npm run compare
    ```
-   `compare` loads `./.env` itself if the file exists, so the credentials from step 3 are picked up
+   `compare` loads `./.env` itself if the file exists, so the credentials from step 4 are picked up
    without exporting them by hand. If you rendered the `pr` tier, prefix this command with `VISUAL_TIER=pr`
    as well, so the golden records are trimmed to the same subset; otherwise the report lists every record
    you did not render as deleted.

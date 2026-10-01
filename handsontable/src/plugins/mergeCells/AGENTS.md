@@ -303,6 +303,15 @@ strictly worse than the singleton drop it replaced, so such a fragment is left t
 `should not retain a single-cell fragment of a merge whose rows a sort scattered`; the two guards have to
 move together, and removing either one turns a spec red.
 
+## SheetsBar goes through members MergeCells owns, never the collection
+
+A sheet switch captures and restores merges around its `loadData()`. It calls
+`getVisibleMergedAreas()`, `clearCollections()`, `restoreMergedAreas()`, the `deferSettingsPass`
+flag and `runDeferredSettingsPass()` through the typed `getPlugin('mergeCells')`, so changing their
+names or signatures breaks the type check instead of the switch. Keep the capture reading the lookup matrix
+and the restore on the automatic path (`mergeRange(range, true, true)`): SheetsBar relies on both.
+Pinned by `__tests__/mergedAreasApi.unit.js`.
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous

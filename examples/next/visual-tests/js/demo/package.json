@@ -15,7 +15,7 @@
   "scripts": {
     "serve": "vite preview",
     "start": "vite preview",
-    "build": "vite build"
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && vite build"
   },
   "dependencies": {
     "handsontable": "latest"

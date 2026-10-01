@@ -15,7 +15,7 @@
     "ng": "ng",
     "serve": "node server.js",
     "start": "ng serve --port 8080",
-    "build": "ng build",
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && ng build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
