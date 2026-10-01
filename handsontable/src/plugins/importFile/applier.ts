@@ -224,8 +224,10 @@ function resetOmittedLayout(
  *
  * Nothing the workbook carries reaches the stylesheet unchecked. Every class name has to match the
  * mapper's own `htImported-<hash>` shape and every declaration block has to be `property:value`
- * pairs built from letters, digits, `#`, space, comma, dot, parentheses and hyphen, so no value can
- * carry a `}` and close the rule it sits in. A rule that fails either test is dropped and the
+ * pairs separated by `;`, each property listed in `IMPORTED_DECLARATIONS` and each value passing
+ * that property's check (a six-digit hex color or one fixed keyword). So no value can carry a `}`
+ * that closes the rule it sits in, a parenthesis that opens `url()` or `expression()`, or a second
+ * property. A rule that fails either test is dropped and the
  * rejected class names are named in one `warn()`. That is the second layer: `argbToCssHex` in
  * `styles.ts` already refuses a color that is not plain hex, and this is what keeps a future
  * declaration source honest too.

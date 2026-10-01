@@ -410,46 +410,54 @@ function toNumericType(numFmt: string): InferredType {
 }
 
 /**
- * Derives a cell type from a cell's number format and value. Returns `null` when the cell is empty
- * and carries no format, so the caller can leave the column untyped.
+ * Derives a cell type from a non-empty number format alone. Returns `null` for `General`, which
+ * says nothing about the type, so the caller falls back to the cell's value.
  */
-export function inferCellType(cell: CellSnapshot): InferredType | null {
-  const { numFmt } = cell;
-  const value = cellDisplayValue(cell);
-
+function inferFromNumberFormat(numFmt: string): InferredType | null {
   if (numFmt === '@') {
     return { type: 'text' };
   }
 
   // Excel caps a format code at 255 characters, so a longer one is malformed: it is reported as an
   // unsupported format instead of being parsed, which also bounds every regex below.
-  if (numFmt && numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+  if (numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
     return { type: 'numeric', unsupportedNumFmt: numFmt };
   }
 
-  if (numFmt) {
-    // The currency comes off first: `CHF`, `SEK` and `HK$` carry an `h` or an `s` that would
-    // otherwise read as a time code and turn a money column into `12:00:00`s.
-    const temporal = classifyTemporal(captureCurrency(numFmt).rest);
+  // The currency comes off first: `CHF`, `SEK` and `HK$` carry an `h` or an `s` that would
+  // otherwise read as a time code and turn a money column into `12:00:00`s.
+  const temporal = classifyTemporal(captureCurrency(numFmt).rest);
 
-    if (temporal === 'time') {
-      return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
-    }
-
-    // A date-time pattern is an `intl-datetime` cell, the type the export writes one from: a `date`
-    // cell accepts a date-only ISO value, so a date-time value rendered `#bad-value#` there.
-    if (temporal === 'datetime') {
-      return { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) };
-    }
-
-    if (temporal === 'date') {
-      return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
-    }
-
-    if (numFmt !== 'General') {
-      return toNumericType(numFmt);
-    }
+  if (temporal === 'time') {
+    return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
   }
+
+  // A date-time pattern is an `intl-datetime` cell, the type the export writes one from: a `date`
+  // cell accepts a date-only ISO value, so a date-time value rendered `#bad-value#` there.
+  if (temporal === 'datetime') {
+    return { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) };
+  }
+
+  if (temporal === 'date') {
+    return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
+  }
+
+  return numFmt === 'General' ? null : toNumericType(numFmt);
+}
+
+/**
+ * Derives a cell type from a cell's number format and value. Returns `null` when the cell is empty
+ * and carries no format, so the caller can leave the column untyped.
+ */
+export function inferCellType(cell: CellSnapshot): InferredType | null {
+  const { numFmt } = cell;
+  const fromFormat = numFmt ? inferFromNumberFormat(numFmt) : null;
+
+  if (fromFormat) {
+    return fromFormat;
+  }
+
+  const value = cellDisplayValue(cell);
 
   if (typeof value === 'boolean') {
     return { type: 'checkbox' };

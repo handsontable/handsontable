@@ -205,7 +205,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   otherwise. There is no cell-meta home for inline style, so `mapper.ts` turns it into generated class names
   (`result.cellsMeta[].meta.className`) plus the declarations they need (`result.styles`), and borders into
   `result.customBorders`. `applier.ts#installImportedStyles` installs `result.styles` as one
-  `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootDocument.head` — one per instance,
+  `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootWrapperElement` (see the bullet above) — one per instance,
   `textContent` replaced (never appended) on every import — and `ImportFile#destroy()` removes it via
   `removeImportedStyles(this.hot)` before `super.destroy()`. `toSettings` passes `result.customBorders`
   straight through `updateSettings`. The exact selector `.handsontable tbody > tr > td.<class>` is

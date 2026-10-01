@@ -32,6 +32,9 @@ const options: ImportOptions = {
   importStyles: true,
 };
 
+// A `null` override means "no override", as an absent key does.
+const nullEngineOptions: ImportOptions = { engine: null };
+
 const supported: boolean = plugin.supportsImportFormat('xlsx');
 
 /**
@@ -41,6 +44,7 @@ const supported: boolean = plugin.supportsImportFormat('xlsx');
 async function run(buffer: ArrayBuffer, blob: Blob) {
   const fromBuffer: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, options);
   const fromBlob: ImportResult = await plugin.importFromBlob('xlsx', blob);
+  const fromNullEngine: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, { engine: null });
 
   const data: unknown[][] = fromBuffer.data;
   const headers: string[] | undefined = fromBlob.colHeaders;

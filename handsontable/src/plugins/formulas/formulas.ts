@@ -3389,8 +3389,11 @@ export class Formulas extends BasePlugin {
    *
    * Writes a change set back into the engine when a full sheet write from the source data replaced
    * the sheet between `afterSetDataAtCell` (where the change first reached the engine) and now,
-   * when the Core applied it. `beforeChangeRender` is the Core's first hook after the apply, and it
-   * runs before the render that follows, so the cell never paints its raw formula text. That window
+   * when the Core applied it. `beforeChangeRender` is the first hook `applyChanges` runs on its own
+   * after it writes the set to the data (the row and column hooks of `alter()`, such as
+   * `beforeCreateRow`/`afterCreateRow`, can fire before it, from `writeChangesToData` and
+   * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
+   * the cell never paints its raw formula text. That window
    * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
    * in the same task rebuilds the sheet from source data that does not hold the change yet. A change
    * set written into another sheet in the meantime is left alone: the grid's data is that sheet's now.

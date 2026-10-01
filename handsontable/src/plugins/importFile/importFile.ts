@@ -73,7 +73,7 @@ export interface ImportOptions {
    * An xlsx engine module for this import only. `null`/absent uses the plugin's `engines` entry, or
    * the built-in engine.
    */
-  engine?: object;
+  engine?: object | null;
   /**
    * Apply alignment, font, fill and borders from the workbook as generated class names
    * (`result.cellsMeta[].meta.className`), style rules (`result.styles`) and `customBorders`
@@ -282,7 +282,11 @@ function configuredEngine(hot: HotInstance, format: string): object | null | und
  * Detects the engine from the per-call override or the plugin settings for `format`. Returns
  * `null` instead of throwing when nothing usable was injected.
  */
-function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
+function tryDetectEngine(
+  hot: HotInstance,
+  override: object | null | undefined,
+  format: string,
+): DetectedXlsxEngine | null {
   return tryDetectXlsxEngine(resolveEngineOverride(override, configuredEngine(hot, format)), PLUGIN_KEY);
 }
 
@@ -294,7 +298,7 @@ function tryDetectEngine(hot: HotInstance, override: object | undefined, format:
  * Handsontable error when the injected value does not duck-type to a known engine, or when the
  * detected engine cannot read the format.
  */
-function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
+function requireEngine(hot: HotInstance, format: string, override: object | null | undefined): DetectedXlsxEngine {
   const injected = resolveEngineOverride(override, configuredEngine(hot, format));
   const detected = detectXlsxEngine(injected, PLUGIN_KEY);
 

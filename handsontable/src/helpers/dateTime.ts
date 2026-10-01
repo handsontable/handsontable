@@ -6,6 +6,21 @@ import { isEmpty } from './mixed';
 export const ISO_DATE_REGEX = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 /**
+ * Milliseconds in one day, the unit a millisecond timestamp is divided by to become a whole-day
+ * offset — and therefore the unit every conversion between a `Date` and an Excel serial goes
+ * through.
+ */
+export const MS_PER_DAY = 86400000;
+
+/**
+ * The Excel epoch (1899-12-30) expressed in UTC milliseconds, the base every date serial counts
+ * from. The 1900 date system counts from 1899-12-30 rather than 1899-12-31 because it reproduces
+ * Lotus 1-2-3's non-existent 1900-02-29. It lives here, not in the xlsx layer, because the Formulas
+ * plugin converts HyperFormula's date serials with it too.
+ */
+export const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
+
+/**
  * Get normalized Date object for the ISO formatted date strings.
  */
 export function getNormalizedDate(dateString: string): Date {

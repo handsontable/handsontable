@@ -1,6 +1,5 @@
-import { isValidISODate } from '../../helpers/dateTime';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY, isValidISODate } from '../../helpers/dateTime';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
-import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 
 /**
  * Checks if provided formula expression is escaped.

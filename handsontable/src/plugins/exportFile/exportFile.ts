@@ -225,7 +225,7 @@ export interface ExportOptions {
    * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
    * the built-in engine.
    */
-  engine?: object;
+  engine?: object | null;
 }
 
 /**
