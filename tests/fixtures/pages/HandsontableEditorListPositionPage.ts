@@ -10,10 +10,11 @@ export type Layout = 'window' | 'sized';
 /**
  * Which editor opens the list: `handsontable` (a nested grid as wide as its own columns), `dropdown`
  * (the same flip, but `AutocompleteEditor#updateDropdownDimensions` sizes the list, trimmed to the
- * cell's width by default), or `multiselect` (its own placement code, `MultiSelectEditor#refreshDimensions`,
+ * cell's width by default), `autocomplete` (the dropdown's editor, here with `trimDropdown: false`, so its
+ * list is as wide as its longest option), or `multiselect` (its own placement code, `MultiSelectEditor#refreshDimensions`,
  * with the same horizontal rule; a list of checkboxes wider than the cell).
  */
-export type EditorType = 'handsontable' | 'dropdown' | 'multiselect';
+export type EditorType = 'handsontable' | 'dropdown' | 'autocomplete' | 'multiselect';
 
 /**
  * The element each editor type draws its list in. The `multiselect` list sits inside an outer
@@ -22,6 +23,7 @@ export type EditorType = 'handsontable' | 'dropdown' | 'multiselect';
 const LIST_SELECTORS: Record<EditorType, string> = {
   handsontable: '.handsontableEditor',
   dropdown: '.handsontableEditor',
+  autocomplete: '.handsontableEditor',
   multiselect: '.ht-multi-select-editor',
 };
 

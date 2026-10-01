@@ -20,7 +20,7 @@
     const htDirections = Object.assign(Object.create(null), { ltr: 'ltr', rtl: 'rtl' });
     const htLayouts = Object.assign(Object.create(null), { window: 'window', sized: 'sized' });
     const htTypes = Object.assign(Object.create(null), {
-      handsontable: 'handsontable', dropdown: 'dropdown', multiselect: 'multiselect',
+      handsontable: 'handsontable', dropdown: 'dropdown', autocomplete: 'autocomplete', multiselect: 'multiselect',
     });
     // How far the grid's inline-start edge sits from the page's: `start` leaves 600 px on that side, so
     // the grid root is narrower than the viewport and its inline-start edge is not the page's.
@@ -81,7 +81,8 @@
     `AutocompleteEditor#updateDropdownDimensions`), in the two layouts its horizontal flip
     (`HandsontableEditor#flipDropdownHorizontallyIfNeeded`,
     `handsontable/src/editors/handsontableEditor/handsontableEditor.ts`) measures differently.
-    `?type=multiselect` opens the `multiselect` editor, which places its list with its own code
+    `?type=autocomplete` opens the `autocomplete` editor with `trimDropdown: false`, so its list is
+    wider than the cell. `?type=multiselect` opens the `multiselect` editor, which places its list with its own code
     (`MultiSelectEditor#refreshDimensions`) but applies the same horizontal rule in both layouts.
 
     `window`: the grid has no width or height, so it is as large as its 100 x 50 cells and the PAGE
@@ -131,6 +132,10 @@
     ];
     const editorSettings = {
       dropdown: { type: 'dropdown', source: choices },
+      // Not trimmed to the cell, so the list is as wide as its longest option and wider than the cell:
+      // the case where the autocomplete's list can open off screen. The cell is empty, so the typed
+      // value filters nothing and all ten options show.
+      autocomplete: { type: 'autocomplete', source: choices, trimDropdown: false },
       multiselect: { type: 'multiselect', source: choices },
       handsontable: {
         type: 'handsontable',

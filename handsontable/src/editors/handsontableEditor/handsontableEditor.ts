@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
+import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
@@ -557,10 +558,10 @@ export class HandsontableEditor extends TextEditor {
     let workspaceWidth = view.getWorkspaceWidth();
 
     if (view.isHorizontallyScrollableByWindow()) {
-      const windowWorkspace = this.#getWindowWorkspace();
+      const windowScroll = getWindowScrollInlineMetrics(this.hot);
 
-      spaceInlineStart = Math.max(spaceInlineStart + windowWorkspace.inlineStartOffset, 0);
-      workspaceWidth = windowWorkspace.width;
+      spaceInlineStart = Math.max(spaceInlineStart + windowScroll.inlineStartOffset, 0);
+      workspaceWidth = windowScroll.viewportWidth;
     }
 
     const dropdownTargetWidth = this.getDropdownWidth();
@@ -577,42 +578,6 @@ export class HandsontableEditor extends TextEditor {
       isFlipped: flipNeeded,
       spaceInlineStart,
       spaceInlineEnd,
-    };
-  }
-
-  /**
-   * The workspace the horizontal flip measures when the window scrolls the grid's columns: the
-   * viewport, as the distance from its inline-start edge to the grid root's, and its width.
-   *
-   * `getEditedCellRect()` measures the cell from the root's inline-start edge, which is its RIGHT
-   * edge in RTL, so the offset added to it has to start from the same edge. Adding the root's left
-   * edge instead, shifted by an RTL page's negative `scrollX`, flipped the list on every cell once
-   * the page was scrolled toward its inline end: it opened from the cell's left edge, off screen from
-   * a cell near the viewport's right edge.
-   *
-   * The room is the viewport's, not the containing block's that `#writeDropdownInlineStart()`
-   * resolves `right` against. A transformed ancestor makes that block a box that scrolls with the
-   * page, and the list is not clipped to it, so a decision measured against the block flips every
-   * list again once the page scrolls.
-   *
-   * @returns {{ inlineStartOffset: number, width: number }}
-   */
-  #getWindowWorkspace(): { inlineStartOffset: number, width: number } {
-    const { hot } = this;
-    // The space is viewport-relative here, so the inline-end boundary is the viewport's too, not the
-    // holder's `offsetWidth`.
-    const viewportWidth = hot.rootDocument.documentElement.clientWidth;
-
-    if (hot.isRtl()) {
-      return {
-        inlineStartOffset: viewportWidth - hot.rootElement.getBoundingClientRect().right,
-        width: viewportWidth,
-      };
-    }
-
-    return {
-      inlineStartOffset: hot.view.getTableOffset().left - hot.rootWindow.scrollX,
-      width: viewportWidth,
     };
   }
 

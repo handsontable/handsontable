@@ -1,3 +1,5 @@
+import type { WindowScrollInlineMetrics } from '../../utils/windowScrollInlineMetrics';
+
 /**
  * Horizontal placement helpers for the `MultiSelectEditor` dropdown.
  *
@@ -7,7 +9,9 @@
  *
  * These helpers stay local: `HandsontableEditor` applies a relative offset on a
  * nested container, not an absolute wrapper offset, so sharing the pair would
- * change four editors (autocomplete / dropdown inherit that class).
+ * change four editors (autocomplete / dropdown inherit that class). The
+ * window-scroll viewport both measure against is shared, though:
+ * `getWindowScrollInlineMetrics()` (`editors/utils/windowScrollInlineMetrics.ts`).
  *
  * The flip decision is evaluated when the editor opens or the grid scrolls —
  * not on filter keystrokes or check/uncheck. Re-running it as the list width
@@ -23,20 +27,6 @@
 export type CellInlineBox = {
   start: number;
   width: number;
-};
-
-/**
- * Optional window-scroll adjustment for `getDropdownInlineSpace()`.
- *
- * When the table scrolls with the window, `spaceInlineStart` is viewport-relative
- * and the inline-end boundary must be the viewport's, not the holder's offsetWidth.
- * `inlineStartOffset` is the distance from the viewport's inline-start edge to the
- * grid's: the grid's left edge in LTR, and in RTL the distance from the viewport's
- * right edge to the root's right edge.
- */
-export type WindowScrollInlineMetrics = {
-  inlineStartOffset: number;
-  viewportWidth: number;
 };
 
 /**

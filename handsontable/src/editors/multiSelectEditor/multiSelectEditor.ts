@@ -24,7 +24,8 @@ import {
   getFlippedInlineStartOffset,
   shouldFlipDropdownHorizontally,
 } from './controllers/positioning';
-import type { CellInlineBox, WindowScrollInlineMetrics } from './controllers/positioning';
+import type { CellInlineBox } from './controllers/positioning';
+import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -290,7 +291,7 @@ export class MultiSelectEditor extends BaseEditor {
     const rootRect = this.hot.rootElement.getBoundingClientRect();
     const block = getFixedContainingBlockRect(this.#editorContainer!);
     const editorStyle = this.#editorContainer!.style;
-    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect, rootRect);
+    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect);
     const dropdownWidth = this.dropdownController!.getOuterWidth();
     const flipHorizontally = reevaluateHorizontalFlip
       ? shouldFlipDropdownHorizontally(dropdownWidth, spaceInlineStart, spaceInlineEnd)
@@ -581,36 +582,19 @@ export class MultiSelectEditor extends BaseEditor {
    * Calculates the remaining inline-start and inline-end space around the edited cell.
    *
    * Uses the same workspace / window-scroll split as
-   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`.
-   *
-   * When the window scrolls the columns, the space is measured from the viewport instead of the grid.
-   * `cellRect.start` counts from the grid root's inline-start edge, which is its RIGHT edge in RTL,
-   * so under RTL the offset runs from the viewport's right edge to the root's right edge. Starting it
-   * from the root's left edge, shifted by an RTL page's negative `scrollX`, flipped the list on every
-   * cell once the page was scrolled toward its inline end. The room is the viewport's even when an
-   * ancestor is the `fixed` container's containing block: `refreshDimensions()` writes `right` from
-   * that box, but a transformed one scrolls with the page and does not clip the container.
+   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`, and reads the window-scroll viewport from
+   * the same helper, `getWindowScrollInlineMetrics()`.
    *
    * @param {object} cellRect Edited-cell box already returned by `getEditedCellRect()`.
    * @param {number} cellRect.start Inline-start position of the cell.
    * @param {number} cellRect.width Pixel width of the cell.
-   * @param {DOMRect} rootRect The grid root's box in viewport coordinates.
    * @returns {object} Remaining inline-start and inline-end space in pixels.
    */
-  #getInlineSpace(cellRect: CellInlineBox, rootRect: DOMRect): { spaceInlineStart: number; spaceInlineEnd: number } {
+  #getInlineSpace(cellRect: CellInlineBox): { spaceInlineStart: number; spaceInlineEnd: number } {
     const { view } = this.hot;
-    let windowScroll: WindowScrollInlineMetrics | undefined;
-
-    if (view.isHorizontallyScrollableByWindow()) {
-      const viewportWidth = this.hot.rootDocument.documentElement.clientWidth;
-
-      windowScroll = {
-        inlineStartOffset: this.hot.isRtl()
-          ? viewportWidth - rootRect.right
-          : view.getTableOffset().left - this.hot.rootWindow.scrollX,
-        viewportWidth,
-      };
-    }
+    const windowScroll = view.isHorizontallyScrollableByWindow()
+      ? getWindowScrollInlineMetrics(this.hot)
+      : undefined;
 
     return getDropdownInlineSpace(cellRect, view.getWorkspaceWidth(), windowScroll);
   }

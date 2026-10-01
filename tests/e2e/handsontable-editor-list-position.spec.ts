@@ -2,8 +2,8 @@ import { test, expect } from '../fixtures/test';
 import { HandsontableEditorListPositionPage, type Layout, type Variant } from '../fixtures/pages/HandsontableEditorListPositionPage';
 
 /**
- * Where the `handsontable`, `dropdown`, and `multiselect` editors' lists open, relative to the cell being
- * edited, on a page the WINDOW scrolls and in a sized grid that scrolls its own holder, after scrolling
+ * Where the `handsontable`, `dropdown`, `autocomplete`, and `multiselect` editors' lists open, relative to
+ * the cell being edited, on a page the WINDOW scrolls and in a sized grid that scrolls its own holder, after scrolling
  * to the bottom and inline end.
  *
  * The `handsontable` list opens toward the inline end (right in LTR, left in RTL) when it fits there,
@@ -16,7 +16,9 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  *
  * The `dropdown` editor extends that editor and flips the same way, but sizes its list itself
  * (`AutocompleteEditor#updateDropdownDimensions`): trimmed to the cell's width by default, so it stays
- * on the cell's inline start and only the vertical flip moves it.
+ * on the cell's inline start and only the vertical flip moves it. With `trimDropdown: false` the same
+ * editor (`autocomplete` here) gets a list as wide as its longest option, wider than the cell, so the
+ * horizontal flip moves that list like the `handsontable` one.
  *
  * The `multiselect` editor places its list with its own code (`MultiSelectEditor#refreshDimensions`,
  * `handsontable/src/editors/multiSelectEditor/multiSelectEditor.ts`) and the same horizontal rule. Its
@@ -48,7 +50,10 @@ import { HandsontableEditorListPositionPage, type Layout, type Variant } from '.
  * more (the least is `horizon`'s mid-height points, which fit below by 60 px and above by 61). The
  * `dropdown` list is 263–371 px tall (ten options), so at mid-height on `horizon` it fits neither below
  * nor above and is trimmed to whole rows instead of flipped; its points are the top and bottom ones,
- * which clear or miss it by 139 px or more. The `multiselect` list is 320–475 px tall and fits below the
+ * which clear or miss it by 139 px or more. The untrimmed `autocomplete` list is 159–179 px wide and
+ * 263–371 px tall: its flipping points leave 101 px of room, 58 px short of its narrowest width, its
+ * other points leave 500 px or more, and its top and bottom points clear or miss it by 139 px or more.
+ * The `multiselect` list is 320–475 px tall and fits below the
  * top row by 154 px or more (`horizon`, on a page the window scrolls). Its flipping points leave 101 px
  * of room, 76 px short of its narrowest width (177 px), and its other points leave 500 px or more.
  */
@@ -84,21 +89,31 @@ const DROPDOWN_POINTS: Point[] = POINTS
   .filter(({ name }) => !name.startsWith('middle'))
   .map(point => ({ ...point, aligned: { ltr: 'cell width', rtl: 'cell width' } }));
 
-// The multiselect's list is narrower, so its flipping point is 40 px from the inline-end edge of the box
-// that scrolls, which leaves 101 px of room. On the inline-start side 40 px lands on the row
-// header, so each direction keeps the handsontable editor's point there. Top row only (see the docblock
-// above).
-const MULTISELECT_POINTS: Record<'ltr' | 'rtl', Point[]> = {
+// The untrimmed autocomplete's list and the multiselect's are narrower than the handsontable editor's,
+// so their flipping point is 40 px from the inline-end edge of the box that scrolls, which leaves 101 px
+// of room. On the inline-start side 40 px lands on the row header, so each direction keeps the
+// handsontable editor's point there.
+const NARROW_LIST_POINTS: Record<'ltr' | 'rtl', Point[]> = {
   ltr: [
     { name: 'top-left', x: 120, y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
     { name: 'top-center', x: 'center', y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
     { name: 'top-right', x: -40, y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+    { name: 'bottom-left', x: 120, y: -110, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'above' },
+    { name: 'bottom-right', x: -40, y: -110, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'above' },
   ],
   rtl: [
     { name: 'top-left', x: 40, y: 60, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'below' },
     { name: 'top-center', x: 'center', y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
     { name: 'top-right', x: -150, y: 60, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'below' },
+    { name: 'bottom-left', x: 40, y: -110, aligned: { ltr: 'left edge', rtl: 'left edge' }, side: 'above' },
+    { name: 'bottom-right', x: -150, y: -110, aligned: { ltr: 'right edge', rtl: 'right edge' }, side: 'above' },
   ],
+};
+
+// The multiselect takes the top row only (see the docblock above).
+const MULTISELECT_POINTS: Record<'ltr' | 'rtl', Point[]> = {
+  ltr: NARROW_LIST_POINTS.ltr.filter(({ name }) => name.startsWith('top')),
+  rtl: NARROW_LIST_POINTS.rtl.filter(({ name }) => name.startsWith('top')),
 };
 
 /**
@@ -175,6 +190,17 @@ test.describe('dropdown editor list position', () => {
 
       await grid.goto();
       await expectEveryPoint(grid, DROPDOWN_POINTS);
+    });
+  }
+});
+
+test.describe('autocomplete editor list position (not trimmed to the cell)', () => {
+  for (const { title, variant } of CASES) {
+    test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'autocomplete' });
+
+      await grid.goto();
+      await expectEveryPoint(grid, NARROW_LIST_POINTS[variant.dir]);
     });
   }
 });
