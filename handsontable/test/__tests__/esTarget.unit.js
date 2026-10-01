@@ -3,8 +3,6 @@ import { resolve } from 'path';
 
 import { BROWSERS_LIST, ES_TARGET } from '../../../browser-targets';
 
-// Routing probe for the Unit path filter; the next commit reverts it.
-
 /**
  * ES years in ascending order, used to compare two `jsc.target`-style strings.
  */
