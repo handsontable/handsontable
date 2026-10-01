@@ -5,6 +5,7 @@ import {
   serialToIsoDate,
   serialToTimeString,
   serialToIsoDateTime,
+  toGridValue,
   excelWidthToPx,
   pointsToPx,
   resolveListSource,
@@ -15,6 +16,7 @@ import {
   getDateTimeNumFmt,
   parseIsoStringToSerial,
   parseTimeStringToSerial,
+  parseIsoDateTimeStringToSerial,
   intlDateFmtToExcelNumFmt,
   intlTimeFmtToExcelNumFmt,
   intlDateTimeFmtToExcelNumFmt,
@@ -22,6 +24,9 @@ import {
 import { intlNumFormatToExcelNumFmt } from '../../exportFile/types/xlsx/numeric-utils';
 import { createCellSnapshot, createWorkbookSnapshot, createSheetSnapshot } from '../../../utils/xlsxEngine/model';
 import { PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, POINTS_PER_PIXEL } from '../../../utils/xlsxEngine/units';
+import { valueFormatter as intlDatetimeValueFormatter } from '../../../renderers/intlDatetimeRenderer';
+import { isValidISODateTime } from '../../../helpers/dateTime';
+import { BAD_VALUE_TEXT } from '../../../helpers/constants';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -34,8 +39,8 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 0.5, numFmt: getTimeNumFmt() })))
       .toEqual({ type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false } });
     expect(inferCellType(cell({ value: 45292.5, numFmt: getDateTimeNumFmt() }))).toEqual({
-      type: 'date',
-      dateFormat: {
+      type: 'intl-datetime',
+      dateTimeFormat: {
         month: '2-digit',
         day: '2-digit',
         year: '2-digit',
@@ -376,6 +381,33 @@ describe('date format round trip (export derivation inverted by the import)', ()
     expect(excelDateFmtToIntlOptions('hh:mm AM/PM'))
       .toEqual({ hour: '2-digit', minute: '2-digit', hour12: true });
   });
+
+  it('should import the export\'s own date-time output as an intl-datetime cell that renders and validates', () => {
+    // The export writes an `intl-datetime` cell from `dateTimeFormat`; the import has to hand the
+    // same type, options and an ISO value back, or the cell renders `#bad-value#` (a `date` cell
+    // accepts a date-only ISO string, never a date-time one).
+    const options = {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    };
+    const numFmt = intlDateTimeFmtToExcelNumFmt(options);
+    const serial = parseIsoDateTimeStringToSerial('2024-01-15T09:30:45');
+    const source = cell({ value: serial, numFmt });
+    const inferred = inferCellType(source);
+    const value = toGridValue(source, inferred);
+
+    expect(inferred).toEqual({ type: 'intl-datetime', dateTimeFormat: options });
+    expect(value).toBe('2024-01-15 09:30:45');
+    expect(isValidISODateTime(value)).toBe(true);
+    expect(parseIsoDateTimeStringToSerial(value)).toBe(serial);
+    expect(intlDatetimeValueFormatter(value, { dateTimeFormat: inferred.dateTimeFormat, locale: 'en-US' }))
+      .toBe('01/15/2024, 09:30:45');
+  });
 });
 
 describe('serial conversions', () => {
@@ -512,5 +544,103 @@ describe('resolveListSource', () => {
     expect(resolveListSource(
       { type: 'list', allowBlank: true, formulae: [] }, workbook, data
     )).toBeNull();
+  });
+});
+
+describe('inferCellType - date-time formats', () => {
+  [
+    ['yyyy-mm-dd hh:mm:ss', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }],
+    ['m/d/yy h:mm', {
+      month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: false,
+    }],
+    ['[$-409]m/d/yy h:mm AM/PM', {
+      month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: true,
+    }],
+  ].forEach(([numFmt, dateTimeFormat]) => {
+    it(`should map "${numFmt}" to an intl-datetime cell whose value renders and validates`, () => {
+      const source = cell({ value: 45292.5, numFmt });
+      const inferred = inferCellType(source);
+      const value = toGridValue(source, inferred);
+
+      expect(inferred).toEqual({ type: 'intl-datetime', dateTimeFormat });
+      expect(value).toBe('2024-01-01 12:00:00');
+      expect(isValidISODateTime(value)).toBe(true);
+      expect(intlDatetimeValueFormatter(value, { dateTimeFormat, locale: 'en-US' })).not.toBe(BAD_VALUE_TEXT);
+    });
+  });
+
+  it('should keep a date-only format a date cell with a date-only value', () => {
+    const source = cell({ value: 45292.5, numFmt: 'yyyy-mm-dd' });
+    const inferred = inferCellType(source);
+
+    expect(inferred).toEqual({ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } });
+    expect(toGridValue(source, inferred)).toBe('2024-01-01');
+  });
+});
+
+describe('inferCellType - hostile number formats', () => {
+  // A number format is file data. A 2 KB workbook can carry a 100 000-character format, and a
+  // bracket regex that rescans to the end of the string from every `[` is quadratic in it.
+  const LONG = 100000;
+
+  it('should classify a 100 000-character "[[[..." format quickly, as an unsupported number format', () => {
+    const numFmt = `${'['.repeat(LONG)}0`;
+    const start = performance.now();
+    const inferred = inferCellType(cell({ value: 1, numFmt }));
+    const elapsed = performance.now() - start;
+
+    expect(elapsed).toBeLessThan(200);
+    expect(inferred).toEqual({ type: 'numeric', unsupportedNumFmt: numFmt });
+  });
+
+  it('should classify a 100 000-character "[$[$..." format quickly, as an unsupported number format', () => {
+    const numFmt = `${'[$'.repeat(LONG / 2)}0`;
+    const start = performance.now();
+    const inferred = inferCellType(cell({ value: 1, numFmt }));
+    const elapsed = performance.now() - start;
+
+    expect(elapsed).toBeLessThan(200);
+    expect(inferred).toEqual({ type: 'numeric', unsupportedNumFmt: numFmt });
+  });
+
+  it('should parse a 100 000-character bracket run in linear time even past the length cap', () => {
+    // The cap keeps `inferCellType` away from such a format, but the parsers are exported and must
+    // not depend on it: each bracket regex excludes `[` from its body, so no match rescans the tail.
+    const brackets = `${'['.repeat(LONG)}0`;
+    const currencies = `${'[$'.repeat(LONG / 2)}0`;
+    const start = performance.now();
+
+    expect(excelNumFmtToIntlOptions(brackets)).toBeNull();
+    expect(excelNumFmtToIntlOptions(currencies)).toBeNull();
+    expect(excelDateFmtToIntlOptions(brackets)).toEqual({});
+
+    expect(performance.now() - start).toBeLessThan(200);
+  });
+
+  it('should treat a format longer than Excel\'s 255-character limit as unsupported, whatever it reads as', () => {
+    const date = `yyyy-mm-dd${' '.repeat(246)}`;
+
+    expect(date.length).toBe(256);
+    expect(inferCellType(cell({ value: 1, numFmt: date }))).toEqual({ type: 'numeric', unsupportedNumFmt: date });
+    expect(inferCellType(cell({ value: 1, numFmt: date.slice(0, 255) })).type).toBe('date');
+  });
+
+  it('should still read a currency token and strip bracketed sections under the 255-character limit', () => {
+    expect(excelNumFmtToIntlOptions('[$\u20ac-407]#,##0.00')).toEqual({
+      style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+    });
+    expect(excelNumFmtToIntlOptions('[Red][<100]0.0')).toEqual({
+      minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false,
+    });
+    // A nested `[` no longer extends a bracket section: the inner `[x]` is what gets stripped.
+    expect(excelNumFmtToIntlOptions('[[x]0')).toBeNull();
   });
 });

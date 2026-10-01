@@ -92,7 +92,8 @@ export type ImportedNestedHeader = string | { label: string; colspan: number };
  */
 export interface ImportColumn {
   /**
-   * The cell type derived for the column, e.g. `'numeric'`, `'date'`, `'time'`, `'checkbox'` or `'dropdown'`.
+   * The cell type derived for the column, e.g. `'numeric'`, `'date'`, `'intl-datetime'`, `'time'`,
+   * `'checkbox'` or `'dropdown'`.
    */
   type?: string;
   /**
@@ -102,7 +103,7 @@ export interface ImportColumn {
   numericFormat?: Intl.NumberFormatOptions;
   /**
    * The `Intl.DateTimeFormatOptions` derived for the column, when the source cells carried a date
-   * (or date-time) number format. Handsontable 18 takes `dateFormat` as `Intl.DateTimeFormatOptions`
+   * number format. Handsontable 18 takes `dateFormat` as `Intl.DateTimeFormatOptions`
    * and rejects a pattern string, so the Excel pattern is inverted into options rather than copied.
    */
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -111,6 +112,11 @@ export interface ImportColumn {
    * number format.
    */
   timeFormat?: Intl.DateTimeFormatOptions;
+  /**
+   * The `Intl.DateTimeFormatOptions` derived for an `intl-datetime` column, when the source cells
+   * carried a date-time number format. The values are ISO `YYYY-MM-DD HH:mm:ss` strings.
+   */
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   /**
    * The dropdown source values, derived from a list data validation on the column.
    */

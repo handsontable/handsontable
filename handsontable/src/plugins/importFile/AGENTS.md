@@ -226,11 +226,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `string | null` and answers `null` for anything that is not six or eight hex digits — `fontFillRule`
   then omits the `color`/`background-color` declaration and `borderEntry` falls back to `#000000`. And
   `applier.ts#installImportedStyles` re-checks whatever it is handed, whoever built it: the class name must
-  match `htImported-<hash>` (plus the optional `-2`, `-3` collision suffix) and the declaration block must be
-  `property:value` pairs drawn from letters, digits, `#`, space, comma, dot, parentheses and hyphen, so no
-  value can carry a `}`. A failing rule is dropped and the rejected class names are named in one `warn()`.
-  Keep both layers: the first is what makes the output correct, the second is what keeps a future
-  declaration source (a second engine, a hook that mutates `result.styles`) from reopening the hole.
+  match `htImported-<hash>` (plus the optional `-2`, `-3` collision suffix) and every declaration in the
+  block must be on `IMPORTED_DECLARATIONS`, a per-property allow-list of exactly what `fontFillRule` emits:
+  `font-weight:bold`, `font-style:italic`, `text-decoration:underline`, and `color`/`background-color` with a
+  six-digit lower-case hex value. The first cut was a character-class regex that also let through
+  `color:expression(alert(1))`, `background-image:url(x.png)`, `-moz-binding`, `behavior` and `cursor`, so it
+  guarded against `}` and nothing else. A failing rule is dropped and the rejected class names are named in one
+  `warn()`. Keep both layers: the first is what makes the output correct, the second is what keeps a future
+  declaration source (a second engine, a hook that mutates `result.styles`) from reopening the hole. **A new
+  declaration `fontFillRule` learns to write must be added to `IMPORTED_DECLARATIONS` in the same commit**, or
+  it is silently rejected at install time; `applier.unit.js` derives every rule `fontFillRule` can produce
+  and asserts each one installs, so that drift fails a test rather than a user's import.
 - **The generated class name carries a collision suffix, and the applier's pattern knows about it.**
   `styleHash` is a djb2 hash, so `mapper.ts#registerStyleRule` appends `-2`, `-3`, … when the hashed name is
   already taken by DIFFERENT declarations, rather than letting one cell inherit another's style. Widening
@@ -304,9 +310,41 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   one from the cell's `locale` the way `Intl` does, so the clock the source rendered survives). The round trip is pinned in
   `__tests__/inference.unit.js` ("date format round trip"), the only place either plugin's tests import
   across the boundary; source must still never import from `../exportFile`.
-  The *value* the grid stores is unchanged — still `YYYY-MM-DD`, `HH:mm:ss` or `YYYY-MM-DD HH:mm:ss` — and a
-  date-time format stays a `date` cell whose `dateFormat` carries both halves. `mapper.ts` tells the two
-  apart by `dateFormat.hour`, never by inspecting a format string.
+  The *value* the grid stores is `YYYY-MM-DD`, `HH:mm:ss` or `YYYY-MM-DD HH:mm:ss`. **A date-time format
+  is an `intl-datetime` cell carrying `dateTimeFormat`, never a `date` cell.** It used to be a `date` cell
+  whose `dateFormat` carried both halves, but `dateRenderer`/`dateValidator` accept an ISO date ONLY
+  (`helpers/dateTime.ts#parseToLocalDate`), so every imported date-time cell rendered `#bad-value#` and
+  validated invalid. `intl-datetime` is the type the export writes a date-time `numFmt` from
+  (`intlDateTimeFmtToExcelNumFmt`), and its renderer, validator and editor all accept the space-separated
+  value (`ISO_DATETIME_REGEX` takes `T` or a space; the editor normalizes to `T` on save). `classifyTemporal`
+  decides the type; `toGridValue` switches on the inferred type, never on a format string or on
+  `dateFormat.hour`. Pinned by `mapper.unit.js` ("date-time cells", a real jsdom render) and the round-trip
+  block in `inference.unit.js`.
+- **Every layout value the file controls is bounded in `mapLayout`, whatever engine read it.** The reader
+  validates too, but the mapper is the second layer, so the ExcelJS adapter (or any future engine) cannot hand
+  `updateSettings` nonsense: a column width or row height that is not a finite, positive number inside
+  Excel's own maximum (255 width units, 409.5 pt — `MAX_EXCEL_COLUMN_WIDTH`/`MAX_EXCEL_ROW_HEIGHT_POINTS`,
+  checked before the unit conversion) or that rounds to 0 px becomes `undefined` (`toLayoutPixels`); a freeze
+  count is floored, shifted and clamped to `[0, count]`, with `NaN` freezing nothing (`toFreezeCount`); and a
+  hidden index that is not an integer is dropped ON ITS OWN (`toHiddenIndexes`). The last one matters more
+  than it looks: `HiddenRows`/`HiddenColumns` reject the WHOLE list when one entry is invalid, so a single
+  `0.5` used to unhide the rows the file legitimately hid. Observed before the fix: `colWidths [-350,
+  7e+300, Infinity]`, `rowHeights [1.33e300]`, `fixedRowsTop 2.7`. A width of `0` is now omitted rather than
+  imported as a 0 px column; Excel expresses a hidden column with the `hidden` flag, which is carried.
+- **No regex may rescan a number format from every `[`, and a format over 255 characters is not parsed.**
+  A number-format code is file data of unbounded length. `stripDecorations`' `\[[^\]]*\]` and
+  `CURRENCY_TOKEN_REGEX`'s `[^\]-]*` body both started a match at every `[` and ran to the end of the string
+  when no `]` followed, so a 2 KB file carrying a 100 000-character `[[[…` format hung the tab for 7 s. Both
+  bodies now exclude `[` (`\[[^[\]]*\]`, the same fix the engine's `isTemporalFormat` carries), which makes
+  each match attempt stop at the next `[`. On top of that, `inferCellType` returns `unsupportedNumFmt` for a
+  format longer than `MAX_NUMBER_FORMAT_LENGTH` (255, Excel's own limit for a format code), which reaches the
+  existing `recordUnsupported('numFmt', …)` path. Keep the regex fix even with the cap: `excelNumFmtToIntlOptions`
+  and `excelDateFmtToIntlOptions` are exported and must not depend on their caller capping the input
+  (`inference.unit.js` "hostile number formats" times both). The other regexes on file text were checked and are
+  linear: the quoted-literal and escape strips, `BARE_CURRENCY_REGEX` (bounded `{1,3}` alternatives),
+  `PLAIN_NUMBER_PATTERN_REGEX` (anchored), `FORMAT_TOKEN_REGEX` (greedy runs), `findSheet`'s and
+  `resolveListSource`'s anchored quote matches, `styles.ts#ARGB_PATTERN` and the conditional-formatting
+  `ref.split(/\s+/)`.
 - **The data reaches the grid BEFORE any layout setting.** `applier.ts` calls `hot.loadData()` first and
   `hot.updateSettings()` second, inside one `hot.batch`. Every layout setting is validated against the table
   that exists when it is applied: MergeCells rejects (and logs about) a merge reaching past the last row, and

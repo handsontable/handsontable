@@ -1,3 +1,4 @@
+import Handsontable from 'handsontable';
 import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
@@ -1031,5 +1032,157 @@ describe('mapWorkbook – conditionalFormatting', () => {
     expect(map(workbook(sheet), { importLayout: false }).result.conditionalFormatting)
       .toEqual([{ rows: [1, 2], cols: [1, 1], rules: [rule] }]);
     expect(map(workbook(cfSheet())).result.conditionalFormatting).toBeUndefined();
+  });
+});
+
+describe('mapWorkbook - date-time cells', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = null;
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    container.remove();
+  });
+
+  it('should map a date-time format to an intl-datetime column carrying dateTimeFormat and an ISO value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' }), cell({ value: 45292.25, numFmt: 'm/d/yy h:mm' })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data).toEqual([['2024-01-01 12:00:00', '2024-01-01 06:00:00']]);
+    expect(result.columns).toEqual([
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        },
+      },
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: false,
+        },
+      },
+    ]);
+  });
+
+  it('should render and validate an imported date-time cell instead of showing #bad-value#', async() => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' })]];
+
+    const { result } = map(workbook(sheet));
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: result.data,
+      columns: result.columns,
+      locale: 'en-US',
+    });
+
+    expect(hot.getCell(0, 0).textContent).toBe('01/01/2024, 12:00:00');
+
+    const valid = await new Promise(resolve => hot.validateCells(resolve));
+
+    expect(valid).toBe(true);
+  });
+});
+
+describe('mapLayout - file-controlled layout values', () => {
+  // The layout comes straight from the file, through whichever engine read it. Whatever the
+  // reader lets through, the grid must only ever be handed finite, positive sizes and
+  // non-negative integer counts and indexes.
+  function layoutSheet() {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('a'), text('b'), text('c'), text('d')],
+      [text('e'), text('f'), text('g'), text('h')],
+      [text('i'), text('j'), text('k'), text('l')],
+      [text('m'), text('n'), text('o'), text('p')],
+    ];
+
+    return sheet;
+  }
+
+  it('should omit a column width that is not finite and positive, or wider than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // 255 width units is Excel's maximum column width.
+    sheet.colWidths = [-50, 7e300, Infinity, 255, 255.5, NaN, 0, 10];
+    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w')));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.colWidths).toEqual([
+      undefined, undefined, undefined, 255 * 7, undefined, undefined, undefined, 70,
+    ]);
+  });
+
+  it('should omit a row height that is not finite and positive, or taller than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // 409.5 points is Excel's maximum row height.
+    sheet.rowHeights = [1.33e300, -15, 409.5, 410];
+
+    expect(map(workbook(sheet)).result.rowHeights).toEqual([undefined, undefined, 546, undefined]);
+
+    sheet.rowHeights = [NaN, Infinity, 0, -1];
+
+    expect(map(workbook(sheet)).result.rowHeights).toBeUndefined();
+  });
+
+  it('should hand the grid whole, non-negative freeze counts', () => {
+    const sheet = layoutSheet();
+
+    sheet.freeze = { rows: 2.7, cols: 1.5 };
+
+    let { result } = map(workbook(sheet));
+
+    expect(result.fixedRowsTop).toBe(2);
+    expect(result.fixedColumnsStart).toBe(1);
+
+    sheet.freeze = { rows: -3, cols: NaN };
+    ({ result } = map(workbook(sheet)));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBeUndefined();
+
+    // A fractional freeze is floored before the promoted header row is taken off it.
+    sheet.freeze = { rows: 1.5, cols: Infinity };
+    ({ result } = map(workbook(sheet), { colHeaders: 'firstRow' }));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBe(4);
+  });
+
+  it('should drop each hidden index that is not a whole number on its own, keeping the valid ones', () => {
+    const sheet = layoutSheet();
+
+    // HiddenRows rejects a whole list that holds one bad index, so one stray `0.5` used to make the
+    // legitimately hidden row 1 visible.
+    sheet.hiddenRows = [0.5, 1, -1, NaN, Infinity, 3];
+    sheet.hiddenCols = [2, 1.25, 0, '1'];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.hiddenRows).toEqual([1, 3]);
+    expect(result.hiddenColumns).toEqual([2, 0]);
   });
 });

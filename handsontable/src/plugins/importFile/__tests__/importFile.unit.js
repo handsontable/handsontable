@@ -344,7 +344,7 @@ describe('ImportFile#disablePlugin', () => {
     const { plugin, hot } = pluginWithFakeHot({});
     const selector = 'style[data-hot-imported-styles="hot-1"]';
 
-    installImportedStyles(hot, { 'htImported-a': 'color:red' });
+    installImportedStyles(hot, { 'htImported-a': 'color:#ff0000' });
     plugin.disablePlugin();
 
     expect(hot.rootDocument.head.querySelector(selector)).toBeNull();
@@ -364,7 +364,7 @@ describe('ImportFile#destroy', () => {
     const { plugin, hot } = pluginWithFakeHot({});
     const selector = 'style[data-hot-imported-styles="hot-1"]';
 
-    installImportedStyles(hot, { 'htImported-a': 'color:red' });
+    installImportedStyles(hot, { 'htImported-a': 'color:#ff0000' });
 
     expect(hot.rootDocument.head.querySelector(selector)).not.toBeNull();
 

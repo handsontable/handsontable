@@ -236,6 +236,8 @@ function toMeta(inferred: InferredType): ImportColumn {
         : { type: 'numeric' };
     case 'date':
       return { type: 'date', dateFormat: inferred.dateFormat };
+    case 'intl-datetime':
+      return { type: 'intl-datetime', dateTimeFormat: inferred.dateTimeFormat };
     case 'time':
       return { type: 'time', timeFormat: inferred.timeFormat };
     default:
@@ -903,6 +905,57 @@ function cropMerge(
 }
 
 /**
+ * Excel's widest column, in width units. A wider value did not come from Excel.
+ */
+const MAX_EXCEL_COLUMN_WIDTH = 255;
+
+/**
+ * Excel's tallest row, in points. A taller value did not come from Excel.
+ */
+const MAX_EXCEL_ROW_HEIGHT_POINTS = 409.5;
+
+/**
+ * Converts a file-supplied column width or row height to pixels, or `undefined` when the file's
+ * value is not a finite, positive size inside Excel's own limit. This is the plugin's half of the
+ * bound, independent of the engine: `-350`, `7e+300` and `Infinity` reached `updateSettings` as
+ * column widths before it.
+ */
+function toLayoutPixels(size: unknown, max: number, toPx: (value: number) => number): number | undefined {
+  if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0 || size > max) {
+    return undefined;
+  }
+
+  const pixels = toPx(size);
+
+  return pixels > 0 ? pixels : undefined;
+}
+
+/**
+ * Turns a file-supplied freeze count into the whole, non-negative number of rows or columns to fix
+ * in the window: floored, shifted by the window origin and clamped to the window. Anything that is
+ * not a number, and `NaN`, freezes nothing.
+ */
+function toFreezeCount(value: unknown, shift: number, count: number): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(Math.floor(value) - shift, count));
+}
+
+/**
+ * Shifts file-supplied hidden indexes into the window, dropping each one that is not a whole
+ * number or falls outside the window ON ITS OWN. `HiddenRows`/`HiddenColumns` reject the whole list
+ * when one entry is invalid, so a single `0.5` used to unhide every row the file legitimately hid.
+ */
+function toHiddenIndexes(indexes: unknown[], shift: number, count: number): number[] {
+  return indexes
+    .filter((index): index is number => Number.isInteger(index))
+    .map(index => index - shift)
+    .filter(index => index >= 0 && index < count);
+}
+
+/**
  * Shifts and crops the sheet layout into the window's coordinates.
  */
 function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportResult> {
@@ -910,27 +963,22 @@ function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportRes
   const colShift = window.firstCol;
   const rowCount = window.lastRow - window.firstRow + 1;
   const colCount = window.lastCol - window.firstCol + 1;
-  const inWindow = (row: number, col: number) => row >= 0 && row < rowCount && col >= 0 && col < colCount;
 
   const mergeCells = sheet.merges
     .map(merge => cropMerge(merge, rowShift, colShift, rowCount, colCount))
     .filter((merge): merge is MergeSnapshot => merge !== null);
-  const hiddenRows = sheet.hiddenRows.map(row => row - rowShift).filter(row => inWindow(row, 0));
-  const hiddenColumns = sheet.hiddenCols.map(col => col - colShift).filter(col => inWindow(0, col));
-  const colWidths = Array.from({ length: colCount }, (_, c) => {
-    const width = sheet.colWidths[c + colShift];
-
-    return width === null || width === undefined ? undefined : excelWidthToPx(width);
-  });
-  const rowHeights = Array.from({ length: rowCount }, (_, r) => {
-    const height = sheet.rowHeights[r + rowShift];
-
-    return height === null || height === undefined ? undefined : pointsToPx(height);
-  });
+  const hiddenRows = toHiddenIndexes(sheet.hiddenRows, rowShift, rowCount);
+  const hiddenColumns = toHiddenIndexes(sheet.hiddenCols, colShift, colCount);
+  const colWidths = Array.from({ length: colCount }, (_, c) => (
+    toLayoutPixels(sheet.colWidths[c + colShift], MAX_EXCEL_COLUMN_WIDTH, excelWidthToPx)
+  ));
+  const rowHeights = Array.from({ length: rowCount }, (_, r) => (
+    toLayoutPixels(sheet.rowHeights[r + rowShift], MAX_EXCEL_ROW_HEIGHT_POINTS, pointsToPx)
+  ));
   // Clamped to the window like every other layout value: a freeze reaching past a short `range`
   // would otherwise ask the grid to freeze more rows than it has.
-  const fixedRowsTop = sheet.freeze ? Math.min(sheet.freeze.rows - rowShift, rowCount) : 0;
-  const fixedColumnsStart = sheet.freeze ? Math.min(sheet.freeze.cols - colShift, colCount) : 0;
+  const fixedRowsTop = sheet.freeze ? toFreezeCount(sheet.freeze.rows, rowShift, rowCount) : 0;
+  const fixedColumnsStart = sheet.freeze ? toFreezeCount(sheet.freeze.cols, colShift, colCount) : 0;
 
   return {
     mergeCells: mergeCells.length > 0 ? mergeCells : undefined,

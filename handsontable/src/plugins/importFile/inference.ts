@@ -17,6 +17,7 @@ import type {
 export type InferredType =
   | { type: 'numeric'; numericFormat?: Intl.NumberFormatOptions; unsupportedNumFmt?: string }
   | { type: 'date'; dateFormat: Intl.DateTimeFormatOptions }
+  | { type: 'intl-datetime'; dateTimeFormat: Intl.DateTimeFormatOptions }
   | { type: 'time'; timeFormat: Intl.DateTimeFormatOptions }
   | { type: 'checkbox' }
   | { type: 'text' };
@@ -61,9 +62,18 @@ function currencyForSymbol(symbol: string): string | null {
 }
 
 /**
- * Matches Excel's locale-tagged currency token, `[$<symbol>-<LCID>]` or `[$<symbol>]`.
+ * Matches Excel's locale-tagged currency token, `[$<symbol>-<LCID>]` or `[$<symbol>]`. Neither body
+ * may contain a `[`: the format is file data, and a body that could run past the next `[` made every
+ * `[$` in `[$[$[$…` rescan the rest of the string, which is quadratic (a 100 000-character format hung
+ * the tab for seconds).
  */
-const CURRENCY_TOKEN_REGEX = /\[\$([^\]-]*)(?:-[^\]]*)?\]/;
+const CURRENCY_TOKEN_REGEX = /\[\$([^[\]-]*)(?:-[^[\]]*)?\]/;
+
+/**
+ * The longest number format code Excel accepts. Anything longer did not come from Excel and is
+ * reported as an unsupported format rather than parsed.
+ */
+const MAX_NUMBER_FORMAT_LENGTH = 255;
 
 /**
  * The dollar-sign composites `Intl.NumberFormat` writes under `en-US` for currencies whose symbol
@@ -109,10 +119,11 @@ const PLAIN_NUMBER_PATTERN_REGEX = /^[#0,.\s]+$/;
 
 /**
  * Strips bracketed sections (`[$-409]`, `[Red]`, `[h]`) and quoted literals from a number format so
- * the classifier sees only format codes.
+ * the classifier sees only format codes. A bracket section excludes `[` from its body for the same
+ * reason `CURRENCY_TOKEN_REGEX` does: `\[[^\]]*\]` is quadratic on a run of `[`.
  */
 function stripDecorations(numFmt: string): string {
-  return numFmt.replace(/\[[^\]]*\]/g, '').replace(/"[^"]*"/g, '').replace(/\\./g, '');
+  return numFmt.replace(/\[[^[\]]*\]/g, '').replace(/"[^"]*"/g, '').replace(/\\./g, '');
 }
 
 /**
@@ -410,6 +421,12 @@ export function inferCellType(cell: CellSnapshot): InferredType | null {
     return { type: 'text' };
   }
 
+  // Excel caps a format code at 255 characters, so a longer one is malformed: it is reported as an
+  // unsupported format instead of being parsed, which also bounds every regex below.
+  if (numFmt && numFmt.length > MAX_NUMBER_FORMAT_LENGTH) {
+    return { type: 'numeric', unsupportedNumFmt: numFmt };
+  }
+
   if (numFmt) {
     // The currency comes off first: `CHF`, `SEK` and `HK$` carry an `h` or an `s` that would
     // otherwise read as a time code and turn a money column into `12:00:00`s.
@@ -419,9 +436,13 @@ export function inferCellType(cell: CellSnapshot): InferredType | null {
       return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };
     }
 
-    // A date-time pattern stays a `date` cell carrying both halves in `dateFormat`, which is what
-    // the export writes an `intl-date` cell as.
-    if (temporal === 'date' || temporal === 'datetime') {
+    // A date-time pattern is an `intl-datetime` cell, the type the export writes one from: a `date`
+    // cell accepts a date-only ISO value, so a date-time value rendered `#bad-value#` there.
+    if (temporal === 'datetime') {
+      return { type: 'intl-datetime', dateTimeFormat: excelDateFmtToIntlOptions(numFmt) };
+    }
+
+    if (temporal === 'date') {
       return { type: 'date', dateFormat: excelDateFmtToIntlOptions(numFmt) };
     }
 
@@ -527,10 +548,13 @@ export function toGridValue(cell: CellSnapshot, inferred: InferredType | null): 
     return value;
   }
 
-  // The presence of an hour in the derived options is what separates a date-time format from a
-  // date-only one; the value the grid stores stays the ISO string either way.
   if (inferred.type === 'date') {
-    return inferred.dateFormat.hour === undefined ? serialToIsoDate(value) : serialToIsoDateTime(value);
+    return serialToIsoDate(value);
+  }
+
+  // `YYYY-MM-DD HH:mm:ss`, which the `intl-datetime` renderer, validator and editor all accept.
+  if (inferred.type === 'intl-datetime') {
+    return serialToIsoDateTime(value);
   }
 
   if (inferred.type === 'time') {
