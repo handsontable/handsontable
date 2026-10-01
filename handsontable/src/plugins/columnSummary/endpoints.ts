@@ -328,6 +328,9 @@ class Endpoints {
   assignSetting(settings: EndpointConfig, endpoint: EndpointConfig, name: string, defaultValue: unknown) {
     if (name === 'ranges' && settings[name] === undefined) {
       endpoint[name] = defaultValue as number[][];
+      // Remember that the range is the whole-table default, so a structure alteration can re-derive it
+      // (DEV-2995). INTERNAL field: not declared on `EndpointConfig`, and `parseSettings()` never copies it.
+      endpoint.rangesFromDefault = true;
 
       return;
     } else if (name === 'ranges' && (settings[name] as number[][]).length === 0) {
@@ -454,6 +457,15 @@ class Endpoints {
 
     if (type === 'row') {
       const isRemoval = multiplier === -1;
+
+      // The default range is the whole table, so it follows the row count. The generic shift above moves a
+      // bound only when the alteration sits at or before it, which misses a row appended past the end
+      // (DEV-2995). An explicit range names records and is never re-derived.
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        if (endpoint.rangesFromDefault) {
+          endpoint.ranges = [[0, this.countAddressableRows() - 1]];
+        }
+      });
 
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
         const reversedRowOffset = endpoint.reversedRowOffset;

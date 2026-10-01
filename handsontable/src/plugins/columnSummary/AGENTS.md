@@ -270,9 +270,24 @@ Three rules the re-derive follows, each with a reason:
   every sibling. For the same reason the lower bound is handled here, not added to
   `isEndpointOutOfBounds()` (which that shared gate calls).
 
-One related bug is tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also
-resolved once and does not grow on append. `reversedRowCoordsAlter.unit.js` pins the add, remove,
-data-safety, multi-endpoint, and out-of-bounds cases.
+`reversedRowCoordsAlter.unit.js` pins the add, remove, data-safety, multi-endpoint, and out-of-bounds cases.
+
+## A default `ranges` follows the table; an explicit one never does (DEV-2995)
+
+An endpoint with no `ranges` gets `[[0, countAddressableRows() - 1]]`, resolved at parse time. The generic
+shift moves a bound only when the alteration sits at or before it, so a row appended past the end left the
+new row outside the range, the same parse-time root as DEV-144. `assignSetting()` therefore marks such an
+endpoint with the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by
+`parseSettings()`), and `resetSetupAfterStructureAlteration()` re-derives its range from
+`countAddressableRows()` after the generic shift, on every ROW alteration.
+
+- **Only the flag decides.** An explicit range names records and must not auto-grow, so it is never re-derived.
+  `ranges: []` leaves `ranges` unset and carries no flag.
+- **The default means the whole table**, so a row inserted above row 0 is now included. The shift alone
+  would have moved the start to 1 and left it out.
+- **The re-derive replaces the shifted range, so it must not read it.** Do not narrow it to the end bound.
+- `defaultRangesAlter.unit.js` pins append, repeated append, insert, removal, `maxRows`, and the
+  explicit-range control.
 
 ## The refresh pass caches every endpoint, not just the matched ones
 
