@@ -419,6 +419,12 @@ class Endpoints {
     // An automatic removal still does: a lowered minimum size gives its rows back that way, and the endpoints
     // must follow it like any other removal.
     if (source === 'auto' && action.indexOf('insert') === 0) {
+      // The range alone still follows the table, or a value typed into the spare row (which appends the next
+      // one) would fall outside a default range (DEV-2995). Nothing is reset or refreshed here.
+      if (action.indexOf('row') > -1 && this.settingsType !== 'function') {
+        this.#rederiveDefaultRanges(this.getAllEndpoints());
+      }
+
       return;
     }
 
@@ -458,14 +464,7 @@ class Endpoints {
     if (type === 'row') {
       const isRemoval = multiplier === -1;
 
-      // The default range is the whole table, so it follows the row count. The generic shift above moves a
-      // bound only when the alteration sits at or before it, which misses a row appended past the end
-      // (DEV-2995). An explicit range names records and is never re-derived.
-      arrayEach(endpoints, (endpoint: EndpointConfig) => {
-        if (endpoint.rangesFromDefault) {
-          endpoint.ranges = [[0, this.countAddressableRows() - 1]];
-        }
-      });
+      this.#rederiveDefaultRanges(endpoints);
 
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
         const reversedRowOffset = endpoint.reversedRowOffset;
@@ -817,6 +816,21 @@ class Endpoints {
    */
   throwOutOfBoundsWarning() {
     warn('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+  }
+
+  /**
+   * Re-derives the range of every endpoint that took the default. The default is the whole table, so it follows
+   * the row count. The generic shift moves a bound only when the alteration sits at or before it, which misses a
+   * row appended past the end (DEV-2995). An explicit range names records and is never re-derived.
+   *
+   * @param {object[]} endpoints The endpoints to re-derive.
+   */
+  #rederiveDefaultRanges(endpoints: EndpointConfig[]) {
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      if (endpoint.rangesFromDefault) {
+        endpoint.ranges = [[0, this.countAddressableRows() - 1]];
+      }
+    });
   }
 
   /**

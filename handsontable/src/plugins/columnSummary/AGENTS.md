@@ -286,6 +286,9 @@ endpoint with the internal `rangesFromDefault` flag (not on `EndpointConfig`, ne
 - **The default means the whole table**, so a row inserted above row 0 is now included. The shift alone
   would have moved the start to 1 and left it out.
 - **The re-derive replaces the shifted range, so it must not read it.** Do not narrow it to the end bound.
+- **It also runs for an `auto` row insertion**, ahead of the early return described below, but only the range
+  moves: nothing is reset or refreshed. Without it, a value typed into a `minSpareRows` row appends the next
+  spare row, which falls outside the default range until a manual `alter()` happens to fix it.
 - `defaultRangesAlter.unit.js` pins append, repeated append, insert, removal, `maxRows`, and the
   explicit-range control.
 

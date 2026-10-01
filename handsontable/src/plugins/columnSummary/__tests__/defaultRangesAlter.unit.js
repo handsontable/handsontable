@@ -1,9 +1,10 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, ColumnSummary } from 'handsontable/plugins';
+import { registerPlugin, ColumnSummary, TrimRows } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
+registerPlugin(TrimRows);
 
 /**
  * DEV-2995: an endpoint that declares no `ranges` gets the default `[[0, count - 1]]`. That default
@@ -154,17 +155,57 @@ describe('ColumnSummary default ranges with alter()', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(30);
   });
 
-  it('caps the re-derived range at `maxRows`', async() => {
+  it('caps the re-derived range at `maxRows`, not at the physical row count', async() => {
+    // Five physical rows with `maxRows: 4`: the default range stops at row 3, so row 4 never counts.
     hot = buildGrid(
       [{ destinationColumn: 0, destinationRow: 0, type: 'sum' }],
-      [[null], [10], [20]],
+      [[null], [10], [20], [30], [40]],
       { maxRows: 4 }
     );
 
-    await hot.alter('insert_row_below');
-    await hot.alter('insert_row_below');
+    expect(hot.getDataAtCell(0, 0)).toBe(60);
+
+    await hot.alter('insert_row_above', 1);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(60);
+  });
+
+  it('follows a row appended by `minSpareRows`', async() => {
+    hot = buildGrid(
+      [{ destinationColumn: 0, destinationRow: 0, type: 'sum' }],
+      [[null], [10], [20]],
+      { minSpareRows: 1 }
+    );
 
     expect(hot.countRows()).toBe(4);
-    expect(hot.getDataAtCell(0, 0)).toBe(30);
+
+    // Typing into the spare row appends the next spare row, and that one must be summed too.
+    hot.setDataAtCell(3, 0, 5);
+    hot.setDataAtCell(4, 0, 7);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(42);
+  });
+
+  it('leaves the ranges alone when a column is altered', async() => {
+    hot = buildGrid([{ destinationColumn: 0, destinationRow: 0, type: 'sum' }], [[null, 1], [10, 2], [20, 3]]);
+
+    await hot.alter('insert_col_end');
+    hot.setDataAtCell(2, 0, 5);
+
+    expect(hot.getDataAtCell(0, 0)).toBe(15);
+  });
+
+  it('counts hidden physical rows when rows are trimmed', async() => {
+    hot = buildGrid(
+      [{ destinationColumn: 0, destinationRow: 0, type: 'sum' }],
+      [[null], [10], [20], [30]],
+      { trimRows: [3] }
+    );
+
+    await hot.alter('insert_row_below');
+    hot.setDataAtCell(hot.countRows() - 1, 0, 5);
+
+    // Row 3 is trimmed and still belongs to the physical range; the typed row lands past it.
+    expect(hot.getDataAtCell(0, 0)).toBe(65);
   });
 });
