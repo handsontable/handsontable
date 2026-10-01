@@ -49,27 +49,38 @@ Read this before touching anything in this directory, `core/operationScope.ts`,
    resumed later runs as an operation of its own, never inside the settled transaction - the record
    holds `transaction.journal` by reference, so an entry appended after the push would change a
    recorded step.
-   **Commit order has one exception: a transaction that settles while another is held AFTER it
+   **Commit order has one exception: a transaction that settles while a RECORDED one is held AFTER it
    already journaled a change joins that one's step** (`#findHost()`, `#joined`). The host's early
    changes (a `batch()` that removed a row before its validated edit) come before the other
    transaction's and its later ones after, so undone apart, one of them replays at addresses the
    other renumbered - a meta write on the row below a removal was undone at the post-removal row.
    While such a host is pending, `#onTransactionOpen` neither moves `#lastState` nor runs the
-   structure check: the host's partial changes are its own, not changes made outside any step. The
+   structure check: the host's partial changes are its own, not changes made outside any step.
+   **An unrecorded transaction is never a host** (root source `auto` or `UndoRedo.*`, or opened under
+   `ignoreNewActions`): it records no step, so an edit that joined it was lost with it - a public
+   `runOperation(name, fn, 'auto')` with an async-validated write dropped the user's edit made
+   meanwhile. While one is held, `#onTransactionOpen` moves `#lastState` past its partial changes (the
+   next step starts after them) but skips the structure check, and its own settle judges its journal
+   against the lengths it started from, read back with `readStartLengths()` - `#lastState` has moved
+   past its first changes by then, so judged against it, its row added at the end read as a row
+   added in the middle and dropped the history. The
    joined journals are merged by the order their entries were recorded (`OperationScope#append()`
    stamps every entry; `getEntryOrder()`), and a forward cell write merges into its last entry only
    while that entry is still the latest recorded anywhere (`isLatestEntry()`). Two plain async
    edits journal nothing until they resume, so they still stack in commit order.
-4. **Undo and redo wait for a pending host.** While a held transaction that already journaled a
-   change waits for its validator (`#findHost()`, the host of step 3), `isUndoAvailable()`/
-   `isRedoAvailable()` answer `false` and `undo()`/`redo()` do nothing - the grid holds half of a
-   step no recorded state describes. It is any change, not only rows or columns: a row removal that
-   joins a host whose own journal holds only meta left `#lastState` behind, so an undo read it as a
+4. **Undo and redo wait for a held change.** While a held transaction that already journaled a
+   change waits for its validator (`#hasHeldChange()` - the host of step 3, or an unrecorded one),
+   `isUndoAvailable()`/`isRedoAvailable()` answer `false` and `undo()`/`redo()` do nothing - the grid
+   holds half of a change no recorded state describes. It is any change, not only rows or columns:
+   a row removal that joins a host whose own journal holds only meta left `#lastState` behind, so an
+   undo read it as a
    change made outside any step and dropped the whole history; and undoing an earlier row insert
    moved the meta the host had written away from the row its journal names. A call made then is
    dropped, not queued. A plain edit waiting for its validator journals nothing yet and blocks
    nothing. Corner: a validator that never answers (as opposed to one that throws), in an operation
-   that also changed something first, blocks undo until `loadData`/`updateData`.
+   that also changed something first, blocks undo until `loadData`/`updateData`. In a recorded
+   operation it also takes in every edit made after it: each one joins that host (step 3), so none
+   becomes a step of its own.
 5. **Each `writeChangesToData()` call journals its own cell run** (`ReversedCellRun`): it appends
    only while its own entry is still the last one. A nested write from `afterChange` therefore gets
    an entry of its own after the outer one, instead of being merged into the outer run's reversed

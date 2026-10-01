@@ -425,7 +425,7 @@ export class UndoRedo extends BasePlugin {
         this.#dropStepsWhere(record => addressesChangedColumn(this.hot, record, isChanged));
       } else if (!this.hot.isColumnModificationAllowed()) {
         // Every column shows the field it showed, but with `columns` set a column insert or removal
-        // cannot be replayed any more: `alter()` refuses it.
+        // cannot be replayed anymore: `alter()` refuses it.
         this.#dropStepsWhere(record => record.journal.some(op => op.type === 'insertColumns' ||
           op.type === 'removeColumns'));
       }
@@ -462,7 +462,7 @@ export class UndoRedo extends BasePlugin {
    * or redone after it – so the stacks keep no hole. Legacy `done()` actions are kept unless such a
    * step sits above them.
    *
-   * @param {Function} fails Tells whether a step cannot be restored any more.
+   * @param {Function} fails Tells whether a step cannot be restored anymore.
    */
   #dropStepsWhere(fails: (record: StepRecord) => boolean) {
     const lastFailing = (stack: unknown[]) => {
@@ -708,7 +708,7 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
    */
   isUndoAvailable(): boolean {
-    return this.doneActions.length > 0 && this.#findHost() === undefined;
+    return this.doneActions.length > 0 && !this.#hasHeldChange();
   }
 
   /**
@@ -719,7 +719,7 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
    */
   isRedoAvailable(): boolean {
-    return this.undoneActions.length > 0 && this.#findHost() === undefined;
+    return this.undoneActions.length > 0 && !this.#hasHeldChange();
   }
 
   /**
@@ -878,23 +878,51 @@ export class UndoRedo extends BasePlugin {
   }
 
   /**
-   * Returns the pending transaction that already changed the grid and still waits for a validator -
-   * the host a transaction that settles meanwhile joins. Its changes were made before the other
-   * transaction's and it makes more after them, so the two can only be undone together: undone
-   * apart, one of them replays at addresses the other has renumbered. While there is one, undo and
-   * redo wait: a restore would work around a half-made step, and an undone row change would move
-   * what the host already wrote away from the rows its journal names.
+   * Returns the pending recorded transaction that already changed the grid and still waits for a
+   * validator - the host a transaction that settles meanwhile joins. Its changes were made before the
+   * other transaction's and it makes more after them, so the two can only be undone together: undone
+   * apart, one of them replays at addresses the other has renumbered. An unrecorded transaction is
+   * never a host: it records no step, so whatever joined it would be lost with it.
    *
    * @returns {OperationTransaction|undefined}
    */
   #findHost(): OperationTransaction | undefined {
     for (const transaction of this.#pending) {
-      if (transaction.holds > 0 && transaction.journal.length > 0) {
+      if (transaction.holds > 0 && transaction.journal.length > 0 && !this.#isUnrecorded(transaction)) {
         return transaction;
       }
     }
 
     return undefined;
+  }
+
+  /**
+   * Tells whether a pending transaction, recorded or not, already changed the grid and still waits
+   * for a validator. While one does, undo and redo wait: a restore would work around a half-made
+   * change, and an undone row change would move what it already wrote away from the rows its journal
+   * names.
+   *
+   * @returns {boolean}
+   */
+  #hasHeldChange(): boolean {
+    for (const transaction of this.#pending) {
+      if (transaction.holds > 0 && transaction.journal.length > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Tells whether a transaction records no step: one opened while `ignoreNewActions` was set, or one
+   * whose root source is blocked.
+   *
+   * @param {OperationTransaction} transaction The transaction.
+   * @returns {boolean}
+   */
+  #isUnrecorded(transaction: OperationTransaction): boolean {
+    return this.#ignoredTransactions.has(transaction) || BLOCKED_SOURCES.has(transaction.source);
   }
 
   /**
@@ -1249,9 +1277,10 @@ export class UndoRedo extends BasePlugin {
    * the base state up to date, so a change made outside any operation (a plugin reacting to a
    * setting) belongs to no step.
    *
-   * While a held transaction that already changed the grid is pending, the base state stays where it
-   * was: those changes are that transaction's, not changes made outside any step, and the step it
-   * records – which this transaction joins – starts before them.
+   * While a held recorded transaction that already changed the grid is pending, the base state stays
+   * where it was: those changes are that transaction's, not changes made outside any step, and the
+   * step it records – which this transaction joins – starts before them. A held unrecorded one does
+   * not keep it: this transaction records a step of its own, which starts after those changes.
    *
    * @param {OperationTransaction} transaction The transaction that opened.
    */
@@ -1263,7 +1292,12 @@ export class UndoRedo extends BasePlugin {
     if (this.#findHost() === undefined) {
       const current = this.#tracker?.capture() ?? null;
 
-      this.#detectStructureChange(current);
+      // A held unrecorded change made its rows and columns inside its own transaction, which its
+      // settle judges against its journal – they are not changes made outside any step.
+      if (!this.#hasHeldChange()) {
+        this.#detectStructureChange(current);
+      }
+
       this.#lastState = current;
     }
 
@@ -1275,7 +1309,7 @@ export class UndoRedo extends BasePlugin {
 
   /**
    * Records a finished step, then runs the `columns` check a settings update made while a transaction
-   * was pending owes, once none is pending any more.
+   * was pending owes, once none is pending anymore.
    *
    * @param {OperationTransaction} transaction The settled transaction.
    */
@@ -1293,7 +1327,7 @@ export class UndoRedo extends BasePlugin {
    * not when the transaction opened, so a step that committed while this one waited for a validator
    * is not undone together with it.
    *
-   * The exception is a transaction that settles while another one is held after it already changed
+   * The exception is a transaction that settles while a recorded one is held after it already changed
    * the grid (`#findHost()`): it joins that one's step, and the two are undone together.
    *
    * @param {OperationTransaction} transaction The settled transaction.
@@ -1301,7 +1335,7 @@ export class UndoRedo extends BasePlugin {
   #recordSettled(transaction: OperationTransaction) {
     const tracker = this.#tracker;
     const joined = this.#joined.get(transaction) ?? [];
-    const isUnrecorded = this.#ignoredTransactions.has(transaction) || BLOCKED_SOURCES.has(transaction.source);
+    const isUnrecorded = this.#isUnrecorded(transaction);
 
     this.#pending.delete(transaction);
     this.#joined.delete(transaction);
@@ -1342,8 +1376,9 @@ export class UndoRedo extends BasePlugin {
     if (isUnrecorded) {
       // Rows or columns an unrecorded change added or removed anywhere but at the end renumber the ones
       // every recorded step addresses, so the history is dropped. At the end they are harmless: a
-      // restore fits the axis to them.
-      if (!changesOnlyAxisEnds(group.journal, before)) {
+      // restore fits the axis to them. The lengths it started from are read back from its own journal:
+      // a step recorded while it waited for a validator has moved `#lastState` past its first changes.
+      if (!changesOnlyAxisEnds(group.journal, readStartLengths(group.journal, after))) {
         this.#resetHistory();
       }
 

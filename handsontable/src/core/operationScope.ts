@@ -328,7 +328,7 @@ export class OperationScope {
     this.#stack.push(transaction);
 
     // `enter()` either opens the transaction or does not: a listener that throws takes it off the
-    // stack again, or every later operation would join it and nothing would settle any more. The
+    // stack again, or every later operation would join it and nothing would settle anymore. The
     // caller's `leave()` never runs, since `run()` enters outside its `try`.
     try {
       this.#openListeners.forEach(listener => listener(transaction));

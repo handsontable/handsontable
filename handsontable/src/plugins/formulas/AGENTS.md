@@ -131,7 +131,13 @@ changed goes into `#pendingPeerRewrites` (first `before`, last `after` per key).
   (HyperFormula reports every cell whose content is set, even when its value does not change, and a
   new formula's first value always differs from none); the set is cleared on `sheetRenamed`,
   `sheetRemoved`, enable, and a new own sheet. It is not used while `isEvaluationSuspended()`,
-  because the engine holds its events back then. Sorts and the restore's identity reset go through
+  because the engine holds its events back then. **Known limit:** a formula the HOST moves into a
+  skipped peer sheet with the engine API (a cross-sheet `engine.moveCells()`) is not seen.
+  HyperFormula moves the vertex and re-evaluates it to the same value, so `valuesUpdated` reports
+  nothing in that sheet, and an undo of a later row or column change here leaves that formula's
+  rewrite in place (`=S1!A4` where `=S1!A5` was). The plugin's own MoveCells path stays inside its
+  sheet and is not affected. Caching only the sheets a Formulas grid owns would not close it: the
+  move can land in one of them. Sorts and the restore's identity reset go through
   `setRowOrder`, which never rewrites peers, so they are not wrapped. Wrapped: `addRows`,
   `addColumns`, the removal batches, the `moveCells` batch, and the `calculateAndSyncMoves` calls
   (`moveRows` is add + move + remove in HyperFormula).
@@ -173,7 +179,7 @@ an `engineSheet` and with the same `structureVersion`): its cells are restored b
 reloads the sheet or loads a serialized one restores a column layout, so it is dropped by a `columns`
 update that changes a column's field (`../undoRedo/AGENTS.md`, "The epoch").
 
-`IndexSyncer` has no undo/redo flags any more. Restoring the row or column order fires the sequence
+`IndexSyncer` has no undo/redo flags anymore. Restoring the row or column order fires the sequence
 change like any other, and the axis syncer sends the new order to the engine; a reload afterwards
 re-runs `setupSyncEndpoint()`.
 
@@ -463,7 +469,7 @@ Four rules ride along.
   grid's sequence would name elements the engine never received, and every later order, being relative to
   what the engine holds, would move the wrong rows or columns for the rest of the session. The exception is
   the paths where the engine changes itself: an insert, a removal and a move all leave it holding the
-  grid's new sequence, so the stored order follows it there. An undo is not one of them any more - it
+  grid's new sequence, so the stored order follows it there. An undo is not one of them anymore - it
   restores the grid's order, which reaches the engine as an ordinary order change.
 - **How the sheet was filled decides where its new rows go.** A sheet fed its content (at load, or by the
   engine's own insert) holds it in physical order; a sheet that reported `0x0` is filled through addresses

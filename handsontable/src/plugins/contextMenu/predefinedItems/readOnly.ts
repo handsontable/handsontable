@@ -176,10 +176,10 @@ export default function readOnlyItem() {
       // The snapshot is what `beforeReadOnlyToggle` and the step's description report; undo and redo
       // replay the journal of the writes below instead. Making the selection read-only:
       // `checkSelectionConsistency()` above found no match, which means it already walked every cell
-      // to confirm that - so every affected cell's prior state is `false`, and an empty snapshot says
+      // to confirm that – so every affected cell's prior state is `false`, and an empty snapshot says
       // so (a cell with no explicit entry reads as `false`) with no further reads. Making it writable
       // needs the REAL per-cell states, because the check above stopped at the FIRST read-only cell
-      // and knows nothing about the rest - only a second, full pass can report a mixed selection.
+      // and knows nothing about the rest – only a second, full pass can report a mixed selection.
       // That pass records a locked cell as it really is (read-only). The write loop skips a locked
       // cell, so the journal never holds one and undo and redo leave it alone (DEV-148, DEV-149).
       const stateBefore: Record<number, boolean[]> = atLeastOneReadOnly

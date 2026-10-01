@@ -5,7 +5,7 @@ import type { StepRecord } from './entry';
 
 /**
  * Tells whether a physical column shows another field than it did when the steps were recorded, or
- * does not exist any more.
+ * does not exist anymore.
  */
 export type ColumnChangeTest = (physicalColumn: number) => boolean;
 

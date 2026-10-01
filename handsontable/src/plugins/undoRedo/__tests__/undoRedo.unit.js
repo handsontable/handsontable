@@ -1136,6 +1136,83 @@ describe('UndoRedo plugin', () => {
       });
     });
 
+    // A change that is not recorded (the `auto` source, `ignoreNewActions`) records no step, so an edit
+    // made while it waits for its validator cannot join it: it would be lost with it. The edit is a step
+    // of its own, and the change's row added at the end keeps the history.
+    describe('while a change that is not recorded waits for its validator', () => {
+      let release = null;
+
+      /**
+       * Creates a 3x2 grid whose first column waits for `release()` to validate.
+       */
+      function createGrid() {
+        hot = new Handsontable(container, {
+          licenseKey: 'non-commercial-and-evaluation',
+          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+          columns: [{ validator: (value, callback) => { release = () => callback(true); } }, {}],
+          undo: true,
+        });
+      }
+
+      /**
+       * Edits a cell while the unrecorded change waits, lets the change finish, and undoes the edit.
+       *
+       * @returns {Promise<object>} Whether undo was available while the change waited, and the steps
+       *   recorded once it finished.
+       */
+      async function editMeanwhileAndUndo() {
+        const plugin = hot.getPlugin('undoRedo');
+
+        hot.setDataAtCell(1, 1, 'user edit');
+
+        const undoAvailableWhileWaiting = plugin.isUndoAvailable();
+
+        release();
+        await settle();
+
+        const steps = actionTypes();
+
+        plugin.undo();
+
+        return { undoAvailableWhileWaiting, steps };
+      }
+
+      it('should record an edit made while a `runOperation()` with the `auto` source waits', async() => {
+        createGrid();
+
+        hot.runOperation('import', () => {
+          hot.alter('insert_row_below', 2, 1, 'auto');
+          hot.setDataAtCell(0, 0, 'P', 'auto');
+        }, 'auto');
+        await settle();
+
+        const { undoAvailableWhileWaiting, steps } = await editMeanwhileAndUndo();
+
+        expect(undoAvailableWhileWaiting).toBe(false);
+        expect(steps).toEqual(['change']);
+        expect(hot.getData()).toEqual([['P', 'B1'], ['A2', 'B2'], ['A3', 'B3'], [null, null]]);
+      });
+
+      it('should record an edit made while a change made with `ignoreNewActions` waits', async() => {
+        createGrid();
+        const plugin = hot.getPlugin('undoRedo');
+
+        plugin.ignoreNewActions = true;
+        hot.batch(() => {
+          hot.alter('insert_row_below', 2, 1);
+          hot.setDataAtCell(0, 0, 'P');
+        });
+        plugin.ignoreNewActions = false;
+        await settle();
+
+        const { undoAvailableWhileWaiting, steps } = await editMeanwhileAndUndo();
+
+        expect(undoAvailableWhileWaiting).toBe(false);
+        expect(steps).toEqual(['change']);
+        expect(hot.getData()).toEqual([['P', 'B1'], ['A2', 'B2'], ['A3', 'B3'], [null, null]]);
+      });
+    });
+
     it('should record two edits that wait for their validators in the order they commit', async() => {
       const answers = new Map();
 

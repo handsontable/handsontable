@@ -207,7 +207,7 @@ They are written in different places and can drift. Keep this in mind:
   row index. Measured on `getSimplerNestedData()`: `hot.alter('insert_row_above', 12, 1)` **appends**
   the new row at top-level position 3 (grid row 18), because `Array#splice` clamps 12 against a
   three-element array, while the cell meta and the index maps shift at row 12 — so the meta desyncs
-  from data that never moved. Neither the context menu nor a redo reaches it any more (a redo
+  from data that never moved. Neither the context menu nor a redo reaches it anymore (a redo
   restores the recorded tree shape instead of inserting again), but a host calling
   `alter('insert_row_above', ...)` next to a top-level row still does. Fixing it means dropping
   that short-circuit **and** the
