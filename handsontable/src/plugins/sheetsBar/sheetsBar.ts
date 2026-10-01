@@ -2355,7 +2355,7 @@ export class SheetsBar extends BasePlugin {
    * @param {Function} update The operation to run.
    */
   #withoutMergeCellsSettingsPass(update: () => void) {
-    const mergeCells = this.hot.getPlugin('mergeCells') as { deferSettingsPass: boolean } | undefined;
+    const mergeCells = this.hot.getPlugin('mergeCells');
 
     if (!mergeCells || mergeCells.deferSettingsPass) {
       update();
@@ -2381,10 +2381,7 @@ export class SheetsBar extends BasePlugin {
    * @param {boolean} apply Whether to build the declared merges.
    */
   #runMergeCellsSettingsPass(apply: boolean) {
-    const mergeCells = this.hot.getPlugin('mergeCells') as
-      { runDeferredSettingsPass: (apply: boolean) => void } | undefined;
-
-    mergeCells?.runDeferredSettingsPass(apply);
+    this.hot.getPlugin('mergeCells')?.runDeferredSettingsPass(apply);
   }
 
   /**

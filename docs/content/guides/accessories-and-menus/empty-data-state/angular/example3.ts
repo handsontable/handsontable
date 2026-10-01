@@ -22,7 +22,7 @@ export class AppComponent {
 
   readonly hotSettings: GridSettings = {
     height: 'auto',
-    colHeaders: ['First Name', 'Last Name', 'Email'],
+    colHeaders: ['Name', 'Job title', 'Department', 'City'],
     rowHeaders: true,
     navigableHeaders: true,
     dropdownMenu: true,
@@ -56,14 +56,15 @@ export class AppComponent {
               description: 'There\'s nothing to display yet. Add some data to get started.',
               buttons: [
                 {
-                  text: 'Add Sample Data',
+                  text: 'Load employees',
                   type: 'primary',
                   callback: () => {
                     this.hotTable.hotInstance!.loadData([
-                      ['John', 'Doe', 'john@example.com'],
-                      ['Jane', 'Smith', 'jane@example.com'],
-                      ['Bob', 'Johnson', 'bob@example.com'],
-                      ['Alice', 'Johnson', 'alice@example.com'],
+                      ['Ana García', 'Senior Engineer', 'Engineering', 'Austin'],
+                      ['James Okafor', 'Product Manager', 'Product', 'Chicago'],
+                      ['Li Wei', 'Data Analyst', 'Analytics', 'Seattle'],
+                      ['Priya Raman', 'Marketing Lead', 'Marketing', 'Denver'],
+                      ['Marcus Johnson', 'HR Business Partner', 'People Operations', 'Atlanta'],
                     ]);
                   }
                 }

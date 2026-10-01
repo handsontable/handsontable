@@ -231,7 +231,11 @@ $all-sheets-visible-items: 8;
         flex: 1 1 auto;
         min-width: 0;
         overflow-x: auto;
-        scrollbar-width: none;
+
+        // The strip scrolls with the paging arrows and the wheel, never with a bar of its own.
+        // `!important` keeps a page-wide `scrollbar-width` rule that carries it, such as
+        // `* { scrollbar-width: thin !important }`, from painting a bar into the strip (DEV-3191).
+        scrollbar-width: none !important;
 
         &::-webkit-scrollbar {
           display: none;

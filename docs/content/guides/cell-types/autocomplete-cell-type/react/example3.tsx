@@ -5,10 +5,11 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const data = [
-  ['BMW', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'white', 'gray'],
+  ['Harbor Goods', 'SKU-4821', 'Seattle', 'Stainless Steel Water Bottle'],
+  ['Alpine Supply Co.', 'SKU-0093', 'Denver', 'Wireless Mouse'],
+  ['Cascade Distributors', 'SKU-1170', 'Portland', 'Ergonomic Office Chair'],
+  ['Summit Trading', 'SKU-2208', 'Austin', 'USB-C Charging Cable'],
+  ['Northgate Wholesale', 'SKU-3341', 'Minneapolis', 'Aluminum Water Filter'],
 ];
 
 const ExampleComponent = () => {
@@ -19,7 +20,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={data}
-      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      colHeaders={['Supplier', 'SKU', 'Warehouse', 'Product']}
       columns={[
         {
           type: 'autocomplete',
@@ -30,9 +31,9 @@ const ExampleComponent = () => {
           },
           strict: true,
         },
-        {}, // Year is a default text column
-        {}, // Chassis color is a default text column
-        {}, // Bumper color is a default text column
+        {}, // SKU is a default text column
+        {}, // Warehouse is a default text column
+        {}, // Product is a default text column
       ]}
     />
   );

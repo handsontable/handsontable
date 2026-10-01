@@ -473,9 +473,9 @@ does for you):
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: capture after an unasserted <action>; …`
   directly above the capture, so the debt is counted. The filters consolidation (#13647) retired those
   six specs with their 15 lines, and its replacements assert every state they capture; the
-  submenu-placement trim (#13656) retired the menu family's 24 the same way, and the editors trim that
-  family's 15. So 46 remain, in 27 specs (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests`
-  counts them);
+  submenu-placement trim (#13656) retired the menu family's 24 the same way, the editors trim that
+  family's 15, and the resize-guide trim the complex demo's 2. So 44 remain, in 26 specs
+  (`git grep -c 'DEV-2981: capture after' -- visual-tests/tests` counts them);
   `js-only/filters/apply-active-class-name-nested-header` still carries one. `test/__tests__/determinism-lint.test.mjs` fails
   when one of those lines sits anywhere but on a capture, or no longer excuses anything. What a capture is
   *for* is the [decision rule](#decision-rule) above; this section keeps the state it photographs stable.
@@ -653,7 +653,26 @@ does for you):
   capture of each list on every js variant (the handsontable list's columns and header row, and the
   dropdown's focus and hover tokens) and the RTL mirror of each on `main`. The native date picker is the
   browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on every js
-  variant, which waits on the input's `:open` state before it photographs.
+  variant, which waits on the input's `:open` state before it photographs. The complex demo's two
+  geometry captures follow the same rule. Where the row resize handle and its guide are drawn — the
+  handle centered on the row boundary, the guide's line level with it (the pixel #11500 fixed),
+  spanning to the table's end and following a drag — is asserted in
+  `tests/e2e/manual-resize-guide-geometry.spec.ts`, on a header in each of the three overlays that can
+  hold one. That every overlay cell coincides with its master cell under 125% CSS zoom (the #11465
+  class), on the demo's shape with a frozen column and on one with row headers alone, is asserted in
+  `tests/e2e/overlay-alignment-css-zoom.spec.ts`. The two bottom overlays are pinned to the window's
+  bottom edge there, so against the master they are compared on columns and row heights, and against
+  each other on all four edges, the bottom-freeze seam row included; their vertical position against the
+  master rows is compared at 100% with the grid's end in view, where it is exact. Under zoom it is not:
+  the engine places that band from whole-pixel sizes, and the result carries a rounding residue of up to
+  0.5px that changes with the zoom level (0 at 80% and 150% on `main`, 0.5px at 125% on every theme), a
+  tolerance for which would also admit the one-snapped-border drift the spec exists to catch. What
+  stays under `tests/js-only/complex-demo/` is one capture of the pressed guide and active handle on
+  every js variant — it is of two tokens, `--ht-accent-color` and `--ht-resize-indicator-color`, and
+  the second is painted nowhere else — and one of the zoomed demo on `main`, a sub-pixel paint smoke
+  in the look-check shape. That shape's second condition, the spec that photographs the same component
+  on every variant, is prose the sweep does not check: the zoom capture names the resize capture, and a
+  later trim of that declaration re-opens this one.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
@@ -751,8 +770,9 @@ which of these run locally and which only in CI.
   `tests/**/*.spec.ts` override, with `jsdoc/require-description`). The 28 sites in three filters specs
   were repaired (assert the state, then capture); the other 100 wore
   `// eslint-disable-next-line no-restricted-syntax -- DEV-2981: …` above the capture, so the debt is
-  counted and greppable (46 since #13647, #13656, and the editors trim retired the filters family's 15,
-  the menu family's 24, and the editors family's 15). The rules, what they cannot see, and their three
+  counted and greppable (44 since #13647, #13656, the editors trim, and the resize-guide trim retired the
+  filters family's 15, the menu family's 24, the editors family's 15, and the complex demo's 2). The
+  rules, what they cannot see, and their three
   esquery traps are the first four bullets of [Determinism](#determinism).
   `test/__tests__/determinism-lint.test.mjs` proves them on fixtures — it imports ESLint, so it runs from
   `lint.yml`'s `visual-tests` job (`npm run in visual-tests test:lint-config`), never from the root
@@ -815,7 +835,8 @@ which of these run locally and which only in CI.
 ## Local builds the demos render
 
 The demos exist to photograph this checkout's code, and a copy of Handsontable from the npm registry renders
-without complaint. Two checks keep the one from standing in for the other.
+without complaint. Two checks keep the one from standing in for the other, and a third, in `examples:build`,
+extends them to the documentation examples.
 
 - **The examples install the registry's build first, and a missing link used to pass.** Each example under
   `examples/next/visual-tests/<framework>/` (the `demo/` the suite photographs and the `basic-example/` beside
@@ -829,8 +850,8 @@ without complaint. Two checks keep the one from standing in for the other.
   So does the linker when the local build is missing: it links only a source that exists, and the pnpm link to
   an unbuilt `handsontable/tmp` points at nothing. Both left the registry's 18.1.0 where the local build was
   18.1.1, and the demo built and rendered it.
-- **Every example's `build` script runs `scripts/check-linked-packages.mjs` first,** so every way of building
-  one runs the guard. Five do today: `scripts/build.mjs`; the cross-browser leg of `visual.yml` and the
+- **Every visual-test example's `build` script runs `scripts/check-linked-packages.mjs` first,** so every way of
+  building one runs the guard. Five do today: `scripts/build.mjs`; the cross-browser leg of `visual.yml` and the
   `visual-stability.yml` matrix, which build the js demo directly; and `npm run all build`, which the
   `build-all.yml` legs run on Ubuntu, macOS, and Windows, and the release cut's `npm run in examples build` in
   `publish.yml`, both of which build every example through `examples:build next`. The guard refuses unless each
@@ -848,8 +869,7 @@ without complaint. Two checks keep the one from standing in for the other.
   copy under `examples/<version>/`, which pins a published release on purpose, and refuses any other directory,
   so a run from the wrong place cannot pass by checking nothing. Build an example through
   `npm --prefix <example> run build`, never through its build tool or another script, or the guard does not
-  run. The documentation examples under `examples/next/docs/` build through the same `examples:build next` and
-  are not guarded; the visual suite never serves them.
+  run.
 - **`scripts/build.mjs` checks the builds before it installs anything,** so a missing build costs one message
   rather than the two minutes of an Angular install. The core and each wrapper the tier renders must be built
   (`handsontable/tmp` holds its manifest and its ES entry), pnpm's link in `examples/node_modules` must resolve
@@ -874,8 +894,32 @@ without complaint. Two checks keep the one from standing in for the other.
   `postbuild:partial` rewrites the stamp after the Build artifact is extracted), and `build-all.yml` builds the
   core in the same job. Kept off, a later change to a job's step order cannot turn it into a false red. The
   script's paths derive from its own location, so it builds the same tree from any working directory, and it
-  prints the guard's confirmations from each demo build whose other output it hides. Both scripts lay out their
-  problems through one `formatProblems()`, so their messages cannot drift apart.
+  prints the guard's confirmations from each demo build whose other output it hides. It lays out its problems
+  through the guard's `formatProblems()`, and so does the third check below, so their messages cannot drift
+  apart.
+- **`examples:build` checks every example under `examples/next/` before it builds the first one, and that is
+  the only check the documentation examples get.** The examples under `examples/next/docs/` declare `latest`
+  the same way and go through the same linker, so they have the same two silent paths, and the visual suite
+  never serves them. Their `build` scripts cannot run the guard. They are the public samples: the
+  documentation links them, CodeSandbox opens them, and `examples/README.md` tells readers to copy one into a
+  repository of their own, where `node ../../../../../visual-tests/scripts/check-linked-packages.mjs` names
+  nothing and `npm run build` fails. So `examples/scripts/code-examples.mjs` runs `checkExamplesToBuild()`
+  over every example it is about to build: the guard's judgment for each one, with the core's age compared
+  once for all of them (off CI, as above). Both automated builds of those examples reach it:
+  `npm run all build` in each `build-all.yml` leg, and the release cut's `npm run in examples build` in
+  `publish.yml`, which smoke-tests them next, so a registry copy there would test the previous release rather
+  than the candidate. Both run the `examples` workspace's `build` script, `npm run examples:build next`. It
+  refuses before building anything. A stale core is reported once and first, every other problem names the
+  example it is in, and each one ends with the command that fixes it, such as
+  `npm run examples:install next/docs/js`. The visual-test examples are checked there too, on top of their own
+  guard, so a broken link refuses before the first build rather than after the others built. An example
+  outside `examples/next/` is not checked, since the linker links nothing else, and neither is one that
+  declares no `handsontable` or `@handsontable/*` package; each gets a line saying so. A documentation example
+  built directly is not checked, which is what keeps it working outside the monorepo. That covers
+  `npm --prefix examples/next/docs/js/demo run build`, and also `npm --prefix examples/next/docs/js run build
+  --workspaces`, since each framework directory is an npm workspaces root. So build them through
+  `examples:build` (for one framework, `npm run examples:build next/docs/js`); the bypass scan fails any
+  workflow step or package script that builds them either way.
 - **Why not `"handsontable": "workspace:*"`.** The protocol resolves only inside the pnpm workspace, and the
   demos are not in it: they are npm projects under four committed framework lockfiles, installed by
   `examples/scripts/install-subpackages.mjs`. Making them members would put the React, Angular, and Vue demo
@@ -886,10 +930,12 @@ without complaint. Two checks keep the one from standing in for the other.
   the visual-tests trees while still serving `examples/next/docs/`. It would also change the demo build steps of
   `visual.yml` and `visual-stability.yml`. The guard keeps the linker and makes its failures loud instead.
 
-`lib/__tests__/local-builds.test.mjs` pins both checks on throwaway repositories, one broken state per case,
-and pins the wiring: every example's `build` starts with the guard, joined with `&&` alone, and no other
-example script builds it; `build.mjs` refuses before its first install; and no workflow step, action step, or
-package script that works on the visual-tests tree builds an example any other way.
+`lib/__tests__/local-builds.test.mjs` pins the three checks on throwaway repositories, one broken state per
+case, and pins the wiring: every visual-test example's `build` starts with the guard, joined with `&&` alone,
+and no other example script builds it; `build.mjs` refuses before its first install; `code-examples.mjs`
+checks every example it builds and exits before the first build; no script of a documentation example climbs
+out of it, and each one declares `handsontable`; and no workflow step, action step, or package script builds a
+visual-test example any other way, or a documentation example at all outside `examples:build`.
 
 ## Run
 

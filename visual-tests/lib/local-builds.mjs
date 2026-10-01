@@ -1,9 +1,11 @@
 /**
- * Checks that the visual-test examples render the monorepo's local builds, never a copy from the npm registry.
+ * Checks that the examples under `examples/next/` render the monorepo's local builds, never a copy from the npm
+ * registry.
  *
- * The examples under `examples/next/visual-tests/<framework>/` (each framework's `demo/`, which the suite
- * photographs, and its `basic-example/`) declare `"handsontable": "latest"`, and the wrapper examples declare
- * their `@handsontable/*` wrapper the same way, so an install fills `node_modules` from the registry.
+ * The visual-test examples under `examples/next/visual-tests/<framework>/` (each framework's `demo/`, which the
+ * suite photographs, and its `basic-example/`) declare `"handsontable": "latest"`, and the wrapper examples
+ * declare their `@handsontable/*` wrapper the same way, so an install fills `node_modules` from the registry. The
+ * documentation examples under `examples/next/docs/<framework>/` declare theirs the same way.
  * `examples/scripts/link-packages.mjs` then replaces each copy with a symlink to the local build. Two paths skip
  * that swap without a message. An install run without the linker leaves the registry copy in place. So does the
  * linker itself when a local build is missing, because it links only a source that exists, and the pnpm link to
@@ -11,14 +13,18 @@
  * the render succeeds, and nothing says what was photographed. Measured on 2026-09-29: both paths left
  * `handsontable` 18.1.0 from the registry where the local build was 18.1.1.
  *
- * Two checks close it, both built on this module. `scripts/check-linked-packages.mjs` runs first in every such
- * example's `build` script, so every way of building one runs it: `scripts/build.mjs`; the cross-browser leg of
- * `visual.yml` and the `visual-stability.yml` matrix, which build the js demo directly; and `npm run all build`
- * (the `build-all.yml` legs on Ubuntu, macOS, and Windows) and the release cut in `publish.yml`, which build
- * every example through `examples:build next`. It refuses unless every monorepo package the example declares
- * resolves to the local build, and, off CI, unless the core build is current. `scripts/build.mjs` runs
- * `findBuildProblems()` before it installs anything: the core and each wrapper the tier renders must be built
- * and linked into the `examples/` workspace, and the core build must be current.
+ * Three checks close it, all built on this module. `scripts/check-linked-packages.mjs` runs first in every
+ * visual-test example's `build` script, so every way of building one runs it: `scripts/build.mjs`; the
+ * cross-browser leg of `visual.yml` and the `visual-stability.yml` matrix, which build the js demo directly; and
+ * `npm run all build` (the `build-all.yml` legs on Ubuntu, macOS, and Windows) and the release cut in
+ * `publish.yml`, which build every example through `examples:build next`. It refuses unless every monorepo
+ * package the example declares resolves to the local build, and, off CI, unless the core build is current.
+ * `scripts/build.mjs` runs `findBuildProblems()` before it installs anything: the core and each wrapper the tier
+ * renders must be built and linked into the `examples/` workspace, and the core build must be current. And
+ * `examples/scripts/code-examples.mjs` runs `checkExamplesToBuild()` before `examples:build` builds its first
+ * example, which is what checks the documentation examples. Their own `build` scripts cannot run the guard:
+ * they are the public samples, which the documentation links, CodeSandbox opens, and `examples/README.md` tells
+ * readers to copy into a repository of their own, where a path into the monorepo breaks `npm run build`.
  *
  * Node built-ins only. The guard runs in whatever tree the example's install left behind, and the tooling tests
  * run with no dependencies installed. See visual-tests/AGENTS.md (Local builds).
@@ -502,6 +508,19 @@ export function danglingLinks(fromDir, stopDir, name) {
 }
 
 /**
+ * Lists the monorepo packages an example declares: its `dependencies` and `devDependencies` named `handsontable`
+ * or `@handsontable/*`. By name rather than by the workspace list, so a package the list does not know is
+ * refused instead of going unchecked: the linker would leave its registry copy in place too.
+ *
+ * @param {object} manifest The example's `package.json`, parsed.
+ * @returns {string[]} The package names.
+ */
+function declaredPackages(manifest) {
+  return Object.keys({ ...manifest.dependencies, ...manifest.devDependencies })
+    .filter(name => name === 'handsontable' || name.startsWith('@handsontable/'));
+}
+
+/**
  * A problem for a guard run from a directory that is no example it can check, so it refuses rather than pass.
  *
  * @param {string} summary What is wrong.
@@ -566,11 +585,7 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
   }
 
   const packages = workspacePackages(repoRoot);
-  const manifest = readJson(join(demoDir, 'package.json'));
-  // By name rather than by the workspace list, so a package the list does not know is refused instead of
-  // going unchecked: the linker would leave its registry copy in place too.
-  const declared = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies })
-    .filter(name => name === 'handsontable' || name.startsWith('@handsontable/'));
+  const declared = declaredPackages(readJson(join(demoDir, 'package.json')));
 
   if (declared.length === 0) {
     return result([notAnExample(`${demo} declares no handsontable or @handsontable/* package, so there is `
@@ -676,8 +691,73 @@ export function checkLinkedPackages({ repoRoot: givenRoot, demoDir: givenDemoDir
 }
 
 /**
- * Lays out problems the way both scripts print them: each summary, its detail indented, and its remedy, then
- * one line saying where to run the commands.
+ * Checks the examples `examples:build` is about to build, before it builds the first one: the guard's judgment
+ * for each example under `examples/next/`, and the core's age once, since it is one fact about all of them.
+ *
+ * `examples/scripts/code-examples.mjs` calls it with every example it found. For the documentation examples it
+ * is the only check (the module comment says why), and both automated builds of them reach it: `npm run all
+ * build` and the release cut's `npm run in examples build` run the `examples` workspace's `build` script, which
+ * is `examples:build next`. The visual-test examples are checked here too, on top of their own guard, so a
+ * broken link refuses before the first build rather than after the others built. An example outside
+ * `examples/next/` is not checked, since the linker links nothing else and a versioned copy pins a published
+ * release on purpose, and neither is one that declares no `handsontable` or `@handsontable/*` package. Each gets
+ * a line saying so.
+ *
+ * @param {object} options Options.
+ * @param {string} options.repoRoot The repository root.
+ * @param {string[]} options.exampleDirs The example directories, in the order they are built.
+ * @param {boolean} [options.checkAge] Whether to compare the core build with its sources.
+ * @returns {{lines: string[], problems: Array<{summary: string, detail: string[], remedy: string}>}} The lines
+ *   to print when nothing is wrong, one per package that resolves to its local build and one per example left
+ *   unchecked, and the problems: a stale core first, once, then each example's, its summary led by the example.
+ */
+export function checkExamplesToBuild({ repoRoot: givenRoot, exampleDirs, checkAge = true }) {
+  const repoRoot = realpathSync(givenRoot);
+  const examplesDir = join(repoRoot, 'examples');
+  const lines = [];
+  const problems = [];
+  let coreChecked = false;
+
+  exampleDirs.forEach((exampleDir) => {
+    // A real path, like the guard's, so a symlinked checkout cannot put the example outside `examples/next/`.
+    const demoDir = realpathSync(exampleDir);
+    const demo = display(repoRoot, demoDir);
+    const manifestPath = join(demoDir, 'package.json');
+
+    if (!display(examplesDir, demoDir).startsWith('next/')) {
+      lines.push(`${demo}: not checked, since the linker links the examples under examples/next/ only.`);
+
+      return;
+    }
+
+    if (existsSync(manifestPath) && declaredPackages(readJson(manifestPath)).length === 0) {
+      lines.push(`${demo}: not checked, since it declares no handsontable or @handsontable/* package.`);
+
+      return;
+    }
+
+    const { checked, problems: found } = checkLinkedPackages({ repoRoot, demoDir, checkAge: false });
+
+    coreChecked = coreChecked || checked.some(({ name }) => name === 'handsontable');
+    // `checked` lists what was looked at, so a refused example confirms nothing, as the guard does.
+    lines.push(...(found.length === 0 ? confirmationLines(checked).map(line => `${demo}: ${line}`) : []));
+    problems.push(...found.map(problem => ({ ...problem, summary: `${demo}: ${problem.summary}` })));
+  });
+
+  const core = workspacePackages(repoRoot).get('handsontable');
+
+  // Listed first, because the core is rebuilt before any example is relinked. A missing core build is not
+  // compared: each example that declares it already says it is missing.
+  if (checkAge && coreChecked && !missingBuildFile(repoRoot, core)) {
+    problems.unshift(...[coreAgeProblem(repoRoot, core)].filter(Boolean));
+  }
+
+  return { lines, problems };
+}
+
+/**
+ * Lays out problems the way all three scripts print them: each summary, its detail indented, and its remedy,
+ * then one line saying where to run the commands.
  *
  * @param {Array<{summary: string, detail: string[], remedy: string}>} problems The problems.
  * @param {object} [options] Options.
