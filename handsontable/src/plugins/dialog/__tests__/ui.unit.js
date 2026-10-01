@@ -67,4 +67,47 @@ describe('DialogUI', () => {
       expect(ui.getContainer().parentNode).toBe(overlayContainer);
     });
   });
+
+  describe('after the dialog is destroyed', () => {
+    /**
+     * Collects the errors thrown by event listeners while `callback` runs.
+     *
+     * @param {Function} callback The code to run.
+     * @returns {Error[]} The errors the listeners threw.
+     */
+    function collectListenerErrors(callback) {
+      const errors = [];
+      const onError = (event) => {
+        errors.push(event.error);
+        event.preventDefault();
+      };
+
+      window.addEventListener('error', onError);
+
+      try {
+        callback();
+      } finally {
+        window.removeEventListener('error', onError);
+      }
+
+      return errors;
+    }
+
+    it('should ignore a late `transitionend` event', () => {
+      const overlayContainer = document.createElement('div');
+      const ui = buildUI(overlayContainer);
+      const container = ui.getContainer();
+
+      document.body.appendChild(overlayContainer);
+      ui.destroyDialog();
+
+      const errors = collectListenerErrors(() => {
+        container.dispatchEvent(new Event('transitionend'));
+      });
+
+      overlayContainer.remove();
+
+      expect(errors).toEqual([]);
+    });
+  });
 });
