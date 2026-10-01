@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the default `ranges` of a Column summary endpoint not following the table when rows are added, so a row appended past the last row was left out of the summary.",
+  "type": "fixed",
+  "issueOrPR": 13719,
+  "breaking": false,
+  "framework": "none"
+}
