@@ -377,6 +377,10 @@ directions.
 - **`&#xD800;`–`&#xDFFF;` is left as written**, like every other invalid code point in
   `decodeXmlEntities`. `String.fromCodePoint` accepts a surrogate and hands back an unpaired code unit
   that travels through the whole import, and `TextEncoder` replaces it with U+FFFD on the way out.
+  **The `_xD800_`–`_xDFFF_` OOXML escape follows the same rule**: `decodeOoxmlEscapes`
+  (`xml/escapes.ts`) leaves a surrogate escape as written — a paired `_xD83D__xDE00_` too, like a
+  paired `&#xD83D;&#xDE00;` — and decodes `_xD7FF_` and `_xE000_` as before. It carries its own
+  range constants, because the tokenizer's `isDecodableCodePoint` is not exported.
 - **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
   matches the A1 shape, and `Number('0') - 1` handed `#ensureRow(-1)` through the upper-bound check
   to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading
@@ -467,15 +471,24 @@ directions.
   counts the formula bar, while the file carries `_xlfn.`/`_xlws.`/`_xlpm.` prefixes on top
   (`_xlpm.` on every `LET`/`LAMBDA` parameter reference). The cap exists because
   `REFERENCE_REGEX` in `formulaRefs.ts` runs over the text in `translateSharedFormula` and the
-  import's `shiftFormulaReferences` — measured about 0.5 µs per character on a letter run even with
-  its bare sheet-qualifier run bounded at `MAX_QUALIFIER_LENGTH` (255, pinned in
-  `formulaRefs.unit.js`; unbounded it backtracked quadratically, 80 000 characters cost 3.2 s).
-  **Shared-formula translation is budgeted across the workbook**: every slave re-translates its
-  master's whole text, so `#chargeTranslation` charges the master's length per slave into
-  `WorkbookBudget.translatedFormulaChars` BEFORE translating and refuses through
-  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS` (64 Mi, about 30 s of worst-case translation). Without it 5 M slaves × 32 K
-  characters was unbounded CPU; the worst case the budget admits is still about two minutes of
-  regex work on a letter run, far less on real formulas. The field is optional on
+  import's `shiftFormulaReferences`. **Neither sheet-qualifier branch of that regex may restart
+  inside a run**: the bare name starts only where a run of name characters starts
+  (`(?<![\p{L}\p{N}_.])`), the quoted one only at an apostrophe that does not follow another, and
+  the quoted body is also bounded at `MAX_QUALIFIER_LENGTH` (255) units. Tried from every position,
+  a branch re-scanned the run once per character: unbounded, 80 000 letters cost 3.2 s and 32 768
+  apostrophes 470 ms (quadratic); bounded at 255 but unanchored it was still 255 steps per
+  character — 6.4 µs per character on Cyrillic or CJK. Both timings are pinned in
+  `formulaRefs.unit.js`, beside real quoted names (`'My Rates'!`, `'O''Brien'!`, a 31-character
+  one). Re-measured after the fix on 32 768-character formulas: a dense run of references
+  (`A1+A1+…`, `A:A+…`, `A1:B2,…`) is the worst case at 0.28–0.29 µs per character, because every
+  few characters are rewritten; a run of letters of any script, apostrophes or digits costs
+  0.01–0.05 µs. **Shared-formula translation is budgeted across the workbook**: every slave
+  re-translates its master's whole text, so `#chargeTranslation` charges the master's length per
+  slave into `WorkbookBudget.translatedFormulaChars` BEFORE translating and refuses through
+  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS` (64 Mi). Without it 5 M slaves × 32 K
+  characters was unbounded CPU; the worst case the budget admits is about 20 s of regex work, on a
+  master that is nothing but references. If the regex gains an alternative, re-measure every
+  shape above before trusting that number. The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
   conditional-formatting formulae are not capped: nothing runs that regex over them.
 - **`isTemporalFormat` must not cross a `[` inside a bracket section.** `\[[^\]]*\]` re-scanned
@@ -488,10 +501,31 @@ directions.
   drop both silently. `#lastRow`, `#currentRow` and `#nextCol` in `parts/worksheetReader.ts`
   carry the position; `#resolveRowIndex`/`#resolveCellAddress` answer it, and both still go through
   `#ensureRow`/`#cellAt`, so every cap applies to an implicit address exactly as to an explicit
-  one. An `r` that does not parse is still ignored, and a `<c>` without `r` outside any `<row>`
-  has no row to land in and is ignored too — including one AFTER a `</row>`: `#currentRow` is
-  cleared on row close (and a self-closing `<row/>` never sets it), while `#lastRow` keeps the index
-  an implicit `<row>` counts from. Before, a stray cell between rows landed in the row above.
+  one. A `<row r>` that is not a positive whole number is treated as ABSENT, so the row is placed
+  implicitly (next bullet); a `<c r>` that does not parse is still ignored. A `<c>` without `r`
+  outside any `<row>` has no row to land in and is ignored too — including one AFTER a `</row>`:
+  `#currentRow` is cleared on row close (and a self-closing `<row/>` never sets it), while
+  `#lastRow` keeps the index an implicit `<row>` counts from. Before, a stray cell between rows
+  landed in the row above.
+- **A numeric layout attribute is read by its XML Schema lexical form, never by `Number()`.**
+  `Number()` takes `''` as 0, `'0x10'` as 16, `' 3'` as 3 and `'1e308'` as a finite number, and the
+  reader used its answer as an index or a span: `<row r="2.5">` made `rows[1.5]` (`undefined`), so
+  the next `<c>` without `r` died as `Cannot read properties of undefined`, and the rest reached
+  the plugins as `hiddenRows: [0.5, 1]` (which HiddenRows rejects whole, un-hiding a real hidden
+  row), `fixedRowsTop: 0.5` and `colWidths: [Infinity, -350, 7e15]`. `xml/numbers.ts` holds the two
+  parsers: `parseUnsignedIntAttr` (`xsd:unsignedInt`: digits and an optional `+`, at most 15) and
+  `parseFiniteDoubleAttr` (a finite `xsd:double`, no hex, no `INF`/`NaN`, no whitespace). The rules,
+  all pinned in `nativeReadCompat.unit.js`: a `<row r>` that is not a positive whole number reads
+  as absent (implicit placement — it used to drop the row for `0`/`-1`/`NaN`/`''`); a `<col>` whose
+  `min` or `max` is not a positive whole number, or whose `min` is past its `max`, is ignored
+  whole; `<col width>` outside (0, 255] (Excel's widest column, `MAX_COLUMN_WIDTH`) and `<row ht>`
+  outside [0, 409.5] points (`MAX_ROW_HEIGHT`) are ignored alone, the rest of the element kept; a
+  `<pane xSplit>`/`ySplit` that is not a non-negative whole number reads as no split on that axis.
+  `cfRuleFromXml` (`parts/conditionalFormatting.ts`) follows the same rule: a `priority` that is
+  not a whole number is dropped (a re-export used to write `priority="NaN"`), and a `top10` `rank`
+  that is not a positive whole number reads as `DEFAULT_TOP10_RANK`. `#ensureRow` refuses a
+  fractional index beside its `< 0` guard, as belt and braces.
+  This is the FIRST of two layers: `importFile/mapper.ts#mapLayout` bounds the same values again (`toLayoutPixels`, `toFreezeCount`, `toHiddenIndexes`), so an ExcelJS-read file cannot push them past either — see `plugins/importFile/AGENTS.md`.
 - **An empty `<v/>` or `<v></v>` is an EMPTY cell, except for the two string kinds.** `Number('')`
   is `0`, so it used to read as shared string 0 or as the number 0. `#decodeValue` answers `null`
   first — except for `t="str"` and `t="inlineStr"`, whose value IS the empty string

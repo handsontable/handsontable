@@ -50,10 +50,17 @@ export interface MappedReference {
  * whole-row span. A qualified reference points at another sheet, and a header band added to or
  * removed from THIS sheet moves nothing there, so its cell part is left alone along with the name.
  * The range form is captured whole because the reference after the `:` inherits the qualifier.
- * The bare name is bounded at `MAX_QUALIFIER_LENGTH` characters: unbounded, the `+` run backtracks
- * once per starting position on a long run of letters with no `!` after it, which is quadratic
- * in the formula's length, and the formula is the file's own text. A sheet name is at most 31
- * characters, so the bound changes no match a workbook can produce.
+ * Neither name may start inside a run that could have started it earlier: the bare name only where
+ * a run of name characters starts (`(?<![\p{L}\p{N}_.])`), the quoted one only at an apostrophe
+ * that does not follow another. Tried from every position, the run is re-scanned once per
+ * character of a long run of letters - or of apostrophes - with no `!` (or `'!`) after it, which
+ * is quadratic in the formula's length (bounded at 255, still 255 steps per character: about
+ * 6.4 us per character on Cyrillic), and the formula is the file's own text. The quoted body is
+ * also bounded at `MAX_QUALIFIER_LENGTH` units (a character or an escaped `''`). A sheet name is
+ * at most 31 characters (62 once every apostrophe is doubled), and a valid formula never places
+ * a name inside a longer run or an opening apostrophe right after another, so neither rule
+ * changes a match a workbook can produce; a bare name longer than any real one still reads as a
+ * qualifier.
  *
  * The next alternative is the cell reference itself: an optional `$` before each component, one to
  * three column letters, then up to seven row digits, matched case-insensitively because
@@ -73,8 +80,10 @@ const MAX_QUALIFIER_LENGTH = 255;
 const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
 const COLUMN_SPAN_PATTERN = String.raw`\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])`;
 const ROW_SPAN_PATTERN = String.raw`\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}])`;
+const QUOTED_QUALIFIER_PATTERN = String.raw`(?<!')'(?:[^']|''){0,${MAX_QUALIFIER_LENGTH}}'`;
+const BARE_QUALIFIER_PATTERN = String.raw`(?<![\p{L}\p{N}_.])[\p{L}\p{N}_.]+`;
 const REFERENCE_REGEX = new RegExp(
-  String.raw`(?<literal>"(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]{1,${MAX_QUALIFIER_LENGTH}})!` +
+  String.raw`(?<literal>"(?:[^"]|"")*"|(?:${QUOTED_QUALIFIER_PATTERN}|${BARE_QUALIFIER_PATTERN})!` +
   String.raw`(?:${CELL_PATTERN}(?::${CELL_PATTERN})?|${COLUMN_SPAN_PATTERN}|${ROW_SPAN_PATTERN}))` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})(?![\d(])` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])` +

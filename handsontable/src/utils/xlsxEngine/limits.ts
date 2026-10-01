@@ -70,7 +70,7 @@ export const MAX_INFLATED_TOTAL_BYTES = 2 * MAX_INPUT_BYTES;
  * `_xlpm.` prefixes into `<f>` (`_xlpm.` on every `LET`/`LAMBDA` parameter reference), so a
  * formula at Excel's limit is longer in the file. Something must still bound the text: it is the
  * file's own, and the reference regex the shared-formula translation and the import's reference
- * shift both run over it costs about 0.5 µs per character, so the reader stops collecting a
+ * shift both run over it costs up to about 0.3 µs per character, so the reader stops collecting a
  * formula's text as soon as it crosses the cap.
  */
 export const MAX_FORMULA_LENGTH = 32768;
@@ -83,8 +83,11 @@ export const MAX_FORMULA_LENGTH = 32768;
  * formula and `MAX_WORKBOOK_CELLS` the slave count, but not their product. Every translation
  * charges the master's length. 64 Mi characters is room for about 640 000 slaves of a
  * 100-character formula, or two and a half million of a 26-character one. The translation costs
- * about 0.3-0.5 us per character, so the budget bounds the worst case to roughly 30 s of blocking
- * work - the same order as a sheet at `MAX_SHEET_CELLS`.
+ * at most about 0.3 us per character, measured on 32 768-character formulas: a dense run of
+ * references (`A1+A1+...`, `A:A+...`, `A1:B2,...`), which rewrites one reference every few
+ * characters, is the worst case at 0.28-0.29 us; a run of Latin, Cyrillic or CJK letters, of
+ * apostrophes or of digits, which rewrites nothing, costs 0.01-0.05 us. So the budget bounds the
+ * worst case to roughly 20 s of blocking work - the same order as a sheet at `MAX_SHEET_CELLS`.
  */
 export const MAX_TRANSLATED_FORMULA_CHARS = 64 * 1024 * 1024;
 

@@ -12,6 +12,7 @@ import {
   type SheetProtectionOptions, type SheetSnapshot,
 } from '../../../model';
 import { decodeOoxmlEscapes } from '../xml/escapes';
+import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../xml/numbers';
 import { collectRichTextRuns } from '../xml/richText';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { cfRuleFromXml } from './conditionalFormatting';
@@ -53,6 +54,17 @@ export interface WorksheetReadContext {
  * Serial-number offset between the 1904 and 1900 date systems (4 years and 1 day).
  */
 const DATE_1904_OFFSET = 1462;
+
+/**
+ * The widest column Excel accepts, in characters. A `<col width>` above it (or not above zero) is
+ * ignored rather than handed to the import as a column width.
+ */
+const MAX_COLUMN_WIDTH = 255;
+
+/**
+ * The tallest row Excel accepts, in points. A `<row ht>` above it (or below zero) is ignored.
+ */
+const MAX_ROW_HEIGHT = 409.5;
 
 /**
  * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
@@ -483,6 +495,12 @@ class WorksheetParser {
       throwWithCause(`The sheet "${this.#ctx.name}" declares a row before the first one.`);
     }
 
+    // The same for a fraction, which `#resolveRowIndex` no longer produces: `rows[1.5]` is
+    // `undefined` too, and the next cell written into it raised an internal `TypeError`.
+    if (!Number.isInteger(rowIndex)) {
+      throwWithCause(`The sheet "${this.#ctx.name}" declares a row that is not a whole row number.`);
+    }
+
     if (rowIndex + 1 > MAX_SHEET_ROWS) {
       throwRowLimit(this.#ctx.name, rowIndex + 1);
     }
@@ -602,12 +620,13 @@ class WorksheetParser {
   }
 
   /**
-   * Reads `<pane>`, the frozen rows and columns.
+   * Reads `<pane>`, the frozen rows and columns. A split that is not a whole, non-negative number
+   * reads as no split on its axis.
    */
   #openPane(attrs: XmlAttributes): void {
     if (attrs.state === 'frozen' || attrs.state === 'frozenSplit') {
-      const frozenColumns = Number(attrs.xSplit ?? 0);
-      const frozenRows = Number(attrs.ySplit ?? 0);
+      const frozenColumns = parseUnsignedIntAttr(attrs.xSplit) ?? 0;
+      const frozenRows = parseUnsignedIntAttr(attrs.ySplit) ?? 0;
 
       this.#sheet.freeze = frozenColumns > 0 || frozenRows > 0
         ? { rows: frozenRows, cols: frozenColumns }
@@ -616,13 +635,15 @@ class WorksheetParser {
   }
 
   /**
-   * Reads one `<col>`, which declares a width and a hidden flag for a whole span of columns.
+   * Reads one `<col>`, which declares a width and a hidden flag for a whole span of columns. A
+   * `min` or `max` that is not a positive whole number, or a `min` past the `max`, makes the whole
+   * element ignored; a `width` outside (0, `MAX_COLUMN_WIDTH`] is ignored on its own.
    */
   #openCol(attrs: XmlAttributes): void {
-    const min = Number(attrs.min);
-    const max = Number(attrs.max);
+    const min = parseUnsignedIntAttr(attrs.min);
+    const max = parseUnsignedIntAttr(attrs.max);
 
-    if (!Number.isFinite(min) || !Number.isFinite(max) || min < 1 || max < min) {
+    if (min === null || max === null || min < 1 || max < min) {
       return;
     }
 
@@ -637,7 +658,10 @@ class WorksheetParser {
       this.#sheet.colWidths.push(null);
     }
 
-    const widthValue = attrs.width === undefined ? null : Number(attrs.width);
+    const declaredWidth = parseFiniteDoubleAttr(attrs.width);
+    const widthValue = declaredWidth !== null && declaredWidth > 0 && declaredWidth <= MAX_COLUMN_WIDTH
+      ? declaredWidth
+      : null;
 
     this.#applyColumnSpan(min, max, widthValue, attrs.hidden === '1' || attrs.hidden === 'true');
   }
@@ -647,7 +671,7 @@ class WorksheetParser {
    */
   #applyColumnSpan(min: number, max: number, widthValue: number | null, hidden: boolean): void {
     for (let c = min; c <= max; c++) {
-      if (widthValue !== null && Number.isFinite(widthValue)) {
+      if (widthValue !== null) {
         this.#sheet.colWidths[c - 1] = widthValue;
       }
 
@@ -659,17 +683,18 @@ class WorksheetParser {
 
   /**
    * The 0-based row a `<row>` declares: from its `r`, or the row after the previous one when the
-   * file writes none (the first such row is row 1). An `r` that is not a positive number is
-   * ignored, as before, and answers `null`.
+   * file writes none (the first such row is row 1). An `r` that is not a positive whole number
+   * (`0`, `-1`, `2.5`, `1e308`, `0x10`, an empty one) is ignored like an absent one, so the row
+   * is placed implicitly.
    */
-  #resolveRowIndex(r: string | undefined): number | null {
-    if (r === undefined) {
-      return this.#lastRow === null ? 0 : this.#lastRow + 1;
+  #resolveRowIndex(r: string | undefined): number {
+    const declared = parseUnsignedIntAttr(r);
+
+    if (declared !== null && declared >= 1) {
+      return declared - 1;
     }
 
-    const declared = Number(r);
-
-    return Number.isFinite(declared) && declared >= 1 ? declared - 1 : null;
+    return this.#lastRow === null ? 0 : this.#lastRow + 1;
   }
 
   /**
@@ -679,21 +704,19 @@ class WorksheetParser {
   #openRow(attrs: XmlAttributes, selfClosing: boolean): void {
     const rowIndex = this.#resolveRowIndex(attrs.r);
 
-    if (rowIndex === null) {
-      return;
-    }
-
     this.#lastRow = rowIndex;
     this.#currentRow = selfClosing ? null : rowIndex;
     this.#nextCol = 0;
     this.#ensureRow(rowIndex);
 
-    if (attrs.ht !== undefined && Number.isFinite(Number(attrs.ht))) {
+    const height = parseFiniteDoubleAttr(attrs.ht);
+
+    if (height !== null && height >= 0 && height <= MAX_ROW_HEIGHT) {
       while (this.#sheet.rowHeights.length <= rowIndex) {
         this.#sheet.rowHeights.push(null);
       }
 
-      this.#sheet.rowHeights[rowIndex] = Number(attrs.ht);
+      this.#sheet.rowHeights[rowIndex] = height;
     }
 
     if (attrs.hidden === '1' || attrs.hidden === 'true') {

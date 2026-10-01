@@ -77,13 +77,26 @@ export function escapeXmlAttr(text: string): string {
   return escapeMarkup(text.replace(ILLEGAL_CHARS, ''));
 }
 
+// The UTF-16 surrogate range. An escape inside it names no character, so it is left as written.
+const FIRST_SURROGATE = 0xD800;
+const LAST_SURROGATE = 0xDFFF;
+
 /**
- * Decodes the `_xHHHH_` escapes a shared string or inline string may carry.
+ * Decodes the `_xHHHH_` escapes a shared string or inline string may carry. An escape in the
+ * surrogate range (`_xD800_`-`_xDFFF_`) is left as written, the way `decodeXmlEntities` leaves
+ * `&#xD800;`: decoded, it would hand back an unpaired code unit that travels through the whole
+ * import and comes out of `TextEncoder` as U+FFFD.
  */
 export function decodeOoxmlEscapes(text: string): string {
-  return text.includes('_x')
-    ? text.replace(/_x([0-9A-F]{4})_/g, (_m: string, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)))
-    : text;
+  if (!text.includes('_x')) {
+    return text;
+  }
+
+  return text.replace(/_x([0-9A-F]{4})_/g, (match: string, hex: string) => {
+    const code = Number.parseInt(hex, 16);
+
+    return code >= FIRST_SURROGATE && code <= LAST_SURROGATE ? match : String.fromCharCode(code);
+  });
 }
 
 /**

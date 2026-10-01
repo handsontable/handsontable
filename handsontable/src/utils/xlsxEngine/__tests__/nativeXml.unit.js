@@ -8,6 +8,7 @@ import {
   escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes, needsSpacePreserve,
 } from '../adapters/native/xml/escapes';
 import { XmlWriter } from '../adapters/native/xml/writer';
+import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../adapters/native/xml/numbers';
 
 /**
  * Records every event the tokenizer emits as a compact tuple.
@@ -143,6 +144,16 @@ describe('escaping', () => {
     expect(decodeOoxmlEscapes('_xZZZZ_')).toBe('_xZZZZ_');
   });
 
+  it('should leave a surrogate _xHHHH_ escape as written, like the tokenizer leaves &#xD800;', () => {
+    // A lone surrogate names no character: decoded, it travelled through the whole import as an
+    // unpaired code unit, and `TextEncoder` turned it into U+FFFD on the way out.
+    expect(decodeOoxmlEscapes('a_xD800_b')).toBe('a_xD800_b');
+    expect(decodeOoxmlEscapes('_xDFFF_')).toBe('_xDFFF_');
+    expect(decodeOoxmlEscapes('_xDBFF__xDC00_')).toBe('_xDBFF__xDC00_');
+    expect(decodeOoxmlEscapes('_xD7FF_')).toBe(String.fromCharCode(0xD7FF));
+    expect(decodeOoxmlEscapes('_xE000_')).toBe(String.fromCharCode(0xE000));
+  });
+
   it('should escape a literal _xHHHH_-shaped run in text so decodeOoxmlEscapes reads it back unchanged', () => {
     const written = escapeXmlText('FILE_x0041_TEST');
 
@@ -177,5 +188,20 @@ describe('escaping', () => {
     const offenders = [...source.entries()].filter(([, byte]) => byte >= 0x80).map(([offset]) => offset);
 
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('native xml numeric attributes', () => {
+  it('should read only the xsd:unsignedInt lexical form as a whole number', () => {
+    expect(['0', '7', '007', '+3', '1048576'].map(parseUnsignedIntAttr)).toEqual([0, 7, 7, 3, 1048576]);
+    expect([undefined, '', ' 3', '3 ', '-1', '2.5', '1e3', '0x10', 'NaN', 'Infinity', '1'.repeat(16)]
+      .map(parseUnsignedIntAttr)).toEqual(Array(11).fill(null));
+  });
+
+  it('should read only a finite xsd:double lexical form as a number', () => {
+    expect(['0', '-1', '2.5', '.5', '5.', '1e1', '+1E-2'].map(parseFiniteDoubleAttr))
+      .toEqual([0, -1, 2.5, 0.5, 5, 10, 0.01]);
+    expect([undefined, '', ' 1', '0x10', 'NaN', 'INF', 'Infinity', '1e999', '.', '1e']
+      .map(parseFiniteDoubleAttr)).toEqual(Array(10).fill(null));
   });
 });

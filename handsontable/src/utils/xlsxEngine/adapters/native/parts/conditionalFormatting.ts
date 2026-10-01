@@ -1,5 +1,6 @@
 import { isPlainObject } from '../../../../../helpers/object';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
+import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../xml/numbers';
 import type { XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 import type { DxfStyle, StyleTable } from './styles';
@@ -341,7 +342,10 @@ function applyRuleKind(rule: RuleObject, type: string, attrs: XmlAttributes): vo
  */
 function applyKindSpecificAttributes(rule: RuleObject, type: string, attrs: XmlAttributes): void {
   if (type === 'top10') {
-    rule.rank = attrs.rank === undefined ? DEFAULT_TOP10_RANK : Number(attrs.rank);
+    // A rank that is not a positive whole number (`NaN`, `2.5`, `0`) reads as the default one.
+    const rank = parseUnsignedIntAttr(attrs.rank);
+
+    rule.rank = rank !== null && rank >= 1 ? rank : DEFAULT_TOP10_RANK;
     rule.percent = attrs.percent === '1' || attrs.percent === 'true';
     rule.bottom = attrs.bottom === '1' || attrs.bottom === 'true';
   }
@@ -365,8 +369,12 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
 
   applyRuleKind(rule, type, attrs);
 
-  if (attrs.priority !== undefined) {
-    rule.priority = Number(attrs.priority);
+  // A priority that is not a whole number is dropped: `Number()` let `NaN` and `Infinity` through,
+  // and a re-export then wrote `priority="NaN"`.
+  const priority = parseFiniteDoubleAttr(attrs.priority);
+
+  if (priority !== null && Number.isInteger(priority)) {
+    rule.priority = priority;
   }
 
   if (formulae.length > 0) {

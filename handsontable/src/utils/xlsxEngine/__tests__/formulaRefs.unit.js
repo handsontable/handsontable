@@ -75,15 +75,47 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('Data!A1+B2', -1, -1)).toBe('Data!A1+A1');
   });
 
-  it('should leave a bare qualifier longer than the 255-character bound untouched, like a shorter one', () => {
-    // The bare-qualifier run is bounded so a long run of letters with no `!` after it cannot make
-    // the regex backtrack quadratically over the file's own formula text. A sheet name is at most
-    // 31 characters, so the bound changes no match a workbook can produce - and a longer one still
-    // reads as a qualifier, because the bounded run matches its tail and the `!` after it.
+  it('should leave a bare qualifier longer than 255 characters untouched, like a shorter one', () => {
+    // The bare-qualifier run may only start where a run of name characters starts, so a long run
+    // of letters with no `!` after it is scanned once, not once per starting position - which was
+    // quadratic over the file's own formula text. A longer-than-real name still reads as a
+    // qualifier, as it did when the run was bounded at 255 and matched the name's tail.
     const long = 'a'.repeat(300);
 
     expect(shiftFormulaReferences(`${long}!A1+B2`, 1, 1)).toBe(`${long}!A1+C3`);
     expect(shiftFormulaReferences('a'.repeat(20000), 1, 1)).toBe('a'.repeat(20000));
+  });
+
+  it('should classify a long run of apostrophes in linear time', () => {
+    // The quoted-qualifier body `(?:[^']|'')` used to be unbounded, so a run of apostrophes with
+    // no `'!` after it backtracked once per starting position - quadratic in the formula's length
+    // (32 768 apostrophes cost about 470 ms). It is bounded at `MAX_QUALIFIER_LENGTH` units now.
+    const apostrophes = '\''.repeat(32768);
+    const startedAt = performance.now();
+
+    expect(shiftFormulaReferences(apostrophes, 1, 1)).toBe(apostrophes);
+    expect(performance.now() - startedAt).toBeLessThan(200);
+  });
+
+  it('should classify a long run of non-Latin letters in linear time', () => {
+    // The bare-qualifier run, bounded at 255 but tried from every position, scanned 255 letters
+    // per character: about 6.4 us per character on Cyrillic (32 768 cost about 210 ms).
+    const letters = '\u0416'.repeat(32768);
+    const startedAt = performance.now();
+
+    expect(shiftFormulaReferences(letters, 1, 1)).toBe(letters);
+    expect(performance.now() - startedAt).toBeLessThan(100);
+  });
+
+  it('should keep leaving a real quoted qualifier untouched after the quoted body was bounded', () => {
+    const longest = `'${'N'.repeat(31)}'`;
+    const doubled = `'${'\'\''.repeat(31)}'`;
+
+    expect(shiftFormulaReferences('\'My Rates\'!$A$1+B2', 1, 1)).toBe('\'My Rates\'!$A$1+C3');
+    expect(shiftFormulaReferences('\'O\'\'Brien\'!A1+A1', 1, 1)).toBe('\'O\'\'Brien\'!A1+B2');
+    expect(shiftFormulaReferences(`${longest}!A1:B2+A1`, 1, 1)).toBe(`${longest}!A1:B2+B2`);
+    expect(shiftFormulaReferences(`${doubled}!A1+A1`, 1, 1)).toBe(`${doubled}!A1+B2`);
+    expect(translateSharedFormula('\'My Rates\'!A1*A1', 1, 0)).toBe('\'My Rates\'!A1*A2');
   });
 
   it('should not touch a reference-shaped string literal', () => {

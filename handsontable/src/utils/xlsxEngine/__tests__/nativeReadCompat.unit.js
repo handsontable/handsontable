@@ -462,6 +462,114 @@ describe('native reader compatibility: implicit cell and row placement', () => {
   });
 });
 
+describe('native reader compatibility: numeric layout attributes', () => {
+  // `Number()` accepts fractions, exponents, hex and the empty string, and the reader used to take
+  // its answer as a row index, a column span, a pane split or a size. `<row r="2.5">` then indexed
+  // `rows[1.5]` (`undefined`), so the next cell without `r` died as a `TypeError`; the others
+  // reached the plugins as `hiddenRows: [0.5]`, `fixedRowsTop: 0.5`, `colWidths: [Infinity]`.
+  const NOT_A_POSITIVE_INTEGER = ['2.5', '-1', '0', '1e308', 'NaN', '', '0x10', ' 3', 'Infinity'];
+
+  /**
+   * Wraps one `<col>` element (or several) in a worksheet part with a single cell.
+   *
+   * @param {string} cols The `<col>` elements.
+   * @returns {string}
+   */
+  function colsXml(cols) {
+    return `<worksheet ${NS}><cols>${cols}</cols><sheetData><row r="1"><c><v>1</v></c></row>`
+      + '</sheetData></worksheet>';
+  }
+
+  /**
+   * Wraps one `<pane>` in a worksheet part with a single cell.
+   *
+   * @param {string} attrs The pane's split attributes.
+   * @returns {string}
+   */
+  function paneXml(attrs) {
+    return `<worksheet ${NS}><sheetViews><sheetView workbookViewId="0"><pane ${attrs} state="frozen"/>`
+      + '</sheetView></sheetViews><sheetData><row r="1"><c><v>1</v></c></row></sheetData></worksheet>';
+  }
+
+  it.each(NOT_A_POSITIVE_INTEGER)('should place a <row r="%s"> implicitly, after the previous row', (r) => {
+    const xml = worksheetXml(
+      `<row r="3"><c><v>0</v></c></row><row r="${r}" ht="20" hidden="1"><c><v>1</v></c></row>`
+    );
+    const { sheet } = readSheet(xml);
+
+    expect(sheet.rows.map(row => row.map(cell => cell && cell.value))).toEqual([[], [], [0], [1]]);
+    expect(sheet.hiddenRows).toEqual([3]);
+    expect(sheet.rowHeights).toEqual([null, null, null, 20]);
+  });
+
+  it('should read the cell after a <row r="2.5"> without throwing', () => {
+    const { sheet } = readSheet(worksheetXml('<row r="2.5"><c><v>1</v></c></row>'));
+
+    expect(sheet.rows).toHaveLength(1);
+    expect(sheet.rows[0][0].value).toBe(1);
+  });
+
+  it.each(NOT_A_POSITIVE_INTEGER)('should ignore a <col> whose min is "%s"', (min) => {
+    const { sheet } = readSheet(colsXml(`<col min="${min}" max="4" width="30" hidden="1"/>`));
+
+    // The one cell in column A still pads the widths to the sheet's width.
+    expect(sheet.colWidths).toEqual([null]);
+    expect(sheet.hiddenCols).toEqual([]);
+  });
+
+  it.each(NOT_A_POSITIVE_INTEGER)('should ignore a <col> whose max is "%s"', (max) => {
+    const { sheet } = readSheet(colsXml(`<col min="1" max="${max}" width="30" hidden="1"/>`));
+
+    expect(sheet.colWidths).toEqual([null]);
+    expect(sheet.hiddenCols).toEqual([]);
+  });
+
+  it('should ignore a <col> whose min is past its max, and read a valid one beside it', () => {
+    const { sheet } = readSheet(colsXml(
+      '<col min="3" max="2" width="30" hidden="1"/><col min="1" max="1" width="9"/>'
+    ));
+
+    expect(sheet.colWidths).toEqual([9]);
+    expect(sheet.hiddenCols).toEqual([]);
+  });
+
+  it.each(['-350', '0', '255.5', '1e308', '7e15', 'NaN', '', '0x10', 'Infinity'])(
+    'should ignore a <col> width of "%s" and keep the rest of the element', (width) => {
+      const { sheet } = readSheet(colsXml(`<col min="1" max="2" width="${width}" hidden="1"/>`));
+
+      expect(sheet.colWidths).toEqual([null, null]);
+      expect(sheet.hiddenCols).toEqual([0, 1]);
+    });
+
+  it.each([['2.5', 2.5], ['255', 255], ['1e1', 10]])('should keep a <col> width of "%s"', (width, expected) => {
+    const { sheet } = readSheet(colsXml(`<col min="1" max="1" width="${width}"/>`));
+
+    expect(sheet.colWidths).toEqual([expected]);
+  });
+
+  it.each(['-1', '409.6', '1.33e308', 'NaN', '', '0x10', 'Infinity'])(
+    'should ignore a <row> height of "%s" and keep the rest of the row', (ht) => {
+      const { sheet } = readSheet(worksheetXml(`<row r="1" ht="${ht}" hidden="1"><c><v>1</v></c></row>`));
+
+      expect(sheet.rowHeights).toEqual([null]);
+      expect(sheet.hiddenRows).toEqual([0]);
+      expect(sheet.rows[0][0].value).toBe(1);
+    });
+
+  it.each([['0', 0], ['2.5', 2.5], ['409.5', 409.5]])('should keep a <row> height of "%s"', (ht, expected) => {
+    const { sheet } = readSheet(worksheetXml(`<row r="1" ht="${ht}"><c><v>1</v></c></row>`));
+
+    expect(sheet.rowHeights).toEqual([expected]);
+  });
+
+  it.each(['2.5', '-1', '1e308', 'NaN', '', '0x10', 'Infinity'])(
+    'should read a pane split of "%s" as no split on that axis', (split) => {
+      expect(readSheet(paneXml(`xSplit="${split}" ySplit="2"`)).sheet.freeze).toEqual({ rows: 2, cols: 0 });
+      expect(readSheet(paneXml(`xSplit="3" ySplit="${split}"`)).sheet.freeze).toEqual({ rows: 0, cols: 3 });
+      expect(readSheet(paneXml(`xSplit="${split}" ySplit="${split}"`)).sheet.freeze).toBeNull();
+    });
+});
+
 describe('native reader compatibility: a self-closing <si/>', () => {
   it('should keep the index of every shared string after a self-closing <si/>', () => {
     // The tokenizer fires no close event for a self-closed element, so `<si/>` never reached the

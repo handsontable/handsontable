@@ -363,6 +363,20 @@ describe('conditional formatting', () => {
       .toEqual({ type: 'duplicateValues', priority: 6 });
   });
 
+  it.each(['NaN', 'Infinity', '1e999', '', '0x10', '2.5', 'abc'])(
+    'should drop a cfRule priority of "%s" rather than hand a non-integer to a re-export', (priority) => {
+      // `Number()` let `NaN` and `Infinity` into `ImportResult.conditionalFormatting`, and a
+      // re-export then wrote `priority="NaN"`.
+      expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', priority }, ['1'], []))
+        .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'] });
+    });
+
+  it.each(['NaN', 'Infinity', '1e999', '', '0x10', '2.5', '0', '-3', 'abc'])(
+    'should read a top10 rank of "%s" as the default rank', (rank) => {
+      expect(cfRuleFromXml({ type: 'top10', rank, priority: '1' }, [], []))
+        .toEqual({ type: 'top10', rank: 10, percent: false, bottom: false, priority: 1 });
+    });
+
   it('should give two rules sharing a dxfId their own style object, not the same instance', () => {
     const dxfs = [{ font: { bold: true } }];
     const ruleA = cfRuleFromXml({ type: 'cellIs', operator: 'greaterThan', dxfId: '0' }, ['2'], dxfs);
