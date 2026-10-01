@@ -48,16 +48,20 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   real, say so in the test instead of pinning one bundle's answer. A real one is
   still a defect: that editor split is tracked as DEV-2862, since the fixture
   enables no Formulas and only the bundle differs.
-- **A stylesheet edit needs `build:umd` too, not only the stylesheet build.** The
-  UMD bundle inlines the base stylesheet (`src/styles/handsontableStyles.js`,
-  which `build:styles` rewrites) and injects it as a `<style>` after the
-  fixture's `<link>`s, so for a declaration both copies carry, the bundle's copy
-  wins the cascade. After `build:styles.min` alone, `handsontable.min.css` on
-  disk shows the new value while every leg still renders the old one — measured
-  on the row resize guide's `margin-top`: 4px in the stylesheet, 5px computed,
-  and the spec that guards it stayed green on the planted bug. An additive rule
-  takes effect from the stylesheet alone, which is what makes the trap look
-  intermittent. Rebuild the bundle before believing a CSS mutant survived.
+- **A stylesheet edit needs BOTH bundles rebuilt, not only the stylesheet.** The
+  bundles inline the base stylesheet (`src/styles/handsontableStyles.js`, which
+  `build:styles` rewrites) and inject it as a `<style>` after the fixture's
+  `<link>`s, so for a declaration both copies carry, the bundle's copy wins the
+  cascade. After `build:styles.min` alone, `handsontable.min.css` on disk shows
+  the new value while every leg still renders the old one — measured on the row
+  resize guide's `margin-top`: 4px in the stylesheet, 5px computed, and the spec
+  that guards it stayed green on the planted bug. `build:umd` refreshes the three
+  `umd` legs only; the three `-min` legs load `handsontable.full.min.js`, which
+  only `build:umd.min` rewrites, so a planted CSS bug rebuilt with `build:umd`
+  alone goes red on `umd` and stays green on `-min` — the same misread, split by
+  bundle. Rebuild `build:umd` and `build:umd.min`, or run the full `build`
+  (`handsontable/AGENTS.md`, Build). An additive rule takes effect from the
+  stylesheet alone, which is what makes the trap look intermittent.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30

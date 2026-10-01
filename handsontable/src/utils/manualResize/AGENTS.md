@@ -249,11 +249,13 @@ in `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
 Where the handle and the guide are DRAWN is `tests/e2e/manual-resize-guide-geometry.spec.ts`: the handle
 as wide as the header, flush with its inline edge and centered one pixel above the row boundary (the
 `- 6` in `#setupHandlePosition` against the stylesheet's 10px strip); on a press the guide's 1px line
-level with that boundary, starting where the handle ends and reaching the table's far edge; the line
-following the pointer by the dragged distance; the row grown by it on release — on a header in each of
-the three overlays `ROW_RESIZE_AXIS.getHeaderPosition` resolves against. The line sits on the boundary
-because `.manualRowResizerGuide` has `margin-top: 5px` in
-`../../styles/components/plugins/_manual-row-resize.scss` (#11500 moved it from 4px, and until that spec
-the only guard was a screenshot). A change to that stylesheet needs `build:umd` as well as the stylesheet
-build before the Playwright legs see it: the UMD bundle inlines the base stylesheet and its copy wins the
-cascade over the linked one (`tests/AGENTS.md`, The matrix).
+level with that boundary, starting where the handle ends and reaching the table's far edge; both stacked
+above every overlay; the line following the pointer by the dragged distance while the row itself stays put
+until release; the row grown by exactly that distance on release — on a header in each of the three
+overlays `ROW_RESIZE_AXIS.getHeaderPosition` resolves against. The line sits on the boundary because
+`.manualRowResizerGuide` has `margin-top: 5px` in `../../styles/components/plugins/_manual-row-resize.scss`
+(#11500 moved it from 4px, and until that spec the only guard was a screenshot). A change to that
+stylesheet needs both bundles rebuilt (`build:umd` and `build:umd.min`, or the full `build`) before the
+Playwright legs see it: the bundles inline the base stylesheet and their copy wins the cascade over the
+linked one, and each pair of legs loads one of them (`../../../AGENTS.md`, Build; `tests/AGENTS.md`, The
+matrix).

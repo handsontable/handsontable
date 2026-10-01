@@ -7,11 +7,12 @@ test.beforeEach(async({ page }) => {
 
 /**
  * Checks the complex demo's paint at 125% CSS `zoom` on `main`: a sub-pixel smoke of how the zoomed
- * borders and text rasterize, which only pixels show. That the overlays line up with the master under
- * that zoom — every header, frozen row, frozen column and corner cell on its master cell's edges — is
- * asserted from DOM rects in `tests/e2e/overlay-alignment-css-zoom.spec.ts` on every theme, and the
- * complex demo itself is photographed on every js variant by `js-only/complex-demo/manual-row-resize`
- * (the same LTR demo, with the resize guide pressed). Owned by DEV-3205.
+ * borders and text rasterize, which only pixels show. That the overlays line up under that zoom — every
+ * header, frozen row, frozen column and corner cell on the edges of the cell it covers, the two bottom
+ * overlays on each other's edges along the bottom-freeze seam — is asserted from DOM rects in
+ * `tests/e2e/overlay-alignment-css-zoom.spec.ts` on every theme, and the complex demo itself is
+ * photographed on every js variant by `js-only/complex-demo/manual-row-resize` (the same LTR demo, with
+ * the resize guide pressed). Owned by DEV-3205.
  */
 visualTest(__filename, {
   themes: ['main'],

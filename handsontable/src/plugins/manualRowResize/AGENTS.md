@@ -74,4 +74,4 @@ this plugin's double-click autofit keeps working.
 - Where the handle and guide are drawn: `cd tests && npx playwright test e2e/manual-resize-guide-geometry.spec.ts`
   runs all six theme × bundle legs, as CI does; add `--project=e2e-main` for a first local check on one
   (`../../utils/manualResize/AGENTS.md`, Testing, says what it pins and why a stylesheet change needs
-  `build:umd` before it shows there).
+  both `build:umd` and `build:umd.min` before it shows on all six legs).

@@ -25,7 +25,8 @@ import {
  *   is a line — one pixel high — that starts where the handle ends and reaches the table's far edge;
  * - both are stacked above every overlay, or the line would vanish under the frozen column and the
  *   corners it crosses;
- * - while dragging, the line follows the pointer by the dragged distance;
+ * - while dragging, the line follows the pointer by the dragged distance and the row itself stays
+ *   put — read after a settle, so a resize drawn on a later frame would show;
  * - on release, the row grew by exactly that distance.
  *
  * A row header lives in one of three overlays, and the plugin resolves its position against each
@@ -112,8 +113,6 @@ test.describe('Manual row resize handle and guide geometry', () => {
         .toBeGreaterThan(pressed.stacking.overlays);
       expect(pressed.stacking.handle, 'handle z-index vs the highest overlay')
         .toBeGreaterThan(pressed.stacking.overlays);
-      // The header has not moved: the row is resized on release, not while dragging.
-      expect(pressed.header.bottom).toBe(hovered.header.bottom);
 
       // Dragging: the line follows the pointer, by exactly the dragged distance.
       await grid.dragPointerBy(DRAG_PX);
@@ -121,8 +120,22 @@ test.describe('Manual row resize handle and guide geometry', () => {
       await expect.poll(async() => {
         const dragged = await grid.geometry(overlay, rowInOverlay);
 
-        return dragged.guide ? dragged.guide.bottom - dragged.header.bottom : Number.NaN;
+        return dragged.guide ? dragged.guide.bottom - hovered.header.bottom : Number.NaN;
       }, { message: 'the guide line follows the pointer by the dragged distance' })
+        .toBeCloseTo(DRAG_PX, 0);
+
+      // ...and the row itself is not resized while the button is held: only the line moves. Read
+      // after a settle, so a draw the drag scheduled for a later frame has landed; the release below
+      // is the positive control that the same row does grow once the drag ends.
+      await grid.afterFrames();
+
+      const held = await grid.geometry(overlay, rowInOverlay);
+
+      // Both edges of the box: a row frozen at the bottom is pinned to the holder's bottom edge, so it
+      // would grow upward with its bottom boundary standing still.
+      expect(held.header.height, 'the row height while the button is held').toBe(hovered.header.height);
+      expect(held.header.bottom, 'the row boundary while the button is held').toBe(hovered.header.bottom);
+      expect(held.guide!.bottom - hovered.header.bottom, 'the guide line while the button is held')
         .toBeCloseTo(DRAG_PX, 0);
 
       // Release: the row grew by that distance.

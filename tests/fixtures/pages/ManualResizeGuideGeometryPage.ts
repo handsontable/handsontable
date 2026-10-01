@@ -1,5 +1,6 @@
 import { type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { afterAnimationFrames } from '../frames';
 import { ManualResizePage } from './ManualResizePage';
 
 /**
@@ -135,6 +136,14 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
   }
 
   /**
+   * Waits three rendered frames, so a draw the drag scheduled for a later frame has landed before the
+   * next read. A bounded settle: the spec pairs it with the release that does resize the row.
+   */
+  async afterFrames(): Promise<void> {
+    await afterAnimationFrames(this.page, 3);
+  }
+
+  /**
    * The boxes of a row header, the handle, the guide and the master table, read in one round trip.
    *
    * One `evaluate` rather than four `boundingBox()` calls: each of those resolves its node in one
@@ -194,7 +203,9 @@ export class ManualResizeGuideGeometryPage extends ManualResizePage {
   }
 
   /**
-   * The rendered height of a visual row, from the master table.
+   * The rendered height of a visual row, from its topmost copy (an overlay's copy for a frozen row).
+   * For the row frozen at the bottom that copy draws its own top border, so it is one border taller
+   * than the master's: compare it with another read of the same copy, never with master geometry.
    *
    * @param {number} row The visual row index.
    * @returns {Promise<number>}

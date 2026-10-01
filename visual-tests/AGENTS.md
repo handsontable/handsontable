@@ -660,9 +660,13 @@ does for you):
   `tests/e2e/manual-resize-guide-geometry.spec.ts`, on a header in each of the three overlays that can
   hold one. That every overlay cell coincides with its master cell under 125% CSS zoom (the #11465
   class), on the demo's shape with a frozen column and on one with row headers alone, is asserted in
-  `tests/e2e/overlay-alignment-css-zoom.spec.ts`; the bottom overlays are compared on their columns
-  and row heights (the window pins them to its bottom edge), and their first row on its columns only,
-  because it draws its own top border and is one border taller than the master's copy by design. What
+  `tests/e2e/overlay-alignment-css-zoom.spec.ts`. The two bottom overlays are pinned to the window's
+  bottom edge there, so against the master they are compared on columns and row heights, and against
+  each other on all four edges, the bottom-freeze seam row included; their vertical position against the
+  master rows is compared at 100% with the grid's end in view, where it is exact. Under zoom it is not:
+  the engine places that band from whole-pixel sizes, and the result carries a rounding residue of up to
+  0.5px that changes with the zoom level (0 at 80% and 150% on `main`, 0.5px at 125% on every theme), a
+  tolerance for which would also admit the one-snapped-border drift the spec exists to catch. What
   stays under `tests/js-only/complex-demo/` is one capture of the pressed guide and active handle on
   every js variant — it is of two tokens, `--ht-accent-color` and `--ht-resize-indicator-color`, and
   the second is painted nowhere else — and one of the zoomed demo on `main`, a sub-pixel paint smoke
