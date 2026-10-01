@@ -1,4 +1,4 @@
-import { getTrimmingContainer, type OverflowAxis } from '../../../../helpers/dom/element';
+import { getTrimmingContainer, isHTMLElement, type OverflowAxis } from '../../../../helpers/dom/element';
 
 export type { OverflowAxis };
 
@@ -51,4 +51,36 @@ export function resolveAxisOwner(
   }
 
   return getTrimmingContainer(wtRootElement, axis);
+}
+
+/**
+ * Resolves the grid's root element when it bounds the holder width next to the horizontal owner.
+ *
+ * An element that owns the horizontal axis sizes the holder to its own box, which is the grid's box
+ * only when the grid fills it edge to edge. An owner further up the tree can be wider than the grid:
+ * its own padding, a padded wrapper between the two, or a relative `width` under 100% all leave the
+ * grid narrower. A holder as wide as the owner then overflows the grid by the difference, and
+ * `.ht_master`, which clips at the grid's own width, cuts off the grid's inline-end edge. When the host
+ * sized the grid as a plain block (`widthFollowsRoot`), the grid's root element – the Walkontable
+ * root's parent, the element `preventOverflow` forces an axis to – bounds the width as well:
+ * `viewport/rootWidthBound.ts` caps the holder at it and measures the room the grid has.
+ *
+ * @param {HTMLElement} wtRootElement The Walkontable root element (`.ht_master`).
+ * @param {HTMLElement | Window} ownerX The owner of the horizontal axis.
+ * @param {boolean} widthFollowsRoot The `widthFollowsRoot` setting value.
+ * @returns {HTMLElement | null} The grid's root element, or `null` when the owner alone bounds the
+ * width: the setting is off, the window owns the axis, or the root element is the owner itself.
+ */
+export function resolveWidthBoundingRoot(
+  wtRootElement: HTMLElement,
+  ownerX: HTMLElement | Window,
+  widthFollowsRoot: boolean,
+): HTMLElement | null {
+  const { parentElement } = wtRootElement;
+
+  if (!widthFollowsRoot || !parentElement || !isHTMLElement(ownerX) || ownerX === parentElement) {
+    return null;
+  }
+
+  return parentElement;
 }

@@ -5,10 +5,11 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const data = [
-  ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
-  ['2018', 10, 11, 12, 13, 15, 16],
-  ['2019', 10, 11, 12, 13, 15, 16],
-  ['2020', 10, 11, 12, 13, 15, 16],
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', 'Be', 4, 9.012, 11],
+  ['Boron', 'B', 5, 10.81, 15],
 ];
 
 const ExampleComponent = () => {
@@ -16,16 +17,16 @@ const ExampleComponent = () => {
     <HotTable
       data={data}
       rowHeaders={true}
-      colHeaders={true}
+      colHeaders={['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes']}
       contextMenu={true}
       comments={true}
       cell={[
         {
           row: 0,
-          col: 1,
+          col: 0,
           comment: { value: 'A read-only comment.', readOnly: true },
         },
-        { row: 0, col: 3, comment: { value: 'You can edit this comment' } },
+        { row: 1, col: 0, comment: { value: 'You can edit this comment' } },
       ]}
       height="auto"
       autoWrapRow={true}

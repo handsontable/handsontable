@@ -340,7 +340,7 @@ export class EmptyDataState extends BasePlugin {
       }
     });
     this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
-    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     super.enablePlugin();
 
@@ -408,6 +408,35 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Shows or hides the loading overlay to match whether the DataProvider plugin is waiting for a `fetchRows`
+   * response that shows loading. The DataProvider plugin calls it when the view the grid shows changes, because
+   * no fetch hook fires then: a fetch left running for another view must not keep the overlay up, and a view
+   * whose fetch is still running must show it again. After a view change, the selection the overlay restores when
+   * it hides is the one the new view has, not the one the previous view had when the overlay appeared, and an
+   * overlay hidden by the change restores no selection at all. Does nothing while this plugin is disabled.
+   * Internal; not public API.
+   *
+   * @private
+   * @param {boolean} isLoading Whether the grid waits for a fetch that shows loading.
+   * @param {boolean} [isViewChange=false] Whether the view the grid shows has just changed.
+   */
+  _syncDataProviderLoading(isLoading: boolean, isViewChange = false): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    if (isViewChange && this.#isVisible) {
+      this.#selectionState = this.hot.selection.exportSelection();
+    }
+
+    if (isLoading) {
+      this.#setLoadingActive();
+    } else {
+      this.#clearLoadingActive(!isViewChange);
+    }
+  }
+
+  /**
    * Sets the loading active flag and toggles the emptyDataState.
    */
   #setLoadingActive() {
@@ -421,14 +450,16 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Clears the loading active flag and hides the emptyDataState.
+   *
+   * @param {boolean} [restoresSelection=true] Whether hiding restores the selection kept when the overlay appeared.
    */
-  #clearLoadingActive() {
+  #clearLoadingActive(restoresSelection = true) {
     if (!this.#loadingActive) {
       return;
     }
 
     this.#loadingActive = false;
-    this.#hide();
+    this.#hide(restoresSelection);
     this.#toggleEmptyDataState();
     this.hot.render();
   }
@@ -614,6 +645,7 @@ export class EmptyDataState extends BasePlugin {
 
     this.#ui?.show();
     this.#isVisible = true;
+    this.#updateLayout();
 
     this.#selectionState = this.hot.selection.exportSelection();
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
@@ -635,9 +667,28 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Hides the emptyDataState overlay.
+   * Fits the visible overlay to the current grid layout.
+   *
+   * It runs after every render, and also when the overlay is shown between renders – a DataProvider
+   * fetch starting, for example. Without that the overlay keeps the size it had the last time it was on
+   * screen, and can spill over the pager or the sheets bar.
    */
-  #hide() {
+  #updateLayout() {
+    if (!this.#ui?.getElement() || !this.isVisible() || !this.hot.view?._wt) {
+      return;
+    }
+
+    this.#ui.updateSize(this.hot.view, this.#loadingActive);
+    this.#ui.updateClassNames(this.hot.view);
+  }
+
+  /**
+   * Hides the emptyDataState overlay.
+   *
+   * @param {boolean} [restoresSelection=true] Whether to restore the selection kept when the overlay appeared,
+   * or select the first cell when none was kept. With `false`, the selection is left as it is.
+   */
+  #hide(restoresSelection = true) {
     if (!this.#isVisible) {
       return;
     }
@@ -651,7 +702,9 @@ export class EmptyDataState extends BasePlugin {
     // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
+    if (!restoresSelection) {
+      this.#selectionState = null;
+    } else if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
         ...this.#selectionState,
         activeRange: this.#selectionState.activeRange!,
@@ -698,10 +751,7 @@ export class EmptyDataState extends BasePlugin {
    * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender = () => {
-    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
-      this.#ui.updateSize(this.hot.view, this.#loadingActive);
-      this.#ui.updateClassNames(this.hot.view);
-    }
+    this.#updateLayout();
   };
 
   /**
@@ -715,6 +765,22 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#update();
+    }
+  };
+
+  /**
+   * Hides the loading overlay when the fetch it waits for fails. A failed fetch made for a view the grid no longer
+   * shows (`isVisible` is `false`) leaves the overlay alone: the overlay belongs to the view on screen, which may
+   * still be waiting for its own fetch.
+   *
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters of the failed request.
+   * @param {boolean} [isVisible] `false` when the request was made for a view the grid does not show.
+   * @returns {void}
+   */
+  readonly #onAfterDataProviderFetchError = (error: unknown, queryParameters: unknown, isVisible?: boolean) => {
+    if (isVisible !== false) {
+      this.#clearLoadingActive();
     }
   };
 

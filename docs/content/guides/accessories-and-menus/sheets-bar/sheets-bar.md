@@ -263,9 +263,26 @@ const hotSettings = {
 
 Switching sheets captures the outgoing sheet's view state and restores it the next time you switch back to it. The view state covers the scroll position, the selection, and the [`Pagination`](@/api/pagination.md) page and page size. It also covers sort, filters, hidden and trimmed indexes, merged cells, and custom borders. Manual column widths and row heights are included too, along with any cell-meta changes you made while the sheet was active.
 
-A sheet you have not visited yet opens with a neutral view state, so it never inherits the previous sheet's filters or sizes. It opens on the configured [`initialPage`](@/api/options.md#pagination) and page size.
+A sheet you have not visited yet opens with a neutral view state and no selected cells, so it never inherits the previous sheet's filters, sizes, or selection. It opens on the configured [`initialPage`](@/api/options.md#pagination) and page size.
+
+Clicking anywhere on the sheets bar keeps the grid's selection, whatever [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects) is set to, and saves a cell you are editing.
 
 The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore. The page goes back through the Pagination API, so a switch that changes the page also fires [`beforePageChange`](@/api/hooks.md#beforepagechange) and [`afterPageChange`](@/api/hooks.md#afterpagechange), and the page size hooks when the size differs. If a [`beforePageSizeChange`](@/api/hooks.md#beforepagesizechange) listener cancels the page size, the sheet keeps the current size and opens on the page that holds its selection. If a `beforePageChange` listener cancels the page change, the sheet stays on the page it opened on, and a selection that page does not show is cleared. With a server-side [`dataProvider`](@/api/options.md#dataprovider), the page is not captured or restored, because a page change there fetches rows from the server.
+
+## Server-backed sheets
+
+Give one or more sheets their own `dataProvider` to load rows from a server, while other sheets keep local data:
+
+```js
+sheetsBar: {
+  sheets: [
+    { name: 'Orders', data: [], settings: { dataProvider: ordersProvider } },
+    { name: 'Notes', data: notes },
+  ],
+},
+```
+
+Switching to **Orders** fetches its rows from the server. Switching to **Notes** shows its local data with client-side sorting and filtering. See [Use DataProvider with the sheets bar](@/guides/getting-started/server-side-data/server-side-data.md#use-dataprovider-with-the-sheets-bar) for the fetch, switch, and error-handling behavior.
 
 ## Use formulas across sheets
 
@@ -352,6 +369,7 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 - Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
 - The bar shares its container with the grid. When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the bar follows the last row, so on a long sheet you scroll past the data to reach it. To keep the bar in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`. The [`Pagination`](@/api/pagination.md) bar behaves the same way.
+- A grid-level `dataProvider` is disabled while the sheets bar is enabled. Declare it in the `settings` of each sheet that needs one - see [Server-backed sheets](#server-backed-sheets). If you keep a grid-level `dataProvider` anyway, pass the same object every time: a new object passed while a server sheet is shown replaces that sheet's own `dataProvider`, and a framework wrapper that builds one on every render does that on every render.
 
 ## Related keyboard shortcuts
 

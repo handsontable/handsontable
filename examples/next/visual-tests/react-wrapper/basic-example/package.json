@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
-    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
+    "build": "node ../../../../../visual-tests/scripts/check-linked-packages.mjs && cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
     "eject": "react-app-rewired eject",
     "test": "node spec/support/jasmine.config.js"
   },
@@ -29,7 +29,7 @@
     "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "^24.2.1",
+    "puppeteer": "^25.12.0",
     "react-app-rewired": "2.2.1"
   },
   "license": "SEE LICENSE IN LICENSE.txt",

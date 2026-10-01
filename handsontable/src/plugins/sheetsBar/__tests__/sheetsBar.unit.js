@@ -18,6 +18,7 @@ import { UndoRedo } from '../../undoRedo/undoRedo';
 import { Filters } from '../../filters/filters';
 import { MergeCells } from '../../mergeCells/mergeCells';
 import { DropdownMenu } from '../../dropdownMenu/dropdownMenu';
+import { DataProvider } from '../../dataProvider/dataProvider';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 import { SheetsBarMenus } from '../ui/menus';
@@ -120,6 +121,7 @@ describe('SheetsBar plugin', () => {
     registerCellType(CheckboxCellType);
     registerPlugin(Filters);
     registerPlugin(MergeCells);
+    registerPlugin(DataProvider);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -2375,6 +2377,117 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 0).rowspan).toBeUndefined();
   });
 
+  it('does not write the cells a sheet\'s declared merges cover into the sheet being left', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const plainData = grid();
+    const declaredData = grid();
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: plainData },
+          {
+            name: 'Declared',
+            data: declaredData,
+            settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] },
+          },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(plainData).toEqual(grid());
+    expect(declaredData.slice(0, 2)).toEqual([['0:0', null, '0:2', '0:3'], [null, null, '1:2', '1:3']]);
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+
+    sheetsBar.setActiveSheet(plain.id);
+
+    expect(hot.getData()).toEqual(grid());
+  });
+
+  it('does not write into the sheet being left when a sheet returns with its declared merges unmerged', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const plainData = grid();
+    const declaredData = grid();
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Plain', data: plainData },
+          {
+            name: 'Declared',
+            data: declaredData,
+            settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] },
+          },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [plain, declared] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(declared.id);
+    hot.getPlugin('mergeCells').unmerge(0, 0, 1, 1);
+    hot.setDataAtCell(1, 1, 'typed');
+    sheetsBar.setActiveSheet(plain.id);
+    plainData[1][1] = 'plain';
+    sheetsBar.setActiveSheet(declared.id);
+
+    expect(plainData[1][1]).toBe('plain');
+    expect(hot.getDataAtCell(1, 1)).toBe('typed');
+    expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells).toEqual([]);
+  });
+
+  it('checks a sheet\'s declared merges against its own size, not the size of the sheet being left', () => {
+    const grid = rows => Array.from({ length: rows }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Short', data: grid(5) },
+          { name: 'Tall', data: grid(20), settings: { mergeCells: [{ row: 10, col: 1, rowspan: 2, colspan: 2 }] } },
+        ],
+      },
+      mergeCells: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const [, tall] = sheetsBar.getSheets();
+
+    sheetsBar.setActiveSheet(tall.id);
+
+    expect(hot.getCellMeta(10, 1).rowspan).toBe(2);
+    expect(hot.getCellMeta(10, 1).colspan).toBe(2);
+    expect(hot.getDataAtCell(11, 2)).toBeNull();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('builds the opening sheet\'s declared merges when it is active at construction', () => {
+    const grid = () => Array.from({ length: 5 }, (_, r) => Array.from({ length: 4 }, (__, c) => `${r}:${c}`));
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Declared', data: grid(), settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] } },
+          { name: 'Plain', data: grid() },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+    expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+    expect(hot.getDataAtCell(1, 1)).toBeNull();
+  });
+
   it('does not restore a merge whose rows were all trimmed over another merge', () => {
     hot = new Handsontable(container, {
       sheetsBar: {
@@ -3163,6 +3276,173 @@ describe('SheetsBar plugin', () => {
     expect(uiHost.querySelector('.ht-sheets-bar')).not.toBe(null);
     expect(hot.rootWrapperElement.querySelector('.ht-slot-bottom .ht-sheets-bar')).toBe(null);
     uiHost.remove();
+  });
+
+  describe('selection and presses on the bar', () => {
+    const twoSheets = () => [
+      { name: 'A', data: [['a1', 'a2'], ['a3', 'a4']] },
+      { name: 'B', data: [['b1', 'b2'], ['b3', 'b4']] },
+    ];
+    const press = (element) => {
+      element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true, button: 0 }));
+      element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, button: 0 }));
+    };
+
+    it('leaves no selection behind on a sheet that was never visited', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 0);
+      hot.getPlugin('sheetsBar').setActiveSheet('B');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(hot.getSelected()).toEqual([[1, 0, 1, 0]]);
+    });
+
+    it('saves an editor left open by an API switch into the sheet it leaves', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('B');
+      hot.selectCell(0, 0);
+      sheetsBar.setActiveSheet('A');
+      hot.selectCell(0, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('typed');
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('b1');
+
+      hot.getPlugin('sheetsBar').setActiveSheet('A');
+
+      expect(hot.getDataAtCell(0, 0)).toBe('typed');
+    });
+
+    it('keeps the selection on a press on a bar rendered into a uiContainer', () => {
+      const uiHost = document.createElement('div');
+      const outside = document.createElement('div');
+
+      document.body.append(uiHost, outside);
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets(), uiContainer: uiHost },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 1);
+      press(uiHost.querySelector('.ht-sheets-bar__tab'));
+
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+
+      press(outside);
+
+      expect(hot.getSelected()).toBeUndefined();
+      uiHost.remove();
+      outside.remove();
+    });
+
+    it('stops exempting the bar from outside clicks once the plugin is disabled', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+
+      expect(hot.getFocusManager().isPathOutsideClickExempt([bar])).toBe(true);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getFocusManager().isPathOutsideClickExempt([bar])).toBe(false);
+    });
+
+    it('keeps a key typed in the bar from opening the cell editor', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const keyDown = element => element.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'q', keyCode: 81, bubbles: true, composed: true }),
+      );
+
+      hot.selectCell(0, 0);
+      hot.listen();
+
+      const hostKeys = [];
+      const onHostKeyDown = event => hostKeys.push(event.key);
+
+      window.addEventListener('keydown', onHostKeyDown);
+      keyDown(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab'));
+      window.removeEventListener('keydown', onHostKeyDown);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(false);
+      expect(hostKeys).toEqual(['q']);
+
+      keyDown(document.body);
+
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+    });
+
+    it('keeps the selection on a press on the bar when outsideClickDeselects is a function', () => {
+      const outside = document.createElement('div');
+      const outsideClickDeselects = jest.fn(() => true);
+
+      document.body.appendChild(outside);
+      hot = new Handsontable(container, {
+        outsideClickDeselects,
+        sheetsBar: { sheets: twoSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 1);
+      press(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab'));
+
+      expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(outsideClickDeselects).not.toHaveBeenCalled();
+
+      press(outside);
+
+      expect(outsideClickDeselects).toHaveBeenCalled();
+      expect(hot.getSelected()).toBeUndefined();
+      outside.remove();
+    });
+
+    it('leaves no selection behind when the stored one no longer fits the sheet', () => {
+      const dataA = [['a1'], ['a2'], ['a3'], ['a4']];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: dataA },
+            { name: 'B', data: [['b1'], ['b2'], ['b3'], ['b4']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      hot.selectCell(3, 0);
+      sheetsBar.setActiveSheet('B');
+      hot.selectCell(3, 0);
+      dataA.length = 1;
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getDataAtCol(0)).toEqual(['a1']);
+      expect(hot.getSelected()).toBeUndefined();
+    });
   });
 
   it('hides controls when `controls: false`', () => {
@@ -4708,5 +4988,449 @@ describe('SheetsBar plugin', () => {
 
     expect(() => ui.destroy()).not.toThrow();
     uiHost.remove();
+  });
+
+  describe('grid-level dataProvider', () => {
+    const makeProvider = () => ({
+      rowId: 'id',
+      fetchRows: async() => ({ rows: [], totalRows: 0 }),
+      onRowsCreate: async() => {},
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    });
+
+    it('is replaced by null on a sheet without its own dataProvider, with one warning', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: { sheets: [{ name: 'Notes', data: [[1]] }, { name: 'Other', data: [[2]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Other');
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+
+    it('keeps a sheet-level dataProvider on its own sheet', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: own } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(hot.getSettings().dataProvider).toBe(own);
+      plugin.setActiveSheet('Notes');
+      expect(hot.getSettings().dataProvider).toBeNull();
+      plugin.setActiveSheet('Orders');
+      expect(hot.getSettings().dataProvider).toBe(own);
+    });
+
+    it('does not adopt the first-visited sheet\'s own dataProvider as the grid-level baseline', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: own } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+      const dataSettingWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('`data` setting'));
+
+      expect(gateWarnings).toHaveLength(0);
+      expect(dataSettingWarnings).toHaveLength(0);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().dataProvider).not.toBe(own);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      warnSpy.mockRestore();
+    });
+
+    it('leaves `dataProvider` out of a workbook that never declares one', () => {
+      const payloads = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [[1]], settings: { colHeaders: ['X'] } },
+            { name: 'B', data: [[2]] },
+          ],
+        },
+        afterUpdateSettings(settings) {
+          payloads.push(Object.keys(settings));
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('B');
+      plugin.setActiveSheet('A');
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(payloads.filter(keys => keys.includes('dataProvider'))).toEqual([]);
+      expect(hot.getSettings().dataProvider).toBeUndefined();
+    });
+
+    it('gives no server sheet\'s own dataProvider to the grid when turned off after rebuilds', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const declared = [];
+      const buildSheets = () => {
+        const own = makeProvider();
+
+        declared.push(own);
+
+        return [
+          { name: 'Orders', data: [], settings: { dataProvider: own } },
+          { name: 'Notes', data: [[1]] },
+        ];
+      };
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: buildSheets() },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ sheetsBar: { sheets: buildSheets() } });
+      hot.updateSettings({ sheetsBar: { sheets: buildSheets() } });
+
+      expect(hot.getSettings().dataProvider).toBe(declared[2]);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('dataProvider'));
+
+      expect(declared).not.toContain(hot.getSettings().dataProvider);
+      expect(hot.getSettings().dataProvider ?? null).toBeNull();
+      expect(gateWarnings).toEqual([]);
+      warnSpy.mockRestore();
+    });
+
+    it('sends no `dataProvider` update when a workbook without sheets is turned off', () => {
+      const payloads = [];
+
+      hot = new Handsontable(container, {
+        data: [[1]],
+        sheetsBar: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.addHook('afterUpdateSettings', settings => payloads.push(Object.keys(settings)));
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(payloads).toEqual([['sheetsBar']]);
+      expect(hot.getSettings().dataProvider).toBeUndefined();
+    });
+  });
+
+  describe('grid-level dataProvider warning', () => {
+    const makeProvider = () => ({
+      rowId: 'id',
+      fetchRows: async() => ({ rows: [], totalRows: 0 }),
+      onRowsCreate: async() => {},
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    });
+
+    it('warns once even when every sheet declares its own dataProvider', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
+            { name: 'Customers', data: [], settings: { dataProvider: makeProvider() } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Customers');
+      plugin.setActiveSheet('Orders');
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('grid-level `dataProvider`'));
+
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+
+    it('disables a grid-level dataProvider, with one warning, when no `sheets` are declared', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        dataProvider: makeProvider(),
+        sheetsBar: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const gateWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('grid-level `dataProvider`'));
+
+      expect(hot.getSettings().dataProvider).toBeNull();
+      expect(gateWarnings).toHaveLength(1);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('DataProvider context', () => {
+    const makeProvider = () => ({
+      rowId: 'id',
+      fetchRows: jest.fn(async() => ({ rows: [], totalRows: 0 })),
+      onRowsCreate: async() => [],
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    });
+
+    /**
+     * Captures the context owner SheetsBar registers on the DataProvider plugin.
+     *
+     * @returns {{ current: function(): object }} Reads the owner registered last.
+     */
+    const captureOwner = () => {
+      const spy = jest.spyOn(DataProvider.prototype, '_setContextOwner');
+
+      return {
+        current: () => spy.mock.calls.at(-1)?.[0] ?? null,
+      };
+    };
+
+    it('names each sheet with its own frozen token, never the sheet record', () => {
+      const owner = captureOwner();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [first, second] = plugin.getSheets();
+      const firstContext = owner.current().getContext();
+
+      plugin.setActiveSheet(second.id);
+
+      const secondContext = owner.current().getContext();
+
+      plugin.setActiveSheet(first.id);
+
+      expect(Object.isFrozen(firstContext)).toBe(true);
+      expect(Object.keys(firstContext)).toEqual([]);
+      expect(secondContext).not.toBe(firstContext);
+      expect(owner.current().getContext()).toBe(firstContext);
+
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(owner.current()).toBeNull();
+    });
+
+    it('answers no context while the teardown restores the grid-level settings', () => {
+      const owner = captureOwner();
+      const contexts = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1]], settings: { colHeaders: ['X'] } }] },
+        afterUpdateSettings(settings) {
+          if ('colHeaders' in settings) {
+            contexts.push(owner.current()?.getContext() ?? null);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      contexts.length = 0;
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(contexts).toEqual([null]);
+    });
+
+    it('releases a removed sheet, and every sheet of a discarded workbook', () => {
+      const owner = captureOwner();
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const releaseSpy = jest.spyOn(hot.getPlugin('dataProvider'), '_releaseContext');
+      const [first, second] = plugin.getSheets();
+
+      plugin.setActiveSheet(second.id);
+
+      const secondContext = owner.current().getContext();
+
+      plugin.setActiveSheet(first.id);
+
+      const firstContext = owner.current().getContext();
+
+      plugin.removeSheet(second.id);
+
+      expect(releaseSpy.mock.calls).toEqual([[secondContext]]);
+
+      releaseSpy.mockClear();
+      hot.updateSettings({ sheetsBar: { sheets, paging: false } });
+
+      expect(releaseSpy).not.toHaveBeenCalled();
+
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'C', data: [[3]] }] } });
+
+      expect(releaseSpy.mock.calls).toEqual([[null], [firstContext], [null]]);
+    });
+
+    it('keeps a detached response in its own sheet and drops one for a removed sheet', () => {
+      const owner = captureOwner();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [first, second, third] = plugin.getSheets();
+      const firstContext = owner.current().getContext();
+
+      plugin.setActiveSheet(third.id);
+
+      const thirdContext = owner.current().getContext();
+
+      plugin.setActiveSheet(second.id);
+      plugin.removeSheet(third.id);
+      owner.current().onDetachedRequest('fetch', { result: { rows: [['fresh']], totalRows: 1 } }, firstContext);
+      owner.current().onDetachedRequest('fetch', { result: { rows: [['gone']], totalRows: 1 } }, thirdContext);
+      plugin.setActiveSheet(first.id);
+
+      expect(hot.getData()).toEqual([['fresh']]);
+    });
+
+    it('drops the cell meta a sheet kept when a detached response replaces its rows', () => {
+      const owner = captureOwner();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [[1, 2]] }, { name: 'B', data: [[3, 4]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [first, second] = plugin.getSheets();
+      const firstContext = owner.current().getContext();
+
+      hot.setCellMeta(0, 1, 'readOnly', true);
+      plugin.setActiveSheet(second.id);
+      plugin.setActiveSheet(first.id);
+
+      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+
+      plugin.setActiveSheet(second.id);
+      owner.current().onDetachedRequest('fetch', { result: { rows: [['fresh', 'row']], totalRows: 1 } }, firstContext);
+      plugin.setActiveSheet(first.id);
+
+      expect(hot.getData()).toEqual([['fresh', 'row']]);
+      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+    });
+
+    it('drops a detached outcome reported for the sheet the grid shows', async() => {
+      const owner = captureOwner();
+      const showRequestError = jest.spyOn(DataProvider.prototype, '_showRequestError');
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: makeProvider() } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      await new Promise(resolve => queueMicrotask(resolve));
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const activeContext = owner.current().getContext();
+
+      owner.current().onDetachedRequest('update', { error: new Error('rejected') }, activeContext);
+      plugin.setActiveSheet('Notes');
+      plugin.setActiveSheet('Orders');
+
+      expect(showRequestError).not.toHaveBeenCalled();
+    });
+
+    it('gives a duplicate its own context', () => {
+      const owner = captureOwner();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Orders', data: [[1]] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const originalContext = owner.current().getContext();
+      const copy = plugin.duplicateSheet(plugin.getSheets()[0].id);
+
+      plugin.setActiveSheet(copy.id);
+
+      expect(owner.current().getContext()).not.toBe(originalContext);
+    });
+
+    it('leaves DataProvider fetching again when a switch throws midway', () => {
+      const own = makeProvider();
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: own } },
+            { name: 'Notes', data: [[1]] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const failSwitch = () => {
+        throw new Error('restore failed');
+      };
+
+      plugin.setActiveSheet('Notes');
+      hot.addHook('afterSheetTabStateRestore', failSwitch);
+
+      expect(() => plugin.setActiveSheet('Orders')).toThrowError('restore failed');
+
+      hot.removeHook('afterSheetTabStateRestore', failSwitch);
+
+      const reconfigured = makeProvider();
+
+      hot.updateSettings({ dataProvider: reconfigured });
+
+      expect(reconfigured.fetchRows).toHaveBeenCalledTimes(1);
+    });
   });
 });

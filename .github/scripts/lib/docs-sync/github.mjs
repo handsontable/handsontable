@@ -30,6 +30,15 @@ function defaultRun(args) {
  * @returns {object}
  */
 export function createGitHub({ repo, run = defaultRun }) {
+  const findComment = (number, marker, { author } = {}) => {
+    // `--slurp` wraps all paginated pages into one outer array, so we flatten it to get a single list.
+    const comments = JSON.parse(run(['api', `repos/${repo}/issues/${number}/comments`, '--paginate', '--slurp'])).flat();
+    const existing = comments.find((comment) => (comment.body ?? '').startsWith(marker)
+      && (author === undefined || comment.user?.login === author));
+
+    return existing ? { id: existing.id, body: existing.body } : null;
+  };
+
   return {
     /**
      * @param {number} number
@@ -117,16 +126,50 @@ export function createGitHub({ repo, run = defaultRun }) {
     },
 
     /**
+     * Find the comment that starts with `marker`, if any.
+     *
+     * @param {number} number
+     * @param {string} marker An HTML comment that identifies the sticky comment.
+     * @param {{ author?: string }} [options] With `author`, only a comment by that login matches, so a
+     *   user cannot make the caller edit a comment they wrote by pasting the marker.
+     * @returns {{ id: number, body: string }|null}
+     */
+    findComment,
+
+    /**
+     * Replace the body of the comment that starts with `marker`, only if one exists.
+     *
+     * @param {number} number
+     * @param {string} marker An HTML comment that identifies the sticky comment.
+     * @param {string} body
+     * @param {{ author?: string }} [options] See `findComment`.
+     * @returns {boolean} Whether a comment was found. An identical body is not written again.
+     */
+    editComment(number, marker, body, options) {
+      const existing = findComment(number, marker, options);
+      const text = `${marker}\n${body}`;
+
+      if (!existing) {
+        return false;
+      }
+
+      if (existing.body !== text) {
+        run(['api', '--method', 'PATCH', `repos/${repo}/issues/comments/${existing.id}`, '-f', `body=${text}`]);
+      }
+
+      return true;
+    },
+
+    /**
      * Post or replace the one comment that starts with `marker`.
      *
      * @param {number} number
      * @param {string} marker An HTML comment that identifies the sticky comment.
      * @param {string} body
+     * @param {{ author?: string }} [options] See `findComment`.
      */
-    upsertComment(number, marker, body) {
-      // `--slurp` wraps all paginated pages into one outer array, so we flatten it to get a single list.
-      const comments = JSON.parse(run(['api', `repos/${repo}/issues/${number}/comments`, '--paginate', '--slurp'])).flat();
-      const existing = comments.find((comment) => (comment.body ?? '').startsWith(marker));
+    upsertComment(number, marker, body, options) {
+      const existing = findComment(number, marker, options);
       const text = `${marker}\n${body}`;
 
       if (existing) {

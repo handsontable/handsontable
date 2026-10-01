@@ -28,7 +28,10 @@ describe('HandsontableEditor positioning', () => {
     };
   }
 
-  // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
+  // Where the list opens from every corner, in a sized grid and on a page the WINDOW scrolls, is
+  // asserted in tests/e2e/handsontable-editor-list-position.spec.ts on every theme; this spec keeps a
+  // sized grid's horizontal flip and the #8688 vertical case. ./visual-tests/tests/js-only/editors/
+  // handsontable/ keeps a look check of the list.
 
   it('should render the editors dropdown on the left edited cell when there is no space left on the right', async() => {
     handsontable({

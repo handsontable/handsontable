@@ -89,6 +89,52 @@ test.describe('sheets bar', () => {
     expect(span).toEqual([2, 2]);
   });
 
+  test('clicking a tab whose sheet declares merged cells leaves the previous sheet\'s data intact', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await page.evaluate(() => {
+      const hot = (window as never as { hot: any }).hot;
+      const grid = (rows: number) => Array.from({ length: rows }, (_, r) => ['A', 'B', 'C', 'D'].map(c => `${c}${r + 1}`));
+
+      (window as never as { plainData: unknown[][] }).plainData = grid(5);
+      hot.updateSettings({
+        mergeCells: true,
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: (window as never as { plainData: unknown[][] }).plainData },
+            { name: 'Declared', data: grid(20), settings: { mergeCells: [{ row: 10, col: 1, rowspan: 2, colspan: 2 }] } },
+          ],
+        },
+      });
+    });
+
+    await bar.clickTab(1);
+
+    await bar.expectActiveTab(1);
+
+    const declared = await page.evaluate(() => {
+      const hot = (window as never as { hot: any }).hot;
+      const { rowspan, colspan } = hot.getCellMeta(10, 1);
+
+      return { rowspan, colspan, covered: hot.getDataAtCell(11, 2) };
+    });
+
+    expect(declared).toEqual({ rowspan: 2, colspan: 2, covered: null });
+
+    await bar.clickTab(0);
+
+    await bar.expectCell(0, 1, 'B1');
+    await bar.expectCell(1, 1, 'B2');
+
+    const plainData = await page.evaluate(() => (window as never as { plainData: unknown[][] }).plainData.slice(0, 2));
+
+    expect(plainData).toEqual([['A1', 'B1', 'C1', 'D1'], ['A2', 'B2', 'C2', 'D2']]);
+  });
+
   test('the sort indicator comes back with its sheet when beforeColumnSort cancels the restore', async ({
     page, theme, bundle,
   }) => {
@@ -187,6 +233,64 @@ test.describe('sheets bar', () => {
 
     await bar.clickTab(0);
     await bar.expectCell(0, 0, 'edited');
+  });
+
+  test('a selection survives a round-trip made by clicking the tabs', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(0, 0).click();
+    await bar.cell(1, 1).click({ modifiers: ['Shift'] });
+
+    await expect.poll(() => bar.selected()).toEqual([[0, 0, 1, 1]]);
+
+    await bar.clickTab(1);
+    await bar.expectCell(0, 0, 'B1');
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A1');
+    await expect.poll(() => bar.selected()).toEqual([[0, 0, 1, 1]]);
+  });
+
+  test('pressing the active tab keeps the selection, and the add button stores it on the sheet it leaves', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.clickTab(0);
+    await bar.expectActiveTab(0);
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.addButton.click();
+    await bar.expectActiveTab(3);
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.clickTab(0);
+    await bar.expectCell(0, 0, 'A1');
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+  });
+
+  test('pressing a tab saves the open editor into the sheet it leaves', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 0).click();
+    await page.keyboard.type('typed');
+    await expect.poll(() => bar.isEditorOpened()).toBe(true);
+
+    await bar.clickTab(1);
+    await bar.expectCell(1, 0, 'B3');
+
+    await bar.clickTab(0);
+    await bar.expectCell(1, 0, 'typed');
   });
 
   test('a read-only cell stays read-only when rows move under it', async ({ page, theme, bundle }) => {
@@ -448,6 +552,44 @@ test.describe('sheets bar', () => {
 
     await expect(bar.tabByName('Quarterly')).toBeVisible();
     await expect(bar.tabByName('Alpha')).toHaveCount(0);
+  });
+
+  test('typing a new name with a cell selected renames the sheet and leaves the cell alone', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('Quarterly');
+    await page.keyboard.press('Enter');
+
+    await expect(bar.tabByName('Quarterly')).toBeVisible();
+    expect(await bar.isEditorOpened()).toBe(false);
+    expect(await bar.dataAtCell(1, 1)).toBe('A4');
+  });
+
+  test('Shift+Tab into a sheet that was never visited does not select the previous sheet\'s cell', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(0, 0).click();
+    await bar.clickTab(1);
+    await bar.expectCell(0, 0, 'B1');
+    await expect.poll(() => bar.selected()).toBeNull();
+
+    await bar.addButton.focus();
+    await page.keyboard.press('Shift+Tab');
+
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
   });
 
   test('the rename field stops accepting characters at fifty', async ({ page, theme, bundle }) => {

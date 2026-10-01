@@ -22,6 +22,7 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
 | **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
 | CI | `test.yml` + gates | the git-hook checks again (the ratchet is a step of `Lint / core`; the presence gate is `Checks / test presence`, with `GATE_MODE: block`) | see the pipeline |
+| CI (advisory) | `breaking-check.yml` | `.github/scripts/breaking-check.mjs`: flags a removed or renamed public name, a `metaSchema` default change, or a hook or option added to `REMOVED_HOOKS`/`REMOVED_OPTIONS`, and posts one PR comment; locally `node .github/scripts/breaking-check.mjs` (add `--render` for the comment text) | never (advisory, `continue-on-error`, not a `CI Gate` input) |
 
 Most rules escalate: **agent-time → pre-commit → pre-push → CI.** Two exceptions.
 The `SessionStart` and `PreToolUse` hooks are agent-only and have no git-hook or CI

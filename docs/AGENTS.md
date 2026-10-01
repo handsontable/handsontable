@@ -295,7 +295,7 @@ Two literal datasets are shared across guides so an example doesn't invent new d
 | Dataset | Shape | Example data | Lives at |
 |---|---|---|---|
 | **Inventory long set** (DEV-2915) | 12 rows x 5 columns | SKU (SKU-4821, SKU-0093), product (Stainless Steel Water Bottle, Wireless Mouse), supplier (Harbor Goods, Alpine Supply Co.), category (Drinkware, Electronics), warehouse (Seattle, Denver) | `docs/content/guides/rows/row-moving/javascript/example1.js` |
-| **Periodic table narrow set** (DEV-2885) | 5 rows x 7 columns | Name (Hydrogen, Helium, Lithium, Beryllium, Boron), symbol (H, He, Li, Be, B), atomic number (1, 2, 3, 4, 5), atomic mass (1.008, 4.003, 6.94, 9.012, 10.81), known isotopes (7, 9, 9, 11, 11), melting point (-434.4°F, -458.0°F, 356.9°F, 2348.6°F, 3768.8°F), boiling point (-423.2°F, -452.1°F, 2447.6°F, 4478.8°F, 7100.6°F) | `docs/content/guides/columns/column-header/javascript/example2.js` |
+| **Periodic table narrow set** (DEV-2885) | 5 rows x 7 columns | Name (Hydrogen, Helium, Lithium, Beryllium, Boron), symbol (H, He, Li, Be, B), atomic number (1, 2, 3, 4, 5), atomic mass (1.008, 4.003, 6.94, 9.012, 10.81), known isotopes (7, 9, 9, 11, 15), melting point (-434.4°F, -458.0°F, 356.9°F, 2348.6°F, 3768.8°F), boiling point (-423.2°F, -452.1°F, 2447.6°F, 4478.8°F, 7100.6°F) | `docs/content/guides/columns/column-header/javascript/example2.js` |
 
 ### Data coherence rules
 
@@ -354,6 +354,11 @@ Content for vanilla JS only.
 Content for React only.
 :::
 ```
+
+### Vue example rules
+
+- **Swapping in a new `data` array does not reload the grid.** The `@handsontable/vue3` `$props` watcher assumes data is synchronized by reference and deletes `data` from the update unless column modification is disallowed *and* the source column count changed. So an example that replaces its dataset (an import, a "load sample" button) gets new `colHeaders` and `columns` over the old rows, or over empty cells when the keys change. Remount the grid with `:key` bumped on every load, as `recipes/import-export/import-csv-excel/vue/example1.vue` does, or call `hotInstance.loadData()` through a template ref.
+- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Unlike Angular's `NgZone.run`, nothing extra is required.
 
 ### Angular component rules (standalone pattern)
 

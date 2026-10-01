@@ -82,6 +82,7 @@ export interface FixtureHotInstance {
     addCondition(column: number, name: string, args: unknown[]): void,
     clearConditions(column?: number): void,
     filter(): void,
+    exportConditions(): unknown[],
   };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
@@ -208,6 +209,7 @@ export interface FixtureHotInstance {
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
+  removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
@@ -321,7 +323,7 @@ declare global {
      */
     wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
     /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
-    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string, wrapperClass?: string): boolean;
     /**
      * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
      * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
@@ -354,6 +356,10 @@ declare global {
      * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */
     initFiltersFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-3056 `filters.availableConditions` fixture grid.
+     */
+    initFiltersAvailableConditionsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */

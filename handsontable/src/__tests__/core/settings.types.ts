@@ -617,8 +617,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateData: (sourceData, firstTime, source) => {},
-  afterDataProviderFetch: (result) => {},
-  afterDataProviderFetchError: (error, queryParameters) => {},
+  afterDataProviderFetch: (result) => {
+    const restored: boolean | undefined = result.isRestored;
+
+    void restored;
+  },
+  afterDataProviderFetchError: (error, queryParameters, isVisible) => {},
   afterDataProviderFetchAbort: (queryParameters, reason) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
@@ -1032,6 +1036,7 @@ hot.updateSettings({ selectionHandles: true });
 
 // Regression: moveCells must be accepted by updateSettings.
 hot.updateSettings({ moveCells: true });
+hot.updateSettings({ dataProvider: null });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
