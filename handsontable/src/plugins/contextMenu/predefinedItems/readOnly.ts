@@ -7,6 +7,8 @@ import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
 
+type LockOwner = 'summary' | 'cells';
+
 /**
  * Reports whether the `cells` option owns a cell's `readOnly` state, `true` or `false`. It is
  * evaluated on a probe that inherits from the cell meta, so a function that assigns
@@ -45,10 +47,13 @@ function isReadOnlyOwnedByCells(cellMeta: CellProperties): boolean {
  * plain grid pays nothing.
  *
  * @param {Core} hot The Handsontable instance.
- * @returns {Function} A `(row, col, cellMeta) => boolean` check, taking visual indexes and the
- * cell's transient meta, which every caller has already read.
+ * @returns {Function} A `(row, col, cellMeta) => owner` check, taking visual indexes and the
+ * cell's transient meta, which every caller has already read. The owner is `'summary'`, `'cells'`,
+ * or `null` for a cell that can be toggled, so the result can be used as a plain truthy check.
  */
-function getLockedCellCheck(hot: HotInstance): (row: number, col: number, cellMeta: CellProperties) => boolean {
+function getLockedCellCheck(
+  hot: HotInstance
+): (row: number, col: number, cellMeta: CellProperties) => LockOwner | null {
   const columnSummary = hot.getPlugin('columnSummary');
   const isSummaryEnabled = columnSummary?.enabled === true;
   let hasCellFreeOfCells: boolean | undefined;
@@ -61,16 +66,16 @@ function getLockedCellCheck(hot: HotInstance): (row: number, col: number, cellMe
 
   return (row: number, col: number, cellMeta: CellProperties) => {
     if (isSummaryEnabled && columnSummary.isLockedSummaryCell(row, col)) {
-      return true;
+      return 'summary';
     }
 
     if (!isReadOnlyOwnedByCells(cellMeta)) {
-      return false;
+      return null;
     }
 
     hasCellFreeOfCells ??= checkSelectionConsistency(hot.getSelectedRange() ?? [], isFreeOfCells);
 
-    return hasCellFreeOfCells;
+    return hasCellFreeOfCells ? 'cells' : null;
   };
 }
 
@@ -130,14 +135,16 @@ export default function readOnlyItem() {
       // walks cover the whole selection: the first one is complete when it finds no read-only cell,
       // and when it stops early the undo snapshot pass below reads every cell.
       const isLocked = getLockedCellCheck(this);
-      const lockedCells = new Set<string>();
+      const lockedCells = new Map<string, { row: number, col: number, owner: LockOwner, readOnly: boolean }>();
       let hasLockedCell = false;
       const isReadOnlyCell = (row: number, col: number) => {
         const cellMeta = this.getCellMetaTransient(row, col);
 
-        if (isLocked(row, col, cellMeta)) {
+        const owner = isLocked(row, col, cellMeta);
+
+        if (owner) {
           hasLockedCell = true;
-          lockedCells.add(`${row}:${col}`);
+          lockedCells.set(`${row}:${col}`, { row, col, owner, readOnly: Boolean(cellMeta.readOnly) });
 
           return false;
         }
@@ -176,17 +183,30 @@ export default function readOnlyItem() {
       // The empty snapshot has no entry for it, and undo's `false` there is vetoed by ColumnSummary.
       // A cell owned by `cells()` has no such veto: undo and redo still store a value for it, which
       // `cells()` then covers, so what the grid shows stays right (DEV-149).
-      const stateBefore = atLeastOneReadOnly
+      const stateBefore: Record<number, boolean[]> = atLeastOneReadOnly
         ? getReadOnlyStates(ranges, (row: number, col: number) => {
           const cellMeta = this.getCellMetaTransient(row, col);
 
-          if (isLocked(row, col, cellMeta)) {
-            lockedCells.add(`${row}:${col}`);
+          const owner = isLocked(row, col, cellMeta);
+
+          if (owner) {
+            lockedCells.set(`${row}:${col}`, { row, col, owner, readOnly: Boolean(cellMeta.readOnly) });
           }
 
           return Boolean(cellMeta.readOnly);
         })
         : {};
+
+      // The empty snapshot is not true for a cell `cells()` made read-only: report it as it is, so a
+      // `beforeReadOnlyToggle` listener does not read it as writable and undo restores it as it was.
+      // A column summary cell is left out on purpose, ColumnSummary vetoes the write.
+      if (!atLeastOneReadOnly) {
+        lockedCells.forEach(({ row, col, owner, readOnly: isReadOnly }) => {
+          if (owner === 'cells' && isReadOnly) {
+            (stateBefore[row] ??= [])[col] = true;
+          }
+        });
+      }
 
       this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
 

@@ -43,4 +43,20 @@ export class CellsReadOnlyPage extends ColumnSummaryReadOnlyPage {
       (window as unknown as { readOnlyWrites: number[][] }).readOnlyWrites.length = 0;
     });
   }
+
+  /**
+   * Move a row through the manualRowMove plugin, so visual and physical row indexes differ.
+   */
+  async moveRow(from: number, to: number): Promise<void> {
+    await this.page.evaluate(([f, t]) => {
+      const hot = window.hot as unknown as {
+        updateSettings: (settings: object) => void,
+        getPlugin: (name: string) => { moveRow: (from: number, to: number) => void },
+      };
+
+      hot.updateSettings({ manualRowMove: true });
+      hot.getPlugin('manualRowMove').moveRow(f, t);
+      window.hot.render();
+    }, [from, to]);
+  }
 }

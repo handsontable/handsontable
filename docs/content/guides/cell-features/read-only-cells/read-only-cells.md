@@ -326,7 +326,7 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 ## Toggle read-only from the menus
 
-The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the column menu toggles the `readOnly` state of the selected cells.
+The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) toggles the `readOnly` state of the selected cells.
 
 The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it sets, by returning it or by assigning it to `this`, always takes precedence over the menu. When the selection also holds other cells, the **Read only** item skips the ones that `cells` controls. It changes the rest, and its check mark reflects only them.
 

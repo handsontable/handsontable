@@ -69,6 +69,17 @@ test.describe('cells() read-only lock', () => {
     expect(await grid.readOnlyWrites()).toEqual([[1, 2], [2, 2], [4, 2]]);
   });
 
+  test('hands cells() physical indexes after a row was moved', async () => {
+    // Physical row 0 is the one `cells()` makes read-only. Moving it to visual row 3 splits the two
+    // index spaces, so a menu that passed visual indexes would lock visual row 0 instead.
+    await grid.moveRow(0, 3);
+    await grid.forgetReadOnlyWrites();
+    await grid.openContextMenuOnHeader(0);
+    await grid.clickReadOnlyItem();
+
+    expect(await grid.readOnlyWrites()).toEqual([[0, 0], [1, 0], [2, 0], [4, 0]]);
+  });
+
   test('keeps the item for a selection made only of cells() read-only cells', async () => {
     // Positive control first: on a plain cell the item is there.
     await grid.openContextMenuOnCell(1, 0);
