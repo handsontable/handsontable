@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where a page-wide `scrollbar-width` rule with `!important` painted a scrollbar into the sheets bar tab strip.",
-  "type": "fixed",
-  "issueOrPR": 13708,
-  "breaking": false,
-  "framework": "none"
-}
