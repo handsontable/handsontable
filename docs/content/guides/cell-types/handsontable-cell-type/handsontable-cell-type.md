@@ -35,7 +35,7 @@ The nested grid is not the main grid, so the options that drive main-grid UI hav
 
 ## Basic example
 
-The first column uses the handsontable cell type for a searchable manufacturer list. The color columns use the [dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) for compact selection from a short list.
+The **Product** column uses the handsontable cell type for a searchable product list. The **Category** and **Warehouse** columns use the [dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) for compact selection from a short list.
 
 ::: only-for javascript
 
