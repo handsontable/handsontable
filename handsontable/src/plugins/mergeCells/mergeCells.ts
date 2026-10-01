@@ -831,7 +831,7 @@ export class MergeCells extends BasePlugin {
    * left out: restored at that stale position it would come back over unrelated rows.
    *
    * @private
-   * @returns {object[]}
+   * @returns {MergeAreaGeometry[]}
    */
   getVisibleMergedAreas(): MergeAreaGeometry[] {
     const collection = this.mergedCellsCollection;
@@ -849,7 +849,7 @@ export class MergeCells extends BasePlugin {
    * check.
    *
    * @private
-   * @param {object[]} areas The `{ row, col, rowspan, colspan }` records to merge, in visual indexes.
+   * @param {MergeAreaGeometry[]} areas The areas to merge, in visual indexes.
    */
   restoreMergedAreas(areas: MergeAreaGeometry[]): void {
     const rowCount = this.hot.countRows();
@@ -857,10 +857,8 @@ export class MergeCells extends BasePlugin {
 
     areas
       .filter(({ row, col, rowspan, colspan }) => row + rowspan <= rowCount && col + colspan <= colCount)
-      .forEach(({ row, col, rowspan, colspan }) => {
-        const from = this.hot._createCellCoords(row, col);
-        const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
-        const range = this.hot._createCellRange(from, from, to);
+      .forEach((area) => {
+        const range = toMergeAreaRange(this.hot, area);
 
         if (this.mergedCellsCollection.getWithinRange(range, true).length === 0) {
           this.mergeRange(range, true, true);

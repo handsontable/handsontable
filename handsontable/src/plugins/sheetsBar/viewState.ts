@@ -33,7 +33,7 @@ export interface ViewState {
   rowHeights: Array<[number, number]>;
   sortConfig: unknown;
   filterConditions: unknown[] | null;
-  mergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>;
+  mergedCells: MergeAreaGeometry[];
   fixedColumnsStart: number | undefined;
   customBorders: Array<Record<string, unknown>>;
   cellMeta: TrackedCellMeta[];

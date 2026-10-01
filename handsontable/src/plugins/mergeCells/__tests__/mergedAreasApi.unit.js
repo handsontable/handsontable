@@ -61,9 +61,32 @@ describe('MergeCells merged areas API', () => {
       expect(mergedAreas()).toHaveLength(2);
       expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
     });
+
+    it('returns a partly trimmed merge with its rowspan clipped to its visible rows', () => {
+      createGrid({ mergeCells: true, trimRows: true });
+
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(1, 0, 3, 1);
+      hot.getPlugin('trimRows').trimRows([2]);
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 1, col: 0, rowspan: 2, colspan: 2 }]);
+    });
   });
 
   describe('restoreMergedAreas()', () => {
+    it('does nothing for an empty list', () => {
+      createGrid({ mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] });
+
+      const afterMergeCells = jest.fn();
+
+      hot.addHook('afterMergeCells', afterMergeCells);
+      hot.getPlugin('mergeCells').restoreMergedAreas([]);
+
+      expect(mergedAreas()).toEqual([[0, 0, 2, 2]]);
+      expect(afterMergeCells).not.toHaveBeenCalled();
+    });
+
     it('merges the areas as automatic merges without writing any cell', () => {
       createGrid({ mergeCells: true });
 
