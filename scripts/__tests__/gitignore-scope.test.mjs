@@ -1,6 +1,6 @@
 /**
  * Pins what the ignore rules that apply to the core package match: no tracked file of the package, none of the
- * probes for new sources below, and no dev page at another package's root, but every output below.
+ * probes for new sources below, and no dev page or `quality/` directory in another package, but every output below.
  *
  * `handsontable/.gitignore` has rules for what exists only at the package root: the output directories of the builds
  * and the tests, such as `dist/`, `tmp/`, `languages/`, and `coverage/`, and the local dev pages, `dev*.html`,
@@ -75,25 +75,35 @@ const NEW_SOURCES = [
   'handsontable/src/quality/index.ts',
   'handsontable/src/plugins/quality/index.ts',
 ];
-// What lands at a root and must stay ignored. The UMD bundles land in `dist/`; the ES and CJS modules, the type
-// declarations, and the composed package in `tmp/`; the stub scripts of the stylesheet builds in `tmp_styles/`; the
-// stylesheets in `styles/`; and Jest's coverage in `coverage/`. `build:languages` writes the UMD files and copies
-// `all.js` to `index.js`, and `build:languages.es` writes the `.mjs` files. `es/` and `commonjs/` are where the ES and
-// CJS builds wrote before `tmp/`. `evals/score.mjs --mutate` runs Stryker from the package root, so its temporary
-// directory and its json report land there. The `handsontable-demo-page` skill writes `dev-pr.html` and
-// `dev-latest.html` (`dev-generated.html` is a name it used before). The rest are manual scratch files, at the package
-// root and at the repository root, which also holds the `quality/` planning scaffold.
+// What lands at a root and must stay ignored. The UMD bundles land in `dist/`, with the languages and the themes in
+// directories of their own; the ES and CJS modules, the type declarations, and the composed package in `tmp/`; the stub
+// scripts of the stylesheet builds in `tmp_styles/`; the stylesheets in `styles/`; and Jest's coverage, with its HTML
+// report, in `coverage/`. A path inside a subdirectory makes a rule narrowed to the top of its directory fail too: the
+// release jobs commit the tree with a bare `git add .` after they build. `build:languages` writes the UMD files and
+// copies `all.js` to `index.js`, and `build:languages.es` writes the `.mjs` files. No build has ever written `es/` or
+// `commonjs/` in the package: the ES and CJS builds moved to `tmp/` in January 2021, while the repository root was the
+// package root, but `clean` still removes both. `evals/score.mjs --mutate` runs Stryker from the package root, so its
+// temporary directory and its reports land there, and the root's own rule covers a report from a run started at the
+// repository root. The `handsontable-demo-page` skill writes `dev-pr.html` and `dev-latest.html` (`dev-generated.html`
+// is a name it used before). The rest are manual scratch files, at the package root and at the repository root, which
+// also holds the `quality/` planning scaffold.
 const ROOT_OUTPUTS = [
   'handsontable/dist/handsontable.full.min.js',
+  'handsontable/dist/languages/de-DE.js',
+  'handsontable/dist/themes/main.js',
   'handsontable/tmp/index.mjs',
   'handsontable/tmp/package.json',
+  'handsontable/tmp/plugins/index.d.ts',
   'handsontable/tmp_styles/handsontable.stub.js',
   'handsontable/styles/handsontable.min.css',
   'handsontable/coverage/lcov.info',
-  'handsontable/es/index.mjs',
+  'handsontable/coverage/lcov-report/index.html',
+  'handsontable/es/index.js',
   'handsontable/commonjs/index.js',
-  'handsontable/.stryker-tmp/incremental.json',
+  'handsontable/.stryker-tmp/backup-abc123/src/helpers/errors.ts',
   'handsontable/reports/mutation/mutation.json',
+  'handsontable/reports/mutation/mutation.html',
+  'reports/mutation/mutation.json',
   'handsontable/languages/de-DE.js',
   'handsontable/languages/index.js',
   'handsontable/languages/de-DE.mjs',
@@ -114,11 +124,13 @@ const NESTED_OUTPUTS = [
   'handsontable/src/3rdparty/walkontable/dist/walkontable.js',
   'handsontable/src/3rdparty/walkontable/test/dist/main.entry.js',
 ];
-// The root rules cover the repository root only, so a dev page at another package's root shows in `git status`. That
-// is the one thing the anchoring changed outside the core, and nothing writes such a page today.
-const OTHER_PACKAGE_PAGES = [
+// The root rules cover the repository root only, so a dev page at another package's root, or a `quality/` directory in
+// another package, shows in `git status`. Those are the only things the anchoring changed outside the core, and
+// nothing writes either today.
+const OTHER_PACKAGE_PATHS = [
   'wrappers/react-wrapper/dev.html',
   'wrappers/react-wrapper/dev.js',
+  'wrappers/react-wrapper/quality/notes.md',
 ];
 
 /**
@@ -208,7 +220,7 @@ before(() => {
   coreFiles = listFiles(['--', 'handsontable']);
   rules = ignoringRules(
     ignoreFiles,
-    [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS, ...NESTED_OUTPUTS, ...OTHER_PACKAGE_PAGES],
+    [...coreFiles, ...NEW_SOURCES, ...ROOT_OUTPUTS, ...NESTED_OUTPUTS, ...OTHER_PACKAGE_PATHS],
   );
 });
 
@@ -232,7 +244,7 @@ NEW_SOURCES.forEach((file) => {
   });
 });
 
-OTHER_PACKAGE_PAGES.forEach((file) => {
+OTHER_PACKAGE_PATHS.forEach((file) => {
   test(`${file} is not ignored, because the root rules cover the repository root only`, () => {
     assert.equal(rules.get(file), '');
   });
