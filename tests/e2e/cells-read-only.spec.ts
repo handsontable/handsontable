@@ -74,5 +74,9 @@ test.describe('cells() read-only lock', () => {
     await grid.undoWithKeyboard();
 
     expect(await grid.columnReadOnly(0)).toEqual([true, false, false, false, false]);
+
+    await grid.redo();
+
+    expect(await grid.columnReadOnly(0)).toEqual([true, true, true, true, true]);
   });
 });
