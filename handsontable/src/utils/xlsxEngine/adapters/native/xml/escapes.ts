@@ -77,13 +77,39 @@ export function escapeXmlAttr(text: string): string {
   return escapeMarkup(text.replace(ILLEGAL_CHARS, ''));
 }
 
-// The UTF-16 surrogate range. An escape inside it names no character, so it is left as written.
+// The UTF-16 surrogate range, and where its high half ends. A lone escape inside it names no
+// character, so it is left as written; a high escape directly followed by a low one is a pair.
 const FIRST_SURROGATE = 0xD800;
+const LAST_HIGH_SURROGATE = 0xDBFF;
 const LAST_SURROGATE = 0xDFFF;
 
+// One `_xHHHH_` escape, optionally followed by a second one in the low-surrogate range, so a
+// high + low pair is matched (and decoded) as one unit.
+const OOXML_ESCAPE = /_x([0-9A-F]{4})_(?:_x(D[C-F][0-9A-F]{2})_)?/g;
+
 /**
- * Decodes the `_xHHHH_` escapes a shared string or inline string may carry. An escape in the
- * surrogate range (`_xD800_`-`_xDFFF_`) is left as written, the way `decodeXmlEntities` leaves
+ * Decodes one matched escape and the low-surrogate escape that may follow it.
+ */
+function decodeEscapeMatch(match: string, hex: string, lowHex: string | undefined): string {
+  const code = Number.parseInt(hex, 16);
+
+  if (code < FIRST_SURROGATE || code > LAST_SURROGATE) {
+    // A low escape after a plain character is a lone surrogate, which stays literal.
+    return String.fromCharCode(code) + (lowHex === undefined ? '' : `_x${lowHex}_`);
+  }
+
+  if (code <= LAST_HIGH_SURROGATE && lowHex !== undefined) {
+    return String.fromCharCode(code, Number.parseInt(lowHex, 16));
+  }
+
+  return match;
+}
+
+/**
+ * Decodes the `_xHHHH_` escapes a shared string or inline string may carry. A high-surrogate escape
+ * directly followed by a low-surrogate one (`_xD83D__xDE00_`) decodes to the astral character the
+ * pair encodes, the way ExcelJS reads it. A lone surrogate escape (`_xD800_`-`_xDFFF_` with no
+ * partner, or a low one before a high one) is left as written, the way `decodeXmlEntities` leaves
  * `&#xD800;`: decoded, it would hand back an unpaired code unit that travels through the whole
  * import and comes out of `TextEncoder` as U+FFFD.
  */
@@ -92,11 +118,7 @@ export function decodeOoxmlEscapes(text: string): string {
     return text;
   }
 
-  return text.replace(/_x([0-9A-F]{4})_/g, (match: string, hex: string) => {
-    const code = Number.parseInt(hex, 16);
-
-    return code >= FIRST_SURROGATE && code <= LAST_SURROGATE ? match : String.fromCharCode(code);
-  });
+  return text.replace(OOXML_ESCAPE, decodeEscapeMatch);
 }
 
 /**

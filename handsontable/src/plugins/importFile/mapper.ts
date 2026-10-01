@@ -5,6 +5,10 @@ import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } fro
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
 import {
+  MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
+  MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
+} from '../../utils/xlsxEngine/units';
+import {
   excelWidthToPx,
   cellDisplayValue,
   inferCellType,
@@ -903,16 +907,6 @@ function cropMerge(
 
   return { row: startRow, col: startCol, rowspan, colspan };
 }
-
-/**
- * Excel's widest column, in width units. A wider value did not come from Excel.
- */
-const MAX_EXCEL_COLUMN_WIDTH = 255;
-
-/**
- * Excel's tallest row, in points. A taller value did not come from Excel.
- */
-const MAX_EXCEL_ROW_HEIGHT_POINTS = 409.5;
 
 /**
  * Converts a file-supplied column width or row height to pixels, or `undefined` when the file's

@@ -149,9 +149,25 @@ describe('escaping', () => {
     // unpaired code unit, and `TextEncoder` turned it into U+FFFD on the way out.
     expect(decodeOoxmlEscapes('a_xD800_b')).toBe('a_xD800_b');
     expect(decodeOoxmlEscapes('_xDFFF_')).toBe('_xDFFF_');
-    expect(decodeOoxmlEscapes('_xDBFF__xDC00_')).toBe('_xDBFF__xDC00_');
     expect(decodeOoxmlEscapes('_xD7FF_')).toBe(String.fromCharCode(0xD7FF));
     expect(decodeOoxmlEscapes('_xE000_')).toBe(String.fromCharCode(0xE000));
+  });
+
+  it('should decode a high surrogate escape followed by a low one into the astral character', () => {
+    // ExcelJS decodes every `_xHHHH_`, so a pair it reads as an emoji was left literal here.
+    expect(decodeOoxmlEscapes('a_xD83D__xDE00_b')).toBe('a\u{1F600}b');
+    expect(decodeOoxmlEscapes('_xDBFF__xDFFF_')).toBe('\u{10FFFF}');
+    expect(decodeOoxmlEscapes('_xD83D__xDE00__xD83D__xDE01_')).toBe('\u{1F600}\u{1F601}');
+  });
+
+  it('should leave a lone or reversed surrogate escape literal', () => {
+    expect(decodeOoxmlEscapes('_xD83D_x')).toBe('_xD83D_x');
+    expect(decodeOoxmlEscapes('_xDE00_')).toBe('_xDE00_');
+    expect(decodeOoxmlEscapes('_xDE00__xD83D_')).toBe('_xDE00__xD83D_');
+    expect(decodeOoxmlEscapes('_xD83D__xD83D_')).toBe('_xD83D__xD83D_');
+    expect(decodeOoxmlEscapes('_xD83D__x0041_')).toBe('_xD83D_A');
+    // The second high surrogate pairs with the low one after it; the first stays literal.
+    expect(decodeOoxmlEscapes('_xD83D__xD83D__xDE00_')).toBe('_xD83D_\u{1F600}');
   });
 
   it('should escape a literal _xHHHH_-shaped run in text so decodeOoxmlEscapes reads it back unchanged', () => {

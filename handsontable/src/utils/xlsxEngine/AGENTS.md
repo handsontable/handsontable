@@ -7,7 +7,9 @@ or an engine object.
 Anything both adapters need is declared once on this layer, never twice under two names:
 `limits.ts` (the caps and their refusals), `compression.ts`, `sheetNames.ts`, `cellRef.ts`,
 `units.ts` and `dates.ts` (`MS_PER_DAY`, `EXCEL_EPOCH_UTC`, `EXCEL_EPOCH_OFFSET` — which the two
-adapters and both plugins' date conversions import). A constant that lands in one adapter and is
+adapters and both plugins' date conversions import). `MS_PER_DAY` and `EXCEL_EPOCH_UTC` are declared
+in `helpers/dateTime.ts` and re-exported by `dates.ts`, so the Formulas plugin reads them from
+`helpers` without depending on this layer. A constant that lands in one adapter and is
 then copied into the other is the drift these modules exist to prevent.
 
 ## Engines
@@ -21,6 +23,11 @@ then copied into the other is the drift these modules exist to prevent.
 as "no engine", the same as an absent key, so the predicate, the export call and the import call
 agree); any other value must duck-type or it throws `Invalid xlsx engine module.` (public error
 text – the first sentence is asserted).
+
+**The native adapter is imported EAGERLY, on purpose.** `detect.ts` imports `nativeAdapter`
+statically, which adds about 49.5 KB to the minified bundle. A lazy `import()` seam was considered
+and rejected: the single-file UMD bundles have no chunk seam to split it into, so it would save
+nothing there.
 
 **A per-call `engine` override resolves as `override ?? configured` in BOTH plugins**, through
 `resolveEngineOverride()` in `detect.ts` — so `null` and `undefined` both mean "no override" and
@@ -105,10 +112,10 @@ directions.
   `typeof 'number'`, and `<v>NaN</v>` is not a legal cell value — Excel opens such a file with the
   "repair" dialog. `exportFile/types/xlsx.ts` coerces them to their text form at the value
   coercion (`#getCellValue`) and at the cached formula result (`toPrimitiveResult`), so neither
-  engine ever sees one from an export. The native writer guards again in `writeValueCell`
+  engine ever sees one from an export. The native writer guards again in `valueCellXml`
   (`parts/worksheetWriter.ts`, `stringCellText`): such a value is added to the shared-string table
   and written as a string cell. A cached formula result is demoted the same way and typed `str` in
-  `writeFormulaCell`, the sibling `writeCell` dispatches to — `writeCell` itself now only picks
+  `formulaCellXml`, the sibling `writeCell` dispatches to — `writeCell` itself now only picks
   between the two. Nothing is recorded in `dropped` — it is a representation, not a lost feature.
   **ExcelJS's writer has no such guard** and still emits `<v>NaN</v>`; the two readers then disagree
   about it (native reports an empty cell, ExcelJS hands the non-finite number back), which
@@ -377,18 +384,23 @@ directions.
 - **`&#xD800;`–`&#xDFFF;` is left as written**, like every other invalid code point in
   `decodeXmlEntities`. `String.fromCodePoint` accepts a surrogate and hands back an unpaired code unit
   that travels through the whole import, and `TextEncoder` replaces it with U+FFFD on the way out.
-  **The `_xD800_`–`_xDFFF_` OOXML escape follows the same rule**: `decodeOoxmlEscapes`
-  (`xml/escapes.ts`) leaves a surrogate escape as written — a paired `_xD83D__xDE00_` too, like a
-  paired `&#xD83D;&#xDE00;` — and decodes `_xD7FF_` and `_xE000_` as before. It carries its own
-  range constants, because the tokenizer's `isDecodableCodePoint` is not exported.
+  **The `_xD800_`–`_xDFFF_` OOXML escape follows the same rule for a LONE surrogate**:
+  `decodeOoxmlEscapes` (`xml/escapes.ts`) leaves a lone high, a lone low, or a reversed low+high
+  escape as written, and decodes `_xD7FF_` and `_xE000_` as before. **A high escape directly
+  followed by a low one (`_xD83D__xDE00_`) is decoded into the astral character** (U+1F600), because
+  ExcelJS's reader decodes every `_xHHHH_` and the two engines otherwise read the same cell
+  differently — unlike `&#xD83D;&#xDE00;`, which the tokenizer still leaves literal. One regex
+  matches an escape plus an optional low-surrogate escape, so a pair is decided as one unit. It
+  carries its own range constants, because the tokenizer's `isDecodableCodePoint` is not exported.
 - **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
   matches the A1 shape, and `Number('0') - 1` handed `#ensureRow(-1)` through the upper-bound check
   to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading
   'length')`, an internal `TypeError` in place of a refusal. A reference that does not match at all
   (`1A`, an empty `r`) is still ignored silently; only a well-shaped `A0` is refused, on the cell
   path AND on the comment-anchor path, where the worksheet is well formed and a note in
-  `comments{N}.xml` took the whole import down. `#ensureRow` keeps a `rowIndex < 0` guard as belt and
-  braces.
+  `comments{N}.xml` took the whole import down. `#ensureRow` keeps one `rowIndex < 0 ||
+  !Number.isInteger(rowIndex)` guard as belt and braces; no file reaches it, because every caller
+  hands a whole, non-negative index.
 - **`<dimension>` pre-allocation is DELIBERATELY still eager.** `<dimension ref="A1:A1048576"/>` is
   32 bytes that materialize a million row arrays (238 MB of RSS, measured), and it is left that way:
   `#rows` IS the snapshot's own array (the constructor aliases it: `this.#rows = this.#sheet.rows;`),
@@ -518,13 +530,16 @@ directions.
   all pinned in `nativeReadCompat.unit.js`: a `<row r>` that is not a positive whole number reads
   as absent (implicit placement — it used to drop the row for `0`/`-1`/`NaN`/`''`); a `<col>` whose
   `min` or `max` is not a positive whole number, or whose `min` is past its `max`, is ignored
-  whole; `<col width>` outside (0, 255] (Excel's widest column, `MAX_COLUMN_WIDTH`) and `<row ht>`
-  outside [0, 409.5] points (`MAX_ROW_HEIGHT`) are ignored alone, the rest of the element kept; a
+  whole; `<col width>` outside (0, 260] (`MAX_COLUMN_WIDTH_UNITS`, `units.ts`) and `<row ht>`
+  outside [0, 409.5] points (`MAX_ROW_HEIGHT_POINTS`) are ignored alone, the rest of the element
+  kept. **The width cap is 260, not 255**: Excel's UI caps a column at 255 characters, but the stored
+  width adds 5 px of cell padding (ECMA-376 18.3.1.13), so a 255-character Calibri 11 column is
+  written `width="255.7109375"`, and an exported 1800 px column (about 257 units) has to survive a
+  re-import. `importFile/mapper.ts` imports the same two constants for its second layer; a
   `<pane xSplit>`/`ySplit` that is not a non-negative whole number reads as no split on that axis.
   `cfRuleFromXml` (`parts/conditionalFormatting.ts`) follows the same rule: a `priority` that is
   not a whole number is dropped (a re-export used to write `priority="NaN"`), and a `top10` `rank`
-  that is not a positive whole number reads as `DEFAULT_TOP10_RANK`. `#ensureRow` refuses a
-  fractional index beside its `< 0` guard, as belt and braces.
+  that is not a positive whole number reads as `DEFAULT_TOP10_RANK`.
   This is the FIRST of two layers: `importFile/mapper.ts#mapLayout` bounds the same values again (`toLayoutPixels`, `toFreezeCount`, `toHiddenIndexes`), so an ExcelJS-read file cannot push them past either — see `plugins/importFile/AGENTS.md`.
 - **An empty `<v/>` or `<v></v>` is an EMPTY cell, except for the two string kinds.** `Number('')`
   is `0`, so it used to read as shared string 0 or as the number 0. `#decodeValue` answers `null`

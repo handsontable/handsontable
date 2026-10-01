@@ -8,9 +8,11 @@ import {
   MAX_WORKBOOK_CELLS, throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../../../limits';
 import {
-  createCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot, type CellValue,
+  createCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot,
+  type CellValidationSnapshot, type CellValue,
   type SheetProtectionOptions, type SheetSnapshot,
 } from '../../../model';
+import { MAX_COLUMN_WIDTH_UNITS, MAX_ROW_HEIGHT_POINTS } from '../../../units';
 import { decodeOoxmlEscapes } from '../xml/escapes';
 import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../xml/numbers';
 import { collectRichTextRuns } from '../xml/richText';
@@ -54,17 +56,6 @@ export interface WorksheetReadContext {
  * Serial-number offset between the 1904 and 1900 date systems (4 years and 1 day).
  */
 const DATE_1904_OFFSET = 1462;
-
-/**
- * The widest column Excel accepts, in characters. A `<col width>` above it (or not above zero) is
- * ignored rather than handed to the import as a column width.
- */
-const MAX_COLUMN_WIDTH = 255;
-
-/**
- * The tallest row Excel accepts, in points. A `<row ht>` above it (or below zero) is ignored.
- */
-const MAX_ROW_HEIGHT = 409.5;
 
 /**
  * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
@@ -489,16 +480,13 @@ class WorksheetParser {
    * Makes sure `rows` reaches `rowIndex`, refusing a row past the cap.
    */
   #ensureRow(rowIndex: number): Array<CellSnapshot | null> {
-    // Belt and braces for the lower bound: `decodeAddress` refuses row zero, and a negative index
-    // would otherwise skip the `while` below and return `rows[-1]`, which is `undefined`.
-    if (rowIndex < 0) {
-      throwWithCause(`The sheet "${this.#ctx.name}" declares a row before the first one.`);
-    }
-
-    // The same for a fraction, which `#resolveRowIndex` no longer produces: `rows[1.5]` is
-    // `undefined` too, and the next cell written into it raised an internal `TypeError`.
-    if (!Number.isInteger(rowIndex)) {
-      throwWithCause(`The sheet "${this.#ctx.name}" declares a row that is not a whole row number.`);
+    // Belt and braces: every caller hands a whole, non-negative index (`#resolveRowIndex`,
+    // `decodeAddress` and the dimension range all parse whole numbers from 1 up), so this guard is
+    // unreachable from a file. It stays because a negative or fractional index would skip the
+    // `while` below and return `undefined` (`rows[-1]`, `rows[1.5]`), and the next cell written
+    // into it would raise an internal `TypeError` instead of this refusal.
+    if (rowIndex < 0 || !Number.isInteger(rowIndex)) {
+      throwWithCause(`The sheet "${this.#ctx.name}" declares a row outside the sheet.`);
     }
 
     if (rowIndex + 1 > MAX_SHEET_ROWS) {
@@ -637,7 +625,7 @@ class WorksheetParser {
   /**
    * Reads one `<col>`, which declares a width and a hidden flag for a whole span of columns. A
    * `min` or `max` that is not a positive whole number, or a `min` past the `max`, makes the whole
-   * element ignored; a `width` outside (0, `MAX_COLUMN_WIDTH`] is ignored on its own.
+   * element ignored; a `width` outside (0, `MAX_COLUMN_WIDTH_UNITS`] is ignored on its own.
    */
   #openCol(attrs: XmlAttributes): void {
     const min = parseUnsignedIntAttr(attrs.min);
@@ -659,7 +647,7 @@ class WorksheetParser {
     }
 
     const declaredWidth = parseFiniteDoubleAttr(attrs.width);
-    const widthValue = declaredWidth !== null && declaredWidth > 0 && declaredWidth <= MAX_COLUMN_WIDTH
+    const widthValue = declaredWidth !== null && declaredWidth > 0 && declaredWidth <= MAX_COLUMN_WIDTH_UNITS
       ? declaredWidth
       : null;
 
@@ -711,7 +699,7 @@ class WorksheetParser {
 
     const height = parseFiniteDoubleAttr(attrs.ht);
 
-    if (height !== null && height >= 0 && height <= MAX_ROW_HEIGHT) {
+    if (height !== null && height >= 0 && height <= MAX_ROW_HEIGHT_POINTS) {
       while (this.#sheet.rowHeights.length <= rowIndex) {
         this.#sheet.rowHeights.push(null);
       }
@@ -1301,8 +1289,12 @@ class WorksheetParser {
    */
   #applyValidations(): void {
     this.#pendingValidations.forEach(({ sqref, formulae, allowBlank }) => {
+      // One object per `<dataValidation>`, shared by every cell it covers: nothing downstream
+      // mutates a cell's validation, and a whole-column range no longer allocates one per cell.
+      const validation: CellValidationSnapshot = { type: 'list', formulae, allowBlank };
+
       parseMultiRangeRef(sqref).forEach((range) => {
-        this.#applyValidationRange(range, formulae, allowBlank);
+        this.#applyValidationRange(range, validation);
       });
     });
   }
@@ -1312,8 +1304,7 @@ class WorksheetParser {
    */
   #applyValidationRange(
     range: { startRow: number; startCol: number; endRow: number; endCol: number },
-    formulae: string[],
-    allowBlank: boolean,
+    validation: CellValidationSnapshot,
   ): void {
     const lastRow = Math.min(range.endRow, this.#rows.length);
     const lastCol = Math.min(range.endCol, Math.max(this.#width, this.#declaredColumns, 1));
@@ -1326,7 +1317,7 @@ class WorksheetParser {
 
     for (let r = range.startRow; r <= lastRow; r++) {
       for (let c = range.startCol; c <= lastCol; c++) {
-        this.#cellAt(r - 1, c - 1).validation = { type: 'list', formulae, allowBlank };
+        this.#cellAt(r - 1, c - 1).validation = validation;
       }
     }
   }

@@ -134,7 +134,7 @@ export function throwColumnLimit(name: string, columns: number): never {
  * Refuses a sheet whose declared rectangle holds more cells than the reader accepts.
  */
 export function throwCellLimit(name: string, rows: number, columns: number): never {
-  return throwLimitExceeded(`The sheet "${name}" declares ${rows} × ${columns} cells, `
+  return throwLimitExceeded(`The sheet "${name}" declares ${rows} \u00D7 ${columns} cells, `
     + `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`);
 }
 

@@ -14,6 +14,10 @@ import { inflateRawText } from './streams';
  * read. Nothing does that today - `readWorkbook` releases once, in a `finally`, as its last act.
  */
 export interface ZipArchive {
+  /**
+   * The entry names in central-directory order. No production code calls it: the unit tests use it
+   * to walk an archive and to rewrite its parts.
+   */
   names(): string[];
   has(name: string): boolean;
   text(name: string): Promise<string>;
@@ -73,6 +77,44 @@ function findEndRecord(view: DataView): number {
 }
 
 /**
+ * Refuses a central-directory record this reader does not accept: an encrypted entry, a method other
+ * than stored or DEFLATE, a ZIP64 size or offset, or a name already declared by an earlier record.
+ */
+function assertAcceptedEntry(
+  name: string,
+  flags: number,
+  entry: CentralEntry,
+  entries: Map<string, CentralEntry>,
+): void {
+  const { method, compressedSize, uncompressedSize, localOffset } = entry;
+
+  // eslint-disable-next-line no-bitwise -- the flag word is a bit field.
+  if ((flags & (FLAG_ENCRYPTED | FLAG_STRONG_ENCRYPTION)) !== 0) {
+    throwWithCause(`The ZIP entry "${name}" is encrypted, which this reader does not accept.`);
+  }
+
+  if (method !== 0 && method !== 8) {
+    throwWithCause(`The ZIP entry "${name}" uses compression method ${method}; `
+      + 'only stored and DEFLATE are accepted.');
+  }
+
+  if (compressedSize === ZIP64_MARKER || uncompressedSize === ZIP64_MARKER || localOffset === ZIP64_MARKER) {
+    throwWithCause(`The ZIP entry "${name}" uses ZIP64 sizes, which this reader does not accept.`);
+  }
+
+  // A name may appear once. The map would keep the LAST record, while several other ZIP readers
+  // (and some Office tooling) resolve the FIRST — so a crafted archive holding two `sheet1.xml`
+  // entries reads differently here than in whatever inspected the file upstream. Excel never
+  // writes a duplicate, so refusing costs no real workbook anything.
+  if (entries.has(name)) {
+    // Refused through the limit thrower although the archive is malformed rather than too large:
+    // the message names what this reader accepts, and `read.ts` re-throws a tagged error as it
+    // stands instead of wrapping it in "The workbook could not be parsed by the native engine".
+    throwLimitExceeded(`The ZIP entry "${name}" is declared twice, which this reader does not accept.`);
+  }
+}
+
+/**
  * Reads every central-directory record into a name-keyed map.
  */
 function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, CentralEntry> {
@@ -108,33 +150,10 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
 
     const nameStart = offset + CENTRAL_HEADER_SIZE;
     const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLength));
+    const entry = { method, compressedSize, uncompressedSize, localOffset };
 
-    // eslint-disable-next-line no-bitwise -- the flag word is a bit field.
-    if ((flags & (FLAG_ENCRYPTED | FLAG_STRONG_ENCRYPTION)) !== 0) {
-      throwWithCause(`The ZIP entry "${name}" is encrypted, which this reader does not accept.`);
-    }
-
-    if (method !== 0 && method !== 8) {
-      throwWithCause(`The ZIP entry "${name}" uses compression method ${method}; `
-        + 'only stored and DEFLATE are accepted.');
-    }
-
-    if (compressedSize === ZIP64_MARKER || uncompressedSize === ZIP64_MARKER || localOffset === ZIP64_MARKER) {
-      throwWithCause(`The ZIP entry "${name}" uses ZIP64 sizes, which this reader does not accept.`);
-    }
-
-    // A name may appear once. The map would keep the LAST record, while several other ZIP readers
-    // (and some Office tooling) resolve the FIRST — so a crafted archive holding two `sheet1.xml`
-    // entries reads differently here than in whatever inspected the file upstream. Excel never
-    // writes a duplicate, so refusing costs no real workbook anything.
-    if (entries.has(name)) {
-      // Refused through the limit thrower although the archive is malformed rather than too large:
-      // the message names what this reader accepts, and `read.ts` re-throws a tagged error as it
-      // stands instead of wrapping it in "The workbook could not be parsed by the native engine".
-      throwLimitExceeded(`The ZIP entry "${name}" is declared twice, which this reader does not accept.`);
-    }
-
-    entries.set(name, { method, compressedSize, uncompressedSize, localOffset });
+    assertAcceptedEntry(name, flags, entry, entries);
+    entries.set(name, entry);
     offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
   }
 

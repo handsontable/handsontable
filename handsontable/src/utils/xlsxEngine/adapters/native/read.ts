@@ -259,13 +259,14 @@ async function readSheet(
       + `the sheet "${entry.name}" has no worksheet part.`);
   }
 
-  const sheetRels = await relsOf(opened.archive, sheetPath);
-  const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
-  const comments = commentsPath && opened.archive.has(commentsPath)
-    ? parseComments(await opened.archive.text(commentsPath))
-    : new Map<string, string>();
-
+  // The sheet's rels and comments sit inside the same `try` as the sheet itself, so a malformed
+  // companion part is reported with the same engine prefix as a malformed worksheet.
   try {
+    const sheetRels = await relsOf(opened.archive, sheetPath);
+    const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
+    const comments = commentsPath && opened.archive.has(commentsPath)
+      ? parseComments(await opened.archive.text(commentsPath))
+      : new Map<string, string>();
     const xml = await opened.archive.text(sheetPath);
 
     snapshot.sheets.push(parseWorksheet(xml, {

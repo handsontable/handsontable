@@ -6,7 +6,7 @@
  * forms the OOXML schema declares instead.
  */
 
-// `xsd:unsignedInt`: decimal digits, an optional leading `+`, no sign, point or exponent.
+// `xsd:unsignedInt`: decimal digits, an optional leading `+`, no minus sign, point or exponent.
 const UNSIGNED_INT = /^\+?\d{1,15}$/;
 
 // `xsd:double` without `INF`/`NaN` (no attribute this adapter reads may be non-finite): an

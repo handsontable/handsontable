@@ -6,6 +6,8 @@ import { DROPPED_FEATURES, DroppedFeatures } from '../capabilities';
 import {
   MAX_FORMULA_LENGTH, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, isLimitError,
 } from '../limits';
+import { createWorkbookSnapshot } from '../model';
+import { SheetBuilder } from '../builder';
 import { parseSharedStrings } from '../adapters/native/parts/sharedStrings';
 import { EMPTY_STYLES } from '../adapters/native/parts/styles';
 import { parseWorksheet } from '../adapters/native/parts/worksheetReader';
@@ -533,7 +535,7 @@ describe('native reader compatibility: numeric layout attributes', () => {
     expect(sheet.hiddenCols).toEqual([]);
   });
 
-  it.each(['-350', '0', '255.5', '1e308', '7e15', 'NaN', '', '0x10', 'Infinity'])(
+  it.each(['-350', '0', '260.5', '1e308', '7e15', 'NaN', '', '0x10', 'Infinity'])(
     'should ignore a <col> width of "%s" and keep the rest of the element', (width) => {
       const { sheet } = readSheet(colsXml(`<col min="1" max="2" width="${width}" hidden="1"/>`));
 
@@ -541,10 +543,28 @@ describe('native reader compatibility: numeric layout attributes', () => {
       expect(sheet.hiddenCols).toEqual([0, 1]);
     });
 
-  it.each([['2.5', 2.5], ['255', 255], ['1e1', 10]])('should keep a <col> width of "%s"', (width, expected) => {
-    const { sheet } = readSheet(colsXml(`<col min="1" max="1" width="${width}"/>`));
+  // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
+  // (ECMA-376 18.3.1.13): 255.7109375 at a 7 px maximum digit width, so the cap sits above 255.
+  it.each([['2.5', 2.5], ['255', 255], ['255.7109375', 255.7109375], ['260', 260], ['1e1', 10]])(
+    'should keep a <col> width of "%s"', (width, expected) => {
+      const { sheet } = readSheet(colsXml(`<col min="1" max="1" width="${width}"/>`));
 
-    expect(sheet.colWidths).toEqual([expected]);
+      expect(sheet.colWidths).toEqual([expected]);
+    });
+
+  it('should read back the width of an exported 1800 px column', async() => {
+    const snapshot = createWorkbookSnapshot();
+    const builder = new SheetBuilder('Sheet1');
+
+    // The export divides a pixel width by 7 px per width unit, so 1800 px is ~257.14 units.
+    builder.setColWidth(1, 1800 / 7);
+    builder.cell(1, 1).value = 'wide';
+    snapshot.sheets.push(builder.toSnapshot());
+
+    const bytes = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const { snapshot: read } = await readWorkbook(toArrayBuffer(bytes));
+
+    expect(Math.round(read.sheets[0].colWidths[0] * 7)).toBe(1800);
   });
 
   it.each(['-1', '409.6', '1.33e308', 'NaN', '', '0x10', 'Infinity'])(
@@ -799,5 +819,54 @@ describe('native reader compatibility: a VBA project', () => {
     const { dropped } = await readWorkbook(await packWorkbook(oneSheet()));
 
     expect(dropped.list()).toEqual([]);
+  });
+});
+
+describe('native reader compatibility: a malformed sheet companion part', () => {
+  const COMMENTS_REL = `${TRANSITIONAL_REL}/comments`;
+  const sheetWithRels = rels => ({
+    sheets: [{ name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(1) }],
+    rels: { name: 'xl/worksheets/_rels/sheet1.xml.rels', data: encoder.encode(rels) },
+  });
+
+  it('should wrap a malformed comments part like every other parse failure', async() => {
+    // The sheet's rels and comments were parsed before the per-sheet `try`, so their failure
+    // surfaced as a bare "The XML part is malformed" with no engine prefix.
+    const { sheets, rels } = sheetWithRels(`<Relationships xmlns="${PACKAGE_REL}">`
+      + `<Relationship Id="rId1" Type="${COMMENTS_REL}" Target="../comments1.xml"/></Relationships>`);
+    const buffer = await packWorkbook(sheets, {
+      extraEntries: [rels, { name: 'xl/comments1.xml', data: encoder.encode(`<comments ${NS}><commentList><`) }],
+    });
+
+    await expect(readWorkbook(buffer)).rejects.toThrow(
+      /^The workbook could not be parsed by the native engine: The XML part is malformed/
+    );
+  });
+
+  it('should wrap a malformed sheet relationships part', async() => {
+    const { sheets, rels } = sheetWithRels(`<Relationships xmlns="${PACKAGE_REL}"><`);
+    const buffer = await packWorkbook(sheets, { extraEntries: [rels] });
+
+    await expect(readWorkbook(buffer)).rejects.toThrow(
+      /^The workbook could not be parsed by the native engine: The XML part is malformed/
+    );
+  });
+});
+
+describe('native reader compatibility: list validations', () => {
+  it('should hand every cell of one <dataValidation> the same validation object', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c><c r="B2"><v>4</v></c></row>'
+      + '</sheetData><dataValidations count="1">'
+      + '<dataValidation type="list" allowBlank="1" sqref="A1:B1 A2"><formula1>"a,b"</formula1></dataValidation>'
+      + '</dataValidations></worksheet>');
+    const [[a1, b1], [a2, b2]] = sheet.rows;
+
+    expect(a1.validation).toEqual({ type: 'list', formulae: ['"a,b"'], allowBlank: true });
+    // One allocation per validation, not per cell: a whole-column range covers every row read.
+    expect(b1.validation).toBe(a1.validation);
+    expect(a2.validation).toBe(a1.validation);
+    expect(b2.validation).toBeNull();
   });
 });

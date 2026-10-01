@@ -1124,14 +1124,15 @@ describe('mapLayout - file-controlled layout values', () => {
   it('should omit a column width that is not finite and positive, or wider than Excel allows', () => {
     const sheet = layoutSheet();
 
-    // 255 width units is Excel's maximum column width.
-    sheet.colWidths = [-50, 7e300, Infinity, 255, 255.5, NaN, 0, 10];
+    // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
+    // (255.7109375 at a 7 px digit width); the cap is 260 width units.
+    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10];
     sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w')));
 
     const { result } = map(workbook(sheet));
 
     expect(result.colWidths).toEqual([
-      undefined, undefined, undefined, 255 * 7, undefined, undefined, undefined, 70,
+      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70,
     ]);
   });
 
