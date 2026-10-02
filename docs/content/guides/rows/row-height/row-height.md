@@ -16,6 +16,9 @@ tags:
   - min-height
   - row dimensions
   - manual resize
+  - text truncation
+  - line clamp
+  - ellipsis
 react:
   metaTitle: Row heights - React Data Grid | Handsontable
 angular:
@@ -261,6 +264,76 @@ hot.render();
 
 :::
 
+## Limit the number of lines in a cell
+
+Long text makes a row taller. To keep rows compact, set the [`textEllipsis`](@/api/options.md#textellipsis) option to a number. Handsontable shows that many lines of text and ends the last visible line with an ellipsis (`…`). The row grows only up to that number of lines.
+
+| `textEllipsis` value                | Result                                                |
+| ----------------------------------- | ----------------------------------------------------- |
+| `false` (default)                   | The text wraps and the row grows to fit all of it.    |
+| `true` or `1`                       | The text stays on one line and ends with an ellipsis. |
+| An integer of `2` or more           | The text wraps, but only that many lines are visible. |
+| Any other number (`0`, `-1`, `2.5`) | Works like `false`.                                   |
+
+The truncation only changes how the cell looks. The full text stays in the cell data and in copied data, and the cell editor opens with the full text.
+
+You can set `textEllipsis` at the grid, column, and cell level, like other [cascading options](@/guides/configuration/configuration-option-levels/configuration-option-levels.md). To override a column for a single cell, return a different value from the [`cells`](@/api/options.md#cells) function.
+
+A number works in cells that render plain text, such as the `text`, `numeric`, `date`, `time`, `select`, `autocomplete`, and `dropdown` cell types. Cells with their own markup, such as the `checkbox` cell type and cells that use the `html` renderer, ignore a number.
+
+If you set [`wordWrap`](@/api/options.md#wordwrap) to `false`, the text can't wrap. The cell then keeps the text on one line and ends it with an ellipsis, whatever number you set.
+
+In this example, three columns show the same note. The first column has no truncation, the second keeps the note on one line, and the third shows two lines.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-height/javascript/example5.js)
+@[code](@/content/guides/rows/row-height/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-height/react/example5.jsx)
+@[code](@/content/guides/rows/row-height/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example5.ts)
+@[code](@/content/guides/rows/row-height/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example5.vue)
+
+:::
+
+:::
+
+::: tip
+
+When the [`AutoRowSize`](@/api/autoRowSize.md) plugin is enabled and you change `textEllipsis` with [`updateSettings()`](@/api/core.md#updatesettings), call [`recalculateAllRowsHeight()`](@/api/autoRowSize.md#recalculateallrowsheight) afterwards, so the rows get the new height.
+
+:::
+
 ## Related API reference
 
 **Configuration options**
@@ -270,6 +343,8 @@ hot.render();
 - [autoRowSize](@/api/options.md#autorowsize)
 - [manualRowResize](@/api/options.md#manualrowresize)
 - [minRowHeights](@/api/options.md#minRowHeights)
+- [textEllipsis](@/api/options.md#textellipsis)
+- [wordWrap](@/api/options.md#wordwrap)
 
 </div>
 
