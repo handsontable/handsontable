@@ -1,6 +1,6 @@
 import type { CellProperties } from '../../settings';
 import { isRegExp } from '../../helpers/mixed';
-import { getCodePointLength } from '../../helpers/string';
+import { getCharacterLength } from '../../helpers/string';
 import { regExpValidator } from '../regExpValidator';
 
 type ValidatorFunction = (this: CellProperties, value: unknown, callback: (valid: boolean) => void) => void;
@@ -27,8 +27,8 @@ function isRegExpValidator(validator: unknown): validator is RegExp {
 }
 
 /**
- * The cell validator behind the `maxLength` option. Counts the length of a string value in Unicode
- * code points, so an emoji counts as one character. Values that are not strings are always valid.
+ * The cell validator behind the `maxLength` option. Counts the length of a string value in the characters a reader sees (grapheme clusters),
+ * so a flag or an emoji with a skin tone counts as one. Values that are not strings are always valid.
  *
  * @private
  * @param {*} value Value of the validated cell.
@@ -39,7 +39,7 @@ export function maxLengthValidator(
 ): void {
   const { maxLength } = this;
 
-  callback(typeof value !== 'string' || !isMaxLengthActive(maxLength) || getCodePointLength(value) <= maxLength);
+  callback(typeof value !== 'string' || !isMaxLengthActive(maxLength) || getCharacterLength(value) <= maxLength);
 }
 
 /**

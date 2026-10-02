@@ -359,46 +359,37 @@ export function localeLowerCase(value: string, locale?: string): string {
 }
 
 /**
- * Checks whether the UTF-16 code unit at the given index is a high (leading) surrogate.
- *
- * @param {string} value The string to read.
- * @param {number} index The UTF-16 code unit index.
- * @returns {boolean}
+ * The shared grapheme segmenter, built on first use. The constructor is one of the pricier `Intl`
+ * ones and the instance keeps no state between calls, while the callers run on every keystroke.
  */
-function isHighSurrogate(value: string, index: number): boolean {
-  const code = value.charCodeAt(index);
+let characterSegmenter: Intl.Segmenter | null = null;
 
-  return code >= 0xD800 && code <= 0xDBFF;
+/**
+ * Splits a string into the characters a reader sees. These are grapheme clusters, so a flag, a skin
+ * tone emoji, a family emoji, or a letter with a combining mark is one character, not two or seven.
+ *
+ * @param {string} text The text to split.
+ * @returns {string[]} The characters.
+ */
+export function splitIntoCharacters(text: string): string[] {
+  characterSegmenter ??= new Intl.Segmenter();
+
+  return Array.from(characterSegmenter.segment(text), segment => segment.segment);
 }
 
 /**
- * Checks whether the UTF-16 code unit at the given index is a low (trailing) surrogate.
- *
- * @param {string} value The string to read.
- * @param {number} index The UTF-16 code unit index.
- * @returns {boolean}
- */
-function isLowSurrogate(value: string, index: number): boolean {
-  const code = value.charCodeAt(index);
-
-  return code >= 0xDC00 && code <= 0xDFFF;
-}
-
-/**
- * Counts the Unicode code points in a string. A character outside the Basic Multilingual Plane,
- * such as an emoji, counts as one, while `String#length` counts it as two.
+ * Counts the characters a reader sees in a string (see {@link splitIntoCharacters}), where
+ * `String#length` counts UTF-16 code units.
  *
  * @param {string} value The string to measure.
  * @returns {number}
  */
-export function getCodePointLength(value: string): number {
+export function getCharacterLength(value: string): number {
+  characterSegmenter ??= new Intl.Segmenter();
+
   let length = 0;
 
-  for (let index = 0; index < value.length; index++) {
-    if (isHighSurrogate(value, index) && isLowSurrogate(value, index + 1)) {
-      index += 1;
-    }
-
+  for (const segment of characterSegmenter.segment(value)) { // eslint-disable-line no-unused-vars
     length += 1;
   }
 
@@ -406,27 +397,20 @@ export function getCodePointLength(value: string): number {
 }
 
 /**
- * Removes up to `count` code points that end right before the given UTF-16 index. A surrogate pair
- * is never split. Stops early when it reaches the start of the string.
+ * Removes up to `count` characters that end right before the given UTF-16 index. A character is
+ * never split. Stops early when it reaches the start of the string.
  *
  * @param {string} value The source string.
  * @param {number} index The UTF-16 index that the removed range ends at (exclusive).
- * @param {number} count The number of code points to remove.
+ * @param {number} count The number of characters to remove.
  * @returns {object} The shortened string (`value`) and the UTF-16 index (`index`) that now sits where
  * the removed range began.
  */
-export function removeCodePointsBefore(
+export function removeCharactersBefore(
   value: string, index: number, count: number
 ): { value: string, index: number } {
-  let start = index;
+  const characters = splitIntoCharacters(value.slice(0, index));
+  const kept = characters.slice(0, Math.max(characters.length - count, 0)).join('');
 
-  for (let removed = 0; removed < count && start > 0; removed++) {
-    start -= 1;
-
-    if (isLowSurrogate(value, start) && start > 0 && isHighSurrogate(value, start - 1)) {
-      start -= 1;
-    }
-  }
-
-  return { value: value.slice(0, start) + value.slice(index), index: start };
+  return { value: kept + value.slice(index), index: kept.length };
 }

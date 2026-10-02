@@ -9,8 +9,9 @@ import {
   localeLowerCase,
   decodeHtmlEntities,
   htmlToPlainText,
-  getCodePointLength,
-  removeCodePointsBefore,
+  getCharacterLength,
+  removeCharactersBefore,
+  splitIntoCharacters,
 } from 'handsontable/helpers/string';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
@@ -290,83 +291,111 @@ describe('String helper', () => {
     });
   });
 
-  describe('getCodePointLength', () => {
+  describe('getCharacterLength', () => {
     it('should return 0 for an empty string', () => {
-      expect(getCodePointLength('')).toBe(0);
+      expect(getCharacterLength('')).toBe(0);
     });
 
     it('should count ASCII characters one by one', () => {
-      expect(getCodePointLength('abc')).toBe(3);
+      expect(getCharacterLength('abc')).toBe(3);
     });
 
     it('should count a character from the Basic Multilingual Plane as one', () => {
-      expect(getCodePointLength('żółć')).toBe(4);
+      expect(getCharacterLength('żółć')).toBe(4);
     });
 
-    it('should count a surrogate pair as one code point, while String#length counts two', () => {
+    it('should count an emoji as one character, while String#length counts two', () => {
       expect('😀'.length).toBe(2);
-      expect(getCodePointLength('😀')).toBe(1);
-      expect(getCodePointLength('😀😀')).toBe(2);
-      expect(getCodePointLength('a😀b')).toBe(3);
+      expect(getCharacterLength('😀')).toBe(1);
+      expect(getCharacterLength('a😀b')).toBe(3);
     });
 
-    it('should count a combining sequence by its code points', () => {
-      // "e" + COMBINING ACUTE ACCENT is two code points, although it renders as one glyph.
-      expect(getCodePointLength('é')).toBe(2);
+    it('should count a flag (two regional indicators) as one character', () => {
+      expect(getCharacterLength('🇵🇱')).toBe(1);
+      expect(getCharacterLength('🇵🇱🇩🇪')).toBe(2);
     });
 
-    it('should count a ZWJ sequence by its code points', () => {
-      // Man + ZWJ + Woman + ZWJ + Girl: 3 emoji (3 code points each side of the ZWJs) + 2 ZWJ.
-      expect(getCodePointLength('👨‍👩‍👧')).toBe(5);
+    it('should count an emoji with a skin tone as one character', () => {
+      expect(getCharacterLength('👍🏽')).toBe(1);
     });
 
-    it('should count a lone surrogate as one code point', () => {
-      expect(getCodePointLength('\uD83D')).toBe(1);
-      expect(getCodePointLength('\uDE00')).toBe(1);
-      // Reversed order is not a pair.
-      expect(getCodePointLength('\uDE00\uD83D')).toBe(2);
-      // A high surrogate followed by a normal character is not a pair either.
-      expect(getCodePointLength('\uD83Da')).toBe(2);
+    it('should count a ZWJ family sequence as one character', () => {
+      expect(getCharacterLength('👨‍👩‍👧')).toBe(1);
+    });
+
+    it('should count a heart with a variation selector as one character', () => {
+      expect(getCharacterLength('❤️')).toBe(1);
+    });
+
+    it('should count a letter with a combining mark as one character', () => {
+      expect(getCharacterLength('é')).toBe(1);
+    });
+
+    it('should count a lone surrogate as one character', () => {
+      expect(getCharacterLength('\uD83D')).toBe(1);
+      expect(getCharacterLength('\uDE00')).toBe(1);
     });
   });
 
-  describe('removeCodePointsBefore', () => {
-    it('should remove the code points that end right before the index', () => {
-      expect(removeCodePointsBefore('abcdef', 4, 2)).toEqual({ value: 'abef', index: 2 });
+  describe('splitIntoCharacters', () => {
+    it('should return an empty list for an empty string', () => {
+      expect(splitIntoCharacters('')).toEqual([]);
+    });
+
+    it('should keep every cluster whole', () => {
+      expect(splitIntoCharacters('a🇵🇱é'))
+        .toEqual(['a', '🇵🇱', 'é']);
+    });
+  });
+
+  describe('removeCharactersBefore', () => {
+    it('should remove the characters that end right before the index', () => {
+      expect(removeCharactersBefore('abcdef', 4, 2)).toEqual({ value: 'abef', index: 2 });
     });
 
     it('should remove from the end of the string', () => {
-      expect(removeCodePointsBefore('abcdef', 6, 3)).toEqual({ value: 'abc', index: 3 });
+      expect(removeCharactersBefore('abcdef', 6, 3)).toEqual({ value: 'abc', index: 3 });
     });
 
     it('should do nothing at the start of the string', () => {
-      expect(removeCodePointsBefore('abc', 0, 2)).toEqual({ value: 'abc', index: 0 });
+      expect(removeCharactersBefore('abc', 0, 2)).toEqual({ value: 'abc', index: 0 });
     });
 
     it('should do nothing when the count is 0', () => {
-      expect(removeCodePointsBefore('abc', 2, 0)).toEqual({ value: 'abc', index: 2 });
+      expect(removeCharactersBefore('abc', 2, 0)).toEqual({ value: 'abc', index: 2 });
     });
 
     it('should stop at the start of the string when the count is larger than what is available', () => {
-      expect(removeCodePointsBefore('abcdef', 2, 10)).toEqual({ value: 'cdef', index: 0 });
+      expect(removeCharactersBefore('abcdef', 2, 10)).toEqual({ value: 'cdef', index: 0 });
     });
 
-    it('should remove a whole surrogate pair as one code point', () => {
-      expect(removeCodePointsBefore('a😀b', 3, 1)).toEqual({ value: 'ab', index: 1 });
-      expect(removeCodePointsBefore('😀😀', 4, 1)).toEqual({ value: '😀', index: 2 });
+    it('should remove a whole flag as one character', () => {
+      const flag = '🇵🇱';
+
+      expect(removeCharactersBefore(`a${flag}b`, 5, 1)).toEqual({ value: 'ab', index: 1 });
     });
 
-    it('should never leave half of a pair when the removed range ends at a pair boundary', () => {
-      expect(removeCodePointsBefore('😀😀😀', 4, 2)).toEqual({ value: '😀', index: 0 });
+    it('should remove a whole family emoji and a whole skin-tone emoji as one character each', () => {
+      const family = '👨‍👩‍👧';
+      const thumb = '👍🏽';
+
+      expect(removeCharactersBefore(`x${family}${thumb}`, 1 + family.length + thumb.length, 2))
+        .toEqual({ value: 'x', index: 1 });
     });
 
-    it('should count a lone surrogate as one code point', () => {
-      expect(removeCodePointsBefore('a\uD83Db', 2, 1)).toEqual({ value: 'ab', index: 1 });
-      expect(removeCodePointsBefore('a\uDE00b', 2, 1)).toEqual({ value: 'ab', index: 1 });
+    it('should remove a letter together with its combining mark', () => {
+      expect(removeCharactersBefore('aé', 3, 1)).toEqual({ value: 'a', index: 1 });
     });
 
     it('should keep the text after the index intact', () => {
-      expect(removeCodePointsBefore('ab😀cd', 4, 1)).toEqual({ value: 'abcd', index: 2 });
+      expect(removeCharactersBefore('ab😀cd', 4, 1)).toEqual({ value: 'abcd', index: 2 });
+    });
+
+    it('should not throw when the index falls inside a cluster', () => {
+      const flag = '🇵🇱';
+
+      expect(() => removeCharactersBefore(`a${flag}`, 2, 1)).not.toThrow();
+      expect(() => removeCharactersBefore(`a${flag}`, 3, 1)).not.toThrow();
     });
   });
 });

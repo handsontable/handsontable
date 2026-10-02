@@ -74,6 +74,21 @@ describe('maxLengthValidator', () => {
     expect(validate(maxLengthValidator, { maxLength: 1 }, '😀')).toBe(true);
   });
 
+  it('should count a flag, a skin tone, a family emoji, a heart and a combining mark as one character each', () => {
+    const flag = '🇵🇱';
+    const thumb = '👍🏽';
+    const family = '👨‍👩‍👧';
+    const heart = '❤️';
+    const accent = 'é';
+
+    [flag, thumb, family, heart, accent].forEach((character) => {
+      expect(validate(maxLengthValidator, { maxLength: 1 }, character)).toBe(true);
+      expect(validate(maxLengthValidator, { maxLength: 1 }, `${character}${character}`)).toBe(false);
+    });
+
+    expect(validate(maxLengthValidator, { maxLength: 5 }, `${flag}${thumb}${family}${heart}${accent}`)).toBe(true);
+  });
+
   it('should always accept a value that is not a string', () => {
     expect(validate(maxLengthValidator, { maxLength: 1 }, 123456)).toBe(true);
     expect(validate(maxLengthValidator, { maxLength: 1 }, null)).toBe(true);

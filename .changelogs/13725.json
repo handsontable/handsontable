@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added the `maxLength` option that limits the number of characters in a cell, without a custom validator.",
+  "title": "Added the `maxLength` option that limits the number of characters in a cell, without a custom validator. If your app already stores a custom `maxLength` key in cell settings, the built-in limit now applies to those cells, so rename your key or see the migration guide.",
   "type": "added",
   "issueOrPR": 13725,
   "breaking": false,

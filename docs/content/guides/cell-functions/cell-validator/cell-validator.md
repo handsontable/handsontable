@@ -109,7 +109,7 @@ columns: [
 
 To limit the number of characters in a cell, set the [`maxLength`](@/api/options.md#maxlength) option. You don't need to write a validator. Handsontable validates the length for you, and the text cell editor stops the user from typing more characters than the limit allows.
 
-`maxLength` counts Unicode code points, so an emoji counts as one character. A value that is too long is invalid. Like any other invalid value, [`allowInvalid`](@/api/options.md#allowinvalid) decides whether the grid keeps it, and [`invalidCellClassName`](@/api/options.md#invalidcellclassname) sets the class that marks the cell.
+`maxLength` counts the characters a reader sees, so a flag or an emoji with a skin tone counts as one character. A value that is too long is invalid. Like any other invalid value, [`allowInvalid`](@/api/options.md#allowinvalid) decides whether the grid keeps it, and [`invalidCellClassName`](@/api/options.md#invalidcellclassname) sets the class that marks the cell.
 
 If a cell has both `maxLength` and a `validator`, the value must pass both checks. Handsontable checks the length first, and doesn't call your validator for a value that is too long.
 

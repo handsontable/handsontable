@@ -26,6 +26,15 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
+   * Turns off the `maxLength` cap of the text editor. This editor has its own input rules.
+   *
+   * @returns {boolean}
+   */
+  protected override get capsLength(): boolean {
+    return false;
+  }
+
+  /**
    * The internal Handsontable instance used as the editor's dropdown.
    *
    * @type {Core}

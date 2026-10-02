@@ -205,6 +205,21 @@ describe('Core `maxLength` option', () => {
       expect(core.getCellMeta(0, 1).valid).toBe(false);
     });
 
+    it('should count a flag, a skin-tone emoji and a family emoji as one character each', async() => {
+      const flag = '🇵🇱';
+      const thumb = '👍🏽';
+      const family = '👨‍👩‍👧';
+
+      core = createHot(container, {
+        data: [[`${flag}${thumb}${family}`, `${flag}${thumb}${family}${flag}`]],
+        maxLength: 3,
+      });
+
+      expect(await validateCells(core)).toBe(false);
+      expect(core.getCellMeta(0, 0).valid).toBe(true);
+      expect(core.getCellMeta(0, 1).valid).toBe(false);
+    });
+
     it('should leave a value that is not a string alone', async() => {
       core = createHot(container, { data: [[123456789, null]], maxLength: 3 });
 

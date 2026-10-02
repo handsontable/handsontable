@@ -47,6 +47,12 @@
 
     container.className = 'ht-theme-' + window.htTheme;
 
+    // A custom editor that only extends the text editor. It overrides nothing, so it inherits the
+    // `maxLength` cap; a column picks it with `editor: 'customText'`.
+    class CustomTextEditor extends Handsontable.editors.TextEditor {}
+
+    Handsontable.editors.registerEditor('customText', CustomTextEditor);
+
     // Captures a constructor failure so `goto()` can rethrow it instead of timing out on a missing cell.
     window.fixtureError = null;
 

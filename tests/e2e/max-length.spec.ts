@@ -107,6 +107,191 @@ test.describe('maxLength', () => {
     });
   });
 
+  test.describe('what counts as one character', () => {
+    const flag = '\u{1F1F5}\u{1F1F1}';
+    const thumb = '\u{1F44D}\u{1F3FD}';
+
+    test('fits a flag whole when one slot is left', async () => {
+      await grid.initGrid({ maxLength: 3, data: [['ab', '', '', '']] });
+      await grid.openEditor(0, 0);
+
+      // One insertion carrying both regional indicators, as a keyboard or an emoji picker sends it.
+      await grid.typeEmoji(flag);
+
+      await expect(grid.editor).toHaveValue(`ab${flag}`);
+    });
+
+    test('adds no part of a flag when no slot is left', async () => {
+      await grid.initGrid({ maxLength: 3, data: [['abc', '', '', '']] });
+      await grid.openEditor(0, 0);
+
+      await grid.typeEmoji(flag);
+
+      // All or nothing: not a single regional indicator is left behind.
+      await expect(grid.editor).toHaveValue('abc');
+    });
+
+    test('counts an emoji with a skin tone as one character', async () => {
+      await grid.initGrid({ maxLength: 2 });
+      await grid.openEditor(0, 0);
+
+      await grid.typeEmoji(thumb, thumb, thumb);
+
+      await expect(grid.editor).toHaveValue(`${thumb}${thumb}`);
+    });
+  });
+
+  test.describe('whitespace', () => {
+    test('does not count a leading space of a paste, because the commit trims it', async () => {
+      await grid.initGrid({ maxLength: 10 });
+      await grid.openEditor(0, 0);
+
+      await grid.pasteText(' ABCDEFGHIJ');
+
+      await expect(grid.editor).toHaveValue(' ABCDEFGHIJ');
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('ABCDEFGHIJ');
+      await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
+    });
+
+    test('lets trailing spaces into a full cell, because the commit trims them', async () => {
+      await grid.initGrid({ maxLength: 3, data: [['abc', '', '', '']] });
+      await grid.openEditor(0, 0);
+
+      await grid.type('  ');
+
+      await expect(grid.editor).toHaveValue('abc  ');
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('abc');
+    });
+  });
+
+  test.describe('the guide example: maxLength 5 with allowInvalid false', () => {
+    test('stores the 5 characters that fit and closes the editor', async () => {
+      await grid.initGrid({ columns: [{ maxLength: 5 }], allowInvalid: false });
+      await grid.openEditor(0, 0);
+
+      await grid.type('abcdefgh');
+
+      await expect(grid.editor).toHaveValue('abcde');
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('abcde');
+    });
+
+    test('keeps the editor open on an over-limit value that is committed unchanged', async ({ page }) => {
+      await grid.initGrid({ columns: [{ maxLength: 5 }], allowInvalid: false, data: [['abcdefgh']] });
+      await grid.openEditor(0, 0);
+
+      await page.keyboard.press('Enter');
+
+      // What the grid really does: the editor validates the value it holds even when the user did not
+      // change it, and with `allowInvalid: false` an invalid value cannot be committed. So the editor
+      // stays open on the over-limit text, as it does for any invalid value, and the stored text is
+      // untouched. The user shortens it, or leaves with Escape.
+      await expect(grid.editor).toBeVisible();
+      await expect(grid.editor).toHaveValue('abcdefgh');
+      expect(await grid.dataAt(0, 0)).toBe('abcdefgh');
+
+      await page.keyboard.press('Backspace');
+      await page.keyboard.press('Backspace');
+      await page.keyboard.press('Backspace');
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('abcde');
+    });
+  });
+
+  test.describe('typing straight onto a selected cell', () => {
+    test('stops at the limit without opening the editor first', async ({ page }) => {
+      await grid.initGrid({ maxLength: 5 });
+      await grid.selectCell(0, 0);
+
+      // The first key opens the editor and every following key lands in it.
+      await page.keyboard.type('abcdefgh');
+
+      await expect(grid.editor).toHaveValue('abcde');
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('abcde');
+    });
+  });
+
+  test.describe('a custom editor that extends the text editor', () => {
+    test('is capped like the text editor', async () => {
+      await grid.initGrid({ columns: [{ editor: 'customText', maxLength: 3 }] });
+      await grid.openEditor(0, 0);
+
+      await grid.type('abcdef');
+
+      await expect(grid.editor).toHaveValue('abc');
+    });
+  });
+
+  test.describe('inserting a line break', () => {
+    test('adds one in the middle of a cell that has room', async ({ page }) => {
+      await grid.initGrid({ maxLength: 10, data: [['abc']] });
+      await grid.openEditor(0, 0);
+      await page.keyboard.press('Home');
+      await page.keyboard.press('ArrowRight');
+
+      await page.keyboard.press('Alt+Enter');
+
+      await expect(grid.editor).toHaveValue('a\nbc');
+    });
+
+    test('adds nothing in the middle of a full cell, and leaves the text alone', async ({ page }) => {
+      await grid.initGrid({ maxLength: 10, data: [['abcdefghij']] });
+      await grid.openEditor(0, 0);
+      await page.keyboard.press('Home');
+      for (let step = 0; step < 5; step++) {
+        await page.keyboard.press('ArrowRight');
+      }
+
+      await page.keyboard.press('Alt+Enter');
+
+      // The line break is the only inserted text and does not fit, so it alone is removed again.
+      await expect(grid.editor).toHaveValue('abcdefghij');
+      expect(await grid.caret()).toEqual({ start: 5, end: 5 });
+    });
+  });
+
+  test.describe('the cap does not outlive the edit it belongs to', () => {
+    test('restores a deleted too-long value with undo, whole', async ({ page }) => {
+      await grid.initGrid({ maxLength: 3, data: [['abcdef']] });
+      await grid.openEditor(0, 0);
+
+      await page.keyboard.press('ControlOrMeta+a');
+      await page.keyboard.press('Backspace');
+      await expect(grid.editor).toHaveValue('');
+
+      await page.keyboard.press('ControlOrMeta+z');
+
+      // Undo puts back text the user already had, so the cap must not cut it down to 3.
+      await expect(grid.editor).toHaveValue('abcdef');
+    });
+
+    test('does not carry a pending snapshot from one cell into the next', async ({ page }) => {
+      await grid.initGrid({ maxLength: 3, data: [['abcdef', '']] });
+      await grid.openEditor(0, 0);
+      await page.keyboard.press('ControlOrMeta+a');
+      await page.keyboard.press('Backspace');
+      await page.keyboard.press('Escape');
+      await expect(grid.editor).toBeHidden();
+
+      await grid.openEditor(0, 1);
+      await grid.type('abcdef');
+
+      await expect(grid.editor).toHaveValue('abc');
+    });
+  });
+
   test.describe('pasting into the text editor', () => {
     test('cuts a text that is too long at the limit', async () => {
       await grid.initGrid({ maxLength: 3 });
