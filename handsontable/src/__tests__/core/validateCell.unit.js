@@ -13,6 +13,7 @@ registerRenderer(textRenderer);
  */
 function createHot(container, settings) {
   const core = new Core(container, {
+    theme: 'ht-theme-main',
     licenseKey: 'non-commercial-and-evaluation',
     ...settings,
   });

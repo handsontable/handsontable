@@ -216,6 +216,7 @@ describe('Core#updateSettings', () => {
       const numberRenderer = jest.fn();
       const stringRenderer = jest.fn();
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: buildData(),
         licenseKey: 'non-commercial-and-evaluation',
         columns: [
@@ -249,6 +250,7 @@ describe('Core#updateSettings', () => {
     it('should validate the source data against the new column configuration', () => {
       const rejectEverything = () => false;
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: buildData(),
         licenseKey: 'non-commercial-and-evaluation',
         allowInvalid: false,
@@ -277,6 +279,7 @@ describe('Core#updateSettings', () => {
       const numberRenderer = jest.fn();
       const stringRenderer = jest.fn();
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: buildData(),
         licenseKey: 'non-commercial-and-evaluation',
         columns: [
@@ -301,6 +304,7 @@ describe('Core#updateSettings', () => {
 
     it('should keep cell meta set imperatively when the `columns` array shrinks', () => {
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: buildData(),
         licenseKey: 'non-commercial-and-evaluation',
         columns: [
@@ -334,6 +338,7 @@ describe('Core#updateSettings', () => {
         { data: 'c', renderer: rendererC },
       ];
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: [{ a: 1, b: 2, c: 3 }],
         licenseKey: 'non-commercial-and-evaluation',
         columns: buildColumns(),
@@ -383,6 +388,7 @@ describe('Core#updateSettings', () => {
         { data: 'c', renderer: rendererC },
       ];
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: [{ a: 1, b: 2, c: 3 }],
         licenseKey: 'non-commercial-and-evaluation',
         maxCols: 2,
@@ -423,6 +429,7 @@ describe('Core#updateSettings', () => {
       const secondRenderer = jest.fn();
       let currentRenderer = firstRenderer;
       const core = new Core(container, {
+        theme: 'ht-theme-main',
         data: [['a']],
         licenseKey: 'non-commercial-and-evaluation',
         columns: () => ({ renderer: currentRenderer }),
