@@ -8,6 +8,13 @@ This subsystem mixes physical and visual column indexes across an API boundary. 
 - **`conditionCollection` stores PHYSICAL column indexes.** `filteringStates` (a `LinkedPhysicalIndexToValueMap`) is keyed by physical column. Every `conditionCollection` method (`addCondition`, `getConditions`, `removeConditions`, `hasConditions`, `getFilteredColumns`) expects a **physical** index. Never call it with a visual index — under active `manualColumnMove` the two diverge and the filter attaches to the wrong column with no error.
 - **`getDataMapAtColumn(physicalColumn)` takes PHYSICAL, then converts back to visual** (`toVisualColumn`) for source-data access. Honor the parameter's stated space; do not feed it a visual index.
 - When in doubt, convert at the public boundary and treat everything inside `conditionCollection` as physical.
+- **The applied conditions (`#previousConditionStack`) are physical too, and nothing shifts them for free.** The
+  live conditions move with their index map on a column insert or removal; this plain copy does not, and it is
+  what `captureState()` records for UndoRedo. `#onAfterCreateCol` / `#onAfterRemoveCol` rewrite its `column`
+  fields (dropping the removed columns' entries) and give it a new array, so the next capture sees the change.
+  Without it an undo re-imported a filter onto the column that had taken the old number. Pinned in
+  `../undoRedo/__tests__/indexTransformations.unit.js` ("a filter recorded before a column was inserted or
+  removed").
 
 ## IndexMap lifecycle
 

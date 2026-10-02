@@ -85,6 +85,21 @@ future `'reject'`/`'displace'` can be added without a breaking change.)
 - **Preserved** on `rebuildState` (move), `mergeStateWith`, `mapState` — these use identity shift, so
   overrides stay valid.
 
+**Two version counters on the state manager, for UndoRedo.** `getConfigVersion()` advances on a
+`setState()` whose configuration differs from the previous one (compared as JSON) - not on
+`rebuildState()`, and not on a wrapper re-render that re-sends the same configuration: a counter that
+moved on every re-send made CollapsibleColumns skip the groups of every older step, so an undo and a
+redo brought the hidden columns back without their collapsed group. `captureState()` records it next to the overrides, and
+`restoreState()` imports the overrides only when it still matches: overrides recorded under an earlier
+`nestedHeaders` config name that config's groups. It still runs `rebuildState()` either way, because a
+restored column order arrives through `setIndexesSequence()` (source `'update'`, not `'move'`), so
+`#onColumnIndexMapperCacheUpdated` does not re-derive the tree for it. `getCollapsedGroupsVersion()`
+advances on every `#applyNodeModification()` that finds a node, every `#deriveTree()` and `clear()`;
+CollapsibleColumns reads it to skip walking the tree on a step that changed no header group. A re-sent
+config still runs the whole `setState()` - it resets the overrides and expands every group, as it always
+did - but an undo of an older step can put back that step's overrides and collapsed groups, because
+they were recorded under the same config.
+
 ## State rebuild paths
 
 | Path | Trigger | Collapse kept | Overrides reset | Regens matrix |

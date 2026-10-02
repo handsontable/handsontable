@@ -122,6 +122,25 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 const FILTER_FIXED_ROWS_DEFAULT = true;
 
 /**
+ * The state `Filters#captureState()` returns: the applied conditions array itself (to tell whether it
+ * changed) and a detached copy of it (to restore).
+ */
+interface AppliedConditionsState {
+  applied: ColumnConditions[];
+  conditions: ColumnConditions[];
+}
+
+/**
+ * Tells whether a value is a state `Filters#captureState()` returned.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isAppliedConditionsState(value: unknown): value is AppliedConditionsState {
+  return typeof value === 'object' && value !== null && 'conditions' in value && Array.isArray(value.conditions);
+}
+
+/**
  * @plugin Filters
  * @class Filters
  *
@@ -714,7 +733,7 @@ export class Filters extends BasePlugin {
    * not do what they say.
    *
    * Scanned over every column rather than raised from the visibility check or a menu opening, so a
-   * grid with no dropdown menu, or a column whose menu is never opened, still gets the message - the
+   * grid with no dropdown menu, or a column whose menu is never opened, still gets the message – the
    * docs promise it is logged once per grid, not once per menu opening. A visibility predicate is
    * also the wrong place for a side effect.
    *
@@ -920,6 +939,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', this.#onAfterDropdownMenuShow);
     this.addHook('afterDropdownMenuHide', this.#onAfterDropdownMenuHide);
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     // The stale exemption: the two change hooks only MARK it (`#markPinnedRowsStale()`), and the
     // next full render re-applies it when the frozen rows differ. The check is a cheap no-op unless
@@ -1587,6 +1608,81 @@ export class Filters extends BasePlugin {
    * @fires Hooks#afterFilter
    */
   filter(): void {
+    this.runOperation('filter', () => this.#filterPass());
+  }
+
+  /**
+   * Returns the conditions the grid is filtered by – the ones the last `filter()` call applied, not
+   * the ones edited since. Undo and redo restore these, so undoing a filter also drops the conditions
+   * that were added for it.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const applied = this.#previousConditionStack;
+
+    if (isAppliedConditionsState(previous) && previous.applied === applied) {
+      return previous;
+    }
+
+    return { applied, conditions: deepClone(applied) };
+  }
+
+  /**
+   * Puts back the conditions a `captureState()` call recorded. The rows they trim are restored by
+   * UndoRedo with the rest of the index maps, so the grid is not filtered again.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isAppliedConditionsState(state)) {
+      return;
+    }
+
+    this.#previousConditionStack = deepClone(state.conditions);
+    this.importConditions(deepClone(state.conditions));
+  }
+
+  /**
+   * Returns the physical columns whose applied conditions differ between two recorded states.
+   *
+   * @private
+   * @param {*} state The state on one side of a step.
+   * @param {*} other The state on the other side.
+   * @returns {number[]|null}
+   */
+  getStateColumns(state: unknown, other: unknown): readonly number[] | null {
+    if (!isAppliedConditionsState(state) || !isAppliedConditionsState(other)) {
+      return null;
+    }
+
+    const byColumn = new Map<number, string>();
+    const columns = new Set<number>();
+
+    state.conditions.forEach((entry) => {
+      byColumn.set(entry.column, JSON.stringify(entry));
+    });
+    other.conditions.forEach((entry) => {
+      if (byColumn.get(entry.column) !== JSON.stringify(entry)) {
+        columns.add(entry.column);
+      }
+
+      byColumn.delete(entry.column);
+    });
+    byColumn.forEach((_, column) => {
+      columns.add(column);
+    });
+
+    return Array.from(columns);
+  }
+
+  /**
+   * The body of `filter()`, run inside its operation.
+   */
+  #filterPass(): void {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
@@ -1610,6 +1706,11 @@ export class Filters extends BasePlugin {
     if (this.#isDataProviderActive()) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
+
+    this.hot._getOperationScope().describe({
+      conditionsStack: conditions,
+      previousConditionsStack: this.#previousConditionStack,
+    });
 
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
@@ -1872,6 +1973,84 @@ export class Filters extends BasePlugin {
     });
 
     this.updateDependentComponentsVisibility();
+  }
+
+  /**
+   * `afterCreateCol` listener. The applied conditions (`#previousConditionStack`) name physical
+   * columns, and nothing else shifts them: the live conditions move with their index map, this copy
+   * does not. So the columns at or after the first inserted one move right by the inserted amount.
+   *
+   * @param {number} visualColumn The visual index of the first inserted column.
+   * @param {number} amount The number of inserted columns.
+   */
+  #onAfterCreateCol = (visualColumn: number, amount: number) => {
+    if (amount <= 0 || this.#previousConditionStack.length === 0) {
+      return;
+    }
+
+    const firstInsertedColumn = this.hot.toPhysicalColumn(visualColumn);
+
+    if (firstInsertedColumn === null) {
+      return;
+    }
+
+    this.#shiftAppliedColumns(column => (column >= firstInsertedColumn ? column + amount : column));
+  };
+
+  /**
+   * `afterRemoveCol` listener. Drops the applied conditions of the removed physical columns, and moves
+   * the rest left by the number of removed columns before each of them.
+   *
+   * @param {number} _visualColumn The visual index of the first removed column.
+   * @param {number} _amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes of the removed columns.
+   */
+  #onAfterRemoveCol = (_visualColumn: number, _amount: number, physicalColumns: number[]) => {
+    if (physicalColumns.length === 0 || this.#previousConditionStack.length === 0) {
+      return;
+    }
+
+    const removedColumns = new Set(physicalColumns);
+
+    this.#shiftAppliedColumns((column) => {
+      if (removedColumns.has(column)) {
+        return null;
+      }
+
+      return column - physicalColumns.filter(removedColumn => removedColumn < column).length;
+    });
+  };
+
+  /**
+   * Rewrites the physical column of each applied condition. A condition whose column maps to `null`
+   * is dropped. When anything changed, the stack becomes a new array, so the next
+   * `captureState()` records the change.
+   *
+   * @param {Function} toNewColumn Maps a physical column to its new index, or to `null`.
+   */
+  #shiftAppliedColumns(toNewColumn: (column: number) => number | null) {
+    const stack: ColumnConditions[] = [];
+    let isChanged = false;
+
+    arrayEach(this.#previousConditionStack, (entry: ColumnConditions) => {
+      const column = toNewColumn(entry.column);
+
+      if (column === entry.column) {
+        stack.push(entry);
+
+        return;
+      }
+
+      isChanged = true;
+
+      if (column !== null) {
+        stack.push({ ...entry, column });
+      }
+    });
+
+    if (isChanged) {
+      this.#previousConditionStack = stack;
+    }
   }
 
   /**

@@ -18,7 +18,15 @@ const SKILL_DOC = join(ROOT, '..', '.claude', 'skills', 'performance-testing', '
 const README = join(ROOT, 'README.md');
 
 // The short-window scenarios that run five iterations; everything else runs three.
-const FIVE_ITERATIONS = ['filtering', 'initial-load', 'sorting', 'source-data-validator-load'];
+const FIVE_ITERATIONS = [
+  'filtering',
+  'initial-load',
+  'sorting',
+  'source-data-validator-load',
+  'undo-edit',
+  'undo-remove-rows',
+  'undo-sort',
+];
 
 /**
  * @returns {Promise<Array<{ dir: string, config: object }>>}
@@ -51,7 +59,7 @@ describe('scenario configs', () => {
     }
   });
 
-  test('the four short-window scenarios run five iterations and the rest run three', async() => {
+  test('the short-window scenarios run five iterations and the rest run three', async() => {
     const configs = await loadConfigs();
 
     for (const { dir, config } of configs) {

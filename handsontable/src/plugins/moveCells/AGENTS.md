@@ -8,11 +8,10 @@ ask whether this plugin accepted a press. It is internal, not public API.
 
 ## Four guards before anything is written, and each one earns its place
 
-`moveCellRange()` runs **seven** full passes over the source and target regions before a single value
-changes: two read-only scans, two movable-meta collections, the value snapshot, plus UndoRedo's two region
-snapshots. The undo stack then retains two whole value matrices. (The `CELLS_LIMIT` doc comment in the
-source says "roughly six" while enumerating the same seven — the enumeration is the accurate half.) So the
-guards run **first**, before any hook fires, so that neither UndoRedo nor Formulas snapshots anything:
+`moveCellRange()` runs several full passes over the source and target regions before a single value
+changes: two read-only scans, two movable-meta collections and the value snapshot, and the undo journal
+then holds the old and new value of every written cell. So the guards run **first**, before any hook
+fires, so that nothing is written or journaled for a move that will not happen:
 
 1. **A move onto itself is a no-op.** Without the guard, a plain click on the move band — mousedown and
    mouseup in the same cell — runs the whole commit pipeline for zero data change: a HyperFormula mutation,
@@ -37,8 +36,10 @@ This ordering is load-bearing. With Formulas active, that hook is where the Hand
 brought back in line with HyperFormula, which has already relocated the cells — selecting first made
 `afterSelection` listeners read the stale pre-move value at the target.
 
-UndoRedo's listener works off the `beforeMoveCells` snapshots rather than the selection, so nothing needs
-the target selected while the hook runs. Do not reorder.
+The whole move runs in one operation (`move_cells`), so its writes - the Formulas write-back included -
+land in one undo step; the step records the source and target ranges (`sourceRange`, `targetRange`) for
+the selection an undo and a redo put back. An undo or a redo restores the cells; it does not run the move
+again, so `beforeMoveCells` is not asked. Do not reorder.
 
 ## The move band swallows the mousedown, and that has two consequences
 

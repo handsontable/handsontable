@@ -33,6 +33,17 @@ export interface HyperFormulaEngine {
   setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
   getSheetSerialized(sheetId: number | null): unknown[][];
   getSheetFormulas(sheetId: number | null): (string | undefined)[][];
+  getSheetNames(): string[];
+  getCellFormula(address: { sheet: number; row: number; col: number }): string | undefined;
+  listNamedExpressions(scope?: number): string[];
+  getNamedExpressionFormula(name: string, scope?: number): string | undefined;
+  getNamedExpression(name: string, scope?: number): {
+    options?: Record<string, string | number | boolean>;
+  } | undefined;
+  isItPossibleToChangeNamedExpression(name: string, expression: unknown, scope?: number): boolean;
+  changeNamedExpression(
+    name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
+  ): unknown[];
   normalizeFormula(formula: string): string;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
@@ -65,6 +76,7 @@ export interface HyperFormulaEngine {
   off(eventName: string, listener: Function): void;
   suspendEvaluation(): void;
   resumeEvaluation(): void;
+  isEvaluationSuspended(): boolean;
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
   undo(): void;
   redo(): void;

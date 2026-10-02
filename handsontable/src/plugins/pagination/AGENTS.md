@@ -94,6 +94,26 @@ twice — at enable and on a page-size change — because either path can introd
 Because the auto strategy computes a size *per page*, page boundaries are not uniform: never assume
 `page * pageSize` arithmetic works. Go through the strategy.
 
+## Undo and redo
+
+`setPage()` (`'set_page'`), `setPageSize()` (`'set_page_size'`) and `resetPagination()`
+(`'reset_pagination'`) each run as one operation, so every page change is one undo step - the pager
+buttons and the page-size select included, since they call the same methods.
+
+The page's hiding map is **not** part of the undo snapshot. It is listed in
+`DERIVED_INDEX_MAP_NAMES` (`../../translations/indexMapperSnapshot.ts`) as `'Pagination'` - the map is
+registered under `this.pluginName`, the capitalized registry name, not the `pagination` settings key,
+and a lowercase entry silently matches nothing (`gridState.unit.js` pins it). Like the size plugins' maps,
+because the plugin rebuilds it from the page, the page size and the other maps - and with
+`pageSize: 'auto'` it rebuilds it on every render. `captureState()` records the page and the page
+size instead, and `restoreState()` puts them back and runs `#computeAndApplyState()`. Two traps:
+
+- **Restoring the map from a snapshot would fight the plugin.** The plugin recomputes on every index
+  cache update (`#onIndexCacheUpdate`), which a restore of the other maps triggers, so a restored
+  page map would be overwritten with one computed from the page the grid was on before the undo.
+- **A grid paged by a data provider records nothing.** Its pages come from the server, so undoing a
+  page change would need a fetch. `captureState()` returns `undefined` there.
+
 ## Selection hooks it must intercept
 
 `beforeSelectAll`, `beforeSelectColumns`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`,
@@ -119,6 +139,15 @@ It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()`
 and keeps the last *n* rows, so a mid-page paste of a long clipboard writes the suffix
 (DEV-1119 / private #2861). The unique-value case in `__tests__/plugins/copyPaste.spec.js`
 is the regression pin; the older case used identical letters and could not catch it.
+
+**The paste start row is the selection, not `copyableRanges` (DEV-2935).** The hook's second argument
+is the copy SOURCE, and `CopyPaste#onAfterSelectionEnd` stops refreshing it when `fragmentSelection: true`,
+so it can point at the rows that were copied while the paste writes elsewhere. Clamping from it let a paste
+near the end of a page spill onto the next one. `#onBeforePaste` reads
+`getSelectedRangeActive().getTopStartCorner().row`, the cell `CopyPaste#populateValues` writes at, and
+ignores the argument. Every existing pagination paste spec selects the destination right before pasting,
+which refreshes the ranges, so none of them can tell the two sources apart; the pin is
+`tests/e2e/pagination-paste-fragment-selection.spec.ts`, which copies, moves the selection and then pastes.
 
 ## Styling: the page-size select fill lives on the wrapper, not the select
 

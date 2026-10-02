@@ -1,4 +1,4 @@
-import { BasePlugin } from '../base';
+import { BasePlugin, type PluginRestoreContext } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
 import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -42,6 +42,7 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
+import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
 import type { CellChange, CellValue } from '../../settings';
 import type { RangeType } from '../../core/types';
@@ -206,83 +207,73 @@ Hooks.getSingleton().register('afterSheetRemoved');
 Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
-// This function will be used for detecting changes coming from the `UndoRedo` plugin. This kind of change won't be
-// handled by whole body of listeners and therefore won't change undo/redo stack inside engine provided by HyperFormula.
-// HyperFormula's `undo` and `redo` methods will do it instead. Please keep in mind that undo/redo stacks inside
-// instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
-const isBlockedSource = (source: unknown) =>
-  source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+// Handsontable's own `auto` writes (spare rows, padding) never reach the engine.
+const isBlockedSource = (source: unknown) => source === 'auto';
 
-// Undo/redo actions that change rows or columns and therefore may rewrite formula references.
-// Nested Rows reports its internal row removal/insertion pair as one custom action. Reordering actions
-// (a row move, for instance) must not trigger the write-back - they leave the source data's own
-// reference frame untouched.
-const STRUCTURAL_ACTION_TYPES = new Set([
-  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'nested_rows_detach'
-]);
+// Undo and redo put back a recorded grid state. The row and column changes they replay are not
+// followed one by one: the engine would shift formula references a second time, and a `#REF!` it
+// wrote cannot be turned back into the reference it replaced. Once the restore is done, the plugin
+// writes the restored cells into the engine or, when the rows or columns changed, reloads its sheet
+// from the restored source data – see `Formulas#restoreState()`.
+const isRestoreSource = (source: unknown) => source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
 
-const getActionType = (action: unknown) => {
-  if (typeof action !== 'object' || action === null || !('actionType' in action)) {
-    return null;
-  }
+/**
+ * The engine's sheet as it was, for a state the source data cannot rebuild: once rows or columns are
+ * moved or sorted, the engine rewrites formula references in its own order and the source data keeps
+ * the text written in the physical one.
+ */
+interface EngineSheetSnapshot {
+  readonly content: unknown[][];
+  readonly rowOrder: EngineOrder;
+  readonly columnOrder: EngineOrder;
+}
 
-  return (action as { actionType: string }).actionType;
+/**
+ * What UndoRedo records for this plugin: a version that changes whenever the engine's rows or columns
+ * are added, removed or reordered, a version that changes whenever a cell write reaches it, and – while
+ * the engine's order is not the physical one – the engine's sheet itself.
+ */
+interface FormulasUndoState {
+  readonly structureVersion: number;
+  readonly dataVersion: number;
+  readonly engineSheet: EngineSheetSnapshot | null;
+  /**
+   * The formulas outside this grid's sheet that the step's engine calls rewrote.
+   */
+  readonly peerRewrites: readonly PeerRewrite[];
+}
+
+/**
+ * A formula outside this grid's sheet – a cell of another sheet on the same engine, or a named
+ * expression – that the engine rewrote because this grid's rows, columns or cells moved. Restoring
+ * this grid's sheet never touches it, so the step records its text before and after the change.
+ */
+type PeerRewrite = {
+  readonly kind: 'cell';
+  readonly sheet: number;
+  readonly row: number;
+  readonly col: number;
+  readonly before: string;
+  after: string | undefined;
+} | {
+  readonly kind: 'name';
+  readonly name: string;
+  readonly scope: number | undefined;
+  readonly before: string;
+  after: string | undefined;
 };
 
-const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getActionType(action) as string);
-
-const isNestedRowsDetachAction = (action: unknown) => getActionType(action) === 'nested_rows_detach';
-
 /**
- * Returns how many HyperFormula history entries an UndoRedo action owns.
+ * Tells whether a value is a state `Formulas#captureState()` returned.
  *
- * @param {unknown} action The action being undone or redone.
- * @returns {number} Number of HyperFormula history entries to replay.
+ * @param {*} value The value to test.
+ * @returns {boolean}
  */
-function getFormulasUndoRedoSteps(action: unknown): number {
-  if (typeof action !== 'object' || action === null || !('formulasUndoRedoSteps' in action)) {
-    return 1;
-  }
-
-  const stepCount = action.formulasUndoRedoSteps;
-
-  return typeof stepCount === 'number' && Number.isInteger(stepCount) && stepCount > 0 ? stepCount : 1;
+function isFormulasUndoState(value: unknown): value is FormulasUndoState {
+  return typeof value === 'object' && value !== null &&
+    'structureVersion' in value && typeof value.structureVersion === 'number' &&
+    'dataVersion' in value && typeof value.dataVersion === 'number';
 }
-
-/**
- * Replays every HyperFormula history entry owned by one Handsontable undo/redo action.
- *
- * @param {object} engine The HyperFormula engine.
- * @param {string} operation The engine operation to execute.
- * @param {number} stepCount Number of history entries to replay.
- * @returns {Array} Combined engine-reported changed cells.
- */
-function replayFormulasUndoRedo(
-  engine: HyperFormulaEngine, operation: 'undo' | 'redo', stepCount: number
-): unknown[] {
-  const changedCells: unknown[] = [];
-
-  for (let step = 0; step < stepCount; step++) {
-    const stepChanges = engine[operation]() ?? [];
-
-    stepChanges.forEach((change) => {
-      changedCells.push(change);
-    });
-  }
-
-  return changedCells;
-}
-
-// `MoveCellsAction.undo` restores both regions with `restoreRegion` instead of replaying the move, so
-// `afterMoveCells` - where the forward direction syncs - never fires. Undo has to cover it here.
-// Redo does replay the move, so it must NOT be listed, or the sheet would be scanned twice.
-const isUndoneMoveCells = (action: unknown) => getActionType(action) === 'move_cells';
-
-// Only these can leave a formula pointing at cells that no longer exist.
-const REFERENCE_BREAKING_ACTION_TYPES = new Set(['remove_row', 'remove_col', 'move_cells']);
-
-const canBreakReferences = (action: unknown) =>
-  REFERENCE_BREAKING_ACTION_TYPES.has(getActionType(action) as string);
 
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
@@ -444,8 +435,8 @@ export class Formulas extends BasePlugin {
   #pendingMoveCells: { source: object; dest: object; isCopy: boolean; rect: MoveCellsRect } | null = null;
 
   /**
-   * The visual rectangle of the operation `commitPendingMoveCells` committed to the engine (or
-   * intentionally skipped during undo/redo replay). Consumed by the `afterMoveCells` listener,
+   * The visual rectangle of the operation `commitPendingMoveCells` committed to the engine.
+   * Consumed by the `afterMoveCells` listener,
    * which runs the HOT-data sync only for committed operations and only off this value — never
    * off its own hook arguments, which a preceding listener's return value can replace.
    *
@@ -457,17 +448,9 @@ export class Formulas extends BasePlugin {
   #committedMoveCells: MoveCellsRect | null = null;
 
   /**
-   * `true` while a move-cells redo is replaying through the MoveCells plugin.
-   *
-   * Unlike other redo actions, it must validate the Handsontable move before advancing
-   * HyperFormula, so `commitPendingMoveCells` performs the engine operation itself.
-   */
-  #isRedoingMoveCells = false;
-
-  /**
    * The dependent-cell changes returned by the engine operation in `commitPendingMoveCells`,
-   * consumed by the `afterMoveCells` listener to re-render dependent sheets. `null` when the
-   * engine step was skipped (undo/redo replay re-renders everything anyway).
+   * consumed by the `afterMoveCells` listener to re-render dependent sheets. `null` while no
+   * committed move is awaiting its sync.
    *
    * @private
    * @type {unknown[]|null}
@@ -522,56 +505,51 @@ export class Formulas extends BasePlugin {
   #nestedRowsDetachPending = false;
 
   /**
-   * Marks an undo whose Formula history waits for the detach removal to succeed.
-   *
-   * UndoRedo does not fire `afterUndo` when a row-removal hook vetoes the action. The marker lets
-   * `#onAfterRedoStackChange` release the index-sync guard on that failure path.
-   *
-   * @type {boolean}
+   * The counter the structure and data versions are drawn from, so a version is never reused.
    */
-  #nestedRowsDetachUndoPending = false;
+  #versionSeed = 0;
 
   /**
-   * Tracks a structural redo between `beforeRedo` and `afterRedo`: `null` outside one, then whether the
-   * action actually landed on the done stack.
-   *
-   * `UndoRedo` fires `afterRedo` even when the action settles with `{ wasRedone: false }` (a late
-   * `beforeRemoveRow` veto, for instance). Its `afterUndoStackChange` fires first, and the done stack grows
-   * only when the redo applied. Replaying HyperFormula's history for a redo that did not apply would advance
-   * the engine while the grid stays undone.
-   *
-   * @type {boolean|null}
+   * Changes whenever rows or columns are added, removed or moved in the engine's sheet.
    */
-  #structuralRedoApplied: boolean | null = null;
+  #structureVersion = 0;
 
   /**
-   * The changes that the engine reported while undoing or redoing an action. They are captured when
-   * HyperFormula history is replayed and consumed in `afterUndo`/`afterRedo`, where the dependent cells
-   * get validated.
-   *
-   * @type {Array}
+   * Changes whenever a cell write reaches the engine.
    */
-  #undoRedoDependentCells: unknown[] = [];
+  #dataVersion = 0;
 
   /**
-   * The addresses of the cells that the `UndoRedo` plugin writes through `setDataAtCell`. The Core
-   * validates those on its own, so they are excluded from the dependent-cell validation.
-   *
-   * Cells restored through `setSourceDataAtCell` are deliberately absent: that path runs
-   * `sourceDataValidator`, which never touches the `valid` flag, so excluding them would leave them
-   * unvalidated by anyone.
-   *
-   * @type {Array}
+   * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
+   * held until the restore is done – see `restoreState()`.
    */
-  #undoRedoChangedCells: unknown[] = [];
+  #restoredWrites: CellChange[] = [];
 
   /**
-   * Whether the action being undone or redone wrote any cell data. Only then are the dependent cells
-   * worth validating.
-   *
-   * @type {boolean}
+   * The formulas outside this grid's sheet that the recording step's engine calls rewrote so far,
+   * keyed by cell or name. The step's closing capture takes them – see `#trackPeerRewrites()`.
    */
-  #undoRedoWroteData = false;
+  #pendingPeerRewrites = new Map<string, PeerRewrite>();
+
+  /**
+   * The other sheets of the engine that the last peer scan found with no formula naming this grid's
+   * sheet. `#collectPeerFormulas()` skips them – in a workbook of large sheets reading their formulas
+   * is the whole cost of the scan – until the engine reports a change in one of them. Setting a cell's
+   * content always reports that cell, even when its value does not change.
+   */
+  #sheetsNotNamingOwnSheet = new Set<number>();
+
+  /**
+   * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
+   * done – see `#validateRestoredDependents`.
+   */
+  #restoredDependentCells: unknown[] = [];
+
+  /**
+   * The engine addresses of the cells an undo or a redo wrote, as its `afterChange` reported them. The
+   * UndoRedo plugin validates those itself, so they are left out of `#restoredDependentCells`.
+   */
+  #restoredChangedCells: unknown[] = [];
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -630,6 +608,16 @@ export class Formulas extends BasePlugin {
     const exportedChanges = changes.map(change => this.#exportChangeValue(
       change as { address?: { sheet: number; row: number; col: number }; newValue: unknown }
     ));
+
+    if (this.#sheetsNotNamingOwnSheet.size > 0) {
+      changes.forEach((change) => {
+        const address = (change as { address?: { sheet: number } }).address;
+
+        if (address) {
+          this.#sheetsNotNamingOwnSheet.delete(address.sheet);
+        }
+      });
+    }
 
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
@@ -722,6 +710,7 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
@@ -744,6 +733,7 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   };
 
@@ -853,13 +843,12 @@ export class Formulas extends BasePlugin {
     // also covers a `disablePlugin()` that lands mid-span.
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
-    this.#nestedRowsDetachUndoPending = false;
-    this.#structuralRedoApplied = null;
     this.#sheetResyncPending = false;
     this.#showFormulasFlag = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -931,6 +920,9 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
     this.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
+    // Any reorder rewrites formula references inside the engine, a sort included.
+    this.addHook('afterRowSequenceChange', this.#onAfterSequenceChange);
+    this.addHook('afterColumnSequenceChange', this.#onAfterSequenceChange);
 
     this.addHook('beforeRowMove',
       (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
@@ -945,13 +937,15 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRowMove',
       (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
+        this.#trackPeerRewrites(() => this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged));
+        this.#markStructureChanged();
       });
 
     this.addHook('afterColumnMove',
       (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
+        this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged));
+        this.#markStructureChanged();
       });
 
     this.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
@@ -962,7 +956,7 @@ export class Formulas extends BasePlugin {
     });
 
     this.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
-      this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed);
+      this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed));
     });
 
     this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
@@ -973,7 +967,8 @@ export class Formulas extends BasePlugin {
     });
 
     this.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
-      this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
+      this.#trackPeerRewrites(
+        () => this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed));
     });
 
     // Date and preserved-text escaping runs both here (for `updateSettings`-driven
@@ -987,110 +982,13 @@ export class Formulas extends BasePlugin {
     // they have run. See `#onAfterUpdateSettingsRowCount`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
-    // Handling undo actions on data just using HyperFormula's UndoRedo mechanism.
-    this.addHook('beforeUndo', (action: unknown) => {
-      const isNestedRowsDetach = isNestedRowsDetachAction(action);
-
-      this.#releaseIndexSyncGuards();
-      this.indexSyncer!.setPerformUndo(true);
-      this.#nestedRowsDetachUndoPending = isNestedRowsDetach;
-
-      this.#undoRedoChangedCells = [];
-      this.#undoRedoWroteData = false;
-      this.#undoRedoDependentCells = isNestedRowsDetach
-        ? []
-        : replayFormulasUndoRedo(this.engine!, 'undo', getFormulasUndoRedoSteps(action));
-      // The engine's undo can add, remove, or rename a sheet without emitting the sheet events
-      // that otherwise drop this cache.
-      this.#ownSheetExists = null;
-    });
-    this.addHook('afterRedoStackChange', this.#onAfterRedoStackChange);
-
-    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
-    this.addHook('beforeRedo', (action: unknown) => {
-      // Defensive: `Hooks.run` threads a preceding listener's non-`undefined` return value into
-      // this argument, and the global bucket runs before this one. Without a trustworthy
-      // `actionType` the engine step cannot be dispatched safely (`engine.redo()` vs the
-      // `move_cells` replay path — the wrong branch runs the engine operation twice), so cancel
-      // the redo instead of desyncing HyperFormula. The guard runs BEFORE `setPerformRedo(true)`
-      // — a canceled redo never fires `afterRedo`, so a flag set here would leak.
-      if (typeof action !== 'object' || action === null || !('actionType' in action)) {
-        return false;
-      }
-
-      this.#releaseIndexSyncGuards();
-      this.#isRedoingMoveCells = action.actionType === 'move_cells';
-
-      this.#undoRedoChangedCells = [];
-      this.#undoRedoWroteData = false;
-
-      // A later `beforeRedo` listener can veto the action. Structural actions must wait until
-      // `afterRedo`, so HyperFormula's history only advances after the grid action is accepted.
-      if (isStructuralAction(action)) {
-        this.#undoRedoDependentCells = [];
-        this.#structuralRedoApplied = false;
-
-        return;
-      }
-
-      this.indexSyncer!.setPerformRedo(true);
-      // For a `move_cells` redo the engine operation runs in `commitPendingMoveCells` (the
-      // Handsontable move must be validated first), so `engine.redo()` is not called here and
-      // there are no engine-reported dependent cells to collect.
-      this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : replayFormulasUndoRedo(
-        this.engine!, 'redo', getFormulasUndoRedoSteps(action)
-      );
-      // Same as the undo: a redone sheet operation emits no sheet event.
-      this.#ownSheetExists = null;
-    });
-
-    this.addHook('afterUndo', (action: unknown) => {
-      this.indexSyncer!.setPerformUndo(false);
-      // Also clears the redo flags: a redo canceled by a `beforeRedo` listener never fires
-      // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
-      // next successful redo.
-      this.indexSyncer!.setPerformRedo(false);
-      this.#isRedoingMoveCells = false;
-
-      if (isNestedRowsDetachAction(action)) {
-        this.#undoRedoDependentCells = replayFormulasUndoRedo(
-          this.engine!, 'undo', getFormulasUndoRedoSteps(action)
-        );
-      }
-
-      this.#nestedRowsDetachUndoPending = false;
-      this.#validateUndoRedoDependentCells();
-
-      // The structural hooks skip blocked sources, so undoing a row/column change reverts the
-      // formulas inside the engine only - the source data has to be caught up separately.
-      if (isStructuralAction(action) || isUndoneMoveCells(action)) {
-        this.#syncFormulasToSourceData(canBreakReferences(action));
-      }
-    });
-
-    this.addHook('afterUndoStackChange', this.#onAfterUndoStackChange);
-    this.addHook('afterRedo', (action: unknown) => {
-      const isAppliedStructuralRedo = isStructuralAction(action) && this.#structuralRedoApplied === true;
-
-      this.#structuralRedoApplied = null;
-
-      if (isAppliedStructuralRedo) {
-        this.#undoRedoDependentCells = replayFormulasUndoRedo(
-          this.engine!, 'redo', getFormulasUndoRedoSteps(action)
-        );
-      }
-
-      this.indexSyncer!.setPerformRedo(false);
-      this.#validateUndoRedoDependentCells();
-
-      if (isAppliedStructuralRedo) {
-        this.#syncFormulasToSourceData(canBreakReferences(action));
-      }
-    });
-
-    this.addHook('afterRedo', () => {
-      this.#isRedoingMoveCells = false;
-    });
+    // A restore that never reached `restoreState()` – an action registered through `done()` – still
+    // gets its cell writes into the engine.
+    this.addHook('afterUndo', this.#flushRestoredWrites);
+    this.addHook('afterRedo', this.#flushRestoredWrites);
+    this.addHook('afterChange', this.#onAfterRestoredChange);
+    this.addHook('afterUndo', this.#validateRestoredDependents);
+    this.addHook('afterRedo', this.#validateRestoredDependents);
 
     this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
@@ -1280,6 +1178,7 @@ export class Formulas extends BasePlugin {
     this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
     this.sheetId = sheetId;
     this.#ownSheetExists = null;
+    this.#sheetsNotNamingOwnSheet.clear();
 
     // Every caller has just made the engine authoritative for the grid - `switchSheet()` is about
     // to load the grid FROM the sheet, `addSheet()` callers filled it from the grid - so a resync
@@ -1803,43 +1702,452 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Records that the action being undone or redone wrote cell data, and - when the Core validates
-   * that write itself - which cells it wrote, so that `#validateUndoRedoDependentCells` can skip
-   * them.
+   * Returns the state UndoRedo records for this plugin. When it did not change since the previous
+   * capture, the previous state itself is returned.
    *
-   * `coreValidatesWrite` separates the two write paths. `setDataAtCell` ends in the Core's own
-   * `validateCell`, so those cells must be excluded to avoid validating them twice.
-   * `setSourceDataAtCell` does not - it runs `sourceDataValidator`, which never touches the `valid`
-   * flag - so its cells must stay in the validation pass. Skipping them is also why their row index
-   * is never translated here: that hook reports physical rows, unlike `afterSetDataAtCell`.
-   *
-   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
-   * @param {string} source String that identifies the source of the hook call.
-   * @param {boolean} coreValidatesWrite `true` when the Core validates the written cells itself.
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
    */
-  #registerUndoRedoWrite(changes: CellChange[], source: string, coreValidatesWrite: boolean) {
-    if (source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+  captureState(previous: unknown): unknown {
+    if (!this.engine) {
+      return undefined;
+    }
+
+    if (
+      isFormulasUndoState(previous) &&
+      previous.structureVersion === this.#structureVersion &&
+      previous.dataVersion === this.#dataVersion &&
+      this.#pendingPeerRewrites.size === 0
+    ) {
+      return previous;
+    }
+
+    const peerRewrites = Array.from(this.#pendingPeerRewrites.values())
+      .filter(rewrite => rewrite.after !== rewrite.before);
+
+    this.#pendingPeerRewrites.clear();
+
+    return {
+      structureVersion: this.#structureVersion,
+      dataVersion: this.#dataVersion,
+      engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
+      peerRewrites,
+    };
+  }
+
+  /**
+   * Brings the engine in line with the grid an undo or a redo restored. The source data is already
+   * restored by then. When the rows or columns differ from the ones the engine holds, the sheet is
+   * reloaded from the source data; otherwise the cells the restore wrote are written into the engine.
+   *
+   * The formulas the step's engine calls rewrote in other sheets and named expressions are then put
+   * back (`#restorePeerRewrites()`): reloading this grid's own sheet never adjusts them.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   * @param {object} [context] The step being restored.
+   */
+  restoreState(state: unknown, context?: PluginRestoreContext): void {
+    if (!isFormulasUndoState(state)) {
       return;
     }
 
-    if (!changes?.length) {
+    // The host removed this grid's sheet from the engine, so there is no sheet to bring in line. The
+    // versions still follow the restored state, so a later capture compares against it.
+    if (!this.#hasOwnSheet()) {
+      this.#restoredWrites = [];
+      this.#structureVersion = state.structureVersion;
+      this.#dataVersion = state.dataVersion;
+
       return;
     }
 
-    this.#undoRedoWroteData = true;
+    if (state.structureVersion !== this.#structureVersion) {
+      this.#restoredWrites = [];
+      this.#structureVersion = state.structureVersion;
+      this.#dataVersion = state.dataVersion;
 
-    if (!coreValidatesWrite) {
+      const dependentCells = state.engineSheet === null ?
+        this.#loadSourceDataIntoSheet() : this.#loadEngineSheet(state.engineSheet);
+
+      dependentCells.forEach((cell) => {
+        this.#restoredDependentCells.push(cell);
+      });
+    } else {
+      this.#dataVersion = state.dataVersion;
+      this.#flushRestoredWrites();
+    }
+
+    this.#restorePeerRewrites(state, context);
+  }
+
+  /**
+   * A step that changed only data, on a grid in physical order, restores the cells it wrote by prop,
+   * so it names no column. A step that reloads the sheet, or restores a serialized one, restores a
+   * column layout, so it cannot be kept across a `columns` settings update.
+   *
+   * @private
+   * @param {*} state The state on one side of a step.
+   * @param {*} other The state on the other side.
+   * @returns {number[]|null}
+   */
+  getStateColumns(state: unknown, other: unknown): readonly number[] | null {
+    if (
+      isFormulasUndoState(state) && isFormulasUndoState(other) &&
+      state.engineSheet === null && other.engineSheet === null &&
+      state.structureVersion === other.structureVersion
+    ) {
+      return [];
+    }
+
+    return null;
+  }
+
+  /**
+   * Runs an engine call that can rewrite formulas outside this grid's sheet – adding, removing or
+   * moving rows, columns or cells – and records what it rewrote for the recording undo step. The
+   * references this grid's own sheet holds are restored with the sheet; the ones other sheets and
+   * named expressions hold are not, and a removal can leave them `#REF!` for good. Costs nothing
+   * unless the engine holds another sheet or a named expression, and a step is recording.
+   *
+   * @param {Function} engineCall The engine call.
+   * @returns {*} What the engine call returns.
+   */
+  #trackPeerRewrites<T>(engineCall: () => T): T {
+    const candidates = this.#collectPeerFormulas();
+    const result = engineCall();
+
+    if (candidates.length > 0) {
+      this.#recordPeerRewrites(candidates);
+    }
+
+    return result;
+  }
+
+  /**
+   * Lists the formulas an engine call on this grid's sheet can rewrite: every cell of another sheet
+   * whose formula names this sheet, and every named expression. Empty unless a step records.
+   *
+   * @returns {PeerRewrite[]} The candidates, with `before` set to their current text.
+   */
+  #collectPeerFormulas(): PeerRewrite[] {
+    const engine = this.engine;
+    const candidates: PeerRewrite[] = [];
+
+    if (!engine || this.sheetId === null || this.hot._getOperationScope().getRecordingTransaction() === null) {
+      return candidates;
+    }
+
+    const ownName = engine.getSheetName(this.sheetId);
+
+    if (ownName === undefined) {
+      return candidates;
+    }
+
+    // The engine matches sheet names without regard to case, and it writes a quote inside a quoted
+    // sheet name twice (`'O''Brien'!A1`).
+    const ownNameInFormula = ownName.toLowerCase();
+    const quotedNameInFormula = ownNameInFormula.replace(/'/g, '\'\'');
+    const namesThisSheet = (formula: string) => {
+      const text = formula.toLowerCase();
+
+      return text.includes(ownNameInFormula) || text.includes(quotedNameInFormula);
+    };
+    const sheetIds: number[] = engine.getSheetNames().map((name: string) => engine.getSheetId(name));
+    // While evaluation is suspended the engine holds its change events back, so the list of sheets
+    // with no such formula cannot be trusted.
+    const useKnownSheets = !engine.isEvaluationSuspended();
+
+    sheetIds.forEach((sheet) => {
+      if (sheet === this.sheetId || (useKnownSheets && this.#sheetsNotNamingOwnSheet.has(sheet))) {
+        return;
+      }
+
+      const count = candidates.length;
+
+      engine.getSheetFormulas(sheet).forEach((formulasRow, row) => {
+        formulasRow.forEach((formula, col) => {
+          if (formula !== undefined && namesThisSheet(formula)) {
+            candidates.push({ kind: 'cell', sheet, row, col, before: formula, after: formula });
+          }
+        });
+      });
+
+      if (useKnownSheets && candidates.length === count) {
+        this.#sheetsNotNamingOwnSheet.add(sheet);
+      }
+    });
+
+    // A named expression can reach this sheet with or without naming it, so each one is a candidate.
+    [undefined, ...sheetIds].forEach((scope) => {
+      engine.listNamedExpressions(scope).forEach((name: string) => {
+        const formula: string | undefined = engine.getNamedExpressionFormula(name, scope);
+
+        if (formula !== undefined) {
+          candidates.push({ kind: 'name', name, scope, before: formula, after: formula });
+        }
+      });
+    });
+
+    return candidates;
+  }
+
+  /**
+   * Records the candidates the engine call rewrote, merged per cell or name within the step (the first
+   * text before, the last text after), and brings the other grids' source data in line with them.
+   *
+   * @param {PeerRewrite[]} candidates The candidates `#collectPeerFormulas()` listed before the call.
+   */
+  #recordPeerRewrites(candidates: PeerRewrite[]) {
+    const engine = this.engine!;
+    const rewritten: PeerRewrite[] = [];
+
+    candidates.forEach((candidate) => {
+      const after: string | undefined = candidate.kind === 'cell' ?
+        engine.getCellFormula({ sheet: candidate.sheet, row: candidate.row, col: candidate.col }) :
+        engine.getNamedExpressionFormula(candidate.name, candidate.scope);
+
+      if (after === candidate.before) {
+        return;
+      }
+
+      const key = candidate.kind === 'cell' ?
+        `cell:${candidate.sheet}:${candidate.row}:${candidate.col}` : `name:${candidate.scope}:${candidate.name}`;
+      const recorded = this.#pendingPeerRewrites.get(key);
+
+      if (recorded === undefined) {
+        this.#pendingPeerRewrites.set(key, { ...candidate, after });
+      } else {
+        recorded.after = after;
+      }
+
+      rewritten.push(candidate);
+    });
+
+    this.#syncPeerSources(rewritten);
+  }
+
+  /**
+   * Puts back the formulas the restored step rewrote outside this grid's sheet: their text before the
+   * step for an undo, after it for a redo. A formula edited since the step is left alone.
+   *
+   * @param {object} state The state being restored.
+   * @param {object} [context] The step being restored.
+   */
+  #restorePeerRewrites(state: FormulasUndoState, context?: PluginRestoreContext) {
+    // The step's rewrites are recorded in the state it ended in.
+    const stepEnd = context?.direction === 'undo' ? context.other : state;
+
+    if (context?.direction === undefined || !isFormulasUndoState(stepEnd) || stepEnd.peerRewrites.length === 0) {
+      return;
+    }
+
+    const engine = this.engine!;
+    const isUndo = context.direction === 'undo';
+    let keptEdited = false;
+    const changes = engine.batch(() => {
+      stepEnd.peerRewrites.forEach((rewrite) => {
+        const expected = isUndo ? rewrite.after : rewrite.before;
+        const text = isUndo ? rewrite.before : rewrite.after;
+
+        if (rewrite.kind === 'cell') {
+          const address = { sheet: rewrite.sheet, row: rewrite.row, col: rewrite.col };
+
+          if (engine.getSheetName(rewrite.sheet) === undefined) {
+            return;
+          }
+
+          if (engine.getCellFormula(address) !== expected) {
+            keptEdited = true;
+          } else if (engine.isItPossibleToSetCellContents(address)) {
+            engine.setCellContents(address, text ?? null);
+          }
+
+          return;
+        }
+
+        // A name scoped to a sheet went with the sheet, and the engine throws when asked about it.
+        if (rewrite.scope !== undefined && engine.getSheetName(rewrite.scope) === undefined) {
+          return;
+        }
+
+        if (engine.getNamedExpressionFormula(rewrite.name, rewrite.scope) !== expected) {
+          keptEdited = true;
+        } else if (text !== undefined &&
+            engine.isItPossibleToChangeNamedExpression(rewrite.name, text, rewrite.scope)) {
+          engine.changeNamedExpression(rewrite.name, text, rewrite.scope,
+            engine.getNamedExpression(rewrite.name, rewrite.scope)?.options);
+        }
+      });
+    });
+
+    if (keptEdited) {
+      warnOnce(this.hot, 'formulas.undoKeptEditedPeerFormula', toSingleLine`Formulas: an undo or a redo left\x20
+        a formula in another sheet or a named expression as it was, because it was edited after the step.`);
+    }
+
+    changes.forEach((cell) => {
+      this.#restoredDependentCells.push(cell);
+    });
+    this.renderDependentSheets(changes);
+    this.#syncPeerSources(stepEnd.peerRewrites);
+  }
+
+  /**
+   * Writes the rewritten formulas back into the source data of the other grids whose sheets hold them,
+   * the way each grid does it after its own row and column changes – but only at the rewritten cells,
+   * so a `#REF!` the step did not cause is not written into that grid's data. Suppressed there, so the
+   * other grid records no undo step for it.
+   *
+   * @param {PeerRewrite[]} rewrites The rewrites.
+   */
+  #syncPeerSources(rewrites: readonly PeerRewrite[]) {
+    const cellsBySheet = new Map<number, Array<{ row: number, col: number }>>();
+
+    rewrites.forEach((rewrite) => {
+      if (rewrite.kind === 'cell') {
+        const cells = cellsBySheet.get(rewrite.sheet) ?? [];
+
+        cells.push({ row: rewrite.row, col: rewrite.col });
+        cellsBySheet.set(rewrite.sheet, cells);
+      }
+    });
+
+    if (cellsBySheet.size === 0) {
+      return;
+    }
+
+    const peers = getRegisteredHotInstances(this.engine!);
+
+    cellsBySheet.forEach((cells, sheet) => {
+      const peerHot = peers.get(sheet);
+      const peer = peerHot?.getPlugin('formulas');
+
+      // A grid of another Handsontable bundle is another class, whose private members this one
+      // cannot reach.
+      if (peerHot === undefined || peerHot === this.hot || !(peer instanceof Formulas) || !peer.enabled) {
+        return;
+      }
+
+      peerHot._getOperationScope().suppress(() => peer.#syncFormulasToSourceData(true, cells));
+    });
+  }
+
+  /**
+   * Returns the engine's sheet while its order is not the physical one, and `null` otherwise – the
+   * source data rebuilds a sheet in physical order. A row that reads the same as in the previous
+   * capture is that capture's row array, so consecutive steps share what they did not change: each
+   * step keeps the rows it changed, not a copy of the whole sheet.
+   *
+   * @param {object|null} previous The sheet the previous capture returned.
+   * @returns {object|null}
+   */
+  #captureEngineSheet(previous: EngineSheetSnapshot | null): EngineSheetSnapshot | null {
+    if (
+      !this.engine || this.sheetId === null ||
+      (this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())
+    ) {
+      return null;
+    }
+
+    const content: unknown[][] = this.engine.getSheetSerialized(this.sheetId);
+
+    if (previous !== null) {
+      content.forEach((row, index) => {
+        const previousRow = previous.content[index];
+
+        if (
+          previousRow !== undefined && previousRow.length === row.length &&
+          row.every((value, column) => value === previousRow[column])
+        ) {
+          content[index] = previousRow;
+        }
+      });
+    }
+
+    return {
+      content,
+      rowOrder: this.rowAxisSyncer!.getEngineOrder(),
+      columnOrder: this.columnAxisSyncer!.getEngineOrder(),
+    };
+  }
+
+  /**
+   * Loads a recorded engine sheet back, in the order it was recorded in, and returns the cells whose
+   * values changed.
+   *
+   * @param {object} snapshot The recorded sheet.
+   * @returns {Array}
+   */
+  #loadEngineSheet(snapshot: EngineSheetSnapshot): unknown[] {
+    this.#internalOperationPending = true;
+
+    try {
+      const dependentCells = this.engine!.setSheetContent(this.sheetId, snapshot.content);
+
+      this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
+      this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
+      this.renderDependentSheets(dependentCells);
+
+      return dependentCells;
+    } finally {
+      this.#internalOperationPending = false;
+    }
+  }
+
+  /**
+   * Draws a new structure version: the rows or columns the engine holds changed.
+   */
+  #markStructureChanged() {
+    this.#versionSeed += 1;
+    this.#structureVersion = this.#versionSeed;
+  }
+
+  /**
+   * Draws a new data version: a cell write reached the engine.
+   */
+  #markDataChanged() {
+    this.#versionSeed += 1;
+    this.#dataVersion = this.#versionSeed;
+  }
+
+  /**
+   * Writes the held cell writes of an undo or a redo into the engine.
+   */
+  #flushRestoredWrites = () => {
+    const changes = this.#restoredWrites;
+
+    this.#restoredWrites = [];
+
+    if (changes.length > 0 && this.engine) {
+      this.#writeSourceChangesToEngine(changes, true);
+    }
+  };
+
+  /**
+   * Draws a new structure version when the row or column order changes.
+   */
+  #onAfterSequenceChange = () => {
+    this.#markStructureChanged();
+  };
+
+  /**
+   * Collects the engine addresses of the cells an undo or a redo wrote, from the `afterChange` it
+   * fires once the restore is done.
+   *
+   * @param {Array[]} changes The changes, in the `afterChange` format.
+   * @param {string} source The source of the change.
+   */
+  #onAfterRestoredChange = (changes: CellChange[] | null, source: string) => {
+    if (!isRestoreSource(source) || changes === null) {
       return;
     }
 
     changes.forEach(([visualRow, prop]) => {
-      if (typeof prop !== 'string' && typeof prop !== 'number') {
-        return;
-      }
+      const visualColumn = typeof prop === 'function' ? null : this.hot.propToCol(prop);
 
-      const visualColumn = this.hot.propToCol(prop);
-
-      if (visualColumn === null || !isNumeric(visualRow) || !isNumeric(visualColumn)) {
+      if (typeof visualColumn !== 'number' || !Number.isInteger(visualColumn)) {
         return;
       }
 
@@ -1852,39 +2160,28 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      this.#undoRedoChangedCells.push({
+      this.#restoredChangedCells.push({
         address: { row: hfRow, col: hfColumn, sheet: this.sheetId },
       });
     });
-  }
+  };
 
   /**
-   * Validates the cells that the engine recalculated while an action was undone or redone.
-   *
-   * The `afterSetDataAtCell` and `afterSetSourceDataAtCell` listeners ignore changes coming from the
-   * `UndoRedo` plugin, because the engine reverts them through its own undo stack. Without this step
-   * the dependent formula cells would keep the `valid` flag they were given before the action was
-   * reverted - a formula cell that turned into an error, and is a correct value again after the undo,
-   * would stay marked as invalid.
-   *
-   * Runs only when the action wrote cell data. That covers undoing an edit (`setDataAtCell`) and
-   * undoing a row or column removal, which restores the data with `setSourceDataAtCell`. Actions
-   * that only reorder or hide - moving, sorting, filtering, merging - write no data, do not validate
-   * dependent cells outside of undo either, and are skipped.
+   * Validates the cells a sheet reload recalculated during an undo or a redo, leaving out the ones the
+   * restore wrote – the UndoRedo plugin validates those itself. A restore that wrote no cell (a sort, a
+   * move) validates nothing, as the forward operation did not either.
    */
-  #validateUndoRedoDependentCells() {
-    const dependentCells = this.#undoRedoDependentCells;
-    const changedCells = this.#undoRedoChangedCells;
-    const wroteData = this.#undoRedoWroteData;
+  #validateRestoredDependents = () => {
+    const dependentCells = this.#restoredDependentCells;
+    const changedCells = this.#restoredChangedCells;
 
-    this.#undoRedoDependentCells = [];
-    this.#undoRedoChangedCells = [];
-    this.#undoRedoWroteData = false;
+    this.#restoredDependentCells = [];
+    this.#restoredChangedCells = [];
 
-    if (wroteData && dependentCells.length) {
+    if (dependentCells.length > 0 && changedCells.length > 0) {
       this.validateDependentCells(dependentCells, changedCells);
     }
-  }
+  };
 
   /**
    * Sync a change from the change-related hooks with the engine.
@@ -2765,13 +3062,15 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
    */
-  #writeSheet(sourceDataArray: unknown[][]) {
+  #writeSheet(sourceDataArray: unknown[][]): unknown[] {
     this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
 
+    let dependentCells: unknown[] = [];
+
     try {
-      const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+      dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
       this.renderDependentSheets(dependentCells);
@@ -2780,6 +3079,8 @@ export class Formulas extends BasePlugin {
     }
 
     this.#recordSyncedLayout();
+
+    return dependentCells;
   }
 
   /**
@@ -2790,11 +3091,13 @@ export class Formulas extends BasePlugin {
    * layout is recorded so the late `afterUpdateSettings` listener does not take the emptied sheet
    * for a row-count change and scan a layout the engine just rejected.
    */
-  #clearRejectedSheet() {
+  #clearRejectedSheet(): unknown[] {
     this.#internalOperationPending = true;
 
+    let dependentCells: unknown[] = [];
+
     try {
-      const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+      dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
 
       this.renderDependentSheets(dependentCells);
     } finally {
@@ -2805,6 +3108,8 @@ export class Formulas extends BasePlugin {
 
     warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
       'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+
+    return dependentCells;
   }
 
   /**
@@ -2934,30 +3239,38 @@ export class Formulas extends BasePlugin {
     }
 
     if (!this.#hotWasInitializedWithEmptyData) {
-      // Whatever the branches below write supersedes a resync still owed from a settings update
-      // this load interrupted.
-      this.#sheetResyncPending = false;
-
-      const sourceDataArray = this.#getProcessedSourceDataArray();
-
-      // The guard only range-checks the sheet against the array dimensions, so escaping can run
-      // after it – and then it is skipped altogether when the content is not replaced. Observable
-      // side effect of that ordering: on the rejected branch the user's `cells` function and the
-      // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
-      // the pre-guard scan used to invoke them before discarding the result.
-      if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-        // Records the layout too, so a settings update this load ran inside of has no row-count
-        // change left to carry.
-        this.#writeSheet(sourceDataArray);
-
-      } else {
-        this.#clearRejectedSheet();
-      }
+      // Records the layout too, so a settings update this load ran inside of has no row-count change
+      // left to carry.
+      this.#loadSourceDataIntoSheet();
 
     } else if (this.sheetName !== null) {
       this.switchSheet(this.sheetName);
     }
   };
+
+  /**
+   * Fills the sheet with the source data, renders the grids that read it, and returns the cells
+   * whose values changed. When the data does not fit the engine, the sheet is emptied instead.
+   *
+   * @returns {Array} The engine's changes.
+   */
+  #loadSourceDataIntoSheet(): unknown[] {
+    // Whatever this writes supersedes a resync still owed from a settings update it interrupted.
+    this.#sheetResyncPending = false;
+
+    const sourceDataArray = this.#getProcessedSourceDataArray();
+
+    // The guard only range-checks the sheet against the array dimensions, so escaping can run
+    // after it – and then it is skipped altogether when the content is not replaced. Observable
+    // side effect of that ordering: on the rejected branch the user's `cells` function and the
+    // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
+    // the pre-guard scan used to invoke them before discarding the result.
+    if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+      return this.#writeSheet(sourceDataArray);
+    }
+
+    return this.#clearRejectedSheet();
+  }
 
   /**
    * `modifyData` hook callback.
@@ -3243,7 +3556,13 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
-      this.#registerUndoRedoWrite(changes, source, true);
+      return;
+    }
+
+    if (isRestoreSource(source)) {
+      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
+        this.#restoredWrites.push([this.hot.toPhysicalRow(visualRow) ?? visualRow, prop, oldValue, newValue]);
+      });
 
       return;
     }
@@ -3261,6 +3580,8 @@ export class Formulas extends BasePlugin {
 
     const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
+
+    this.#markDataChanged();
 
     const dependentCells = this.engine!.batch(() => {
       changes.forEach(([visualRow, prop, , newValue]) => {
@@ -3332,7 +3653,13 @@ export class Formulas extends BasePlugin {
     }
 
     if (isBlockedSource(source)) {
-      this.#registerUndoRedoWrite(changes, source, false);
+      return;
+    }
+
+    if (isRestoreSource(source)) {
+      changes.forEach((change) => {
+        this.#restoredWrites.push(change);
+      });
 
       return;
     }
@@ -3342,11 +3669,24 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const dependentCells: unknown[] = [];
-    const changedCells: unknown[] = [];
-    const metaManager = this.hot._getMetaManager();
+    this.#markDataChanged();
+    this.#writeSourceChangesToEngine(changes);
+  };
 
-    changes.forEach(([physicalRow, prop, , newValue]) => {
+  /**
+   * Writes source-level cell changes into the engine, renders the dependent sheets and validates the
+   * dependent cells.
+   *
+   * @param {Array[]} changes The changes, in the `afterSetSourceDataAtCell` format (physical rows).
+   * @param {boolean} [restored=false] `true` for the writes of an undo or a redo: they are written in
+   *   one `engine.batch()`, so the engine recalculates once for the whole restore, and this grid is
+   *   rendered too. A batch is not nestable in the engine, so the forward path keeps its per-cell calls.
+   */
+  #writeSourceChangesToEngine(changes: CellChange[], restored = false) {
+    const changedCells: unknown[] = [];
+    const dependentCells: unknown[] = [];
+    const metaManager = this.hot._getMetaManager();
+    const writeAll = () => changes.forEach(([physicalRow, prop, , newValue]) => {
       if (typeof prop !== 'string' && typeof prop !== 'number') {
         return;
       }
@@ -3379,7 +3719,11 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      newValue = normalizeValueForFormulaEngine(newValue);
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+
+      // The stored value, projected the way an edit and a load project it: an object value (a
+      // `{ key, value }` dropdown option) reaches the engine as its `valueGetter` text, never raw.
+      newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
 
       // Values the escaping can never change skip the meta read: both `isDate()` and
       // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
@@ -3389,7 +3733,6 @@ export class Formulas extends BasePlugin {
         // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
         // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
         // would consult a visible neighbor's meta instead of the written cell's own.
-        const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
         const cellMeta = metaManager.getCellMetaTransient(
           physicalRow, physicalColumn,
           { visualRow, visualColumn },
@@ -3399,21 +3742,37 @@ export class Formulas extends BasePlugin {
       }
 
       changedCells.push({ address });
-      dependentCells.push(...this.engine!.setCellContents(address, newValue));
+      this.engine!.setCellContents(address, newValue).forEach((dependentCell: unknown) => {
+        dependentCells.push(dependentCell);
+      });
     });
 
-    this.renderDependentSheets(dependentCells);
+    if (restored) {
+      this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
+        dependentCells.push(dependentCell);
+      });
+    } else {
+      writeAll();
+    }
+
+    this.renderDependentSheets(dependentCells, restored);
     this.validateDependentCells(dependentCells, changedCells);
-  };
+  }
 
   /**
    * `beforeCreateRow` hook callback.
    *
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
+   * @param {string} [source] The source of the change. An undo or a redo is not asked about: the
+   *   sheet is brought in line with the restored grid once the restore is done.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeCreateRow = (visualRow: number, amount: number) => {
+  #onBeforeCreateRow = (visualRow: number, amount: number, source?: string) => {
+    if (isRestoreSource(source)) {
+      return;
+    }
+
     let hfRowIndex = this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow);
 
     if (visualRow >= this.hot.countRows()) {
@@ -3434,9 +3793,15 @@ export class Formulas extends BasePlugin {
    *
    * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
+   * @param {string} [source] The source of the change. An undo or a redo is not asked about: the
+   *   sheet is brought in line with the restored grid once the restore is done.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeCreateCol = (visualColumn: number, amount: number) => {
+  #onBeforeCreateCol = (visualColumn: number, amount: number, source?: string) => {
+    if (isRestoreSource(source)) {
+      return;
+    }
+
     let hfColumnIndex = this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn);
 
     if (visualColumn >= this.hot.countCols()) {
@@ -3458,9 +3823,15 @@ export class Formulas extends BasePlugin {
    * @param {number} row Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
+   * @param {string} [source] The source of the change. An undo or a redo is not asked about: the
+   *   sheet is brought in line with the restored grid once the restore is done.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeRemoveRow = (row: number, amount: number, physicalRows: number[]) => {
+  #onBeforeRemoveRow = (row: number, amount: number, physicalRows: number[], source?: string) => {
+    if (isRestoreSource(source)) {
+      return;
+    }
+
     const hfRows = this.rowAxisSyncer!.setRemovedHfIndexes(physicalRows);
 
     const possible = hfRows.every((hfRow: number) => {
@@ -3476,9 +3847,15 @@ export class Formulas extends BasePlugin {
    * @param {number} col Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+   * @param {string} [source] The source of the change. An undo or a redo is not asked about: the
+   *   sheet is brought in line with the restored grid once the restore is done.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeRemoveCol = (col: number, amount: number, physicalColumns: number[]) => {
+  #onBeforeRemoveCol = (col: number, amount: number, physicalColumns: number[], source?: string) => {
+    if (isRestoreSource(source)) {
+      return;
+    }
+
     const hfColumns = this.columnAxisSyncer!.setRemovedHfIndexes(physicalColumns);
 
     const possible = hfColumns.every((hfColumn: number) => {
@@ -3608,8 +3985,14 @@ export class Formulas extends BasePlugin {
    * exists, one row further down.
    *
    * @private
+   * @param {boolean} [allowBrokenReferences] `true` to write a `#REF!` the engine holds.
+   * @param {Array} [cells] The only engine cells to write (another grid's rewrites); every cell of
+   *   the sheet when omitted.
    */
-  #syncFormulasToSourceData(allowBrokenReferences = false) {
+  #syncFormulasToSourceData(
+    allowBrokenReferences = false,
+    cells?: ReadonlyArray<{ row: number, col: number }>,
+  ) {
     if (
       this.#internalOperationPending ||
       this.#nestedRowsDetachPending ||
@@ -3625,68 +4008,42 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const sheetId = this.engine.getSheetId(this.sheetName)!;
-    const dimensions = this.engine.getSheetDimensions(sheetId);
+    const engine = this.engine;
+    const sheetId = engine.getSheetId(this.sheetName)!;
+    const dimensions = engine.getSheetDimensions(sheetId);
 
     if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
 
-    const formulas = this.engine.getSheetFormulas(sheetId);
     const changes: Array<[number, string | number, unknown]> = [];
     // Resolved once for the run, and only if a formula cell is actually found - it reads the data.
     let engineHoldsPhysicalColumns: boolean | null = null;
+    const holdsPhysicalColumns = () => {
+      engineHoldsPhysicalColumns ??= this.#doesEngineHoldPhysicalColumns();
+
+      return engineHoldsPhysicalColumns;
+    };
+    const collect = (hfRow: number, hfColumn: number, formula: string | undefined) => {
+      const change = formula === undefined ? null :
+        this.#readSourceChange(hfRow, hfColumn, formula, allowBrokenReferences, holdsPhysicalColumns);
+
+      if (change !== null) {
+        changes.push(change);
+      }
+    };
 
     // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
     // would otherwise answer with the engine's formula and hide every diff.
     this.#internalOperationPending = true;
 
     try {
-      for (let hfRow = 0; hfRow < formulas.length; hfRow++) {
-        const formulasRow = formulas[hfRow];
-
-        if (!formulasRow) {
-          continue;
-        }
-
-        // The order guard above means the engine's index IS the physical index, so trimmed rows
-        // (Filters, `trimRows`) are reached too - they hold formulas that need the same catch-up.
-        const physicalRow = hfRow;
-
-        for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
-          const formula = formulasRow[hfColumn];
-
-          if (formula === undefined) {
-            continue;
-          }
-
-          if (engineHoldsPhysicalColumns === null) {
-            engineHoldsPhysicalColumns = this.#doesEngineHoldPhysicalColumns();
-          }
-
-          const column = this.#resolveEngineColumn(hfColumn, engineHoldsPhysicalColumns);
-
-          if (column === null) {
-            continue;
-          }
-
-          // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
-          // a physical row and a prop.
-          const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
-
-          if (stored === formula || this.#isSameFormula(stored, formula)) {
-            continue;
-          }
-
-          // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it
-          // would overwrite a still-good formula in the developer's array with an unrecoverable one,
-          // so it is only written for the operations that can legitimately break a reference.
-          if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
-            continue;
-          }
-
-          changes.push([physicalRow, column.prop, formula]);
-        }
+      if (cells === undefined) {
+        engine.getSheetFormulas(sheetId).forEach((formulasRow, hfRow) => {
+          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, formula));
+        });
+      } else {
+        cells.forEach(({ row, col }) => collect(row, col, engine.getCellFormula({ sheet: sheetId, row, col })));
       }
     } finally {
       this.#internalOperationPending = false;
@@ -3708,6 +4065,51 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Returns the source data write that brings one engine formula into the source data, or `null`
+   * when the source already holds it or must not get it. The engine order must be the physical one.
+   *
+   * @param {number} hfRow The engine row – the physical row, in the physical order.
+   * @param {number} hfColumn The engine column.
+   * @param {string} formula The engine's formula.
+   * @param {boolean} allowBrokenReferences `true` to write a `#REF!` the source does not hold yet.
+   * @param {Function} holdsPhysicalColumns Tells whether the engine holds the columns in physical order.
+   * @returns {Array|null} The write, as `[physicalRow, prop, formula]`.
+   */
+  #readSourceChange(
+    hfRow: number,
+    hfColumn: number,
+    formula: string,
+    allowBrokenReferences: boolean,
+    holdsPhysicalColumns: () => boolean,
+  ): [number, string | number, unknown] | null {
+    // The engine's index IS the physical index in the physical order, so trimmed rows (Filters,
+    // `trimRows`) are reached too – they hold formulas that need the same catch-up.
+    const physicalRow = hfRow;
+    const column = this.#resolveEngineColumn(hfColumn, holdsPhysicalColumns());
+
+    if (column === null) {
+      return null;
+    }
+
+    // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell` a physical
+    // row and a prop.
+    const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
+
+    if (stored === formula || this.#isSameFormula(stored, formula)) {
+      return null;
+    }
+
+    // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it would
+    // overwrite a still-good formula in the developer's array with an unrecoverable one, so it is only
+    // written for the operations that can legitimately break a reference.
+    if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
+      return null;
+    }
+
+    return [physicalRow, column.prop, formula];
+  }
+
+  /**
    * `afterCreateRow` hook callback.
    *
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
@@ -3719,12 +4121,14 @@ export class Formulas extends BasePlugin {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
 
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
     }
 
-    const changes = this.engine!.addRows(this.sheetId,
-      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
+    this.#markStructureChanged();
+
+    const changes = this.#trackPeerRewrites(() => this.engine!.addRows(this.sheetId,
+      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -3742,12 +4146,14 @@ export class Formulas extends BasePlugin {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
 
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
     }
 
-    const changes = this.engine!.addColumns(this.sheetId,
-      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
+    this.#markStructureChanged();
+
+    const changes = this.#trackPeerRewrites(() => this.engine!.addColumns(this.sheetId,
+      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -3766,15 +4172,17 @@ export class Formulas extends BasePlugin {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
 
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
     }
 
+    this.#markStructureChanged();
+
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    });
+    }));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -3793,15 +4201,17 @@ export class Formulas extends BasePlugin {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
 
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
     }
 
+    this.#markStructureChanged();
+
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    });
+    }));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -3947,10 +4357,8 @@ export class Formulas extends BasePlugin {
    * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
    * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
    *
-   * During undo and non-move redo operations, the engine has already been advanced in the
-   * `beforeUndo`/`beforeRedo` hook, so this method only enables the HOT-data sync in the
-   * `afterMoveCells` listener. A move redo is validated first, then executed here to keep a
-   * rejected move from advancing HyperFormula.
+   * Undo and redo never run a move again – they restore the recorded cells, which reach the engine
+   * through `restoreState()` – so this method runs for a user's move only.
    *
    * This is the second half of a two-phase protocol with the MoveCells plugin: `beforeMoveCells`
    * prepares `#pendingMoveCells`, and this method commits it. It is internal despite being reachable
@@ -3970,12 +4378,6 @@ export class Formulas extends BasePlugin {
     this.#pendingMoveCells = null;
     this.#moveCellsChanges = null;
 
-    if (this.indexSyncer?.isPerformingUndoRedo() && !this.#isRedoingMoveCells) {
-      this.#committedMoveCells = rect;
-
-      return true;
-    }
-
     // HyperFormula can still throw for cases the isItPossibleTo* pre-checks in
     // `beforeMoveCells` do not cover. Failing here is safe: the core has not mutated
     // anything yet and aborts the whole operation when `false` is returned.
@@ -3985,9 +4387,9 @@ export class Formulas extends BasePlugin {
         this.engine.copy(source);
         this.#moveCellsChanges = this.engine.paste(dest);
       } else {
-        this.#moveCellsChanges = this.engine.batch(() => {
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.engine!.batch(() => {
           this.engine!.moveCells(source, dest);
-        });
+        }));
       }
     } catch (e) {
       const operation = isCopy ? 'copy/paste' : 'moveCells';
@@ -3999,6 +4401,15 @@ export class Formulas extends BasePlugin {
     }
 
     this.#committedMoveCells = rect;
+
+    // A move rewrites every formula that points at the moved cells. In physical order those rewrites
+    // are written back to the source data, so the journal holds them. Out of it they are not, so the
+    // step records the engine's sheet instead, and its undo loads it back.
+    if (!isCopy && !(this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())) {
+      this.#markStructureChanged();
+    } else {
+      this.#markDataChanged();
+    }
 
     return true;
   }
@@ -4040,8 +4451,6 @@ export class Formulas extends BasePlugin {
     // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
     this.#syncFormulasToSourceData(true);
 
-    // During undo/redo replay the engine step was skipped (dependentCells is null) and the
-    // HOT re-render after undo/redo refreshes all dependent cells anyway.
     if (dependentCells !== null) {
       this.renderDependentSheets(dependentCells, true);
     }
@@ -4122,9 +4531,9 @@ export class Formulas extends BasePlugin {
         );
       }
 
-      // Write target cells with HF-serialized content (formula strings preserved).
-      // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
-      // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
+      // Write target cells with HF-serialized content (formula strings preserved). The writes run
+      // inside the move's own operation, so the move's undo step records them, and the `auto`
+      // source keeps them out of this plugin's own write listeners.
       this.hot.populateFromArray(
         tgtFromRow, tgtFromCol, targetData,
         tgtFromRow + height - 1, tgtFromCol + width - 1,
@@ -4168,12 +4577,8 @@ export class Formulas extends BasePlugin {
    * emitter before this plugin's listener is reached, leaving the flag set. `enablePlugin()` clears
    * it, so that leak is bounded by the next enable rather than lasting the whole session.
    */
-  #onBeforeDetachChild = (_parent: unknown, _element: unknown, source?: string) => {
+  #onBeforeDetachChild = () => {
     this.#nestedRowsDetachPending = true;
-
-    if (source === 'UndoRedo.redo') {
-      this.indexSyncer!.setPerformRedo(true);
-    }
   };
 
   /**
@@ -4199,47 +4604,7 @@ export class Formulas extends BasePlugin {
   #closeLeakedGuards() {
     this.#nestedRowsDetachPending = false;
     this.#internalOperationPending = false;
-    this.#releaseIndexSyncGuards();
   }
-
-  /**
-   * Lowers the index-sync undo and redo flags that an interrupted undo or redo left raised.
-   *
-   * A redo of a NestedRows detach raises the redo flag in `beforeDetachChild`, and `afterRedo` lowers it. When
-   * the detach throws between the two, `UndoRedo` rethrows without firing `afterRedo`, and nothing else would
-   * lower the flag. A raised flag makes the axis syncers skip every later row and column move, so HyperFormula
-   * silently drifts away from the grid. Every undo and redo starts from lowered flags, and so does every
-   * structural reload in `#closeLeakedGuards`, which bounds such a leak to the next of those operations.
-   */
-  #releaseIndexSyncGuards() {
-    this.indexSyncer?.setPerformUndo(false);
-    this.indexSyncer?.setPerformRedo(false);
-    this.#nestedRowsDetachUndoPending = false;
-    this.#structuralRedoApplied = null;
-  }
-
-  /**
-   * Records whether a structural redo landed on the done stack. See `#structuralRedoApplied`.
-   */
-  #onAfterUndoStackChange = (doneActionsBefore: unknown[], doneActionsAfter: unknown[]) => {
-    if (this.#structuralRedoApplied !== null) {
-      this.#structuralRedoApplied = doneActionsAfter.length > doneActionsBefore.length;
-    }
-  };
-
-  /**
-   * Releases the index-sync undo guard after a NestedRows detach undo settles.
-   *
-   * UndoRedo emits this hook after the action has run and before the successful `afterUndo` hook.
-   * No row-index synchronization remains, so both successful and vetoed actions can release the
-   * guard here. A veto never reaches `afterUndo`.
-   */
-  #onAfterRedoStackChange = () => {
-    if (this.#nestedRowsDetachUndoPending) {
-      this.indexSyncer!.setPerformUndo(false);
-      this.#nestedRowsDetachUndoPending = false;
-    }
-  };
 
   /**
    * `afterDetachChild` hook callback.
@@ -4251,6 +4616,8 @@ export class Formulas extends BasePlugin {
    */
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
                          finalElementRowIndex: number, source?: string) => {
+    this.#markStructureChanged();
+
     try {
       if (isBlockedSource(source)) {
         return;
