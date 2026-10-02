@@ -13,7 +13,7 @@ const ExampleComponent = () => {
       ref={hotTableRef}
       data={[]} // Empty data to trigger empty state
       height="auto"
-      colHeaders={['First Name', 'Last Name', 'Email']}
+      colHeaders={['Name', 'Job title', 'Department', 'City']}
       rowHeaders={true}
       navigableHeaders={true}
       dropdownMenu={true}
@@ -24,15 +24,15 @@ const ExampleComponent = () => {
           description: 'Please add some data to get started.',
           buttons: [
             {
-              text: 'Add Sample Data',
+              text: 'Load employees',
               type: 'primary',
               callback: () => {
-                // Add some sample data
                 hotTableRef.current?.hotInstance.loadData([
-                  ['John', 'Doe', 'john@example.com'],
-                  ['Jane', 'Smith', 'jane@example.com'],
-                  ['Bob', 'Johnson', 'bob@example.com'],
-                  ['Alice', 'Johnson', 'alice@example.com'],
+                  ['Ana García', 'Senior Engineer', 'Engineering', 'Austin'],
+                  ['James Okafor', 'Product Manager', 'Product', 'Chicago'],
+                  ['Li Wei', 'Data Analyst', 'Analytics', 'Seattle'],
+                  ['Priya Raman', 'Marketing Lead', 'Marketing', 'Denver'],
+                  ['Marcus Johnson', 'HR Business Partner', 'People Operations', 'Atlanta'],
                 ]);
               },
             },
