@@ -5541,6 +5541,13 @@ export default (): Record<string, unknown> => {
      * The `noWordWrapClassName` option lets you add a CSS class name
      * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
+     * Handsontable always adds the built-in `htNoWrap` class, which keeps the content on one line,
+     * and then adds your class too. You can use your class for styling without a `white-space` rule.
+     * To set a different `white-space` value, use a selector stronger than `.handsontable .htNoWrap`,
+     * for example `.handsontable td.yourClass`.
+     *
+     * If you set `noWordWrapClassName` to an empty string, Handsontable adds no class at all.
+     *
      * Read more:
      * - [`wordWrap`](#wordWrap)
      * - [`currentRowClassName`](#currentRowClassName)

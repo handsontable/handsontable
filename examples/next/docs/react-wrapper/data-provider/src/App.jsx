@@ -6,8 +6,8 @@ import { createTicketsDataProvider, createWarehouseDataProvider } from './dataPr
 
 registerAllModules();
 
-const REST_API = process.env.REACT_APP_API_BASE || 'http://localhost:4010';
-const GRAPHQL_URL = process.env.REACT_APP_GRAPHQL_URL || 'http://localhost:4011/graphql';
+const REST_API = import.meta.env.VITE_API_BASE || 'http://localhost:4010';
+const GRAPHQL_URL = import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:4011/graphql';
 
 const sharedGridProps = {
   rowHeaders: true,
@@ -34,7 +34,7 @@ function App() {
           Run <code>npm run server</code> (or <code>npm run server:rest</code> and{' '}
           <code>npm run server:graphql</code> in two terminals), then <code>npm run start</code>.
           REST uses port 4010; GraphQL uses port 4011. Override with{' '}
-          <code>REACT_APP_API_BASE</code> and <code>REACT_APP_GRAPHQL_URL</code>.
+          <code>VITE_API_BASE</code> and <code>VITE_GRAPHQL_URL</code>.
         </p>
       </div>
       <section className="demo-panel" aria-labelledby="warehouse-heading">
