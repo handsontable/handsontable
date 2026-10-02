@@ -45,6 +45,17 @@ export class IndexesSequence extends IndexMap {
   }
 
   /**
+   * Tells whether the sequence is the identity (`0..length-1`), so no array is materialized. A
+   * snapshot reads this to record the state without calling `getValues()`, which would allocate an
+   * n-element array.
+   *
+   * @returns {boolean}
+   */
+  isIdentity(): boolean {
+    return this.#isIdentity;
+  }
+
+  /**
    * Get sequence of physical indexes.
    *
    * @returns {number[]} Physical indexes.

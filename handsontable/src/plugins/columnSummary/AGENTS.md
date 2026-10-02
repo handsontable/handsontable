@@ -181,10 +181,10 @@ it just the same. `isLockedSummaryCell(visualRow, visualColumn)` is the predicat
 Why a veto, and not just a smarter menu item: the menu click is only one of four write paths that
 unlocked the cell. The other three:
 
-- **Undo of a column toggle.** `ReadOnlyToggleAction.undo` writes `Boolean(stateBefore[row]?.[col])` over
-  the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled cell
-  was writable), so undo wrote `false` onto the summary.
-- **Redo** writes the toggle's value over the whole range.
+- **Undo of a column toggle.** The old `ReadOnlyToggleAction.undo` wrote `Boolean(stateBefore[row]?.[col])`
+  over the whole range. A "make read-only" click records an **empty** snapshot by design (every toggled
+  cell was writable), so undo wrote `false` onto the summary.
+- **Redo** wrote the toggle's value over the whole range.
 - **A direct `setCellMeta` or `removeCellMeta` call.** It held until that endpoint was next
   recalculated (a change in its source column), which re-applied `readOnly`. That is the "comes back
   after a reload" symptom in the ticket, and it can last indefinitely.

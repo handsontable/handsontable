@@ -46,7 +46,10 @@ plugin re-enable), before the local hook could attach. Same replay as `../hidden
 - **An out-of-range visual index resolves to `null`**, which would write an entry under the string `"null"`
   and invalidate the width cache for nothing. Bail instead.
 
-The gesture writes every width through the public `setManualSize()`, so the 20px floor has one home.
+The gesture writes every width through the private `#setManualSize()` and tracks a drag with `#clampSize()`,
+never through the public `setManualSize()` (that one opens an undo step of its own). Both use `#clampSize()`,
+so the 20px floor has one home. A drag stores the width only on release - see "One press, one undo step" in
+`../../utils/manualResize/AGENTS.md`.
 
 ## Where the column axis differs from the row axis
 

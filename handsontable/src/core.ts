@@ -95,6 +95,14 @@ import type { default as DataSourceInstance } from './dataMap/dataSource';
 import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
+import { OperationScope } from './core/operationScope';
+import {
+  detachValue,
+  recordCellChange,
+  recordMetaRowsShift,
+  UNJOURNALED_META_KEYS,
+  type ReversedCellRun,
+} from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -151,6 +159,29 @@ function normalizeIndexesGroup(indexes: number[][]): number[][] {
  * @type {Map<string, Core>}
  */
 const foreignHotInstances = new Map();
+
+/**
+ * Tells whether a change source is an undo or redo replay.
+ *
+ * @param {string} [source] The change source.
+ * @returns {boolean}
+ */
+function isUndoRedoSource(source: string | undefined): boolean {
+  return source === 'UndoRedo.undo' || source === 'UndoRedo.redo';
+}
+
+/**
+ * The operation name each `alter()` action runs under. The names are the `actionType` values the
+ * UndoRedo hooks have always reported for these actions, so they must not change.
+ */
+const ALTER_OPERATION_NAMES: Readonly<Record<string, string>> = Object.freeze({
+  insert_row_above: 'insert_row',
+  insert_row_below: 'insert_row',
+  insert_col_start: 'insert_col',
+  insert_col_end: 'insert_col',
+  remove_row: 'remove_row',
+  remove_col: 'remove_col',
+});
 
 /**
  * A configuration option removed from the public API.
@@ -384,6 +415,9 @@ export default function Core(
   // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
   // the instance, because `destroy` nulls every instance property before it could be read there.
   let visibilityObserver: IntersectionObserver | null = null;
+  // Groups the mutating calls into one transaction per user action (see `runOperation`). Kept in the
+  // closure, not on the instance, because `destroy` nulls every instance property before it runs.
+  const operationScope = new OperationScope();
   /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
@@ -1614,7 +1648,9 @@ export default function Core(
                 const totalRows = instance.countRows();
                 const fixedRowsTop = tableMeta.fixedRowsTop;
 
-                if (fixedRowsTop >= calcIndex + 1) {
+                // `calcIndex` is -1 on a grid with no rows left: the removal took nothing, and a
+                // frozen count of 0 must not drop to -1.
+                if (calcIndex >= 0 && fixedRowsTop >= calcIndex + 1) {
                   tableMeta.fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
                 }
 
@@ -1749,7 +1785,9 @@ export default function Core(
 
                 const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
-                if (fixedColumnsStart >= calcIndex + 1) {
+                // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
+                // frozen count of 0 must not drop to -1.
+                if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
                   // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
                   // However, keeping the old name still in effect. When both option names are used together,
                   // the error is thrown. To prevent that, the engine needs to modify the original option key
@@ -2315,11 +2353,22 @@ export default function Core(
   }
 
   this.init = function() {
+    // Loading the grid is not a user action: nothing it does may open an operation or be journaled.
+    operationScope.suppress(() => applyInit());
+  };
+
+  /**
+   * The body of `init()`, run with recording suppressed. It is called directly, not through the
+   * instance, so code that wraps or spies on `init()` sees each call once.
+   *
+   * @private
+   */
+  function applyInit() {
     // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
     // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
     // Use `updateSettings()` to reconfigure a live instance.
     if (initialized) {
-      if (this.view) {
+      if (instance.view) {
         warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
           'use `updateSettings()` to reconfigure a live instance.');
       } else {
@@ -2363,9 +2412,9 @@ export default function Core(
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(mergedUserSettings, true);
+    instance.updateSettings(mergedUserSettings, true);
 
-    this.view = new TableView(this);
+    instance.view = new TableView(instance);
 
     editorManager = (EditorManager as unknown as Record<string, (...args: unknown[]) => EditorManagerInstance>)
       .getInstance(instance, tableMeta, selection);
@@ -2373,7 +2422,7 @@ export default function Core(
 
     focusGridManager.init();
 
-    if (isRootInstance(this)) {
+    if (isRootInstance(instance)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
@@ -2429,7 +2478,7 @@ export default function Core(
         }
       };
 
-      this.addHook('afterRender', syncEdgeSlotsWidth);
+      instance.addHook('afterRender', syncEdgeSlotsWidth);
 
       const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
       const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
@@ -2465,7 +2514,7 @@ export default function Core(
 
     instance.runHooks('init');
 
-    this.render();
+    instance.render();
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -2487,7 +2536,7 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
-  };
+  }
 
   /**
    * Reads the per-instance color scheme and density overrides from a settings object.
@@ -2735,7 +2784,6 @@ export default function Core(
 
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
-    const visibleRowsCount = instance.countRows();
     const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
     let shouldBeCanceled = true;
 
@@ -2786,6 +2834,41 @@ export default function Core(
       }
     };
 
+    try {
+      queueValidators(changes, source, waitingForValidator, pendingRowMetas, () => {
+        shouldBeCanceled = false;
+      });
+    } catch (error) {
+      // A cell that threw before its validator answered never leaves the queue, so the queue never
+      // drains and the call applies nothing. Take the correction hook off now, or it outlives the call.
+      waitingForValidator.onQueueEmpty = () => {};
+      instance.removeHook('afterChange', onAfterChange);
+      throw error;
+    }
+
+    waitingForValidator.checkIfQueueIsEmpty();
+  }
+
+  /**
+   * Starts the validator of every change that has one, and queues each until it answers. A change the
+   * validator rejects under `allowInvalid: false` is taken out of the list.
+   *
+   * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
+   * @param {string} [source] The change source.
+   * @param {object} waitingForValidator The queue.
+   * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
+   *   not exist yet.
+   * @param {Function} onRejected Called for each rejected change.
+   */
+  function queueValidators(
+    changes: CellChange[],
+    source: string | undefined,
+    waitingForValidator: ReturnType<typeof ValidatorsQueue>,
+    pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
+    onRejected: () => void,
+  ) {
+    const visibleRowsCount = instance.countRows();
+
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
       // A change can address a column that auto column growth is about to create, and `propToCol()`
@@ -2828,7 +2911,7 @@ export default function Core(
             }
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
-              shouldBeCanceled = false;
+              onRejected();
               // cancel the change
               changes.splice(index, 1);
               // we canceled the change, so cell value is still valid
@@ -2843,8 +2926,41 @@ export default function Core(
         }(i, cellProperties)), source);
       }
     }
+  }
 
-    waitingForValidator.checkIfQueueIsEmpty();
+  /**
+   * Writes one change into the data set, and journals it when a transaction records.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The value to write.
+   * @param {ReversedCellRun} run The `writeChangesToData()` call the write belongs to.
+   */
+  function writeChange(visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun) {
+    const physicalRow: number | null =
+      operationScope.getRecordingTransaction() === null ? null : instance.toPhysicalRow(visualRow);
+
+    if (physicalRow === null || !Number.isInteger(physicalRow)) {
+      datamap.set(visualRow, prop, value);
+
+      return;
+    }
+
+    // The journal keeps what the SOURCE held before and after the write, read raw – see
+    // `CellDelta` for why neither the change tuple nor a hooked read would do.
+    const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
+
+    datamap.set(visualRow, prop, value);
+
+    // `writeChangesToData()` writes its changes from the last one to the first. A write of the value
+    // the cell already held is journaled too: an edit is a step even when it changed nothing, as it
+    // always was (`UndoRedo.spec.js`).
+    recordCellChange(operationScope, {
+      physicalRow,
+      prop,
+      oldValue,
+      newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
+    }, run);
   }
 
   /**
@@ -2880,6 +2996,8 @@ export default function Core(
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
    */
   function writeChangesToData(changes: CellChange[]) {
+    const run: ReversedCellRun = { op: null };
+
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -2940,7 +3058,7 @@ export default function Core(
         continue;
       }
 
-      datamap.set(changes[i][0], changes[i][1] as string | number, changes[i][3]);
+      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run);
     }
   }
 
@@ -3177,30 +3295,49 @@ export default function Core(
       // Captured before the validator runs, so the callback can tell whether the cell's coordinates
       // still mean what they meant when it started.
       const structureVersion = metaManager.getStructureVersion();
+      // The validator answers after the call that asked for it has returned. What it and the
+      // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
+      // was not recorded – so the answer runs inside the call's operation.
+      const hold = operationScope.hold();
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
-        validator.call(cellProperties, value, (valid: boolean) => {
-          if (!instance) {
-            return;
-          }
+        try {
+          hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
+            if (!instance) {
+              hold.release();
 
-          valid = instance
-            .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
-          cellProperties.valid = valid;
-          markCellMetaChanged(cellProperties);
+              return;
+            }
 
-          persistValidationResult(cellProperties, valid, structureVersion);
+            try {
+              hold.resume(() => {
+                valid = instance
+                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+                cellProperties.valid = valid;
+                markCellMetaChanged(cellProperties);
 
-          done(valid);
-          instance.runHooks(
-            'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
-          );
-        });
+                persistValidationResult(cellProperties, valid, structureVersion);
+
+                done(valid);
+                instance.runHooks(
+                  'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+                );
+              });
+            } finally {
+              hold.release();
+            }
+          }));
+        } catch (error) {
+          hold.release();
+          throw error;
+        }
       });
 
     } else {
-      // resolve callback even if validator function was not found
+      // resolve callback even if validator function was not found. Nothing here is recorded (the `valid`
+      // flag is never journaled), so the call's step is not held for it: a Formulas grid validates the
+      // dependents of every edit, and a hold would record each edit a tick late.
       instance._registerMicrotask(() => {
         cellProperties.valid = true;
         markCellMetaChanged(cellProperties);
@@ -3225,6 +3362,26 @@ export default function Core(
     }
 
     return [[row, propOrCol, value]];
+  }
+
+  /**
+   * Returns the source the operation of a data setter records. The array form takes its source as
+   * the second argument, where the single-cell form takes the column. A call with no source records
+   * `fallback` – `'edit'` for the setters whose `beforeChange` reports it.
+   *
+   * @ignore
+   * @param {number|Array} row The row index, or the array of changes.
+   * @param {*} propOrCol The column or the prop, or the source in the array form.
+   * @param {string} [source] The source the call passed.
+   * @param {string} [fallback] The source of a call that passed none.
+   * @returns {string|undefined}
+   */
+  function readOperationSource(
+    row: unknown, propOrCol: unknown, source: string | undefined, fallback?: string,
+  ): string | undefined {
+    const passedSource = !source && typeof row === 'object' && typeof propOrCol === 'string' ? propOrCol : source;
+
+    return passedSource || fallback;
   }
 
   /**
@@ -3308,6 +3465,23 @@ export default function Core(
   this.setDataAtCell = function(
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
+    const operationSource = readOperationSource(row, column, source, 'edit');
+
+    operationScope.run('change', operationSource, () => setDataAtCell.call(this, row, column, value, source));
+  };
+
+  /**
+   * The body of `setDataAtCell`, run inside its operation.
+   *
+   * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
+   * @param {number} [column] Visual column index.
+   * @param {string} [value] New value.
+   * @param {string} [source] String that identifies how this change will be described in the changes array.
+   */
+  function setDataAtCell(
+    this: HotInstance,
+    row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
+  ) {
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
     let changeSource = source;
@@ -3374,10 +3548,35 @@ export default function Core(
 
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
 
-    validateChanges(processedChanges, changeSource, () => {
-      applyChanges(processedChanges, changeSource);
-    });
-  };
+    validateAndApplyChanges(processedChanges, changeSource);
+  }
+
+  /**
+   * Validates the changes and applies the ones that pass. An asynchronous validator answers after the
+   * operation that made the change has returned, so the operation's transaction is held until the
+   * changes land – they are part of the same user action. `validateChanges` calls back once every
+   * validator has answered, including when every change is rejected; when it throws before that (a
+   * `beforeValidate` listener that throws), it never calls back and the hold is released here.
+   *
+   * @param {Array} changes The processed changes.
+   * @param {string} [source] The change source.
+   */
+  function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
+    const hold = operationScope.hold();
+
+    try {
+      validateChanges(changes, source, () => {
+        try {
+          hold.resume(() => applyChanges(changes, source));
+        } finally {
+          hold.release();
+        }
+      });
+    } catch (error) {
+      hold.release();
+      throw error;
+    }
+  }
 
   /**
    * @description
@@ -3394,6 +3593,23 @@ export default function Core(
    * @fires Hooks#afterChange
    */
   this.setDataAtRowProp = function(
+    row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
+  ) {
+    const operationSource = readOperationSource(row, prop, source, 'edit');
+
+    operationScope.run('change', operationSource, () => setDataAtRowProp.call(this, row, prop, value, source));
+  };
+
+  /**
+   * The body of `setDataAtRowProp`, run inside its operation.
+   *
+   * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {string} prop Property name or the source string.
+   * @param {string} value Value to be set.
+   * @param {string} [source] String that identifies how this change will be described in changes array.
+   */
+  function setDataAtRowProp(
+    this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
   ) {
     const input = setDataInputToArray(row, prop, value);
@@ -3425,10 +3641,8 @@ export default function Core(
 
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
 
-    validateChanges(processedChanges, changeSource, () => {
-      applyChanges(processedChanges, changeSource);
-    });
-  };
+    validateAndApplyChanges(processedChanges, changeSource);
+  }
 
   /**
    * Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
@@ -3524,7 +3738,9 @@ export default function Core(
 
     const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol as number | null) : undefined;
 
-    return grid.populateFromArray(instance._createCellCoords(row, column), input, c, source, method);
+    return operationScope.run('change', source ?? 'populateFromArray', () => {
+      return grid.populateFromArray(instance._createCellCoords(row, column), input, c, source, method);
+    });
   };
 
   /**
@@ -4105,6 +4321,9 @@ export default function Core(
    * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
    * is not applied on that path.
    *
+   * Like [`batch()`](@/api/core.md#batch), the callback is one operation: every change it makes is one
+   * undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin, with the `'batch'` action type.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -4126,21 +4345,24 @@ export default function Core(
    * ```
    */
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
-    instance.suspendExecution();
+    // The operation wraps the resume too: the cache rebuild it triggers belongs to this batch.
+    return operationScope.run('batch', undefined, () => {
+      instance.suspendExecution();
 
-    let completed = false;
+      let completed = false;
 
-    try {
-      const result = wrappedOperations();
+      try {
+        const result = wrappedOperations();
 
-      completed = true;
+        completed = true;
 
-      return result;
-    } finally {
-      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
-      // after a throw is a half-applied change, so the flag is honored only on the happy path.
-      instance.resumeExecution(completed && forceFlushChanges);
-    }
+        return result;
+      } finally {
+        // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+        // after a throw is a half-applied change, so the flag is honored only on the happy path.
+        instance.resumeExecution(completed && forceFlushChanges);
+      }
+    });
   };
 
   /**
@@ -4179,22 +4401,70 @@ export default function Core(
    * ```
    */
   this.batch = function<T>(wrappedOperations: () => T): T {
-    instance.suspendRender();
-    instance.suspendExecution();
+    // The operation wraps the resumes too: the cache rebuild and the render they trigger belong to
+    // this batch, so the transaction settles only after them.
+    return operationScope.run('batch', undefined, () => {
+      instance.suspendRender();
+      instance.suspendExecution();
 
-    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
-    // instance suspended for the rest of its life, so it never painted again. The two resumes are
-    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
-    // the flush) still lets `resumeRender` run.
-    try {
-      return wrappedOperations();
-    } finally {
+      // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+      // instance suspended for the rest of its life, so it never painted again. The two resumes are
+      // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+      // the flush) still lets `resumeRender` run.
       try {
-        instance.resumeExecution();
+        return wrappedOperations();
       } finally {
-        instance.resumeRender();
+        try {
+          instance.resumeExecution();
+        } finally {
+          instance.resumeRender();
+        }
       }
-    }
+    });
+  };
+
+  /**
+   * Runs the callback as one operation, so every change it makes is recorded as a single user action –
+   * for example, one undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin. Operations nest: called
+   * inside another operation (a [`batch()`](@/api/core.md#batch), another `runOperation()`, or a
+   * change a hook makes while an edit is applied), the callback joins the outer operation instead of
+   * starting its own.
+   *
+   * `runOperation()` neither suspends rendering nor batches the index recalculations. To do that as well,
+   * call [`batch()`](@/api/core.md#batch), which is one operation too.
+   *
+   * @memberof Core#
+   * @function runOperation
+   * @since 19.0.0
+   * @param {string} name The operation name. It becomes the `actionType` of the undo step when the
+   * operation is the outermost one.
+   * @param {Function} callback The operation.
+   * @param {string} [source] The operation source, passed to the undo stack hooks.
+   * @returns {*} The value the callback returns.
+   * @example
+   * ```js
+   * // Undoing restores both cells and the removed row in one step
+   * hot.runOperation('import', () => {
+   *   hot.setDataAtCell(0, 0, 'A');
+   *   hot.setDataAtCell(1, 0, 'B');
+   *   hot.alter('remove_row', 5);
+   * }, 'myImport');
+   * ```
+   */
+  this.runOperation = function<T>(name: string, callback: () => T, source?: string): T {
+    return operationScope.run(name, source, callback);
+  };
+
+  /**
+   * Returns the operation scope that groups the grid's mutating calls into transactions.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getOperationScope
+   * @returns {OperationScope}
+   */
+  this._getOperationScope = function() {
+    return operationScope;
   };
 
   /**
@@ -4277,6 +4547,19 @@ export default function Core(
    * @fires Hooks#afterChange
    */
   this.updateData = function(data: unknown[][][] | object[], source: string) {
+    // Replacing the data is not a user action: nothing it does may open an operation or be journaled.
+    operationScope.suppress(() => applyUpdateData(data, source));
+  };
+
+  /**
+   * The body of `updateData()`, run with recording suppressed. It is called directly, not through
+   * the instance, so code that wraps or spies on `updateData()` sees each call once.
+   *
+   * @private
+   * @param {Array} data The new data.
+   * @param {string} source The source of the call.
+   */
+  function applyUpdateData(data: unknown[][][] | object[], source: string) {
     replaceData(
       data,
       (newDataMap: DataMapInstance) => {
@@ -4300,8 +4583,8 @@ export default function Core(
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
         // would otherwise leave the scope open for the rest of the task (DEV-2831).
         try {
-          instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
-          instance.rowIndexMapper.fitToLength(this.countSourceRows());
+          instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
+          instance.rowIndexMapper.fitToLength(instance.countSourceRows());
 
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
@@ -4327,7 +4610,7 @@ export default function Core(
         metaManager,
         firstRun
       });
-  };
+  }
 
   /**
    * The `loadData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
@@ -4352,6 +4635,19 @@ export default function Core(
    * @fires Hooks#afterChange
    */
   this.loadData = function(data: unknown[][][] | object[], source: string) {
+    // Loading data is not a user action: nothing it does may open an operation or be journaled.
+    operationScope.suppress(() => applyLoadData(data, source));
+  };
+
+  /**
+   * The body of `loadData()`, run with recording suppressed. It is called directly, not through
+   * the instance, so code that wraps or spies on `loadData()` sees each call once.
+   *
+   * @private
+   * @param {Array} data The new data.
+   * @param {string} source The source of the call.
+   */
+  function applyLoadData(data: unknown[][][] | object[], source: string) {
     replaceData(
       data,
       (newDataMap: DataMapInstance) => {
@@ -4383,7 +4679,7 @@ export default function Core(
         metaManager,
         firstRun
       });
-  };
+  }
 
   /**
    * Gets the initial column count, calculated based on the `columns` setting.
@@ -4627,7 +4923,21 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
-    const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
+    // Applying settings is not a user action: a plugin that updates its state from the new
+    // settings, or the `cell` option writing meta, must not open an operation or be journaled.
+    operationScope.suppress(() => applySettings(settings, init));
+  };
+
+  /**
+   * The body of `updateSettings()`, run with recording suppressed. It is called directly, not through
+   * the instance, so a spy on `updateSettings()` sees each call once.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   * @param {boolean} init `true` while the grid initializes.
+   */
+  function applySettings(settings: Partial<GridSettings>, init: boolean) {
+    const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
     let i;
 
     if (isDefined(settings.rows)) {
@@ -4816,6 +5126,8 @@ export default function Core(
      * applied from the declarative `cell` option on an earlier call (GitHub issue #5661), and failed
      * validation results, which the validation flow writes straight onto the meta object rather than
      * through `setCellMeta`, so neither snapshot above can see them (GitHub issue #7553).
+     *
+     * @private
      */
     const resetMetaCaches = () => {
       const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
@@ -4862,6 +5174,7 @@ export default function Core(
     /**
      * Re-applies the `columns` setting onto the column meta layer.
      *
+     * @private
      * @param {number} columnsCount The number of leading columns to apply the setting to.
      */
     const applyColumnMeta = (columnsCount: number) => {
@@ -5041,7 +5354,7 @@ export default function Core(
     if (isRootInstance(instance)) {
       layoutManager?.applyConfig(tableMeta.layout as LayoutConfig | undefined);
     }
-  };
+  }
 
   /**
    * Gets the value of the currently focused cell.
@@ -5231,7 +5544,10 @@ export default function Core(
   this.alter = function(
     action: string, index: number | number[][] | undefined, amount: number, source: string, keepEmptyRows: boolean
   ) {
-    grid.alter(action, index, amount, source, keepEmptyRows);
+    operationScope.run(ALTER_OPERATION_NAMES[action] ?? action, source, () => {
+      operationScope.describe({ index });
+      grid.alter(action, index, amount, source, keepEmptyRows);
+    });
   };
 
   /**
@@ -5642,6 +5958,24 @@ export default function Core(
     row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
     column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
   ) {
+    const operationSource = readOperationSource(row, column, source);
+
+    operationScope.run('change', operationSource, () => setSourceDataAtCell.call(this, row, column, value, source));
+  };
+
+  /**
+   * The body of `setSourceDataAtCell`, run inside its operation.
+   *
+   * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data` accessor.
+   * @param {*} value The value to be set at the provided coordinates.
+   * @param {string} [source] Source of the change as a string.
+   */
+  function setSourceDataAtCell(
+    this: HotInstance,
+    row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
+  ) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
@@ -5673,13 +6007,19 @@ export default function Core(
       } as unknown as CellProperties;
     };
 
+    // An undo or redo writes back values the source already stored. The `valueSetter` already
+    // translated them when they were first written, so it does not run again – a setter that is not
+    // idempotent would apply twice – and the source data validator does not judge them again: it
+    // could blank a value that was accepted when it was first written. The source is read as the
+    // operation reads it, so an array-form call takes it from the second argument.
+    const isReplay = isUndoRedoSource(readOperationSource(row, column, source));
+    const toStoredValue = (
+      changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
+    ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
+
     if (isThereAnySetSourceListener) {
       arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-        const newValue = getValueSetterValue(
-          changeValue,
-          getCellProperties(changeRow, changeProp),
-          source,
-        );
+        const newValue = toStoredValue(changeRow, changeProp, changeValue);
 
         changesForHook.push([
           changeRow,
@@ -5692,17 +6032,14 @@ export default function Core(
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      const cellMeta = getCellProperties(changeRow, changeProp);
-      const newValue = getValueSetterValue(
-        changeValue,
-        cellMeta,
-        source
-      );
+      const newValue = toStoredValue(changeRow, changeProp, changeValue);
 
-      if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
+      if (isReplay || runSourceDataValidator(newValue, getCellProperties(changeRow, changeProp),
+        source ?? 'setSourceDataAtCell')) {
         // changeProp is a physical column index, a prop name, or a `columns[].data` accessor
-        // function for array-based data sources.
-        dataSource.setAtCell(changeRow, changeProp, newValue);
+        // function for array-based data sources. An undo or a redo writes the prop the journal
+        // recorded – a numeric one can name a key past the columns an object row declares (#5409).
+        writeSourceChange(changeRow, changeProp, newValue, isReplay);
       }
     });
 
@@ -5717,7 +6054,49 @@ export default function Core(
     if (activeEditor && isDefined(activeEditor.refreshValue)) {
       (activeEditor.refreshValue as () => void)();
     }
-  };
+  }
+
+  /**
+   * Writes one value into the source data, and journals it when a transaction records.
+   *
+   * @param {number|string} row The physical row index (a numeric string is accepted, as `setAtCell` does).
+   * @param {number|string|Function} prop The physical column index, the prop name, or a `columns[].data` accessor.
+   * @param {*} value The value to write.
+   * @param {boolean} [byProp=false] `true` to write a numeric `prop` as the key it names, past the columns
+   *   the first row declares (see `DataSource#setAtCell`).
+   */
+  function writeSourceChange(
+    row: number | string, prop: string | number | ColumnDataGetterSetterFunction, value: unknown, byProp = false,
+  ) {
+    const physicalRow = Number(row);
+
+    if (operationScope.getRecordingTransaction() === null || !Number.isInteger(physicalRow) || physicalRow < 0) {
+      dataSource.setAtCell(row, prop, value, byProp);
+
+      return;
+    }
+
+    const rawOldValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+    const oldValue = detachValue(rawOldValue);
+
+    dataSource.setAtCell(row, prop, value, byProp);
+
+    const rawNewValue = dataSource.getRawAtCellByProp(physicalRow, prop);
+
+    // Nothing is journaled for a write that left the source as it was – the value the cell held, or
+    // a row past the end, which `setAtCell()` never reaches. These writes were never recorded before
+    // the journal, so a no-op must not become a step that empties the redo stack.
+    if (rawNewValue === rawOldValue) {
+      return;
+    }
+
+    recordCellChange(operationScope, {
+      physicalRow,
+      prop,
+      oldValue,
+      newValue: detachValue(rawNewValue),
+    });
+  }
 
   /**
    * Returns a single row of the data (array or object, depending on what data format you use).
@@ -5837,20 +6216,62 @@ export default function Core(
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row: number, column: number, key: string) {
-    const [physicalRow, physicalColumn] = [instance.toPhysicalRow(row), instance.toPhysicalColumn(column)];
+    operationScope.run('remove_cell_meta', undefined, () => {
+      const [physicalRow, physicalColumn] = [instance.toPhysicalRow(row), instance.toPhysicalColumn(column)];
 
-    let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
+      let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
-    const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
+      const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
 
-    if (hookResult !== false) {
-      metaManager.removeCellMeta(physicalRow, physicalColumn, key);
+      if (hookResult !== false) {
+        writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+          metaManager.removeCellMeta(physicalRow, physicalColumn, key);
+        });
 
-      instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
+        instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
+      }
+
+      cachedValue = null;
+    });
+  };
+
+  /**
+   * Runs one cell meta write and journals it when a transaction records. Only an imperative write
+   * is journaled – one made while a `cell`-option or plugin-declarative scope is open is
+   * configuration being applied, not a user action. The values are kept by reference: a meta value
+   * can be a function or a class instance (a `renderer`, an `editor`) whose identity matters, and
+   * meta values are replaced, not mutated in place.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The meta key.
+   * @param {Function} write The write.
+   */
+  function writeCellMetaChange(physicalRow: number, physicalColumn: number, key: string, write: () => void) {
+    const shouldRecord = operationScope.getRecordingTransaction() !== null &&
+      !UNJOURNALED_META_KEYS.has(key) &&
+      metaManager.isUserDefinedMetaRecording() &&
+      Number.isInteger(physicalRow) &&
+      Number.isInteger(physicalColumn);
+
+    if (!shouldRecord) {
+      write();
+
+      return;
     }
 
-    cachedValue = null;
-  };
+    const before = metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key);
+
+    write();
+
+    const after = metaManager.getCellMetaKeyState(physicalRow, physicalColumn, key);
+
+    if (before.hadOwn === after.hadOwn && before.value === after.value && before.origin === after.origin) {
+      return;
+    }
+
+    operationScope.record({ type: 'meta', physicalRow, physicalColumn, key, before, after });
+  }
 
   /**
    * Removes or adds one or more rows of the cell meta objects to the cell meta collections.
@@ -5868,20 +6289,30 @@ export default function Core(
       throwWithCause('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
     }
 
-    if (deleteAmount > 0) {
-      metaManager.removeRow(instance.toPhysicalRow(visualIndex), deleteAmount);
-    }
+    // One operation, so the shift is journaled (`recordMetaRowsShift()` records only inside one) and the
+    // meta the inserted rows get is part of the same undo step.
+    operationScope.run('splice_cells_meta', undefined, () => {
+      if (deleteAmount > 0) {
+        const physicalRow = instance.toPhysicalRow(visualIndex);
 
-    if (cellMetaRows.length > 0) {
-      arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
-        metaManager.createRow(instance.toPhysicalRow(visualIndex));
+        recordMetaRowsShift(instance, false, physicalRow, deleteAmount);
+        metaManager.removeRow(physicalRow, deleteAmount);
+      }
 
-        arrayEach(cellMetaRow as unknown[],
-          (cellMeta, columnIndex) => {
-            this.setCellMetaObject(visualIndex, columnIndex, cellMeta as Record<string, unknown>);
-          });
-      });
-    }
+      if (cellMetaRows.length > 0) {
+        arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
+          const physicalRow = instance.toPhysicalRow(visualIndex);
+
+          recordMetaRowsShift(instance, true, physicalRow, 1);
+          metaManager.createRow(physicalRow);
+
+          arrayEach(cellMetaRow as unknown[],
+            (cellMeta, columnIndex) => {
+              this.setCellMetaObject(visualIndex, columnIndex, cellMeta as Record<string, unknown>);
+            });
+        });
+      }
+    });
 
     instance.render();
   };
@@ -5897,8 +6328,10 @@ export default function Core(
    */
   this.setCellMetaObject = function(row: number, column: number, prop: Record<string, unknown>) {
     if (typeof prop === 'object') {
-      objectEach(prop, (value, key) => {
-        this.setCellMeta(row, column, key, value);
+      operationScope.run('set_cell_meta', undefined, () => {
+        objectEach(prop, (value, key) => {
+          this.setCellMeta(row, column, key, value);
+        });
       });
     }
   };
@@ -5975,26 +6408,30 @@ export default function Core(
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row: number, column: number, key: string, value: string) {
-    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
+    operationScope.run('set_cell_meta', undefined, () => {
+      const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
 
-    if (allowSetCellMeta === false) {
-      return;
-    }
+      if (allowSetCellMeta === false) {
+        return;
+      }
 
-    let physicalRow = row;
-    let physicalColumn = column;
+      let physicalRow = row;
+      let physicalColumn = column;
 
-    if (row < instance.countRows()) {
-      physicalRow = instance.toPhysicalRow(row);
-    }
+      if (row < instance.countRows()) {
+        physicalRow = instance.toPhysicalRow(row);
+      }
 
-    if (column < instance.countCols()) {
-      physicalColumn = instance.toPhysicalColumn(column);
-    }
+      if (column < instance.countCols()) {
+        physicalColumn = instance.toPhysicalColumn(column);
+      }
 
-    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
 
-    instance.runHooks('afterSetCellMeta', row, column, key, value);
+      instance.runHooks('afterSetCellMeta', row, column, key, value);
+    });
   };
 
   /**
@@ -7417,6 +7854,8 @@ export default function Core(
   this.destroy = function() {
     instance._clearTimeouts();
     instance._clearMicrotasks();
+    // A transaction held by a pending validator must not settle on a destroyed instance.
+    operationScope.destroy();
 
     // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.

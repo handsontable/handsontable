@@ -47,6 +47,75 @@ export interface CellMetaAtRowEntry {
 }
 
 /**
+ * The origin bucket a cell meta key is filed in: `user` for an imperative `setCellMeta` write,
+ * `cellOption` for a write applied from the declarative `cell` option, and `none` for a
+ * plugin-declarative write (or a key that is not stored at all).
+ */
+export type CellMetaOrigin = 'user' | 'cellOption' | 'none';
+
+/**
+ * What one cell meta key holds at a moment: whether it is stored on the cell, its value, and the
+ * origin bucket it is filed in. Captured before and after a write, so the write can be reverted
+ * exactly – including the bucket, which decides whether an `updateSettings` call replays the value.
+ */
+export interface CellMetaKeyState {
+  hadOwn: boolean;
+  value: unknown;
+  origin: CellMetaOrigin;
+}
+
+/**
+ * A `CellMetaKeyState` located by physical coordinates.
+ */
+export interface CellMetaKeyStateEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  state: CellMetaKeyState;
+}
+
+/**
+ * The state of a key a cell does not store.
+ */
+const ABSENT_KEY_STATE: CellMetaKeyState = Object.freeze({ hadOwn: false, value: undefined, origin: 'none' });
+
+/**
+ * Returns one of the key sets a cell meta object keeps for its bookkeeping, or `undefined` when the
+ * cell has none.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} name The name of the set.
+ * @returns {Set<string>|undefined}
+ */
+function getKeySet(
+  meta: CellProperties,
+  name: '_userDefinedMetaProps' | '_cellOptionMetaProps' | '_persistedMetaProps',
+): Set<string> | undefined {
+  const keys: unknown = meta[name];
+
+  return keys instanceof Set ? keys : undefined;
+}
+
+/**
+ * Tells which origin bucket a stored key is filed in.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} key The key.
+ * @returns {string}
+ */
+function getKeyOrigin(meta: CellProperties, key: string): CellMetaOrigin {
+  if (getKeySet(meta, '_userDefinedMetaProps')?.has(key)) {
+    return 'user';
+  }
+
+  if (getKeySet(meta, '_cellOptionMetaProps')?.has(key)) {
+    return 'cellOption';
+  }
+
+  return 'none';
+}
+
+/**
  * @class CellMeta
  *
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
@@ -141,6 +210,16 @@ export default class CellMeta {
    */
   disableUserDefinedMetaRecording() {
     this.#userDefinedMetaRecordingSuspendCount += 1;
+  }
+
+  /**
+   * Tells whether a `setMeta` call made now would be filed as a user-defined write – that is, no
+   * `cell`-option scope and no plugin-declarative suspension is open.
+   *
+   * @returns {boolean}
+   */
+  isUserDefinedMetaRecording(): boolean {
+    return this.#userDefinedMetaRecordingSuspendCount === 0;
   }
 
   /**
@@ -443,6 +522,110 @@ export default class CellMeta {
   }
 
   /**
+   * Returns what one key of a cell's meta holds. Nothing is created: a cell with no stored meta, or
+   * one that does not store the key, reports the key as absent. A key only counts as stored when a
+   * `setMeta` call wrote it – a value the `type` expansion or the `cells` function put on the object
+   * is re-derived on every read, so it is reported as absent too.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @returns {CellMetaKeyState}
+   */
+  getMetaKeyState(physicalRow: number, physicalColumn: number, key: string): CellMetaKeyState {
+    const cellMeta = this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+
+    if (
+      cellMeta === undefined ||
+      !getKeySet(cellMeta, '_persistedMetaProps')?.has(key) ||
+      !hasOwnProperty(cellMeta, key)
+    ) {
+      return ABSENT_KEY_STATE;
+    }
+
+    return {
+      hadOwn: true,
+      value: cellMeta[key],
+      origin: getKeyOrigin(cellMeta, key),
+    };
+  }
+
+  /**
+   * Puts one key of a cell's meta into a state captured by `getMetaKeyState()`: an absent key is
+   * removed, a stored one is written back and filed in the origin bucket it came from, so a later
+   * `updateSettings` call treats it exactly as it did before (#5661).
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The key.
+   * @param {CellMetaKeyState} state The state to apply.
+   */
+  applyMetaKeyState(physicalRow: number, physicalColumn: number, key: string, state: CellMetaKeyState) {
+    if (!state.hadOwn) {
+      this.removeMeta(physicalRow, physicalColumn, key);
+
+      return;
+    }
+
+    if (state.origin === 'cellOption') {
+      this.startCellOptionMetaRecording();
+
+      try {
+        this.setMeta(physicalRow, physicalColumn, key, state.value);
+      } finally {
+        this.endCellOptionMetaRecording();
+      }
+
+    } else if (state.origin === 'none') {
+      this.disableUserDefinedMetaRecording();
+
+      try {
+        this.setMeta(physicalRow, physicalColumn, key, state.value);
+      } finally {
+        this.enableUserDefinedMetaRecording();
+      }
+
+    } else {
+      this.setMeta(physicalRow, physicalColumn, key, state.value);
+    }
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one row to `target`.
+   * Plugin-declarative keys are left out: their plugin derives them again from its own state.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureRowMetaKeyStates(physicalRow: number, target: CellMetaKeyStateEntry[]) {
+    const rowMap = this.metas.getIfExists(physicalRow);
+
+    if (rowMap === undefined) {
+      return;
+    }
+
+    for (const [physicalColumn, meta] of rowMap) {
+      this.#collectOwnKeyStates(physicalRow, physicalColumn, meta, target);
+    }
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key stored in one column to `target`.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  captureColumnMetaKeyStates(physicalColumn: number, target: CellMetaKeyStateEntry[]) {
+    for (const [physicalRow, rowMap] of this.metas) {
+      const meta = rowMap.getIfExists(physicalColumn);
+
+      if (meta !== undefined) {
+        this.#collectOwnKeyStates(physicalRow, physicalColumn, meta, target);
+      }
+    }
+  }
+
+  /**
    * Returns all cell meta objects that were created during the Handsontable operation. As cell meta
    * objects are created lazy, the length of the returned collection depends on how and when the
    * table has asked for access to that meta objects.
@@ -532,6 +715,28 @@ export default class CellMeta {
    */
   getCellOptionMetas(): CellMetaSnapshotEntry[] {
     return this.#getMetasByOrigin('_cellOptionMetaProps');
+  }
+
+  /**
+   * Appends the state of every user-defined and `cell`-option key one cell stores to `target`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} meta The cell meta object.
+   * @param {CellMetaKeyStateEntry[]} target The list to append to.
+   */
+  #collectOwnKeyStates(
+    physicalRow: number, physicalColumn: number, meta: CellProperties, target: CellMetaKeyStateEntry[]
+  ) {
+    const persistedProps = getKeySet(meta, '_persistedMetaProps');
+
+    persistedProps?.forEach((key) => {
+      const origin = getKeyOrigin(meta, key);
+
+      if (origin !== 'none' && hasOwnProperty(meta, key)) {
+        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value: meta[key], origin } });
+      }
+    });
   }
 
   /**
@@ -629,7 +834,7 @@ export default class CellMeta {
     const evictedColumns: number[] = [];
 
     for (const [physicalColumn, meta] of rowMap) {
-      const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
+      const persistedProps = getKeySet(meta, '_persistedMetaProps');
       const hasPersistedProps = persistedProps !== undefined && persistedProps.size > 0;
       // A cell flagged invalid is not rebuilt on render, so it must survive eviction or the
       // invalid-cell highlight would disappear after scrolling away. Same rule, same predicate as
