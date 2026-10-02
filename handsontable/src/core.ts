@@ -24,6 +24,8 @@ import { getRenderer } from './renderers/registry';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
+import { regExpValidator } from './validators/regExpValidator';
+import { isMaxLengthActive, withMaxLength } from './validators/maxLengthValidator';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
@@ -3305,15 +3307,7 @@ export default function Core(
     }
 
     if (isRegExp(validator)) {
-      validator = (function(expression: RegExp) {
-        return function(cellValue: unknown, validatorCallback: Function) {
-          // Global (`g`) and sticky (`y`) flags make `RegExp#test` stateful through
-          // `lastIndex`. Reset before every cell so repeated `validateCells()` runs
-          // (and cells that share one pattern) get a stable result (DEV-110).
-          expression.lastIndex = 0;
-          validatorCallback(expression.test(cellValue as string));
-        };
-      }(validator as RegExp));
+      validator = regExpValidator(validator as RegExp);
     }
 
     if (isFunction(validator)) {
@@ -6674,6 +6668,9 @@ export default function Core(
   /**
    * Returns the cell validator by `row` and `column`.
    *
+   * When the cell has a finite [`maxLength`](@/api/options.md#maxlength), the returned function also
+   * checks the length of the value, before it runs the validator that you configured.
+   *
    * @memberof Core#
    * @function getCellValidator
    * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
@@ -6688,14 +6685,16 @@ export default function Core(
    * ```
    */
   this.getCellValidator = function(rowOrMeta: number | Record<string, unknown>, column: number) {
-    const cellValidator = typeof rowOrMeta === 'number' ?
-      (instance.getCellMeta(rowOrMeta, column) as Record<string, unknown>).validator : rowOrMeta.validator;
+    const cellMeta = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column) as Record<string, unknown> : rowOrMeta;
+    const cellValidator = typeof cellMeta.validator === 'string' ?
+      getValidator(cellMeta.validator) :
+      cellMeta.validator as ((value: unknown, callback: (valid: boolean) => void) => void) | RegExp | undefined;
 
-    if (typeof cellValidator === 'string') {
-      return getValidator(cellValidator);
-    }
-
-    return cellValidator as ((value: unknown, callback: (valid: boolean) => void) => void) | RegExp | undefined;
+    // A cell with a finite `maxLength` always has a validator, so that the editor and the change
+    // pipeline validate it. The length check runs together with the configured validator, if any.
+    // `validator: false` turns the configured validator off, but not the length check.
+    return isMaxLengthActive(cellMeta.maxLength) ? withMaxLength(cellValidator) : cellValidator;
   };
 
   /**

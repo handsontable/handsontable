@@ -109,9 +109,11 @@ asked.
 
 **The visual suite is not, and you should not try.** Its port is owned in three
 other places: `EXAMPLES_SERVER_PORT` in `visual-tests/src/config.mjs`, which
-`scripts/run-tests.mjs` uses to launch the server, and a hardcoded
-`app.listen(8082)` in both `examples/next/visual-tests/react-wrapper/demo/server.js`
-and the Angular equivalent, neither of which reads `--port` at all. Changing only
+`scripts/run-tests.mjs` passes as `--port` to each demo's `serve` script; the
+literal `--port=8082` in `visual-tests/package.json`'s `serve-example`, which
+`playwright-cross-browser.config.ts` starts as its web server; and a hardcoded
+`app.listen(8082)` in `examples/next/visual-tests/angular-wrapper/demo/server.js`,
+which does not read `--port` at all. Changing only
 the Playwright config points the browser at a port nothing is serving and fails
 every spec. Run visual tests from one checkout at a time.
 

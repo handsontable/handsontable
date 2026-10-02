@@ -186,6 +186,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   manualRowMove: true,
   manualRowResize: true,
   maxCols: 123,
+  maxLength: 123,
   maxRows: 123,
   mergeCells: true,
   minCols: 123,
@@ -289,7 +290,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 2, col: 2 })),
-  textEllipsis: false,
+  textEllipsis: oneOf(true_or_false, 3),
   themeName: 'ht-theme-some-theme',
   theme: '',
   title: 'foo',
@@ -744,6 +745,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
+  },
+  beforePasteParse: (clipboardData, event) => {
+    const _types: string[] = clipboardData.types;
+    const _text: string = clipboardData.getData('text/plain');
+    const _event: ClipboardEvent | null = event;
+
+    clipboardData.setData('text/plain', _text);
+    clipboardData.clearData('text/html');
+    clipboardData.clearData();
+
+    return false;
   },
   beforePaste: (data, coords) => {
     data.splice(0, 1);

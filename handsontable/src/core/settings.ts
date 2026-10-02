@@ -18,6 +18,7 @@ import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -31,6 +32,8 @@ import type {
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
+
+export type { PasteClipboardData };
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -203,6 +206,7 @@ export interface GridSettings {
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
   imeFastEdit?: boolean;
+  maxLength?: number;
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
@@ -233,7 +237,7 @@ export interface GridSettings {
   viewportColumnRenderingThreshold?: number | 'auto';
   viewportRowRenderingThreshold?: number | 'auto';
   observeDOMVisibility?: boolean;
-  textEllipsis?: boolean;
+  textEllipsis?: boolean | number;
 
   // Selection & navigation
   disableVisualSelection?: boolean | string | string[];
@@ -683,6 +687,7 @@ export interface GridSettings {
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
+  beforePasteParse?: (clipboardData: PasteClipboardData, event: ClipboardEvent | null) => void | false;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },

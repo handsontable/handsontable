@@ -207,6 +207,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="manualRowMove" data-levels="grid"></span>[`manualRowMove`](@/api/options.md#manualrowmove) | Yes | No | No | No | ManualRowMove |  |
 | <span data-option="manualRowResize" data-levels="grid"></span>[`manualRowResize`](@/api/options.md#manualrowresize) | Yes | No | No | No | ManualRowResize |  |
 | <span data-option="maxCols" data-levels="grid"></span>[`maxCols`](@/api/options.md#maxcols) | Yes | No | No | No | Core |  |
+| <span data-option="maxLength" data-levels="grid columns cells cell"></span>[`maxLength`](@/api/options.md#maxlength) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="maxRows" data-levels="grid"></span>[`maxRows`](@/api/options.md#maxrows) | Yes | No | No | No | Core |  |
 | <span data-option="maxSelections" data-levels="grid columns cells cell"></span>[`maxSelections`](@/api/options.md#maxselections) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="mergeCells" data-levels="grid"></span>[`mergeCells`](@/api/options.md#mergecells) | Yes | No | No | No | MergeCells |  |
