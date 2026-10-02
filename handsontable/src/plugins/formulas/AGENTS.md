@@ -434,15 +434,18 @@ Three limits are deliberate.
   old size, but `getSheetSerialized()` omits a trailing column or row that is empty throughout, and the grid
   has no record that it was ever there. Padding to the dimensions would fix that and is not an option for the
   reason above.
-- **A grid whose `columns` array or `dataSchema` fixes the column count is not padded
-  (`#isColumnCountFixedBySettings()`).** Those options decide `countCols()` there, so padding only raises
-  `countSourceCols()` past it. That flips `#areSourceColumnsSkipped()`, and the next resync writes just the
-  visible columns back into the sheet, deleting engine data (a sheet of `[['a', 'b'], ['c', 'd', 'e', 'f', 'g']]`
-  came back as three columns under a three-entry `columns` array). The same hazard already exists for a
-  rectangular sheet wider than `columns`; it is untouched here. A `columns` **function** is not in this
-  group: it never states a number, so the grid still takes its width from the first loaded row and needs the
-  padding. A first version skipped it for any defined `columns` and brought the original bug back for the
-  function form.
+- **A grid whose settings cap the column count is not padded (`#isColumnCountCappedBySettings()`).** That is
+  an array `columns`, a `dataSchema`, or a `columns` function that returns a falsy value for any of the first
+  `width` columns (the core counts an array-of-arrays dataset under a function by keeping the columns it
+  returns a truthy value for, so a function that accepts all of them leaves the count to the data). Under a
+  cap the settings decide `countCols()`, so padding only raises `countSourceCols()` past it. That flips
+  `#areSourceColumnsSkipped()`, and the next resync writes just the visible columns back into the sheet,
+  deleting engine data (a sheet of `[['a', 'b'], ['c', 'd', 'e', 'f', 'g']]` came back as three columns under
+  a three-entry `columns` array). The same hazard already exists for a rectangular sheet wider than the cap;
+  it is untouched here. Decide by the predicate, not by the option's type: skipping the padding for every
+  function brought the original bug back for a function that accepts all columns, and padding for every
+  function deleted data for one that hides some. The check calls the user's `columns` function once per
+  column of the widest row on each `switchSheet()`.
 
 Pinned by `__tests__/sheetReloadDimensions.unit.js` and `tests/e2e/formulas-sheet-reload.spec.ts`.
 

@@ -1418,10 +1418,11 @@ export class Formulas extends BasePlugin {
     );
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
-    // A grid whose `columns` or `dataSchema` fix the column count is left as it was: padding the source
-    // rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would write
-    // only the visible columns back into the sheet.
-    const serialized = this.#isColumnCountFixedBySettings() ? unescaped : padRowsToWidestRow(unescaped);
+    const padded = padRowsToWidestRow(unescaped);
+    // A grid whose settings cap the column count below the padded width is left as it was: padding the
+    // source rows past that count would make `#areSourceColumnsSkipped()` true, and the next resync would
+    // write only the visible columns back into the sheet.
+    const serialized = this.#isColumnCountCappedBySettings(padded[0]?.length ?? 0) ? unescaped : padded;
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -1978,14 +1979,27 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Tells whether an array `columns` or the `dataSchema` setting decides how many columns the grid has,
-   * rather than the width of the loaded rows. A `columns` function does not: it never states a count,
-   * so the grid still takes the width from the first loaded row.
+   * Tells whether the settings, rather than the width of the loaded rows, decide how many columns the
+   * grid has. That is the case for an array `columns`, for a `dataSchema`, and for a `columns` function
+   * that returns a falsy value for any of the first `width` columns. The core counts the columns of an
+   * array-of-arrays dataset under a function by keeping those it returns a truthy value for, so a
+   * function that accepts every one of them leaves the count to the data.
    *
+   * @param {number} width The number of columns the loaded rows would have.
    * @returns {boolean}
    */
-  #isColumnCountFixedBySettings(): boolean {
+  #isColumnCountCappedBySettings(width: number): boolean {
     const { columns, dataSchema } = this.hot.getSettings();
+
+    if (typeof columns === 'function') {
+      for (let columnIndex = 0; columnIndex < width; columnIndex++) {
+        if (!columns(columnIndex)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
 
     return Array.isArray(columns) || isDefined(dataSchema);
   }
