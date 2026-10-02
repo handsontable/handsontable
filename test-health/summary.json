@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-02T10:20:54.503Z",
+  "generatedAt": "2026-10-02T13:52:04.224Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 309,
+    "tests": 317,
     "needsTicket": 9,
     "quarantined": 0,
-    "entries": 1733
+    "entries": 1772
   },
   "rows": [
     {
@@ -376,6 +376,246 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as array, with overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as array, with overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as array, without overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as array, without overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as string, with overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string, with overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/settings/tableClassName.spec.js|settings tableClassName should add class name every table element inside handsontable wrapper element (as string, without overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/settings/tableClassName.spec.js",
+      "line": null,
+      "title": "settings tableClassName should add class name every table element inside handsontable wrapper element (as string, without overlays)",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (6 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 9 to equal 6.",
         "source": "ci"
       },
       "needsTicket": false
@@ -10909,6 +11149,40 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
+      "tier": "playwright",
+      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
+      "line": 74,
+      "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(locator).toBeVisible() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/__tests__/core/view.spec.js|Core_view should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)",
       "tier": "jasmine",
       "file": "handsontable/src/__tests__/core/view.spec.js",
@@ -11346,6 +11620,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (rtl) › follows the vertical scroll of the grid row by row",
+      "tier": "playwright",
+      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
+      "line": 74,
+      "title": "walkontable inline-end overlay (rtl) › follows the vertical scroll of the grid row by row",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T13:51:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-main",
+        "status": "flaky",
+        "error": "Error: expect(locator).toBeVisible() failed",
         "source": "ci"
       },
       "needsTicket": false
