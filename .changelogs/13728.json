@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a custom `noWordWrapClassName` replaced the built-in `htNoWrap` class, so cells still wrapped their content with `wordWrap: false`.",
+  "type": "fixed",
+  "issueOrPR": 13728,
+  "breaking": false,
+  "framework": "none"
+}
