@@ -13,17 +13,18 @@ import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 export class AppComponent {
 
   readonly data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-    ['2017', 10, 11, 12, 13],
-    ['2018', 20, 11, 14, 13],
-    ['2019', 30, 15, 12, 13],
-    ['2020', '', '', '', ''],
-    ['2021', '', '', '', ''],
+    ['Hydrogen', 'H', 1, 1.008, 7],
+    ['Helium', 'He', 2, 4.003, 9],
+    ['Lithium', 'Li', 3, 6.94, 9],
+    ['Beryllium', '', '', '', ''],
+    ['Boron', '', '', '', ''],
   ];
 
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
+    colWidths: [80, 62, 110, 118, 110],
+    stretchH: 'all',
     fillHandle: {
       direction: 'vertical',
       autoInsertRow: true,
