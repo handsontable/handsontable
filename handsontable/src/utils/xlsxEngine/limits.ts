@@ -88,8 +88,10 @@ export const MAX_FORMULA_LENGTH = 32768;
  * developer machine and 0.58-0.84 us on a reviewer's (300 runs each). A run of letters of any
  * script, of apostrophes or of digits, which rewrites nothing, costs 0.01-0.05 us. So the budget
  * bounds the worst case to about 10 s of blocking work on the first machine and 28 s on the second;
- * at the earlier 64 Mi the second machine allowed 39-56 s. `nativeReadCompat.unit.js` ("the
- * shared-formula translation budget, measured") pins both the value and a per-character ceiling.
+ * at the earlier 64 Mi the second machine allowed 39-56 s. These figures are measurements, kept
+ * here and re-taken by hand: a wall-clock bound in a unit test flakes under parallel Jest workers,
+ * so `nativeReadCompat.unit.js` pins the value only. Re-measure before changing the value or
+ * `REFERENCE_REGEX`.
  */
 export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
 

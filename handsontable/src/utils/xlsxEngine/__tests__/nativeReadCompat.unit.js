@@ -7,7 +7,6 @@ import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, MAX_WORKBOOK_CELLS,
   isLimitError,
 } from '../limits';
-import { translateSharedFormula } from '../formulaRefs';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
 import { parseSharedStrings } from '../adapters/native/parts/sharedStrings';
@@ -1111,28 +1110,13 @@ describe('native reader compatibility: the workbook cell budget is charged befor
 });
 
 describe('native reader compatibility: the shared-formula translation budget, measured', () => {
-  it('should keep the budget at 32 Mi characters, which the measured worst case bounds', () => {
-    // A dense run of references rewrites one every few characters and is the worst case for
-    // `translateSharedFormula`. Measured at 0.28-0.32 us per character on a developer machine and
-    // 0.58-0.84 us on a reviewer's, so 32 Mi characters is about 10 s here and at most 28 s there.
-    // The bound below is loose on purpose (it catches a regex regression of several times, not
-    // noise) and is what keeps the budget's comment honest.
+  it('should keep the budget at 32 Mi characters', () => {
+    // The per-character cost that sizes this budget is a measurement, not a unit-test assertion:
+    // a wall-clock bound flakes under parallel Jest workers. The figures (0.28-0.32 us per
+    // character on a developer machine, 0.58-0.84 us on a reviewer's, so about 10-28 s at 32 Mi)
+    // live in the `MAX_TRANSLATED_FORMULA_CHARS` comment in `limits.ts`; re-measure them there
+    // before changing the value or `REFERENCE_REGEX`.
     expect(MAX_TRANSLATED_FORMULA_CHARS).toBe(32 * 1024 * 1024);
-
-    const master = 'A1+'.repeat(10922);
-    const runs = 30;
-
-    translateSharedFormula(master, 1, 1);
-
-    const startedAt = performance.now();
-
-    for (let run = 1; run <= runs; run++) {
-      translateSharedFormula(master, run, 1);
-    }
-
-    const microsPerChar = ((performance.now() - startedAt) * 1000) / (runs * master.length);
-
-    expect(microsPerChar).toBeLessThan(1.5);
   });
 });
 

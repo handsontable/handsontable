@@ -561,9 +561,10 @@ directions.
   `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS` (32 Mi). Without it 5 M slaves × 32 K
   characters was unbounded CPU. The dense-reference worst case measured 0.28–0.32 µs per character
   (developer machine) and 0.58–0.84 µs (reviewer's machine), so the budget admits about 10–28 s of
-  regex work, on a master that is nothing but references. The value and a 1.5 µs-per-character
-  ceiling are pinned in `nativeReadCompat.unit.js` ("the shared-formula translation budget,
-  measured"). If the regex gains an alternative, re-measure every shape above before trusting
+  regex work, on a master that is nothing but references. Only the value is pinned
+  (`nativeReadCompat.unit.js`, "should keep the budget at 32 Mi characters"); the per-character
+  figures stay in the `limits.ts` comment, because a wall-clock bound on them flaked under parallel
+  Jest workers (2.96 µs measured in a loaded folder run). If the regex gains an alternative, re-measure every shape above before trusting
   that number. The import's own walks are budgeted too, against the same
   `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`:
   the prefix strip and the reference shift) — see `plugins/importFile/AGENTS.md`. The field is optional on
