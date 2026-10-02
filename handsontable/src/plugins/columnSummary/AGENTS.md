@@ -75,7 +75,8 @@ Three things not to "fix" on top of it:
 - **`forceNumeric` is not the same rule, so do not "align" the two.** It runs `parseFloat`, which
   agrees on empty strings (`parseFloat('')` is `NaN`) but *disagrees* on booleans —
   `parseFloat(true)` is `NaN`, so a checkbox column summed with `forceNumeric: true` yields `0`.
-  It also throws on an empty cell when `suppressDataTypeErrors` is `false`. It is the opt-in
+  It also throws on an empty cell when `suppressDataTypeErrors` is `false`, except inside a default range
+  (see DEV-2995 below). It is the opt-in
   "parse a number out of text" path, not the reference implementation.
 
 ## Translate at every call: the endpoints are physical, the API is visual (DEV-145)
@@ -297,6 +298,15 @@ the internal `rangesFromDefault` flag (not on `EndpointConfig`, never copied by 
   range follows the table**, so a spare row created below the summary would join the range. That is the
   whole-table rule applied to a summary that is not on the last row. Reaching it takes a write into the
   read-only summary row, so no test pins it; the test beside it is a smoke test of the combination.
+- **A blank cell inside a default range never throws, whatever `suppressDataTypeErrors` says.** With
+  `forceNumeric: true` and `suppressDataTypeErrors: false`, `getCellValue()` throws on any cell that parses to
+  `NaN`, and a row the grid adds is empty. A default range that follows the table therefore threw from
+  `afterCreateRow` on every append, and on the undo of a row removal, which stopped halfway and left the grid
+  one row short. `getCellValue()` now skips the throw for a blank cell (`isBlank()`, `utils.ts`) when
+  `rangesFromDefault` is set. An EXPLICIT range keeps throwing on a blank cell, which the legacy Jasmine spec
+  "should throw for an empty cell when `forceNumeric` is on and errors are not suppressed" pins, and a
+  non-numeric value such as `'abc'` still throws in a default range. The physical row count is not the cause:
+  a cap at `countSourceRows()` was tried and the throw stayed, so do not add one.
 - `defaultRangesAlter.unit.js` pins append, repeated append, insert (inside and above row 0), removal,
   `maxRows`, `minSpareRows`, column alterations, trimmed rows, `loadData()`/`updateData()`, the empty table,
   multiple endpoints and the explicit-range controls.

@@ -1,10 +1,11 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, ColumnSummary, TrimRows } from 'handsontable/plugins';
+import { registerPlugin, ColumnSummary, TrimRows, UndoRedo } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
 registerPlugin(TrimRows);
+registerPlugin(UndoRedo);
 
 /**
  * DEV-2995: an endpoint that declares no `ranges` gets the default `[[0, count - 1]]`. That default
@@ -262,5 +263,62 @@ describe('ColumnSummary default ranges with alter()', () => {
     // pin range growth, because a row can only be appended below a reversed summary by writing into the
     // read-only summary row itself.
     expect(hot.getDataAtCell(2, 0)).toBe(35);
+  });
+
+  describe('with `forceNumeric` and `suppressDataTypeErrors: false`', () => {
+    // The summary cell holds a number, because these settings throw on an empty cell in the first calculation
+    // pass, before any result was written.
+    const strictEndpoint = {
+      destinationColumn: 0,
+      destinationRow: 0,
+      forceNumeric: true,
+      suppressDataTypeErrors: false,
+      type: 'sum',
+    };
+
+    it('does not throw when a blank row is appended to the default range', async() => {
+      hot = buildGrid([strictEndpoint], [[0], [10], [20]]);
+
+      await hot.alter('insert_row_below');
+      hot.setDataAtCell(3, 0, 5);
+
+      expect(hot.getDataAtCell(0, 0)).toBe(35);
+    });
+
+    it('survives the undo of a row removal and still sums an appended row', async() => {
+      hot = buildGrid([strictEndpoint], [[0], [10], [20], [30]], { undo: true });
+
+      await hot.alter('remove_row', 3);
+
+      expect(hot.getDataAtCell(0, 0)).toBe(30);
+
+      // The plugin writes the summary after the removal, and each of those writes is an undo step of its own,
+      // so the removal is not the first step. Undo until it is reverted.
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      for (let step = 0; step < 5 && hot.countRows() < 4; step++) {
+        undoRedo.undo();
+      }
+
+      expect(hot.countRows()).toBe(4);
+      expect(hot.getDataAtCell(3, 0)).toBe(30);
+
+      await hot.alter('insert_row_below');
+      hot.setDataAtCell(4, 0, 5);
+
+      expect(hot.getDataAtCell(0, 0)).toBe(65);
+    });
+
+    it('still throws for a blank cell inside an explicit range', async() => {
+      expect(() => {
+        hot = buildGrid([{ ...strictEndpoint, ranges: [[0, 2]] }], [[0], [10], [null]]);
+      }).toThrowError(/is not in a numeric format/);
+    });
+
+    it('still throws for a non-numeric cell inside the default range', async() => {
+      expect(() => {
+        hot = buildGrid([strictEndpoint], [[0], [10], ['abc']]);
+      }).toThrowError(/is not in a numeric format/);
+    });
   });
 });

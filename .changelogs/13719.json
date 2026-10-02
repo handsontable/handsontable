@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the default `ranges` of a Column summary endpoint not following the table when rows are added or the data is reloaded. The default range now always covers the whole table, so a row appended past the last row, a row inserted above the first row, and the rows of a longer dataset are all summed.",
+  "title": "Fixed the default `ranges` of a Column summary endpoint not following the table when rows are added or the data is reloaded. The default range now always covers the whole table, so a row appended past the last row, a row inserted above the first row, and the rows of a longer dataset are all summed. A blank cell in that default range no longer throws when `forceNumeric` is on and `suppressDataTypeErrors` is `false`.",
   "type": "fixed",
   "issueOrPR": 13719,
   "breaking": false,
