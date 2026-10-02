@@ -14,6 +14,7 @@ import {
   escapeTextValue,
   isEngineEscapedValue,
   unescapeEngineBoundValue,
+  padRowsToWidestRow,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -300,6 +301,35 @@ describe('Formulas utils', () => {
     it('should keep an apostrophe-only value untouched (it cannot be a preserved text escape)', () => {
       // Stripping would leave an empty string, which `isPreservedText` never reports as preserved.
       expect(unescapeEngineBoundValue('\'', { type: 'text', preserveTextValue: true })).toBe('\'');
+    });
+  });
+
+  describe('padRowsToWidestRow', () => {
+    it('should pad a shorter first row with null up to the widest row', () => {
+      expect(padRowsToWidestRow([['a', 'b'], ['c', 'd', 'e'], ['f']])).toEqual([
+        ['a', 'b', null],
+        ['c', 'd', 'e'],
+        ['f', null, null],
+      ]);
+    });
+
+    it('should return the very same array when it is already rectangular', () => {
+      const rows = [['a', 'b'], ['c', 'd']];
+
+      expect(padRowsToWidestRow(rows)).toBe(rows);
+    });
+
+    it('should not mutate the rows it was given', () => {
+      const rows = [['a'], ['b', 'c']];
+
+      padRowsToWidestRow(rows);
+
+      expect(rows).toEqual([['a'], ['b', 'c']]);
+    });
+
+    it('should handle an empty sheet and empty rows', () => {
+      expect(padRowsToWidestRow([])).toEqual([]);
+      expect(padRowsToWidestRow([[], []])).toEqual([[], []]);
     });
   });
 });
