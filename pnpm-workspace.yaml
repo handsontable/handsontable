@@ -18,7 +18,7 @@ packages:
 # `catalog:`; performance-tests/ is npm-managed (own package-lock.json), so its
 # pin is kept in lockstep by hand.
 catalog:
-  '@playwright/test': 1.62.1
+  '@playwright/test': 1.63.0
 
 ignoredBuiltDependencies:
   - lefthook # its postinstall is redundant — scripts/prepare-dev-env.mjs wires the hooks
