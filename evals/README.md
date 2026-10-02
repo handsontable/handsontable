@@ -130,7 +130,7 @@ weakening detector.
 | `determinismSmells` | `sleep(`, `waitForTimeout(`, `networkidle`, a global `setTimeout(` (bare, `window.`, or `globalThis.`) with a non-zero numeric-literal delay, `waitForNextAnimationFrames(` with anything but a literal `0` — timing-based instead of condition-based waits. Mirrors the lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`, exemptions included: `test.setTimeout(ms)` is a budget, `setTimeout(fn, 0)` and `waitForNextAnimationFrames(0)` are zero-duration hand-offs, and a computed delay cannot be judged statically. And `theme-sensitive-viewport`: a rendered-count read (the legacy helpers by exact name — `countVisibleRows()`/`countVisibleCols()`, `countRenderedRows()`/`countRenderedCols()`, `getRenderedRowsCount()` — a look-alike such as `countVisibleCustomBorders()` does not read; or a `:visible` selector that something counts — `toHaveCount(` or `.count()` on the selector or on the locator it is captured into; a `:visible` click or `.first()` counts nothing) inside a describe whose grid setup hands no top-level `width`/`height` to an options object (`handsontable({ … })`, `grid.initGrid({ … })`, `new Handsontable(host, { … })`, or a local passed to one whole or spread) and never calls `scrollViewportTo`. A nested `width` (`border: { width: 2 }`, `columns: [{ width: 100 }]`) is not the grid's size, and an expected value (`toEqual({ width: 2, … })`) is not a setup. Row height differs per theme, so that count is a different number on each leg of the theme matrix. |
 | `structureSmells` | `unasserted-capture`: a `const x = await …` in a test body whose value never reaches an assertion — neither `x` nor a local derived from it in one step (`const tokens = String(x).split(' ')`) lands inside `expect(…)`/`assert…(…)`, its matcher chain, or as the receiver of an `x.expect…(` helper. A value fetched and dropped is code run without being checked. **Warning-only** until its precision is measured: over the 69 Playwright specs shipped when it landed, it flagged 4 captures in 3 files, each a value fetched to drive an action (a bounding box for a pointer move, a count for a keyboard loop) whose outcome the test asserts by other means. Over the 158 specs in `tests/e2e/` on 2026-09-23 it flags 21 captures in 9 files. |
 | `relevance` | With `--diff`: does the test reference any changed symbol? Warning-only (E2E tests assert behavior, not symbols). |
-| `mutation` | The ceiling: the kill rate from a scoped StrykerJS run with `--mutate`, or only the availability status without it. |
+| `mutation` | The ceiling: with `--mutate`, the scored test's kill rate on those source files from a scoped StrykerJS run; without it, only the availability status. |
 | `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. A structure smell is a warning while its precision is measured, so it never flips the verdict. |
 
 The signals are heuristic and text-based, like the weakening detector they
@@ -154,18 +154,93 @@ kill-rate in the `mutation` field. ALWAYS scope — never the whole tree.
 
 ```bash
 cd handsontable
-npm run build:styles   # once per clone — two unit contract tests read styles/
+npm run build:styles   # once per clone: generates src/styles/handsontableStyles.js, which some unit tests import
 # score a test AND measure how many injected bugs in the source it kills:
 node ../evals/score.mjs src/helpers/__tests__/errors.unit.js --mutate src/helpers/errors.ts
-# → mutation: { available: true, score: 100, killed: 4, survived: 0, total: 4 }
+# → mutation: { available: true, score: 100, killed: 3, survived: 0, timeout: 0, noCoverage: 0, total: 3 }
 
 # the underlying raw invocation (what --mutate runs for you):
-BABEL_ENV=commonjs npx env-cmd -f ../hot.config.js npx stryker run --mutate src/helpers/errors.ts --reporters json
+HOT_MUTATION_TEST_FILES=src/helpers/__tests__/errors.unit.js BABEL_ENV=commonjs npx env-cmd -f ../hot.config.js npx stryker run --mutate src/helpers/errors.ts --reporters json
 ```
 
 `parseMutationReport`/`runMutation` in `score.mjs` compute the standard
 `detected / valid` score (killed+timeout over killed+timeout+survived+
 no-coverage) — a survived or never-covered mutant means the test missed it.
+When a run fails, `mutation.reason` quotes Stryker's own `ERROR` and `FATAL`
+log lines (for example `Initial test run timed out!`, with the name of a test
+that failed in the initial run). When Stryker logged none, it quotes stderr:
+Node's report of an uncaught error, the shell's `env-cmd: command not found`
+when Stryker never started, or Stryker's recovery line after a `SIGTERM`.
+The exit code comes with it. A run that finished also gets a `reason` when a
+`--mutate` pattern matched no file or the report holds no valid mutant, so a
+mistyped path does not read as a silent `score: null`.
 
-Pilot result (2026-07-14): `src/helpers/errors.ts` → 4 mutants, 4 killed,
-0 survived — mutation score 100, in 43s.
+### What a run executes
+
+The scored test, and nothing else. `jest.stryker.config.js` runs only the unit
+tests named in `HOT_MUTATION_TEST_FILES` (comma-separated, relative to
+`handsontable/`), in the initial test run and in every mutant run, and refuses
+to start without them. The scorer sets the variable to the file it scores, so
+the kill rate is that test's, not the suite's. `jest.enableFindRelatedTests`
+is off, so the scored test runs even when Jest's static import graph does not
+link it to the mutated file.
+
+The test path is relative to where you run the scorer; `--mutate` paths are
+relative to `handsontable/`. Anything but a core unit test (an evals fixture,
+a Playwright spec, a legacy `*.spec.js`) gets a `mutation.reason` instead, and
+Stryker does not start.
+
+Measured on 2026-10-01 with `src/helpers/errors.ts`:
+
+- **Unscoped, the run never finished.** Stryker's initial test run asks Jest for
+  `--findRelatedTests <mutated file>` and runs the result in one process. For
+  this helper that is 333 of the 461 unit suites, and the run hit Stryker's
+  five-minute `dryRunTimeoutMinutes` (`Initial test run timed out!`, 5 min 14 s
+  of wall time). Run in one process without Stryker, that set took 13 min 52 s
+  (4420 tests). Each mutant run repeats it, so with a raised timeout this
+  helper's 3 mutants would take an estimated half hour (not measured): one pass
+  for the initial run, then the three mutant runs side by side.
+- **Stryker's own `--testFiles` gives a false score.** It scopes the initial run
+  only. Under `coverageAnalysis: "all"` every covered mutant counts as static,
+  and the jest runner passes such a mutant the test *file paths* as a test-name
+  filter, which matches no test. Each mutant run then loaded every related
+  suite until it timed out, and a timeout counts as detected: 3 of 3
+  `Timeout`, a score of 100, with no test run against any mutant.
+- **Scoped through `HOT_MUTATION_TEST_FILES`, it takes about 6 s:** 3 mutants,
+  3 killed, from the scorer's start to its output.
+
+`incremental` mode is off. It carries results from one run into the next: a
+run scored against `src/helpers/feature.ts` reported the mutants of
+`src/helpers/errors.ts` from the run before it, and `parseMutationReport` sums
+every file in the report.
+
+### What a run leaves behind
+
+- `handsontable/reports/mutation/mutation.json`, the JSON report. The next run
+  overwrites it. `git status` lists it as untracked unless
+  `handsontable/.gitignore` ignores `/reports/mutation/`.
+- Nothing else after a run that finished. In place, Stryker backs up each file
+  it rewrites to `handsontable/.stryker-tmp/backup-*/` and moves the backups
+  back on exit. With `disableTypeChecks` off it rewrites only the mutated
+  files. Stryker's default prepended `// @ts-nocheck` to every JS and TS file
+  under `handsontable/` (2668 of them) for the length of the run. The jest
+  runner strips types with Babel without checking them, so that comment never
+  changed a result.
+- An empty `handsontable/.stryker-tmp/` after a run that failed once Stryker
+  had started: Stryker keeps its temp directory for debugging.
+- After a run that was killed outright (`SIGKILL`, a crash), the mutated files
+  still hold Stryker's instrumented code, and their originals sit in
+  `handsontable/.stryker-tmp/backup-*/`. Run `git restore` on the sources, or
+  move the backups back. `SIGINT` (Ctrl+C), `SIGTERM`, `SIGHUP`, and
+  `SIGABRT` are safe: Stryker restores the files before it exits.
+- A new modification time on each mutated file, and its default mode: the
+  restore moves the backup, a new file, over the original. While Stryker's
+  default rewrote every file, that is how ten executable plugin sources came
+  back from every run with a mode-only diff. No tracked file under
+  `handsontable/src` is executable anymore, and
+  `scripts/__tests__/source-file-modes.test.mjs` keeps it that way.
+
+The pilot result recorded on 2026-07-14 (`src/helpers/errors.ts`: 4 mutants,
+4 killed, in 43 s) does not reproduce: the same unscoped config timed out on
+2026-10-01, as measured above. Scoped to the scored test, the run takes about
+6 s: 3 mutants (the file has changed since), 3 killed.
