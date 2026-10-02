@@ -7408,7 +7408,7 @@ export default (): Record<string, unknown> => {
     tableClassName: undefined,
 
     /**
-     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
+     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots), either on one line or after a number of lines. Support for a number was added in 19.0.0.
      *
      * You can set the `textEllipsis` option to one of the following:
      *
@@ -7440,7 +7440,9 @@ export default (): Record<string, unknown> => {
      * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
      * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
      * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
-     * `setCellMeta`). This changed in 19.0.0.
+     * `setCellMeta`). To show a number of lines in them, set the number there too. A grid-level `textEllipsis`
+     * does not reach these columns, because the cell type's own value wins over the grid level. This changed in
+     * 19.0.0.
      * :::
      *
      * @since 16.0.0

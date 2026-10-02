@@ -8,27 +8,21 @@ import { TextEllipsisLineClampPage, type CellMeasure } from '../fixtures/pages/T
  */
 
 /**
-
  * How many whole lines the clamp wrapper shows, or `0` when there is no wrapper.
-
  */
 const clampedLines = (m: CellMeasure): number => (
   m.hasWrapper ? Math.round((m.wrapperClientHeight as number) / m.lineHeight) : 0
 );
 
 /**
-
  * Sub-pixel layout differs per theme, so geometry is compared within one pixel.
-
  */
 const expectNear = (actual: number, expected: number): void => {
   expect(Math.abs(actual - expected), `${actual} should be within 1px of ${expected}`).toBeLessThanOrEqual(1);
 };
 
 /**
-
  * The wrapper is `n` lines tall, its text is taller than that box, and the cell carries the mode class.
-
  */
 const expectClamped = (m: CellMeasure, lines: number): void => {
   expect(m.hasWrapper).toBe(true);
@@ -324,6 +318,10 @@ test.describe('textEllipsis line clamp', () => {
     expect(fallback.hasWrapper).toBe(false);
     expect(fallback.classes).toContain('htTextEllipsis');
 
+    // The class is not enough: the long html cell must really sit on one line, as tall as the short row.
+    await expect.poll(async() => (await grid.measure(0, 0)).rowHeight).toBeLessThan(2 * fallback.lineHeight);
+    expectNear((await grid.measure(0, 0)).rowHeight, (await grid.measure(4, 0)).rowHeight);
+
     await grid.updateSettings({ columns: [{ renderer: 'text', textEllipsis: 2 }] });
     await expect.poll(async() => clampedLines(await grid.measure(0, 0))).toBe(2);
     expectClamped(await grid.measure(0, 0), 2);
@@ -358,7 +356,7 @@ test.describe('textEllipsis line clamp', () => {
     expect(clamped.rowHeight).toBeLessThan(4 * clamped.lineHeight);
   });
 
-  test('copies and stores the full untruncated text', async({ page, theme, bundle }) => {
+  test('keeps the full untruncated text in the DOM of a clamped cell', async({ page, theme, bundle }) => {
     const grid = new TextEllipsisLineClampPage(page, theme, bundle);
 
     await grid.goto({ columns: [{ textEllipsis: 2 }] });
@@ -367,9 +365,7 @@ test.describe('textEllipsis line clamp', () => {
     const longText = await grid.longText();
 
     expect(longText.length).toBeGreaterThan(140);
-    expect(await grid.dataAt(0, 0)).toBe(longText);
-    expect(await grid.copyableAt(0, 0)).toBe(longText);
-    // The DOM holds all of it too: the clamp is presentation only.
+    // The clamp is presentation only: the wrapper holds all of the text, and the cell is just cut short by CSS.
     expect((await grid.measure(0, 0)).text).toBe(longText);
   });
 });

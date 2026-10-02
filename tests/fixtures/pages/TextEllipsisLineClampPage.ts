@@ -88,36 +88,28 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * A master cell by visual row/column, through its stable test id.
-
    */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
   /**
-
    * The clamp wrapper inside a master cell.
-
    */
   wrapper(row: number, col: number): Locator {
     return this.cell(row, col).locator('.htLineClamp');
   }
 
   /**
-
    * The full text every long cell holds.
-
    */
   longText(): Promise<string> {
     return this.page.evaluate(() => (window as any).LONG_TEXT as string);
   }
 
   /**
-
    * Change settings at runtime.
-
    */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate((s) => {
@@ -126,9 +118,7 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * Write cell meta and redraw, the way an application changes one cell at runtime.
-
    */
   async setCellMetaAndRender(row: number, col: number, key: string, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, k, v]) => {
@@ -140,9 +130,7 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * Select a cell with a real click, then press Enter so the editor opens by keyboard.
-
    */
   async openEditorWithKeyboard(row: number, col: number): Promise<void> {
     await this.cell(row, col).click();
@@ -168,9 +156,7 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * Write one cell's value through the API, the way an application loads data at runtime.
-
    */
   async setDataAt(row: number, col: number, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {
@@ -179,9 +165,7 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * Redraw the grid without changing anything, to prove a second draw leaves a cell as it was.
-
    */
   async render(): Promise<void> {
     await this.page.evaluate(() => {
@@ -190,36 +174,21 @@ export class TextEllipsisLineClampPage {
   }
 
   /**
-
    * How many dropdown arrows a master cell holds.
-
    */
   arrows(row: number, col: number): Locator {
     return this.cell(row, col).locator('.htAutocompleteArrow');
   }
 
   /**
-
    * The value in the source data.
-
    */
   dataAt(row: number, col: number): Promise<unknown> {
     return this.page.evaluate(([r, c]) => (window as any).hot.getDataAtCell(r, c), [row, col] as const);
   }
 
   /**
-
-   * What the clipboard would carry for a one-cell range.
-
-   */
-  copyableAt(row: number, col: number): Promise<unknown> {
-    return this.page.evaluate(([r, c]) => (window as any).hot.getCopyableData(r, c), [row, col] as const);
-  }
-
-  /**
-
    * Measure a master cell: its row, its wrapper and its line height, in one round trip.
-
    */
   async measure(row: number, col: number): Promise<CellMeasure> {
     return this.grid.evaluate((root, [r, c]) => {

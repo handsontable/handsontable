@@ -153,6 +153,7 @@ describe('textRenderer', () => {
         const wrapper = TD.firstElementChild as HTMLElement;
         const link = document.createElement('a');
 
+        link.className = 'ht-link';
         link.appendChild(wrapper);
         TD.appendChild(link);
 
@@ -176,6 +177,7 @@ describe('textRenderer', () => {
         const link = document.createElement('a');
 
         arrow.className = 'htAutocompleteArrow';
+        link.className = 'ht-link';
         link.appendChild(arrow);
         link.appendChild(wrapper);
         TD.appendChild(link);
@@ -186,6 +188,27 @@ describe('textRenderer', () => {
         expect(link.children.length).toBe(1);
         expect(link.firstElementChild).toBe(wrapper);
         expect(wrapper.textContent).toBe('Second');
+      });
+
+      it('should not keep an anchor that a custom renderer drew around the wrapper', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'First', { textEllipsis: 2 });
+
+        // a custom renderer links only the rows that have a URL; the recycled cell must not keep the old link
+        const link = document.createElement('a');
+
+        link.href = 'https://example.com/previous-row';
+        link.appendChild(TD.firstElementChild!);
+        TD.appendChild(link);
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'Second', { textEllipsis: 2 });
+
+        expect(TD.querySelector('a')).toBeNull();
+        expect(TD.children.length).toBe(1);
+        expect(TD.firstElementChild!.className).toBe('htLineClamp');
+        expect(TD.textContent).toBe('Second');
       });
 
       it('should remove markup that another renderer put beside the wrapper', () => {

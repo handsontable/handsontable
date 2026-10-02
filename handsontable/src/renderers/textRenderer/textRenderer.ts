@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { addClass, empty, fastInnerText, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
+import { LINK_CLASS_NAME } from '../../utils/cellLinks/linkElement';
 import {
   getTextTruncation,
   LINE_CLAMP_CSS_VARIABLE,
@@ -33,7 +34,8 @@ function findWrapperChild(parent: Node): HTMLElement | null {
  * child of the cell, or sits inside a link: the whole-cell link modes (`autoLink` with `inline: false`,
  * the Formulas `HYPERLINK` function) move every child of the cell into an anchor, so the wrapper can follow
  * other nodes there (the autocomplete arrow). Looking inside the anchor keeps the wrapper from being rebuilt
- * on every draw.
+ * on every draw. Only the anchors those two features build (`a.ht-link`) count: an anchor a custom renderer
+ * drew is not ours to keep, and a recycled cell must not carry it over to a row that has no link.
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @returns {HTMLElement | null}
@@ -47,7 +49,7 @@ function findLineClampWrapper(TD: HTMLTableCellElement): HTMLElement | null {
         return child;
       }
 
-      const inner = child.localName === 'a' ? findWrapperChild(child) : null;
+      const inner = child.localName === 'a' && hasClass(child, LINK_CLASS_NAME) ? findWrapperChild(child) : null;
 
       if (inner) {
         return inner;
