@@ -135,7 +135,7 @@ const hot = new Handsontable(containerRef.current, {
 
 :::
 
-**Why structural changes are off:** sorting, filtering, and row moving operate on visual indexes and rewrite in-grid aggregate formulas such as `=SUM(D1:D4)`, so an agent-authored total would silently change. Inserting or removing rows shifts the ranges those formulas cover, so a line added below the last item would fall outside the total. The component therefore turns those plugins off and limits the context menu to undo and redo. The user edits values; the agent owns the shape of the sheet and rewrites the formulas when it adds or removes rows, as the reply in Step 5 does.
+**Why structural changes are off:** sorting, filtering, and row moving operate on visual indexes and rewrite in-grid aggregate formulas such as `=SUM(D1:D4)`, so an agent-authored total would silently change. Inserting or removing rows shifts the ranges those formulas cover, so a line added below the last item would fall outside the total. The component therefore turns those plugins off, sets `allowInsertRow`, `allowRemoveRow`, `allowInsertColumn`, and `allowRemoveColumn` to `false` so that a paste taller than the grid or a fill-handle drag past the last row cannot add rows either, and limits the context menu to undo and redo. The user edits values; the agent owns the shape of the sheet and rewrites the formulas when it adds or removes rows, as the reply in Step 5 does.
 
 ## Step 2: Register a catalog
 
@@ -274,7 +274,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 ## Known limitations
 
 - Two-way binding is client-local. The agent learns about edits only when an action fires or, with `sendDataModel: true`, when the client sends its next message.
-- Sorting, filtering, row moving, and user-driven row insert or remove all change what aggregate formulas in the grid cover, so `HotGrid` disables them and leaves row changes to the agent.
+- Sorting, filtering, row moving, and user-driven row or column insert or remove, including through paste and the fill handle, all change what aggregate formulas in the grid cover, so `HotGrid` disables them and leaves row changes to the agent.
 - The A2UI protocol is at v0.9.1, with v1.0 a release candidate. This recipe targets the v0.9 import paths of `@a2ui/react` and `@a2ui/web_core`.
 
 ## Related
