@@ -2658,8 +2658,8 @@ export const REGISTERED_HOOKS = [
    * and runs [`afterPaste`](#afterpaste).
    *
    * The hook doesn't fire when the plugin is disabled, when the grid isn't listening (on a page with
-   * more than one grid, only the active grid's callbacks run), when a cell editor is open, or when the
-   * paste targets an element outside the grid.
+   * more than one grid, only the active grid's callbacks run), when nothing is selected, when a cell
+   * editor is open, or when the paste targets an element outside the grid.
    *
    * The hook is synchronous. A callback can read the clipboard only while the browser dispatches the
    * event, so a returned `Promise` isn't awaited. When more than one callback is registered, they all
@@ -2704,7 +2704,7 @@ export const REGISTERED_HOOKS = [
    *   beforePasteParse: (clipboardData, event) => {
    *     const text = clipboardData.getData('text/plain');
    *
-   *     clipboardData.setData('text/plain', text.replace(/\u00a0/g, '').replace(',', '.'));
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
    *     clipboardData.clearData('text/html');
    *   }
    * });
@@ -2724,7 +2724,7 @@ export const REGISTERED_HOOKS = [
    *   beforePasteParse={(clipboardData, event) => {
    *     const text = clipboardData.getData('text/plain');
    *
-   *     clipboardData.setData('text/plain', text.replace(/\u00a0/g, '').replace(',', '.'));
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
    *     clipboardData.clearData('text/html');
    *   }}
    * />
@@ -2744,7 +2744,7 @@ export const REGISTERED_HOOKS = [
    *   beforePasteParse: (clipboardData, event) => {
    *     const text = clipboardData.getData('text/plain');
    *
-   *     clipboardData.setData('text/plain', text.replace(/\u00a0/g, '').replace(',', '.'));
+   *     clipboardData.setData('text/plain', text.replace(/[\u00a0\u202f]/g, '').replace(/(\d),(\d)/g, '$1.$2'));
    *     clipboardData.clearData('text/html');
    *   },
    * };

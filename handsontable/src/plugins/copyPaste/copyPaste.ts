@@ -1126,23 +1126,36 @@ export class CopyPaste extends BasePlugin {
     }
 
     const nativeEvent = event instanceof PasteEvent ? null : event;
+    const flavorBefore = this.#getParsedFlavor(snapshot);
 
     if (this.hot.runHooks('beforePasteParse', snapshot, nativeEvent) === false) {
       return false;
     }
 
     // The private flavor restores the values a callback just cleaned, because `populateValues()`
-    // prefers it for a cell whose value is unchanged. A callback that rewrote a flavor it does not
-    // know about would otherwise see its work undone, so the flavor goes unless the callback itself
-    // edited it.
+    // prefers it for a cell whose value is unchanged. So it goes unless the callback edited it, but
+    // only when the flavor the plugin parses changed: an edit of `text/plain` under a `<table>` in
+    // `text/html` is ignored, and dropping the private flavor for it would only cost the stored
+    // objects. The flavor is read before and after, because a callback can remove the table.
     if (
       !snapshot.isChanged(SOURCE_DATA_HTML_MIME_TYPE) &&
-      (snapshot.isChanged('text/plain') || snapshot.isChanged('text/html'))
+      (snapshot.isChanged(flavorBefore) || snapshot.isChanged(this.#getParsedFlavor(snapshot)))
     ) {
       snapshot.clearData(SOURCE_DATA_HTML_MIME_TYPE);
     }
 
     return snapshot;
+  }
+
+  /**
+   * Returns the flavor that `#readClipboardData()` parses: `text/html` when it holds a `<table>`,
+   * `text/plain` otherwise.
+   *
+   * @param {PasteClipboardSnapshot} snapshot The snapshot of the event's clipboard.
+   * @returns {string} The MIME type of the flavor that wins.
+   */
+  #getParsedFlavor(snapshot: PasteClipboardSnapshot): string {
+    return /(<table)|(<TABLE)/.test(snapshot.getData('text/html')) ? 'text/html' : 'text/plain';
   }
 
   /**

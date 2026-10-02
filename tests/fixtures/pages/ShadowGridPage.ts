@@ -14,6 +14,8 @@ export class ShadowGridPage {
   readonly bundle: string;
   /** Clipboard-event delivery mode: `'normal'`, or `'lws-shape'` to stand in for LWS. */
   readonly delivery: string;
+  /** Registers the `beforePasteParse` probe in the fixture. Off by default, so other specs paste with no callback. */
+  readonly pasteParseProbe: boolean;
   readonly grid: Locator;
   readonly beforeGrid: Locator;
   readonly cellWidgetButton: Locator;
@@ -25,8 +27,9 @@ export class ShadowGridPage {
   readonly commentTooltipInput: Locator;
   readonly otherShadowContent: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd', delivery = 'normal') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', delivery = 'normal', pasteParseProbe = false) {
     this.page = page;
+    this.pasteParseProbe = pasteParseProbe;
     this.theme = theme;
     this.bundle = bundle;
     this.delivery = delivery;
@@ -54,7 +57,7 @@ export class ShadowGridPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}&delivery=${this.delivery}`
+      `/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}&delivery=${this.delivery}${this.pasteParseProbe ? '&pasteParseProbe=1' : ''}`
     );
     await expect(this.cell(0, 0)).toBeVisible();
   }

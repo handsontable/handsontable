@@ -202,7 +202,8 @@ shadow root or under Lightning Web Security wherever the plugin gets the event.
 
 - **The callbacks edit a `PasteClipboardSnapshot`** (`pasteClipboardData.ts`), not the event. `types`,
   `getData()` (`''` when absent, like `DataTransfer`), `setData()` and `clearData()` are the public
-  `PasteClipboardData` interface in `core/settings.ts`. `isChanged()` and `resolve()` are the plugin's
+  `PasteClipboardData` interface, declared next to the class and re-exported through the plugin barrel and
+  `core/settings.ts`. Type names follow `DataTransfer`: lowercased, with `text` and `url` as aliases. `isChanged()` and `resolve()` are the plugin's
   own and stay off the public type.
 - **`resolve()` is what keeps the no-callback path byte-identical.** A real `DataTransfer` answers `''`
   for a missing `text/plain`, and `parse('')` yields `[['']]`, so a real paste with no text **blanks the
@@ -212,15 +213,18 @@ shadow root or under Lightning Web Security wherever the plugin gets the event.
 - **Only `false` is read from the return value, and `Hooks#run` threads any other non-`undefined` return
   into the next callback's first argument.** The plugin keeps its own snapshot reference for that reason.
   A callback that returns `true`, or `false`, hands it to the next one as `clipboardData`, so a second
-  callback after a cancel throws on `false.getData`. The JSDoc says to return `false` from the last or only
+  callback after a cancel throws on `false.getData`. The type is `void | false`, and the JSDoc says to return `false` from the last or only
   callback, and nothing otherwise. A callback that clears `text/plain` writes nothing, while one that sets
   it to `""` blanks the selection.
 - **A `<table>` in `text/html` wins over `text/plain`**, the rule `#readClipboardData()` already had. A
   callback that cleans only `text/plain` has to `clearData('text/html')`.
-- **The private flavor is dropped when a callback changes `text/plain` or `text/html` and leaves it
-  alone** (`#runBeforePasteParse()`). `populateValues()` prefers it for a cell with `parsePastedValue`
-  whose value equals the original parsed one, so keeping it would bring back what the callback cleaned.
-  A callback that edits the private flavor keeps it. Change detection compares strings before and after.
+- **The private flavor is dropped when a callback changes the flavor that gets parsed and leaves it alone**
+  (`#runBeforePasteParse()`). `populateValues()` prefers it for a cell with `parsePastedValue` whose value
+  equals the original parsed one, so keeping it would bring back what the callback cleaned. The parsed
+  flavor is `text/html` when it holds a `<table>`, `text/plain` otherwise, read before and after the hook
+  because a callback can remove the table. An edit of `text/plain` under a table is ignored by the parser, so
+  it keeps the private flavor. A callback that edits the private flavor keeps it. Change detection compares
+  strings before and after.
 - **Sanitizing still applies** to whatever the callbacks leave in `text/html` and the private flavor.
 - **`paste()` from inside the hook recurses** into `onPaste()` and fires the hook again with
   `event === null`. No guard exists on purpose, and the docs tell people to edit the snapshot instead.

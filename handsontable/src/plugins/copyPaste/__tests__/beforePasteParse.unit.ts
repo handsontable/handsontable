@@ -36,6 +36,8 @@ function nativePaste(hot: Handsontable, flavors: Record<string, string>, types =
   return event;
 }
 
+const containers: HTMLElement[] = [];
+
 /**
  * Builds a listening grid with a selection.
  *
@@ -43,7 +45,13 @@ function nativePaste(hot: Handsontable, flavors: Record<string, string>, types =
  * @returns {object} The Handsontable instance.
  */
 function createGrid(settings: Record<string, unknown> = {}) {
-  const hot = new Handsontable(document.createElement('div'), {
+  const container = document.createElement('div');
+
+  // Mounted, so a paste that targets a cell reaches both the document and the grid element listeners.
+  document.body.appendChild(container);
+  containers.push(container);
+
+  const hot = new Handsontable(container, {
     data: [['A1', 'B1'], ['A2', 'B2']],
     licenseKey: 'non-commercial-and-evaluation',
     ...settings,
@@ -60,6 +68,7 @@ describe('CopyPaste beforePasteParse hook', () => {
 
   afterEach(() => {
     hot?.destroy();
+    containers.splice(0).forEach(container => container.remove());
   });
 
   it('should fire once per native paste with a snapshot and the native event', () => {
@@ -256,23 +265,25 @@ describe('CopyPaste beforePasteParse hook', () => {
 
   describe('DOM paste event', () => {
     /**
-     * Dispatches a paste event on the document body, where the plugin listens for events that
-     * target nothing inside the grid.
+     * Dispatches a paste event on a cell, which the document listener and the listener on the grid
+     * element both see.
+     *
+     * @param {object} grid The Handsontable instance.
      */
-    function dispatchPaste() {
+    function dispatchPaste(grid: Handsontable) {
       const event = new Event('paste', { bubbles: true, cancelable: true });
 
       Object.defineProperty(event, 'clipboardData', {
         value: { types: ['text/plain'], getData: (type: string) => (type === 'text/plain' ? 'x' : '') },
       });
-      document.body.dispatchEvent(event);
+      grid.getCell(0, 0)!.dispatchEvent(event);
     }
 
     it('should fire once for one event that the document and the grid element both see', () => {
       const beforePasteParse = jest.fn();
 
       hot = createGrid({ beforePasteParse });
-      dispatchPaste();
+      dispatchPaste(hot);
 
       expect(beforePasteParse).toHaveBeenCalledTimes(1);
       expect(hot.getDataAtCell(0, 0)).toBe('x');
@@ -282,7 +293,7 @@ describe('CopyPaste beforePasteParse hook', () => {
       const beforePasteParse = jest.fn();
 
       hot = createGrid({ copyPaste: false, beforePasteParse });
-      dispatchPaste();
+      dispatchPaste(hot);
 
       expect(beforePasteParse).not.toHaveBeenCalled();
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
@@ -426,6 +437,42 @@ describe('CopyPaste beforePasteParse hook', () => {
         columns: [{ type: 'text', parsePastedValue: true }, {}],
         beforePasteParse(clipboardData: PasteClipboardData) {
           clipboardData.setData('text/html', table(['cleaned']));
+        },
+      });
+
+      nativePaste(hot, {
+        'text/plain': 'raw',
+        'text/html': table(['raw']),
+        [PRIVATE_FLAVOR]: source,
+      });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('cleaned');
+    });
+
+    it('should keep the private flavor when a callback edits text/plain under a text/html table', () => {
+      hot = createGrid({
+        columns: [{ type: 'text', parsePastedValue: true }, {}],
+        beforePasteParse(clipboardData: PasteClipboardData) {
+          // The table in text/html wins, so this edit is ignored and must not cost the stored object.
+          clipboardData.setData('text/plain', 'ignored');
+        },
+      });
+
+      nativePaste(hot, {
+        'text/plain': 'raw',
+        'text/html': table(['raw']),
+        [PRIVATE_FLAVOR]: source,
+      });
+
+      expect(hot.getDataAtCell(0, 0)).toEqual({ id: 7 });
+    });
+
+    it('should drop the private flavor when a callback removes the table so text/plain wins', () => {
+      hot = createGrid({
+        columns: [{ type: 'text', parsePastedValue: true }, {}],
+        beforePasteParse(clipboardData: PasteClipboardData) {
+          clipboardData.setData('text/plain', 'cleaned');
+          clipboardData.setData('text/html', '<p>no table</p>');
         },
       });
 

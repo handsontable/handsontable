@@ -141,6 +141,58 @@ describe('PasteClipboardSnapshot', () => {
     expect(snapshot.isChanged('text/html')).toBe(true);
   });
 
+  it('should read each flavor from the source once when it is built', () => {
+    const source = createSource({ 'text/plain': 'a', 'text/html': '<b>a</b>' });
+
+    // eslint-disable-next-line no-new
+    new PasteClipboardSnapshot(source);
+
+    expect(source.getData.mock.calls.filter(([type]) => type === 'text/plain')).toHaveLength(1);
+    expect(source.getData.mock.calls.filter(([type]) => type === 'text/html')).toHaveLength(1);
+  });
+
+  it('should not read the source at all when it copies nothing', () => {
+    const source = createSource({ 'text/plain': 'a', 'text/html': '<b>a</b>' });
+    const snapshot = new PasteClipboardSnapshot(source, false);
+
+    expect(source.getData).not.toHaveBeenCalled();
+    expect(snapshot.resolve('text/plain')).toBe('a');
+    expect(source.getData).toHaveBeenCalledTimes(1);
+  });
+
+  describe('type names, as DataTransfer maps them', () => {
+    it('should read "text" and "Text" as text/plain', () => {
+      const snapshot = new PasteClipboardSnapshot(createSource({ 'text/plain': 'a' }));
+
+      expect(snapshot.getData('text')).toBe('a');
+      expect(snapshot.getData('Text')).toBe('a');
+    });
+
+    it('should write "Text" to text/plain', () => {
+      const snapshot = new PasteClipboardSnapshot(createSource({ 'text/plain': 'a' }));
+
+      snapshot.setData('Text', 'b');
+
+      expect(snapshot.getData('text/plain')).toBe('b');
+      expect(snapshot.types).toEqual(['text/plain']);
+      expect(snapshot.resolve('text/plain')).toBe('b');
+    });
+
+    it('should clear "TEXT/HTML" as text/html', () => {
+      const snapshot = new PasteClipboardSnapshot(createSource({ 'text/plain': 'a', 'text/html': '<b>a</b>' }));
+
+      snapshot.clearData('TEXT/HTML');
+
+      expect(snapshot.types).toEqual(['text/plain']);
+    });
+
+    it('should map "url" to text/uri-list', () => {
+      const snapshot = new PasteClipboardSnapshot(createSource({ 'text/uri-list': 'https://example.com' }));
+
+      expect(snapshot.getData('URL')).toBe('https://example.com');
+    });
+  });
+
   describe('resolve', () => {
     it('should answer what the source answered for a flavor nobody touched', () => {
       const real = new PasteClipboardSnapshot(createSource({}, []));

@@ -1,4 +1,29 @@
-import type { PasteClipboardData } from '../../core/settings';
+/**
+ * A writable snapshot of the clipboard content of a paste, passed to the `beforePasteParse` hook.
+ *
+ * A subset of `DataTransfer`. It holds every string flavor the paste event carries, such as
+ * `text/plain` and `text/html`, and edits to it never reach the system clipboard. File entries are
+ * not copied: read them from `event.clipboardData.files`. Like `DataTransfer`, it lowercases a type
+ * and reads `'text'` as `'text/plain'` and `'url'` as `'text/uri-list'`.
+ */
+export interface PasteClipboardData {
+  /**
+   * The flavors the snapshot currently holds.
+   */
+  readonly types: string[];
+  /**
+   * Returns the content of a flavor, or an empty string when the flavor is absent.
+   */
+  getData(type: string): string;
+  /**
+   * Sets the content of a flavor.
+   */
+  setData(type: string, value: string): void;
+  /**
+   * Removes a flavor, or every flavor when called without an argument.
+   */
+  clearData(type?: string): void;
+}
 
 /**
  * The part of a paste event's clipboard that the snapshot reads. Both a real `DataTransfer` and the
@@ -10,10 +35,14 @@ export interface PasteClipboardSource {
 }
 
 /**
+ * The flavor Handsontable writes on copy, with the source data of the copied cells.
+ */
+export const SOURCE_DATA_HTML_MIME_TYPE = 'application/ht-source-data-json-html';
+
+/**
  * Flavors that are read explicitly. A browser can leave one out of `types` while still returning its
  * content from `getData()`, and the plugin needs all three.
  */
-export const SOURCE_DATA_HTML_MIME_TYPE = 'application/ht-source-data-json-html';
 const KNOWN_TYPES = ['text/plain', 'text/html', SOURCE_DATA_HTML_MIME_TYPE];
 
 /**
@@ -22,45 +51,62 @@ const KNOWN_TYPES = ['text/plain', 'text/html', SOURCE_DATA_HTML_MIME_TYPE];
 const FILES_TYPE = 'Files';
 
 /**
+ * Maps a type the way `DataTransfer` does: lowercase, with `'text'` and `'url'` as the legacy names
+ * of `text/plain` and `text/uri-list`.
+ */
+function normalizeType(type: string): string {
+  const lowerCased = String(type).toLowerCase();
+
+  if (lowerCased === 'text') {
+    return 'text/plain';
+  }
+
+  return lowerCased === 'url' ? 'text/uri-list' : lowerCased;
+}
+
+/**
  * A writable snapshot of the clipboard that `beforePasteParse` callbacks edit.
  *
  * Copies the string flavors out of the source on construction, so editing it never touches the
- * (read-only) native clipboard. Besides what callbacks see, it remembers what each flavor held at the
- * source, because the plugin must treat a flavor nobody touched exactly as it did before the hook
- * existed: a real `DataTransfer` answers `''` for a missing `text/plain`, while the programmatic
- * `paste()` answers `undefined`, and `parse('')` and `undefined` lead to different outcomes.
+ * (read-only) native clipboard. The plugin reads a flavor no callback touched straight from the source,
+ * exactly as it did before the hook existed: a real `DataTransfer` answers `''` for a missing
+ * `text/plain`, while the programmatic `paste()` answers `undefined`, and `parse('')` and `undefined`
+ * lead to different outcomes.
  *
  * @private
  */
 export class PasteClipboardSnapshot implements PasteClipboardData {
   /**
+   * The clipboard the snapshot was built from.
+   */
+  #source: PasteClipboardSource;
+  /**
    * What the callbacks currently see, by flavor.
    */
   #values = new Map<string, string>();
-  /**
-   * What the source returned for each known flavor, untouched. `undefined` when the source had none.
-   */
-  #sourceValues = new Map<string, string | undefined>();
   /**
    * What each flavor held when the snapshot was built, used to detect an edit by comparing strings.
    */
   #initialValues = new Map<string, string>();
   /**
-   * Flavors a callback set or cleared. Only these leave the source's own answer behind.
+   * Flavors a callback set or cleared. Only these stop answering what the source answers.
    */
   #edited = new Set<string>();
 
   /**
-   * Copies the string flavors of `source`. With `copyEveryType` off, only the three flavors the plugin
-   * reads are copied, which keeps a paste with no callback from copying a large `text/rtf`.
+   * Copies the string flavors of `source`. With `copyEveryType` off nothing is copied, because a
+   * paste with no callback reads the source directly.
    */
   constructor(source: PasteClipboardSource, copyEveryType = true) {
-    const types = copyEveryType ?
-      Array.from(source.types ?? []).filter(type => type !== FILES_TYPE) : [];
+    this.#source = source;
 
-    KNOWN_TYPES.forEach((type) => {
-      this.#sourceValues.set(type, source.getData(type));
-    });
+    if (!copyEveryType) {
+      return;
+    }
+
+    const types = Array.from(source.types ?? [])
+      .filter(type => type !== FILES_TYPE)
+      .map(normalizeType);
 
     new Set(types.concat(KNOWN_TYPES)).forEach((type) => {
       const value = source.getData(type);
@@ -85,15 +131,17 @@ export class PasteClipboardSnapshot implements PasteClipboardData {
    * Returns the content of a flavor, or `''` when it is absent, as `DataTransfer` does.
    */
   getData(type: string): string {
-    return this.#values.get(type) ?? '';
+    return this.#values.get(normalizeType(type)) ?? '';
   }
 
   /**
    * Sets the content of a flavor.
    */
   setData(type: string, value: string): void {
-    this.#values.set(type, String(value));
-    this.#edited.add(type);
+    const normalizedType = normalizeType(type);
+
+    this.#values.set(normalizedType, String(value));
+    this.#edited.add(normalizedType);
   }
 
   /**
@@ -108,26 +156,30 @@ export class PasteClipboardSnapshot implements PasteClipboardData {
       return;
     }
 
-    this.#values.delete(type);
-    this.#edited.add(type);
+    const normalizedType = normalizeType(type);
+
+    this.#values.delete(normalizedType);
+    this.#edited.add(normalizedType);
   }
 
   /**
    * Whether a flavor holds another string than it did when the snapshot was built.
    */
   isChanged(type: string): boolean {
-    return this.getData(type) !== (this.#initialValues.get(type) ?? '');
+    const normalizedType = normalizeType(type);
+
+    return this.getData(normalizedType) !== (this.#initialValues.get(normalizedType) ?? '');
   }
 
   /**
    * Returns the content of a known flavor for the plugin to parse: `undefined` when there is none.
    *
-   * A flavor no callback touched answers exactly what the source did, which is the behavior from
+   * A flavor no callback touched answers exactly what the source does, which is the behavior from
    * before the hook existed. A flavor a callback set or cleared answers what the callbacks left.
    */
   resolve(type: string): string | undefined {
     if (!this.#edited.has(type)) {
-      return this.#sourceValues.get(type);
+      return this.#source.getData(type);
     }
 
     return this.#values.get(type);

@@ -396,7 +396,7 @@ Editing `clipboardData` doesn't change the system clipboard. Keep these rules in
 - The hook is synchronous. The plugin doesn't wait for a returned `Promise`.
 - Don't call `paste()` from the callback. Edit `clipboardData` instead.
 - Return `false` to cancel the paste, or return nothing. The hook passes a returned value (`false` included) to the next callback as its `clipboardData`, so return `false` only from the last callback or the only one, and never return any other value.
-- The hook doesn't fire when the plugin is disabled, when the grid isn't listening for keyboard input, when a cell editor is open, or when the paste targets an element outside the grid.
+- The hook doesn't fire when the plugin is disabled, when the grid isn't listening for keyboard input, when nothing is selected, when a cell editor is open, or when the paste targets an element outside the grid.
 
 The hook runs inside the paste handler of the plugin. It works in a shadow DOM and in Salesforce Lightning Web Security, where a capturing `paste` listener on the `window` object doesn't.
 

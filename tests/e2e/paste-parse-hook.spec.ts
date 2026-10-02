@@ -269,7 +269,7 @@ test.describe('beforePasteParse', () => {
 for (const delivery of ['normal', 'lws-shape'] as const) {
   test.describe(`beforePasteParse in a shadow root, ${delivery} delivery`, () => {
     test('fires exactly once per paste with the native event', async({ page, theme, bundle }) => {
-      const grid = new ShadowGridPage(page, theme, bundle, delivery);
+      const grid = new ShadowGridPage(page, theme, bundle, delivery, true);
       const pasted = `SHADOW-${delivery.toUpperCase()}-4471`;
 
       await grid.goto();

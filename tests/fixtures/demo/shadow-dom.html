@@ -227,14 +227,18 @@
     // container) see the event under the default delivery, and only the `lws-shape` one reaches
     // the plugin through a single listener.
     window.__beforePasteParseCalls = [];
-    hot.addHook('beforePasteParse', (clipboardData, event) => {
-      window.__beforePasteParseCalls.push({
-        eventType: event === null ? null : event.type,
-        eventIsClipboardEvent: event instanceof ClipboardEvent,
-        types: clipboardData.types.slice(),
-        plain: clipboardData.getData('text/plain'),
+    // Opt-in (`?pasteParseProbe=1`): every other paste test here runs with no callback registered,
+    // the default path a regression in the snapshot would otherwise hide.
+    if (htParams.get('pasteParseProbe') === '1') {
+      hot.addHook('beforePasteParse', (clipboardData, event) => {
+        window.__beforePasteParseCalls.push({
+          eventType: event === null ? null : event.type,
+          eventIsClipboardEvent: event instanceof ClipboardEvent,
+          types: clipboardData.types.slice(),
+          plain: clipboardData.getData('text/plain'),
+        });
       });
-    });
+    }
 
     document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
       event.preventDefault();

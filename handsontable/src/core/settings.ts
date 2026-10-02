@@ -18,6 +18,7 @@ import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -31,6 +32,8 @@ import type {
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
+
+export type { PasteClipboardData };
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -82,32 +85,6 @@ export type SanitizerContext =
   | 'CopyPaste.paste'
   | 'CopyPaste.paste.sourceData'
   | (string & {});
-
-/**
- * A writable snapshot of the clipboard content of a paste, passed to the `beforePasteParse` hook.
- *
- * A subset of `DataTransfer`. It holds every string flavor the paste event carries, such as
- * `text/plain` and `text/html`, and edits to it never reach the system clipboard. File entries are
- * not copied: read them from `event.clipboardData.files`.
- */
-export interface PasteClipboardData {
-  /**
-   * The flavors the snapshot currently holds.
-   */
-  readonly types: string[];
-  /**
-   * Returns the content of a flavor, or an empty string when the flavor is absent.
-   */
-  getData(type: string): string;
-  /**
-   * Sets the content of a flavor.
-   */
-  setData(type: string, value: string): void;
-  /**
-   * Removes a flavor, or every flavor when called without an argument.
-   */
-  clearData(type?: string): void;
-}
 
 /**
  * A value a Trusted Types sink accepts in place of a plain string.
@@ -708,7 +685,7 @@ export interface GridSettings {
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
-  beforePasteParse?: (clipboardData: PasteClipboardData, event: ClipboardEvent | null) => void | boolean;
+  beforePasteParse?: (clipboardData: PasteClipboardData, event: ClipboardEvent | null) => void | false;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
