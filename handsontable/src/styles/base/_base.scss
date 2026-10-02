@@ -733,6 +733,19 @@
       white-space: nowrap;
     }
 
+    // A numeric `textEllipsis` clamps the text to that many lines. A table cell can't clamp its own
+    // lines (`-webkit-line-clamp` needs `display: -webkit-box`, which pulls a `td` out of the table
+    // layout), so the text renderer writes the value into this wrapper and the `td` keeps its padding.
+    // The line count comes from the wrapper's own custom property, so any number of lines needs no
+    // extra rule. The prefixed property is deliberate: the unprefixed `line-clamp` is not available
+    // in the Chrome 130+, Firefox 132+ and Safari 18.2+ the grid targets (`browser-targets.js`).
+    .htLineClamp {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: var(--ht-text-line-clamp);
+      overflow: hidden;
+    }
+
     // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no
     // ellipsis on its own: the value is moved into the absolutely positioned `.htCellClip`, which
     // clips and inherits `nowrap` from the `htTextEllipsis` TD but not its `text-overflow`. Set it

@@ -233,7 +233,7 @@ export interface GridSettings {
   viewportColumnRenderingThreshold?: number | 'auto';
   viewportRowRenderingThreshold?: number | 'auto';
   observeDOMVisibility?: boolean;
-  textEllipsis?: boolean;
+  textEllipsis?: boolean | number;
 
   // Selection & navigation
   disableVisualSelection?: boolean | string | string[];

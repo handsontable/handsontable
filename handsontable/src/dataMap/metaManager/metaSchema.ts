@@ -7412,10 +7412,28 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `textEllipsis` option to one of the following:
      *
-     * | Setting           | Description                                   |
-     * | ----------------- | --------------------------------------------- |
-     * | `false` (default) | Don't truncate text content with an ellipsis  |
-     * | `true`            | Truncate text content with an ellipsis        |
+     * | Setting                    | Description                                                                |
+     * | -------------------------- | -------------------------------------------------------------------------- |
+     * | `false` (default)          | Don't truncate text content with an ellipsis                               |
+     * | `true`                     | Keep text content on one line and truncate it with an ellipsis             |
+     * | A number, `2` or greater   | Wrap text content and truncate it with an ellipsis after that many lines  |
+     *
+     * A number of `1` works like `true`. A number that is not a positive integer (such as `0`, `-1`, or `2.5`)
+     * works like `false`.
+     *
+     * A number works in cells whose renderer writes plain text through the built-in `textRenderer`.
+     * That covers the `text`, `numeric`, `date`, `time`, `intl-date`, `intl-datetime`, `intl-time`, `select`,
+     * `autocomplete`, `dropdown`, and `handsontable` cell types, and any custom renderer that calls
+     * `textRenderer`. Renderers that draw their own markup, such as the `checkbox` and `html` renderers (and
+     * the `autocomplete` renderer with `allowHtml: true`), ignore a number.
+     *
+     * Truncation only changes how the text looks. The full text stays in the cell's DOM, in
+     * [`getData()`](@/api/core.md#getdata), and in copied data. The grid shows no tooltip with the full text.
+     *
+     * The [`wordWrap`](#wordwrap) option set to `false` takes precedence over a number: the text stays on
+     * one line and ends with an ellipsis.
+     *
+     * A row grows up to the given number of lines, so the clamped text stays readable.
      *
      * ::: tip
      * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
@@ -7426,7 +7444,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 16.0.0
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|number}
      * @default false
      * @category Core
      * @configScope grid columns cells cell
@@ -7437,6 +7455,10 @@ export default (): Record<string, unknown> => {
      *   {
      *     // truncate text content with an ellipsis
      *     textEllipsis: true,
+     *   },
+     *   {
+     *     // wrap text content and truncate it with an ellipsis after 3 lines
+     *     textEllipsis: 3,
      *   },
      *   {
      *     // don't truncate text content with an ellipsis

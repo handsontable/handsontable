@@ -11,9 +11,13 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 import { isEmpty } from '../../helpers/mixed';
+import {
+  getTextTruncation,
+  TEXT_ELLIPSIS_CLASS_NAME,
+  TEXT_LINE_CLAMP_CLASS_NAME,
+} from './textTruncation';
 
 export const RENDERER_TYPE: 'base' = 'base';
-const TEXT_ELLIPSIS_CLASS_NAME = 'htTextEllipsis';
 
 /**
  * @param {Core} hotInstance The Handsontable instance.
@@ -74,8 +78,13 @@ export function baseRenderer(
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
 
-  if (cellProperties.textEllipsis) {
+  const truncation = getTextTruncation(cellProperties);
+
+  if (truncation.mode === 'ellipsis') {
     classesToAdd.push(TEXT_ELLIPSIS_CLASS_NAME);
+
+  } else if (truncation.mode === 'clamp') {
+    classesToAdd.push(TEXT_LINE_CLAMP_CLASS_NAME);
   }
 
   removeClass(TD, classesToRemove as string[]);
