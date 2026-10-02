@@ -135,7 +135,7 @@ const hot = new Handsontable(containerRef.current, {
 
 :::
 
-**Why sorting, filtering, and row moving are off:** those plugins operate on visual indexes and rewrite in-grid aggregate formulas such as `=SUM(D1:D4)`. An agent-authored total would silently change. Leave them off in any grid that holds formulas the agent depends on.
+**Why structural changes are off:** sorting, filtering, and row moving operate on visual indexes and rewrite in-grid aggregate formulas such as `=SUM(D1:D4)`, so an agent-authored total would silently change. Inserting or removing rows shifts the ranges those formulas cover, so a line added below the last item would fall outside the total. The component therefore turns those plugins off and limits the context menu to undo and redo. The user edits values; the agent owns the shape of the sheet and rewrites the formulas when it adds or removes rows, as the reply in Step 5 does.
 
 ## Step 2: Register a catalog
 
@@ -160,6 +160,8 @@ Keep the id stable. Once a surface is created with a catalog id, that id is fixe
 **What's happening:** `MessageProcessor` is the A2UI client runtime. It takes the catalogs it may render from and an action handler. Every message from the agent goes through `processMessages`, which creates or updates surfaces. The page subscribes to `onSurfaceCreated` and `onSurfaceDeleted`, keeps the surface list in React state, and renders each one with `A2uiSurface`.
 
 The action handler receives an `ActionPayload` each time the user triggers an action in the surface: the action name, the surface and component ids, a timestamp, and the resolved `context`. The demo's handler logs the payload, then calls `replyTo(action)` after a short delay and feeds the returned messages back into the processor. In a real app the handler forwards the payload to the agent over your transport, and the agent's response arrives the same way the first messages did.
+
+The page's styling is plain CSS in `styles.css`. The one part worth noting is that it reserves the surface's height, for the reason the next paragraph gives.
 
 The replay loop sends the three opening messages together, the way a model's first response arrives, and paces any later messages out so the agent's follow-up edits are visible one at a time. Sending the opening messages one by one made the page jump three times as the surface, then the components, then the data appeared; the page also reserves the surface's height in CSS for the same reason.
 
@@ -272,7 +274,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 ## Known limitations
 
 - Two-way binding is client-local. The agent learns about edits only when an action fires or, with `sendDataModel: true`, when the client sends its next message.
-- Sorting, filtering, and row moving corrupt aggregate formulas held in the grid, so `HotGrid` disables them.
+- Sorting, filtering, row moving, and user-driven row insert or remove all change what aggregate formulas in the grid cover, so `HotGrid` disables them and leaves row changes to the agent.
 - The A2UI protocol is at v0.9.1, with v1.0 a release candidate. This recipe targets the v0.9 import paths of `@a2ui/react` and `@a2ui/web_core`.
 
 ## Related
@@ -291,7 +293,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 - How to give an agent a grid that computes: Handsontable renders, HyperFormula evaluates the agent's formulas, and the agent never does arithmetic.
 - How `updateDataModel` messages reach the grid and why `updateData()` keeps the instance alive across them.
 - How an action's `context` carries both formulas and computed values back to the agent.
-- Why sorting and filtering stay off when the grid holds formulas the agent depends on.
+- Why sorting, filtering, and user-driven row changes stay off when the grid holds formulas the agent depends on.
 
 ## Next steps
 

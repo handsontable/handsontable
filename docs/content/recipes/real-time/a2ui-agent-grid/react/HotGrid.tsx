@@ -79,17 +79,18 @@ export const HotGrid = createComponentImplementation(HotGridApi, ({ props }) => 
       stretchH: 'all',
       readOnly: props.readOnly ?? false,
       formulas: { engine: HyperFormula },
-      // Sorting, filtering and row moving are off on purpose: they break
-      // aggregate formulas such as =SUM(D1:D4) that live in the grid.
+      // Structural changes are off on purpose. Sorting, filtering and row
+      // moving break aggregate formulas such as =SUM(D1:D4) that live in the
+      // grid, and inserting or removing rows shifts the ranges those formulas
+      // cover. The user edits values; the agent owns the shape of the sheet and
+      // rewrites the formulas when it adds or removes rows.
       columnSorting: false,
       filters: false,
       manualRowMove: false,
-      contextMenu: ['row_above', 'row_below', 'remove_row', 'undo', 'redo'],
+      contextMenu: ['undo', 'redo'],
       afterChange: (_changes, source) => {
         if (source !== 'loadData' && source !== 'updateData') syncToDataModel();
       },
-      afterCreateRow: () => syncToDataModel(),
-      afterRemoveRow: () => syncToDataModel(),
       licenseKey: 'non-commercial-and-evaluation',
     });
     hotRef.current = hot;
