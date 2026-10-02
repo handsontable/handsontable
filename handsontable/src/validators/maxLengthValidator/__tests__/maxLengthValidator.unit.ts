@@ -101,6 +101,20 @@ describe('withMaxLength', () => {
     });
   });
 
+  describe('with a disabled validator (`false`)', () => {
+    it('should return the length validator itself, as when there is no validator', () => {
+      expect(withMaxLength(false)).toBe(maxLengthValidator);
+    });
+
+    it('should not throw, and should still check the length', () => {
+      const composed = withMaxLength(false);
+
+      expect(validate(composed, { maxLength: 3 }, 'abc')).toBe(true);
+      expect(validate(composed, { maxLength: 3 }, 'abcd')).toBe(false);
+      expect(validate(composed, { maxLength: 3 }, 12345)).toBe(true);
+    });
+  });
+
   describe('with a function validator', () => {
     it('should call the configured validator and pass its result through when the value fits', () => {
       const rejecting = jest.fn((value, callback) => callback(false));

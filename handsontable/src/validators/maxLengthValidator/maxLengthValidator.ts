@@ -48,11 +48,13 @@ export function maxLengthValidator(
  * value that is too long.
  *
  * @private
- * @param {Function|RegExp} [validator] The validator configured for the cell, if there is one.
+ * @param {Function|RegExp|boolean} [validator] The validator configured for the cell, if there is one.
+ * `false` is how a cell turns its validator off, so it counts as no validator, and only the length
+ * check runs.
  * @returns {Function} The validator function to use for the cell.
  */
-export function withMaxLength(validator?: ValidatorFunction | RegExp): ValidatorFunction {
-  if (validator === undefined) {
+export function withMaxLength(validator?: ValidatorFunction | RegExp | false): ValidatorFunction {
+  if (!validator) {
     return maxLengthValidator;
   }
 

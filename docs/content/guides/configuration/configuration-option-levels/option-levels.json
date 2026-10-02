@@ -964,7 +964,7 @@
         "cells",
         "cell"
       ],
-      "since": null,
+      "since": "18.3.0",
       "note": null
     },
     {

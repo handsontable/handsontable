@@ -6661,6 +6661,7 @@ export default function Core(
 
     // A cell with a finite `maxLength` always has a validator, so that the editor and the change
     // pipeline validate it. The length check runs together with the configured validator, if any.
+    // `validator: false` turns the configured validator off, but not the length check.
     return isMaxLengthActive(cellMeta.maxLength) ? withMaxLength(cellValidator) : cellValidator;
   };
 

@@ -119,6 +119,31 @@ describe('Core `maxLength` option', () => {
       expect(typeof core.getCellValidator(core.getCellMeta(0, 0))).toBe('function');
     });
 
+    it('should keep checking the length when the cell turns its validator off with `validator: false`', async() => {
+      core = createHot(container, {
+        data: [['abc', 'abcd'], [12345, 'x']],
+        columns: [
+          { validator: false, maxLength: 3 },
+          { validator: false, maxLength: 3 },
+        ],
+      });
+
+      expect(typeof core.getCellValidator(0, 0)).toBe('function');
+      expect(typeof core.getCellValidator(0, 1)).toBe('function');
+      // the cell in the second row holds a number, which the length check never measures
+      expect(await validateCells(core)).toBe(false);
+      expect(core.getCellMeta(0, 0).valid).toBe(true);
+      expect(core.getCellMeta(1, 0).valid).toBe(true);
+      expect(core.getCellMeta(0, 1).valid).toBe(false);
+      expect(core.getCellMeta(1, 1).valid).toBe(true);
+    });
+
+    it('should still return `false` for a disabled validator when there is no `maxLength`', () => {
+      core = createHot(container, { data: [['a']], validator: false });
+
+      expect(core.getCellValidator(0, 0)).toBe(false);
+    });
+
     it('should not return a validator when `maxLength` is not a finite number', () => {
       core = createHot(container, { data: [['a']], maxLength: NaN });
 
