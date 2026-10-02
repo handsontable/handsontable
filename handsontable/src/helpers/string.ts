@@ -357,3 +357,78 @@ export function localeLowerCase(value: string, locale?: string): string {
   // eslint-disable-next-line no-restricted-syntax
   return localeAffectsLowerCase(locale) ? value.toLocaleLowerCase(locale) : value.toLowerCase();
 }
+
+/**
+ * The shared grapheme segmenter, built on first use. The constructor is one of the pricier `Intl`
+ * ones and the instance keeps no state between calls, while the callers run on every keystroke.
+ */
+let characterSegmenter: Intl.Segmenter | null = null;
+
+/**
+ * Matches a string in which every UTF-16 code unit is a character of its own. That holds for all the
+ * code units below U+0300, which has no combining mark, joiner, or surrogate, except the carriage return,
+ * because `\r\n` is one character. Such a string is by far the most common one, and it can skip the
+ * segmenter, which costs about 6 µs for a short string, against 0.1 µs for this test.
+ */
+// The range is deliberate: it names every code unit that may join a neighbor, and so keeps it out of the fast path.
+// eslint-disable-next-line no-misleading-character-class
+const SINGLE_UNIT_CHARACTERS = /^[^\r\u0300-\uFFFF]*$/;
+
+/**
+ * Splits a string into the characters a reader sees. These are grapheme clusters, so a flag, a skin
+ * tone emoji, a family emoji, or a letter with a combining mark is one character, not two or seven.
+ *
+ * @param {string} text The text to split.
+ * @returns {string[]} The characters.
+ */
+export function splitIntoCharacters(text: string): string[] {
+  if (SINGLE_UNIT_CHARACTERS.test(text)) {
+    return text.split('');
+  }
+
+  characterSegmenter ??= new Intl.Segmenter();
+
+  return Array.from(characterSegmenter.segment(text), segment => segment.segment);
+}
+
+/**
+ * Counts the characters a reader sees in a string (see {@link splitIntoCharacters}), where
+ * `String#length` counts UTF-16 code units.
+ *
+ * @param {string} value The string to measure.
+ * @returns {number}
+ */
+export function getCharacterLength(value: string): number {
+  if (SINGLE_UNIT_CHARACTERS.test(value)) {
+    return value.length;
+  }
+
+  characterSegmenter ??= new Intl.Segmenter();
+
+  let length = 0;
+
+  for (const segment of characterSegmenter.segment(value)) { // eslint-disable-line no-unused-vars
+    length += 1;
+  }
+
+  return length;
+}
+
+/**
+ * Removes up to `count` characters that end right before the given UTF-16 index. A character is
+ * never split. Stops early when it reaches the start of the string.
+ *
+ * @param {string} value The source string.
+ * @param {number} index The UTF-16 index that the removed range ends at (exclusive).
+ * @param {number} count The number of characters to remove.
+ * @returns {object} The shortened string (`value`) and the UTF-16 index (`index`) that now sits where
+ * the removed range began.
+ */
+export function removeCharactersBefore(
+  value: string, index: number, count: number
+): { value: string, index: number } {
+  const characters = splitIntoCharacters(value.slice(0, index));
+  const kept = characters.slice(0, Math.max(characters.length - count, 0)).join('');
+
+  return { value: kept + value.slice(index), index: kept.length };
+}

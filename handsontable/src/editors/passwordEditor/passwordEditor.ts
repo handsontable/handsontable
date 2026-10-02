@@ -66,6 +66,15 @@ export class PasswordEditor extends TextEditor {
   }
 
   /**
+   * Turns off the `maxLength` cap of the text editor. This editor has its own input rules.
+   *
+   * @returns {boolean}
+   */
+  protected override get capsLength(): boolean {
+    return false;
+  }
+
+  /**
    * Creates the editor's DOM elements. Replaces the `<textarea>` from `TextEditor` with an
    * `<input type="password">` element so that the browser masks its content natively.
    */
