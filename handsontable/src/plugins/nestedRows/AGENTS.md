@@ -508,8 +508,13 @@ They are written in different places and can drift. Keep this in mind:
   editable ones. Two gaps are deliberately open: a visible clear that produces no change at all (every
   visible cell read-only, reached through `executeCommand()`) records no `DataChangeAction`, so the hidden
   write is not undoable; and a user `beforeChange` that cancels the visible clear does not cancel the
-  hidden write. A user callback under the same key replaces the predefined one and never reaches this
-  method. The same gap is still open for "Alignment" (DEV-151, cell meta instead of data); it needs its
+  hidden write. The call is made FROM the predefined item (`hot.getPlugin('nestedRows')`, the pattern
+  `readOnly.ts` uses for ColumnSummary), not by wrapping the item in a `before*MenuSetItems` hook: the
+  plugins are already ready when DropdownMenu (priority 230) enables, so its `callOnPluginsReady()`
+  builds the first item list right away, before this plugin (300) is enabled, and `executeCommand()`
+  reuses that list for a known key - a wrapper therefore missed `executeCommand('clear_column')` run
+  before the menu was ever opened. A user callback under the same key replaces the predefined one and
+  never reaches this method. The same gap is still open for "Alignment" (DEV-151, cell meta instead of data); it needs its
   own record-time hand-off, not the stash.
 - **So every visual index an insert computes is measured in the *expanded* space, and any listener
   that replays it later addresses a different row.** `beforeAddChild` opens the stash and
