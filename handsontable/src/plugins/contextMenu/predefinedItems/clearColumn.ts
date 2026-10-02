@@ -16,10 +16,21 @@ export default function clearColumnItem() {
              selection: { start: { row: number; col: number }; end: { row: number; col: number } }[]) {
       const startColumn = selection[0].start.col;
       const endColumn = selection[0].end.col;
+      const clear = (endRow: number) => {
+        if (this.countRows()) {
+          this.populateFromArray(0, startColumn, [[null]], endRow, endColumn, 'ContextMenu.clearColumn');
+        }
+      };
+      const nestedRows = this.getPlugin('nestedRows');
 
-      if (this.countRows()) {
-        this.populateFromArray(0, startColumn, [[null]],
-          Math.max(selection[0].start.row, selection[0].end.row), endColumn, 'ContextMenu.clearColumn');
+      if (nestedRows?.enabled) {
+        // Nested Rows adds the rows of collapsed parents for the duration of the call, and the
+        // selection was read before it did, so the clear runs to the grid's last row instead. The
+        // entry is enabled for header selections only, which span every row anyway (DEV-150).
+        nestedRows.runWithCollapsedRowsExpanded(() => clear(this.countRows() - 1));
+
+      } else {
+        clear(Math.max(selection[0].start.row, selection[0].end.row));
       }
     },
     disabled(this: HotInstance) {
