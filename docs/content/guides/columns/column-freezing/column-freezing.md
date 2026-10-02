@@ -196,7 +196,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 - **Size limit.** The [frozen area size limit](#frozen-area-size-limit) applies to the start and end columns together. Keep the combined width of all frozen columns smaller than the width of the grid.
 - **Changing the value.** You can change `fixedColumnsEnd` at any time with [`updateSettings()`](@/api/core.md#updatesettings). When you remove columns that belong to the end band, Handsontable lowers the value by the number of removed frozen columns.
 
-- **Spare columns.** While `fixedColumnsEnd` is above `0`, Handsontable doesn't add spare columns for [`minSpareCols`](@/api/options.md#minsparecols). A column added after the last end column would take over the frozen position and unfreeze the column that holds your data. Pressing <kbd>**Enter**</kbd> or <kbd>**Tab**</kbd> at the last column doesn't add a column either.
+- **Spare and minimum columns.** While `fixedColumnsEnd` is above `0`, Handsontable doesn't add empty columns for [`minSpareCols`](@/api/options.md#minsparecols) or [`minCols`](@/api/options.md#mincols). A column added after the last end column would take over the frozen position and unfreeze the column that holds your data. Pressing <kbd>**Enter**</kbd> or <kbd>**Tab**</kbd> at the last column doesn't add a column either.
 - **End and Ctrl+End.** <kbd>**End**</kbd> and <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd> move to the last column that isn't frozen at the end. They don't move into the end columns. To reach the end columns, use the arrow keys or <kbd>**Tab**</kbd>. If the start and end columns cover every column of the grid, <kbd>**End**</kbd> and <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd> do nothing.
 
 ### Known limitations

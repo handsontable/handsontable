@@ -1,3 +1,4 @@
+import TableView from 'handsontable/tableView';
 import { getLastScrollableColumn } from '../getLastScrollableColumn';
 
 /**
@@ -11,9 +12,10 @@ import { getLastScrollableColumn } from '../getLastScrollableColumn';
  * @returns {object}
  */
 function createHot({ totalColumns = 10, fixedColumnsStart = 0, fixedColumnsEnd = 0, hidden = [] } = {}) {
-  return {
+  const settings = { fixedColumnsStart, fixedColumnsEnd };
+  const hot = {
     countCols: () => totalColumns,
-    getSettings: () => ({ fixedColumnsStart, fixedColumnsEnd }),
+    getSettings: () => settings,
     columnIndexMapper: {
       getNearestNotHiddenIndex: (index, direction) => {
         let candidate = index;
@@ -30,6 +32,11 @@ function createHot({ totalColumns = 10, fixedColumnsStart = 0, fixedColumnsEnd =
       },
     },
   };
+
+  // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
+  hot.view = { countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot }) };
+
+  return hot;
 }
 
 describe('getLastScrollableColumn', () => {

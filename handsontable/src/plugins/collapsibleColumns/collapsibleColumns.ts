@@ -20,6 +20,7 @@ import {
 } from '../../helpers/a11y';
 import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -455,7 +456,7 @@ export class CollapsibleColumns extends BasePlugin {
       });
 
       // The inline-end clones render only the last columns, so they are walked on their own.
-      this.#getEndOverlayHeaders().forEach((endHeaders) => {
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
         endHeaders.childNodes[i]?.childNodes.forEach((endChild) => {
           removeButton((endChild as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`));
         });
@@ -938,18 +939,6 @@ export class CollapsibleColumns extends BasePlugin {
     }
 
     return memberCount > 0 && (maxPosition - minPosition) !== (memberCount - 1);
-  }
-
-  /**
-   * Returns the column header sections (THEAD) of the clones that render the `fixedColumnsEnd` columns.
-   */
-  #getEndOverlayHeaders(): HTMLTableSectionElement[] {
-    const { wtOverlays } = this.hot.view._wt;
-
-    return [
-      wtOverlays.inlineEndOverlay?.clone?.wtTable.THEAD,
-      wtOverlays.topInlineEndCornerOverlay?.clone?.wtTable.THEAD,
-    ].filter((thead): thead is HTMLTableSectionElement => !!thead);
   }
 
   /**

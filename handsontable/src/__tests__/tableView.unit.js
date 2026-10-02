@@ -318,3 +318,61 @@ describe('TableView#isMainTableNotFullyCoveredByOverlays', () => {
       .isMainTableNotFullyCoveredByOverlays()).toBe(false);
   });
 });
+
+describe('TableView#countFixedColumnsEnd', () => {
+  // A view stub that answers what the helper reads: the option values and the column count the grid draws.
+  const createView = ({ countCols, fixedColumnsEnd, fixedColumnsStart }) => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => countCols) };
+    view.settings = { fixedColumnsEnd, fixedColumnsStart };
+
+    return view;
+  };
+
+  it('should return 0 without reading the column count when the option is not set', () => {
+    const view = createView({ countCols: 10, fixedColumnsEnd: 0 });
+
+    expect(view.countFixedColumnsEnd()).toBe(0);
+    expect(createView({ countCols: 10 }).countFixedColumnsEnd()).toBe(0);
+    expect(view.hot.countCols).not.toHaveBeenCalled();
+  });
+
+  it('should return the requested number of columns', () => {
+    expect(createView({ countCols: 10, fixedColumnsEnd: 3 }).countFixedColumnsEnd()).toBe(3);
+  });
+
+  it('should cut the band down by the start band, which has priority', () => {
+    expect(createView({ countCols: 10, fixedColumnsEnd: 5, fixedColumnsStart: 8 }).countFixedColumnsEnd()).toBe(2);
+    expect(createView({ countCols: 4, fixedColumnsEnd: 3, fixedColumnsStart: 4 }).countFixedColumnsEnd()).toBe(0);
+  });
+
+  it('should cap the band at the columns the grid has', () => {
+    expect(createView({ countCols: 2, fixedColumnsEnd: 5 }).countFixedColumnsEnd()).toBe(2);
+  });
+});
+
+describe('TableView#countNotHiddenFixedColumnsEnd', () => {
+  it('should return 0 without touching the column index mapper when the option is not set', () => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => 10) };
+    view.settings = { fixedColumnsEnd: 0 };
+    view.countNotHiddenColumnIndexes = jest.fn(() => 99);
+
+    expect(view.countNotHiddenFixedColumnsEnd()).toBe(0);
+    expect(view.hot.countCols).not.toHaveBeenCalled();
+    expect(view.countNotHiddenColumnIndexes).not.toHaveBeenCalled();
+  });
+
+  it('should still count the not hidden end columns when the option is set', () => {
+    const view = Object.create(TableView.prototype);
+
+    view.hot = { countCols: jest.fn(() => 10) };
+    view.settings = { fixedColumnsEnd: 2 };
+    view.countNotHiddenColumnIndexes = jest.fn(() => 2);
+
+    expect(view.countNotHiddenFixedColumnsEnd()).toBe(2);
+    expect(view.countNotHiddenColumnIndexes).toHaveBeenCalledWith(8, 1);
+  });
+});

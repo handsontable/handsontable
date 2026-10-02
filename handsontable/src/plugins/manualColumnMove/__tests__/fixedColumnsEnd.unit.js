@@ -195,6 +195,24 @@ describe('ManualColumnMove – fixedColumnsEnd', () => {
     });
   });
 
+  it('should protect the columns the grid draws when maxCols caps the column count', () => {
+    const plugin = createGrid({
+      data: [Array.from({ length: 15 }, (_, index) => String.fromCharCode(65 + index))],
+      maxCols: 10,
+      fixedColumnsEnd: 2,
+    });
+
+    // 15 data columns, 10 drawn: the band is columns 8 and 9, not the uncapped 13 and 14.
+    expect(hot.countCols()).toBe(10);
+    expect(plugin.getFixedColumnsEndCount()).toBe(2);
+    expect(plugin.isFixedColumnsEnd(8)).toBe(true);
+    expect(plugin.isFixedColumnsEnd(7)).toBe(false);
+    expect(plugin.isMovePossible([8], 3)).toBe(false);
+    expect(plugin.isMovePossible([3], 8)).toBe(false);
+    expect(plugin.isMovePossible([3], 7)).toBe(true);
+    expect(plugin.moveColumns([8], 3)).toBe(false);
+  });
+
   it('should follow the option when it changes', () => {
     const plugin = createGrid({ fixedColumnsEnd: 2 });
 

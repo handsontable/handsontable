@@ -1,7 +1,6 @@
 import type { HotInstance } from '../../types';
 import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
 import { scrollWindowToCell } from '../utils';
-import { clampFixedColumnsEnd } from '../../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 
 /**
  * Axes `scrollViewportTo` should receive for a mouse single-cell selection.
@@ -164,7 +163,7 @@ export function isColumnOversized(hot: HotInstance, col: number): boolean {
   const settings = hot.getSettings();
   const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
   const totalColumns = hot.countCols();
-  const fixedColumnsEnd = clampFixedColumnsEnd(settings.fixedColumnsEnd, fixedColumnsStart, totalColumns);
+  const fixedColumnsEnd = hot.view.countFixedColumnsEnd();
 
   if (col < fixedColumnsStart || col >= totalColumns - fixedColumnsEnd) {
     return false;

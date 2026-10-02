@@ -1907,9 +1907,13 @@ export default function Core(
           let emptyCols = 0;
           // Appending a column after the last end column would move the frozen band onto the new column
           // and silently unfreeze the column that held the data, so no spare column is created while
-          // `fixedColumnsEnd` is set. The keyboard navigation guard (`transformation/_base.ts`) follows the same rule.
+          // `fixedColumnsEnd` is set. The same holds for the `minCols` filler columns below. Creating them before
+          // the band instead is not safe: the filler bookkeeping (`DataMap#isTrailingFillerColumn`) tracks a
+          // trailing run only, and an `auto` insert skips the cell meta shift, so the meta of the end columns
+          // would stay behind. The keyboard navigation guard (`transformation/_base.ts`) follows the same rule.
+          const hasEndColumns = !!tableMeta.fixedColumnsEnd;
           const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array' &&
-            !tableMeta.fixedColumnsEnd;
+            !hasEndColumns;
 
           // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
           // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
@@ -1933,7 +1937,7 @@ export default function Core(
           let nrOfColumns = instance.countCols();
 
           // should I add empty cols to meet minCols?
-          if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          if (minCols && !tableMeta.columns && !hasEndColumns && nrOfColumns < minCols) {
             // The synchronization with cell meta is not desired here. For `minCols` option,
             // we don't want to touch/shift cell meta objects.
             const colsToCreate = minCols - nrOfColumns;

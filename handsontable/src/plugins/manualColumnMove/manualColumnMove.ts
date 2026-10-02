@@ -4,7 +4,6 @@ import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
-import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -307,7 +306,7 @@ export class ManualColumnMove extends BasePlugin {
       return false;
     }
 
-    return this.#keepsEndBandIntact(movedColumns, finalIndex, length);
+    return this.#keepsEndBandIntact(movedColumns, finalIndex);
   }
 
   /**
@@ -316,17 +315,18 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
-   * @param {number} length The number of not trimmed columns.
    * @returns {boolean}
    */
-  #keepsEndBandIntact(movedColumns: number[], finalIndex: number, length: number): boolean {
+  #keepsEndBandIntact(movedColumns: number[], finalIndex: number): boolean {
     const endCount = this.getFixedColumnsEndCount();
 
     if (endCount === 0 || movedColumns.length === 0) {
       return true;
     }
 
-    const bandStart = length - endCount;
+    // The band sits at the end of the columns the grid draws (`countCols()`, capped by `maxCols`), which is not
+    // the end of the not trimmed ones when `maxCols` is lower than the source column count.
+    const bandStart = this.hot.countCols() - endCount;
     const movedFromBand = movedColumns.filter(column => column >= bandStart).length;
 
     if (movedFromBand === 0) {
@@ -454,13 +454,13 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {number}
    */
   getFixedColumnsEndCount(): number {
-    const { fixedColumnsEnd, fixedColumnsStart } = this.hot.getSettings();
+    // The initial `manualColumnMove` array moves the columns while the plugin is enabled, before the table view
+    // exists. A grid with no end columns has nothing to count, so answer without reading the view.
+    if (!this.hot.getSettings().fixedColumnsEnd) {
+      return 0;
+    }
 
-    return clampFixedColumnsEnd(
-      fixedColumnsEnd,
-      fixedColumnsStart,
-      this.hot.columnIndexMapper.getNotTrimmedIndexesLength()
-    );
+    return this.hot.view.countFixedColumnsEnd();
   }
 
   /**
@@ -471,9 +471,9 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedColumnsEnd(column: number): boolean {
-    const length = this.hot.columnIndexMapper.getNotTrimmedIndexesLength();
+    const endCount = this.getFixedColumnsEndCount();
 
-    return column >= length - this.getFixedColumnsEndCount();
+    return endCount > 0 && column >= this.hot.countCols() - endCount;
   }
 
   /**

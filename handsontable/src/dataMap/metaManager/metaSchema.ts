@@ -3626,8 +3626,8 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * While `fixedColumnsEnd` is above `0`, Handsontable doesn't add spare columns for [`minSpareCols`](#minSpareCols).
-     * A spare column added after the last end column would take over the frozen position
+     * While `fixedColumnsEnd` is above `0`, Handsontable doesn't add empty columns for [`minSpareCols`](#minSpareCols)
+     * or [`minCols`](#minCols). A column added after the last end column would take over the frozen position
      * and unfreeze the column that holds your data.
      * :::
      *
@@ -5242,6 +5242,9 @@ export default (): Record<string, unknown> => {
      * - At initialization: if the `minCols` value is higher than the initial number of columns,
      * Handsontable adds empty columns to the right.
      * - At runtime: for example, when removing columns.
+     *
+     * While [`fixedColumnsEnd`](#fixedColumnsEnd) is above `0`, Handsontable doesn't add empty columns for `minCols`,
+     * because a column added after the last end column would take over the frozen position at the grid's end.
      *
      * When you lower the `minCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
      * Handsontable removes the empty columns it added that the new value no longer requires.

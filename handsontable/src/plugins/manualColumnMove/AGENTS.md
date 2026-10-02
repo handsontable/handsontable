@@ -99,8 +99,11 @@ regressions.
 `dragColumns()` and the UI all honor it: an end column cannot leave the band, a scrolling column cannot land
 inside it, and a selection that holds both cannot move. Nothing is restricted while `fixedColumnsEnd` is `0`.
 Unlike the start side (where the veto lives in `ManualColumnFreeze`, and only after a freeze), the end side is
-guarded here, because no other plugin owns the end band. The count is `clampFixedColumnsEnd()` over the not
-trimmed column count, so `fixedColumnsStart` keeps the priority when the bands would overlap.
+guarded here, because no other plugin owns the end band. `ManualColumnFreeze` additionally refuses to freeze or
+move columns that sit in the end band, so a move across the end line is vetoed on both paths. The count is
+`hot.view.countFixedColumnsEnd()` (`TableView`), which clamps over `hot.countCols()`: the same total the renderer
+uses, capped by `maxCols`. Do not count over the uncapped source columns, or the guard protects columns the grid
+never draws. `fixedColumnsStart` keeps the priority when the bands would overlap.
 
 The backlight and the guideline live in the master's hider and scroll with it, while the end clone stands at the
 inline-end edge. `#getEndBandShift()` is the distance between the two, never positive and zero at the inline-end

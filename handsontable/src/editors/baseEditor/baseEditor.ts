@@ -14,7 +14,6 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
-import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
@@ -922,8 +921,7 @@ export class BaseEditor {
     const settings = this.hot.getSettings();
     const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
     // The start band has priority, so only the columns it leaves can belong to the end band.
-    const firstFixedColumnEnd = totalColumns -
-      clampFixedColumnsEnd(settings.fixedColumnsEnd, fixedColumnsStart, totalColumns);
+    const firstFixedColumnEnd = totalColumns - this.hot.view.countFixedColumnsEnd();
     const isInlineStart = this.col < fixedColumnsStart;
     const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';

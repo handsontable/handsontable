@@ -20,6 +20,7 @@ import type { ColumnDropMode, HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 /**
  * A single configured nested header. Declares the header label and how it spans and behaves.
@@ -666,7 +667,7 @@ export class NestedHeaders extends BasePlugin {
 
       // The inline-end clones render only the last columns, so their cells do not line up with the
       // master's by position and are cleared on their own.
-      this.#getEndOverlayHeaders().forEach((endHeaders) => {
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
         const endLevel = endHeaders.childNodes[i];
 
         endLevel?.childNodes.forEach((endChild) => {
@@ -677,18 +678,6 @@ export class NestedHeaders extends BasePlugin {
         });
       });
     }
-  }
-
-  /**
-   * Returns the column header sections (THEAD) of the clones that render the `fixedColumnsEnd` columns.
-   */
-  #getEndOverlayHeaders(): HTMLTableSectionElement[] {
-    const { wtOverlays } = this.hot.view._wt;
-
-    return [
-      wtOverlays.inlineEndOverlay?.clone?.wtTable.THEAD,
-      wtOverlays.topInlineEndCornerOverlay?.clone?.wtTable.THEAD,
-    ].filter((thead): thead is HTMLTableSectionElement => !!thead);
   }
 
   /**
@@ -722,12 +711,13 @@ export class NestedHeaders extends BasePlugin {
         this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
       const {
         colspan,
-        rowspan,
         isHidden,
         isPlaceholder,
         isRowspanPlaceholder,
-        headerClassNames,
       } = rendererHeaderSettings;
+      // The settings the cell is drawn from: its own, or the origin group's for an end continuation cell.
+      let groupSettings = rendererHeaderSettings;
+      let isEndContinuation = false;
 
       if (isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
@@ -740,13 +730,20 @@ export class NestedHeaders extends BasePlugin {
         // end clones. The first end column carries the rest of it (mirrors a group that starts in the
         // start band and reaches past it).
         if (isPlaceholder && !isHidden && renderedColumnIndex === firstEndColumn && this.#isEndOverlayHeader(TH)) {
-          groupOriginColumn = this.#renderEndGroupContinuation(TH, headerLevel, visualColumnIndex, renderedColumnIndex)
-            ?? visualColumnIndex;
+          const continuation = this.#renderEndGroupContinuation(
+            TH, headerLevel, visualColumnIndex, renderedColumnIndex
+          );
+
+          if (continuation) {
+            groupOriginColumn = continuation.originColumn;
+            groupSettings = continuation.originSettings;
+            isEndContinuation = true;
+          }
         }
 
       } else {
         this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart, firstEndColumn);
-        this.#applyRowspan(TH, rowspan, headerLevel);
+        this.#applyRowspan(TH, groupSettings.rowspan, headerLevel);
       }
 
       // A continuation cell shows the label of the group's origin column, but it is rendered for the column it
@@ -763,13 +760,14 @@ export class NestedHeaders extends BasePlugin {
       // to the cells (the one whose bottom edge reaches the last header row). Upper-level headers -
       // group parents, or single-column headers stacked above - would point at an internal or
       // duplicated boundary, so strip the indicator from every header that does not touch the cells.
-      const reachesCells = headerLevel + (rowspan ?? 1) === this.getLayersCount();
+      const reachesCells = headerLevel + (groupSettings.rowspan ?? 1) === this.getLayersCount();
 
       if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
       }
 
-      if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
+      if ((!isPlaceholder && !isHidden && !isRowspanPlaceholder) || isEndContinuation) {
+        const { headerClassNames } = groupSettings;
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
@@ -785,19 +783,19 @@ export class NestedHeaders extends BasePlugin {
    * Checks whether the header cell belongs to one of the clones that render the `fixedColumnsEnd` columns.
    */
   #isEndOverlayHeader(TH: HTMLTableCellElement): boolean {
-    return this.#getEndOverlayHeaders().some(thead => thead.contains(TH));
+    return getEndOverlayHeaders(this.hot).some(thead => thead.contains(TH));
   }
 
   /**
    * Renders the part of a group header that lies in the end band when the group starts before it.
-   * Returns the visual column the group starts at, or `undefined` when the cell is not such a continuation.
+   * Returns the group's origin column and settings, or `undefined` when the cell is not such a continuation.
    */
   #renderEndGroupContinuation(
     TH: HTMLTableCellElement,
     headerLevel: number,
     visualColumnIndex: number,
     renderedColumnIndex: number,
-  ): number | undefined {
+  ): { originColumn: number, originSettings: Partial<HeaderNodeData> } | undefined {
     const { columnIndexMapper } = this.hot;
     const originColumn = this.#stateManager.findLeftMostColumnIndex(headerLevel, visualColumnIndex);
 
@@ -827,7 +825,7 @@ export class NestedHeaders extends BasePlugin {
 
     this.#applyRowspan(TH, originSettings.rowspan, headerLevel);
 
-    return originColumn;
+    return { originColumn, originSettings };
   }
 
   /**

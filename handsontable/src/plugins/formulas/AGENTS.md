@@ -649,8 +649,9 @@ A `HYPERLINK` whose URL argument lives in another cell keeps its label when that
 ## Frozen end columns need nothing here
 
 The freeze hooks (`beforeColumnFreeze` and friends) belong to `ManualColumnFreeze`, which only moves the start
-freeze line. The end band changes the column order only through `ManualColumnMove`, which refuses a move across
-its line, so the engine never sees a column leave or enter the band. `fixedColumnsEnd` and `minSpareCols`
-together: the spare column is appended after the last column, so it lands INSIDE the end band and the band then
-holds a spare column; typing into it appends the next spare and pushes the previous last column out of the band.
-This is the same cosmetic quirk `fixedRowsBottom` has with `minSpareRows`, and it is not worked around.
+freeze line. `ManualColumnFreeze` does not freeze or move columns that are in the end band, and
+`ManualColumnMove` refuses a move across the end line, so the engine never sees a column leave or enter the
+band. `fixedColumnsEnd` and the spare or minimum columns: `core.ts` (`adjustRowsAndCols`) creates no
+`minSpareCols` or `minCols` column while `fixedColumnsEnd` is set, because a column appended after the last one
+would take over the frozen position. So no spare column ever lands inside the band and the plugin has nothing
+to work around. (`fixedRowsBottom` with `minSpareRows` still has the cosmetic quirk, which is not worked around.)

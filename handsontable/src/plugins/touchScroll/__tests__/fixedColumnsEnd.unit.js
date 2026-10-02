@@ -57,4 +57,28 @@ describe('TouchScroll – fixedColumnsEnd', () => {
     expect(plugin.scrollbars).toContain(inlineEndOverlay);
     expect(plugin.clones).toContain(inlineEndOverlay.clone.wtTable.holder.parentNode);
   });
+
+  it('should not hold the end overlays while the option is not set', () => {
+    const plugin = createGrid({ fixedRowsTop: 1, fixedRowsBottom: 1 });
+    const { inlineEndOverlay } = hot.view._wt.wtOverlays;
+
+    expect(inlineEndOverlay.needFullRender).toBe(false);
+    expect(plugin.scrollbars).not.toContain(inlineEndOverlay);
+    expect(plugin.clones).not.toContain(inlineEndOverlay.clone.wtTable.holder.parentNode);
+  });
+
+  it('should drop the end overlays when the option is cleared after the first render', () => {
+    const plugin = createGrid({ fixedColumnsEnd: 2 });
+    const { inlineEndOverlay } = hot.view._wt.wtOverlays;
+
+    expect(plugin.scrollbars).toContain(inlineEndOverlay);
+
+    hot.updateSettings({ fixedColumnsEnd: 0 });
+    // The overlay drops `needFullRender` on the draw after the settings update, so the collection follows
+    // on the next render.
+    hot.render();
+
+    expect(plugin.scrollbars).not.toContain(inlineEndOverlay);
+    expect(plugin.clones).not.toContain(inlineEndOverlay.clone.wtTable.holder.parentNode);
+  });
 });

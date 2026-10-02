@@ -927,10 +927,39 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenFixedColumnsEnd() {
+    // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
+    // columns, so answer before `countCols()` and the not-hidden lookup run.
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
     const countCols = this.hot.countCols();
     const visualFixedColumnsEnd = Math.max(countCols - (Number(this.settings.fixedColumnsEnd) || 0), 0);
 
     return this.countNotHiddenColumnIndexes(visualFixedColumnsEnd, 1);
+  }
+
+  /**
+   * Returns how many of the LAST visual columns form the inline-end band, hidden columns included.
+   *
+   * It is the single source of the band size for everything outside Walkontable (editors, scrolling,
+   * shortcuts, plugins). The total is `hot.countCols()`: the same one `countNotHiddenFixedColumnsEnd()` and so
+   * the renderer count the band from, which is the not trimmed columns capped by `maxCols`. Reading any other
+   * total (for example the uncapped source column count) puts the band on columns the grid never draws.
+   * The band is cut down by `fixedColumnsStart`, which has priority.
+   *
+   * The difference from `countNotHiddenFixedColumnsEnd()`: this count is visual and keeps hidden columns
+   * in the band, so `hot.countCols() - this` is the first band column. The not-hidden variant is the number of
+   * columns Walkontable draws in the end overlay.
+   *
+   * @returns {number} A non-negative integer; `0` when the option is not set.
+   */
+  countFixedColumnsEnd() {
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
+    return clampFixedColumnsEnd(this.settings.fixedColumnsEnd, this.settings.fixedColumnsStart, this.hot.countCols());
   }
 
   /**

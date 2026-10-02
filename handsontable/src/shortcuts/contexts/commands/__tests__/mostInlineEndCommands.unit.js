@@ -1,3 +1,4 @@
+import TableView from 'handsontable/tableView';
 import { command as moveToMostInlineEnd } from '../moveCellSelection/toMostInlineEnd';
 import { command as moveToMostBottomInlineEnd } from '../moveCellSelection/toMostBottomInlineEnd';
 import { command as extendToMostInlineEnd } from '../extendCellsSelection/toMostInlineEnd';
@@ -27,16 +28,22 @@ function createHot({ totalColumns = 6, fixedColumnsStart = 0, fixedColumnsEnd = 
     to: { row: 1, col: 2 },
   };
 
-  return {
+  const settings = { fixedColumnsStart, fixedColumnsEnd };
+  const hot = {
     selection,
     countCols: () => totalColumns,
     countRows: () => 5,
-    getSettings: () => ({ fixedColumnsStart, fixedColumnsEnd }),
+    getSettings: () => settings,
     getSelectedRangeActive: () => range,
     columnIndexMapper: { getNearestNotHiddenIndex: index => index },
     rowIndexMapper: { getNearestNotHiddenIndex: index => index },
     _createCellCoords: (row, col) => ({ row, col }),
   };
+
+  // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
+  hot.view = { countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot }) };
+
+  return hot;
 }
 
 describe('the most inline end commands', () => {

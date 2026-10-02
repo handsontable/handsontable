@@ -1,3 +1,4 @@
+import TableView from '../../../tableView';
 import { BaseEditor } from '../baseEditor';
 
 /**
@@ -29,10 +30,16 @@ function createEditor({
 
   editor.row = row;
   editor.col = col;
+  const settings = { fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom };
+
   editor.hot = {
     countRows: () => totalRows,
     countCols: () => totalColumns,
-    getSettings: () => ({ fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom }),
+    getSettings: () => settings,
+  };
+  // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
+  editor.hot.view = {
+    countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot: editor.hot }),
   };
 
   return editor;

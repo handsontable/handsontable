@@ -1,5 +1,4 @@
 import type { HotInstance } from '../../../core/types';
-import { clampFixedColumnsEnd } from '../../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 
 /**
  * Gets the visual index of the last not hidden column that is not frozen at the inline end (`fixedColumnsEnd`).
@@ -16,7 +15,7 @@ import { clampFixedColumnsEnd } from '../../../3rdparty/walkontable/src/settings
 export function getLastScrollableColumn(hot: HotInstance): number | null {
   const settings = hot.getSettings();
   const totalColumns = hot.countCols();
-  const fixedColumnsEnd = clampFixedColumnsEnd(settings.fixedColumnsEnd, settings.fixedColumnsStart, totalColumns);
+  const fixedColumnsEnd = hot.view.countFixedColumnsEnd();
 
   const column = hot.columnIndexMapper.getNearestNotHiddenIndex(totalColumns - fixedColumnsEnd - 1, -1);
 

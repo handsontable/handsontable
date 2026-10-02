@@ -53,7 +53,9 @@ export class TouchScroll extends BasePlugin {
    */
   lockedCollection: boolean = false;
   /**
-   * Whether the collected overlays include the ones of the frozen end columns.
+   * Whether the collected overlays include the ones of the frozen end columns (`inlineEndOverlay.needFullRender`
+   * at the time of the collection). `updatePlugin()` clears `lockedCollection` after the render an
+   * `updateSettings()` call triggers, so without this flag the collection would stay stale until the next render.
    */
   #collectedEndOverlays = false;
   /**
@@ -127,9 +129,9 @@ export class TouchScroll extends BasePlugin {
       topInlineEndCornerOverlay,
       bottomInlineEndCornerOverlay
     } = this.hot.view._wt.wtOverlays;
-    // The end overlays exist only while `fixedColumnsEnd` is set, which can change at any time. The
-    // collection is rebuilt when they appear or go away.
-    const hasEndOverlays = !!inlineEndOverlay?.clone;
+    // Every overlay builds its clone in its constructor, so a `clone` check cannot tell whether the end columns
+    // are frozen. `needFullRender` can, the same way the `clones` list below gates the start and bottom overlays.
+    const hasEndOverlays = !!inlineEndOverlay?.needFullRender;
 
     if (this.lockedCollection && hasEndOverlays === this.#collectedEndOverlays) {
       return;

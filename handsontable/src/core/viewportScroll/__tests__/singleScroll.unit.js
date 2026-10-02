@@ -1,3 +1,4 @@
+import TableView from '../../../tableView';
 import {
   getMouseSingleScrollTarget,
   getRenderedRowHeight,
@@ -20,15 +21,18 @@ function createOversizedHot({
   totalRows = 10,
   renderableRow = 0,
 } = {}) {
-  return {
+  const settings = { fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom };
+  const hot = {
     getColWidth: () => colWidth,
-    getSettings: () => ({ fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom }),
+    getSettings: () => settings,
     countRows: () => totalRows,
     countCols: () => totalCols,
     rowIndexMapper: {
       getRenderableFromVisualIndex: () => renderableRow,
     },
     view: {
+      // The real TableView counter, so the stub cannot drift from the band size the renderer uses.
+      countFixedColumnsEnd: () => TableView.prototype.countFixedColumnsEnd.call({ settings, hot }),
       getViewportWidth: () => viewportWidth,
       getViewportHeight: () => viewportHeight,
       _wt: {
@@ -38,6 +42,8 @@ function createOversizedHot({
       },
     },
   };
+
+  return hot;
 }
 
 describe('getMouseSingleScrollTarget', () => {
@@ -234,6 +240,15 @@ describe('isColumnOversized with fixedColumnsEnd', () => {
   it('should treat the last scrollable column as oversized when it is wider than the viewport', () => {
     const hot = createOversizedHot({ fixedColumnsEnd: 2, totalCols: 10 });
 
+    expect(isColumnOversized(hot, 7)).toBe(true);
+  });
+
+  it('should read the band from the columns the grid draws when maxCols caps them', () => {
+    // `countCols()` is capped by `maxCols` (10 of 15 data columns), so the band is columns 8 and 9.
+    const hot = createOversizedHot({ fixedColumnsEnd: 2, totalCols: 10 });
+
+    expect(isColumnOversized(hot, 8)).toBe(false);
+    expect(isColumnOversized(hot, 13)).toBe(false);
     expect(isColumnOversized(hot, 7)).toBe(true);
   });
 });
