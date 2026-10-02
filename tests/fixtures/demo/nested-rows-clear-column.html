@@ -22,8 +22,9 @@
 
     // `nested` (default) - the DEV-150 tree; `custom` - the same tree with a user callback under the
     // `clear_column` key; `formulas` - the same tree with numbers and a formula per row reading them;
-    // `trim` - a flat grid with TrimRows instead of Nested Rows.
-    window.htMode = ({ nested: 'nested', custom: 'custom', formulas: 'formulas', trim: 'trim' })[
+    // `numeric` - the same tree with numbers in a `type: 'numeric'` Value column, so every write to
+    // it is validated; `trim` - a flat grid with TrimRows instead of Nested Rows.
+    window.htMode = ({ nested: 'nested', custom: 'custom', formulas: 'formulas', numeric: 'numeric', trim: 'trim' })[
       htParams.get('mode') ?? 'nested'
     ];
     if (!window.htMode) {
@@ -100,6 +101,24 @@
       return convert(nestedData());
     };
 
+    // The same tree with the physical row number plus one in `value`.
+    const numericData = () => {
+      let physicalRow = 0;
+      const convert = nodes => nodes.map((node) => {
+        physicalRow += 1;
+
+        const row = { ...node, value: physicalRow };
+
+        if (node.__children) {
+          row.__children = convert(node.__children);
+        }
+
+        return row;
+      });
+
+      return convert(nestedData());
+    };
+
     const flatData = () => [
       { name: 'R0', value: 'r0', note: 'n-r0' },
       { name: 'R1', value: 'r1', note: 'n-r1' },
@@ -116,8 +135,12 @@
     };
 
     const settings = {
-      data: ({ trim: flatData, formulas: formulasData })[window.htMode]?.() ?? nestedData(),
-      columns: [{ data: 'name' }, { data: 'value' }, { data: 'note' }],
+      data: ({ trim: flatData, formulas: formulasData, numeric: numericData })[window.htMode]?.() ?? nestedData(),
+      columns: [
+        { data: 'name' },
+        window.htMode === 'numeric' ? { data: 'value', type: 'numeric' } : { data: 'value' },
+        { data: 'note' },
+      ],
       colHeaders: COLUMN_HEADERS,
       rowHeaders: true,
       manualColumnMove: true,
@@ -162,16 +185,25 @@
       };
     }
 
-    window.hot = new Handsontable(container, settings);
+    // Fail loud: a constructor throw is reported to `goto()`, which rethrows it, instead of
+    // surfacing as a timeout on the first header wait.
+    try {
+      window.hot = new Handsontable(container, settings);
 
-    ['beforeRowCollapse', 'afterRowCollapse', 'beforeRowExpand', 'afterRowExpand'].forEach((hook) => {
-      window.hot.addHook(hook, () => window.hookLog.push(hook));
-    });
-    window.hot.addHook('afterChange', (changes, source) => {
-      if (changes) {
-        window.hookLog.push(`afterChange:${source}:${changes.length}`);
-      }
-    });
+      ['beforeRowCollapse', 'afterRowCollapse', 'beforeRowExpand', 'afterRowExpand', 'afterDeselect'].forEach((hook) => {
+        window.hot.addHook(hook, () => window.hookLog.push(hook));
+      });
+      window.hot.addHook('afterChange', (changes, source) => {
+        if (changes) {
+          window.hookLog.push(`afterChange:${source}:${changes.length}`);
+        }
+      });
+      window.hot.addHook('afterSetSourceDataAtCell', (changes, source) => {
+        window.hookLog.push(`afterSetSourceDataAtCell:${source}:${changes.length}`);
+      });
+    } catch (error) {
+      window.htFixtureError = error && error.message ? error.message : String(error);
+    }
   </script>
 </body>
 </html>

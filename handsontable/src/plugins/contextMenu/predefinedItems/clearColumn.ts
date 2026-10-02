@@ -2,6 +2,7 @@ import * as C from '../../../i18n/constants';
 import type { HotInstance } from '../../../core/types';
 
 export const KEY = 'clear_column';
+const SOURCE = 'ContextMenu.clearColumn';
 
 /**
  * @returns {object}
@@ -16,21 +17,21 @@ export default function clearColumnItem() {
              selection: { start: { row: number; col: number }; end: { row: number; col: number } }[]) {
       const startColumn = selection[0].start.col;
       const endColumn = selection[0].end.col;
-      const clear = (endRow: number) => {
+      const endRow = Math.max(selection[0].start.row, selection[0].end.row);
+      const clearVisibleRows = () => {
         if (this.countRows()) {
-          this.populateFromArray(0, startColumn, [[null]], endRow, endColumn, 'ContextMenu.clearColumn');
+          this.populateFromArray(0, startColumn, [[null]], endRow, endColumn, SOURCE);
         }
       };
       const nestedRows = this.getPlugin('nestedRows');
 
       if (nestedRows?.enabled) {
-        // Nested Rows adds the rows of collapsed parents for the duration of the call, and the
-        // selection was read before it did, so the clear runs to the grid's last row instead. The
-        // entry is enabled for header selections only, which span every row anyway (DEV-150).
-        nestedRows.runWithCollapsedRowsExpanded(() => clear(this.countRows() - 1));
+        // The rows of a collapsed parent are trimmed, so the visual clear never reaches them. Nested
+        // Rows clears them by row object, in the same undo step (DEV-150).
+        nestedRows.clearCollapsedRows(endRow, startColumn, endColumn, SOURCE, clearVisibleRows);
 
       } else {
-        clear(Math.max(selection[0].start.row, selection[0].end.row));
+        clearVisibleRows();
       }
     },
     disabled(this: HotInstance) {
@@ -62,7 +63,21 @@ export default function clearColumnItem() {
         return true;
       });
 
-      return !atLeastOneNonReadOnly;
+      if (atLeastOneNonReadOnly) {
+        return false;
+      }
+
+      // Every visible cell is read-only, but a collapsed parent can still hide editable ones.
+      const nestedRows = this.getPlugin('nestedRows');
+
+      const { row: endRow, col: endColumn } = range.getBottomEndCorner();
+      const { col: startColumn } = range.getTopStartCorner();
+
+      if (!nestedRows?.enabled || endRow === null || startColumn === null || endColumn === null) {
+        return true;
+      }
+
+      return !nestedRows.hasEditableCollapsedRowCell(endRow, startColumn, endColumn);
     }
   };
 }

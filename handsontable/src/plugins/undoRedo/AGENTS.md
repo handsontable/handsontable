@@ -291,6 +291,18 @@ rediscovering them.
   added. It is the same defect the row half above fixed, left alone because the column axis is outside
   DEV-2665 and `countSourceCols()` reads the first row's keys, which is not a reliable count.
 
+## `DataChangeAction` carries the hidden rows of a NestedRows "Clear column" (DEV-150)
+
+Rows a collapsed NestedRows parent hides are trimmed, so they never reach `beforeChange`. The plugin
+writes them through `setSourceDataAtCell()` next to the visible clear and holds them as pending while
+that clear runs; the recorder picks them up with `collectCollapsedRowsChanges(hot, source)` — the
+same source-gated, record-time hand-off as the MergeCells paste snapshot — into `collapsedRowChanges`,
+and `#collectWrites()` replays them with the source writes. `formulasUndoRedoSteps` is then `1 +` the
+hidden-cell count, because Formulas gives each of those cells its own HyperFormula entry. Both fields
+are assigned **only** when there is a hidden change, so the payload `beforeUndo`/`afterUndo` listeners
+receive is unchanged for every other edit (`actions/dataChange.spec.js` pins that shape). Mechanics and
+open gaps: `../nestedRows/AGENTS.md`.
+
 ## `DataChangeAction` routes a column the grid cannot address to the source data (#5409)
 
 `setDataAtCell()` skips a change past the last column of an object data source, and a skipped change

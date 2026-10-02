@@ -1,12 +1,14 @@
 import Handsontable from 'handsontable/base';
 import {
   registerPlugin,
+  NestedRows,
   TrimRows,
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
 
 registerAllCellTypes();
+registerPlugin(NestedRows);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
 
@@ -555,6 +557,76 @@ describe('UndoRedo -> DataChange action', () => {
 
       // A trimmed row is written to the source data. `colToPropOrIndex(2)` answers `2` there too.
       expect(data[1]).toEqual({ id: 2, name: 'Frank Honest', address: 'Elm St' });
+    });
+  });
+  describe('the rows of collapsed NestedRows parents', () => {
+    const SOURCE = 'ContextMenu.clearColumn';
+    const nestedData = () => [
+      { name: 'P1', value: 'p1', __children: [{ name: 'C1', value: 'c1' }, { name: 'C2', value: 'c2' }] },
+      { name: 'L2', value: 'l2' },
+    ];
+    const values = data => [
+      data[0].value, data[0].__children[0].value, data[0].__children[1].value, data[1].value,
+    ];
+    const clearValueColumn = () => {
+      hot.getPlugin('nestedRows').clearCollapsedRows(1, 1, 1, SOURCE, () => {
+        hot.populateFromArray(0, 1, [[null]], 1, 1, SOURCE);
+      });
+    };
+
+    it('should undo and redo the hidden rows in the same step as the visible ones', () => {
+      const data = nestedData();
+
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data,
+        columns: [{ data: 'name' }, { data: 'value' }],
+        nestedRows: true,
+        undo: true,
+      });
+      hot.getPlugin('nestedRows').collapseParent(0);
+
+      clearValueColumn();
+
+      expect(values(data)).toEqual([null, null, null, null]);
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      expect(undoRedo.doneActions.length).toBe(1);
+      // One HyperFormula entry for the grid write, plus one per hidden cell.
+      expect(undoRedo.doneActions[0].formulasUndoRedoSteps).toBe(3);
+      expect(undoRedo.doneActions[0].collapsedRowChanges).toEqual([
+        [1, 'value', 'c1', null],
+        [2, 'value', 'c2', null],
+      ]);
+
+      undoRedo.undo();
+
+      expect(values(data)).toEqual(['p1', 'c1', 'c2', 'l2']);
+      expect(hot.getPlugin('nestedRows').getCollapsedParents()).toEqual([0]);
+
+      undoRedo.redo();
+
+      expect(values(data)).toEqual([null, null, null, null]);
+    });
+
+    it('should keep the action shape of an ordinary change', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: nestedData(),
+        columns: [{ data: 'name' }, { data: 'value' }],
+        nestedRows: true,
+        undo: true,
+      });
+      hot.getPlugin('nestedRows').collapseParent(0);
+
+      // The same source, but not through `clearCollapsedRows()`: nothing is pending for it.
+      hot.setDataAtCell(0, 1, 'x', SOURCE);
+
+      const [action] = hot.getPlugin('undoRedo').doneActions;
+
+      expect('collapsedRowChanges' in action).toBe(false);
+      expect('formulasUndoRedoSteps' in action).toBe(false);
     });
   });
 });

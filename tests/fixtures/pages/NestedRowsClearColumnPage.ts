@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-export type NestedRowsClearColumnMode = 'nested' | 'custom' | 'formulas' | 'trim';
+export type NestedRowsClearColumnMode = 'nested' | 'custom' | 'formulas' | 'numeric' | 'trim';
 
 /**
  * One source row, read straight from the tree (or the flat source in `trim` mode), so a row the
@@ -48,6 +48,13 @@ export class NestedRowsClearColumnPage {
       `/tests/fixtures/demo/nested-rows-clear-column.html?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}`
     );
     await awaitBundle(this.page);
+
+    const fixtureError = await this.page.evaluate(() => window.htFixtureError);
+
+    if (fixtureError) {
+      throw new Error(`The fixture grid failed to build: ${fixtureError}`);
+    }
+
     await expect(this.columnHeader('Value')).toBeVisible();
   }
 
@@ -158,6 +165,106 @@ export class NestedRowsClearColumnPage {
   }
 
   /**
+   * Run "Clear column" through `DropdownMenu#executeCommand()` on the selection as it stands,
+   * without selecting anything first - the way a menu opened over a live selection hands it over.
+   */
+  async clearColumnWithCurrentSelection(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = window.hot;
+      const ranges = hot.getSelectedRange().map(range => ({
+        start: range.getTopStartCorner(),
+        end: range.getBottomEndCorner(),
+      }));
+
+      hot.getPlugin('dropdownMenu').executeCommand('clear_column', ranges);
+    });
+  }
+
+  /**
+   * Right-click a data cell and pick "Clear column" from the context menu. Unlike a header click, a
+   * right-click inside the selection keeps it as it is.
+   */
+  async clearColumnViaCellContextMenu(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
+
+    const menu = this.page.locator('.htContextMenu > .ht_master:visible');
+
+    await expect(menu).toBeVisible();
+    await menu.locator('td').filter({ hasText: /^Clear column$/ }).click();
+    await expect(menu).toBeHidden();
+  }
+
+  /**
+   * Whether "Clear column" is disabled in the dropdown of the named header. The menu is closed again.
+   */
+  async isClearColumnDisabledInDropdown(headerName: string): Promise<boolean> {
+    await this.columnHeader(headerName).locator('.changeType').click();
+
+    const menu = this.page.locator('.htDropdownMenu > .ht_master:visible');
+
+    await expect(menu).toBeVisible();
+
+    const disabled = await menu.locator('td').filter({ hasText: /^Clear column$/ })
+      .evaluate(td => td.classList.contains('htDisabled'));
+
+    await this.page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+
+    return disabled;
+  }
+
+  /**
+   * Select a column by a real click on its header.
+   */
+  async selectColumnByHeader(headerName: string): Promise<void> {
+    await this.columnHeader(headerName).click({ position: { x: 5, y: 5 } });
+  }
+
+  /**
+   * The current selection and the cell that holds its focus, as visual coordinates.
+   */
+  selection(): Promise<{ selected: number[][] | undefined, focus: { row: number | null, col: number | null } | null }> {
+    return this.page.evaluate(() => {
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
+
+      return {
+        selected: window.hot.getSelected(),
+        focus: highlight ? { row: highlight.row, col: highlight.col } : null,
+      };
+    });
+  }
+
+  /**
+   * Make the Value cells of the given physical rows read-only, on top of C1.2's.
+   */
+  async makeValueReadOnly(physicalRows: number[]): Promise<void> {
+    await this.page.evaluate((rows) => {
+      const readOnlyRows = [2, ...rows];
+
+      window.hot.updateSettings({
+        cells: (row, col, prop) => (readOnlyRows.includes(row) && prop === 'value' ? { readOnly: true } : {}),
+      });
+    }, physicalRows);
+  }
+
+  /**
+   * Register an `afterChange` listener that removes a row, by visual index, the first time a
+   * "Clear column" change reaches it.
+   */
+  async removeRowOnFirstClear(visualRow: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      let removed = false;
+
+      window.hot.addHook('afterChange', (changes, source) => {
+        if (!removed && source === 'ContextMenu.clearColumn') {
+          removed = true;
+          window.hot.alter('remove_row', row);
+        }
+      });
+    }, visualRow);
+  }
+
+  /**
    * Undo through the platform-specific Cmd/Ctrl+Z shortcut, keeping the current selection.
    */
   async undoWithKeyboard(): Promise<void> {
@@ -223,7 +330,8 @@ export class NestedRowsClearColumnPage {
   }
 
   /**
-   * The hooks the fixture records: the four collapse/expand hooks and `afterChange:<source>:<count>`.
+   * The hooks the fixture records: the four collapse/expand hooks, `afterDeselect`,
+   * `afterChange:<source>:<count>`, and `afterSetSourceDataAtCell:<source>:<count>`.
    */
   hookLog(): Promise<string[]> {
     return this.page.evaluate(() => window.hookLog.slice());

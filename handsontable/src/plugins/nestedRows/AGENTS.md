@@ -469,31 +469,48 @@ They are written in different places and can drift. Keep this in mind:
   row-move hook would otherwise get `applyStash()` replayed onto the old row numbers.
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
-  filtering, and the predefined "Clear column" menu command.
+  and filtering. Do not reach for it to let a user-facing command see the hidden rows - see the next
+  bullet for why "Clear column" stopped doing exactly that.
 - **A menu command that walks a column's visual rows never reaches a collapsed parent's
   descendants**, because they are trimmed and have no visual index. "Clear column" left every
-  collapsed child with its value (DEV-150). The predefined `clear_column` callback now runs its
-  clear through `NestedRows#runWithCollapsedRowsExpanded()` (`@private`), which wraps it in
-  `batchRender()` + `stash()`/`applyStash(false)`, so the clear goes through the normal change
-  pipeline (validators, `afterChange`, undo) for every row and the collapse is put back with no
-  collapse or expand hook. Five rules ride along. (1) `batchRender()`, never `batch()`: `batch()`
-  also suspends the index cache, so the operation would still see the trimmed sequence. (2) The
-  operation must size itself from the grid, not from the selection it was handed — the selection
-  was read before the expansion — which is why the clear runs to `countRows() - 1` while this plugin
-  is on (without it, the clear keeps ending on the selection's last row, as before). (3) The call is
-  made FROM the menu item (`hot.getPlugin('nestedRows')`, the pattern `readOnly.ts` uses for
-  ColumnSummary), not by wrapping the item in a `before*MenuSetItems` hook. A wrapper looked more
-  decoupled and was measured broken: DropdownMenu (priority 230) builds its item list in
-  `callOnPluginsReady()` before this plugin (300) is enabled, and `executeCommand()` reuses that list
-  for a known key, so `dropdownMenu.executeCommand('clear_column')` before the menu was ever opened
-  ran the unwrapped callback. (4) A user callback under the same key replaces the predefined one, so
-  it is never expanded under — it receives a selection read in the collapsed grid, and expanding
-  would shift every row it addresses. (5) `beforeChange`/`afterChange` report visual rows of the
-  EXPANDED grid for that one call; undo is unaffected, because `DataChangeAction` records physical
-  rows and writes a row that is trimmed again straight to the source. The same gap is still open
-  for "Alignment" (DEV-151, cell meta instead of data): route it through the same method rather
-  than building a second mechanism. Rows trimmed by Filters or TrimRows are NOT this case — those
-  are absent by design, and "Clear column" keeps skipping them.
+  collapsed child with its value (DEV-150). The predefined `clear_column` callback now hands its
+  visible clear to `NestedRows#clearCollapsedRows()` (`@private`), which runs it unchanged and then
+  writes the hidden rows through `setSourceDataAtCell()`. **Do not "simplify" this into expanding the
+  collapsed parents around the clear** — that was the first cut, and review measured four defects
+  in it: (a) `validateChanges()` runs the validators in a microtask, so `applyChanges()` landed after
+  the collapse was put back and wrote with expanded-grid row numbers — on a `type: 'numeric'` column
+  the hidden rows kept their values, the wrong visible rows were cleared, and seven empty rows were
+  appended; (b) the expand and the collapse are two index-cache updates, and the selection repair on
+  the second one deselected the grid; (c) the stash is one shared slot (`lastCollapsedRows`), so an
+  `afterChange` listener that removed a row re-ran `stash()`/`applyStash()` through `#onFilterData`
+  and left every parent expanded; and (d) `afterChange` reported row 9 on a three-row grid. Seven
+  rules ride along with the current shape. (1) The visible clear is exactly what it is without this
+  plugin: same range (the selection's last row — widening it to `countRows() - 1` dropped an API
+  caller's `endRow` and a header selection shrunk with Shift+PageUp), same validators, same
+  `afterChange`, and the selection is never touched. (2) Only the rows under a collapsed parent that is
+  **visible at or above the clear's last row** are written, by walking the parent's subtree with
+  `#collectDescendants()` (cache-bounded, like the removal). A parent collapsed inside another is not
+  visible, and its rows come with the outer subtree. (3) Read-only cells are skipped, reading the meta
+  by PHYSICAL coordinates (a visual read of a trimmed row resolves to another row), and so are rows a
+  TrimRows map trims too — those are absent by design. (4) The hidden writes are resolved by **row
+  object** at write time, not by the physical index read before the visible clear, because a listener
+  on that clear can restructure the tree (removing P1 from `afterChange` moves P2's children up by
+  six rows). (5) One undo step: `DataChangeAction` reads the pending hidden changes from its own
+  `beforeChange` listener through `getPendingCollapsedRowsChanges(source)` (`collectCollapsedRowsChanges`
+  in `undoRedo/utils.ts`, the same record-time pattern as the MergeCells paste snapshot) and replays
+  them by physical row with the trimmed-row source writes. It also sets `formulasUndoRedoSteps` to one
+  plus the hidden-cell count, because Formulas syncs each `setSourceDataAtCell()` cell as its own
+  HyperFormula history entry and the two stacks must stay in step. Both fields are set only when
+  there is a hidden change, so every other action keeps the shape `beforeUndo`/`afterUndo` listeners
+  see. (6) The hidden rows report through `afterSetSourceDataAtCell` (physical rows) and are not
+  validated, as every `setSourceDataAtCell()` write. (7) `disabled()` asks `hasEditableCollapsedRowCell()`
+  only when every visible cell is read-only, so the item stays enabled when the hidden rows are the only
+  editable ones. Two gaps are deliberately open: a visible clear that produces no change at all (every
+  visible cell read-only, reached through `executeCommand()`) records no `DataChangeAction`, so the hidden
+  write is not undoable; and a user `beforeChange` that cancels the visible clear does not cancel the
+  hidden write. A user callback under the same key replaces the predefined one and never reaches this
+  method. The same gap is still open for "Alignment" (DEV-151, cell meta instead of data); it needs its
+  own record-time hand-off, not the stash.
 - **So every visual index an insert computes is measured in the *expanded* space, and any listener
   that replays it later addresses a different row.** `beforeAddChild` opens the stash and
   `afterAddChild` closes it, which puts the whole of `addChildAtIndex()` and `addChild()` inside a
@@ -630,7 +647,7 @@ They are written in different places and can drift. Keep this in mind:
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
-| `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse, undoes, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
+| `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

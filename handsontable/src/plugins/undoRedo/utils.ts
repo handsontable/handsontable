@@ -214,6 +214,26 @@ export function collectMergedCellsDestroyedByChange(hot: HotInstance, source: st
 }
 
 /**
+ * Collects the changes a NestedRows "Clear column" writes to the rows of collapsed parents, as
+ * `[physicalRow, prop, oldValue, newValue]`. Those rows are trimmed, so they never reach
+ * `beforeChange`; the plugin holds them while the visible clear runs, and the source check keeps
+ * them on that clear only (see `collectMergedCellsDestroyedByChange()` for why a check is needed).
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} source The change source, as passed to the `beforeChange` hook.
+ * @returns {Array} The changes, or an empty array.
+ */
+export function collectCollapsedRowsChanges(hot: HotInstance, source: string): unknown[][] {
+  const nestedRowsPlugin = hot.getPlugin('nestedRows');
+
+  if (!nestedRowsPlugin?.enabled) {
+    return [];
+  }
+
+  return nestedRowsPlugin.getPendingCollapsedRowsChanges(source);
+}
+
+/**
  * Re-applies merge areas that a data change destroyed, restoring their geometry only.
  *
  * Unlike {@link restoreMergedCells} this must not repopulate the covered cells: the caller has just

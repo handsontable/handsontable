@@ -21,6 +21,21 @@ const WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objec
   ' provided. The plugin has been disabled.';
 
 /**
+ * A cell in a row that a collapsed parent hides, as `NestedRows#clearCollapsedRows()` reads it.
+ */
+interface CollapsedRowCell {
+  physicalRow: number;
+  rowObject: RowObject | null | undefined;
+  prop: string | number;
+  value: unknown;
+}
+
+/**
+ * A change to a hidden cell, as `[physicalRow, prop, oldValue, newValue]`.
+ */
+export type CollapsedRowChange = [number, string | number, unknown, unknown];
+
+/**
  * @plugin NestedRows
  * @class NestedRows
  *
@@ -111,6 +126,14 @@ export class NestedRows extends BasePlugin {
    * @type {number[][]|null}
    */
   #stashedParentPaths: number[][] | null = null;
+
+  /**
+   * The hidden cells a running `NestedRows#clearCollapsedRows()` call writes, kept only while its
+   * visible clear runs, so UndoRedo can record them with it. `null` outside such a call.
+   *
+   * @type {object|null}
+   */
+  #pendingCollapsedRowsChanges: { source: string, changes: CollapsedRowChange[] } | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -647,40 +670,193 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Runs an operation with every collapsed parent expanded, then collapses them back.
+   * Clears a column range, including the rows that collapsed parents hide.
    *
-   * A collapsed parent's descendants are trimmed, so they have no visual index, and an operation
-   * that walks the visual rows of a column - the predefined "Clear column" menu item - never
-   * reaches them (DEV-150). Inside the callback the whole tree is addressable, so the change runs
-   * through the regular pipeline (validators, `afterChange`, undo) for every row.
+   * A collapsed parent's descendants are trimmed, so they have no visual index, and a clear that
+   * walks the visual rows of a column - the predefined "Clear column" menu item - never reaches them
+   * (DEV-150). `clearVisibleRows` clears the visual rows exactly as it would without this plugin,
+   * with its validators, its `beforeChange`/`afterChange` hooks, and its selection untouched. The
+   * rows hidden under a collapsed parent that is visible at or above `endRow` are then cleared in the
+   * source data, by row object, so a listener that restructures the tree during the visible clear
+   * cannot redirect the write. They report through `afterSetSourceDataAtCell`, not `afterChange`,
+   * and are not validated, as every `setSourceDataAtCell()` write. Read-only cells and rows trimmed
+   * by another plugin (TrimRows) are skipped, as the visible clear skips them.
    *
-   * The expansion uses the same stash as the row move, so no collapse or expand hook fires, and it
-   * runs in `batchRender()`, never `batch()`: `batch()` also suspends the index cache, so the
-   * operation would still see the trimmed sequence. Visual indexes reported from inside the callback
-   * are those of the expanded grid.
+   * UndoRedo records the hidden cells in the same undo step as the visible clear: its
+   * `beforeChange` listener reads them through `NestedRows#getPendingCollapsedRowsChanges()`
+   * while `clearVisibleRows` runs.
    *
    * @private
-   * @param {Function} operation The operation to run.
+   * @param {number} endRow The last visual row the clear reaches.
+   * @param {number} startColumn The first visual column to clear.
+   * @param {number} endColumn The last visual column to clear.
+   * @param {string} source The change source both writes carry.
+   * @param {Function} clearVisibleRows Clears the visual rows.
    */
-  runWithCollapsedRowsExpanded(operation: () => void): void {
-    if (!this.#isOperational() || this.collapsingUI!.getCollapsedParents().length === 0) {
-      operation();
+  clearCollapsedRows(
+    endRow: number, startColumn: number, endColumn: number, source: string, clearVisibleRows: () => void
+  ): void {
+    const cells: CollapsedRowCell[] = [];
+
+    if (this.#isOperational()) {
+      this.#eachCollapsedRowCell(endRow, startColumn, endColumn, (cell) => {
+        cells.push(cell);
+      });
+    }
+
+    if (cells.length === 0) {
+      clearVisibleRows();
 
       return;
     }
 
-    const { collapsedRowsStash } = this.collapsingUI!;
+    this.#pendingCollapsedRowsChanges = {
+      source,
+      changes: cells.map(({ physicalRow, prop, value }) => [physicalRow, prop, value, null]),
+    };
 
-    this.hot.batchRender(() => {
-      collapsedRowsStash.stash();
+    try {
+      clearVisibleRows();
 
-      try {
-        operation();
+    } finally {
+      this.#pendingCollapsedRowsChanges = null;
+    }
 
-      } finally {
-        collapsedRowsStash.applyStash(false);
+    const writes: [number, string | number, null][] = [];
+
+    cells.forEach(({ rowObject, prop }) => {
+      const physicalRow = this.dataManager!.getRowIndex(rowObject);
+
+      if (physicalRow !== null) {
+        writes.push([physicalRow, prop, null]);
       }
     });
+
+    if (writes.length > 0) {
+      this.hot.setSourceDataAtCell(writes, undefined, undefined, source);
+    }
+  }
+
+  /**
+   * Returns the hidden cells the running `NestedRows#clearCollapsedRows()` call writes, as
+   * `[physicalRow, prop, oldValue, newValue]` entries. UndoRedo reads them from the `beforeChange`
+   * hook of the visible clear, so one undo step restores both. The source check keeps them on that
+   * clear: a validator that corrects a value writes through `setDataAtCell()` with a source of its
+   * own inside the same window.
+   *
+   * @private
+   * @param {string} source The source of the change being recorded.
+   * @returns {Array} The pending changes, or an empty array when none belong to `source`.
+   */
+  getPendingCollapsedRowsChanges(source: string): CollapsedRowChange[] {
+    const pending = this.#pendingCollapsedRowsChanges;
+
+    return pending !== null && pending.source === source ? pending.changes : [];
+  }
+
+  /**
+   * Tells whether a column range holds an editable cell in a row that a collapsed parent hides.
+   * The "Clear column" item reads it to stay enabled when every visible cell is read-only.
+   *
+   * @private
+   * @param {number} endRow The last visual row to look under.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @returns {boolean}
+   */
+  hasEditableCollapsedRowCell(endRow: number, startColumn: number, endColumn: number): boolean {
+    let found = false;
+
+    if (this.#isOperational()) {
+      this.#eachCollapsedRowCell(endRow, startColumn, endColumn, () => {
+        found = true;
+
+        return false;
+      });
+    }
+
+    return found;
+  }
+
+  /**
+   * Calls back for every editable cell, in a column range, of the rows hidden under a collapsed
+   * parent that is visible at or above `endRow`. A parent collapsed inside a collapsed parent is not
+   * visible, and its rows are reached through the outer parent's subtree, so no row is visited twice.
+   *
+   * @param {number} endRow The last visual row to look under.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @param {Function} callback Receives the cell. Returning `false` stops the walk.
+   */
+  #eachCollapsedRowCell(
+    endRow: number, startColumn: number, endColumn: number, callback: (cell: CollapsedRowCell) => void | boolean
+  ): void {
+    const descendants = new Set<number>();
+
+    this.collapsingUI!.getCollapsedParents().forEach((physicalParent) => {
+      const visualParent = this.hot.toVisualRow(physicalParent);
+
+      if (visualParent !== null && visualParent <= endRow) {
+        this.#collectDescendants(this.dataManager!.getDataObject(physicalParent), descendants);
+      }
+    });
+
+    for (const physicalRow of descendants) {
+      if (!this.#isTrimmedByAnotherMap(physicalRow) &&
+          this.#eachEditableCellInRow(physicalRow, startColumn, endColumn, callback) === false) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * Calls back for every editable cell of one physical row in a column range. The cell meta is read
+   * by physical coordinates: the row is trimmed, so a visual read would resolve to another row.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} startColumn The first visual column.
+   * @param {number} endColumn The last visual column.
+   * @param {Function} callback Receives the cell. Returning `false` stops the walk.
+   * @returns {boolean} `false` when the callback stopped the walk.
+   */
+  #eachEditableCellInRow(
+    physicalRow: number, startColumn: number, endColumn: number,
+    callback: (cell: CollapsedRowCell) => void | boolean
+  ): boolean {
+    const metaManager = this.hot._getMetaManager();
+    const rowObject = this.dataManager!.getDataObject(physicalRow);
+
+    // A range anchored in the row header starts at column -1, which names no cell.
+    for (let visualColumn = Math.max(startColumn, 0); visualColumn <= endColumn; visualColumn++) {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+      const { readOnly } = metaManager.getCellMetaTransient(
+        physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
+      );
+
+      const prop = this.hot.colToProp(visualColumn);
+
+      if (!readOnly && prop !== null) {
+        const value = this.hot.getSourceDataAtCell(physicalRow, prop);
+
+        if (callback({ physicalRow, rowObject, prop, value }) === false) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Tells whether a row is trimmed by a map other than this plugin's own, which is how TrimRows
+   * keeps a row out of the grid.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {boolean}
+   */
+  #isTrimmedByAnotherMap(physicalRow: number): boolean {
+    return this.hot.rowIndexMapper.trimmingMapsCollection.get()
+      .some(map => map !== this.collapsedRowsMap && map.getValueAtIndex(physicalRow) === true);
   }
 
   /**

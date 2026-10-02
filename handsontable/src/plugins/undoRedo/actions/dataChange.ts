@@ -4,6 +4,7 @@ import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
 import { colToPropOrIndex } from '../../../helpers/columnProp';
 import {
+  collectCollapsedRowsChanges,
   collectMergedCellsDestroyedByChange,
   remergeCellsGeometryOnly,
   unmergeCellsGeometryOnly,
@@ -67,16 +68,31 @@ export class DataChangeAction extends BaseAction {
    *   it for a change the grid can no longer address by column, see `#collectWrites()`.
    */
   declare props: unknown[];
+  /**
+   * @param {Array} collapsedRowChanges Changes to rows a collapsed NestedRows parent hides, as
+   *   `[physicalRow, prop, oldValue, newValue]`. A "Clear column" writes those rows through the source
+   *   data, because they have no visual index, and they belong to the same undo step as `changes`.
+   *   Absent on every other change.
+   */
+  declare collapsedRowChanges: unknown[][] | undefined;
+  /**
+   * @param {number} formulasUndoRedoSteps The number of HyperFormula history entries this action owns,
+   *   read by the Formulas plugin. Every hidden cell in `collapsedRowChanges` is written with its own
+   *   entry, on top of the one entry of the grid write. Absent when there are none, which the Formulas
+   *   plugin reads as one entry.
+   */
+  declare formulasUndoRedoSteps: number | undefined;
 
   /**
    * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
    */
   constructor({
-    changes, selected, countCols, countRows, countSourceRows, mergedCells = [], physicalRows = [], props = []
+    changes, selected, countCols, countRows, countSourceRows, mergedCells = [], physicalRows = [], props = [],
+    collapsedRowChanges = [],
   }: {
     changes: unknown[][], selected: unknown[], countCols: number, countRows: number,
     countSourceRows?: number, mergedCells?: MergeAreaGeometry[], physicalRows?: (number | null)[],
-    props?: unknown[]
+    props?: unknown[], collapsedRowChanges?: unknown[][]
   }) {
     super('change');
     this.changes = changes;
@@ -87,6 +103,13 @@ export class DataChangeAction extends BaseAction {
     this.mergedCells = mergedCells;
     this.physicalRows = physicalRows;
     this.props = props;
+
+    // Set only when there is something to carry, so the action every other change records - and hands
+    // to the `beforeUndo`/`afterUndo` listeners - keeps its shape.
+    if (collapsedRowChanges.length > 0) {
+      this.collapsedRowChanges = collapsedRowChanges;
+      this.formulasUndoRedoSteps = 1 + collapsedRowChanges.length;
+    }
   }
 
   /**
@@ -163,6 +186,9 @@ export class DataChangeAction extends BaseAction {
           // `source` decides ownership: a paste's validation window can carry other changes, and
           // none of them may inherit this geometry.
           mergedCells: collectMergedCellsDestroyedByChange(hot, source),
+          // Rows a collapsed parent hides, which a "Clear column" writes through the source data next
+          // to this grid write - see `NestedRows#clearCollapsedRows()`.
+          collapsedRowChanges: deepClone(collectCollapsedRowsChanges(hot, source)),
         });
       };
 
@@ -280,6 +306,14 @@ export class DataChangeAction extends BaseAction {
       } else {
         writeToSource(physicalRow, index, value);
       }
+    });
+
+    // A hidden row of a collapsed parent has no visual index, so it is written by its physical one, as
+    // the trimmed-row path above writes. The same positional caveat applies.
+    (this.collapsedRowChanges ?? []).forEach((change: unknown[]) => {
+      const prop = change[1];
+
+      sourceChanges.push([change[0], typeof prop === 'number' ? String(prop) : prop, deepClone(change[valueIndex])]);
     });
 
     return { gridChanges, sourceChanges, propChanges };

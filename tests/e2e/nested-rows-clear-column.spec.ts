@@ -23,7 +23,9 @@ const CLEARED_ROWS: SourceRow[] = INITIAL_ROWS.map(row => ({
 /**
  * DEV-150: a collapsed Nested Rows parent trims its descendants out of the grid, so "Clear column"
  * from the column dropdown - which walks the visual rows of the column - left every collapsed child
- * with its value. The fix expands the collapsed parents for the duration of the command.
+ * with its value. The fix clears the visible rows as before and writes the hidden rows through the
+ * source data, by row object, in the same undo step - nothing is expanded, so validators, listeners,
+ * and the selection only ever see the grid the user sees.
  */
 test.describe('Clear column with collapsed nested rows', () => {
   let grid: NestedRowsClearColumnPage;
@@ -104,15 +106,140 @@ test.describe('Clear column with collapsed nested rows', () => {
     expect(grid.pageErrors).toEqual([]);
   });
 
-  test('fires no collapse or expand hook, and one afterChange for every row', async() => {
+  test('fires no collapse or expand hook, and reports the hidden rows as source writes', async() => {
     await grid.goto();
     await grid.collapseParents([0, 1]);
     await grid.clearHookLog();
 
     await grid.clearColumnViaDropdown('Value');
 
-    // Ten rows, one of them read-only. Without the fix the change covered the three visible rows.
-    expect(await grid.hookLog()).toEqual(['afterChange:ContextMenu.clearColumn:9']);
+    // `afterChange` covers the three visible rows, as without Nested Rows. The six hidden rows that
+    // are not read-only (all but C1.2) arrive as one source write.
+    expect(await grid.hookLog()).toEqual([
+      'afterChange:ContextMenu.clearColumn:3',
+      'afterSetSourceDataAtCell:ContextMenu.clearColumn:6',
+    ]);
+  });
+
+  test('clears them on a column with a validator, and adds no rows', async() => {
+    await grid.goto('numeric');
+    await grid.collapseParents([0, 1]);
+
+    await grid.clearColumnViaDropdown('Value');
+
+    // The validator settles in a microtask, so poll. C1.2 (physical 2, value 3) is read-only.
+    await expect.poll(() => grid.sourceRows()).toEqual(INITIAL_ROWS.map((row, physicalRow) => ({
+      ...row,
+      value: row.name === 'C1.2' ? physicalRow + 1 : null,
+    })));
+    expect(await grid.countRows()).toBe(3);
+    expect(await grid.collapsedParents()).toEqual([0, 6]);
+
+    await grid.undoWithKeyboard();
+
+    await expect.poll(() => grid.sourceRows()).toEqual(INITIAL_ROWS.map((row, physicalRow) => ({
+      ...row,
+      value: physicalRow + 1,
+    })));
+    expect(await grid.countRows()).toBe(3);
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('keeps the selection and its focus where the user left them', async() => {
+    await grid.goto();
+    await grid.collapseParents([0, 1]);
+    await grid.selectColumnByHeader('Value');
+    // Enter moves the focus down the selected column, onto P2.
+    await grid.page.keyboard.press('Enter');
+
+    const before = await grid.selection();
+
+    expect(before.focus).toEqual({ row: 1, col: 1 });
+
+    await grid.clearHookLog();
+    await grid.clearColumnWithCurrentSelection();
+
+    expect(await grid.sourceRows()).toEqual(CLEARED_ROWS);
+    expect(await grid.selection()).toEqual(before);
+    expect(await grid.hookLog()).not.toContain('afterDeselect');
+  });
+
+  test('writes the hidden rows by record when a listener restructures the tree mid-clear', async() => {
+    await grid.goto();
+    await grid.collapseParents([0, 1]);
+    // Removing P1 takes its subtree with it and moves C2.1 and C2.2 from physical 7 and 8 to 1 and 2.
+    await grid.removeRowOnFirstClear(0);
+
+    await grid.clearColumnViaDropdown('Value');
+
+    expect(await grid.sourceRows()).toEqual([
+      { name: 'P2', value: null, note: 'n-p2' },
+      { name: 'C2.1', value: null, note: 'n-c21' },
+      { name: 'C2.2', value: null, note: 'n-c22' },
+      { name: 'L3', value: null, note: 'n-l3' },
+    ]);
+    // P2 is still collapsed, now at physical 0.
+    expect(await grid.collapsedParents()).toEqual([0]);
+    expect(await grid.countRows()).toBe(2);
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('ends on the range an API caller hands it when nothing is collapsed', async() => {
+    await grid.goto();
+
+    await grid.clearColumnViaApi(1, 1);
+
+    expect(await grid.sourceRows()).toEqual(INITIAL_ROWS.map((row, physicalRow) => ({
+      ...row,
+      value: physicalRow <= 1 ? null : row.value,
+    })));
+  });
+
+  test('ends on a header selection the user shrank', async() => {
+    await grid.goto();
+    await grid.collapseParents([0]);
+    await grid.selectColumnByHeader('Value');
+    // Shift+PageUp shrinks the column selection to its first row, and keeps it a header selection.
+    await grid.page.keyboard.press('Shift+PageUp');
+
+    expect((await grid.selection()).selected).toEqual([[-1, 1, 0, 1]]);
+
+    await grid.clearColumnViaCellContextMenu(0, 1);
+
+    // P1 and the rows it hides are cleared; P2's branch and L3, outside the range, keep their values.
+    expect(await grid.sourceRows()).toEqual(INITIAL_ROWS.map((row, physicalRow) => ({
+      ...row,
+      value: physicalRow <= 5 && row.name !== 'C1.2' ? null : row.value,
+    })));
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('stays enabled while only the hidden rows hold editable cells', async() => {
+    await grid.goto();
+    // Every visible row's Value is read-only once P1 and P2 are collapsed: P1, P2, L3.
+    await grid.makeValueReadOnly([0, 6, 9]);
+
+    // Positive control: with every parent expanded the menu offers the item, through C1.1.
+    expect(await grid.isClearColumnDisabledInDropdown('Value')).toBe(false);
+
+    await grid.collapseParents([0, 1]);
+
+    expect(await grid.isClearColumnDisabledInDropdown('Value')).toBe(false);
+
+    await grid.clearColumnViaDropdown('Value');
+
+    expect(await grid.sourceRows()).toEqual(INITIAL_ROWS.map(row => ({
+      ...row,
+      value: ['P1', 'C1.2', 'P2', 'L3'].includes(row.name) ? row.value : null,
+    })));
+  });
+
+  test('is disabled when no cell it would reach is editable', async() => {
+    await grid.goto();
+    await grid.makeValueReadOnly([0, 1, 3, 4, 5, 6, 7, 8, 9]);
+    await grid.collapseParents([0, 1]);
+
+    expect(await grid.isClearColumnDisabledInDropdown('Value')).toBe(true);
   });
 
   test('undo and redo reach every row while the parents stay collapsed', async() => {
