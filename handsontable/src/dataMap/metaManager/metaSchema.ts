@@ -5541,6 +5541,10 @@ export default (): Record<string, unknown> => {
      * The `noWordWrapClassName` option lets you add a CSS class name
      * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
+     * Handsontable always adds the built-in `htNoWrap` class to such a cell, and it
+     * keeps the cell's content on one line. Your class is added on top of it,
+     * so it works as a styling hook and doesn't need its own `white-space` rule.
+     *
      * Read more:
      * - [`wordWrap`](#wordWrap)
      * - [`currentRowClassName`](#currentRowClassName)
