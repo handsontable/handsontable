@@ -4,6 +4,7 @@ import {
   validateDensityType,
   VALID_ICON_KEYS,
 } from '../utils/validation';
+import { ICON_NAMES } from '../utils/icons';
 
 describe('Theme validation utilities', () => {
   describe('validateColorScheme', () => {
@@ -168,6 +169,25 @@ describe('Theme validation utilities', () => {
         expect(VALID_ICON_KEYS.has('check')).toBe(true);
         expect(VALID_ICON_KEYS.has('checkbox')).toBe(true);
         expect(VALID_ICON_KEYS.has('radio')).toBe(true);
+      });
+
+      it('should accept every shipped icon slot and warn only about keys outside ICON_NAMES', () => {
+        // `VALID_ICON_KEYS` is derived from `ICON_NAMES` now, so comparing the two would be a
+        // tautology. What still has content is the behavior: every real slot (including `plus`
+        // and `menuList`, the two that once went missing) passes silently, and a key outside the
+        // list is reported by name.
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const everySlot = Object.fromEntries(ICON_NAMES.map(name => [name, '<svg></svg>']));
+
+        expect(() => validateParams({ icons: everySlot }, 'test')).not.toThrow();
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        validateParams({ icons: { notAnIcon: '<svg></svg>' } }, 'test');
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown icon key: "notAnIcon"'));
+
+        warnSpy.mockRestore();
       });
     });
 

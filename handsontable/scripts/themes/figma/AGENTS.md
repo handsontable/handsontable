@@ -18,5 +18,5 @@ the PR diff.
 | File and directory layout | `.ai/STRUCTURE.md` |
 | Runtime, scripts, output formatting | `.ai/STACK.md` |
 | Naming, units, exception keys; adding a token / theme / icon | `.ai/CONVENTIONS.md` |
-| Known footguns (silent drops, hardcoded icon branch, no input validation) | `.ai/CONCERNS.md` |
+| Known footguns (silent drops, no input validation, silent icon-set fallback) | `.ai/CONCERNS.md` |
 | Exporting tokens from Figma and running the generator | `README.md` |
