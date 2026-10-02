@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 175,
+  "total": 176,
   "counts": {
     "grid": 107,
-    "grid columns cells cell": 61,
+    "grid columns cells cell": 62,
     "grid columns": 6,
     "columns": 1
   },
@@ -951,6 +951,18 @@
       "category": "Core",
       "levels": [
         "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "maxLength",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
       ],
       "since": null,
       "note": null

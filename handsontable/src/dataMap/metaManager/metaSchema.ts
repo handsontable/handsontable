@@ -4975,6 +4975,53 @@ export default (): Record<string, unknown> => {
     maxCols: Infinity,
 
     /**
+     * The `maxLength` option sets the maximum number of characters that a cell can hold.
+     *
+     * The limit counts Unicode code points, so a character such as an emoji counts as one.
+     * Handsontable checks string values only. It doesn't check a value that is stored as a number,
+     * such as the digits typed into a `numeric` cell, or as any other non-string type.
+     *
+     * Handsontable enforces the limit in two places:
+     * - In the [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell editor, which stops
+     * the user from typing or pasting more characters than the limit allows. The other cell editors
+     * don't limit input.
+     * - In the [cell validator](@/guides/cell-functions/cell-validator/cell-validator.md), which marks a
+     * value that is too long as invalid. The validator checks every way a value gets into the cell, such as
+     * pasting into the grid or calling [`setDataAtCell()`](@/api/core.md#setdataatcell). Use
+     * [`allowInvalid`](#allowinvalid) to decide whether the grid keeps such a value.
+     *
+     * If a cell also has a [`validator`](#validator), a value must pass both checks. The length check
+     * runs first.
+     *
+     * By default, the number of characters is not limited.
+     *
+     * Read more:
+     * - [Text cell type](@/guides/cell-types/text-cell-type/text-cell-type.md)
+     * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
+     * - [`allowInvalid`](#allowinvalid)
+     * - [`validator`](#validator)
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default Infinity
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // limit every cell to 10 characters
+     * maxLength: 10,
+     *
+     * // limit a single column to 10 characters
+     * columns: [
+     *   { data: 'code', maxLength: 10 },
+     *   { data: 'comment' },
+     * ],
+     * ```
+     */
+    maxLength: Infinity,
+
+    /**
      * The `maxRows` option sets a maximum number of rows.
      *
      * The `maxRows` option is used:

@@ -203,6 +203,7 @@ export interface GridSettings {
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
   imeFastEdit?: boolean;
+  maxLength?: number;
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;

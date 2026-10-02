@@ -185,6 +185,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   manualRowMove: true,
   manualRowResize: true,
   maxCols: 123,
+  maxLength: 123,
   maxRows: 123,
   mergeCells: true,
   minCols: 123,

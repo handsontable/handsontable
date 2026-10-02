@@ -15,6 +15,8 @@ import {
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
+import { getCodePointLength, removeCodePointsBefore } from '../../helpers/string';
+import { isMaxLengthActive } from '../../validators/maxLengthValidator';
 import { updateCaretPosition } from './caretPositioner';
 import { selectionFillsOtherCells } from '../../selection/fillSelection';
 import {
@@ -97,6 +99,81 @@ export class TextEditor extends BaseEditor {
    * @type {boolean}
    */
   #hiddenByScroll = false;
+
+  /**
+   * The length of the editor's content in code points, and the length of the part of it that is
+   * selected, taken just before the user changes the content. It tells the `maxLength` cap how much
+   * of the content is new. It is `null` when no change is pending.
+   *
+   * @type {{length: number, selectedLength: number} | null}
+   */
+  #contentBeforeChange: { length: number, selectedLength: number } | null = null;
+
+  /**
+   * Remembers the content of the editor before a change, for the `maxLength` cap. A change made
+   * during an IME composition is remembered at `compositionstart` instead, because the value belongs
+   * to the IME until `compositionend`.
+   *
+   * @param {Event} event The `beforeinput` or `compositionstart` event of the editor's element.
+   */
+  #rememberContent = (event: Event): void => {
+    const { isComposing = false }: Partial<InputEvent> = event;
+
+    if (isComposing) {
+      return;
+    }
+
+    const { value, selectionStart, selectionEnd } = this.TEXTAREA;
+    const start = selectionStart ?? value.length;
+
+    this.#contentBeforeChange = {
+      length: getCodePointLength(value),
+      selectedLength: getCodePointLength(value.slice(start, selectionEnd ?? start)),
+    };
+  };
+
+  /**
+   * Keeps the editor's content within the cell's `maxLength` after the user inserts text.
+   *
+   * The limit is counted in code points. The excess is removed from just before the end of the
+   * selection, which is where the inserted text ends, so typing at the end of a full cell does
+   * nothing, and a paste that does not fit is cut at the limit. Only the inserted text is removed,
+   * so typing into a value that was already too long never eats the text that was there. A deletion
+   * is never cut, so such a value can be shortened by hand. While an IME composition is in progress
+   * the value belongs to the IME, so the cap waits for `compositionend`.
+   *
+   * The editor counts the characters as the user typed them, including spaces. The cell validator
+   * counts the value after `trimWhitespace` has been applied.
+   *
+   * @param {Event} event The `input` or `compositionend` event of the editor's element.
+   */
+  #capLength = (event: Event): void => {
+    const { maxLength } = this.cellProperties;
+    const { isComposing = false, inputType = '' }: Partial<InputEvent> = event;
+
+    if (!isMaxLengthActive(maxLength) || isComposing || inputType.startsWith('delete')) {
+      return;
+    }
+
+    const before = this.#contentBeforeChange;
+    const { value, selectionEnd } = this.TEXTAREA;
+    const length = getCodePointLength(value);
+    const excess = length - maxLength;
+
+    this.#contentBeforeChange = null;
+
+    if (excess <= 0) {
+      return;
+    }
+
+    const inserted = before === null ? excess : length - (before.length - before.selectedLength);
+    const capped = removeCodePointsBefore(value, selectionEnd ?? value.length, Math.min(excess, inserted));
+
+    if (capped.value !== value) {
+      this.TEXTAREA.value = capped.value;
+      setCaretPosition(this.TEXTAREA, capped.index, capped.index);
+    }
+  };
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -436,6 +513,15 @@ export class TextEditor extends BaseEditor {
     if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
+    }
+
+    // The editors that extend this one keep their own input rules, so the `maxLength` cap is bound
+    // to the plain text editor only.
+    if (this.constructor === TextEditor) {
+      this.eventManager.addEventListener(this.TEXTAREA, 'beforeinput', this.#rememberContent);
+      this.eventManager.addEventListener(this.TEXTAREA, 'compositionstart', this.#rememberContent);
+      this.eventManager.addEventListener(this.TEXTAREA, 'input', this.#capLength);
+      this.eventManager.addEventListener(this.TEXTAREA, 'compositionend', this.#capLength);
     }
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());

@@ -357,3 +357,76 @@ export function localeLowerCase(value: string, locale?: string): string {
   // eslint-disable-next-line no-restricted-syntax
   return localeAffectsLowerCase(locale) ? value.toLocaleLowerCase(locale) : value.toLowerCase();
 }
+
+/**
+ * Checks whether the UTF-16 code unit at the given index is a high (leading) surrogate.
+ *
+ * @param {string} value The string to read.
+ * @param {number} index The UTF-16 code unit index.
+ * @returns {boolean}
+ */
+function isHighSurrogate(value: string, index: number): boolean {
+  const code = value.charCodeAt(index);
+
+  return code >= 0xD800 && code <= 0xDBFF;
+}
+
+/**
+ * Checks whether the UTF-16 code unit at the given index is a low (trailing) surrogate.
+ *
+ * @param {string} value The string to read.
+ * @param {number} index The UTF-16 code unit index.
+ * @returns {boolean}
+ */
+function isLowSurrogate(value: string, index: number): boolean {
+  const code = value.charCodeAt(index);
+
+  return code >= 0xDC00 && code <= 0xDFFF;
+}
+
+/**
+ * Counts the Unicode code points in a string. A character outside the Basic Multilingual Plane,
+ * such as an emoji, counts as one, while `String#length` counts it as two.
+ *
+ * @param {string} value The string to measure.
+ * @returns {number}
+ */
+export function getCodePointLength(value: string): number {
+  let length = 0;
+
+  for (let index = 0; index < value.length; index++) {
+    if (isHighSurrogate(value, index) && isLowSurrogate(value, index + 1)) {
+      index += 1;
+    }
+
+    length += 1;
+  }
+
+  return length;
+}
+
+/**
+ * Removes up to `count` code points that end right before the given UTF-16 index. A surrogate pair
+ * is never split. Stops early when it reaches the start of the string.
+ *
+ * @param {string} value The source string.
+ * @param {number} index The UTF-16 index that the removed range ends at (exclusive).
+ * @param {number} count The number of code points to remove.
+ * @returns {object} The shortened string (`value`) and the UTF-16 index (`index`) that now sits where
+ * the removed range began.
+ */
+export function removeCodePointsBefore(
+  value: string, index: number, count: number
+): { value: string, index: number } {
+  let start = index;
+
+  for (let removed = 0; removed < count && start > 0; removed++) {
+    start -= 1;
+
+    if (isLowSurrogate(value, start) && start > 0 && isHighSurrogate(value, start - 1)) {
+      start -= 1;
+    }
+  }
+
+  return { value: value.slice(0, start) + value.slice(index), index: start };
+}

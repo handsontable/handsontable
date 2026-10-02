@@ -9,6 +9,8 @@ import {
   localeLowerCase,
   decodeHtmlEntities,
   htmlToPlainText,
+  getCodePointLength,
+  removeCodePointsBefore,
 } from 'handsontable/helpers/string';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
@@ -285,6 +287,86 @@ describe('String helper', () => {
 
     it('should not let a decoded reference reintroduce a tag', () => {
       expect(htmlToPlainText('&lt;script&gt;alert(1)&lt;/script&gt;')).toBe('<script>alert(1)</script>');
+    });
+  });
+
+  describe('getCodePointLength', () => {
+    it('should return 0 for an empty string', () => {
+      expect(getCodePointLength('')).toBe(0);
+    });
+
+    it('should count ASCII characters one by one', () => {
+      expect(getCodePointLength('abc')).toBe(3);
+    });
+
+    it('should count a character from the Basic Multilingual Plane as one', () => {
+      expect(getCodePointLength('żółć')).toBe(4);
+    });
+
+    it('should count a surrogate pair as one code point, while String#length counts two', () => {
+      expect('😀'.length).toBe(2);
+      expect(getCodePointLength('😀')).toBe(1);
+      expect(getCodePointLength('😀😀')).toBe(2);
+      expect(getCodePointLength('a😀b')).toBe(3);
+    });
+
+    it('should count a combining sequence by its code points', () => {
+      // "e" + COMBINING ACUTE ACCENT is two code points, although it renders as one glyph.
+      expect(getCodePointLength('é')).toBe(2);
+    });
+
+    it('should count a ZWJ sequence by its code points', () => {
+      // Man + ZWJ + Woman + ZWJ + Girl: 3 emoji (3 code points each side of the ZWJs) + 2 ZWJ.
+      expect(getCodePointLength('👨‍👩‍👧')).toBe(5);
+    });
+
+    it('should count a lone surrogate as one code point', () => {
+      expect(getCodePointLength('\uD83D')).toBe(1);
+      expect(getCodePointLength('\uDE00')).toBe(1);
+      // Reversed order is not a pair.
+      expect(getCodePointLength('\uDE00\uD83D')).toBe(2);
+      // A high surrogate followed by a normal character is not a pair either.
+      expect(getCodePointLength('\uD83Da')).toBe(2);
+    });
+  });
+
+  describe('removeCodePointsBefore', () => {
+    it('should remove the code points that end right before the index', () => {
+      expect(removeCodePointsBefore('abcdef', 4, 2)).toEqual({ value: 'abef', index: 2 });
+    });
+
+    it('should remove from the end of the string', () => {
+      expect(removeCodePointsBefore('abcdef', 6, 3)).toEqual({ value: 'abc', index: 3 });
+    });
+
+    it('should do nothing at the start of the string', () => {
+      expect(removeCodePointsBefore('abc', 0, 2)).toEqual({ value: 'abc', index: 0 });
+    });
+
+    it('should do nothing when the count is 0', () => {
+      expect(removeCodePointsBefore('abc', 2, 0)).toEqual({ value: 'abc', index: 2 });
+    });
+
+    it('should stop at the start of the string when the count is larger than what is available', () => {
+      expect(removeCodePointsBefore('abcdef', 2, 10)).toEqual({ value: 'cdef', index: 0 });
+    });
+
+    it('should remove a whole surrogate pair as one code point', () => {
+      expect(removeCodePointsBefore('a😀b', 3, 1)).toEqual({ value: 'ab', index: 1 });
+      expect(removeCodePointsBefore('😀😀', 4, 1)).toEqual({ value: '😀', index: 2 });
+    });
+
+    it('should never leave half of a pair when the removed range ends at a pair boundary', () => {
+      expect(removeCodePointsBefore('😀😀😀', 4, 2)).toEqual({ value: '😀', index: 0 });
+    });
+
+    it('should count a lone surrogate as one code point', () => {
+      expect(removeCodePointsBefore('a\uD83Db', 2, 1)).toEqual({ value: 'ab', index: 1 });
+      expect(removeCodePointsBefore('a\uDE00b', 2, 1)).toEqual({ value: 'ab', index: 1 });
+    });
+
+    it('should keep the text after the index intact', () => {
+      expect(removeCodePointsBefore('ab😀cd', 4, 1)).toEqual({ value: 'abcd', index: 2 });
     });
   });
 });

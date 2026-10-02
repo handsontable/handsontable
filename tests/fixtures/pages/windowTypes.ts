@@ -391,6 +391,10 @@ declare global {
     resolveValidation(): boolean;
     /** How many validator callbacks are waiting to be released (#7553 fixture). */
     pendingValidationCount(): number;
+    /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
+    initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
+    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
+    fixtureError: string | null;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**

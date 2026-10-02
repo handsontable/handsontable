@@ -119,9 +119,78 @@ With `allowInvalid: false`, the cell editor doesn't close on an invalid value. I
 
 :::
 
+## Limiting the text length
+
+To limit how many characters a text cell can hold, set the [`maxLength`](@/api/options.md#maxlength) option. You don't need a custom validator. By default, the length is not limited.
+
+::: only-for javascript
+
+```js
+columns: [
+  // a code of up to 10 characters
+  { data: 'sku', type: 'text', maxLength: 10 },
+  // a comment of up to 140 characters, rejected when longer
+  { data: 'comment', type: 'text', maxLength: 140, allowInvalid: false },
+],
+```
+
+:::
+
+::: only-for react
+
+```jsx
+columns={[
+  // a code of up to 10 characters
+  { data: 'sku', type: 'text', maxLength: 10 },
+  // a comment of up to 140 characters, rejected when longer
+  { data: 'comment', type: 'text', maxLength: 140, allowInvalid: false },
+]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+columns: [
+  // a code of up to 10 characters
+  { data: 'sku', type: 'text', maxLength: 10 },
+  // a comment of up to 140 characters, rejected when longer
+  { data: 'comment', type: 'text', maxLength: 140, allowInvalid: false },
+],
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [
+    // a code of up to 10 characters
+    { data: 'sku', type: 'text', maxLength: 10 },
+    // a comment of up to 140 characters, rejected when longer
+    { data: 'comment', type: 'text', maxLength: 140, allowInvalid: false },
+  ],
+}" />
+```
+
+:::
+
+`maxLength` counts Unicode code points, so a character such as an emoji counts as one. Handsontable checks string values only. It doesn't check a value that is stored as a number, such as the digits typed into a `numeric` cell, or as any other non-string type.
+
+Handsontable applies the limit in two places:
+
+- **In the cell editor.** The editor stops the user from typing or pasting more characters than the limit allows. A pasted text that doesn't fit is cut at the limit. The editor never blocks deleting, so the user can shorten a value that is already too long. Typing into such a value doesn't remove the text that is already there. The editor counts the characters as typed, including spaces, while validation counts the value after [`trimWhitespace`](@/api/options.md#trimwhitespace) is applied. Only the text cell editor limits input. The editors of other cell types, such as numeric or password, don't.
+- **In validation.** Handsontable treats a value that is longer than the limit as invalid, however it gets into the cell: by typing, by pasting into the grid, by filling, by calling [`setDataAtCell()`](@/api/core.md#setdataatcell), or by running [`validateCells()`](@/api/core.md#validatecells).
+
+The [`allowInvalid`](@/api/options.md#allowinvalid) option decides what happens to a value that is too long. With `true` (the default), the grid keeps the value and marks the cell with the `htInvalid` class. With `false`, the grid rejects the value, and the cell editor stays open until the value fits.
+
+If a cell has both `maxLength` and a [`validator`](@/api/options.md#validator), the value must pass both checks. Handsontable checks the length first. When the value is too long, it doesn't call your validator.
+
 ## Result
 
-After configuring the text cell type, cells display and edit their value as plain text, with no formatting or masking applied. Combine it with a custom [`validator`](@/api/options.md#validator) to restrict which values a text cell accepts.
+After configuring the text cell type, cells display and edit their value as plain text, with no formatting or masking applied. Combine it with [`maxLength`](@/api/options.md#maxlength) to limit the text length, or with a custom [`validator`](@/api/options.md#validator) to restrict which values a text cell accepts.
 
 ## Keyboard shortcuts
 
@@ -145,6 +214,7 @@ The text cell editor uses the standard [edition keyboard shortcuts](@/guides/nav
 - [type](@/api/options.md#type)
 - [validator](@/api/options.md#validator)
 - [allowInvalid](@/api/options.md#allowinvalid)
+- [maxLength](@/api/options.md#maxlength)
 
 </div>
 
