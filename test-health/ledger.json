@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-02T14:11:01.649Z",
+  "updatedAt": "2026-10-02T16:04:08.291Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-main",
+      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
+      "line": 74,
+      "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(locator).toBeVisible() failed",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "37025157828",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37025157828",
+      "workflow": "Tests",
+      "branch": "feature/HOT-14987_fixedColumnsEnd",
+      "headSha": "b1129b90a21aa6a769401d16f07b366de28b0900",
+      "event": "pull_request",
+      "seenAt": "2026-10-02T16:03:16Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-main",

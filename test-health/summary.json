@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-02T14:11:01.649Z",
+  "generatedAt": "2026-10-02T16:04:08.291Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 318,
-    "needsTicket": 9,
+    "needsTicket": 10,
     "quarantined": 0,
-    "entries": 1773
+    "entries": 1774
   },
   "rows": [
     {
@@ -235,6 +235,40 @@
         "leg": "e2e-horizon",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
+      "tier": "playwright",
+      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
+      "line": 74,
+      "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T16:03:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37025157828",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-main",
+        "status": "flaky",
+        "error": "Error: expect(locator).toBeVisible() failed",
         "source": "ci"
       },
       "needsTicket": true
@@ -11144,40 +11178,6 @@
         "leg": "e2e-horizon",
         "status": "failed",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/walkontable/inline-end-overlay.spec.ts|walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
-      "tier": "playwright",
-      "file": "e2e/walkontable/inline-end-overlay.spec.ts",
-      "line": 74,
-      "title": "walkontable inline-end overlay (ltr) › follows the vertical scroll of the grid row by row",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic",
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-02T13:51:04Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37010304762",
-        "branch": "feature/HOT-14987_fixedColumnsEnd",
-        "leg": "e2e-classic",
-        "status": "flaky",
-        "error": "Error: expect(locator).toBeVisible() failed",
         "source": "ci"
       },
       "needsTicket": false
