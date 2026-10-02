@@ -201,7 +201,12 @@ export class TextEditor extends BaseEditor {
     }
 
     const inserted = length - (before.length - before.selectedLength);
-    const capped = removeCharactersBefore(value, selectionEnd ?? value.length, Math.min(excess, inserted));
+    // The excess is the trailing part of the inserted text that the commit would keep. Spaces that sit
+    // at the very end of the value are trimmed at commit, so the cut starts before them, or a pasted
+    // text with trailing spaces would lose the spaces and keep the extra letters.
+    const caret = selectionEnd ?? value.length;
+    const cutEnd = this.cellProperties.trimWhitespace ? Math.min(caret, value.trimEnd().length) : caret;
+    const capped = removeCharactersBefore(value, cutEnd, Math.min(excess, inserted));
 
     if (capped.value !== value) {
       this.TEXTAREA.value = capped.value;

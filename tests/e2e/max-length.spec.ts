@@ -156,6 +156,44 @@ test.describe('maxLength', () => {
       await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
     });
 
+    test('cuts the extra letters of a paste that ends in spaces, and keeps the spaces for the commit to trim', async () => {
+      await grid.initGrid({ maxLength: 10 });
+      await grid.openEditor(0, 0);
+
+      await grid.pasteText('ABCDEFGHIJKL   ');
+
+      // The two extra letters go. The spaces may stay, because the commit trims them.
+      await expect(grid.editor).toHaveValue(/^ABCDEFGHIJ\s*$/);
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('ABCDEFGHIJ');
+      await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
+    });
+
+    test('does the same for a paste that also starts with a space', async () => {
+      await grid.initGrid({ maxLength: 10 });
+      await grid.openEditor(0, 0);
+
+      await grid.pasteText(' ABCDEFGHIJKL   ');
+
+      await expect(grid.editor).toHaveValue(/^ ABCDEFGHIJ\s*$/);
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('ABCDEFGHIJ');
+    });
+
+    test('counts every space when `trimWhitespace` is off', async () => {
+      await grid.initGrid({ maxLength: 10, trimWhitespace: false });
+      await grid.openEditor(0, 0);
+
+      await grid.pasteText('ABCDEFGHIJKL   ');
+
+      // Nothing is trimmed at commit, so the spaces are part of the text and the cut is made at its end.
+      await expect(grid.editor).toHaveValue('ABCDEFGHIJ');
+    });
+
     test('lets trailing spaces into a full cell, because the commit trims them', async () => {
       await grid.initGrid({ maxLength: 3, data: [['abc', '', '', '']] });
       await grid.openEditor(0, 0);

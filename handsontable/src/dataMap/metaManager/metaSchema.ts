@@ -5026,7 +5026,7 @@ export default (): Record<string, unknown> => {
      * - [`validator`](#validator)
      *
      * @memberof Options#
-     * @since 18.3.0
+     * @since 19.0.0
      * @type {number}
      * @default Infinity
      * @category Core
