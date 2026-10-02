@@ -75,7 +75,54 @@ describe('baseRenderer', () => {
         noWordWrapClassName: 'no-word-wrap',
       });
 
-      expect(TD.outerHTML).toMatchHTML('<td class="no-word-wrap"></td>', toMatchHTMLConfig);
+      expect(TD.outerHTML).toMatchHTML('<td class="htNoWrap no-word-wrap"></td>', toMatchHTMLConfig);
+    });
+
+    it('should keep the default no-wrap class name when a custom noWordWrapClassName is set', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        wordWrap: false,
+        noWordWrapClassName: 'custom-no-wrap',
+      });
+
+      expect(TD.classList.contains('htNoWrap')).toBe(true);
+      expect(TD.classList.contains('custom-no-wrap')).toBe(true);
+    });
+
+    it('should add the default no-wrap class name once when noWordWrapClassName is the default', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        wordWrap: false,
+        noWordWrapClassName: 'htNoWrap',
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htNoWrap"></td>', toMatchHTMLConfig);
+    });
+
+    it('should not add any no-wrap class name when noWordWrapClassName is empty or null', () => {
+      ['', null].forEach((noWordWrapClassName) => {
+        const TD = document.createElement('td');
+
+        baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+          wordWrap: false,
+          noWordWrapClassName,
+        });
+
+        expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
+      });
+    });
+
+    it('should not add any no-wrap class name when wordWrap is not false', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        wordWrap: true,
+        noWordWrapClassName: 'custom-no-wrap',
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
     });
 
     it('should manage placeholder class name', () => {
