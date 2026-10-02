@@ -1,7 +1,8 @@
 import { localeLowerCase } from '../../../../../helpers/string';
 import { MAX_WORKBOOK_SHEETS, throwLimitExceeded } from '../../../limits';
 import type { SheetSnapshot } from '../../../model';
-import { createLocalName, tokenizeXml } from '../xml/tokenizer';
+import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
+import { foldPartName } from '../zip/reader';
 import { XmlWriter } from '../xml/writer';
 
 /**
@@ -272,7 +273,7 @@ export function appXml(sheetNames: string[]): string {
  */
 export interface ContentTypes {
   /**
-   * Part path (no leading slash) → content type, from `<Override>`.
+   * FOLDED part path (no leading slash, `foldPartName`) -> content type, from `<Override>`.
    */
   overrides: Map<string, string>;
   /**
@@ -299,7 +300,8 @@ export function parseContentTypes(xml: string): ContentTypes {
       const name = localName(rawName);
 
       if (name === 'Override' && attrs.PartName !== undefined) {
-        const partName = attrs.PartName.startsWith('/') ? attrs.PartName.slice(1) : attrs.PartName;
+        // Folded like every archive lookup: OPC part names compare case-insensitively.
+        const partName = foldPartName(attrs.PartName.startsWith('/') ? attrs.PartName.slice(1) : attrs.PartName);
 
         if (!overrides.has(partName)) {
           overrides.set(partName, attrs.ContentType ?? '');
@@ -327,7 +329,7 @@ export function parseContentTypes(xml: string): ContentTypes {
  * can declare, so the answer was right only by accident.
  */
 export function contentTypeOf(types: ContentTypes, partPath: string): string | undefined {
-  const declared = types.overrides.get(partPath);
+  const declared = types.overrides.get(foldPartName(partPath));
 
   if (declared !== undefined) {
     return declared;
@@ -368,14 +370,14 @@ export function parseRels(xml: string): Relationship[] {
 
 /**
  * Resolves a relationship target against the part that declares it. Targets are relative to the
- * source part's directory unless they start with `/`.
+ * source part's directory unless they start with `/`, where they start from the package root.
+ *
+ * Both kinds are walked segment by segment, so `..` and `.` collapse either way. An absolute target
+ * used to lose only its leading slash: `/xl/../[Content_Types].xml` kept its `..`, matched an entry
+ * carrying that literal name, and slipped past the parts a sheet may never resolve to.
  */
 export function resolvePartPath(basePart: string, target: string): string {
-  if (target.startsWith('/')) {
-    return target.slice(1);
-  }
-
-  const segments = basePart.split('/').slice(0, -1);
+  const segments = target.startsWith('/') ? [] : basePart.split('/').slice(0, -1);
 
   target.split('/').forEach((segment) => {
     if (segment === '..') {
@@ -389,16 +391,82 @@ export function resolvePartPath(basePart: string, target: string): string {
 }
 
 /**
+ * The namespaces a relationship id attribute (`r:id`) may sit in: the transitional one and Excel's
+ * Strict Open XML one.
+ */
+const RELATIONSHIP_ID_NAMESPACES: ReadonlySet<string> = new Set([OFFICE_REL, STRICT_OFFICE_REL]);
+
+/**
+ * The prefixes an element's own `xmlns:*` attributes bind to a relationships namespace.
+ */
+function declaredRelationshipPrefixes(attrs: XmlAttributes): string[] {
+  return Object.keys(attrs)
+    .filter(key => key.startsWith('xmlns:') && RELATIONSHIP_ID_NAMESPACES.has(attrs[key]))
+    .map(key => key.slice('xmlns:'.length));
+}
+
+/**
+ * What `createRelationshipIdReader` returns: the scope bookkeeping and the id lookup.
+ */
+interface RelationshipIdReader {
+  open(attrs: XmlAttributes, selfClosing: boolean): void;
+  close(): void;
+  idOf(attrs: XmlAttributes): string;
+}
+
+/**
+ * Tracks which prefixes name the relationships namespace at the current depth of a part, and reads an
+ * element's relationship id through them.
+ *
+ * The prefix is the file's choice, not `r`: a workbook that binds the namespace as
+ * `xmlns:rel="..."` writes `rel:id`, and reading the literal `r:id` alone left every sheet of such a
+ * file with no part. A declaration on the element itself or on any open ancestor counts, as XML
+ * namespace scoping says. `r:id` is still accepted when nothing in scope binds the namespace, which
+ * is how a file that omits the declaration has always read.
+ */
+function createRelationshipIdReader(): RelationshipIdReader {
+  const scopes: string[][] = [];
+  let current: string[] = [];
+
+  return {
+    open(attrs, selfClosing) {
+      const declared = declaredRelationshipPrefixes(attrs);
+
+      current = declared.length === 0 ? current : declared.concat(current);
+
+      if (!selfClosing) {
+        scopes.push(current);
+      }
+    },
+    close() {
+      scopes.pop();
+      current = scopes.length === 0 ? [] : scopes[scopes.length - 1];
+    },
+    idOf(attrs) {
+      const prefix = current.find(candidate => attrs[`${candidate}:id`] !== undefined);
+
+      return prefix === undefined ? attrs['r:id'] ?? '' : attrs[`${prefix}:id`];
+    },
+  };
+}
+
+/**
  * Parses `xl/workbook.xml`: the sheet list in order, and the `date1904` flag.
  */
 export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date1904: boolean } {
   const sheets: WorkbookSheetEntry[] = [];
   let date1904 = false;
   const localName = createLocalName();
+  const relationshipIds = createRelationshipIdReader();
 
   tokenizeXml(xml, {
-    open(rawName, attrs) {
+    close() {
+      relationshipIds.close();
+    },
+    open(rawName, attrs, selfClosing) {
       const name = localName(rawName);
+
+      relationshipIds.open(attrs, selfClosing);
 
       if (name === 'sheet') {
         const state = attrs.state === 'hidden' || attrs.state === 'veryHidden' ? attrs.state : 'visible';
@@ -411,7 +479,7 @@ export function parseWorkbook(xml: string): { sheets: WorkbookSheetEntry[]; date
             + 'above the limit this reader accepts.');
         }
 
-        sheets.push({ name: attrs.name ?? '', relId: attrs['r:id'] ?? '', state });
+        sheets.push({ name: attrs.name ?? '', relId: relationshipIds.idOf(attrs), state });
       } else if (name === 'workbookPr') {
         date1904 = attrs.date1904 === '1' || attrs.date1904 === 'true';
       }

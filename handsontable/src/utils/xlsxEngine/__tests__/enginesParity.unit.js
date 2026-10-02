@@ -99,11 +99,19 @@ async function fourWayRead(buildFn) {
  * Asserts that all four legs of `fourWayRead` normalize to the same snapshot. This is the shape
  * that catches a writer emitting something only its OWN reader understands: `nn`/`ee` alone would
  * only prove each engine agrees with itself.
+ *
+ * Agreement is not survival, though: four legs that ALL lost a feature agree too. So every caller
+ * hands `expectNative` the feature it wrote, asserted on the native leg BEFORE the legs are
+ * compared — with `SheetBuilder#freeze` writing `null` and `setRtl` writing `false`, the suite
+ * passed in full until that callback existed.
  * @param buildFn
+ * @param expectNative Receives the native leg's raw snapshot and asserts the feature survived.
  */
-async function expectFourWayParity(buildFn) {
+async function expectFourWayParity(buildFn, expectNative) {
   const { nn, ne, en, ee } = await fourWayRead(buildFn);
   const [native, nativeViaExcelJs, exceljsViaNative, exceljs] = [nn, ne, en, ee].map(strip);
+
+  expectNative(nn);
 
   // The three assertions below are equality-only, so four snapshots that had ALL lost the feature
   // under test would agree vacuously — and `normalizeStyle` collapsing a style that carries nothing
@@ -132,6 +140,13 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       sheet.cell(2, 1).formula = { text: 'SUM(B1:B1)' }; // no cached result
       sheet.cell(2, 2).formula = { text: 'B1*2', result: 84 }; // cached result
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      const [first, second] = native.sheets[0].rows;
+
+      expect(first.map(cell => cell.value)).toEqual(['text', 42, true, 45292]);
+      expect(first[3].numFmt).toBe('mm-dd-yy');
+      expect(second[0].formula).toEqual({ text: 'SUM(B1:B1)' });
+      expect(second[1].formula).toEqual({ text: 'B1*2', result: 84 });
     });
   });
 
@@ -147,6 +162,10 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
         font: { bold: true, italic: true, underline: true, color: { argb: 'FFFF0000' } },
       };
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0][0].style.font).toEqual(expect.objectContaining({
+        bold: true, italic: true, underline: true, color: { argb: 'FFFF0000' },
+      }));
     });
   });
 
@@ -167,6 +186,13 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
         },
       };
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0][0].style.border).toEqual(expect.objectContaining({
+        top: { style: 'thin' },
+        right: { style: 'medium' },
+        bottom: { style: 'thick' },
+        left: { style: 'thin', color: { argb: 'FF0000FF' } },
+      }));
     });
   });
 
@@ -179,6 +205,8 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
         alignment: { horizontal: 'center', vertical: 'middle' }, font: null, fill: null, border: null,
       };
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0][0].style.alignment).toEqual(expect.objectContaining({ horizontal: 'center' }));
     });
   });
 
@@ -191,6 +219,8 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       sheet.cell(1, 2).value = 1234.5;
       sheet.cell(1, 2).numFmt = '#,##0.00 "USD"'; // custom, id 164+
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0].map(cell => cell.numFmt)).toEqual(['mm-dd-yy', '#,##0.00 "USD"']);
     });
   });
 
@@ -201,6 +231,8 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       sheet.cell(1, 1).value = 'x';
       sheet.cell(1, 1).comment = 'a note';
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0][0].comment).toBe('a note');
     });
   });
 
@@ -222,6 +254,12 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       helper.cell(2, 1).value = 'Closed';
       helper.setState('veryHidden');
       snapshot.sheets.push(helper.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0].map(cell => cell.validation)).toEqual([
+        { type: 'list', formulae: ['"a,b,c"'], allowBlank: true },
+        { type: 'list', formulae: ['\'_HotValidation\'!$A$1:$A$2'], allowBlank: true },
+      ]);
+      expect(native.sheets[1].state).toBe('veryHidden');
     });
   });
 
@@ -238,6 +276,13 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       sheet.setRowHeight(1, 25);
       sheet.hideRow(2);
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      const [sheet] = native.sheets;
+
+      expect(sheet.colWidths.slice(0, 2)).toEqual([8, 20]);
+      expect(sheet.hiddenCols).toEqual([1]);
+      expect(sheet.rowHeights[0]).toBe(25);
+      expect(sheet.hiddenRows).toEqual([1]);
     });
   });
 
@@ -255,6 +300,10 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
       hidden.cell(1, 1).value = 'x';
       hidden.setState('veryHidden');
       snapshot.sheets.push(hidden.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].freeze).toEqual({ rows: 1, cols: 1 });
+      expect(native.sheets[0].rtl).toBe(true);
+      expect(native.sheets[1].state).toBe('veryHidden');
     });
   });
 
@@ -268,6 +317,12 @@ describe('write parity: a native-written and an ExcelJS-written file agree, read
         { type: 'cellIs', operator: 'greaterThan', formulae: [2], style: { font: { bold: true } } },
       ]);
       snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(cfShape(native)).toEqual([{
+        ref: 'A1:A2',
+        count: 1,
+        rules: [{ type: 'cellIs', operator: 'greaterThan', formulae: ['2'], text: null, rank: null }],
+      }]);
     });
   });
 
@@ -527,7 +582,14 @@ function cfShape(snapshot) {
   return snapshot.sheets[0].conditionalFormatting.map(block => ({
     ref: block.ref,
     count: block.rules.length,
-    rules: block.rules.map(rule => ({ type: rule.type, operator: rule.operator ?? null })),
+    rules: block.rules.map(rule => ({
+      type: rule.type,
+      operator: rule.operator ?? null,
+      // Formulae are compared as text: the export hands numbers, and both readers answer strings.
+      formulae: Array.isArray(rule.formulae) ? rule.formulae.map(String) : [],
+      text: rule.text ?? null,
+      rank: rule.rank ?? null,
+    })),
   }));
 }
 
@@ -594,9 +656,35 @@ describe('conditional formatting: every rule kind the export can produce, four w
   it.each(WRITTEN_CF_KINDS)('writes and reads a %s rule the same way on all four legs', async(_, rules) => {
     const { nn, ne, en, ee } = await fourWayRead(cfSnapshot(rules));
     const [native, nativeViaExcelJs, exceljsViaNative, exceljs] = [nn, ne, en, ee].map(cfShape);
+    const [written] = rules;
 
     expect(native).toHaveLength(1);
     expect(native[0].count).toBe(1);
+    // The feature itself survives on the native leg, before the legs are compared with each other.
+    expect(native[0].rules[0].type).toBe(written.type);
+    expect(native[0].rules[0].text).toBe(written.text ?? null);
+    expect(native[0].rules[0].rank).toBe(written.rank ?? null);
+    (written.formulae ?? []).forEach(formula => expect(native[0].rules[0].formulae).toContain(String(formula)));
+
+    if (written.text !== undefined) {
+      // Finding, pinned with every leg's value rather than normalized: ExcelJS neither WRITES a
+      // `containsText` rule's `text` attribute (its `renderText` emits type, operator and the
+      // formula only) nor READS one back (`cf-rule-xform.js` maps no `text`), so only the native
+      // round trip keeps it. The formula, which is what Excel evaluates, agrees on all four legs.
+      expect([nativeViaExcelJs, exceljsViaNative, exceljs].map(shape => shape[0].rules[0].text))
+        .toEqual([null, null, null]);
+
+      const withText = shape => shape.map(block => ({
+        ...block, rules: block.rules.map(rule => ({ ...rule, text: written.text })),
+      }));
+
+      expect(withText(nativeViaExcelJs)).toEqual(native);
+      expect(withText(exceljsViaNative)).toEqual(native);
+      expect(withText(exceljs)).toEqual(native);
+
+      return;
+    }
+
     expect(nativeViaExcelJs).toEqual(native);
     expect(exceljsViaNative).toEqual(native);
     expect(exceljs).toEqual(native);
@@ -651,7 +739,10 @@ const SHEET_NAMES = [
   ['a trailing apostrophe', 'ab\'', 'rejected', 'rejected'],
   ['the reserved name History', 'History', 'rejected', 'rejected'],
   ['a legal name', 'Sheet1', 'accepted', 'accepted'],
-  // The two the engines disagree on, pinned with both outcomes rather than skipped.
+  // ExcelJS writes the name as it is handed; the native writer refuses it, because its attribute
+  // escaper and its element escaper would write two different names into two parts.
+  ['a control character', 'a\u0001b', 'rejected', 'accepted'],
+  // The rows the engines disagree on, pinned with both outcomes rather than skipped.
   ['a name over 31 characters', 'x'.repeat(32), 'rejected', 'accepted'],
   ['History in lower case', 'history', 'rejected', 'accepted'],
   ['History in upper case', 'HISTORY', 'rejected', 'accepted'],
@@ -707,4 +798,194 @@ describe('sheet-name validation: the same illegal set through both writers, outc
       expect(await outcomeOf(excelJsAdapter, ExcelJS, ['Data', second])).toBe('rejected');
     },
   );
+});
+
+describe('parity on the writer and reader fixes of the #13634 review round', () => {
+  it('writes a post-2007 function with the prefix Excel stores, on both writers', async() => {
+    await expectFourWayParity((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 1;
+      sheet.cell(1, 2).formula = { text: 'IFS(A1>0,"pos",TRUE,"neg")', result: 'pos' };
+      sheet.cell(1, 3).formula = { text: 'SUM(_xlfn.XLOOKUP(1,A1:A1,A1:A1))', result: 1 };
+      snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      // Neither reader strips the prefix (that is `importFile`'s mapper), so every leg reads the
+      // stored form — and it is the one Excel needs, or the cell shows `#NAME?` until re-entered.
+      expect(native.sheets[0].rows[0][1].formula.text).toBe('_xlfn.IFS(A1>0,"pos",TRUE,"neg")');
+      expect(native.sheets[0].rows[0][2].formula.text).toBe('SUM(_xlfn.XLOOKUP(1,A1:A1,A1:A1))');
+    });
+  });
+
+  it('reads a list validation that leaves allowBlank out as allowBlank: false on both readers', async() => {
+    await expectFourWayParity((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'a';
+      // The native writer leaves the attribute out for `false`, which is the OOXML default.
+      sheet.cell(1, 1).validation = { type: 'list', formulae: ['"a,b"'], allowBlank: false };
+      snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].rows[0][0].validation).toEqual({ type: 'list', formulae: ['"a,b"'], allowBlank: false });
+    });
+  });
+
+  it('keeps a covered merge cell\'s own lock and style, without a value, on both readers', async() => {
+    await expectFourWayParity((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'merged';
+      sheet.cell(1, 2).locked = false;
+      sheet.cell(1, 2).style = {
+        alignment: null, font: { bold: true }, fill: null, border: null,
+      };
+      sheet.merge(1, 1, 1, 2);
+      sheet.protect('');
+      snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      // Both readers blanked a covered cell to `null`, so its `locked="0"` was lost and the import
+      // made it read-only under sheet protection.
+      expect(native.sheets[0].rows[0][1]).toEqual(expect.objectContaining({
+        value: null, formula: null, locked: false, style: expect.objectContaining({ font: { bold: true } }),
+      }));
+    });
+  });
+
+  it('does not write a single-cell merge on either writer', async() => {
+    await expectFourWayParity((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'a';
+      sheet.cell(1, 2).value = 'b';
+      sheet.merge(1, 1, 1, 1);
+      sheet.merge(1, 2, 1, 3);
+      snapshot.sheets.push(sheet.toSnapshot());
+    }, (native) => {
+      expect(native.sheets[0].merges).toEqual([{ row: 0, col: 1, rowspan: 1, colspan: 2 }]);
+      expect(native.sheets[0].rows[0][0].value).toBe('a');
+    });
+  });
+
+  it('clamps a column width and a row height to Excel\'s maximum on both writers, and reports both', async() => {
+    const build = (snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'a';
+      sheet.setColWidth(1, 300);
+      sheet.setRowHeight(1, 500);
+      snapshot.sheets.push(sheet.toSnapshot());
+    };
+
+    await expectFourWayParity(build, (native) => {
+      // Without the clamp the native reader DISCARDED both values (above 260 units / 409.5 pt), so
+      // a very wide column came back at the default width instead of at the widest one Excel has.
+      expect(native.sheets[0].colWidths[0]).toBe(260);
+      expect(native.sheets[0].rowHeights[0]).toBe(409.5);
+    });
+
+    for (const [adapter, engine] of [[nativeAdapter, undefined], [excelJsAdapter, ExcelJS]]) {
+      const dropped = new DroppedFeatures();
+
+      await adapter.write(buildSnapshot(build), engine, dropped);
+
+      expect(dropped.list()).toEqual(['columnWidth:clamped', 'rowHeight:clamped']);
+    }
+  });
+
+  it('truncates a string past Excel\'s 32767-character cell limit on both writers, and reports it', async() => {
+    const build = (snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 'x'.repeat(40000);
+      snapshot.sheets.push(sheet.toSnapshot());
+    };
+
+    await expectFourWayParity(build, (native) => {
+      expect(native.sheets[0].rows[0][0].value).toBe('x'.repeat(32767));
+    });
+
+    for (const [adapter, engine] of [[nativeAdapter, undefined], [excelJsAdapter, ExcelJS]]) {
+      const dropped = new DroppedFeatures();
+
+      await adapter.write(buildSnapshot(build), engine, dropped);
+
+      expect(dropped.list()).toEqual(['cellText:truncated']);
+    }
+  });
+
+  /**
+   * Writes a workbook with ExcelJS directly, bypassing both adapters' writers.
+   * @param buildFn
+   */
+  async function writeDirectly(buildFn) {
+    const workbook = new ExcelJS.Workbook();
+
+    buildFn(workbook);
+
+    return toArrayBuffer(new Uint8Array(await workbook.xlsx.writeBuffer()));
+  }
+
+  it('imports an Excel 365 threaded comment as its thread text on both readers, and records it once', async() => {
+    // The legacy note Excel 365 writes for a threaded comment opens with fixed boilerplate; both
+    // readers strip it through one shared helper and report the flattened thread.
+    const boilerplate = '[Threaded comment]\n\nYour version of Excel allows you to read this threaded comment; '
+      + 'however, any edits to it will get removed if the file is opened in a newer version of Excel. '
+      + 'Learn more: https://go.microsoft.com/fwlink/?linkid=870924\n\nComment:\n    ';
+    const bytes = await writeDirectly((workbook) => {
+      const sheet = workbook.addWorksheet('Sheet1');
+
+      sheet.getCell('A1').value = 1;
+      sheet.getCell('A1').note = `${boilerplate}Is this right?\nReply:\n    Yes.`;
+      sheet.getCell('B1').value = 2;
+      sheet.getCell('B1').note = `${boilerplate}Another thread`;
+    });
+    const nativeDropped = new DroppedFeatures();
+    const exceljsDropped = new DroppedFeatures();
+    const native = await nativeAdapter.read(bytes, undefined, nativeDropped);
+    const viaExcelJs = await excelJsAdapter.read(bytes, ExcelJS, exceljsDropped);
+
+    expect(native.sheets[0].rows[0].map(cell => cell.comment)).toEqual(['Is this right?\nYes.', 'Another thread']);
+    expect(viaExcelJs.sheets[0].rows[0].map(cell => cell.comment)).toEqual(['Is this right?\nYes.', 'Another thread']);
+    expect(nativeDropped.list()).toEqual(['threadedComments']);
+    expect(exceljsDropped.list()).toEqual(['threadedComments']);
+  });
+
+  it('treats a <sheetProtection> without sheet="1" as an unprotected sheet on the ExcelJS reader', async() => {
+    // ECMA-376 defaults `sheet` to false: `<sheetProtection formatCells="0"/>` (Apache POI writes
+    // that shape) records permissions for a sheet nobody protected. Reading it as protected made
+    // every cell import read-only.
+    const bytes = await writeDirectly((workbook) => {
+      const sheet = workbook.addWorksheet('Open');
+
+      sheet.getCell('A1').value = 'x';
+      sheet.sheetProtection = { sheet: false, formatCells: true };
+    });
+    const viaExcelJs = await excelJsAdapter.read(bytes, ExcelJS, new DroppedFeatures());
+    const native = await nativeAdapter.read(bytes, undefined, new DroppedFeatures());
+
+    expect(viaExcelJs.sheets[0].protection).toBeNull();
+    // The native half of the same rule lands with the worksheet reader's own fix.
+    expect(native.sheets[0].protection).toBeNull();
+  });
+
+  it('pins the one number-format code the two readers disagree on: ExcelJS strips every backslash escape', async() => {
+    const { nn, ne, en, ee } = await fourWayRead((snapshot) => {
+      const sheet = new SheetBuilder('Sheet1');
+
+      sheet.cell(1, 1).value = 12.5;
+      sheet.cell(1, 1).numFmt = '0.0\\%';
+      snapshot.sheets.push(sheet.toSnapshot());
+    });
+    const numFmtOf = snapshot => snapshot.sheets[0].rows[0][0].numFmt;
+
+    // Finding, asserted with both values rather than normalized: both WRITERS keep the code
+    // verbatim, and so does the native reader, but ExcelJS 4.4.0's reader runs
+    // `formatCode.replace(/[\\](.)/g, '$1')` on every `<numFmt>` (`numfmt-xform.js`), so a
+    // literal percent sign comes back as a scaling one. The raw code is gone from ExcelJS's model
+    // by then, and re-escaping cannot know which characters had a backslash.
+    expect(numFmtOf(nn)).toBe('0.0\\%');
+    expect(numFmtOf(en)).toBe('0.0\\%');
+    expect(numFmtOf(ne)).toBe('0.0%');
+    expect(numFmtOf(ee)).toBe('0.0%');
+  });
 });

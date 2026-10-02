@@ -1,7 +1,22 @@
-// `MS_PER_DAY` and `EXCEL_EPOCH_UTC` are declared in the neutral `helpers/dateTime.ts`, so a core
-// plugin can use them without importing the xlsx layer. They are re-exported here so every engine
-// import keeps one source.
-export { MS_PER_DAY, EXCEL_EPOCH_UTC } from '../../helpers/dateTime';
+/**
+ * Milliseconds in one day, the unit a millisecond timestamp is divided by to become a whole-day
+ * offset — and therefore the unit every conversion between a `Date` and an Excel serial goes
+ * through.
+ *
+ * Declared here rather than in `helpers/dateTime.ts`: `src/index.ts` copies every export of that
+ * module onto `Handsontable.helper`, and an xlsx serial constant does not belong there. The
+ * Formulas plugin imports it from here too; this module imports nothing, so that pulls in no
+ * engine code.
+ */
+export const MS_PER_DAY = 86400000;
+
+/**
+ * The Excel epoch (1899-12-30) expressed in UTC milliseconds, the base every date serial counts
+ * from. The 1900 date system counts from 1899-12-30 rather than 1899-12-31 because it reproduces
+ * Lotus 1-2-3's non-existent 1900-02-29. The Formulas plugin converts HyperFormula's date serials
+ * with it too.
+ */
+export const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
 
 /**
  * Serial-number offset between the Unix epoch and the 1900 date system's day zero: 1970-01-01 is

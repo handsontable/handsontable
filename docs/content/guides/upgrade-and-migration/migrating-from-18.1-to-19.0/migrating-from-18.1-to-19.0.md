@@ -1377,12 +1377,13 @@ unless `engines.xlsx` named a module. It now returns `true`, because the built-i
 the format. It still returns `false` when `engines.xlsx` holds a value that is not a supported
 engine module, and for any format other than `'csv'` and `'xlsx'`.
 
-### The "To Excel" context menu item is always shown
+### The "To Excel" context menu item shows with no engine configured
 
-The `export_file:xlsx` sub-item of the export context menu item was hidden whenever
-`supportsExportFormat('xlsx')` answered `false`, so a grid with no engine showed "To CSV" alone. The
-sub-item now has no `hidden()` of its own. It appears whenever the `exportFile` option is set, next
-to "To CSV".
+The `export_file:xlsx` sub-item of the export context menu item is hidden whenever
+`supportsExportFormat('xlsx')` answers `false`. In 18.1 that was every grid with no engine, so such
+a grid showed "To CSV" alone. In 19.0 `supportsExportFormat('xlsx')` answers `true` for that grid,
+so "To Excel" appears next to "To CSV" whenever the `exportFile` option is set. The sub-item stays
+hidden only when `engines.xlsx` holds a value that is not a supported engine module.
 
 ### An XLSX export with no engine configured now succeeds
 
@@ -1438,7 +1439,7 @@ non-finite values in your data, for example with `null`, before you export.
 - You call `supportsExportFormat('xlsx')` and use the answer to decide whether to render your own
   export button, menu entry, or toolbar item. That affordance is now always rendered.
 - You set `exportFile` without an `engines` entry and counted on the "To Excel" item staying out of
-  the context menu.
+  the context menu. It now shows.
 - You catch the rejection of an XLSX export as a way to detect that no engine is configured.
 - You compare the rejection message against `Missing or invalid ExcelJS engine`.
 
@@ -1453,11 +1454,19 @@ exportFile: {
 },
 ```
 
-To keep the "To Excel" item out of the context menu, list the menu items you want instead of
-relying on the sub-item hiding itself:
+To keep the "To Excel" item out of the context menu, remove the `export_file:xlsx` sub-item in the
+[`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems) hook. The rest of the
+menu, including the **Export** item and its "To CSV" sub-item, stays as it is:
 
 ```js
-contextMenu: ['row_above', 'row_below', 'remove_row'],
+beforeContextMenuSetItems(menuItems) {
+  const exportItem = menuItems.find(({ key }) => key === 'export_file');
+
+  if (exportItem) {
+    exportItem.submenu.items = exportItem.submenu.items
+      .filter(({ key }) => key !== 'export_file:xlsx');
+  }
+},
 ```
 
 To gate your own export affordance, check `supportsExportFormat('xlsx')` still asks the question you

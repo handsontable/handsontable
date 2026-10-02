@@ -17,9 +17,12 @@ for (let n = 0; n < 256; n++) {
 
 /**
  * Computes the CRC-32 checksum of a byte array, as written into ZIP local and central headers.
+ *
+ * `previous` continues a checksum: `crc32(b, crc32(a))` equals the checksum of `a` followed by `b`,
+ * so a reader can check an entry chunk by chunk as it inflates, without holding its bytes.
  */
-export function crc32(bytes: Uint8Array): number {
-  let crc = 0xFFFFFFFF;
+export function crc32(bytes: Uint8Array, previous = 0): number {
+  let crc = (previous ^ 0xFFFFFFFF) >>> 0;
 
   for (let i = 0; i < bytes.length; i++) {
     crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);

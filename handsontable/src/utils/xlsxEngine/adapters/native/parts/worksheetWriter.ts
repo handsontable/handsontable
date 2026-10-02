@@ -1,7 +1,9 @@
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../../capabilities';
 import { colIndexToLetter } from '../../../cellRef';
+import { addFunctionPrefixes } from '../../../functionPrefixes';
 import type { CellFormula, CellSnapshot, CellValue, MergeSnapshot, SheetSnapshot } from '../../../model';
-import { escapeXmlText } from '../xml/escapes';
+import { clampCellText, clampColumnWidth, clampRowHeight } from '../../../writeLimits';
+import { escapeXmlMarkup, escapeXmlText } from '../xml/escapes';
 import { type XmlAttributeMap, XmlWriter } from '../xml/writer';
 import type { SheetComment } from './comments';
 import { conditionalFormattingXml, maxRulePriority } from './conditionalFormatting';
@@ -42,7 +44,9 @@ function mergeRef(merge: MergeSnapshot): string {
 
 /**
  * Resolves overlapping merges: the first one wins, a later one that overlaps is recorded and
- * skipped. Returns the kept merges and the set of covered (non-master) cell keys.
+ * skipped. A single-cell "merge" is skipped silently: it merges nothing, and a `<mergeCell>` of
+ * one cell is not something Excel itself writes. Returns the kept merges and the set of covered
+ * (non-master) cell keys.
  */
 function resolveMerges(
   merges: MergeSnapshot[],
@@ -53,6 +57,10 @@ function resolveMerges(
   const kept: MergeSnapshot[] = [];
 
   merges.forEach((merge) => {
+    if (merge.rowspan <= 1 && merge.colspan <= 1) {
+      return;
+    }
+
     const keys: string[] = [];
 
     for (let r = merge.row; r < merge.row + merge.rowspan; r++) {
@@ -125,7 +133,10 @@ function cellStartTag(ref: string, styleAttr: number | undefined, t: 'b' | 's' |
 
 /**
  * One `<c>` element holding a formula, with its cached result when the snapshot carries one. The
- * formula text and a string result go through the text escaper like any other element text.
+ * formula is `ST_Formula`, so it is escaped for markup only (no reader decodes `_xHHHH_` there) and
+ * a post-2007 function gets the `_xlfn.` prefix Excel stores, or Excel shows `#NAME?` until the
+ * cell is entered again. A string result is `<v>` text, which the readers DO decode, so it goes
+ * through the text escaper.
  */
 function formulaCellXml(ref: string, styleAttr: number | undefined, formula: CellFormula): string {
   const { text } = formula;
@@ -144,24 +155,26 @@ function formulaCellXml(ref: string, styleAttr: number | undefined, formula: Cel
 
   const value = hasResult ? `<v>${escapeXmlText(formulaResultText(result))}</v>` : '';
 
-  return `${cellStartTag(ref, styleAttr, t)}><f>${escapeXmlText(text)}</f>${value}</c>`;
+  return `${cellStartTag(ref, styleAttr, t)}><f>${escapeXmlMarkup(addFunctionPrefixes(text))}</f>${value}</c>`;
 }
 
 /**
  * One `<c>` element holding a plain value, typed by the shape the value has. The `<v>` text is a
  * shared-string index, a number or a boolean digit, none of which needs escaping; the string
- * itself is escaped where it is written, in `xl/sharedStrings.xml`.
+ * itself is escaped where it is written, in `xl/sharedStrings.xml`, and cut to the length Excel
+ * stores in one cell first.
  */
 function valueCellXml(
   ref: string,
   styleAttr: number | undefined,
   value: CellValue,
   strings: SharedStringTable,
+  dropped: DroppedFeatures,
 ): string {
   const asString = stringCellText(value);
 
   if (asString !== null) {
-    return `${cellStartTag(ref, styleAttr, 's')}><v>${strings.add(asString)}</v></c>`;
+    return `${cellStartTag(ref, styleAttr, 's')}><v>${strings.add(clampCellText(asString, dropped))}</v></c>`;
   }
 
   if (typeof value === 'boolean') {
@@ -182,6 +195,7 @@ function writeCell(
   isCovered: boolean,
   styles: StyleTable,
   strings: SharedStringTable,
+  dropped: DroppedFeatures,
 ): boolean {
   const s = styles.xfIndex({ numFmt: cell.numFmt, style: cell.style, locked: cell.locked });
   const styleAttr = s === 0 ? undefined : s;
@@ -200,7 +214,7 @@ function writeCell(
     return true;
   }
 
-  w.raw(valueCellXml(ref, styleAttr, cell.value, strings));
+  w.raw(valueCellXml(ref, styleAttr, cell.value, strings, dropped));
 
   return false;
 }
@@ -224,6 +238,7 @@ interface SheetDataContext {
   covered: Set<string>;
   styles: StyleTable;
   strings: SharedStringTable;
+  dropped: DroppedFeatures;
 }
 
 /**
@@ -308,13 +323,17 @@ function colEntryXml(index: number, width: number | null, hidden: boolean): stri
 }
 
 /**
- * Writes `<cols>`, which is left out entirely when no column carries a width or is hidden.
+ * Writes `<cols>`, which is left out entirely when no column carries a width or is hidden. A width
+ * past what Excel stores is written at Excel's maximum.
  */
-function writeCols(w: XmlWriter, sheet: SheetSnapshot, hiddenCols: Set<number>, colCount: number): void {
+function writeCols(
+  w: XmlWriter, sheet: SheetSnapshot, hiddenCols: Set<number>, colCount: number, dropped: DroppedFeatures,
+): void {
   const colEntries: string[] = [];
 
   for (let c = 0; c < colCount; c++) {
-    const width = sheet.colWidths[c] ?? null;
+    const declared = sheet.colWidths[c] ?? null;
+    const width = declared === null ? null : clampColumnWidth(declared, dropped);
     const hidden = hiddenCols.has(c);
 
     if (width !== null || hidden) {
@@ -351,7 +370,7 @@ function writeRowCells(
   row: Array<CellSnapshot | null>,
   collected: SheetDataResult,
 ): void {
-  const { covered, styles, strings } = context;
+  const { covered, styles, strings, dropped } = context;
   // A `${row}:${col}` key per cell is only worth allocating when a merge can match it.
   const hasMerges = covered.size > 0;
   const rowNumber = rowIndex + 1;
@@ -366,7 +385,7 @@ function writeRowCells(
     const ref = `${columnLetters[c] ?? colIndexToLetter(c + 1)}${rowNumber}`;
     const isCovered = hasMerges && covered.has(`${rowIndex}:${c}`);
 
-    if (writeCell(w, ref, cell, isCovered, styles, strings)) {
+    if (writeCell(w, ref, cell, isCovered, styles, strings, dropped)) {
       collected.wroteFormula = true;
     }
 
@@ -381,10 +400,11 @@ function writeRowCells(
 }
 
 /**
- * Writes `<sheetData>`. A row with no cell, no height and no hidden flag is written not at all.
+ * Writes `<sheetData>`. A row with no cell, no height and no hidden flag is written not at all. A
+ * height past what Excel stores is written at Excel's maximum.
  */
 function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResult {
-  const { sheet, rowCount, colCount, hiddenRows } = context;
+  const { sheet, rowCount, colCount, hiddenRows, dropped } = context;
   const collected: SheetDataResult = { comments: [], validations: [], wroteFormula: false };
   // The column letters once per sheet rather than once per cell: `colIndexToLetter` is a loop
   // and a string build, and every row repeats the same first `colCount` answers.
@@ -394,7 +414,8 @@ function writeSheetData(w: XmlWriter, context: SheetDataContext): SheetDataResul
 
   for (let r = 0; r < rowCount; r++) {
     const row = sheet.rows[r] ?? [];
-    const height = sheet.rowHeights[r] ?? null;
+    const declaredHeight = sheet.rowHeights[r] ?? null;
+    const height = declaredHeight === null ? null : clampRowHeight(declaredHeight, dropped);
     const hidden = hiddenRows.has(r);
     const hasCells = row.some(cell => cell !== null);
 
@@ -493,10 +514,10 @@ export function worksheetXml(
 
   writeSheetViews(w, sheet);
   w.leaf('sheetFormatPr', { defaultRowHeight: DEFAULT_ROW_HEIGHT_POINTS });
-  writeCols(w, sheet, hiddenCols, colCount);
+  writeCols(w, sheet, hiddenCols, colCount, dropped);
 
   const { comments, validations, wroteFormula } = writeSheetData(w, {
-    sheet, rowCount, colCount, hiddenRows, covered, styles, strings,
+    sheet, rowCount, colCount, hiddenRows, covered, styles, strings, dropped,
   });
 
   writeSheetProtection(w, sheet, passwordHash);

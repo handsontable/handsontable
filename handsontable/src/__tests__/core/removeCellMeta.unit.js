@@ -172,11 +172,16 @@ describe('Core#removeCellMeta', () => {
     });
   });
 
-  describe('an index outside the current range while rows are trimmed', () => {
-    // Pins the raw-physical reading `setCellMeta` and `removeCellMeta` share: a visual index at or past
-    // `countRows()` is used as the PHYSICAL index as it is. With rows trimmed, that index can name a
-    // live trimmed record, so the call reaches that record rather than throwing or being ignored.
-    it('should remove the key from the trimmed record the raw index names', () => {
+  describe('known limitation: an index outside the current range while rows are trimmed', () => {
+    // KNOWN LIMITATION, not a contract. `setCellMeta` and `removeCellMeta` read a visual index at or
+    // past `countRows()` as the PHYSICAL index as it is. With rows trimmed, that physical index can be
+    // a live record shown at a different visual row, so the call reaches a cell the caller did not
+    // name. Both JSDoc blocks document the limit and tell callers to pass the visual index instead.
+    //
+    // These specs pin today's behavior so a change to it is noticed. A fix that stops the
+    // mis-address SHOULD turn them red: then rewrite them to assert the corrected behavior instead
+    // of loosening them.
+    it('currently removes the key from the visible record the raw index names as a physical one', () => {
       hot = new Handsontable(container, {
         data: square(10),
         trimRows: [0, 1, 2, 3, 4],
@@ -192,12 +197,13 @@ describe('Core#removeCellMeta', () => {
       expect(hot.toPhysicalRow(2)).toBe(7);
 
       // Visual 7 is past `countRows()`, so it is read as physical 7 — the record visual 2 addresses.
+      // The caller named visual row 7, which does not exist, yet visual row 2 loses its key.
       expect(() => hot.removeCellMeta(7, 0, 'marker')).not.toThrow();
 
       expect(hot.getCellMeta(2, 0).marker).toBeUndefined();
     });
 
-    it('should write the key onto the trimmed record the raw index names, symmetrically', () => {
+    it('currently writes the key onto the visible record the raw index names, symmetrically', () => {
       hot = new Handsontable(container, {
         data: square(10),
         trimRows: [0, 1, 2, 3, 4],

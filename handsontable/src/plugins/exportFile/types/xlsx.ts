@@ -65,8 +65,10 @@ const FALLBACK_SHEET_NAME = 'Sheet';
 const VALIDATION_SHEET_NAME = '_HotValidation';
 
 /**
- * Turns a user-supplied sheet name into one the format accepts: illegal characters removed, leading
- * and trailing single quotes stripped, the reserved `History` renamed, and an empty result replaced.
+ * Turns a user-supplied sheet name into one the format accepts: illegal characters and control
+ * characters removed (before the caller de-duplicates, so two names differing only by a control
+ * character cannot collapse into one in `workbook.xml`), leading and trailing single quotes
+ * stripped, the reserved `History` renamed, and an empty result replaced.
  * The reserved name is matched in any case: the ExcelJS engine rejects the exact `History` only, but
  * Excel reserves the name case-insensitively, the same way it compares names for duplicates.
  *

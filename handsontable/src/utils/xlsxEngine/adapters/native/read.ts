@@ -3,6 +3,7 @@ import { localeLowerCase } from '../../../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from '../../capabilities';
 import { isLimitError, MAX_INPUT_BYTES, throwLimitExceeded } from '../../limits';
 import { createWorkbookSnapshot, type WorkbookSnapshot } from '../../model';
+import { noteToComment } from '../../threadedComments';
 import { parseComments } from './parts/comments';
 import {
   BINARY_WORKBOOK_CONTENT_TYPE, CONTENT_TYPES, contentTypeOf, type ContentTypes, parseContentTypes, parseRels,
@@ -12,7 +13,7 @@ import {
 import { parseSharedStrings, type ParsedSharedStrings } from './parts/sharedStrings';
 import { EMPTY_STYLES, parseStyles, type ParsedStyles } from './parts/styles';
 import { parseWorksheet, type WorkbookBudget } from './parts/worksheetReader';
-import { readZip, type ZipArchive } from './zip/reader';
+import { foldPartName, readZip, type ZipArchive } from './zip/reader';
 
 /**
  * The `.rels` part that belongs to a part, or `[]` when it has none.
@@ -65,23 +66,24 @@ function targetOf(rels: Relationship[], type: string, sourcePart: string): strin
 const CONTENT_TYPES_PART = '[Content_Types].xml';
 
 /**
- * The part names this reader refuses to read as a worksheet whatever the package says about them.
+ * The part names this reader refuses to read as a worksheet whatever the package says about them,
+ * FOLDED (`foldPartName`), because OPC compares part names case-insensitively and so does the archive.
  *
  * `openPackage` collects the parts one read really resolved, which is not a floor: a workbook that
  * declares no shared-strings relationship never puts `xl/sharedStrings.xml` into that set, so what
  * the set refuses was decided by the attacker's own relationship list. These four names are the
  * package's own plumbing under the conventional layout and are never a sheet.
  */
-const NEVER_WORKSHEET_PARTS = new Set([
+const NEVER_WORKSHEET_PARTS: ReadonlySet<string> = new Set([
   CONTENT_TYPES_PART,
   'xl/workbook.xml',
   'xl/styles.xml',
   'xl/sharedStrings.xml',
-]);
+].map(foldPartName));
 
 /**
- * Whether a part is a relationship part. `.rels` parts live under a `_rels/` directory and carry
- * that extension, and no package layout makes one a worksheet.
+ * Whether a FOLDED part path is a relationship part. `.rels` parts live under a `_rels/` directory
+ * and carry that extension, and no package layout makes one a worksheet.
  */
 function isRelationshipPart(partPath: string): boolean {
   return partPath.endsWith('.rels') || partPath.startsWith('_rels/') || partPath.includes('/_rels/');
@@ -99,6 +101,9 @@ interface OpenedPackage {
   styles: ParsedStyles;
   sharedStrings: ParsedSharedStrings;
   contentTypes: ContentTypes;
+  /**
+   * The parts this read resolved for another purpose, FOLDED.
+   */
   packageParts: Set<string>;
   hasVbaProject: boolean;
 }
@@ -120,16 +125,24 @@ interface OpenedPackage {
  * still reads, as before.
  *
  * The declared type is compared case-insensitively: OPC compares a media type's type and subtype
- * that way, and `…spreadsheetml.Worksheet+xml` was refused over one capital letter.
+ * that way, and `...spreadsheetml.Worksheet+xml` was refused over one capital letter. A part typed
+ * only by the generic XML `<Default>` (`GENERIC_XML_CONTENT_TYPES`) is treated as undeclared: OPC
+ * does not require an `<Override>` per sheet, the relationship that named the part already says it
+ * is a worksheet, and such a package was refused as having "no worksheet part". The floor above
+ * still applies to it.
  */
 function isWorksheetPart(opened: OpenedPackage, partPath: string): boolean {
-  if (opened.packageParts.has(partPath) || NEVER_WORKSHEET_PARTS.has(partPath) || isRelationshipPart(partPath)) {
+  const folded = foldPartName(partPath);
+
+  if (opened.packageParts.has(folded) || NEVER_WORKSHEET_PARTS.has(folded) || isRelationshipPart(folded)) {
     return false;
   }
 
   const declared = contentTypeOf(opened.contentTypes, partPath);
+  const normalized = declared === undefined ? undefined : localeLowerCase(declared.trim());
 
-  return declared === undefined || localeLowerCase(declared.trim()) === CONTENT_TYPES.worksheet;
+  return normalized === undefined || GENERIC_XML_CONTENT_TYPES.has(normalized)
+    || normalized === CONTENT_TYPES.worksheet;
 }
 
 /**
@@ -177,7 +190,7 @@ function assertSpreadsheetMainPart(contentTypes: ContentTypes, workbookPath: str
  * Opens the archive and the workbook-level parts. Any failure here means the bytes are not a
  * workbook this reader understands.
  */
-async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
+async function openPackage(buffer: ArrayBuffer, dropped: DroppedFeatures): Promise<OpenedPackage> {
   const archive = await readZip(buffer);
   const rootRels = archive.has('_rels/.rels') ? parseRels(await archive.text('_rels/.rels')) : [];
   const workbookPath = targetOf(rootRels, REL_TYPES.officeDocument, '') ?? 'xl/workbook.xml';
@@ -195,11 +208,11 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
   const workbookRels = await relsOf(archive, workbookPath);
   const stylesPath = targetOf(workbookRels, REL_TYPES.styles, workbookPath);
   const stringsPath = targetOf(workbookRels, REL_TYPES.sharedStrings, workbookPath);
-  const packageParts = new Set([CONTENT_TYPES_PART, workbookPath]);
+  const packageParts = new Set([CONTENT_TYPES_PART, workbookPath].map(foldPartName));
 
   [stylesPath, stringsPath].forEach((path) => {
     if (path !== null) {
-      packageParts.add(path);
+      packageParts.add(foldPartName(path));
     }
   });
 
@@ -213,7 +226,9 @@ async function openPackage(buffer: ArrayBuffer): Promise<OpenedPackage> {
     contentTypes,
     // Detected from the package's own index only: the project is binary and is never inflated.
     hasVbaProject: workbookRels.some(rel => rel.type === REL_TYPES.vbaProject) || archive.has(VBA_PROJECT_PART),
-    styles: stylesPath && archive.has(stylesPath) ? parseStyles(await archive.text(stylesPath)) : EMPTY_STYLES,
+    styles: stylesPath && archive.has(stylesPath)
+      ? parseStyles(await archive.text(stylesPath), dropped)
+      : EMPTY_STYLES,
     sharedStrings: stringsPath && archive.has(stringsPath)
       ? parseSharedStrings(await archive.text(stringsPath))
       : { strings: [], rich: [] },
@@ -235,6 +250,58 @@ const NON_WORKSHEET_SHEET_TYPES = new Map<string, DroppedFeatureName>([
 ]);
 
 /**
+ * How often one read tokenizes each part, keyed by the FOLDED part name: `planned` is how many
+ * times the sheet list says a part will be read (filled before the first sheet), `paid` how many
+ * reads the budget has been charged for, `used` how many have happened.
+ */
+interface TokenizeLedger {
+  planned: Map<string, number>;
+  paid: Map<string, number>;
+  used: Map<string, number>;
+}
+
+/**
+ * A part's text, for a sheet about to tokenize it, charging the archive budget for every read of
+ * the same part past the first.
+ *
+ * The memo inflates a shared part once, but each `<sheet>` naming it is tokenized again, and an
+ * empty sheet charges a single cell: 2048 sheets over one 40 MB cell-less part sat inside every
+ * budget, 64 of them took 36.7 s, and the whole list extrapolated to about twenty minutes. A repeat
+ * costs what a copy of the part would (two bytes per character, the decoded charge), so the total
+ * tokenized across the read stays under the inflated-bytes budget however the sheets alias.
+ *
+ * The repeats the sheet list announces are charged together with the FIRST read, before the part
+ * is tokenized at all. Charged one by one as they came, 64 sheets over one 6 MB part were refused
+ * only after about twenty full parses (1.4 s, 160 MB of heap) that the refusal then threw away. A
+ * read nobody planned for (a comments part two sheets share) is still charged when it happens.
+ */
+async function partToTokenize(archive: ZipArchive, partPath: string, ledger: TokenizeLedger): Promise<string> {
+  const text = await archive.text(partPath);
+  const key = foldPartName(partPath);
+  const used = (ledger.used.get(key) ?? 0) + 1;
+  const paid = ledger.paid.get(key) ?? 0;
+  // The first read pays for itself through the inflate; every planned or extra read is charged.
+  const payFor = paid === 0 ? Math.max(ledger.planned.get(key) ?? 1, 1) : Math.max(used - paid, 0);
+  const repeats = paid === 0 ? payFor - 1 : payFor;
+
+  if (repeats > 0) {
+    archive.chargeReread(partPath, text.length * 2 * repeats);
+  }
+
+  ledger.used.set(key, used);
+  ledger.paid.set(key, paid + payFor);
+
+  return text;
+}
+
+/**
+ * The worksheet part a sheet's relationship names, or `null` when it names none.
+ */
+function worksheetPathOf(opened: OpenedPackage, sheetRel: Relationship | undefined): string | null {
+  return targetOf(sheetRel ? [sheetRel] : [], REL_TYPES.worksheet, opened.workbookPath);
+}
+
+/**
  * Reads one worksheet into the snapshot. The sheet's relationship is the one its `r:id` resolved
  * to, or `undefined` when the workbook declares none — which is refused here, as is a part the
  * archive does not hold.
@@ -245,9 +312,10 @@ async function readSheet(
   sheetRel: Relationship | undefined,
   snapshot: WorkbookSnapshot,
   budget: WorkbookBudget,
-  dropped: DroppedFeatures
+  dropped: DroppedFeatures,
+  ledger: TokenizeLedger
 ): Promise<void> {
-  const sheetPath = targetOf(sheetRel ? [sheetRel] : [], REL_TYPES.worksheet, opened.workbookPath);
+  const sheetPath = worksheetPathOf(opened, sheetRel);
 
   if (sheetPath === null || !opened.archive.has(sheetPath)) {
     throwWithCause('The workbook could not be parsed by the native engine: '
@@ -265,9 +333,13 @@ async function readSheet(
     const sheetRels = await relsOf(opened.archive, sheetPath);
     const commentsPath = targetOf(sheetRels, REL_TYPES.comments, sheetPath);
     const comments = commentsPath && opened.archive.has(commentsPath)
-      ? parseComments(await opened.archive.text(commentsPath))
+      ? parseComments(await partToTokenize(opened.archive, commentsPath, ledger))
       : new Map<string, string>();
-    const xml = await opened.archive.text(sheetPath);
+
+    comments.forEach((text, ref) => {
+      comments.set(ref, noteToComment(text, dropped));
+    });
+    const xml = await partToTokenize(opened.archive, sheetPath, ledger);
 
     snapshot.sheets.push(parseWorksheet(xml, {
       name: entry.name,
@@ -300,16 +372,30 @@ async function readSheets(
   dropped: DroppedFeatures
 ): Promise<void> {
   const workbookRelsById = relsById(opened.workbookRels);
-
-  for (const entry of opened.sheets) {
+  const sheets = opened.sheets.map((entry) => {
     const sheetRel = workbookRelsById.get(entry.relId);
     const skippedAs = sheetRel === undefined ? undefined : NON_WORKSHEET_SHEET_TYPES.get(sheetRel.type);
 
+    return { entry, sheetRel, skippedAs };
+  });
+  const ledger: TokenizeLedger = { planned: new Map(), paid: new Map(), used: new Map() };
+
+  sheets.forEach(({ sheetRel, skippedAs }) => {
+    const sheetPath = skippedAs === undefined ? worksheetPathOf(opened, sheetRel) : null;
+
+    if (sheetPath !== null) {
+      const key = foldPartName(sheetPath);
+
+      ledger.planned.set(key, (ledger.planned.get(key) ?? 0) + 1);
+    }
+  });
+
+  for (const { entry, sheetRel, skippedAs } of sheets) {
     if (skippedAs !== undefined) {
       dropped.record(skippedAs);
     } else {
       // eslint-disable-next-line no-await-in-loop -- the per-sheet sequencing this function's JSDoc states.
-      await readSheet(opened, entry, sheetRel, snapshot, budget, dropped);
+      await readSheet(opened, entry, sheetRel, snapshot, budget, dropped, ledger);
     }
   }
 }
@@ -327,7 +413,7 @@ export async function readWorkbook(buffer: ArrayBuffer, dropped: DroppedFeatures
   let opened: OpenedPackage;
 
   try {
-    opened = await openPackage(buffer);
+    opened = await openPackage(buffer, dropped);
   } catch (error) {
     // A declared limit refused the file before any sheet was read (the sheet count, the total
     // inflated bytes): that refusal is the reader's own contract and is reported as it was raised.

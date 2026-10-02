@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 
 function cell(overrides) {
@@ -406,6 +407,81 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).not.toContain('formula:outOfRange');
   });
 
+  it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
+    // Excel stores every post-2007 function with a prefix the formula bar never shows; handed to
+    // HyperFormula verbatim, `_xlfn.STDEV.S(...)` is an unknown name and the cell shows `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('Value'), text('Spread')],
+      [cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.STDEV.S(A2:A4)', result: 1 } })],
+      [cell({ value: 2 }), cell({ value: null, formula: { text: '_xlfn._xlws.SORT(A2:A4)', result: 1 } })],
+      [cell({ value: 3 }), cell({ value: null, formula: { text: '_xlfn.LET(_xlpm.x,A4,_xlpm.x*2)', result: 6 } })],
+    ];
+
+    const live = map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data.map(row => row[1])).toEqual(['=STDEV.S(A1:A3)', '=SORT(A1:A3)', '=LET(x,A3,x*2)']);
+
+    const recorded = map(workbook(sheet), { colHeaders: 'firstRow' }).result;
+
+    expect(recorded.formulas.map(entry => entry.formula))
+      .toEqual(['STDEV.S(A2:A4)', 'SORT(A2:A4)', 'LET(x,A4,x*2)']);
+  });
+
+  it('should strip the prefixes on a formula that needs no shift', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.IFS(A1>0,"y")', result: 'y' } })]];
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data[0][1]).toBe('=IFS(A1>0,"y")');
+  });
+
+  it('should refuse a workbook whose formulas would cost more shift work than the reader\'s budget', () => {
+    // A shift runs a regex over every formula's whole text once the window origin is not (0, 0), so
+    // N cells at the 32 768-character formula cap cost N x 32 768 characters of regex work with no
+    // other bound. The import charges the same budget the native reader charges a shared formula's
+    // translation and refuses past it, before the work it bounds.
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('Header')]];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should not charge the shift budget for formulas that need no shift', () => {
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data).toHaveLength(formulas);
+  });
+
   it('should fall back to the cached value for a formula pointing into the removed header band', () => {
     const sheet = createSheetSnapshot('Data');
 
@@ -617,6 +693,22 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(workbook(sheet));
 
     expect(result.columns).toEqual([{ type: 'numeric' }]);
+    expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
+  });
+
+  it('should report an unsupported number format once per distinct format, not once per cell', () => {
+    // `recordUnsupported` bounds and copies the whole format string on every call, so calling it
+    // per cell made a long format on many cells cost one string walk per cell.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: 500 }, (_, row) => [cell({ value: row, numFmt: '0.00E+00' })]);
+
+    const dropped = new DroppedFeatures();
+    const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
+
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), { formulasEnabled: false, commentsEnabled: false }, dropped);
+
+    expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
   });
 

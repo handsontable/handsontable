@@ -7,7 +7,7 @@ import {
   parseRels, parseWorkbook, resolvePartPath, REL_TYPES,
 } from '../adapters/native/parts/package';
 import { SharedStringTable, parseSharedStrings } from '../adapters/native/parts/sharedStrings';
-import { commentsXml, vmlDrawingXml, parseComments } from '../adapters/native/parts/comments';
+import { commentsXml, vmlDrawingXml, vmlBlockCount, parseComments } from '../adapters/native/parts/comments';
 import { dataValidationsXml } from '../adapters/native/parts/dataValidation';
 import {
   conditionalFormattingXml, cfRuleFromXml, maxRulePriority,
@@ -201,7 +201,7 @@ describe('comments', () => {
   });
 
   it('should write the VML shape Excel needs to show the note, one per comment, 0-based anchors', () => {
-    const vml = vmlDrawingXml(comments);
+    const vml = vmlDrawingXml(comments, 1);
 
     expect(vml).toContain('<v:shapetype id="_x0000_t202"');
     expect(vml).toContain('<v:shape id="_x0000_s1025" type="#_x0000_t202"');
@@ -844,7 +844,7 @@ describe('parseWorksheet', () => {
 
     expect(sheet.colWidths).toEqual([5, 20, null, null, null, 15, null]);
     expect(sheet.hiddenCols).toEqual([2, 6]);
-    expect(sheet.rowHeights).toEqual([null, 30, null, null, null]);
+    expect(sheet.rowHeights).toEqual([null, 30, null, null]);
     expect(sheet.hiddenRows).toEqual([3]);
     expect(sheet.merges).toEqual([
       { row: 0, col: 0, rowspan: 1, colspan: 2 }, { row: 2, col: 2, rowspan: 2, colspan: 2 },
@@ -854,14 +854,13 @@ describe('parseWorksheet', () => {
     expect(sheet.rows[2][2].value).toBe(9);
     expect(sheet.freeze).toEqual({ rows: 1, cols: 1 });
     expect(sheet.rtl).toBe(true);
-    // Rows declared by the dimension but never written stay [] and are not padded.
-    expect(sheet.rows[4]).toEqual([]);
-    expect(sheet.rows.length).toBe(5);
+    // `<dimension>` bounds the caps only: the row count follows the last `<row>`, as ExcelJS's does.
+    expect(sheet.rows.length).toBe(4);
   });
 
   it('should read list validations onto their cells, drop other kinds, and clamp a whole-column sqref', () => {
     const xml = `<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
-      + '<row r="1"><c r="A1" t="str"><v>x</v></c></row></sheetData>'
+      + '<row r="1"><c r="A1" t="str"><v>x</v></c></row><row r="2"/><row r="3"/></sheetData>'
       + '<dataValidations count="2">'
       + '<dataValidation type="list" allowBlank="1" sqref="A1:A1048576 B2">'
       + '<formula1>"a,b,c"</formula1></dataValidation>'
@@ -956,10 +955,11 @@ describe('parseWorksheet', () => {
   });
 
   it('should refuse a validation sqref that repeats a whole-column range', () => {
-    // The dimension pads the sheet to a million rows and the sqref repeats one whole-column range,
-    // so a reader that walks every range does ~200M cell writes for a file of a few kilobytes.
+    // One `<row r="1048576"/>` makes the sheet a million rows long and the sqref repeats one
+    // whole-column range, so a reader that walks every range does ~200M cell writes for a file of a
+    // few kilobytes.
     const sqref = new Array(200).fill('A1:A1048576').join(' ');
-    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData/>`
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData><row r="1048576"/></sheetData>`
       + `<dataValidations count="1"><dataValidation type="list" sqref="${sqref}">`
       + '<formula1>&quot;a,b&quot;</formula1></dataValidation></dataValidations></worksheet>';
 
@@ -978,7 +978,7 @@ describe('parseWorksheet', () => {
     // ran before the walk. Do not add a timing assertion back without measuring the unbudgeted cost
     // again and setting the bound two orders of magnitude below it.
     const mergeCells = new Array(4300).fill('<mergeCell ref="A1:XFD1048576"/>').join('');
-    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData/>`
+    const xml = `<worksheet ${NS}><dimension ref="A1:A1048576"/><sheetData><row r="1048576"/></sheetData>`
       + `<mergeCells count="4300">${mergeCells}</mergeCells></worksheet>`;
 
     expect(() => readSheet(xml)).toThrow(/column and validation ranges covering more than/);
@@ -1003,7 +1003,7 @@ describe('parseWorksheet', () => {
   it('should count the column layout against the workbook budget without inflating the cell product', () => {
     const cols = '<cols><col min="16384" max="16384" width="12" customWidth="1"/></cols>';
     const xml = `<worksheet ${NS}><dimension ref="A1:A400"/>${cols}<sheetData>`
-      + '<row r="1"><c r="A1" t="str"><v>r1</v></c></row></sheetData></worksheet>';
+      + '<row r="1"><c r="A1" t="str"><v>r1</v></c></row><row r="400"/></sheetData></worksheet>';
     const { sheet, budget } = readSheet(xml);
 
     expect(sheet.colWidths.length).toBe(16384);
@@ -1025,5 +1025,155 @@ describe('assertSheetFits', () => {
     expect(() => assertSheetFits('Last', 1, 1, 0, budget))
       .toThrow(/workbook declares 10000001 cells across its sheets, above the 10000000-cell limit/);
     expect(MAX_SHEET_CELLS).toBe(5_000_000);
+  });
+});
+
+describe('writer hardening (review round on #13634)', () => {
+  it.each([NaN, Infinity, 2.5, 0, -1])(
+    'should hand a priority of %p no further than the running counter, never into the file', (priority) => {
+      // One non-integer priority made `maxRulePriority` answer `NaN`, and every rule without a
+      // priority of its own was then written as `priority="NaN"`, which Excel repairs.
+      const blocks = [{
+        rules: [{ type: 'expression', formulae: ['TRUE'], priority }, { type: 'expression', formulae: ['FALSE'] }],
+      }];
+      const counter = { next: maxRulePriority(blocks) + 1 };
+      const xml = conditionalFormattingXml('A1', blocks[0].rules, new StyleTable(), counter, new DroppedFeatures());
+
+      expect(maxRulePriority(blocks)).toBe(0);
+      expect(xml).toContain('<cfRule type="expression" priority="1"><formula>TRUE</formula></cfRule>');
+      expect(xml).toContain('<cfRule type="expression" priority="2"><formula>FALSE</formula></cfRule>');
+    });
+
+  it.each([NaN, Infinity, 2.5, 0, -3])('should write a top10 rank of %p as the default rank', (rank) => {
+    const xml = conditionalFormattingXml('A1:A9', [{ type: 'top10', rank }], new StyleTable(), { next: 1 },
+      new DroppedFeatures());
+
+    expect(xml).toContain('<cfRule type="top10" priority="1" rank="10"/>');
+  });
+
+  it.each(['', '1.5', '0x1', '1e0', '-1', ' 1'])('should resolve no style for a cfRule dxfId of "%s"', (dxfId) => {
+    // `Number('')` is 0 and `Number('1e0')` is 1, so a malformed id used to borrow another dxf.
+    const dxfs = [{ font: { bold: true } }, { font: { italic: true } }];
+
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', dxfId }, ['1'], dxfs))
+      .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'] });
+  });
+
+  it('should still resolve a well-formed cfRule dxfId', () => {
+    expect(cfRuleFromXml({ type: 'cellIs', operator: 'equal', dxfId: '1' }, ['1'], [{}, { font: { italic: true } }]))
+      .toEqual({ type: 'cellIs', operator: 'equal', formulae: ['1'], style: { font: { italic: true } } });
+  });
+
+  it('should escape every leading underscore of adjacent _xHHHH_ lookalikes, so they read back unchanged', () => {
+    // The lookalike pattern consumed the trailing underscore, so `_x0041_x0042_` was escaped once
+    // and read back as `_x0041B`.
+    ['_x0041_x0042_', 'a_x0041__x0042_b', '_x00e9_x00E9_', '__x0041_'].forEach((text) => {
+      expect(decodeOoxmlEscapes(escapeXmlText(text))).toBe(text);
+    });
+    expect(escapeXmlText('_x0041_x0042_')).toBe('_x005F_x0041_x005F_x0042_');
+  });
+
+  it('should write formula text with the markup escaped only, never with the _xHHHH_ convention', () => {
+    // `<f>`, `<formula>` and `<formula1>` are ST_Formula, which no reader decodes `_xHHHH_` in.
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).formula = { text: '"_x0041_"&"a\u0001b"' };
+      b.cell(2, 1).validation = { type: 'list', formulae: ['"_x0041_,b\u0001"'], allowBlank: false };
+      b.addConditionalFormatting('A1', [{ type: 'expression', formulae: ['A1="_x0041_\u0002"'] }]);
+    });
+
+    expect(xml).toContain('<f>&quot;_x0041_&quot;&amp;&quot;ab&quot;</f>');
+    expect(xml).toContain('<formula1>&quot;_x0041_,b&quot;</formula1>');
+    expect(xml).toContain('<formula>A1=&quot;_x0041_&quot;</formula>');
+  });
+
+  it('should prefix a post-2007 function in a cell formula the way Excel stores it', () => {
+    const { xml } = writeSheet((b) => {
+      b.cell(1, 1).formula = { text: 'IFS(B1>1,"IFS(",TRUE,SORT(C1:C3))', result: 'x' };
+    });
+
+    expect(xml).toContain('<f>_xlfn.IFS(B1&gt;1,&quot;IFS(&quot;,TRUE,_xlfn._xlws.SORT(C1:C3))</f>');
+  });
+
+  it('should not write a single-cell merge', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 2).value = 'b';
+      b.merge(1, 1, 1, 1);
+      b.merge(2, 2, 2, 2);
+    });
+
+    expect(xml).not.toContain('mergeCell');
+    expect(xml).toContain('<c r="B1" t="s"><v>1</v></c>');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should truncate a string longer than Excel\'s 32767-character cell limit and report it', () => {
+    const { strings, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'x'.repeat(40000);
+      b.cell(1, 2).value = 'y'.repeat(32767);
+      // An astral character straddling the cut is dropped whole rather than split in half.
+      b.cell(1, 3).value = `${'z'.repeat(32766)}\u{1F600}`;
+    });
+    const parsed = parseSharedStrings(strings.toXml());
+
+    expect(parsed.strings[0]).toBe('x'.repeat(32767));
+    expect(parsed.strings[1]).toBe('y'.repeat(32767));
+    expect(parsed.strings[2]).toBe('z'.repeat(32766));
+    expect(dropped.list()).toEqual(['cellText:truncated']);
+    expect(dropped.count('cellText:truncated')).toBe(2);
+  });
+
+  it('should clamp a column width and a row height to what Excel stores, and report each', () => {
+    const { xml, dropped } = writeSheet((b) => {
+      b.cell(1, 1).value = 'a';
+      b.setColWidth(1, 300);
+      b.setColWidth(2, 260);
+      b.setRowHeight(1, 500);
+      b.setRowHeight(2, 409.5);
+    });
+
+    expect(xml).toContain('<col min="1" max="1" width="260" customWidth="1"/>');
+    expect(xml).toContain('<col min="2" max="2" width="260" customWidth="1"/>');
+    expect(xml).toContain('<row r="1" ht="409.5" customHeight="1">');
+    expect(xml).toContain('<row r="2" ht="409.5" customHeight="1"/>');
+    expect(dropped.list()).toEqual(['columnWidth:clamped', 'rowHeight:clamped']);
+  });
+
+  it('should give every VML part its own idmap block and shape ids, unique across the workbook', () => {
+    const one = [{ ref: 'A1', row: 0, col: 0, text: 'a' }, { ref: 'A2', row: 1, col: 0, text: 'b' }];
+
+    expect(vmlDrawingXml(one, 1)).toContain('<o:idmap v:ext="edit" data="1"/>');
+    expect(vmlDrawingXml(one, 1)).toContain('id="_x0000_s1025"');
+    expect(vmlDrawingXml(one, 1)).toContain('id="_x0000_s1026"');
+    expect(vmlDrawingXml(one, 3)).toContain('<o:idmap v:ext="edit" data="3"/>');
+    expect(vmlDrawingXml(one, 3)).toContain('id="_x0000_s3073"');
+    expect(vmlDrawingXml(one, 3)).toContain('id="_x0000_s3074"');
+  });
+
+  it('should claim one more block for a VML part holding 1024 notes or more', () => {
+    const many = Array.from({ length: 1024 }, (_v, row) => ({ ref: `A${row + 1}`, row, col: 0, text: 'n' }));
+    const vml = vmlDrawingXml(many, 2);
+
+    expect(vmlBlockCount(1023)).toBe(1);
+    expect(vmlBlockCount(1024)).toBe(2);
+    expect(vml).toContain('<o:idmap v:ext="edit" data="2,3"/>');
+    expect(vml).toContain('id="_x0000_s2049"');
+    expect(vml).toContain('id="_x0000_s3072"');
+  });
+
+  it('should name the secure-context requirement when there is no crypto at all, even with no salt given', async() => {
+    // The salt default used to be a parameter initializer, which runs before the body: with no
+    // global `crypto` it threw a bare `ReferenceError` before the named refusal could run.
+    const { crypto } = globalThis;
+
+    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true, writable: true });
+
+    try {
+      await expect(hashSheetPassword('x')).rejects.toThrow(/crypto\.subtle.*secure context/);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', { value: crypto, configurable: true, writable: false });
+    }
+
+    expect(globalThis.crypto.subtle).toBeDefined();
   });
 });

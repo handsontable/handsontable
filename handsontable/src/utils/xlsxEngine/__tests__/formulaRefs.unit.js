@@ -115,7 +115,7 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('\'O\'\'Brien\'!A1+A1', 1, 1)).toBe('\'O\'\'Brien\'!A1+B2');
     expect(shiftFormulaReferences(`${longest}!A1:B2+A1`, 1, 1)).toBe(`${longest}!A1:B2+B2`);
     expect(shiftFormulaReferences(`${doubled}!A1+A1`, 1, 1)).toBe(`${doubled}!A1+B2`);
-    expect(translateSharedFormula('\'My Rates\'!A1*A1', 1, 0)).toBe('\'My Rates\'!A1*A2');
+    expect(translateSharedFormula('\'My Rates\'!A1*A1', 1, 0)).toBe('\'My Rates\'!A2*A2');
   });
 
   it('should not touch a reference-shaped string literal', () => {
@@ -215,7 +215,30 @@ describe('translateSharedFormula', () => {
     expect(translateSharedFormula('A1*2', 1, 0)).toBe('A2*2');
     expect(translateSharedFormula('SUM($A$1:A1)', 2, 1)).toBe('SUM($A$1:B3)');
     expect(translateSharedFormula('$A1+A$1', 1, 1)).toBe('$A2+B$1');
-    expect(translateSharedFormula('Rates!A1+"A1"', 1, 1)).toBe('Rates!A1+"A1"');
+    expect(translateSharedFormula('Rates!A1+"A1"', 1, 1)).toBe('Rates!B2+"A1"');
+  });
+
+  it('should slide a qualified reference like an unqualified one, the way Excel fills a shared formula', () => {
+    // A shared formula is one formula copied over a range, and Excel (like ExcelJS's `slideFormula`)
+    // moves every relative component of the copy, whatever sheet it names: `=Data!B2` filled down
+    // reads `=Data!B3`, `=Data!B4`. Only a `$` component stays.
+    expect(translateSharedFormula('Data!B2', 1, 0)).toBe('Data!B3');
+    expect(translateSharedFormula('Data!B2*2', 2, 0)).toBe('Data!B4*2');
+    expect(translateSharedFormula('\'My Rates\'!A1', 0, 1)).toBe('\'My Rates\'!B1');
+    expect(translateSharedFormula('\'O\'\'Brien\'!$A1+A1', 1, 1)).toBe('\'O\'\'Brien\'!$A2+B2');
+    expect(translateSharedFormula('SUM(Data!$A$1:B2)', 1, 1)).toBe('SUM(Data!$A$1:C3)');
+    expect(translateSharedFormula('SUM(Data!A:A)', 3, 1)).toBe('SUM(Data!B:B)');
+    expect(translateSharedFormula('SUM(Data!2:3)', 1, 4)).toBe('SUM(Data!3:4)');
+    expect(translateSharedFormula('\u041b\u0438\u0441\u04421!A1', 1, 0)).toBe('\u041b\u0438\u0441\u04421!A2');
+  });
+
+  it('should keep a qualified reference inside a string literal untouched while sliding the real one', () => {
+    expect(translateSharedFormula('"Data!A1"&Data!A1', 1, 0)).toBe('"Data!A1"&Data!A2');
+  });
+
+  it('should return null when a qualified reference would slide off the sheet', () => {
+    expect(translateSharedFormula('Data!A1', -1, 0)).toBeNull();
+    expect(translateSharedFormula('Data!XFD1', 0, 1)).toBeNull();
   });
 
   it('should return null when a shifted reference would leave the sheet', () => {

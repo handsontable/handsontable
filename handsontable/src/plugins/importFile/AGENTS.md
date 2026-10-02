@@ -136,7 +136,26 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   output for those currencies came back as `time` columns with `1234.5` turned into `12:00:00`.
   `inferCellType` therefore classifies `captureCurrency(numFmt).rest`, and `captureCurrency` recognizes a
   bare ISO code or dollar composite (`BARE_CURRENCY_REGEX`, anchored to the `#`/`0` digits so `YYYY-MM-DD`
-  is never a currency) on top of the symbol table.
+  is never a currency) on top of the symbol table. The classification lives in
+  `../../utils/xlsxEngine/numFmtCode.ts` (`classifyTemporalFormat`, `captureCurrency`,
+  `stripFormatDecorations`), shared with the native reader's `date1904` shift through
+  `isTemporalFormatCode`, so a serial the reader shifted is always one the import types as a date or a time.
+  `captureCurrency` also reads a quoted symbol at either end (`"$"#,##0.00`, Excel's en-US Currency style),
+  before the decoration strip deletes every quoted literal; only a symbol in the table counts, so
+  `"Total "0` stays a label.
+- **An elapsed-time section (`[h]`, `[hh]`, `[m]`, `[mm]`, `[s]`) is a `time`, decided on the raw code
+  first.** Stripping the bracket first left `[h]:mm` as `:mm`, a bare month, so a timesheet imported as
+  1899 dates. `excelDateFmtToIntlOptions` tokenizes the sections
+  (`stripFormatDecorations(code, { keepElapsed: true })`): `[m]`/`[s]` are always minute/second, and `[h]`
+  writes a 24-hour `hour` (`hour12: false`). `Intl` has no elapsed hours, so a duration past a day shows
+  its hours modulo 24; leaving the hour out (the first version) rendered `13:30` as `30`.
+- **The mapper strips `_xlfn.`/`_xlws.`/`_xlpm.` from every formula, live and recorded** (`readFormulaText`,
+  through `utils/xlsxEngine/functionPrefixes.ts`), because both engines hand the stored text over verbatim
+  and HyperFormula shows `#NAME?` for a prefixed name. `result.formulas` is prefix-free too.
+- **Every formula walk in the mapper is budgeted.** A strip, or a shift by a non-zero window origin, charges
+  the formula's length into `CollectContext.walkedFormulaChars` BEFORE the walk and refuses through
+  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS`: 4000 cells x 32 768-character formulas cost
+  41 s of regex under `colHeaders: 'firstRow'`. A formula needing neither walk is not charged.
 - **A list validation is resolved once per formula per pass** (`resolveDropdownMeta`, cache on
   `CollectContext.listMetaByFormula`). A validated column repeats the same formula on every cell and
   `readRangeValues` walks the whole range each time, so a 100k-row dropdown over a 1,000-row list used to
@@ -160,6 +179,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **Inference is memoized per `numFmt` + value kind on the pass** (`inferForCell`,
   `CollectContext.inferredByFormat`), so a million-cell sheet with three formats parses each once and
   every cell of one format shares one meta object. Do not call `inferCellType` per cell from the mapper.
+  `recordUnsupported('numFmt', …)` runs on the cache miss only, never per cell.
 - **A blank cell on a protected sheet is locked.** OOXML treats a cell with no `<protection>` as locked,
   and an empty cell has none; `collectCells`' `null` branch records `readOnly` under protection too.
 - **Every option that sizes a loop is clamped to the sheet.** `resolveImportOptions` validates `range`
@@ -279,7 +299,8 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   walks a formula. A reference that would land above row 1 or left of column A pointed into the removed
   header band: the formula cannot be expressed in grid coordinates at all, so the cached value is imported,
   the formula is recorded in `result.formulas`, and `formula:outOfRange` lands in `result.dropped`.
-  **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted, in either direction**: the
+  **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted by `shiftFormulaReferences`,
+  in either direction** (a shared formula's translation does move it – see `../../utils/xlsxEngine/AGENTS.md`): the
   band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
   and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
   header and drop `=Data!A1` outright (Bugbot on #13551). The cell alternative is case-insensitive (`i`
@@ -323,8 +344,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **Every layout value the file controls is bounded in `mapLayout`, whatever engine read it.** The reader
   validates too, but the mapper is the second layer, so the ExcelJS adapter (or any future engine) cannot hand
   `updateSettings` nonsense: a column width or row height that is not a finite, positive number inside
-  Excel's own maximum (255 width units, 409.5 pt — `MAX_EXCEL_COLUMN_WIDTH`/`MAX_EXCEL_ROW_HEIGHT_POINTS`,
-  checked before the unit conversion) or that rounds to 0 px becomes `undefined` (`toLayoutPixels`); a freeze
+  Excel's own maximum (260 width units, 409.5 pt — `MAX_EXCEL_COLUMN_WIDTH`/`MAX_EXCEL_ROW_HEIGHT_POINTS`,
+  the mapper's aliases of `MAX_COLUMN_WIDTH_UNITS`/`MAX_ROW_HEIGHT_POINTS` in `utils/xlsxEngine/units.ts`,
+  checked before the unit conversion; the width cap is 260, not Excel's 255-character UI limit, because the
+  stored width adds the cell padding, up to `255 + 5 / MDW` – see the JSDoc there) or that rounds to 0 px
+  becomes `undefined` (`toLayoutPixels`); a freeze
   count is floored, shifted and clamped to `[0, count]`, with `NaN` freezing nothing (`toFreezeCount`); and a
   hidden index that is not an integer is dropped ON ITS OWN (`toHiddenIndexes`). The last one matters more
   than it looks: `HiddenRows`/`HiddenColumns` reject the WHOLE list when one entry is invalid, so a single
@@ -332,11 +356,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   7e+300, Infinity]`, `rowHeights [1.33e300]`, `fixedRowsTop 2.7`. A width of `0` is now omitted rather than
   imported as a 0 px column; Excel expresses a hidden column with the `hidden` flag, which is carried.
 - **No regex may rescan a number format from every `[`, and a format over 255 characters is not parsed.**
-  A number-format code is file data of unbounded length. `stripDecorations`' `\[[^\]]*\]` and
+  A number-format code is file data of unbounded length. `stripFormatDecorations`' (`numFmtCode.ts`) `\[[^\]]*\]` and
   `CURRENCY_TOKEN_REGEX`'s `[^\]-]*` body both started a match at every `[` and ran to the end of the string
   when no `]` followed, so a 2 KB file carrying a 100 000-character `[[[…` format hung the tab for 7 s. Both
   bodies now exclude `[` (`\[[^[\]]*\]`, the same fix the engine's `isTemporalFormat` carries), which makes
-  each match attempt stop at the next `[`. On top of that, `inferCellType` returns `unsupportedNumFmt` for a
+  each match attempt stop at the next `[`; the elapsed-keeping variant
+  `\[(?!(?:h+|m+|s+)\])[^[\]]*\]` is linear for the same reason. On top of that, `inferCellType` returns `unsupportedNumFmt` for a
   format longer than `MAX_NUMBER_FORMAT_LENGTH` (255, Excel's own limit for a format code), which reaches the
   existing `recordUnsupported('numFmt', …)` path. Keep the regex fix even with the cap: `excelNumFmtToIntlOptions`
   and `excelDateFmtToIntlOptions` are exported and must not depend on their caller capping the input

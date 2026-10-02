@@ -60,6 +60,24 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 0.1, numFmt: '[h]:mm:ss' })).type).toBe('time');
   });
 
+  it('should classify an elapsed-time format as a time, not as a date', () => {
+    // `[h]:mm` and `[hh]:mm` are Excel's standard duration formats. Stripping the bracket first left
+    // `:mm`, a bare month, so a timesheet column imported as 1899 dates.
+    const duration = cell({ value: 1.5, numFmt: '[h]:mm' });
+    const inferred = inferCellType(duration);
+
+    expect(inferred).toEqual({ type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false } });
+    expect(toGridValue(duration, inferred)).toBe('12:00:00');
+    expect(inferCellType(cell({ value: 1.5, numFmt: '[hh]:mm' })))
+      .toEqual({ type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } });
+    expect(inferCellType(cell({ value: 0.01, numFmt: '[m]' })))
+      .toEqual({ type: 'time', timeFormat: { minute: 'numeric' } });
+    expect(inferCellType(cell({ value: 0.01, numFmt: '[mm]:ss' })))
+      .toEqual({ type: 'time', timeFormat: { minute: '2-digit', second: '2-digit' } });
+    expect(inferCellType(cell({ value: 0.01, numFmt: '[s]' })))
+      .toEqual({ type: 'time', timeFormat: { second: 'numeric' } });
+  });
+
   it('should classify a bare month format as a date, and a month next to hour/second as time', () => {
     expect(inferCellType(cell({ value: 3, numFmt: 'mm' })).type).toBe('date');
     expect(inferCellType(cell({ value: 3, numFmt: 'm' })).type).toBe('date');
@@ -130,6 +148,20 @@ describe('inferCellType', () => {
     // A real time code next to a currency-looking prefix stays a time.
     expect(inferCellType(cell({ value: 0.5, numFmt: 'h:mm' })).type).toBe('time');
     expect(inferCellType(cell({ value: 0.5, numFmt: '[$-409]h:mm:ss AM/PM' })).type).toBe('time');
+  });
+
+  it('should read a quoted currency literal as a currency, the way Excel\'s Currency style writes it', () => {
+    // `"$"#,##0.00` is Excel's en-US Currency style. The decoration strip deleted the quoted `$`
+    // before the currency was looked for, so the column rendered `1,234.50` with no symbol.
+    expect(excelNumFmtToIntlOptions('"$"#,##0.00')).toEqual({
+      style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+    });
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00" \u20AC"' })).numericFormat.currency).toBe('EUR');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '"CHF "#,##0' })).numericFormat.currency).toBe('CHF');
+    // A quoted literal that is not a symbol is still not a currency.
+    expect(excelNumFmtToIntlOptions('"Total "0')).toEqual({
+      minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false,
+    });
   });
 
   it('should read a currency token naming an Object.prototype member as no currency', () => {
@@ -309,8 +341,11 @@ describe('excelDateFmtToIntlOptions', () => {
     });
   });
 
-  it('should read the elapsed-hours format as a minute-and-second time with no hour', () => {
-    expect(excelDateFmtToIntlOptions('[h]:mm:ss')).toEqual({ minute: '2-digit', second: '2-digit' });
+  it('should read the elapsed-hours format as a 24-hour time, so a duration under a day shows its hours', () => {
+    // `Intl.DateTimeFormat` has no elapsed hours, so a longer duration shows its hours modulo 24.
+    // Without the hour, `13:30` rendered as `30`.
+    expect(excelDateFmtToIntlOptions('[h]:mm:ss'))
+      .toEqual({ hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false });
   });
 
   it('should read three or more `d`s as a weekday name, not as a zero-padded day', () => {

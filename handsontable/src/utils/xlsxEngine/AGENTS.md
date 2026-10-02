@@ -6,11 +6,18 @@ or an engine object.
 
 Anything both adapters need is declared once on this layer, never twice under two names:
 `limits.ts` (the caps and their refusals), `compression.ts`, `sheetNames.ts`, `cellRef.ts`,
-`units.ts` and `dates.ts` (`MS_PER_DAY`, `EXCEL_EPOCH_UTC`, `EXCEL_EPOCH_OFFSET` — which the two
-adapters and both plugins' date conversions import). `MS_PER_DAY` and `EXCEL_EPOCH_UTC` are declared
-in `helpers/dateTime.ts` and re-exported by `dates.ts`, so the Formulas plugin reads them from
-`helpers` without depending on this layer. A constant that lands in one adapter and is
-then copied into the other is the drift these modules exist to prevent.
+`units.ts`, `dates.ts` (`MS_PER_DAY`, `EXCEL_EPOCH_UTC`, `EXCEL_EPOCH_OFFSET` — which the two
+adapters and both plugins' date conversions import), `numFmtCode.ts` (number-format
+classification — `stripFormatDecorations`, `isTemporalFormatCode` — shared by the import's
+inference and the native reader's `date1904` shift), `functionPrefixes.ts` (the
+`_xlfn.`/`_xlws.`/`_xlpm.` strip on import in `importFile/mapper.ts`, the add on write in both
+writers) and `writeLimits.ts` (the write-side clamps). **`MS_PER_DAY` and `EXCEL_EPOCH_UTC` are
+declared in `dates.ts`, NOT in `helpers/dateTime.ts`.** `dates.ts` imports nothing, so
+`plugins/formulas/utils.ts` imports them from there and pulls in no engine code. `index.ts` spreads
+`helpers/dateTime.ts` onto `Handsontable.helper`, so declaring them there would have made them public
+API, which they were not in 18.1; `helpers/__tests__/dateTime.unit.js` pins their absence. A
+constant that lands in one adapter and is then copied into the other is the drift these modules
+exist to prevent.
 
 ## Engines
 
@@ -67,7 +74,11 @@ directions.
 - **A comment is four parts or nothing**: `comments{N}.xml`, `vmlDrawing{N}.vml`, both rels in the
   sheet's `.rels`, `<legacyDrawing r:id>`. Without the VML Excel shows no note.
 - **Shared formulas are translated per slave** with `translateSharedFormula` (relative components
-  move, `$` components stay) – not `shiftFormulaReferences`, which moves `$` too on purpose.
+  move, `$` components stay) – not `shiftFormulaReferences`, which moves `$` too on purpose. The
+  copy rule moves a QUALIFIED reference too (`=Data!B2` filled down is `=Data!B3`, as in Excel and
+  ExcelJS's `slideFormula`), so `translateSharedFormula` calls `mapFormulaReferences(…, { qualified:
+  true })` (`formulaRefs.ts`), which re-walks only the reference part with `QUALIFIED_PART_REGEX`;
+  `shiftFormulaReferences` keeps skipping qualified references.
 - **Covered merge cells lose their content on write** and read back `null`; the master keeps it.
 - **The worksheet reader is a CLASS, and its traps below name private methods.** `parseWorksheet` is
   a one-line wrapper over `WorksheetParser` in `parts/worksheetReader.ts`: the tokenizer is
@@ -76,23 +87,30 @@ directions.
   `#` fields. `#chargeSpan`, `#ensureRow`, `#cellAt`, `#finishCfRule` and
   `#finishConditionalFormatting` are private methods of it, not free functions — grep them with the
   `#`. `assertSheetFits` and `parseWorksheet` are the module's own exports; `assertSheetRectangle`
-  is a module-local function of the same file, called by `assertSheetFits` and by the parser's own
-  `<dimension>` handler.
+  is a module-local function of the same file, called by `assertSheetFits`, by the parser's own
+  `<dimension>` handler (`#openDimension`) and by `#finalize`. The parser itself charges the
+  workbook budget through `#settleWorkbookCharge`, not `assertSheetFits` — the single-step form has
+  no production caller in the native adapter, only tests.
 - **Merge members are MATERIALIZED on read, to match ExcelJS.** The writer emits no `<c>` element
   for a covered cell that carries no style, so the reader's `<c>`-derived width alone left the row
   a cell short and `importFile/mapper.ts` — which takes the used width from the widest row — then
   dropped the merge entirely from the native engine's own export/import round trip. The merge pass
-  in `parts/worksheetReader.ts` pads every row of a merge's row range with `null` up to the merge's
-  last column and grows `width` to it. Three rules hold that together: the clamp bound is the
-  **dimension** (`Math.max(this.#width, this.#declaredColumns, 1)`, the same bound the validation
-  pass uses), so a merge reaching past what the file declares stays clamped rather than widening the
-  sheet on a hostile file's say-so; the `#chargeSpan` stays **before** the walk (see the span-budget trap
-  below), and the padding costs nothing new because that span was already charged; and
-  `assertSheetFits` runs afterwards with the grown width, so a whole-sheet merge is still refused.
+  in `parts/worksheetReader.ts` pads every row of a merge's row range up to the merge's last column
+  (a covered cell becomes `createCoveredCellSnapshot()` – its own style and lock, no value – or `null`) and grows `width` to it (`#materializeMerges`). The clamp bound is the dimension's
+  column count when one is declared (`Math.max(this.#width, this.#declaredColumns, 1)`), so a merge
+  reaching past what the file declares stays clamped rather than widening the sheet on a hostile
+  file's say-so. With NO `<dimension>` (openpyxl write-only, ExcelJS streaming), the merge may widen
+  the sheet up to `MAX_SHEET_COLUMNS`, because clamping to the widest row cropped a merge whose
+  covered cells carry no `<c>`; the validation pass has no such exception and still clamps to the
+  width there. Rows always clamp to the rows that exist. Every `<mergeCell>` is charged one span
+  unit when it is collected (`#openMergeCell`). A merge that clamps to nothing is DROPPED from
+  `sheet.merges`. The area charge (`#chargeSpan`) stays **before** the walk (see the span-budget
+  trap below), and the padding costs nothing new because that span was already charged. `#finalize`
+  re-checks the rectangle with the grown width, so a whole-sheet merge is still refused.
 - **`locked: null` means locked** (OOXML default). Only `<protection locked="0"/>` yields `false`.
 - **Theme and indexed colors are not resolved**: a font or fill with no `rgb` attribute resolves to
   nothing (`argbOf()` accepts 6/8-hex `rgb` only). This is **not** full parity with ExcelJS, despite
-  what an earlier version of this file and the parity matrix said. The FONT half agrees, because the
+  what an earlier version of this file said. The FONT half agrees, because the
   model tracks an argb color and nothing else. The FILL half does not: `CellStyleSnapshot['fill']`
   declares `fgColor: { argb: string }`, so the native reader drops a theme fill entirely while the
   ExcelJS adapter passes ExcelJS's own object through and leaks `{ theme: N }` into that field.
@@ -131,7 +149,12 @@ directions.
   every prefix instead made `x14:conditionalFormatting` inside an `<extLst>` read as a second,
   empty conditional-formatting block on ExcelJS-written bytes, which the four-way parity test
   caught. **Attribute names keep their prefix** — `r:id` is a different attribute from `id` and is
-  what resolves a sheet to its part, so the normalizer is never applied to an attribute key. And
+  what resolves a sheet to its part, so the normalizer is never applied to an attribute key. The
+  workbook's sheet id is resolved by namespace, not by the literal `r:`:
+  `createRelationshipIdReader` (`parts/package.ts`) tracks the in-scope `xmlns:*` bindings to the
+  transitional or strict relationships namespace and falls back to `r:id`. The `<extLst>` list
+  validations (`<x14:dataValidation>`, below) do not break the root-prefix rule: the worksheet
+  reader matches them explicitly, by the name after any prefix, only while `#extDepth > 0`. And
   **VML is the other side**: the tokenizer delivers names with their prefix because `x:ClientData`
   and friends are matched WITH it. Today only the VML *writer* exists (`parts/comments.ts`), so
   nothing reads one — if a VML reader is ever added, it must not normalize.
@@ -175,8 +198,13 @@ directions.
   (`0.0\%` became `0.0%`, so 12.5 displayed as 1250.0%; `0\d` became `0d`, typed as a date) and
   the writer escaped every unquoted space as `\ ` (a user's `0.0\ %` became `0.0\\ %`, a literal
   backslash in Excel, and an accounting code's `* ` fill became `*\ `) — each existed only to undo
-  the other. The XML attribute escaper still handles `"`, `&` and `<`. The import's inference is
-  unaffected: `stripDecorations` in `importFile/inference.ts` already drops `\x` pairs, so `0.0\%`
+  the other. **Both WRITERS and the native reader keep a code verbatim; ExcelJS 4.4.0's READER does
+  not**: `numfmt-xform.js` runs `formatCode.replace(/[\\](.)/g, '$1')` on every `<numFmt>`, so the
+  ExcelJS adapter hands `0.0\%` over as `0.0%`, and the same file types a column differently per
+  engine. The raw code is gone from ExcelJS's model, and re-escaping cannot know which characters
+  had a backslash, so this is pinned in `enginesParity.unit.js` ("pins the one number-format
+  code…") rather than fixed. The XML attribute escaper still handles `"`, `&` and `<`. The import's
+  inference is unaffected: `stripFormatDecorations` in `numFmtCode.ts` already drops `\x` pairs, so `0.0\%`
   infers numeric without the percent style and `0.0\ %` (a literal space, then a real `%`) still
   infers percent — pinned in `inference.unit.js`.
 - **Jest has no Web streams of its own**: `test/cryptoSetup.js` installs `CompressionStream` and
@@ -189,10 +217,13 @@ directions.
   SYNCHRONOUSLY; inside the async zip writer that surfaces as a rejection.
 - **A sheet password is hashed exactly as ExcelJS hashes it** (`parts/protection.ts`: SHA-512 spin
   hash, 100000 rounds, UTF-16LE password, 16-byte salt) so Excel prompts for it on unprotect. The
-  100000 awaited digests cost about 0.9 s in Node (measured) and seconds in a browser. It needs
+  100000 awaited digests cost about 0.95 s in an idle Node 22 (measured) and 24–34 s inside a
+  loaded full Jest run, which is why `nativeWrite.unit.js` lowers the spin count through a spy;
+  they take seconds in a browser. It needs
   `crypto.subtle`, which browsers expose in a secure context only: `hashSheetPassword` refuses up
   front with a message naming "https or localhost" rather than the bare `TypeError` a plain-http
-  page raised on `undefined.digest`. It
+  page raised on `undefined.digest`. The salt is drawn in the body, AFTER that check (as a
+  parameter default it ran first, and a host with no `crypto` threw a bare `ReferenceError`). It
   is a UI gate, not encryption. The export never SETS a sheet password — `exportFile` calls
   `SheetBuilder#protect('')` and the builder stores `''` as `null` (`builder.ts`), which `write.ts`
   never hashes — so the hash path is unreachable from `exportFile` and exists as parity for a
@@ -205,7 +236,10 @@ directions.
   walk per occurrence. Measured on the unbudgeted reader: 2.6 kB of XML cost ~6 s of synchronous CPU,
   linear in repeats. `#chargeSpan` in `parts/worksheetReader.ts` measures each span first, so a
   hostile file is refused after a few multiplications rather than five million array writes. Never
-  move that charge after the walk.
+  move that charge after the walk. Merges are also charged one unit each when collected, so a tiny
+  sheet cannot carry unbounded far-away merges. Empty slots covered by a list validation share ONE
+  validation-only cell per `<dataValidation>` (`#validationOnlyCells`); a later validation replaces
+  that cell in its slot, never mutates it.
 - **The SHEET LIST and the INFLATED BYTES are budgeted too, and a part is inflated once per read.**
   The span budget above bounds one sheet; until DEV-3011 nothing bounded how many sheets a workbook
   could ask for, and a `<sheet>` element charged **nothing**. Each one costs a full inflate plus a
@@ -220,8 +254,8 @@ directions.
   every entry the read reads — that is what closes the 408 kB archive holding one 400 MB part, which
   was inside every per-entry cap and cost 1.9 GB of RSS. The per-entry cap stays 512 MB and is
   checked FIRST, on the declared size, so both caps stay reachable and each keeps its own message.
-  And `assertSheetFits` charges a floor of one unit per sheet, so `declaredCells` advances on an
-  empty sheet. `MAX_INFLATED_ENTRY_BYTES` alone was never a bound on a workbook: `openPackage` holds
+  And every sheet charge (`sheetBudgetUnits`, through `#settleWorkbookCharge` or `assertSheetFits`)
+  has a floor of one unit per sheet, so `declaredCells` advances on an empty sheet. `MAX_INFLATED_ENTRY_BYTES` alone was never a bound on a workbook: `openPackage` holds
   `styles.xml`, `sharedStrings.xml` and a sheet as simultaneous strings.
 - **CHARGE WHAT WAS PRODUCED, NEVER WHAT WAS DECLARED — and the declaration is still what bounds the
   work.** The total budget used to be charged on the size the central directory claims, which broke
@@ -244,7 +278,7 @@ directions.
   far past the remaining total was refused with `MAX_INFLATED_TOTAL_BYTES + 1`, a number that is no
   cap of this reader's and that named no entry. Every refusal on this path now names the entry.
   (3) ALIASES ARE DEDUPLICATED BY REGION AND THE CACHE IS BUDGETED. `text()` memoizes on
-  `method:localOffset:compressedSize:uncompressedSize`, not on the entry NAME, because N central
+  `method:localOffset:compressedSize:uncompressedSize:crc`, not on the entry NAME, because N central
   records may name one local record and a name-keyed memo then held one decoded copy per name; and
   the decoded string is charged against the same total (UTF-16 code units × 2, the worst case), so
   the memo can never hold more than the archive was allowed to cost however the bytes were obtained.
@@ -252,7 +286,7 @@ directions.
   the per-entry cap and the stored-size agreement check, which both read `uncompressedSize`. Keyed
   on the region alone, a directory listing one honest record and one liar over the same bytes served
   the liar from the cache when the honest one was read first, so a refusal was skippable by read
-  order. Records that agree on all four fields still share one decode, which is the whole point.
+  order. Records that agree on all five fields still share one decode, which is the whole point.
   **AN ENTRY IS CHARGED ONCE: `max(produced bytes, 2 × decoded code units)`, never the two
   summed.** The bytes are charged first, by `entryText()`, while the part is produced (before a
   stored part is decoded; as a DEFLATE part streams, through the ceiling), and `text()` then charges
@@ -273,8 +307,18 @@ directions.
   engine's own output**: at about 44 bytes of XML per cell the 256 MB total admits roughly 3 M cells,
   below `MAX_SHEET_CELLS` (5 M) and `MAX_WORKBOOK_CELLS` (10 M); reaching those would take raising
   `MAX_INFLATED_TOTAL_BYTES`, which is a limit decision, not an accounting one.
-  `nativeReadHardening.unit.js` pins the 120 000-row round trip. `readWorkbook` still calls
-  `release()` in a `finally`, and N sheets pointing at one part still cost one read.
+  `nativeReadHardening.unit.js` pins the charge with a 2000-row export whose sheet part is padded
+  to 100 MB (the 120 000-row build took 81 s cold). `readWorkbook` still calls `release()` in a
+  `finally`, and N sheets pointing at one part still cost one inflate. A part tokenized again for
+  another sheet is charged `2 × length` through `ZipArchive#chargeReread` (`partToTokenize` in
+  `read.ts`), so N sheets over one part cost what N copies would.
+- **Every entry's CRC-32 is checked against its central record**: stored entries directly,
+  deflated ones chunk by chunk through `inflateRawText`'s `observe` hook (`zip/streams.ts`). A
+  mismatch is refused by name. The CRC is part of the memo key.
+- **The end record is the EARLIEST plausible signature** (`findEndRecord`, `zip/reader.ts`): its
+  comment must reach the end of the file and its directory must look valid
+  (`isPlausibleEndRecord`). A `PK\x05\x06` inside the archive comment used to win the backwards
+  scan.
 - **A text part is decoded AS IT INFLATES, and never materialized as bytes.** `pump()` in
   `zip/streams.ts` held the chunk list and the joined copy at once and `text()` then added the
   decoded string, so a 200 MB part cost 1.15 GB of RSS — the 256 MB budget really cost 3–5× that.
@@ -350,10 +394,13 @@ directions.
   styles or the shared strings and read as an empty sheet again. `packageParts` alone was never a
   floor either: it holds only what this read happened to resolve, so a workbook declaring no
   shared-strings relationship left `xl/sharedStrings.xml` out of it. Reading `<Default>` at all was
-  itself the fix for `.rels`, typed by `<Default Extension="rels">` and by nothing else. The
-  consequence to know: a package that DOES declare content types must carry the worksheet override
-  (or a worksheet `<Default>`) for each sheet part, which every writer emits and the OPC spec
-  requires.
+  itself the fix for `.rels`, typed by `<Default Extension="rels">` and by nothing else. Part paths
+  are compared FOLDED (`foldPartName`, `zip/reader.ts`: A–Z only, ECMA-376 Part 2 6.2.2.3) in the
+  floor, `packageParts`, the `<Override>` map and the archive itself. A part typed only by the
+  generic `<Default Extension="xml" ContentType="application/xml">` (or `text/xml`,
+  `GENERIC_XML_CONTENT_TYPES`) is treated as undeclared: OPC requires no per-sheet `<Override>`, the
+  relationship already says worksheet, and the floor still applies. Only a SPECIFIC non-worksheet
+  type refuses the part.
 - **A part that IS typed as a worksheet but does not hold one reads back as an empty sheet, with no
   diagnostic.** The worksheet reader matches elements by local name and simply finds none it knows,
   so a package that types its `<sst>` or its `<Relationships>` document as a worksheet resolves to a
@@ -371,16 +418,24 @@ directions.
   `<group>:other`. Without both, one rule carrying ten megabytes of type text produced a ten-megabyte
   map key, result entry and warning argument, and N rules with N types produced N of each — the only
   file-driven quantity in this engine with no cap. The declared names (`record()`) are counted
-  separately, so they never eat into the file's budget.
+  separately, so they never eat into the file's budget. **A number-format code over
+  `MAX_NUM_FMT_CODE_LENGTH` (255, `limits.ts`) is dropped on read** (`#openNumFmt`,
+  `parts/styles.ts`) and recorded once per `<numFmt>` as `numFmt:<prefix>`; its cells resolve as
+  General. A 1 MB code on 20 000 cells used to cost 139 s of per-cell inference.
 - **`<sheetProtection>` is read through an ALLOW-LIST, not a shape test.** Both readers keep only the
   names `SHEET_PROTECTION_OPTION_NAMES` (`model.ts`) declares. Copying every boolean-shaped attribute
   put `constructor`, `toString` and `hasOwnProperty` on the snapshot as own properties, so a consumer
   calling `options.hasOwnProperty(…)` threw; `__proto__` was always inert. `SheetProtectionOptions` is
-  the typed shape both adapters and `SheetBuilder#protect` now take.
+  the typed shape both adapters and `SheetBuilder#protect` now take. **`<sheetProtection>` without
+  `sheet="1"`/`"true"` reads as `protection: null` and records nothing**, on both adapters
+  (`#openProtection`; the ExcelJS adapter reads it only when `sheetProtection.sheet === true`).
+  Apache POI writes `<sheetProtection formatCells="0"/>` on an open sheet, and reading it as
+  protected imported every cell read-only.
 - **A duplicate ZIP entry name is refused.** The central directory is read into a `Map`, so the LAST
   record won while several other ZIP readers resolve the FIRST — a crafted archive holding two
   `sheet1.xml` entries then read differently here than in whatever inspected the file upstream. Excel
-  never writes one, so `zip/reader.ts` refuses it as a limit.
+  never writes one, so `zip/reader.ts` refuses it as a limit. Names are compared folded, so
+  `xl/a.xml` and `XL/A.xml` are one name declared twice.
 - **`&#xD800;`–`&#xDFFF;` is left as written**, like every other invalid code point in
   `decodeXmlEntities`. `String.fromCodePoint` accepts a surrogate and hands back an unpaired code unit
   that travels through the whole import, and `TextEncoder` replaces it with U+FFFD on the way out.
@@ -392,6 +447,10 @@ directions.
   differently — unlike `&#xD83D;&#xDE00;`, which the tokenizer still leaves literal. One regex
   matches an escape plus an optional low-surrogate escape, so a pair is decided as one unit. It
   carries its own range constants, because the tokenizer's `isDecodableCodePoint` is not exported.
+- **`decodeXmlEntities` is an `indexOf('&')` loop, not a callback `replace`** (`xml/tokenizer.ts`):
+  6M `&amp;` cost about +1 GB RSS before, +73 MB after. **XML end-of-line handling**
+  (`normalizeLineEndings`) runs on raw text, attributes and CDATA BEFORE references are decoded, so
+  `&#13;` survives as `\r`.
 - **`decodeAddress` refuses row or column zero rather than returning a negative index.** `A0`
   matches the A1 shape, and `Number('0') - 1` handed `#ensureRow(-1)` through the upper-bound check
   to `rows[-1]` — `undefined` — which surfaced as `Cannot read properties of undefined (reading
@@ -401,15 +460,16 @@ directions.
   `comments{N}.xml` took the whole import down. `#ensureRow` keeps one `rowIndex < 0 ||
   !Number.isInteger(rowIndex)` guard as belt and braces; no file reaches it, because every caller
   hands a whole, non-negative index.
-- **`<dimension>` pre-allocation is DELIBERATELY still eager.** `<dimension ref="A1:A1048576"/>` is
-  32 bytes that materialize a million row arrays (238 MB of RSS, measured), and it is left that way:
-  `#rows` IS the snapshot's own array (the constructor aliases it: `this.#rows = this.#sheet.rows;`),
-  the declared tail rows are part of what the reader returns (ExcelJS reports the same `rowCount`
-  from the same declaration), and `sheet.rowHeights` is padded to `#rows.length` regardless — so
-  allocating them lazily would defer the cost, not remove it, while `#rows.length` is the sheet's
-  row count at six more sites (the `#cellAt` cell-product cap, the merge clamp, the validation
-  clamp, `assertSheetFits`, the padding pass and `rowHeights`). `MAX_WORKBOOK_CELLS` is what bounds
-  the total across sheets.
+- **`<dimension>` is a cap check and an up-front budget charge, never an allocation.** The row
+  count follows the last `<row>` or `<c>`, as ExcelJS's `rowCount` does. Pre-allocating the declared
+  rows made three rows under `A1:B5000` a 5000-row grid, and turned a 1.7 kB archive (a
+  million-row dimension, no rows, one list validation) into +646 MB of cell snapshots.
+  `#openDimension` runs `assertSheetRectangle` and settles the declared rectangle against the
+  workbook budget (`#settleWorkbookCharge`). `#finalize` re-settles at the real extent, which
+  replaces the declared charge rather than adding to it. `#reserveSlot` also refuses as soon as
+  rows × width outgrows the room the budget had left when the sheet started (`#workbookRoom`), so
+  `MAX_WORKBOOK_CELLS` refuses before the cells exist. A single `<row r="1048576"/>` still
+  allocates a million empty row arrays.
 - **The native reader reports `cellStyles` on fewer workbooks than ExcelJS, on purpose.** ExcelJS
   resolves a cell's default font and fill into a style object whenever the cell carries any format
   index; the native reader sees a cell whose xf points only at the bootstrap defaults as having no
@@ -492,21 +552,29 @@ directions.
   character — 6.4 µs per character on Cyrillic or CJK. Both timings are pinned in
   `formulaRefs.unit.js`, beside real quoted names (`'My Rates'!`, `'O''Brien'!`, a 31-character
   one). Re-measured after the fix on 32 768-character formulas: a dense run of references
-  (`A1+A1+…`, `A:A+…`, `A1:B2,…`) is the worst case at 0.28–0.29 µs per character, because every
+  (`A1+A1+…`, `A:A+…`, `A1:B2,…`) is the worst case at 0.28–0.32 µs per character (up to 0.84 µs
+  on slower machines), because every
   few characters are rewritten; a run of letters of any script, apostrophes or digits costs
   0.01–0.05 µs. **Shared-formula translation is budgeted across the workbook**: every slave
   re-translates its master's whole text, so `#chargeTranslation` charges the master's length per
   slave into `WorkbookBudget.translatedFormulaChars` BEFORE translating and refuses through
-  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS` (64 Mi). Without it 5 M slaves × 32 K
-  characters was unbounded CPU; the worst case the budget admits is about 20 s of regex work, on a
-  master that is nothing but references. If the regex gains an alternative, re-measure every
-  shape above before trusting that number. The field is optional on
+  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS` (32 Mi). Without it 5 M slaves × 32 K
+  characters was unbounded CPU. The dense-reference worst case measured 0.28–0.32 µs per character
+  (developer machine) and 0.58–0.84 µs (reviewer's machine), so the budget admits about 10–28 s of
+  regex work, on a master that is nothing but references. The value and a 1.5 µs-per-character
+  ceiling are pinned in `nativeReadCompat.unit.js` ("the shared-formula translation budget,
+  measured"). If the regex gains an alternative, re-measure every shape above before trusting
+  that number. The import's own walks are budgeted too, against the same
+  `MAX_TRANSLATED_FORMULA_CHARS` (`CollectContext.walkedFormulaChars` in `importFile/mapper.ts`:
+  the prefix strip and the reference shift) — see `plugins/importFile/AGENTS.md`. The field is optional on
   `WorkbookBudget` (absent reads as zero) because tests pass `{ declaredCells: 0 }`. Validation and
   conditional-formatting formulae are not capped: nothing runs that regex over them.
-- **`isTemporalFormat` must not cross a `[` inside a bracket section.** `\[[^\]]*\]` re-scanned
-  to the end from every `[` of a run no `]` closes — quadratic, and it ran once per numeric cell
-  of a `date1904` workbook (40 000 brackets: ~550 ms per cell). The pattern is `\[[^[\]]*\]`; a
-  well-formed section reads the same because it never holds a `[`.
+- **The `date1904` shift asks `isTemporalFormatCode` (`numFmtCode.ts`), the import's own
+  classification**, so a serial is shifted exactly when the import will show it as a date or time
+  (`#numberValue`). The old reader-local letter test shifted `0.0\h` and `CHF #,##0` by 1462 days
+  while the import typed them numeric. Whatever replaces it must stay linear on a run of 40 000
+  unclosed `[` (the old `\[[^\]]*\]` cost ~550 ms per cell there), as pinned in
+  `nativeReadCompat.unit.js`.
 - **`r` is OPTIONAL on `<row>` and `<c>`, and the reader places them implicitly.** ECMA-376: a
   `<row>` without `r` is the row after the previous one (the first is row 1), a `<c>` without `r`
   is the column after the previous cell of its row (the first is column A). The reader used to
@@ -539,7 +607,9 @@ directions.
   `<pane xSplit>`/`ySplit` that is not a non-negative whole number reads as no split on that axis.
   `cfRuleFromXml` (`parts/conditionalFormatting.ts`) follows the same rule: a `priority` that is
   not a whole number is dropped (a re-export used to write `priority="NaN"`), and a `top10` `rank`
-  that is not a positive whole number reads as `DEFAULT_TOP10_RANK`.
+  that is not a positive whole number reads as `DEFAULT_TOP10_RANK`. So are `numFmtId`, `fontId`,
+  `fillId` and `borderId` in `<xf>`, a `<numFmt numFmtId>` (skipped when invalid), a cell's `s` (0
+  when invalid), and a CF `dxfId`.
   This is the FIRST of two layers: `importFile/mapper.ts#mapLayout` bounds the same values again (`toLayoutPixels`, `toFreezeCount`, `toHiddenIndexes`), so an ExcelJS-read file cannot push them past either — see `plugins/importFile/AGENTS.md`.
 - **An empty `<v/>` or `<v></v>` is an EMPTY cell, except for the two string kinds.** `Number('')`
   is `0`, so it used to read as shared string 0 or as the number 0. `#decodeValue` answers `null`
@@ -560,8 +630,9 @@ directions.
   with `_xHHHH_` already decoded, so `#decodeValue` must NOT decode `inlineStr` again
   (`_x005F_x0041_` would collapse to `A`; `str` is still decoded there). A `<c t="inlineStr">`
   with no `<is>` at all now reads as an empty cell rather than as `''`.
-- **`enginesParity.unit.js` is the parity checklist.** Every capability in the matrix is proven
-  there or in a test it names. The shape is FOUR-WAY: a snapshot is built twice (two independent
+- **`enginesParity.unit.js` is the parity checklist.** Every capability flag that `CAPABILITIES`
+  (`capabilities.ts`) sets on both engines is proven there or in a test it names;
+  `compressionLevel`, the one flag the engines disagree on, is not a parity case. The shape is FOUR-WAY: a snapshot is built twice (two independent
   objects), written by both engines, and each engine's bytes are then read by BOTH readers —
   `nn`/`ne`/`en`/`ee`. `nn` and `ee` alone would only prove each engine agrees with itself; the
   cross legs are what catch a writer emitting something only its own reader understands. Exactly
@@ -571,21 +642,97 @@ directions.
   `__tests__/helpers/snapshotNormalize.js`** — with each one's reason and the no-fourth rule in that
   file's header comment; `enginesParity.unit.js` and `nativeRead.unit.js` both import from it, so
   the invariant is reviewable by reading one file. They were hand-copied into the two suites before
-  that helper existed and had already drifted textually. `expectFourWayParity` also asserts the
-  native leg is non-empty, so the four-way comparison cannot pass on four snapshots that all lost
-  the feature under test.
+  that helper existed and had already drifted textually. `expectFourWayParity(buildFn,
+  expectNative)` requires a callback asserting the feature on the native leg before the legs are
+  compared, and also asserts that leg is non-empty. Agreement is not survival: with
+  `SheetBuilder#freeze` writing `null` and `setRtl` writing `false` the old suite still passed.
+  `cfShape` compares `formulae`, `text` and `rank` too.
 - **`nativeRead.unit.js` ends with a parity test against the ExcelJS adapter on six fixtures**, and
   it normalizes exactly three known differences, through the same shared helper: conditional-formatting
   rules compared by `ref` only, numbers rounded to nine decimals (ExcelJS loses ulps round-tripping a
   time serial through a `Date`), and the default-font/fill case above. Border and alignment are
   compared unnormalized. If that test fails, the OOXML is the arbiter — read the fixture's raw XML
   before changing a reader, and never widen a normalization to make it pass.
-- **`<dimension>` is the pre-allocation cap check**; without it the caps run incrementally per
-  row and cell. `<col max="16384">` widens `colWidths` but never the cell product.
+- **`<dimension>` bounds the caps, the budget and the merge and validation column clamps**;
+  without it the caps run incrementally per row and cell. `<col max="16384">` widens `colWidths`
+  but never the cell product.
+- **List validations are also read from `<extLst>`** (`<x14:dataValidation>`, `<xm:f>`,
+  `<xm:sqref>`, `EXT_VALIDATION_ELEMENTS`, matched by the name after any prefix while
+  `#extDepth > 0`). Excel 2010+ stores a list whose source is on another sheet ONLY there; ignoring
+  the extension lost the dropdown with nothing recorded.
+- **Formula text is `ST_Formula`, not `ST_Xstring`.** `<f>`, a CF `<formula>` and a DV
+  `<formula1>` go through `XmlWriter#formulaLeaf` / `escapeXmlMarkup` (markup escaped, XML-illegal
+  characters DROPPED, since a formula has no escape for them), never `escapeXmlText`: no reader
+  decodes `_xHHHH_` there, so `"_x0041_"` came out as `"_x005F_x0041_"`. A cached string result in
+  `<v>` still uses `escapeXmlText`, because the native reader decodes `str`. Both writers run
+  `addFunctionPrefixes` (`functionPrefixes.ts`) over a cell formula, so `IFS(` is stored as
+  `_xlfn.IFS(`; neither adapter's reader strips it, `importFile/mapper.ts` does
+  (`stripFunctionPrefixes`).
+- **The `_xHHHH_` lookalike escape is a LOOKAHEAD.** `escapeXmlText` rewrites the underscore of
+  every `_(?=x[0-9A-Fa-f]{4}_)` as `_x005F_` (`OOXML_ESCAPE_LOOKALIKE`, `xml/escapes.ts`). A
+  pattern that consumed the trailing underscore escaped only the first of `_x0041_x0042_`, which
+  read back as `_x0041B`.
+- **VML id blocks are allocated across the WORKBOOK.** `write.ts` hands each `vmlDrawingXml` its
+  first block (`nextVmlBlock`, advanced by `vmlBlockCount(n) = floor(n / 1024) + 1`,
+  `parts/comments.ts`); shape ids run from `1024 * block + 1`. Every drawing used block 1 /
+  `_x0000_s1025`, and duplicate shape ids across sheets are Excel's "repaired drawing" trigger.
+- **Both writers clamp to what Excel stores, through `writeLimits.ts`, and report it**: a string
+  past 32 767 code units (`MAX_CELL_TEXT_LENGTH`) is cut, never splitting a surrogate pair
+  (`cellText:truncated`); a width past `MAX_COLUMN_WIDTH_UNITS` (`columnWidth:clamped`); a height
+  past `MAX_ROW_HEIGHT_POINTS` (`rowHeight:clamped`). The native reader discards a wider or taller
+  value, so an unclamped 1820+ px column came back at the default width. A single-cell merge is
+  skipped silently by both writers.
+- **A sheet name with a control character** (C0, DEL, U+FFFE/U+FFFF: `CONTROL_SHEET_NAME_CHARS`,
+  `sheetNames.ts`) is stripped by the export's sanitizer (`stripIllegalSheetNameChars`) BEFORE
+  de-duplication and refused by the native writer (`write.ts`). `workbook.xml` (attribute: dropped)
+  and `docProps/app.xml` (element text: `_x0001_`) disagreed, and two such names collapsed into one
+  `name`. ExcelJS accepts it, which is pinned.
+- **ExcelJS adapter read notes.** A list validation's `allowBlank` defaults to `false` (the OOXML
+  default; ExcelJS omits the key). Protection is read only when `sheetProtection.sheet === true`
+  (the `<sheetProtection>` allow-list bullet above). `read()` refuses more than `MAX_WORKBOOK_SHEETS` worksheets right after `load`, through
+  `throwLimitExceeded` with the native reader's sentence — ExcelJS has parsed every sheet by then,
+  so this bounds the copy into the snapshot, not the parse. ExcelJS neither writes nor reads a
+  `containsText` rule's `text` attribute, pinned in `enginesParity.unit.js`.
 - **Adapter tests run under `@jest-environment node`** (jsdom has no streams; the node environment gets them from `test/cryptoSetup.js`). ExcelJS stays a
   devDependency as the oracle: native write → ExcelJS read (`nativeWrite.unit.js`), ExcelJS
   fixtures → native read (`nativeRead.unit.js`, incl. a snapshot parity check on the unstyled
   fixtures). Regenerate fixtures with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs`.
+- **An Excel 365 threaded comment is read as its thread, not as its legacy note.** Excel writes the
+  thread to `xl/threadedComments/threadedComment{N}.xml` (authors in `xl/persons/person.xml`) and a
+  fallback `<comment>` in `comments{N}.xml` whose text is `[Threaded comment]`, a fixed English
+  notice, `Comment:`, the comment, and one `Reply:` block per reply, every entry line indented by
+  four spaces. Read verbatim, the notice became the cell comment. Both readers pass every note
+  through `noteToComment()` (`threadedComments.ts`), which keeps the entries (joined with `\n`) and
+  records `DROPPED_FEATURES.threadedComments` ONCE per read, since authors and timestamps are lost.
+  Never strip it in one adapter only. Only the English notice is recognized; a note that merely
+  starts with `[Threaded comment]` (no `\nComment:\n`) is kept as written. `threadedComments` has a
+  row in the import guide's dropped table.
+- **ExcelJS 4.4 reads a note's text from its `<r>` runs ONLY.** A note stored as a bare
+  `<text><t>…</t></text>` (valid OOXML, and what some writers emit) loads with `texts: []`, which the
+  adapter used to import as an EMPTY comment with nothing reported. It now skips the note and records
+  `DROPPED_FEATURES.commentUnreadable` (`comment:unreadable`); the native reader reads both shapes.
+  Not fixed on the ExcelJS side: recovering the text means unzipping the comments part outside
+  ExcelJS. Pinned in `nativeRead.unit.js` ("plain-text note").
+- **A carriage return is written as `_x000D_` in element text and as `&#xD;` in an attribute.** A raw
+  `\r` is legal XML, but every conforming parser's end-of-line handling (XML 1.0 section 2.11) turns
+  `\r\n` and a lone `\r` into `\n` before a reader sees it, so `a\r\nb` came back as `a\nb` from both
+  readers; Excel stores it as `_x000D_`. `escapeXmlText` (`xml/escapes.ts`, `TEXT_ESCAPED_CHARS`)
+  escapes it with the illegal characters; tab and line feed stay raw. `escapeXmlAttr` writes
+  `\t`/`\n`/`\r` as `&#x9;`/`&#xA;`/`&#xD;`, because attribute-value normalization turns the raw
+  characters into spaces and no reader decodes `_xHHHH_` in an attribute. Formula text
+  (`escapeXmlMarkup`, `ST_Formula`) keeps `\r` raw: `_x000D_` would be literal formula text there.
+- **A covered merge cell keeps its own style and lock, never its value.** Both readers build it with
+  `createCoveredCellSnapshot()` (`model.ts`); reading it as `null` lost a covered cell's `locked="0"`,
+  and `importFile/mapper.ts` imports a blank on a protected sheet as read-only, which showed once
+  the user unmerged. The ExcelJS writer merges with `mergeCellsWithoutStyle` when a covered cell
+  carries a style or lock of its own (`coversOwnFormatting`), since `mergeCells` copies the
+  master's style, protection included, over them; other merges keep the copy so a merged header's
+  border still reaches its covered edge cells.
+- **Repeated sheet targets are charged with the FIRST read, before tokenizing.** `readSheets` counts
+  the `<sheet>`s resolving to each folded part name up front (`TokenizeLedger.planned`), and
+  `partToTokenize` charges all planned repeats when the part is first read. Charged one at a time,
+  64 sheets over one 6 MB part were refused only after about 20 full parses. The memo already
+  prevented re-inflating; parsing was the cost.
 
 ## Testing
 

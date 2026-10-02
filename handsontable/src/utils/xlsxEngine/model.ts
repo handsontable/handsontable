@@ -175,3 +175,31 @@ export function createCellSnapshot(): CellSnapshot {
     comment: null,
   };
 }
+
+/**
+ * The snapshot of a cell a merge COVERS: its own style and lock, and nothing else. Both readers
+ * build it through here so they agree. The value belongs to the merge's master; the number format
+ * formats no value, and kept it would sway the column's type inference. The lock is the reason
+ * this exists: a covered cell read as `null` imported read-only under sheet protection whatever its
+ * own `locked="0"` said, which showed once the user unmerged. Returns `null` when the cell carries
+ * neither, which is what a covered cell with no formatting reads as.
+ *
+ * @param {CellStyleSnapshot|null} style The covered cell's own style.
+ * @param {boolean|null} locked The covered cell's own lock.
+ * @returns {CellSnapshot|null}
+ */
+export function createCoveredCellSnapshot(
+  style: CellStyleSnapshot | null,
+  locked: boolean | null,
+): CellSnapshot | null {
+  if (style === null && locked === null) {
+    return null;
+  }
+
+  const cell = createCellSnapshot();
+
+  cell.style = style;
+  cell.locked = locked;
+
+  return cell;
+}

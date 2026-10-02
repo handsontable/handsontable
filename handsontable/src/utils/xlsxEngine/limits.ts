@@ -70,8 +70,8 @@ export const MAX_INFLATED_TOTAL_BYTES = 2 * MAX_INPUT_BYTES;
  * `_xlpm.` prefixes into `<f>` (`_xlpm.` on every `LET`/`LAMBDA` parameter reference), so a
  * formula at Excel's limit is longer in the file. Something must still bound the text: it is the
  * file's own, and the reference regex the shared-formula translation and the import's reference
- * shift both run over it costs up to about 0.3 µs per character, so the reader stops collecting a
- * formula's text as soon as it crosses the cap.
+ * shift both run over it costs up to about 0.3-0.8 us per character (the machine decides), so the
+ * reader stops collecting a formula's text as soon as it crosses the cap.
  */
 export const MAX_FORMULA_LENGTH = 32768;
 
@@ -81,15 +81,25 @@ export const MAX_FORMULA_LENGTH = 32768;
  * text, so a sheet of 5 million slaves under a master at `MAX_FORMULA_LENGTH` was 160 billion
  * characters of synchronous regex work that no other cap bounded: `MAX_FORMULA_LENGTH` bounds one
  * formula and `MAX_WORKBOOK_CELLS` the slave count, but not their product. Every translation
- * charges the master's length. 64 Mi characters is room for about 640 000 slaves of a
- * 100-character formula, or two and a half million of a 26-character one. The translation costs
- * at most about 0.3 us per character, measured on 32 768-character formulas: a dense run of
+ * charges the master's length. 32 Mi characters is room for about 330 000 slaves of a
+ * 100-character formula, or 1.3 million of a 26-character one. The worst case is a dense run of
  * references (`A1+A1+...`, `A:A+...`, `A1:B2,...`), which rewrites one reference every few
- * characters, is the worst case at 0.28-0.29 us; a run of Latin, Cyrillic or CJK letters, of
- * apostrophes or of digits, which rewrites nothing, costs 0.01-0.05 us. So the budget bounds the
- * worst case to roughly 20 s of blocking work - the same order as a sheet at `MAX_SHEET_CELLS`.
+ * characters: measured on 32 748-character masters, it cost 0.28-0.32 us per character on a
+ * developer machine and 0.58-0.84 us on a reviewer's (300 runs each). A run of letters of any
+ * script, of apostrophes or of digits, which rewrites nothing, costs 0.01-0.05 us. So the budget
+ * bounds the worst case to about 10 s of blocking work on the first machine and 28 s on the second;
+ * at the earlier 64 Mi the second machine allowed 39-56 s. `nativeReadCompat.unit.js` ("the
+ * shared-formula translation budget, measured") pins both the value and a per-character ceiling.
  */
-export const MAX_TRANSLATED_FORMULA_CHARS = 64 * 1024 * 1024;
+export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
+
+/**
+ * The longest number-format code the reader keeps, in characters - the limit Excel itself puts on a
+ * code. A longer one can only come from a file built to be expensive: the import classifies every
+ * cell's code, so a megabyte-long code on twenty thousand cells cost minutes. It is dropped on read
+ * and recorded once as a `numFmt:` dropped feature.
+ */
+export const MAX_NUM_FMT_CODE_LENGTH = 255;
 
 /**
  * Throws the refusal every cap in this module reports, tagging the error so a caller can tell a

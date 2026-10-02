@@ -300,4 +300,24 @@ describe('nativeAdapter.read with namespace-prefixed parts', () => {
     expect(withExtension.sheets[0].conditionalFormatting).toHaveLength(1);
     expect(withExtension.sheets[0].conditionalFormatting).toEqual(plain.sheets[0].conditionalFormatting);
   });
+
+  it('should read a plain-text note on the native engine, and skip it on ExcelJS with comment:unreadable', async() => {
+    // A note's `<text>` may hold a bare `<t>` instead of `<r>` runs. ExcelJS 4.4 reads the runs
+    // only, so such a note reached the grid as an EMPTY comment, with nothing reported. The native
+    // reader reads both shapes; the ExcelJS adapter skips the note and names the loss.
+    const bytes = await repack('styles', (partName, text) => (
+      /^xl\/comments\d*\.xml$/.test(partName)
+        ? text.replace(/<text>[\s\S]*?<\/text>/, '<text><t>a comment</t></text>')
+        : text
+    ));
+    const nativeDropped = new DroppedFeatures();
+    const exceljsDropped = new DroppedFeatures();
+    const native = await nativeAdapter.read(bytes, undefined, nativeDropped);
+    const exceljs = await excelJsAdapter.read(bytes, ExcelJS, exceljsDropped);
+
+    expect(native.sheets[0].rows[0][4].comment).toBe('a comment');
+    expect(nativeDropped.list()).not.toContain('comment:unreadable');
+    expect(exceljs.sheets[0].rows[0][4]?.comment ?? null).toBeNull();
+    expect(exceljsDropped.list()).toContain('comment:unreadable');
+  });
 });

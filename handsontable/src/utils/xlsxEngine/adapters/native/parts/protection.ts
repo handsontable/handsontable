@@ -105,16 +105,21 @@ function assertSubtleCryptoAvailable(): void {
  * Hashes a sheet password the way Excel and ExcelJS do: `H0 = SHA-512(salt ‖ UTF-16LE(password))`,
  * then `H(i+1) = SHA-512(H(i) ‖ uint32LE(i))` for `i` from `0` to `spinCount - 1`. The iterator
  * suffix is what keeps this off `PBKDF2`. This is a UI gate, not encryption: the cells stay plain
- * text in the archive.
+ * text in the archive. `salt` defaults to 16 fresh random bytes and `spinCount` to
+ * `SHEET_PASSWORD_SPIN_COUNT`; the writer passes neither, and a test lowers the spin count only to
+ * stay fast.
  */
 export async function hashSheetPassword(
   password: string,
-  salt: Uint8Array = crypto.getRandomValues(new Uint8Array(16)),
+  salt?: Uint8Array,
   spinCount: number = SHEET_PASSWORD_SPIN_COUNT,
 ): Promise<ProtectionHash> {
   assertSubtleCryptoAvailable();
 
-  let key = await sha512(concat(salt, utf16le(password)));
+  // The fresh salt is drawn in the body, AFTER the check: as a parameter default it ran first, so
+  // a host with no global `crypto` threw a bare `ReferenceError` instead of the named refusal.
+  const saltBytes = salt ?? crypto.getRandomValues(new Uint8Array(16));
+  let key = await sha512(concat(saltBytes, utf16le(password)));
   const iterator = new Uint8Array(4);
   const view = new DataView(iterator.buffer);
 
@@ -127,7 +132,7 @@ export async function hashSheetPassword(
   return {
     algorithmName: 'SHA-512',
     hashValue: toBase64(key),
-    saltValue: toBase64(salt),
+    saltValue: toBase64(saltBytes),
     spinCount,
   };
 }

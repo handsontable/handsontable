@@ -79,12 +79,26 @@ export const DROPPED_FEATURES = {
   // Raised by the native reader only: an `<f>` longer than `MAX_FORMULA_LENGTH`. The formula is
   // dropped and the cell keeps its cached value; the rest of the workbook reads as usual.
   formulaTooLong: 'formula:tooLong',
+  // Raised by both readers, once per read: an Excel 365 threaded comment. Its legacy note is read
+  // without the fixed notice in front of the thread (`threadedComments.ts`), so the comment and its
+  // replies import as text; the authors, timestamps, and resolved state of the thread are dropped.
+  threadedComments: 'threadedComments',
+  // Raised by the ExcelJS adapter only: ExcelJS 4.4 reads a note's text from its `<r>` runs alone,
+  // so a note stored as a plain `<text><t>` (no run) loads with no text. The comment is skipped
+  // rather than imported empty; the native engine reads such a note.
+  commentUnreadable: 'comment:unreadable',
   // Raised by the native writer only: ExcelJS honors a compression level, and it hands its own
   // conditional-formatting descriptors straight to its writer without judging them.
   compressionLevel: 'compressionLevel',
   conditionalFormattingInvalid: 'conditionalFormatting:invalid',
   conditionalFormattingExpression: 'conditionalFormatting:expression',
   conditionalFormattingTimePeriod: 'conditionalFormatting:timePeriod',
+  // Raised by BOTH writers: a value past what Excel itself stores is written at Excel's maximum
+  // (`writeLimits.ts`) instead of as written. A longer string or a wider column used to reach the
+  // file anyway: Excel truncated or repaired it, and the native reader DISCARDED the width.
+  cellTextTruncated: 'cellText:truncated',
+  columnWidthClamped: 'columnWidth:clamped',
+  rowHeightClamped: 'rowHeight:clamped',
   // Raised by `importFile`, above whatever the engine already reported.
   cellStyles: 'cellStyles',
   cellStylesBorders: 'cellStyles:borders',

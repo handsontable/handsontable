@@ -114,6 +114,10 @@ export function tryDetectXlsxEngine(injected: unknown, optionName: string): Dete
   try {
     return detectXlsxEngine(injected, optionName);
   } catch {
+    // The only thing `detectXlsxEngine` throws is the invalid-engine error, and this helper's
+    // contract is to answer "unsupported" for exactly that case. The predicates that call it
+    // must not throw, so the error is dropped here; the matching export or import call still
+    // raises it with the full message when the user actually runs it.
     return null;
   }
 }

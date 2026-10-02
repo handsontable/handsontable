@@ -1,5 +1,5 @@
 import { throwWithCause } from '../../../../../helpers/errors';
-import { escapeXmlAttr, escapeXmlText } from './escapes';
+import { escapeXmlAttr, escapeXmlMarkup, escapeXmlText } from './escapes';
 
 /**
  * An attribute value. `undefined` skips the attribute; booleans render as `1`/`0`.
@@ -105,6 +105,17 @@ export class XmlWriter {
     } else {
       this.#push(`<${name}${this.#attributes(attrs)}>${escapeXmlText(text)}</${name}>`);
     }
+
+    return this;
+  }
+
+  /**
+   * Writes an element holding formula text (`ST_Formula`) and no attributes. Formula text is
+   * escaped for markup only: the `_xHHHH_` convention `leaf` applies belongs to `ST_Xstring`, and
+   * no reader decodes it inside a formula.
+   */
+  formulaLeaf(name: string, formula: string): this {
+    this.#push(`<${name}>${escapeXmlMarkup(formula)}</${name}>`);
 
     return this;
   }

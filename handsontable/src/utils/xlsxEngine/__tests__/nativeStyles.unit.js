@@ -4,6 +4,7 @@
 import {
   StyleTable, parseStyles, BUILT_IN_NUM_FMTS, builtInNumFmtId, EMPTY_STYLES,
 } from '../adapters/native/parts/styles';
+import { DroppedFeatures } from '../capabilities';
 
 describe('BUILT_IN_NUM_FMTS', () => {
   it('should map the ids Excel reserves and look them up by code', () => {
@@ -408,5 +409,46 @@ describe('parseStyles', () => {
       + '<cellXfs><xf numFmtId="0" fontId="99" fillId="99" borderId="99"/></cellXfs></styleSheet>');
 
     expect(cellXfs[0]).toEqual({ numFmt: null, style: null, locked: null });
+  });
+});
+
+describe('parseStyles: index attributes read as written', () => {
+  it('should resolve numFmtId, fontId, fillId and borderId only from their unsignedInt form', () => {
+    // `Number()` took `0x10` as 16 and `1e0` as 1, so a cell format resolved a built-in date
+    // format and a font the file never pointed at; `''` read as 0 by accident.
+    const styles = parseStyles('<styleSheet><fonts count="2"><font/><font><b/></font></fonts>'
+      + '<cellXfs count="4"><xf numFmtId="14" fontId="1"/><xf numFmtId="0x10" fontId="1e0"/>'
+      + '<xf numFmtId="" fontId=" 1"/><xf numFmtId="+14" fontId="+1"/></cellXfs></styleSheet>');
+
+    expect(styles.cellXfs.map(xf => xf.numFmt)).toEqual(['mm-dd-yy', null, null, 'mm-dd-yy']);
+    expect(styles.cellXfs.map(xf => xf.style?.font ?? null)).toEqual([{ bold: true }, null, null, { bold: true }]);
+  });
+
+  it('should not register a custom number format under an id that is not a whole number', () => {
+    const styles = parseStyles('<styleSheet><numFmts count="2"><numFmt numFmtId="1e3" formatCode="0.000"/>'
+      + '<numFmt numFmtId="164" formatCode="0.0"/></numFmts>'
+      + '<cellXfs count="2"><xf numFmtId="1000"/><xf numFmtId="164"/></cellXfs></styleSheet>');
+
+    expect(styles.cellXfs.map(xf => xf.numFmt)).toEqual([null, '0.0']);
+  });
+});
+
+describe('parseStyles: the number-format code cap', () => {
+  it('should drop a format code longer than 255 characters, once, and resolve its cells as General', () => {
+    // Excel caps a code at 255 characters. An uncapped one was stored and handed to the import's
+    // inference once per cell: a 1 MB code on 20 000 cells took 139 s.
+    const longCode = `0.0${'"x"'.repeat(400_000)}`;
+    const dropped = new DroppedFeatures();
+    const styles = parseStyles('<styleSheet><numFmts count="2">'
+      + `<numFmt numFmtId="164" formatCode="${longCode.replace(/"/g, '&quot;')}"/>`
+      + `<numFmt numFmtId="165" formatCode="${'0'.repeat(255)}"/></numFmts>`
+      + '<cellXfs count="3"><xf numFmtId="164"/><xf numFmtId="164"/><xf numFmtId="165"/></cellXfs>'
+      + `<dxfs count="1"><dxf><numFmt numFmtId="166" formatCode="${'0'.repeat(256)}"/></dxf></dxfs>`
+      + '</styleSheet>', dropped);
+
+    expect(styles.cellXfs.map(xf => xf.numFmt)).toEqual([null, null, '0'.repeat(255)]);
+    expect(styles.dxfs[0].numFmt).toBeUndefined();
+    expect(dropped.list()).toEqual([`numFmt:0.0${'"x"'.repeat(20)}…`, `numFmt:${'0'.repeat(63)}…`]);
+    expect(dropped.count(dropped.list()[0])).toBe(1);
   });
 });

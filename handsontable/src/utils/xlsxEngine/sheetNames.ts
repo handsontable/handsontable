@@ -18,6 +18,17 @@ export const SHEET_NAME_MAX_LENGTH = 31;
 export const ILLEGAL_SHEET_NAME_CHARS = /[*?:/\\[\]]/;
 
 /**
+ * The control characters a worksheet name may not contain: C0 (tab and line breaks included), DEL,
+ * and the two non-characters U+FFFE and U+FFFF. `workbook.xml` stores the name in an attribute,
+ * whose escaper drops what XML cannot carry (and a parser folds a tab or a line break into a
+ * space), while `docProps/app.xml` stores it as element text, written `_x0001_` - so two names
+ * that differ only by such a character would land as the same name in one part and as two
+ * different ones in the other. No `g` flag, so it is safe to `test()` with.
+ */
+// eslint-disable-next-line no-control-regex -- the control characters ARE what this class selects.
+export const CONTROL_SHEET_NAME_CHARS = /[\u0000-\u001F\u007F\uFFFE\uFFFF]/;
+
+/**
  * The name the XLSX format reserves for a workbook's change history.
  */
 const RESERVED_SHEET_NAME = 'History';
@@ -29,10 +40,17 @@ const RESERVED_SHEET_NAME = 'History';
 const ILLEGAL_SHEET_NAME_CHARS_ALL = new RegExp(ILLEGAL_SHEET_NAME_CHARS.source, 'g');
 
 /**
- * Removes every character a worksheet name may not contain.
+ * `CONTROL_SHEET_NAME_CHARS` with the `g` flag, for the replace path only.
+ */
+const CONTROL_SHEET_NAME_CHARS_ALL = new RegExp(CONTROL_SHEET_NAME_CHARS.source, 'g');
+
+/**
+ * Removes every character a worksheet name may not contain: the illegal punctuation and every
+ * control character. The export strips them BEFORE it de-duplicates, so two names that differ only
+ * by a control character are told apart by the counter rather than collapsing into one.
  */
 export function stripIllegalSheetNameChars(name: string): string {
-  return name.replace(ILLEGAL_SHEET_NAME_CHARS_ALL, '');
+  return name.replace(ILLEGAL_SHEET_NAME_CHARS_ALL, '').replace(CONTROL_SHEET_NAME_CHARS_ALL, '');
 }
 
 /**

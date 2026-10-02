@@ -5,6 +5,7 @@ import ExcelJS from 'exceljs';
 import Encryptor from 'exceljs/lib/utils/encryptor';
 import { nativeAdapter } from '../adapters/native';
 import { readZip } from '../adapters/native/zip/reader';
+import * as protection from '../adapters/native/parts/protection';
 import { DroppedFeatures } from '../capabilities';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
@@ -98,18 +99,30 @@ describe('nativeAdapter.write', () => {
   });
 
   it('should hash a sheet password the way ExcelJS does, so Excel asks for it on unprotect', async() => {
-    const { workbook, dropped } = await writeAndLoad(snapshotWith((b) => {
-      b.cell(1, 1).value = 'x';
-      b.protect('secret', { sort: true });
-    }));
-    const protection = workbook.worksheets[0].sheetProtection;
+    // 100 000 awaited digests take about a second in an idle Node and many times that in a loaded
+    // full run, which timed this test out at 15 s. The writer's own call is kept; only the spin
+    // count is lowered, and `nativeParts.unit.js` pins the production count.
+    const { hashSheetPassword } = protection;
+    const spy = jest.spyOn(protection, 'hashSheetPassword')
+      .mockImplementation((password, salt) => hashSheetPassword(password, salt, 1000));
 
-    expect(protection.algorithmName).toBe('SHA-512');
-    expect(protection.spinCount).toBe(100000);
-    expect(protection.hashValue).toBe(
-      Encryptor.convertPasswordToHash('secret', 'SHA512', protection.saltValue, 100000),
-    );
-    expect(dropped.list()).toEqual([]);
+    try {
+      const { workbook, dropped } = await writeAndLoad(snapshotWith((b) => {
+        b.cell(1, 1).value = 'x';
+        b.protect('secret', { sort: true });
+      }));
+      const sheetProtection = workbook.worksheets[0].sheetProtection;
+
+      expect(spy).toHaveBeenCalledWith('secret');
+      expect(sheetProtection.algorithmName).toBe('SHA-512');
+      expect(sheetProtection.spinCount).toBe(1000);
+      expect(sheetProtection.hashValue).toBe(
+        Encryptor.convertPasswordToHash('secret', 'SHA512', sheetProtection.saltValue, 1000),
+      );
+      expect(dropped.list()).toEqual([]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('should write layout: widths, heights, hidden, merges, freeze, rtl, state', async() => {
@@ -309,5 +322,60 @@ describe('nativeAdapter.write', () => {
     const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
 
     expect(back.sheets[0].rows[0][0].value).toBe('FILE_x0041_TEST');
+  });
+
+  it('should keep a CR/LF pair in cell text and in a note, read back by its own reader and by ExcelJS', async() => {
+    // A raw `\r` is end-of-line normalized away by an XML parser, so `a\r\nb` came back as
+    // `a\nb` from both readers; Excel stores the carriage return as `_x000D_`.
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 'a\r\nb';
+      b.cell(1, 1).comment = 'c\r\nd';
+    });
+    const { workbook, bytes } = await writeAndLoad(snapshot);
+    const back = await nativeAdapter.read(toArrayBuffer(bytes), undefined, new DroppedFeatures());
+
+    expect(back.sheets[0].rows[0][0].value).toBe('a\r\nb');
+    expect(back.sheets[0].rows[0][0].comment).toBe('c\r\nd');
+    expect(workbook.worksheets[0].getCell('A1').value).toBe('a\r\nb');
+    expect(noteText(workbook.worksheets[0].getCell('A1').note)).toBe('c\r\nd');
+  });
+
+  it('should refuse a sheet name carrying a control character', async() => {
+    // `workbook.xml` drops a control character from the attribute while `docProps/app.xml` writes
+    // it as `_x0001_`, so `Sheet\u0001` and `Sheet\u0002` passed the duplicate check and then both
+    // landed as `name="Sheet"`.
+    for (const name of ['Sheet\u0001', 'a\tb', 'a\nb', 'a\u007Fb', 'a\uFFFEb']) {
+      await expect(nativeAdapter.write(snapshotWith(() => {}, name), undefined, new DroppedFeatures()))
+        .rejects.toThrow(/was rejected by the native engine: the name carries a control character/);
+    }
+  });
+
+  it('should give the notes of every sheet their own VML block and workbook-unique shape ids', async() => {
+    const snapshot = snapshotWith((b) => {
+      b.cell(1, 1).value = 'a';
+      b.cell(1, 1).comment = 'first sheet, first note';
+      b.cell(2, 1).value = 'c';
+      b.cell(2, 1).comment = 'first sheet, second note';
+    }, 'One');
+    const plain = new SheetBuilder('Two');
+    const second = new SheetBuilder('Three');
+
+    plain.cell(1, 1).value = 'no notes here';
+    second.cell(1, 1).value = 'b';
+    second.cell(1, 1).comment = 'third sheet note';
+    snapshot.sheets.push(plain.toSnapshot(), second.toSnapshot());
+
+    const { workbook, bytes } = await writeAndLoad(snapshot);
+    const archive = await readZip(toArrayBuffer(bytes));
+    const first = await archive.text('xl/drawings/vmlDrawing1.vml');
+    const third = await archive.text('xl/drawings/vmlDrawing3.vml');
+    const shapeIds = vml => Array.from(vml.matchAll(/<v:shape id="(_x0000_s\d+)"/g), match => match[1]);
+
+    expect(first).toContain('<o:idmap v:ext="edit" data="1"/>');
+    expect(third).toContain('<o:idmap v:ext="edit" data="2"/>');
+    expect(shapeIds(first)).toEqual(['_x0000_s1025', '_x0000_s1026']);
+    expect(shapeIds(third)).toEqual(['_x0000_s2049']);
+    expect(noteText(workbook.worksheets[0].getCell('A2').note)).toBe('first sheet, second note');
+    expect(noteText(workbook.worksheets[2].getCell('A1').note)).toBe('third sheet note');
   });
 });

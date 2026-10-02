@@ -116,6 +116,13 @@ Other rules:
   `resolveEngineOverride(override, configured)` in `../../utils/xlsxEngine/detect.ts`, which `importFile`
   uses too — change one plugin's resolution and you have re-opened the drift. A RESOLVED `null`/`undefined`
   is then read as the built-in engine by `detectXlsxEngine` itself, so `types/xlsx.ts` maps nothing.
+- **The "To Excel" sub-item (`export_file:xlsx`) is hidden by `supportsExportFormat('xlsx')`, and that guard
+  must stay.** Once the built-in engine landed, the predicate answers `true` for the default setup and for
+  `engines: { xlsx: null }`, so the guard looks dead — it was removed once for that reason. It is not: an
+  `engines.xlsx` that does not duck-type answers `false`, and without the guard the item still shows and
+  every click fails with `Invalid xlsx engine module.` in the console only. Pinned by
+  `__tests__/contextMenuItem.unit.js`, which also pins the 18.1 to 19.0 migration guide's
+  `beforeContextMenuSetItems` recipe for removing only that sub-item.
 - **A configured `engines: { xlsx: null }` means the built-in engine, everywhere, and `detect.ts` is the one
   place that says so.** It is what `xlsx: useExcelJs ? ExcelJS : null` writes, and it used to get three
   answers: `supportsExportFormat('xlsx')` answered `false` (the predicate reached `detectXlsxEngine(null)`,
@@ -175,7 +182,8 @@ Other rules:
   about the fix and wrong about the reason.
   `#uniqueSheetName` sanitizes, then truncates to 31, then de-duplicates — **in that order**. Truncating
   last lets two 35-character names that differ only past character 31 pass the duplicate check and then
-  collide, which is why the counter's room is reserved inside the 31 characters. The `_HotValidation` helper
+  collide, which is why the counter's room is reserved inside the 31 characters. Control characters are
+  stripped as well, before the de-duplication, for the same ordering reason. The `_HotValidation` helper
   sheets are named from the SAME `usedSheetNames` set, which is what keeps a data sheet called
   `_HotValidation` away from its own helper. `xlsxValidationSheetName.unit.js` pins every case.
 - **Every exported workbook names `Handsontable` as its creator, and asks for a full recalculation when it
@@ -196,8 +204,9 @@ Other rules:
   kind or number format) is built by `DroppedFeatures#recordUnsupported(group, value)` instead, which
   checks the group and leaves only the data-driven tail free; `record()` takes no template literal, so a
   hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
-  The write direction owns `compressionLevel`, `merge:overlap` and the four `conditionalFormatting:*`
-  names; the read direction's are in the import guide.
+  The write direction owns `compressionLevel`, `merge:overlap`, the four `conditionalFormatting:*`
+  names, and `cellText:truncated`, `columnWidth:clamped` and `rowHeight:clamped` (the last three raised by
+  BOTH engines); the read direction's are in the import guide.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule

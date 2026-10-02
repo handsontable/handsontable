@@ -51,6 +51,78 @@ function isDecodableCodePoint(code: number): boolean {
 }
 
 /**
+ * How many decoded pieces `decodeXmlEntities` collects before it joins them into one chunk. Joining
+ * as it goes keeps the piece list small however many references a text holds.
+ */
+const DECODE_JOIN_THRESHOLD = 1024;
+
+/**
+ * Whether a character code is an ASCII letter, the only characters a named reference may hold.
+ */
+function isAsciiLetter(code: number): boolean {
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+}
+
+/**
+ * Whether a character code is a decimal digit.
+ */
+function isDecimalDigit(code: number): boolean {
+  return code >= 48 && code <= 57;
+}
+
+/**
+ * Whether a character code is a hexadecimal digit.
+ */
+function isHexDigit(code: number): boolean {
+  return isDecimalDigit(code) || (code >= 65 && code <= 70) || (code >= 97 && code <= 102);
+}
+
+/**
+ * The offset of the `;` that closes the reference starting at the `&` at `amp`, or -1 when the text
+ * there is not one: `&#x` and hex digits, `&#` and decimal digits, or `&` and ASCII letters, each
+ * followed directly by `;`. Every run is scanned to its end, so this reads the same grammar the
+ * `&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);` pattern did.
+ */
+function referenceEnd(text: string, amp: number): number {
+  const { length } = text;
+  let i = amp + 1;
+  let isPart = isAsciiLetter;
+
+  if (text.charCodeAt(i) === 35) {
+    i += 1;
+    isPart = isDecimalDigit;
+
+    if (text.charCodeAt(i) === 120) {
+      i += 1;
+      isPart = isHexDigit;
+    }
+  }
+
+  const start = i;
+
+  while (i < length && isPart(text.charCodeAt(i))) {
+    i += 1;
+  }
+
+  return i > start && text.charCodeAt(i) === 59 ? i : -1;
+}
+
+/**
+ * The text a reference body (what sits between `&` and `;`) stands for, or `null` when it names
+ * nothing this tokenizer decodes.
+ */
+function decodeReference(body: string): string | null {
+  if (body.charCodeAt(0) !== 35) {
+    return NAMED_ENTITIES.get(body) ?? null;
+  }
+
+  const isHex = body.charCodeAt(1) === 120;
+  const code = Number.parseInt(body.slice(isHex ? 2 : 1), isHex ? 16 : 10);
+
+  return isDecodableCodePoint(code) ? String.fromCodePoint(code) : null;
+}
+
+/**
  * Decodes the five predefined entities and numeric character references. Anything else is left
  * as written; this tokenizer never resolves a DTD, so no other entity can exist, and no entity can
  * expand into another one.
@@ -62,22 +134,63 @@ function isDecodableCodePoint(code: number): boolean {
  * no character, `String.fromCodePoint` accepts it and hands back a lone surrogate that then travels
  * through the whole import as an unpaired code unit, and `TextEncoder` replaces it with U+FFFD on
  * the way back out, so the round trip loses it either way.
+ *
+ * The text is walked with `indexOf('&')` and the pieces between references are pushed as slices,
+ * joined every `DECODE_JOIN_THRESHOLD` pieces. A callback `replace` allocated a match, a capture
+ * and an argument list for every reference: a cell holding `&amp;` six million times (30 MB of
+ * XML from a 45 kB archive) cost about a gigabyte of resident memory, against the size of the
+ * result here.
  */
 export function decodeXmlEntities(text: string): string {
-  if (!text.includes('&')) {
+  let amp = text.indexOf('&');
+
+  if (amp === -1) {
     return text;
   }
 
-  return text.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, (match: string, body: string) => {
-    if (body.startsWith('#')) {
-      const isHex = body.startsWith('#x');
-      const code = Number.parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10);
+  const chunks: string[] = [];
+  let pieces: string[] = [];
+  let from = 0;
 
-      return isDecodableCodePoint(code) ? String.fromCodePoint(code) : match;
+  while (amp !== -1) {
+    const end = referenceEnd(text, amp);
+    const decoded = end === -1 ? null : decodeReference(text.slice(amp + 1, end));
+
+    if (decoded === null) {
+      amp = text.indexOf('&', amp + 1);
+    } else {
+      if (amp > from) {
+        pieces.push(text.slice(from, amp));
+      }
+
+      pieces.push(decoded);
+      from = end + 1;
+      amp = text.indexOf('&', from);
+
+      if (pieces.length >= DECODE_JOIN_THRESHOLD) {
+        chunks.push(pieces.join(''));
+        pieces = [];
+      }
     }
+  }
 
-    return NAMED_ENTITIES.get(body) ?? match;
-  });
+  if (from < text.length) {
+    pieces.push(text.slice(from));
+  }
+
+  chunks.push(pieces.join(''));
+
+  return chunks.length === 1 ? chunks[0] : chunks.join('');
+}
+
+/**
+ * Applies XML 1.0's end-of-line handling (section 2.11): every `\r\n` pair and every lone `\r`
+ * reads as `\n`. It runs on the RAW text, before references are decoded, so a `&#13;` the file
+ * wrote on purpose still decodes to a carriage return. Excel and ExcelJS both read `a\r\nb` as
+ * `a\nb`; without this the native reader kept the `\r`.
+ */
+function normalizeLineEndings(text: string): string {
+  return text.includes('\r') ? text.replace(/\r\n?/g, '\n') : text;
 }
 
 /**
@@ -166,7 +279,7 @@ function skipWhitespace(xml: string, from: number): number {
  */
 function emitText(xml: string, from: number, to: number, handlers: XmlHandlers): void {
   if (handlers.text && to > from) {
-    handlers.text(decodeXmlEntities(xml.slice(from, to)));
+    handlers.text(decodeXmlEntities(normalizeLineEndings(xml.slice(from, to))));
   }
 }
 
@@ -190,7 +303,8 @@ function skipComment(xml: string, lt: number): number {
 
 /**
  * Delivers a CDATA section as text — uninterpreted, so no entity in it is decoded — and returns
- * the offset past it.
+ * the offset past it. Its line endings are still normalized: XML applies that to the whole entity
+ * before markup is recognized, CDATA included.
  */
 function readCdata(xml: string, lt: number, handlers: XmlHandlers): number {
   const end = xml.indexOf(']]>', lt);
@@ -200,7 +314,7 @@ function readCdata(xml: string, lt: number, handlers: XmlHandlers): number {
   }
 
   if (handlers.text) {
-    handlers.text(xml.slice(lt + 9, end));
+    handlers.text(normalizeLineEndings(xml.slice(lt + 9, end)));
   }
 
   return end + 3;
@@ -289,7 +403,7 @@ function readAttribute(xml: string, from: number, lt: number): XmlAttribute {
     malformed(lt);
   }
 
-  return { name, value: decodeXmlEntities(xml.slice(k + 1, valueEnd)), end: valueEnd + 1 };
+  return { name, value: decodeXmlEntities(normalizeLineEndings(xml.slice(k + 1, valueEnd))), end: valueEnd + 1 };
 }
 
 /**

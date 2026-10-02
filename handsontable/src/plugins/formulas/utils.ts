@@ -1,4 +1,5 @@
-import { EXCEL_EPOCH_UTC, MS_PER_DAY, isValidISODate } from '../../helpers/dateTime';
+import { isValidISODate } from '../../helpers/dateTime';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
 
 /**

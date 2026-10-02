@@ -3,12 +3,13 @@ import { DROPPED_FEATURES, type DroppedFeatureName, type DroppedFeatures } from 
 import { parseCellRef, parseMultiRangeRef, parseRangeRef } from '../../../cellRef';
 import { EXCEL_EPOCH_OFFSET, MS_PER_DAY } from '../../../dates';
 import { translateSharedFormula } from '../../../formulaRefs';
+import { isTemporalFormatCode } from '../../../numFmtCode';
 import {
   MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_TRANSLATED_FORMULA_CHARS,
   MAX_WORKBOOK_CELLS, throwCellLimit, throwColumnLimit, throwLimitExceeded, throwRowLimit,
 } from '../../../limits';
 import {
-  createCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot,
+  createCellSnapshot, createCoveredCellSnapshot, createSheetSnapshot, isProtectionOptionName, type CellSnapshot,
   type CellValidationSnapshot, type CellValue,
   type SheetProtectionOptions, type SheetSnapshot,
 } from '../../../model';
@@ -28,7 +29,8 @@ import type { DxfStyle, ParsedStyles } from './styles';
  */
 export interface WorkbookBudget {
   /**
-   * Cells declared so far, charged by `assertSheetFits`.
+   * Cells declared so far, charged by the worksheet parser (`#settleWorkbookCharge`; `assertSheetFits`
+   * for a single-step caller).
    */
   declaredCells: number;
   /**
@@ -58,25 +60,6 @@ export interface WorksheetReadContext {
 const DATE_1904_OFFSET = 1462;
 
 /**
- * The `date1904` shift applies to cells whose format reads as a date or time; this mirrors the
- * import's own heuristic loosely (any of the temporal codes outside quotes and brackets).
- *
- * The bracket pattern refuses to cross a `[`: `\[[^\]]*\]` re-scanned to the end from every `[`
- * of a run that no `]` ever closes, quadratic in the run, and it ran once per numeric cell of a
- * 1904 workbook — 40 000 brackets cost ~550 ms per cell. A well-formed section reads the same
- * either way, because a section never holds a `[`.
- */
-function isTemporalFormat(numFmt: string | null): boolean {
-  if (numFmt === null) {
-    return false;
-  }
-
-  const stripped = numFmt.replace(/\[[^[\]]*\]/g, '').replace(/"[^"]*"/g, '');
-
-  return /[ymdhs]/i.test(stripped);
-}
-
-/**
  * Refuses a sheet whose declared rectangle cannot be materialized. Same messages as the ExcelJS
  * adapter; `cellColCount` is the width the cell matrix needs, `layoutColCount` includes columns
  * that only carry a width or a hidden flag.
@@ -101,9 +84,9 @@ function assertSheetRectangle(
 }
 
 /**
- * The rectangle check plus the running workbook budget. A zero-cell row still costs one array
- * (`max(cellColCount, 1)`), the column layout is added on top, and the whole sheet costs at least
- * one unit, so many empty sheets cannot slip under the cap together.
+ * The rectangle check plus the running workbook budget, charged in one step. The worksheet parser
+ * charges its sheet in two (the declared rectangle before a row exists, the real one at the end);
+ * this is the single-step form for a caller that knows the final extent up front.
  */
 export function assertSheetFits(
   name: string,
@@ -114,13 +97,26 @@ export function assertSheetFits(
 ): void {
   assertSheetRectangle(name, rowCount, cellColCount, layoutColCount);
 
-  // A sheet always costs at least one unit, whatever it declares: a sheet with no `<row>` and no
-  // `<col>` charged `0 * 1 + 0 = 0`, so a workbook of empty sheets never advanced the budget at all
-  // while each of those sheets still cost a full inflate and tokenize of its part.
-  budget.declaredCells += Math.max((rowCount * Math.max(cellColCount, 1)) + layoutColCount, 1);
+  budget.declaredCells += sheetBudgetUnits(rowCount, cellColCount, layoutColCount);
+  assertWorkbookBudget(budget.declaredCells);
+}
 
-  if (budget.declaredCells > MAX_WORKBOOK_CELLS) {
-    throwLimitExceeded(`The workbook declares ${budget.declaredCells} cells across its sheets, `
+/**
+ * What one sheet costs the workbook budget. A zero-cell row still costs one array, the column layout
+ * is added on top, and a sheet always costs at least one unit, whatever it declares: a sheet with no
+ * `<row>` and no `<col>` charged `0 * 1 + 0 = 0`, so a workbook of empty sheets never advanced the
+ * budget at all while each of those sheets still cost a full inflate and tokenize of its part.
+ */
+function sheetBudgetUnits(rowCount: number, cellColCount: number, layoutColCount: number): number {
+  return Math.max((rowCount * Math.max(cellColCount, 1)) + layoutColCount, 1);
+}
+
+/**
+ * Refuses the workbook once its running cell total crosses `MAX_WORKBOOK_CELLS`.
+ */
+function assertWorkbookBudget(declaredCells: number): void {
+  if (declaredCells > MAX_WORKBOOK_CELLS) {
+    throwLimitExceeded(`The workbook declares ${declaredCells} cells across its sheets, `
       + `above the ${MAX_WORKBOOK_CELLS}-cell limit this reader accepts.`);
   }
 }
@@ -261,6 +257,21 @@ const CF_ELEMENTS = new Set(['conditionalFormatting', 'cfRule', 'formula']);
 const VALIDATION_ELEMENTS = new Set(['dataValidation', 'formula1', 'formula2']);
 
 /**
+ * The local names of the Excel 2010 extension elements a list validation is stored in when its
+ * source sits on another sheet: `<x14:dataValidation>`, its `<xm:f>` formulae and its `<xm:sqref>`.
+ * They are matched only inside an `<extLst>`, by the name after their prefix, which the file
+ * chooses.
+ */
+const EXT_VALIDATION_ELEMENTS = new Set(['dataValidation', 'f', 'sqref']);
+
+/**
+ * The part of an element name after its namespace prefix.
+ */
+function afterPrefix(name: string): string {
+  return name.slice(name.indexOf(':') + 1);
+}
+
+/**
  * Elements whose mere presence means a feature the model cannot carry, by the name it is recorded
  * under. Nothing else about them is read.
  */
@@ -305,8 +316,8 @@ class WorksheetParser {
   #sheet: SheetSnapshot;
 
   /**
-   * The snapshot's OWN row array, aliased rather than copied: the declared tail rows a
-   * `<dimension>` pre-allocates are part of what the reader returns.
+   * The snapshot's OWN row array, aliased rather than copied: the rows the parser fills are what the
+   * reader returns. `<dimension>` pre-allocates none of them; the count follows the last `<row>`.
    */
   #rows: Array<Array<CellSnapshot | null>>;
 
@@ -412,6 +423,43 @@ class WorksheetParser {
   #validationFormula: string[] | null = null;
 
   /**
+   * How many `<extLst>` elements are open. Inside one, only the extension validation elements are
+   * read; nothing else in an extension list belongs to the main schema.
+   */
+  #extDepth = 0;
+
+  /**
+   * The `<x14:dataValidation>` being read inside an `<extLst>`.
+   */
+  #extValidation: ValidationState | null = null;
+
+  /**
+   * The text chunks of the `<xm:f>` or `<xm:sqref>` being read inside an extension validation.
+   */
+  #extText: string[] | null = null;
+
+  /**
+   * The cells a list validation materialized in slots that held nothing, one object per
+   * `<dataValidation>` shared by every such slot it covers. A whole-column range over rows that hold
+   * no cells otherwise allocated a cell snapshot per covered slot. Kept apart so a later validation
+   * replaces such a cell in its slot instead of rewriting the object the earlier one shares.
+   */
+  #validationOnlyCells = new WeakSet<CellSnapshot>();
+
+  /**
+   * How many units this sheet has charged the workbook budget so far: the declared rectangle once
+   * `<dimension>` is read, the real extent once the walk is done.
+   */
+  #chargedCells = 0;
+
+  /**
+   * How many cells the workbook budget still allowed when this sheet started, which the cell walk
+   * checks its own extent against as it grows, so the budget refuses before the cells exist rather
+   * than after.
+   */
+  #workbookRoom: number;
+
+  /**
    * The `<conditionalFormatting>` block being read.
    */
   #cf: CfState | null = null;
@@ -443,6 +491,7 @@ class WorksheetParser {
     this.#sheet = createSheetSnapshot(ctx.name);
     this.#rows = this.#sheet.rows;
     this.#sheet.state = ctx.state;
+    this.#workbookRoom = MAX_WORKBOOK_CELLS - ctx.budget.declaredCells;
   }
 
   /**
@@ -501,9 +550,10 @@ class WorksheetParser {
   }
 
   /**
-   * Returns the cell at 0-based coordinates, creating it and growing the row on the way.
+   * Returns the row holding the slot at 0-based coordinates, growing the row and the sheet's width
+   * to reach it and refusing a slot past the caps. The slot itself is left as it is.
    */
-  #cellAt(rowIndex: number, colIndex: number): CellSnapshot {
+  #reserveSlot(rowIndex: number, colIndex: number): Array<CellSnapshot | null> {
     if (colIndex + 1 > MAX_SHEET_COLUMNS) {
       throwColumnLimit(this.#ctx.name, colIndex + 1);
     }
@@ -516,15 +566,49 @@ class WorksheetParser {
 
     this.#width = Math.max(this.#width, colIndex + 1);
 
-    if (this.#rows.length * this.#width > MAX_SHEET_CELLS) {
+    const cells = this.#rows.length * this.#width;
+
+    if (cells > MAX_SHEET_CELLS) {
       throwCellLimit(this.#ctx.name, this.#rows.length, this.#width);
     }
 
-    if (row[colIndex] === null) {
-      row[colIndex] = createCellSnapshot();
+    // The workbook budget is charged for real at the end of the sheet, but by then the cells exist:
+    // 2048 sheets of 4000 cells each sat under the cap and cost 1.58 GB first. The extent only ever
+    // grows, so refusing here as soon as it outgrows the room left never refuses a sheet the final
+    // charge would have accepted.
+    if (cells > this.#workbookRoom) {
+      assertWorkbookBudget(MAX_WORKBOOK_CELLS - this.#workbookRoom + cells);
     }
 
-    return row[colIndex] as CellSnapshot;
+    return row;
+  }
+
+  /**
+   * Returns the cell at 0-based coordinates, creating it and growing the row on the way.
+   */
+  #cellAt(rowIndex: number, colIndex: number): CellSnapshot {
+    const row = this.#reserveSlot(rowIndex, colIndex);
+    let cell = row[colIndex];
+
+    if (cell === null) {
+      cell = createCellSnapshot();
+      row[colIndex] = cell;
+    }
+
+    return cell;
+  }
+
+  /**
+   * Settles this sheet's charge against the workbook budget at `units`, refusing the workbook when
+   * the total crosses the cap. A later call replaces an earlier one rather than adding to it, so the
+   * declared rectangle charged up front is given back when the real extent turns out smaller.
+   */
+  #settleWorkbookCharge(units: number): void {
+    const { budget } = this.#ctx;
+
+    budget.declaredCells += units - this.#chargedCells;
+    this.#chargedCells = units;
+    assertWorkbookBudget(budget.declaredCells);
   }
 
   /**
@@ -532,6 +616,12 @@ class WorksheetParser {
    */
   #open(rawName: string, attrs: XmlAttributes, selfClosing: boolean): void {
     const name = this.#localName(rawName);
+
+    if (this.#extDepth > 0 || name === 'extLst') {
+      this.#openExtElement(name, attrs, selfClosing);
+
+      return;
+    }
 
     if (this.#isInlineStringElement(name)) {
       this.#inlineRuns.open(name, attrs, selfClosing);
@@ -596,14 +686,17 @@ class WorksheetParser {
     const dimension = attrs.ref === undefined ? null : parseDimension(attrs.ref);
 
     if (dimension) {
-      // Refuse the declared rectangle before a single row exists. `<cols>` comes after
-      // `<dimension>` in the part, so the layout width is not known yet; the workbook budget
-      // is charged once at the end, when it is.
+      // Refuse the declared rectangle before a single row exists, and charge it against the workbook
+      // budget now rather than once the cells are built. `<cols>` comes after `<dimension>` in the
+      // part, so the layout width is not known yet; the charge is settled at the real extent at the
+      // end, which gives back whatever the declaration overstated.
       assertSheetRectangle(this.#ctx.name, dimension.endRow, dimension.endCol, dimension.endCol);
+      this.#settleWorkbookCharge(sheetBudgetUnits(dimension.endRow, dimension.endCol, dimension.endCol));
+      // The declaration bounds the merge and validation clamps, and allocates nothing: the row
+      // count follows the last `<row>` or `<c>`, as ExcelJS's does. Pre-allocating the declared
+      // rows made three rows under `A1:B5000` a 5000-row sheet, and a million-row declaration with
+      // no row at all a million empty arrays that a validation then filled with cells.
       this.#declaredColumns = dimension.endCol;
-      // A declared tail row with no `<row>` element still exists, as `[]` – the ExcelJS
-      // adapter reports `rowCount` from the same declaration.
-      this.#ensureRow(dimension.endRow - 1);
     }
   }
 
@@ -714,11 +807,16 @@ class WorksheetParser {
 
   /**
    * Reads one `<mergeCell>`. The members are materialized after the walk.
+   *
+   * Each one is charged a unit of the span budget as it is collected. The materializing pass charges
+   * only a merge that still reaches the sheet, so a tiny sheet carrying any number of merges far
+   * outside it kept them all, uncharged, on the snapshot.
    */
   #openMergeCell(attrs: XmlAttributes): void {
     const range = attrs.ref === undefined ? null : parseRangeRef(attrs.ref);
 
     if (range) {
+      this.#chargeSpan(1);
       this.#sheet.merges.push({
         row: range.startRow - 1,
         col: range.startCol - 1,
@@ -732,6 +830,14 @@ class WorksheetParser {
    * Reads `<sheetProtection>` through the model's allow-list.
    */
   #openProtection(attrs: XmlAttributes): void {
+    // The schema defaults `sheet` to false: `<sheetProtection formatCells="0"/>` alone (Apache POI
+    // writes it) records permissions for a sheet nobody protected, which Excel opens as an OPEN
+    // sheet - and reading it as protected imported every cell read-only. Such an element reads as
+    // no protection at all and records nothing, exactly as the ExcelJS adapter reads it.
+    if (attrs.sheet !== '1' && attrs.sheet !== 'true') {
+      return;
+    }
+
     const options: SheetProtectionOptions = {};
 
     // An ALLOW-LIST, not a shape test: the element's attributes come verbatim from the file,
@@ -814,7 +920,8 @@ class WorksheetParser {
       row: address.row,
       col: address.col,
       type: attrs.t,
-      styleIndex: Number(attrs.s ?? 0),
+      // `xsd:unsignedInt` only: `Number()` read `s="0x1"` and `s="1e0"` as 1.
+      styleIndex: parseUnsignedIntAttr(attrs.s) ?? 0,
       formulaAttrs: null,
       formulaText: '',
       formulaTooLong: false,
@@ -934,7 +1041,9 @@ class WorksheetParser {
   #text(text: string): void {
     const cell = this.#cell;
 
-    if (cell && this.#inValue) {
+    if (this.#extText !== null) {
+      this.#extText.push(text);
+    } else if (cell && this.#inValue) {
       cell.valueText = (cell.valueText ?? '') + text;
     } else if (cell && this.#inFormula) {
       this.#appendFormulaText(cell, text);
@@ -953,7 +1062,9 @@ class WorksheetParser {
   #close(rawName: string): void {
     const name = this.#localName(rawName);
 
-    if (this.#isInlineStringElement(name)) {
+    if (this.#extDepth > 0) {
+      this.#closeExtElement(name);
+    } else if (this.#isInlineStringElement(name)) {
       this.#inlineRuns.close(name);
     } else if (CELL_ELEMENTS.has(name)) {
       this.#closeCellElement(name);
@@ -1042,10 +1153,17 @@ class WorksheetParser {
   #closeValidation(): void {
     const validation = this.#validation;
 
-    if (validation === null) {
-      return;
+    if (validation !== null) {
+      this.#fileValidation(validation);
+      this.#validation = null;
     }
+  }
 
+  /**
+   * Queues a finished list validation for the post-walk pass, or records a kind the model has no room
+   * for. Both the main `<dataValidation>` and the extension `<x14:dataValidation>` end here.
+   */
+  #fileValidation(validation: ValidationState): void {
     if (validation.type === 'list') {
       this.#pendingValidations.push({
         sqref: validation.sqref, formulae: validation.formulae, allowBlank: validation.allowBlank,
@@ -1053,8 +1171,70 @@ class WorksheetParser {
     } else {
       this.#ctx.dropped.recordUnsupported('dataValidation', validation.type);
     }
+  }
 
-    this.#validation = null;
+  /**
+   * Handles an open element inside an `<extLst>` (or the `<extLst>` itself). Excel 2010 and later
+   * store a list validation whose source range sits on another sheet ONLY here, as
+   * `<x14:dataValidation>` with `<xm:f>` formulae and an `<xm:sqref>`, and leave it out of
+   * `<dataValidations>`; ignoring the extension lost the dropdown with nothing recorded.
+   */
+  #openExtElement(name: string, attrs: XmlAttributes, selfClosing: boolean): void {
+    if (name === 'extLst') {
+      this.#extDepth += selfClosing ? 0 : 1;
+
+      return;
+    }
+
+    const local = afterPrefix(name);
+
+    if (!EXT_VALIDATION_ELEMENTS.has(local)) {
+      return;
+    }
+
+    if (local === 'dataValidation') {
+      this.#extValidation = {
+        sqref: '',
+        type: attrs.type ?? 'any',
+        allowBlank: attrs.allowBlank === '1' || attrs.allowBlank === 'true',
+        formulae: [],
+      };
+    } else if (this.#extValidation !== null && !selfClosing) {
+      this.#extText = [];
+    }
+  }
+
+  /**
+   * Handles a close event inside an `<extLst>`.
+   */
+  #closeExtElement(name: string): void {
+    if (name === 'extLst') {
+      this.#extDepth -= 1;
+
+      return;
+    }
+
+    const local = afterPrefix(name);
+    const validation = this.#extValidation;
+
+    if (validation === null || !EXT_VALIDATION_ELEMENTS.has(local)) {
+      return;
+    }
+
+    if (local === 'dataValidation') {
+      this.#fileValidation(validation);
+      this.#extValidation = null;
+    } else if (this.#extText !== null) {
+      const text = this.#extText.join('');
+
+      if (local === 'f') {
+        validation.formulae.push(text);
+      } else {
+        validation.sqref = text;
+      }
+    }
+
+    this.#extText = null;
   }
 
   /**
@@ -1100,12 +1280,14 @@ class WorksheetParser {
 
   /**
    * A numeric `<v>`, shifted into the 1900 system when the workbook counts from 1904 and the cell's
-   * format reads as a date or a time.
+   * format reads as a date or a time. The question is answered by `isTemporalFormatCode`, the
+   * import's own classification: a reader-local letter test saw the `h` of `0.0\h` (a literal) and
+   * of `CHF`, and shifted serials the import then showed as numbers.
    */
   #numberValue(rawText: string, numFmt: string | null): CellValue {
     const value = toNumber(rawText);
 
-    if (this.#ctx.date1904 && typeof value === 'number' && isTemporalFormat(numFmt)) {
+    if (this.#ctx.date1904 && typeof value === 'number' && isTemporalFormatCode(numFmt)) {
       return value + DATE_1904_OFFSET;
     }
 
@@ -1218,22 +1400,29 @@ class WorksheetParser {
   }
 
   /**
-   * Merges: the master keeps its content, every covered cell reads as empty. A merge member with
+   * Merges: the master keeps its content, every covered cell keeps only its own style and lock. A merge member with
    * no `<c>` element of its own is MATERIALIZED here as an explicit `null`, which is what ExcelJS
    * returns for the same file — without it a merge whose covered cells were never written (the
    * native writer emits no `<c>` for an unstyled covered cell) left the row one column short, and
    * `importFile`'s mapper, which takes the sheet width from the widest row, then dropped the merge.
    */
   #materializeMerges(): void {
-    this.#sheet.merges.forEach((merge) => {
+    // The dimension is the column bound, the same one the validation pass below uses: both the
+    // native writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
+    // malformed and stays clamped rather than growing the sheet on a hostile file's say-so. A sheet
+    // that declares NO dimension (openpyxl's write-only mode, ExcelJS's streaming writer) has no
+    // such bound, and clamping to the widest row cropped a merge whose covered cells carry no `<c>`:
+    // there the merge widens the sheet, and the span charge below bounds a hostile one.
+    const colBound = this.#declaredColumns === 0 ? MAX_SHEET_COLUMNS : Math.max(this.#width, this.#declaredColumns, 1);
+
+    // A merge that clamps to nothing is DROPPED rather than kept: it covers no cell the sheet holds,
+    // and keeping it left any number of far-away merges on the snapshot of a one-cell sheet.
+    this.#sheet.merges = this.#sheet.merges.filter((merge) => {
       const lastRow = Math.min(merge.row + merge.rowspan, this.#rows.length);
-      // The dimension is the bound, the same one the validation pass below uses: both the native
-      // writer and Excel include every merge in `<dimension>`, so a merge reaching past it is
-      // malformed and stays clamped rather than growing the sheet on a hostile file's say-so.
-      const lastCol = Math.min(merge.col + merge.colspan, Math.max(this.#width, this.#declaredColumns, 1));
+      const lastCol = Math.min(merge.col + merge.colspan, colBound);
 
       if (lastRow <= merge.row || lastCol <= merge.col) {
-        return;
+        return false;
       }
 
       // The third span kind, and the one the budget originally missed. Like the column and
@@ -1242,17 +1431,20 @@ class WorksheetParser {
       // padding below walks no further than this charge already paid for.
       this.#chargeSpan((lastRow - merge.row) * (lastCol - merge.col));
 
-      // `assertSheetFits` below re-checks the rectangle with the grown width, so a whole-sheet merge
+      // `#finalize` re-checks the rectangle with the grown width, so a whole-sheet merge
       // is still refused rather than silently widening the sheet.
       this.#width = Math.max(this.#width, lastCol);
 
       this.#padMergeMembers(merge.row, merge.col, lastRow, lastCol);
+
+      return true;
     });
   }
 
   /**
-   * Pads every row of a merge's row range up to its last column and blanks every member but the
-   * master. The span this walks was already charged by the caller.
+   * Pads every row of a merge's row range up to its last column and empties every member but the
+   * master down to its own style and lock (`createCoveredCellSnapshot`). The span this walks was
+   * already charged by the caller.
    */
   #padMergeMembers(startRow: number, startCol: number, lastRow: number, lastCol: number): void {
     for (let r = startRow; r < lastRow; r++) {
@@ -1263,8 +1455,10 @@ class WorksheetParser {
       }
 
       for (let c = startCol; c < lastCol; c++) {
-        if (r !== startRow || c !== startCol) {
-          row[c] = null;
+        const member = row[c];
+
+        if ((r !== startRow || c !== startCol) && member !== null) {
+          row[c] = createCoveredCellSnapshot(member.style, member.locked);
         }
       }
     }
@@ -1292,9 +1486,10 @@ class WorksheetParser {
       // One object per `<dataValidation>`, shared by every cell it covers: nothing downstream
       // mutates a cell's validation, and a whole-column range no longer allocates one per cell.
       const validation: CellValidationSnapshot = { type: 'list', formulae, allowBlank };
+      const shared: { cell: CellSnapshot | null } = { cell: null };
 
       parseMultiRangeRef(sqref).forEach((range) => {
-        this.#applyValidationRange(range, validation);
+        this.#applyValidationRange(range, validation, shared);
       });
     });
   }
@@ -1305,6 +1500,7 @@ class WorksheetParser {
   #applyValidationRange(
     range: { startRow: number; startCol: number; endRow: number; endCol: number },
     validation: CellValidationSnapshot,
+    shared: { cell: CellSnapshot | null },
   ): void {
     const lastRow = Math.min(range.endRow, this.#rows.length);
     const lastCol = Math.min(range.endCol, Math.max(this.#width, this.#declaredColumns, 1));
@@ -1317,9 +1513,38 @@ class WorksheetParser {
 
     for (let r = range.startRow; r <= lastRow; r++) {
       for (let c = range.startCol; c <= lastCol; c++) {
-        this.#cellAt(r - 1, c - 1).validation = validation;
+        this.#validateSlot(r - 1, c - 1, validation, shared);
       }
     }
+  }
+
+  /**
+   * Puts one validation on one slot. A cell the sheet already holds takes the validation itself; a
+   * slot that held nothing - or only another validation's shared cell - takes this validation's
+   * shared cell, created on first use.
+   */
+  #validateSlot(
+    rowIndex: number,
+    colIndex: number,
+    validation: CellValidationSnapshot,
+    shared: { cell: CellSnapshot | null },
+  ): void {
+    const row = this.#reserveSlot(rowIndex, colIndex);
+    const existing = row[colIndex];
+
+    if (existing !== null && !this.#validationOnlyCells.has(existing)) {
+      existing.validation = validation;
+
+      return;
+    }
+
+    if (shared.cell === null) {
+      shared.cell = createCellSnapshot();
+      shared.cell.validation = validation;
+      this.#validationOnlyCells.add(shared.cell);
+    }
+
+    row[colIndex] = shared.cell;
   }
 
   /**
@@ -1329,8 +1554,10 @@ class WorksheetParser {
   #finalize(): void {
     const sheet = this.#sheet;
 
-    assertSheetFits(this.#ctx.name, this.#rows.length, this.#width, Math.max(this.#width, this.#layoutColCount),
-      this.#ctx.budget);
+    const layoutColCount = Math.max(this.#width, this.#layoutColCount);
+
+    assertSheetRectangle(this.#ctx.name, this.#rows.length, this.#width, layoutColCount);
+    this.#settleWorkbookCharge(sheetBudgetUnits(this.#rows.length, this.#width, layoutColCount));
 
     // Padding: a row that carries a cell is padded to the sheet width; a row that never got one stays [].
     this.#rows.forEach((row) => {

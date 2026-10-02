@@ -1,4 +1,7 @@
+import type { DroppedFeatures } from '../../../capabilities';
+import { MAX_NUM_FMT_CODE_LENGTH } from '../../../limits';
 import type { CellStyleSnapshot } from '../../../model';
+import { parseUnsignedIntAttr } from '../xml/numbers';
 import { createLocalName, tokenizeXml, type XmlAttributes } from '../xml/tokenizer';
 import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
@@ -782,6 +785,18 @@ class StylesParser {
   #localName = createLocalName();
 
   /**
+   * Where a number-format code too long to keep is recorded, when the caller collects that.
+   */
+  #dropped: DroppedFeatures | null;
+
+  /**
+   * Starts a reader for one `xl/styles.xml`.
+   */
+  constructor(dropped: DroppedFeatures | null) {
+    this.#dropped = dropped;
+  }
+
+  /**
    * Reads the part and returns the tables it resolved.
    */
   parse(xml: string): ParsedStyles {
@@ -862,7 +877,8 @@ class StylesParser {
    * Opens a `<numFmt>`, which belongs either to the workbook's table or to a `<dxf>`. The code is
    * kept verbatim: stripping `\x` escapes turned `0.0\%` (a literal percent sign) into `0.0%` (a
    * scaling one, 12.5 shown as 1250.0%) and `0\d` into `0d`, which the import then typed as a
-   * date, while the ExcelJS adapter handed the same file's code through untouched.
+   * date. ExcelJS 4.4.0's reader does strip every `\x` (`numfmt-xform.js`), so the two engines disagree on
+   * such a code; that divergence is pinned in `enginesParity.unit.js`.
    */
   #openNumFmt(attrs: XmlAttributes): void {
     if (attrs.formatCode === undefined) {
@@ -871,12 +887,29 @@ class StylesParser {
 
     const { formatCode } = attrs;
 
+    // Excel caps a code at `MAX_NUM_FMT_CODE_LENGTH` characters. A longer one is the file's own text
+    // and was stored whole, and the import then ran its inference (and `recordUnsupported`, which
+    // walks the code by code point) once per CELL: one 1 MB code on 20 000 cells took 139 s. It is
+    // dropped here, recorded once per `<numFmt>` from a prefix that is enough for the bounded
+    // dropped name, and its cells resolve as if no custom format had been declared.
+    if (formatCode.length > MAX_NUM_FMT_CODE_LENGTH) {
+      this.#dropped?.recordUnsupported('numFmt', formatCode.slice(0, MAX_NUM_FMT_CODE_LENGTH));
+
+      return;
+    }
+
     // A `<numFmt>` inside a `<dxf>` belongs to that rule's style, not to the workbook's
     // table, so it must not shadow an id the cell formats resolve against.
     if (this.#section() === 'dxfs' && this.#dxf) {
       this.#dxf.numFmt = formatCode;
-    } else if (attrs.numFmtId !== undefined) {
-      this.#customNumFmts.set(Number(attrs.numFmtId), formatCode);
+    } else {
+      // `xsd:unsignedInt` only: `Number()` keyed `0x10` as 16 and `1e3` as 1000, so a code
+      // registered under an id the schema does not allow shadowed a real one.
+      const id = parseUnsignedIntAttr(attrs.numFmtId);
+
+      if (id !== null) {
+        this.#customNumFmts.set(id, formatCode);
+      }
     }
   }
 
@@ -999,11 +1032,14 @@ class StylesParser {
   #openXfChild(name: string, attrs: XmlAttributes): void {
     if (name === 'xf') {
       if (this.#section() === 'cellXfs') {
+        // Each index is read by its `xsd:unsignedInt` form, and one that is not one reads as the
+        // schema default 0: `Number()` took `0x10` as 16 and `1e0` as 1, resolving a built-in date
+        // format and a font the file never pointed at.
         this.#xf = {
-          numFmtId: Number(attrs.numFmtId ?? 0),
-          fontId: Number(attrs.fontId ?? 0),
-          fillId: Number(attrs.fillId ?? 0),
-          borderId: Number(attrs.borderId ?? 0),
+          numFmtId: parseUnsignedIntAttr(attrs.numFmtId) ?? 0,
+          fontId: parseUnsignedIntAttr(attrs.fontId) ?? 0,
+          fillId: parseUnsignedIntAttr(attrs.fillId) ?? 0,
+          borderId: parseUnsignedIntAttr(attrs.borderId) ?? 0,
           alignment: null,
           locked: null,
         };
@@ -1148,8 +1184,9 @@ class StylesParser {
 }
 
 /**
- * Parses `xl/styles.xml` into resolved cell formats and conditional-formatting styles.
+ * Parses `xl/styles.xml` into resolved cell formats and conditional-formatting styles. A number-format
+ * code above `MAX_NUM_FMT_CODE_LENGTH` is dropped and, when `dropped` is given, recorded there.
  */
-export function parseStyles(xml: string): ParsedStyles {
-  return new StylesParser().parse(xml);
+export function parseStyles(xml: string, dropped: DroppedFeatures | null = null): ParsedStyles {
+  return new StylesParser(dropped).parse(xml);
 }

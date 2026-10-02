@@ -27,18 +27,22 @@ const DEFAULT_TOP10_RANK = 10;
 
 /**
  * A rule object as the `conditionalFormatting` export option carries it. The option is public and
- * untyped, so every member is read through the three accessors below rather than asserted: they
+ * untyped, so every member is read through the accessors below rather than asserted: they
  * state the contract once instead of casting at each of the dozen places a member is read.
  */
 type RuleObject = Record<string, unknown>;
 
 /**
- * A rule member that has to be a number, or `undefined` when the rule carries something else.
+ * A rule member that has to be a positive whole number, or `undefined` when the rule carries
+ * anything else. A `priority` and a `rank` are both `xsd:int` counts starting at 1: one `NaN`
+ * priority made `maxRulePriority` answer `NaN` and every rule without its own priority was then
+ * written as `priority="NaN"`, which Excel opens with the repair dialog. The reader drops the same
+ * values (`cfRuleFromXml`).
  */
-function readNumber(rule: RuleObject, key: string): number | undefined {
+function readPositiveInteger(rule: RuleObject, key: string): number | undefined {
   const value = rule[key];
 
-  return typeof value === 'number' ? value : undefined;
+  return typeof value === 'number' && Number.isInteger(value) && value >= 1 ? value : undefined;
 }
 
 /**
@@ -68,7 +72,7 @@ export function maxRulePriority(blocks: Array<{ rules: unknown[] }>): number {
 
   blocks.forEach(({ rules }) => rules.forEach((rule) => {
     if (isPlainObject(rule)) {
-      max = Math.max(max, readNumber(rule, 'priority') ?? 0);
+      max = Math.max(max, readPositiveInteger(rule, 'priority') ?? 0);
     }
   }));
 
@@ -132,7 +136,7 @@ const writeExpressionRule: CfRuleWriter = (w, { base, formulae, dropped }) => {
     return false;
   }
 
-  w.open('cfRule', base).leaf('formula', undefined, formulae[0]).close();
+  w.open('cfRule', base).formulaLeaf('formula', formulae[0]).close();
 
   return true;
 };
@@ -142,7 +146,7 @@ const writeExpressionRule: CfRuleWriter = (w, { base, formulae, dropped }) => {
  */
 const writeCellIsRule: CfRuleWriter = (w, { rule, base, formulae }) => {
   w.open('cfRule', { ...base, operator: readString(rule, 'operator') ?? 'equal' });
-  formulae.forEach(formula => w.leaf('formula', undefined, formula));
+  formulae.forEach(formula => w.formulaLeaf('formula', formula));
   w.close();
 
   return true;
@@ -161,7 +165,7 @@ const writeContainsTextRule: CfRuleWriter = (w, { rule, base, formulae, ref }) =
   const textAttr = operator === 'containsText' && text !== '' ? text : undefined;
 
   w.open('cfRule', { ...base, type: operator, operator, text: textAttr });
-  w.leaf('formula', undefined, formulae[0] ?? containsTextFormula(operator, text, topLeftOf(ref)));
+  w.formulaLeaf('formula', formulae[0] ?? containsTextFormula(operator, text, topLeftOf(ref)));
   w.close();
 
   return true;
@@ -173,7 +177,7 @@ const writeContainsTextRule: CfRuleWriter = (w, { rule, base, formulae, ref }) =
 const writeTop10Rule: CfRuleWriter = (w, { rule, base }) => {
   w.leaf('cfRule', {
     ...base,
-    rank: readNumber(rule, 'rank') ?? DEFAULT_TOP10_RANK,
+    rank: readPositiveInteger(rule, 'rank') ?? DEFAULT_TOP10_RANK,
     percent: rule.percent === true ? '1' : undefined,
     bottom: rule.bottom === true ? '1' : undefined,
   });
@@ -202,7 +206,7 @@ const writeTimePeriodRule: CfRuleWriter = (w, { rule, base, formulae, dropped })
     return false;
   }
 
-  w.open('cfRule', { ...base, timePeriod }).leaf('formula', undefined, formulae[0]).close();
+  w.open('cfRule', { ...base, timePeriod }).formulaLeaf('formula', formulae[0]).close();
 
   return true;
 };
@@ -226,7 +230,7 @@ const RULE_WRITERS = new Map<string, CfRuleWriter>([
  * running counter, which the rule then consumes.
  */
 function nextRulePriority(rule: RuleObject, priority: PriorityCounter): number {
-  const declared = readNumber(rule, 'priority');
+  const declared = readPositiveInteger(rule, 'priority');
 
   if (declared !== undefined) {
     return declared;
@@ -383,8 +387,12 @@ export function cfRuleFromXml(attrs: XmlAttributes, formulae: string[], dxfs: Dx
 
   applyKindSpecificAttributes(rule, type, attrs);
 
-  if (attrs.dxfId !== undefined) {
-    const style = dxfs[Number(attrs.dxfId)];
+  // `xsd:unsignedInt`, never `Number()`: `''` read as 0 and `'1e0'` as 1, so a malformed id borrowed
+  // another rule's differential style.
+  const dxfId = parseUnsignedIntAttr(attrs.dxfId);
+
+  if (dxfId !== null) {
+    const style = dxfs[dxfId];
 
     // Shallow-copied: `dxfs[…]` is the one object `ParsedStyles` holds for this id, and every rule
     // that shares a `dxfId` would otherwise get the SAME instance — a caller mutating one rule's

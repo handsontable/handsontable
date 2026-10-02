@@ -415,3 +415,103 @@ describe('mapWorkbook on a merge whose covered cells were never written', () => 
     expect(viaNative.data).toEqual(viaExcelJs.data);
   });
 });
+
+describe('mapWorkbook on a protected sheet with an unlocked cell under a merge', () => {
+  /**
+   * Writes a protected sheet whose merge A1:B1 covers an UNLOCKED B1 with the given engine, reads
+   * the bytes back with the same engine and maps them the way the plugin does.
+   *
+   * @param {object} adapter The engine adapter.
+   * @param {object} engine The engine module, or `undefined` for the built-in one.
+   * @returns {Promise<object>}
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 'merged';
+    sheet.cell(1, 2).locked = false;
+    sheet.cell(1, 3).value = 'locked';
+    sheet.merge(1, 1, 1, 2);
+    sheet.protect('');
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({}),
+      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  /**
+   * The `readOnly` a cell ends up with: its own `cellsMeta` entry first, then its column's.
+   *
+   * @param {object} result The mapped import result.
+   * @param {number} row The 0-based row.
+   * @param {number} col The 0-based column.
+   * @returns {boolean}
+   */
+  function readOnlyAt(result, row, col) {
+    const own = (result.cellsMeta ?? []).find(meta => meta.row === row && meta.col === col && 'readOnly' in meta);
+
+    return own ? own.readOnly : (result.columns?.[col]?.readOnly ?? false);
+  }
+
+  it('should keep the covered cell editable, whichever engine read the file', async() => {
+    // A merge member used to be blanked to `null` on read, losing its own `locked="0"`, and the
+    // mapper imports a blank under sheet protection as read-only. It showed once the user unmerged.
+    for (const [adapter, engine] of [[nativeAdapter, undefined], [excelJsAdapter, ExcelJS]]) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const result = await roundTrip(adapter, engine);
+
+      expect(result.mergeCells).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+      expect(readOnlyAt(result, 0, 1)).toBe(false);
+      expect(readOnlyAt(result, 0, 0)).toBe(true);
+      expect(readOnlyAt(result, 0, 2)).toBe(true);
+    }
+  });
+});
+
+describe('mapWorkbook on a formula Excel stored with a function prefix', () => {
+  /**
+   * Writes one `_xlfn.`-prefixed formula with the given engine, reads the bytes back with the same
+   * engine and maps them with the Formulas plugin enabled, the way the plugin does.
+   *
+   * @param {object} adapter The engine adapter.
+   * @param {object} engine The engine module, or `undefined` for the built-in one.
+   * @returns {Promise<object>}
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 1;
+    sheet.cell(2, 1).value = 3;
+    sheet.cell(1, 2).formula = { text: '_xlfn.STDEV.S(A1:A2)', result: 1.4142135623730951 };
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({}),
+      { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  it('should hand HyperFormula the formula without the prefix, whichever engine read the file', async() => {
+    // Excel writes every post-2007 function as `_xlfn.<NAME>` in `<f>`, and both readers hand the
+    // stored text over verbatim. HyperFormula does not know `_xlfn.STDEV.S` and shows `#NAME?`.
+    const viaNative = await roundTrip(nativeAdapter, undefined);
+    const viaExcelJs = await roundTrip(excelJsAdapter, ExcelJS);
+
+    expect(viaNative.data[0][1]).toBe('=STDEV.S(A1:A2)');
+    expect(viaExcelJs.data[0][1]).toBe('=STDEV.S(A1:A2)');
+  });
+});

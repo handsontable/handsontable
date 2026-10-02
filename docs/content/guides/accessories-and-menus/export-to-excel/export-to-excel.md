@@ -102,7 +102,7 @@ XLSX export runs on the built-in engine. You can pass [ExcelJS](https://github.c
 
 Both engines write a sheet synchronously. A very large grid blocks the tab for as long as the sheet takes to serialize, and a multi-sheet export pays that for each sheet in turn, so export a large grid from an interaction the user started rather than on a timer.
 
-When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export with it. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes every conditional formatting rule kind and honors the numeric `compression` level, so it never reports a `conditionalFormatting:<type>` or `compressionLevel` key. It still reports `merge:overlap` when two merged ranges overlap, and both engines report `cellText:truncated`, `columnWidth:clamped`, and `rowHeight:clamped` when a value is past what Excel stores. The built-in engine writes `cellIs`, `expression`, and the `containsText` family (`containsText`, `containsBlanks`, `notContainsBlanks`, `containsErrors`, `notContainsErrors`), plus `top10`, `aboveAverage`, and `timePeriod` conditional formatting rules -- it reports every other rule kind, such as `colorScale`, `dataBar`, `iconSet`, `duplicateValues`, and `uniqueValues`, as a dropped feature. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
 
 These are the keys the export can report:
 
@@ -110,6 +110,9 @@ These are the keys the export can report:
 |---|---|
 | `compressionLevel` | You set a numeric `compression` level and the built-in engine cannot honor it. The Compression Streams API the engine packs with has no level parameter, so the archive uses the platform default. Pass `compression: false` to store the entries instead. |
 | `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
+| `cellText:truncated` | A text value is longer than 32,767 characters, the most an Excel cell holds. Both engines cut it to that length. |
+| `columnWidth:clamped` | A column is wider than 260 width units (about 1,820 pixels), the widest column Excel stores. Both engines write it at that width. |
+| `rowHeight:clamped` | A row is taller than 409.5 points (546 pixels), the tallest row Excel stores. Both engines write it at that height. |
 | `conditionalFormatting:<type>` | A conditional formatting rule kind the built-in engine does not write, such as `colorScale`, `dataBar` or `iconSet`. The rest of the block is written. |
 | `conditionalFormatting:other` | The bucket the rule kinds above count into once one export has already reported 32 distinct ones. See the note under this table. |
 | `conditionalFormatting:invalid` | A `conditionalFormatting` entry that is not a rule object with a string `type`. |
@@ -202,7 +205,7 @@ For more information, see the [Referencing the Handsontable instance in Vue 3](@
 The plugin exposes the following methods to export data.
 
 - [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable `.xlsx` file directly in the browser. Returns a `Promise` that resolves when the download starts.
-- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - exports the data as a JavaScript `Blob`. Returns a `Promise` that resolves with the `Blob`.
+- [`exportAsBlobAsync(format, options)`](@/api/exportFile.md#exportasblobasync) - exports the data as a JavaScript `Blob`. Returns a `Promise` that resolves with the `Blob`. The synchronous [`exportAsBlob()`](@/api/exportFile.md#exportasblob) throws for `'xlsx'`, because an XLSX file cannot be built synchronously.
 
 Both methods take two parameters. The first, `format`, must be `'xlsx'`. The second, `options`, is an optional object that configures the exported workbook.
 
@@ -217,7 +220,7 @@ const exportPlugin = hot.getPlugin('exportFile');
 await exportPlugin.downloadFileAsync('xlsx', { filename: 'my-report' });
 
 // Get a Blob (e.g. to upload to a server).
-const blob = await exportPlugin.exportAsBlob('xlsx', { filename: 'my-report' });
+const blob = await exportPlugin.exportAsBlobAsync('xlsx', { filename: 'my-report' });
 ```
 
 :::
@@ -264,7 +267,7 @@ Configure the plugin in Handsontable's settings under the `exportFile` key.
 
 ## Export options
 
-Pass these options as the second argument to `downloadFileAsync('xlsx', options)` or `exportAsBlob('xlsx', options)`.
+Pass these options as the second argument to `downloadFileAsync('xlsx', options)` or `exportAsBlobAsync('xlsx', options)`.
 
 | Option | Type / Default | Description |
 | ------ | -------------- | ----------- |

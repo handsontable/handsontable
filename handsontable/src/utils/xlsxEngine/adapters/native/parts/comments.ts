@@ -5,10 +5,23 @@ import { XmlWriter } from '../xml/writer';
 import { MAIN_NS } from './package';
 
 /**
- * The shape id Excel gives the first note of a sheet. Ids below it belong to the drawing objects
- * Excel reserves for itself, and every further note counts up from here.
+ * How many shape ids one VML drawing block holds. A drawing declares the blocks it uses in
+ * `<o:idmap data>`, and its shapes are numbered from `1024 * block + 1` upwards, so every drawing
+ * of the workbook needs blocks of its own: two notes sharing a shape id across sheets is the usual
+ * trigger of Excel's "repaired drawing" prompt. Excel and XlsxWriter allocate them the same way.
  */
-const VML_SHAPE_ID_BASE = 1025;
+const VML_BLOCK_SIZE = 1024;
+
+/**
+ * How many VML id blocks a drawing holding `noteCount` notes claims: one, plus one more for every
+ * 1024 notes, because the ids run from `1024 * first + 1` upwards and spill into the next block.
+ *
+ * @param {number} noteCount The number of notes in the drawing.
+ * @returns {number}
+ */
+export function vmlBlockCount(noteCount: number): number {
+  return Math.floor(noteCount / VML_BLOCK_SIZE) + 1;
+}
 
 /**
  * One cell note. `row` and `col` are 0-based; `ref` is the A1 address the same cell has.
@@ -42,15 +55,26 @@ export function commentsXml(comments: SheetComment[], author: string): string {
  * Serializes `xl/drawings/vmlDrawing{N}.vml`, the legacy drawing Excel needs to show a note.
  * Without it the comment data is in the file and nothing appears on the cell. LibreOffice and
  * Google Sheets read `comments{N}.xml` alone.
+ *
+ * `firstBlock` is the first VML id block this drawing owns, which the caller allocates across the
+ * WHOLE workbook (see `vmlBlockCount`); the drawing claims `vmlBlockCount(comments.length)` blocks
+ * from there and numbers its shapes from `1024 * firstBlock + 1`.
+ *
+ * @param {SheetComment[]} comments The sheet's notes.
+ * @param {number} firstBlock The first id block this drawing owns, 1 or more.
+ * @returns {string}
  */
-export function vmlDrawingXml(comments: SheetComment[]): string {
+export function vmlDrawingXml(comments: SheetComment[], firstBlock: number): string {
   const w = new XmlWriter().open('xml', {
     'xmlns:v': 'urn:schemas-microsoft-com:vml',
     'xmlns:o': 'urn:schemas-microsoft-com:office:office',
     'xmlns:x': 'urn:schemas-microsoft-com:office:excel',
   });
 
-  w.open('o:shapelayout', { 'v:ext': 'edit' }).leaf('o:idmap', { 'v:ext': 'edit', data: 1 }).close();
+  const blocks = Array.from({ length: vmlBlockCount(comments.length) }, (_unused, index) => firstBlock + index);
+  const firstShapeId = (VML_BLOCK_SIZE * firstBlock) + 1;
+
+  w.open('o:shapelayout', { 'v:ext': 'edit' }).leaf('o:idmap', { 'v:ext': 'edit', data: blocks.join(',') }).close();
   w.open('v:shapetype', {
     id: '_x0000_t202', coordsize: '21600,21600', 'o:spt': 202, path: 'm,l,21600r21600,l21600,xe',
   })
@@ -65,7 +89,7 @@ export function vmlDrawingXml(comments: SheetComment[]): string {
     const anchor = [left, 6, top, 14, left + 2, 2, top + 4, 16].join(', ');
 
     w.open('v:shape', {
-      id: `_x0000_s${VML_SHAPE_ID_BASE + index}`,
+      id: `_x0000_s${firstShapeId + index}`,
       type: '#_x0000_t202',
       style: 'position:absolute;margin-left:105.3pt;margin-top:10.5pt;'
         + 'width:97.8pt;height:59.1pt;z-index:1;visibility:hidden',

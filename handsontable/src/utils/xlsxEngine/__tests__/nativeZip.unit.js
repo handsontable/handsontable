@@ -442,3 +442,114 @@ describe('writeZip: the fields the classic ZIP format can declare', () => {
     await expect(writeZip(entries.slice(1), false)).resolves.toBeInstanceOf(Uint8Array);
   });
 });
+
+describe('crc32: incremental use', () => {
+  it('should continue a checksum across chunks to the same value as one pass', () => {
+    const whole = encoder.encode('The quick brown fox jumps over the lazy dog');
+
+    expect(crc32(whole.subarray(10), crc32(whole.subarray(0, 10)))).toBe(crc32(whole));
+    expect(crc32(whole)).toBe(0x414FA339);
+  });
+});
+
+describe('readZip: the CRC-32 the central directory declares', () => {
+  /**
+   * Writes one entry and flips one byte of its stored or compressed data, keeping every size.
+   *
+   * @param {boolean} compress Whether to deflate the entry.
+   * @param {Function} [corrupt] Edits the data region in place.
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async function oneEntry(compress, corrupt = () => {}) {
+    const zip = await writeZip([{ name: 'xl/worksheets/sheet1.xml', data: encoder.encode('<a>b</a>'.repeat(64)) }],
+      compress);
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const start = 30 + view.getUint16(26, true) + view.getUint16(28, true);
+
+    corrupt(zip.subarray(start, start + view.getUint32(18, true)), view);
+
+    return zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength);
+  }
+
+  it('should refuse a stored entry whose bytes do not match the declared CRC-32', async() => {
+    // `unzip -t` and Python's `testzip()` both flag one flipped byte; this reader read the part as
+    // if nothing had happened and the sheet came back with a wrong cell.
+    const archive = await readZip(await oneEntry(false, (data) => {
+      data[1] = 'x'.charCodeAt(0);
+    }));
+
+    await expect(archive.text('xl/worksheets/sheet1.xml'))
+      .rejects.toThrow('The ZIP entry "xl/worksheets/sheet1.xml" fails its CRC-32 check; the archive is corrupt.');
+    await expect(archive.text('xl/worksheets/sheet1.xml')).rejects.toMatchObject({ cause: { handsontable: true } });
+  });
+
+  it('should refuse a deflated entry whose inflated bytes do not match the declared CRC-32', async() => {
+    const zip = await oneEntry(true);
+    const view = new DataView(zip);
+    const central = view.getUint32(endRecordOffset(view, new Uint8Array(zip)) + 16, true);
+
+    view.setUint32(central + 16, (view.getUint32(central + 16, true) + 1) >>> 0, true); // eslint-disable-line no-bitwise
+
+    const archive = await readZip(zip);
+
+    await expect(archive.text('xl/worksheets/sheet1.xml')).rejects.toThrow(/fails its CRC-32 check/);
+  });
+
+  it('should read both kinds when the checksum matches', async() => {
+    for (const compress of [false, true]) {
+      const archive = await readZip(await oneEntry(compress));
+
+      expect(await archive.text('xl/worksheets/sheet1.xml')).toBe('<a>b</a>'.repeat(64));
+    }
+  });
+});
+
+describe('readZip: an end record signature inside the archive comment', () => {
+  it('should pick the end record whose comment reaches the end of the file', async() => {
+    // The scan runs backwards and took the first signature it met, so `PK\x05\x06` written into the
+    // archive comment hid the real record and the file read as having no workbook part.
+    const zip = await writeZip([{ name: 'a.xml', data: encoder.encode('<a/>') }], false);
+    const fake = new Uint8Array(22);
+    const fakeView = new DataView(fake.buffer);
+
+    fakeView.setUint32(0, 0x06054b50, true);
+    fakeView.setUint16(10, 3, true);
+    fakeView.setUint32(16, 1, true);
+
+    const comment = new Uint8Array(64);
+
+    comment.set(fake, 20);
+
+    const out = new Uint8Array(zip.byteLength + comment.byteLength);
+
+    out.set(zip);
+    out.set(comment, zip.byteLength);
+    new DataView(out.buffer).setUint16(zip.byteLength - 2, comment.byteLength, true);
+
+    const archive = await readZip(out.buffer);
+
+    expect(archive.names()).toEqual(['a.xml']);
+    expect(await archive.text('a.xml')).toBe('<a/>');
+  });
+});
+
+describe('readZip: part names are case-insensitive', () => {
+  it('should find an entry whatever case the caller spells it in, and list it as written', async() => {
+    const zip = await writeZip([{ name: 'xl/worksheets/Sheet1.xml', data: encoder.encode('<s/>') }], false);
+    const archive = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength));
+
+    expect(archive.names()).toEqual(['xl/worksheets/Sheet1.xml']);
+    expect(archive.has('xl/worksheets/sheet1.xml')).toBe(true);
+    expect(await archive.text('XL/Worksheets/SHEET1.xml')).toBe('<s/>');
+  });
+
+  it('should refuse two entries whose names differ only in case, as one name declared twice', async() => {
+    const zip = await writeZip([
+      { name: 'xl/sheet.xml', data: encoder.encode('FIRST') },
+      { name: 'XL/Sheet.xml', data: encoder.encode('SECOND') },
+    ], false);
+
+    await expect(readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength)))
+      .rejects.toThrow(/The ZIP entry "XL\/Sheet.xml" is declared twice/);
+  });
+});

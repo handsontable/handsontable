@@ -81,7 +81,7 @@ export function dataValidationsXml(cells: ValidationCell[]): string {
       showErrorMessage: '1',
       sqref: toSqref(members),
     });
-    validation.formulae.slice(0, 2).forEach((formula, index) => w.leaf(`formula${index + 1}`, undefined, formula));
+    validation.formulae.slice(0, 2).forEach((formula, index) => w.formulaLeaf(`formula${index + 1}`, formula));
     w.close();
   });
 

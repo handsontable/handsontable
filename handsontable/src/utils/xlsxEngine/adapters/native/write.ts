@@ -2,8 +2,10 @@ import { throwWithCause } from '../../../../helpers/errors';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../capabilities';
 import { DEFAULT_COMPRESSION_LEVEL } from '../../compression';
 import type { WorkbookSnapshot } from '../../model';
-import { ILLEGAL_SHEET_NAME_CHARS, isReservedSheetName, SHEET_NAME_MAX_LENGTH } from '../../sheetNames';
-import { commentsXml, vmlDrawingXml } from './parts/comments';
+import {
+  CONTROL_SHEET_NAME_CHARS, ILLEGAL_SHEET_NAME_CHARS, isReservedSheetName, SHEET_NAME_MAX_LENGTH,
+} from '../../sheetNames';
+import { commentsXml, vmlBlockCount, vmlDrawingXml } from './parts/comments';
 import {
   appXml, contentTypesXml, coreXml, rootRelsXml, sheetRelsXml, workbookRelsXml, workbookXml, type PackageSheet,
 } from './parts/package';
@@ -20,6 +22,38 @@ import { writeZip, type ZipEntryInput } from './zip/writer';
 export const WORKBOOK_AUTHOR = 'Handsontable';
 
 /**
+ * The reason a sheet name breaks a rule Excel enforces on the name alone, or `null`.
+ *
+ * A control character is refused rather than written: `workbook.xml` carries the name in an
+ * attribute, whose escaper drops the character, while `docProps/app.xml` writes it as `_x0001_`
+ * element text. Two names differing only by a control character passed the duplicate check and
+ * then landed as the SAME `name`, which Excel answers with its repair prompt.
+ */
+function sheetNameRuleBroken(name: string): string | null {
+  if (name === '') {
+    return 'the name is empty';
+  }
+
+  if (name.length > SHEET_NAME_MAX_LENGTH) {
+    return `the name is longer than ${SHEET_NAME_MAX_LENGTH} characters`;
+  }
+
+  if (ILLEGAL_SHEET_NAME_CHARS.test(name)) {
+    return 'the name carries an illegal character (* ? : / \\ [ ])';
+  }
+
+  if (CONTROL_SHEET_NAME_CHARS.test(name)) {
+    return 'the name carries a control character';
+  }
+
+  if (name.startsWith('\'') || name.endsWith('\'')) {
+    return 'the name starts or ends with an apostrophe';
+  }
+
+  return isReservedSheetName(name) ? 'the name is reserved' : null;
+}
+
+/**
  * Refuses a sheet name Excel refuses. The export sanitizes names before they get here, so this is
  * a backstop for a snapshot built by other code. The rules themselves live in
  * `utils/xlsxEngine/sheetNames.ts`, so the export's sanitizer and this backstop cannot drift.
@@ -28,19 +62,9 @@ function assertSheetNames(names: string[]): void {
   const seen = new Set<string>();
 
   names.forEach((name) => {
-    let reason: string | null = null;
+    let reason = sheetNameRuleBroken(name);
 
-    if (name === '') {
-      reason = 'the name is empty';
-    } else if (name.length > SHEET_NAME_MAX_LENGTH) {
-      reason = `the name is longer than ${SHEET_NAME_MAX_LENGTH} characters`;
-    } else if (ILLEGAL_SHEET_NAME_CHARS.test(name)) {
-      reason = 'the name carries an illegal character (* ? : / \\ [ ])';
-    } else if (name.startsWith('\'') || name.endsWith('\'')) {
-      reason = 'the name starts or ends with an apostrophe';
-    } else if (isReservedSheetName(name)) {
-      reason = 'the name is reserved';
-    } else if (seen.has(name.toLowerCase())) {
+    if (reason === null && seen.has(name.toLowerCase())) {
       reason = 'the name is a duplicate';
     }
 
@@ -72,13 +96,17 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
   const entries: ZipEntryInput[] = [];
   const packageSheets: PackageSheet[] = [];
   let wroteFormula = false;
+  // The next free VML id block. Blocks are allocated across the whole workbook, so the notes of two
+  // sheets never share a shape id.
+  let nextVmlBlock = 1;
 
   for (const [i, sheet] of snapshot.sheets.entries()) {
     const index = i + 1;
     const password = sheet.protection?.enabled ? sheet.protection.password : null;
     // The hash is the one async step of the sheet write, so it runs here and the sheet writer
-    // stays synchronous. 100000 awaited SHA-512 digests take about 0.8–0.9 s per protected sheet
-    // in Node (measured) and seconds in a browser, one sheet at a time; the hashes are
+    // stays synchronous. 100000 awaited SHA-512 digests take about 0.95 s per protected sheet in an
+    // idle Node 22 (measured) and far longer on a loaded machine (24-34 s were measured inside a
+    // full Jest run), and seconds in a browser, one sheet at a time; the hashes are
     // independent, but sequencing them keeps peak memory flat and the ordering deterministic.
     // eslint-disable-next-line no-await-in-loop -- see the comment above.
     const passwordHash = password === null ? null : await hashSheetPassword(password);
@@ -96,8 +124,9 @@ export async function writeWorkbook(snapshot: WorkbookSnapshot, dropped: Dropped
       });
       entries.push({
         name: `xl/drawings/vmlDrawing${index}.vml`,
-        data: encoder.encode(vmlDrawingXml(result.comments)),
+        data: encoder.encode(vmlDrawingXml(result.comments, nextVmlBlock)),
       });
+      nextVmlBlock += vmlBlockCount(result.comments.length);
     }
   }
 

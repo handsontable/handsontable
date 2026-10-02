@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tokenizeXml, decodeXmlEntities } from '../adapters/native/xml/tokenizer';
 import {
-  escapeXmlText, escapeXmlAttr, decodeOoxmlEscapes, needsSpacePreserve,
+  escapeXmlText, escapeXmlAttr, escapeXmlMarkup, decodeOoxmlEscapes, needsSpacePreserve,
 } from '../adapters/native/xml/escapes';
 import { XmlWriter } from '../adapters/native/xml/writer';
 import { parseFiniteDoubleAttr, parseUnsignedIntAttr } from '../adapters/native/xml/numbers';
@@ -139,6 +139,25 @@ describe('escaping', () => {
     expect(escapeXmlAttr('a\u0007b<')).toBe('ab&lt;');
   });
 
+  it('should write a carriage return as _x000D_ in text, the way Excel stores one', () => {
+    // A raw `\r` in element text is end-of-line normalized away by every conforming XML parser
+    // (`\r\n` -> `\n`, a lone `\r` -> `\n`), so it never reached the reader. Excel writes it
+    // as `_x000D_`, which both readers decode.
+    expect(escapeXmlText('a\r\nb\rc')).toBe('a_x000D_\nb_x000D_c');
+    expect(decodeOoxmlEscapes(escapeXmlText('a\r\nb'))).toBe('a\r\nb');
+  });
+
+  it('should write a carriage return, a line feed and a tab as character references in an attribute', () => {
+    // Attribute-value normalization turns a raw `\r`, `\n` or `\t` into a space; a character
+    // reference is the one spelling that survives it.
+    expect(escapeXmlAttr('a\r\nb\tc')).toBe('a&#xD;&#xA;b&#x9;c');
+  });
+
+  it('should leave a carriage return in formula text as written', () => {
+    // `ST_Formula` has no `_xHHHH_` convention: `_x000D_` would be literal formula text there.
+    expect(escapeXmlMarkup('IF(A1,"a\r\nb")')).toBe('IF(A1,&quot;a\r\nb&quot;)');
+  });
+
   it('should decode _xHHHH_ escapes back to code points', () => {
     expect(decodeOoxmlEscapes('a_x000D_b_x0001_')).toBe('a\rb\u0001');
     expect(decodeOoxmlEscapes('_xZZZZ_')).toBe('_xZZZZ_');
@@ -219,5 +238,55 @@ describe('native xml numeric attributes', () => {
       .toEqual([0, -1, 2.5, 0.5, 5, 10, 0.01]);
     expect([undefined, '', ' 1', '0x10', 'NaN', 'INF', 'Infinity', '1e999', '.', '1e']
       .map(parseFiniteDoubleAttr)).toEqual(Array(10).fill(null));
+  });
+});
+
+describe('decodeXmlEntities: the decode loop', () => {
+  it('should decode exactly what the reference grammar names and leave the rest as written', () => {
+    expect(decodeXmlEntities('a &amp; b &lt;c&gt; &quot;&apos;')).toBe('a & b <c> "\'');
+    expect(decodeXmlEntities('&#65;&#x42;&#x6a;')).toBe('ABj');
+    expect(decodeXmlEntities('&&amp;;')).toBe('&&;');
+    expect(decodeXmlEntities('&#X41; &#x; &#; &; &amp &ampx; &nbsp;')).toBe('&#X41; &#x; &#; &; &amp &ampx; &nbsp;');
+    expect(decodeXmlEntities('&#xD800; &#x110000; &#99999999999999999999;'))
+      .toBe('&#xD800; &#x110000; &#99999999999999999999;');
+    expect(decodeXmlEntities('tail &')).toBe('tail &');
+    expect(decodeXmlEntities('&lt;&lt;&lt;')).toBe('<<<');
+    expect(decodeXmlEntities('&#x1F600;')).toBe('\u{1F600}');
+  });
+
+  it('should decode six million entities without allocating a multiple of the text', () => {
+    // A callback `replace` allocates a match, its capture and an argument list per reference: a
+    // 45 kB archive whose `<v>` was `&amp;` six million times (30 MB) cost about a gigabyte of
+    // resident memory. The loop pushes slices, so the cost is the result and a small part list.
+    const text = '&amp;'.repeat(6_000_000);
+    const before = process.memoryUsage().rss;
+    const decoded = decodeXmlEntities(text);
+    const grown = process.memoryUsage().rss - before;
+
+    expect(decoded.length).toBe(6_000_000);
+    expect(decoded === '&'.repeat(6_000_000)).toBe(true);
+    expect(grown).toBeLessThan(400 * 1024 * 1024);
+  });
+});
+
+describe('tokenizeXml: end-of-line handling', () => {
+  it('should read CR LF and a lone CR as LF in text, CDATA and attribute values', () => {
+    // XML 1.0 normalizes both before parsing, so Excel and ExcelJS read `<t>a\r\nb</t>` as `a\nb`.
+    expect(events('<t a="x\r\ny\rz">a\r\nb\rc<![CDATA[d\r\ne]]></t>')).toEqual([
+      ['open', 't', { a: 'x\ny\nz' }, false],
+      ['text', 'a\nb\nc'],
+      ['text', 'd\ne'],
+      ['close', 't'],
+    ]);
+  });
+
+  it('should keep a carriage return written as a character reference', () => {
+    // The normalization runs on the raw text, before references are decoded, so `&#13;` is the
+    // one way a file can carry a real CR — and it must survive.
+    expect(events('<t a="&#13;&#10;">a&#13;&#10;b</t>')).toEqual([
+      ['open', 't', { a: '\r\n' }, false],
+      ['text', 'a\r\nb'],
+      ['close', 't'],
+    ]);
   });
 });

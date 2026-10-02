@@ -4,6 +4,8 @@ import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/c
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
+import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
+import { MAX_TRANSLATED_FORMULA_CHARS, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
 import {
   MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
   MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
@@ -337,11 +339,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
  * shared with every other cell of the same number format.
  */
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
-  const { inferred, meta } = inferredMeta;
-
-  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
-  }
+  const { meta } = inferredMeta;
 
   if (cell.validation) {
     const dropdown = resolveDropdownMeta(cell, scope);
@@ -397,6 +395,47 @@ function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
 }
 
 /**
+ * Matches the start of a prefix Excel stores in a formula (`_xlfn.`, `_xlws.`, `_xlpm.`), the cheap
+ * test that decides whether `stripFunctionPrefixes` has to walk the formula at all.
+ */
+const STORED_PREFIX_HINT = /_xl/i;
+
+/**
+ * Charges one formula walk against the pass's budget, refusing the workbook once the sum crosses
+ * `MAX_TRANSLATED_FORMULA_CHARS` - the same budget the native reader charges a shared formula's
+ * translation. Charged before the walk, so the refusal lands before the work it bounds: a shifted
+ * import runs `REFERENCE_REGEX` over every formula's whole text, and nothing else bounds the
+ * product of the cell count and the formula length.
+ */
+function chargeFormulaWalk(length: number, scope: CollectContext): void {
+  scope.walkedFormulaChars += length;
+
+  if (scope.walkedFormulaChars > MAX_TRANSLATED_FORMULA_CHARS) {
+    throwLimitExceeded('The workbook\'s formulas rewrite to more than '
+      + `${MAX_TRANSLATED_FORMULA_CHARS} characters, above the limit this reader accepts.`);
+  }
+}
+
+/**
+ * The formula as the grid takes it: the `_xlfn.`/`_xlws.`/`_xlpm.` prefixes Excel stores in front of
+ * post-2007 functions and `LET`/`LAMBDA` parameters removed, so HyperFormula does not read them as
+ * unknown names (`#NAME?`). Every engine hands the stored text over verbatim, so the mapper strips
+ * it for both. A formula that a walk will run over - the strip, or a shift by a non-zero window
+ * origin - is charged against the budget first.
+ */
+function readFormulaText(text: string, scope: CollectContext): string {
+  const { shift } = scope;
+  const stripping = STORED_PREFIX_HINT.test(text);
+  const shifting = shift !== null && (shift.rowDelta !== 0 || shift.colDelta !== 0);
+
+  if (stripping || shifting) {
+    chargeFormulaWalk(text.length, scope);
+  }
+
+  return stripping ? stripFunctionPrefixes(text) : text;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -411,8 +450,9 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
-  const live = cell.formula && shift
-    ? shiftFormulaReferences(cell.formula.text, shift.rowDelta, shift.colDelta)
+  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  const live = formula !== null && shift
+    ? shiftFormulaReferences(formula, shift.rowDelta, shift.colDelta)
     : null;
 
   if (live !== null) {
@@ -425,8 +465,8 @@ function pushCellValue(
     escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
   );
 
-  if (cell.formula) {
-    pass.formulas.push({ row, col, formula: cell.formula.text });
+  if (formula !== null) {
+    pass.formulas.push({ row, col, formula });
 
     if (shift) {
       dropped.record(DROPPED_FEATURES.formulaOutOfRange);
@@ -541,6 +581,11 @@ interface CollectContext {
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
    */
   inferredByFormat: Map<string, InferredMeta>;
+  /**
+   * Characters of formula text walked so far in this pass (prefix strip and reference shift),
+   * charged against `MAX_TRANSLATED_FORMULA_CHARS`.
+   */
+  walkedFormulaChars: number;
 }
 
 /**
@@ -553,7 +598,8 @@ interface InferredMeta {
 
 /**
  * Infers a cell's type through the pass cache. The key is the number format plus the kind of value,
- * which is everything `inferCellType` reads.
+ * which is everything `inferCellType` reads. An unsupported format is reported here, once per
+ * distinct key, rather than once per cell.
  */
 function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
   const key = `${cell.numFmt ?? ''}\u0000${typeof cellDisplayValue(cell)}`;
@@ -565,6 +611,12 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
 
   const inferred = inferCellType(cell);
   const entry: InferredMeta = { inferred, meta: inferred ? toMeta(inferred) : null };
+
+  // Reported on the cache miss only: `recordUnsupported` bounds and copies the whole format string,
+  // so once per cell cost one walk of a file-sized string per cell for a name it records once.
+  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
+    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
+  }
 
   scope.inferredByFormat.set(key, entry);
 
@@ -638,6 +690,7 @@ function collectCells(
     dropped,
     listMetaByFormula: new Map(),
     inferredByFormat: new Map(),
+    walkedFormulaChars: 0,
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {

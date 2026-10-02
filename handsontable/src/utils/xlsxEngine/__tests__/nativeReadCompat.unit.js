@@ -4,12 +4,14 @@
 import { nativeAdapter } from '../adapters/native';
 import { DROPPED_FEATURES, DroppedFeatures } from '../capabilities';
 import {
-  MAX_FORMULA_LENGTH, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, isLimitError,
+  MAX_FORMULA_LENGTH, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_TRANSLATED_FORMULA_CHARS, MAX_WORKBOOK_CELLS,
+  isLimitError,
 } from '../limits';
+import { translateSharedFormula } from '../formulaRefs';
 import { createWorkbookSnapshot } from '../model';
 import { SheetBuilder } from '../builder';
 import { parseSharedStrings } from '../adapters/native/parts/sharedStrings';
-import { EMPTY_STYLES } from '../adapters/native/parts/styles';
+import { EMPTY_STYLES, parseStyles } from '../adapters/native/parts/styles';
 import { parseWorksheet } from '../adapters/native/parts/worksheetReader';
 import { writeZip } from '../adapters/native/zip/writer';
 import { toArrayBuffer } from './helpers/fixtures';
@@ -91,6 +93,12 @@ function worksheetXml(rows) {
  * @param {boolean} [options.withContentTypes] Whether to write `[Content_Types].xml` at all.
  * @param {string[]} [options.extraWorkbookRels] More `<Relationship>` elements for the workbook.
  * @param {Array<{ name: string, data: Uint8Array }>} [options.extraEntries] More archive entries.
+ * @param {string} [options.relPrefix] The prefix the workbook part binds the relationships
+ * namespace to, which its `<sheet>` elements then carry their id attribute under.
+ * @param {boolean} [options.sheetOverrides] Whether to type each sheet part with an `<Override>`;
+ * without one only the generic `<Default Extension="xml">` covers it.
+ * @param {Function} [options.relTargetOf] Maps a sheet's part path to the relationship target written
+ * for it, so a case can make the two spellings differ.
  * @returns {Promise<ArrayBuffer>}
  */
 async function packWorkbook(sheets, {
@@ -100,12 +108,15 @@ async function packWorkbook(sheets, {
   withContentTypes = true,
   extraWorkbookRels = [],
   extraEntries = [],
+  relPrefix = 'r',
+  sheetOverrides = true,
+  relTargetOf = part => part.replace(/^xl\//, ''),
 } = {}) {
   const workbookRels = sheets.map((sheet, i) => (
-    `<Relationship Id="rId${i + 1}" Type="${relNs}/${sheet.kind}" Target="${sheet.part.replace(/^xl\//, '')}"/>`
+    `<Relationship Id="rId${i + 1}" Type="${relNs}/${sheet.kind}" Target="${relTargetOf(sheet.part)}"/>`
   )).concat(extraWorkbookRels);
   const overrides = sheets
-    .filter(sheet => sheet.xml !== null)
+    .filter(sheet => sheet.xml !== null && sheetOverrides)
     .map((sheet) => {
       const contentType = sheet.kind === 'worksheet' ? WORKSHEET_TYPE : CHARTSHEET_TYPE;
 
@@ -143,8 +154,9 @@ async function packWorkbook(sheets, {
   });
   entries.push({
     name: 'xl/workbook.xml',
-    data: encoder.encode(`<workbook ${NS} xmlns:r="${relNs}"><sheets>${
-      sheets.map((sheet, i) => `<sheet name="${sheet.name}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')
+    data: encoder.encode(`<workbook ${NS} xmlns:${relPrefix}="${relNs}"><sheets>${
+      sheets.map((sheet, i) => `<sheet name="${sheet.name}" sheetId="${i + 1}" ${relPrefix}:id="rId${i + 1}"/>`)
+        .join('')
     }</sheets></workbook>`),
   });
   entries.push({
@@ -378,9 +390,9 @@ describe('native reader compatibility: the shared-formula translation budget', (
 
 describe('native reader compatibility: the date1904 temporal-format test', () => {
   it('should classify a format of 40 000 opening brackets in bounded time', () => {
-    // `/\[[^\]]*\]/g` re-scans from every `[` when no `]` ever closes it, quadratic on a run of
+    // `/\[[^\]]*\]/g` re-scanned from every `[` when no `]` ever closed it, quadratic on a run of
     // them, and it ran once per numeric cell of a 1904 workbook: 40 000 brackets cost ~550 ms per
-    // cell. The pattern now refuses to cross a `[`, so the same run is scanned once.
+    // cell. The shift now asks `isTemporalFormatCode`, which must stay linear on the same run.
     const numFmt = `${'['.repeat(40000)}d`;
     const styles = { cellXfs: [{ numFmt, style: null, locked: null }], dxfs: [] };
     const xml = worksheetXml('<row r="1"><c r="A1" s="0"><v>1</v></c></row>');
@@ -388,8 +400,9 @@ describe('native reader compatibility: the date1904 temporal-format test', () =>
     const { sheet } = readSheet(xml, { styles, date1904: true });
     const elapsed = performance.now() - started;
 
-    // Still temporal: the `d` survives the strip, so the 1904 shift of 1462 days applies.
-    expect(sheet.rows[0][0].value).toBe(1463);
+    // The shift asks the import's own classifier, which reads a run of `[` no `]` closes as no date
+    // code at all, so the serial is left as written - what the import then shows it as.
+    expect(sheet.rows[0][0].value).toBe(1);
     expect(elapsed).toBeLessThan(200);
   });
 
@@ -408,6 +421,28 @@ describe('native reader compatibility: the date1904 temporal-format test', () =>
     const { sheet } = readSheet(xml, { styles, date1904: true });
 
     expect(sheet.rows[0].map(cell => cell.value)).toEqual([1, 1, 1463]);
+  });
+});
+
+describe('native reader compatibility: the date1904 shift asks the import\'s own classifier', () => {
+  it('should shift a date format and leave an escaped letter or a currency word alone', () => {
+    // The reader's own letter test saw the `h` of `0.0\h` (a literal h) and the `h` of `CHF` and
+    // shifted both values by 1462 days, while the import, classifying the same codes, kept them
+    // numbers - so the cell showed 1467 where the file holds 5.
+    const styles = {
+      cellXfs: [
+        { numFmt: '0.0\\h', style: null, locked: null },
+        { numFmt: 'CHF #,##0', style: null, locked: null },
+        { numFmt: 'yyyy-mm-dd', style: null, locked: null },
+      ],
+      dxfs: [],
+    };
+    const xml = worksheetXml(
+      '<row r="1"><c r="A1" s="0"><v>5</v></c><c r="B1" s="1"><v>5</v></c><c r="C1" s="2"><v>5</v></c></row>'
+    );
+    const { sheet } = readSheet(xml, { styles, date1904: true });
+
+    expect(sheet.rows[0].map(cell => cell.value)).toEqual([5, 5, 1467]);
   });
 });
 
@@ -822,6 +857,75 @@ describe('native reader compatibility: a VBA project', () => {
   });
 });
 
+describe('native reader compatibility: threaded comments', () => {
+  const COMMENTS_REL = `${TRANSITIONAL_REL}/comments`;
+  const THREADED_COMMENT_REL = 'http://schemas.microsoft.com/office/2017/10/relationships/threadedComment';
+  // The fixed text Excel 365 writes into the legacy `<comment>` of a threaded comment, ahead of the
+  // thread itself, for applications that cannot read `xl/threadedComments/`.
+  const BOILERPLATE = '[Threaded comment]\n\nYour version of Excel allows you to read this threaded comment; '
+    + 'however, any edits to it will get removed if the file is opened in a newer version of Excel. '
+    + 'Learn more: https://go.microsoft.com/fwlink/?linkid=870924\n\nComment:\n    ';
+
+  /**
+   * Builds the legacy comments part Excel 365 writes next to a threaded comment: authors named
+   * `tc={GUID}`, one `<comment>` per thread carrying the boilerplate, and the thread's replies.
+   *
+   * @param {Array<{ ref: string, text: string }>} comments The legacy comments, text unescaped.
+   * @returns {string}
+   */
+  function excel365CommentsXml(comments) {
+    const uid = '{2D3B9B5E-0B1A-4C2E-9F44-6A0C6C1E7A11}';
+    const list = comments.map(({ ref, text }) => (
+      `<comment ref="${ref}" authorId="0" shapeId="0" xr:uid="${uid}">`
+      + `<text><t xml:space="preserve">${text}</t></text></comment>`
+    )).join('');
+
+    return [
+      `<comments ${NS} xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="xr"`,
+      ' xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision">',
+      `<authors><author>tc=${uid}</author></authors><commentList>${list}</commentList></comments>`,
+    ].join('');
+  }
+
+  it('should import a threaded comment as its text and replies, and record the flattened thread once', async() => {
+    // Excel 365 stores a thread in `xl/threadedComments/` and writes a legacy note for older
+    // readers whose text is the "[Threaded comment] Your version of Excel..." boilerplate followed by
+    // the thread. Reading that note verbatim imported the boilerplate as the comment.
+    const sheet = worksheetXml('<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c><c r="C1"><v>3</v></c></row>');
+    const rels = `<Relationships xmlns="${PACKAGE_REL}">`
+      + `<Relationship Id="rId1" Type="${THREADED_COMMENT_REL}" Target="../threadedComments/threadedComment1.xml"/>`
+      + `<Relationship Id="rId2" Type="${COMMENTS_REL}" Target="../comments1.xml"/></Relationships>`;
+    const sheets = [{ name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: sheet }];
+    const buffer = await packWorkbook(sheets, {
+      extraEntries: [
+        { name: 'xl/worksheets/_rels/sheet1.xml.rels', data: encoder.encode(rels) },
+        {
+          name: 'xl/comments1.xml',
+          data: encoder.encode(excel365CommentsXml([
+            {
+              ref: 'A1',
+              text: `${BOILERPLATE}Is this total right?\nReply:\n    Yes, checked it.\nReply:\n    Thanks!`,
+            },
+            { ref: 'B1', text: `${BOILERPLATE}Second thread` },
+            // A plain note that only starts like the boilerplate keeps its text.
+            { ref: 'C1', text: '[Threaded comment] is what I call these' },
+          ])),
+        },
+        { name: 'xl/threadedComments/threadedComment1.xml', data: encoder.encode('<ThreadedComments/>') },
+        { name: 'xl/persons/person.xml', data: encoder.encode('<personList/>') },
+      ],
+    });
+    const { snapshot, dropped } = await readWorkbook(buffer);
+    const [a1, b1, c1] = snapshot.sheets[0].rows[0];
+
+    expect(a1.comment).toBe('Is this total right?\nYes, checked it.\nThanks!');
+    expect(b1.comment).toBe('Second thread');
+    expect(c1.comment).toBe('[Threaded comment] is what I call these');
+    expect(dropped.list()).toEqual([DROPPED_FEATURES.threadedComments]);
+    expect(dropped.count(DROPPED_FEATURES.threadedComments)).toBe(1);
+  });
+});
+
 describe('native reader compatibility: a malformed sheet companion part', () => {
   const COMMENTS_REL = `${TRANSITIONAL_REL}/comments`;
   const sheetWithRels = rels => ({
@@ -868,5 +972,316 @@ describe('native reader compatibility: list validations', () => {
     expect(b1.validation).toBe(a1.validation);
     expect(a2.validation).toBe(a1.validation);
     expect(b2.validation).toBeNull();
+  });
+});
+
+describe('native reader compatibility: merges outside the read extent', () => {
+  /**
+   * A one-cell sheet under `<dimension ref="A1:A1"/>` with `count` merges far below it, after
+   * `<col>` spans that spend all but `MAX_SHEET_CELLS - 4 997 120` of the sheet's span budget.
+   *
+   * @param {number} count How many out-of-extent merges to declare.
+   * @returns {string}
+   */
+  function farMerges(count) {
+    const cols = '<col min="1" max="16384"/>'.repeat(305);
+    let merges = '';
+
+    for (let i = 0; i < count; i++) {
+      merges += `<mergeCell ref="Z${1000 + (i * 2)}:Z${1001 + (i * 2)}"/>`;
+    }
+
+    return `<worksheet ${NS}><dimension ref="A1:A1"/><cols>${cols}</cols><sheetData>`
+      + `<row r="1"><c r="A1"><v>1</v></c></row></sheetData><mergeCells>${merges}</mergeCells></worksheet>`;
+  }
+
+  it('should drop a merge that clamps to nothing rather than keep it on the snapshot', () => {
+    // A merge wholly outside the sheet's extent was skipped by the materializing pass but left in
+    // `sheet.merges`, uncharged, so a tiny sheet could carry any number of them.
+    const { sheet } = readSheet(farMerges(40));
+
+    expect(sheet.merges).toEqual([]);
+    expect(sheet.rows.length).toBe(1);
+  });
+
+  it('should charge every <mergeCell> against the span budget as it is collected', () => {
+    const left = MAX_SHEET_CELLS - (305 * 16384);
+
+    expect(left).toBe(2880);
+    expect(() => readSheet(farMerges(left))).not.toThrow();
+    expect(() => readSheet(farMerges(left + 1))).toThrow(new RegExp(`covering more than ${MAX_SHEET_CELLS} cells`));
+  });
+});
+
+describe('native reader compatibility: the row count follows the rows', () => {
+  it('should size the sheet by its last <row>, using <dimension> for the cap check only', () => {
+    // ExcelJS counts the rows it reads, so three rows under `A1:B5000` are three rows there and were
+    // 5000 here — the import then built a 5000-row grid out of a three-row sheet.
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:B5000"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="2"><c r="B2"><v>2</v></c></row>'
+      + '<row r="3"><c r="A3"><v>3</v></c></row></sheetData></worksheet>');
+
+    expect(sheet.rows.length).toBe(3);
+    expect(sheet.rowHeights.length).toBe(3);
+    expect(sheet.rows[2][0].value).toBe(3);
+  });
+
+  it('should count a trailing empty <row> as a row, like a row with cells', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:A9"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="7"/></sheetData></worksheet>');
+
+    expect(sheet.rows.length).toBe(7);
+    expect(sheet.rows[6]).toEqual([]);
+  });
+
+  it('should still refuse a declared rectangle above the caps', () => {
+    expect(() => readSheet(`<worksheet ${NS}><dimension ref="A1:A1048577"/><sheetData/></worksheet>`))
+      .toThrow(/declares 1048577 rows, above the 1048576-row limit/);
+  });
+});
+
+describe('native reader compatibility: list validations over cells that hold nothing', () => {
+  const VALIDATION = '<dataValidations count="1"><dataValidation type="list" sqref="A1:E1000000">'
+    + '<formula1>"a,b"</formula1></dataValidation></dataValidations>';
+
+  it('should not materialize a declared rectangle that no row fills', () => {
+    // A 1.7 kB archive: a million-row dimension, no `<row>`, one validation over the rectangle,
+    // which allocated a cell snapshot per covered cell (+646 MB) and a million-row grid.
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:E1000000"/><sheetData/>${VALIDATION}</worksheet>`);
+
+    expect(sheet.rows.length).toBe(0);
+  });
+
+  it('should share one cell object between the empty slots one validation covers', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><dimension ref="A1:B3"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="2"/><row r="3"/></sheetData><dataValidations count="2">'
+      + '<dataValidation type="list" sqref="A1:B3"><formula1>"a,b"</formula1></dataValidation>'
+      + '<dataValidation type="list" sqref="B3"><formula1>"c"</formula1></dataValidation>'
+      + '</dataValidations></worksheet>');
+    const [[a1, b1], [a2, b2], [a3, b3]] = sheet.rows;
+
+    expect(a1.value).toBe(1);
+    expect(a1.validation).toEqual({ type: 'list', formulae: ['"a,b"'], allowBlank: false });
+    expect(b1).toEqual({
+      value: null, formula: null, numFmt: null, style: null, locked: null, comment: null, validation: a1.validation,
+    });
+    // One object for every slot that held nothing, rather than a snapshot per covered cell.
+    expect(a2).toBe(b1);
+    expect(b2).toBe(b1);
+    expect(a3).toBe(b1);
+    // The later validation wins its slot without rewriting the object the earlier one shares.
+    expect(b3.validation).toEqual({ type: 'list', formulae: ['"c"'], allowBlank: false });
+    expect(b1.validation).toBe(a1.validation);
+  });
+});
+
+describe('native reader compatibility: the workbook cell budget is charged before the cells exist', () => {
+  // Each part ends malformed, so a refusal raised only once the whole part was read would surface as
+  // the tokenizer's own error instead of as the budget's.
+  it('should refuse a sheet whose <dimension> crosses the workbook budget before reading a row', () => {
+    const budget = { declaredCells: MAX_WORKBOOK_CELLS - 100 };
+    const xml = `<worksheet ${NS}><dimension ref="A1:B100"/><sheetData><row r="1"><c r="A1"><v>1</v></c></row><`;
+
+    expect(() => readSheet(xml, { budget })).toThrow(/^The workbook declares \d+ cells across its sheets/);
+  });
+
+  it('should refuse cells crossing the remaining workbook budget as they are read, with no dimension', () => {
+    const budget = { declaredCells: MAX_WORKBOOK_CELLS - 50 };
+    let rows = '';
+
+    for (let r = 1; r <= 60; r++) {
+      rows += `<row r="${r}"><c r="A${r}"><v>1</v></c></row>`;
+    }
+
+    expect(() => readSheet(`<worksheet ${NS}><sheetData>${rows}<`, { budget }))
+      .toThrow(/^The workbook declares \d+ cells across its sheets/);
+  });
+
+  it('should charge a sheet once, for what it really holds, after the dimension charged it up front', () => {
+    const budget = { declaredCells: 0 };
+
+    readSheet(`<worksheet ${NS}><dimension ref="A1:B100"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><v>2</v></c></row>'
+      + '<row r="2"><c r="A2"><v>3</v></c></row><row r="3"><c r="B3"><v>4</v></c></row>'
+      + '</sheetData></worksheet>', { budget });
+
+    // Three rows by two columns, plus the two-column layout: never the declared 100 x 2 on top.
+    expect(budget.declaredCells).toBe((3 * 2) + 2);
+  });
+});
+
+describe('native reader compatibility: the shared-formula translation budget, measured', () => {
+  it('should keep the budget at 32 Mi characters, which the measured worst case bounds', () => {
+    // A dense run of references rewrites one every few characters and is the worst case for
+    // `translateSharedFormula`. Measured at 0.28-0.32 us per character on a developer machine and
+    // 0.58-0.84 us on a reviewer's, so 32 Mi characters is about 10 s here and at most 28 s there.
+    // The bound below is loose on purpose (it catches a regex regression of several times, not
+    // noise) and is what keeps the budget's comment honest.
+    expect(MAX_TRANSLATED_FORMULA_CHARS).toBe(32 * 1024 * 1024);
+
+    const master = 'A1+'.repeat(10922);
+    const runs = 30;
+
+    translateSharedFormula(master, 1, 1);
+
+    const startedAt = performance.now();
+
+    for (let run = 1; run <= runs; run++) {
+      translateSharedFormula(master, run, 1);
+    }
+
+    const microsPerChar = ((performance.now() - startedAt) * 1000) / (runs * master.length);
+
+    expect(microsPerChar).toBeLessThan(1.5);
+  });
+});
+
+describe('native reader compatibility: <sheetProtection> without sheet="1"', () => {
+  it('should read the sheet as protected only when the sheet attribute says so', () => {
+    // The schema defaults `sheet` to false: a file carrying only `<sheetProtection formatCells="0"/>`
+    // (Apache POI writes those) is an OPEN sheet in Excel, and every cell imported read-only.
+    const protectionOf = attrs => readSheet(`<worksheet ${NS}><sheetData/><sheetProtection ${attrs}/></worksheet>`)
+      .sheet.protection;
+
+    expect(protectionOf('formatCells="0"')).toBeNull();
+    expect(protectionOf('sheet="0" formatCells="0" hashValue="x"')).toBeNull();
+    expect(protectionOf('sheet="1" formatCells="0"')).toEqual({
+      enabled: true, password: null, options: { sheet: true, formatCells: true },
+    });
+    expect(protectionOf('sheet="true"').enabled).toBe(true);
+  });
+
+  it('should record a password hash only on a sheet that is protected', () => {
+    const droppedOf = attrs => readSheet(`<worksheet ${NS}><sheetData/><sheetProtection ${attrs}/></worksheet>`)
+      .dropped.list();
+
+    expect(droppedOf('sheet="0" hashValue="x"')).toEqual([]);
+    expect(droppedOf('sheet="1" hashValue="x"')).toEqual(['sheetProtection:password']);
+  });
+});
+
+describe('native reader compatibility: a merge with no <dimension> to bound it', () => {
+  it('should widen the sheet to a merge whose covered cells carry no <c>', () => {
+    // openpyxl's write-only mode and ExcelJS's streaming writer emit no `<dimension>`, and the clamp
+    // fell back to the widest row, so `A1:C1` over a one-cell row read back one column wide.
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData><row r="1"><c r="A1"/></row></sheetData>`
+      + '<mergeCells count="1"><mergeCell ref="A1:C1"/></mergeCells></worksheet>');
+
+    expect(sheet.rows[0]).toHaveLength(3);
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 3 }]);
+  });
+
+  it('should still clamp such a merge to the rows that exist', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData><row r="1"><c r="A1"><v>1</v></c></row>`
+      + '</sheetData><mergeCells count="1"><mergeCell ref="A1:B9"/></mergeCells></worksheet>');
+
+    expect(sheet.rows.length).toBe(1);
+    expect(sheet.rows[0]).toHaveLength(2);
+  });
+});
+
+describe('native reader compatibility: list validations stored in <extLst>', () => {
+  const X14 = 'http://schemas.microsoft.com/office/spreadsheetml/2009/9/main';
+  const XM = 'http://schemas.microsoft.com/office/excel/2006/main';
+
+  /**
+   * A three-row sheet whose only validation lives in the x14 extension.
+   *
+   * @param {string} validation The `<x14:dataValidation>` element.
+   * @returns {string}
+   */
+  function withExtValidation(validation) {
+    return `<worksheet ${NS} xmlns:x14="${X14}" xmlns:xm="${XM}"><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="2"><c r="A2"><v>2</v></c></row>'
+      + '<row r="3"><c r="A3"><v>3</v></c></row></sheetData>'
+      + '<extLst><ext uri="{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}">'
+      + `<x14:dataValidations count="1">${validation}</x14:dataValidations></ext></extLst></worksheet>`;
+  }
+
+  it('should read an x14 list validation, whose source is on another sheet, onto its cells', () => {
+    // Excel 2010+ stores a list whose source range is on another sheet ONLY here, and the reader
+    // ignored the extension, so the dropdown was lost with nothing recorded.
+    const { sheet, dropped } = readSheet(withExtValidation(
+      '<x14:dataValidation type="list" allowBlank="1" showErrorMessage="1">'
+      + '<x14:formula1><xm:f>Lists!$A$1:$A$3</xm:f></x14:formula1><xm:sqref>A1:A2</xm:sqref>'
+      + '</x14:dataValidation>'
+    ));
+
+    expect(sheet.rows[0][0].validation).toEqual({ type: 'list', formulae: ['Lists!$A$1:$A$3'], allowBlank: true });
+    expect(sheet.rows[1][0].validation).toBe(sheet.rows[0][0].validation);
+    expect(sheet.rows[2][0].validation).toBeNull();
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should record an x14 validation of another kind the way a main one is recorded', () => {
+    const { sheet, dropped } = readSheet(withExtValidation(
+      '<x14:dataValidation type="whole" operator="between"><x14:formula1><xm:f>Lists!$B$1</xm:f></x14:formula1>'
+      + '<x14:formula2><xm:f>10</xm:f></x14:formula2><xm:sqref>A1</xm:sqref></x14:dataValidation>'
+    ));
+
+    expect(sheet.rows[0][0].validation).toBeNull();
+    expect(dropped.list()).toEqual(['dataValidation:whole']);
+  });
+});
+
+describe('native reader compatibility: a cell style index read as written', () => {
+  it('should resolve s only from its unsignedInt form', () => {
+    // `Number()` read `s="0x1"` and `s="1e0"` as 1 and resolved the date format of xf 1; neither is
+    // an index the schema allows, so both read as the default format.
+    const styles = parseStyles('<styleSheet><cellXfs><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>');
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData><row r="1">`
+      + '<c r="A1" s="1"><v>1</v></c><c r="B1" s="0x1"><v>1</v></c><c r="C1" s="1e0"><v>1</v></c>'
+      + '<c r="D1" s=""><v>1</v></c></row></sheetData></worksheet>', { styles });
+
+    expect(sheet.rows[0].map(cell => cell.numFmt)).toEqual(['mm-dd-yy', null, null, null]);
+  });
+});
+
+describe('native reader compatibility: package names and declarations', () => {
+  it('should resolve a sheet whose relationship id sits under a prefix other than r', async() => {
+    // Any prefix may name the relationships namespace; the id was read under the literal `r:id`
+    // only, so `rel:id` left the sheet with no part and refused the whole read.
+    const { snapshot } = await readWorkbook(await packWorkbook([
+      { name: 'Data', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(7) },
+    ], { relPrefix: 'rel' }));
+
+    expect(snapshot.sheets.map(sheet => sheet.name)).toEqual(['Data']);
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(7);
+  });
+
+  it('should read a sheet typed only by the generic <Default Extension="xml">', async() => {
+    // Nothing in OPC requires an `<Override>` per sheet, and a package whose sheets fall back to
+    // `application/xml` was refused as having "no worksheet part".
+    const { snapshot } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(5) },
+    ], { sheetOverrides: false }));
+
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(5);
+  });
+
+  it('should still refuse a sheet pointed at the workbook part under the generic default', async() => {
+    const buffer = await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(5) },
+    ], { sheetOverrides: false, relTargetOf: () => 'workbook.xml' });
+
+    await expect(readWorkbook(buffer)).rejects.toThrow(/the sheet "Sheet1" has no worksheet part/);
+  });
+
+  it('should match part names case-insensitively, as OPC does', async() => {
+    // `xl/worksheets/Sheet1.xml` is the same part as `xl/worksheets/sheet1.xml` in OPC, and a
+    // relationship naming it in the other case was refused as having no part.
+    const { snapshot } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/Sheet1.xml', xml: oneCellSheet(3) },
+    ], { relTargetOf: () => 'worksheets/sheet1.xml' }));
+
+    expect(snapshot.sheets[0].rows[0][0].value).toBe(3);
+  });
+
+  it('should keep the package floor case-insensitive too', async() => {
+    const buffer = await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(5) },
+    ], { relTargetOf: () => '/XL/Workbook.xml' });
+
+    await expect(readWorkbook(buffer)).rejects.toThrow(/the sheet "Sheet1" has no worksheet part/);
   });
 });

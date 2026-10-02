@@ -132,8 +132,9 @@ describe('excelJsAdapter.write', () => {
       b.cell(2, 2).value = 'B2';
       b.merge(1, 1, 2, 2);
       // Overlaps the range above. ExcelJS answers `Cannot merge already merged cells` with a bare
-      // `Error`, which used to escape the adapter and abandon the whole export.
-      b.merge(2, 2, 2, 2);
+      // `Error`, which used to escape the adapter and abandon the whole export. (A single-cell
+      // range would not test this: both writers skip one before it reaches the overlap check.)
+      b.merge(2, 2, 3, 3);
     });
     const { workbook, dropped } = await writeAndLoad(snapshot);
 
@@ -198,7 +199,50 @@ describe('excelJsAdapter.write', () => {
     expect(stored.byteLength).toBeGreaterThan(deflated.byteLength);
   });
 
+  it('should keep a covered merge cell\'s own lock, and copy the master\'s style onto unstyled covered cells', async() => {
+    // `mergeCells` copies the master's style over the covered cells, protection included, so an
+    // unlocked covered cell was written locked. A merge whose covered cells carry nothing of their
+    // own still takes the copy, which is how a merged header's border reaches its covered edge.
+    const thin = { style: 'thin' };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const { workbook } = await writeAndLoad(snapshotWith((b) => {
+      b.cell(1, 1).value = 'own lock';
+      b.cell(1, 2).locked = false;
+      b.merge(1, 1, 1, 2);
+      b.cell(2, 1).value = 'header';
+      b.cell(2, 1).style = {
+        alignment: null, font: null, fill: null, border,
+      };
+      b.merge(2, 1, 2, 2);
+    }));
+    const ws = workbook.worksheets[0];
+
+    expect(ws.getCell('B1').protection).toEqual(expect.objectContaining({ locked: false }));
+    expect(ws.getCell('B2').border).toEqual(border);
+  });
+
   it('should write conditional formatting and honor the compression level', async() => {
+    // The level is not observable in the bytes of a one-cell workbook (levels 1 and 9 can deflate
+    // it identically), so the options ExcelJS's `writeBuffer` receives are recorded instead, on a
+    // workbook whose `xlsx` writer passes every call through to the real one.
+    const writeOptions = [];
+    const recordingModule = {
+      Workbook: class RecordingWorkbook extends ExcelJS.Workbook {
+        constructor() {
+          super();
+
+          const { xlsx } = this;
+          const writeBuffer = xlsx.writeBuffer.bind(xlsx);
+
+          xlsx.writeBuffer = (options) => {
+            writeOptions.push(options);
+
+            return writeBuffer(options);
+          };
+        }
+      },
+      ValueType: ExcelJS.ValueType,
+    };
     const snapshot = snapshotWith((b) => {
       b.cell(1, 1).value = 5;
       b.addConditionalFormatting('A1:A1', [{ type: 'cellIs', operator: 'greaterThan', formulae: [1], style: {} }]);
@@ -206,8 +250,12 @@ describe('excelJsAdapter.write', () => {
 
     snapshot.compression = 9;
 
-    const { workbook } = await writeAndLoad(snapshot);
+    const bytes = await excelJsAdapter.write(snapshot, recordingModule, new DroppedFeatures());
+    const workbook = new ExcelJS.Workbook();
 
+    await workbook.xlsx.load(bytes);
+
+    expect(writeOptions).toEqual([{ zip: { compression: 'DEFLATE', compressionOptions: { level: 9 } } }]);
     expect(workbook.worksheets[0].conditionalFormattings[0].ref).toBe('A1:A1');
   });
 });

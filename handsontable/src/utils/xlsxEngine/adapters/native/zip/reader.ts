@@ -1,5 +1,6 @@
 import { throwWithCause } from '../../../../../helpers/errors';
 import { MAX_INFLATED_ENTRY_BYTES, MAX_INFLATED_TOTAL_BYTES, throwLimitExceeded } from '../../../limits';
+import { crc32 } from './crc32';
 import { CENTRAL_HEADER_SIZE, END_RECORD_SIZE, LOCAL_HEADER_SIZE } from './layout';
 import { inflateRawText } from './streams';
 
@@ -21,6 +22,12 @@ export interface ZipArchive {
   names(): string[];
   has(name: string): boolean;
   text(name: string): Promise<string>;
+  /**
+   * Charges the budget for a part the caller is about to tokenize AGAIN, for another sheet. The memo
+   * makes the second read free to inflate, but not to parse: N sheets naming one part each tokenize
+   * it once more, so the work is charged as if each had its own copy.
+   */
+  chargeReread(name: string, byteLength: number): void;
   release(): void;
 }
 
@@ -28,7 +35,15 @@ export interface ZipArchive {
  * One central-directory record, the authoritative source of an entry's sizes and method.
  */
 interface CentralEntry {
+  /**
+   * The entry's name as the central directory spells it.
+   */
+  name: string;
   method: number;
+  /**
+   * The CRC-32 of the entry's uncompressed bytes, which the read checks what it produced against.
+   */
+  crc: number;
   compressedSize: number;
   uncompressedSize: number;
   localOffset: number;
@@ -62,15 +77,62 @@ function isCompoundFile(bytes: Uint8Array): boolean {
 }
 
 /**
+ * Folds a part name for comparison. OPC compares part names as case-insensitive ASCII strings
+ * (ECMA-376 Part 2, 6.2.2.3), so `xl/worksheets/Sheet1.xml` and `xl/worksheets/sheet1.xml` are one
+ * part; only A-Z fold, every other character compares exactly.
+ */
+export function foldPartName(name: string): string {
+  return /[A-Z]/.test(name) ? name.replace(/[A-Z]+/g, letters => letters.toLowerCase()) : name;
+}
+
+/**
+ * Whether the signature at `offset` describes this archive's real end record: its comment runs
+ * exactly to the end of the file, and the central directory it points at lies before it and starts
+ * with a central header (or is empty).
+ */
+function isPlausibleEndRecord(view: DataView, offset: number): boolean {
+  if (offset + END_RECORD_SIZE + view.getUint16(offset + 20, true) !== view.byteLength) {
+    return false;
+  }
+
+  const count = view.getUint16(offset + 10, true);
+  const size = view.getUint32(offset + 12, true);
+  const start = view.getUint32(offset + 16, true);
+
+  if (start + size > offset) {
+    return false;
+  }
+
+  return count === 0 || (start + 4 <= offset && view.getUint32(start, true) === CENTRAL_HEADER_SIGNATURE);
+}
+
+/**
  * Finds the end-of-central-directory record, scanning backwards over a possible archive comment.
+ *
+ * The first signature the backwards scan meets is not necessarily the record: the comment is the
+ * file's own bytes and may hold `PK\x05\x06` itself, which hid the real record and refused the file
+ * as having no workbook part. The record is the EARLIEST plausible candidate - a comment follows its
+ * record, so a signature inside it always sits later. Where no candidate is plausible, the one the
+ * scan met first is returned, as before, and the directory check refuses it in its own words.
  */
 function findEndRecord(view: DataView): number {
   const floor = Math.max(0, view.byteLength - END_RECORD_SIZE - MAX_COMMENT_LENGTH);
+  let first = -1;
+  let plausible = -1;
 
   for (let offset = view.byteLength - END_RECORD_SIZE; offset >= floor; offset--) {
     if (view.getUint32(offset, true) === END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
-      return offset;
+      first = first === -1 ? offset : first;
+      plausible = isPlausibleEndRecord(view, offset) ? offset : plausible;
     }
+  }
+
+  if (plausible !== -1) {
+    return plausible;
+  }
+
+  if (first !== -1) {
+    return first;
   }
 
   throwWithCause('The file has no ZIP end-of-central-directory record.');
@@ -105,8 +167,9 @@ function assertAcceptedEntry(
   // A name may appear once. The map would keep the LAST record, while several other ZIP readers
   // (and some Office tooling) resolve the FIRST — so a crafted archive holding two `sheet1.xml`
   // entries reads differently here than in whatever inspected the file upstream. Excel never
-  // writes a duplicate, so refusing costs no real workbook anything.
-  if (entries.has(name)) {
+  // writes a duplicate, so refusing costs no real workbook anything. Names are compared FOLDED,
+  // as every lookup is: two spellings of one part name are the same part declared twice.
+  if (entries.has(foldPartName(name))) {
     // Refused through the limit thrower although the archive is malformed rather than too large:
     // the message names what this reader accepts, and `read.ts` re-throws a tagged error as it
     // stands instead of wrapping it in "The workbook could not be parsed by the native engine".
@@ -115,7 +178,7 @@ function assertAcceptedEntry(
 }
 
 /**
- * Reads every central-directory record into a name-keyed map.
+ * Reads every central-directory record into a map keyed by the FOLDED name (`foldPartName`).
  */
 function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, CentralEntry> {
   const endRecord = findEndRecord(view);
@@ -137,6 +200,7 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
 
     const flags = view.getUint16(offset + 8, true);
     const method = view.getUint16(offset + 10, true);
+    const crc = view.getUint32(offset + 16, true);
     const compressedSize = view.getUint32(offset + 20, true);
     const uncompressedSize = view.getUint32(offset + 24, true);
     const nameLength = view.getUint16(offset + 28, true);
@@ -150,10 +214,10 @@ function readCentralDirectory(bytes: Uint8Array, view: DataView): Map<string, Ce
 
     const nameStart = offset + CENTRAL_HEADER_SIZE;
     const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLength));
-    const entry = { method, compressedSize, uncompressedSize, localOffset };
+    const entry = { name, method, crc, compressedSize, uncompressedSize, localOffset };
 
     assertAcceptedEntry(name, flags, entry, entries);
-    entries.set(name, entry);
+    entries.set(foldPartName(name), entry);
     offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
   }
 
@@ -232,6 +296,17 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
   }
 
   /**
+   * Refuses an entry whose produced bytes do not match the CRC-32 its central record declares. A
+   * flipped byte in a stored part otherwise read as a sheet with a wrong cell, where `unzip -t` and
+   * Python's `testzip()` both flag the file.
+   */
+  function assertChecksum(entry: CentralEntry, checksum: number): void {
+    if (checksum !== entry.crc) {
+      throwWithCause(`The ZIP entry "${entry.name}" fails its CRC-32 check; the archive is corrupt.`);
+    }
+  }
+
+  /**
    * Locates one entry's stored bytes, refusing an entry whose header does not describe them.
    */
   function entrySlice(name: string, entry: CentralEntry): Uint8Array {
@@ -273,7 +348,7 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * 1032:1), never the whole entry.
    */
   async function entryText(name: string): Promise<{ text: string; byteLength: number }> {
-    const entry = entries.get(name);
+    const entry = entries.get(foldPartName(name));
 
     if (entry === undefined) {
       throwWithCause(`The archive has no entry named "${name}".`);
@@ -293,14 +368,19 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
       }
 
       chargeInflated(name, data.byteLength);
+      assertChecksum(entry, crc32(data));
 
       return { text: decoder.decode(data), byteLength: data.byteLength };
     }
 
     const { maxBytes, refuse } = inflateCeiling(name, entry);
-    const inflated = await inflateRawText(data, maxBytes, refuse);
+    let checksum = 0;
+    const inflated = await inflateRawText(data, maxBytes, refuse, (chunk) => {
+      checksum = crc32(chunk, checksum);
+    });
 
     chargeInflated(name, inflated.byteLength);
+    assertChecksum(entry, checksum);
 
     return inflated;
   }
@@ -323,18 +403,18 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
    * The bytes are still charged first, by `entryText()`, while the part is produced; the string's
    * excess over them is charged here, before the memo retains it.
    *
-   * EVERY declared field is in the key, the two sizes included, because the fast path sits in front
-   * of the checks `entryText()` makes on them. Keying on the region alone let a crafted directory
+   * EVERY declared field is in the key, the two sizes and the CRC-32 included, because the fast path
+   * sits in front of the checks `entryText()` makes on them. Keying on the region alone let a crafted directory
    * list one well-formed record and one lying record over the same bytes: the honest one read
    * first, and the liar - a 600 MB claim, or a stored entry whose two sizes disagree - then took the
    * cached string and skipped the refusal it had earned. A region is still decoded once, since
    * records that agree on all four fields share a key.
    */
   async function text(name: string): Promise<string> {
-    const entry = entries.get(name);
+    const entry = entries.get(foldPartName(name));
     const key = entry === undefined
       ? name
-      : `${entry.method}:${entry.localOffset}:${entry.compressedSize}:${entry.uncompressedSize}`;
+      : `${entry.method}:${entry.localOffset}:${entry.compressedSize}:${entry.uncompressedSize}:${entry.crc}`;
     const cached = texts.get(key);
 
     if (cached !== undefined) {
@@ -353,10 +433,23 @@ export async function readZip(buffer: ArrayBuffer): Promise<ZipArchive> {
     return decoded;
   }
 
+  /**
+   * Charges a repeated tokenize of an already-decoded part, in the words of the read that asks it.
+   */
+  function chargeReread(name: string, byteLength: number): void {
+    inflatedTotal += byteLength;
+
+    if (inflatedTotal > MAX_INFLATED_TOTAL_BYTES) {
+      throwLimitExceeded(`The archive entry "${name}" is read again for another sheet, bringing the inflated `
+        + `total to ${inflatedTotal} bytes, above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit this reader accepts.`);
+    }
+  }
+
   return {
-    names: () => Array.from(entries.keys()),
-    has: name => entries.has(name),
+    names: () => Array.from(entries.values(), entry => entry.name),
+    has: name => entries.has(foldPartName(name)),
     text,
+    chargeReread,
     release: () => texts.clear(),
   };
 }

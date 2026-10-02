@@ -228,17 +228,21 @@ export function inflateRaw(bytes: Uint8Array, maxBytes: number): Promise<Uint8Ar
  *
  * `refuse` raises the overshoot. A caller whose ceiling is the smaller of several limits passes the
  * sentence of the limit it chose, so the refusal never quotes a number that is nobody's cap.
+ * `observe` sees every inflated chunk before it is decoded, which is how the ZIP reader checks an
+ * entry's CRC-32 without ever holding its bytes.
  */
 export async function inflateRawText(
   bytes: Uint8Array,
   maxBytes: number,
-  refuse: () => never = refuseAboveCeiling(maxBytes)
+  refuse: () => never = refuseAboveCeiling(maxBytes),
+  observe: (chunk: Uint8Array) => void = () => {}
 ): Promise<InflatedText> {
   assertStreamAvailable('DecompressionStream');
 
   const decoder = new TextDecoder('utf-8', { ignoreBOM: false });
   let text = '';
   const byteLength = await drain(bytes, new DecompressionStream('deflate-raw'), maxBytes, (chunk) => {
+    observe(chunk);
     text += decoder.decode(chunk, { stream: true });
   }, refuse);
 

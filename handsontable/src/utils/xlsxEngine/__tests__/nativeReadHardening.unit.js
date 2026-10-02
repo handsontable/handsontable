@@ -8,6 +8,7 @@ import {
 } from '../limits';
 import { SheetBuilder } from '../builder';
 import { createWorkbookSnapshot } from '../model';
+import * as worksheetReader from '../adapters/native/parts/worksheetReader';
 import { assertSheetFits } from '../adapters/native/parts/worksheetReader';
 import { writeWorkbook } from '../adapters/native/write';
 import { crc32 } from '../adapters/native/zip/crc32';
@@ -25,9 +26,10 @@ const EOCD_SIGNATURE = 0x06054b50;
  *
  * @param {string} name The fixture name.
  * @param {Function} transform Receives the part name and its text, returns the text to write.
+ * @param {Array<{ name: string, text: string }>} [extra] More entries to append, as text.
  * @returns {Promise<Uint8Array>}
  */
-async function repack(name, transform) {
+async function repack(name, transform, extra = []) {
   const zip = await readZip(loadFixture(name));
   const entries = [];
 
@@ -37,6 +39,8 @@ async function repack(name, transform) {
 
     entries.push({ name: partName, data: encoder.encode(transform(partName, text)) });
   }
+
+  extra.forEach(entry => entries.push({ name: entry.name, data: encoder.encode(entry.text) }));
 
   return writeZip(entries, true);
 }
@@ -193,6 +197,44 @@ describe('native reader hardening: the workbook sheet count', () => {
     }
   });
 
+  it('should refuse many sheets over one large part before the part is tokenized even once', async() => {
+    // 64 `<sheet>`s naming one 2.2 MB part: the memo inflated it once, but every sheet tokenized
+    // and parsed it again and paid for the repeat only then, so the read was refused after about
+    // twenty full parses (1.4 s and 160 MB of heap on a 6 MB part). The repeats a read is about to
+    // make are known from the sheet list, so they are charged with the first read, before any parse.
+    const padding = 2_200_000;
+    const pad = (part, text) => (
+      part === 'xl/worksheets/sheet1.xml'
+        ? text.replace('<sheetData>', `<!--${' '.repeat(padding)}--><sheetData>`)
+        : text
+    );
+    const one = await repack('values', pad);
+    const many = await repack('values', (part, text) => (
+      part === 'xl/workbook.xml' ? withSheetCount(text, 64) : pad(part, text)
+    ));
+    const inflates = countInflates();
+    const parses = jest.spyOn(worksheetReader, 'parseWorksheet');
+
+    try {
+      await read(one);
+
+      const inflatesOfOne = inflates.count();
+      const parsesOfOne = parses.mock.calls.length;
+
+      await expect(read(many)).rejects.toThrow(
+        /The archive entry "xl\/worksheets\/sheet1\.xml" is read again for another sheet/
+      );
+
+      // The refused read inflated what the one-sheet read inflated, the shared part once, and
+      // parsed nothing.
+      expect(inflates.count() - inflatesOfOne).toBe(inflatesOfOne);
+      expect(parses.mock.calls.length - parsesOfOne).toBe(0);
+    } finally {
+      parses.mockRestore();
+      inflates.restore();
+    }
+  });
+
   it('should charge a sheet that declares nothing at least one unit of the workbook budget', () => {
     const budget = { declaredCells: 0 };
 
@@ -204,13 +246,17 @@ describe('native reader hardening: the workbook sheet count', () => {
 });
 
 describe('native reader hardening: the inflated-bytes budget', () => {
-  it('should read back what the built-in writer wrote for 120 000 x 20 cells, charging each part once', async() => {
+  it('should read back a built-in export whose sheet part is a hundred megabytes, charging each part once', async() => {
     // The budget charged a text part its produced bytes AND its decoded string (2 bytes per code
     // unit) on top, while the bytes are decoded as they stream and never held: the same live memory
-    // counted twice. A 120 000 x 20 sheet - 2.4 M cells, inside every cell cap - written by this
-    // engine inflates to about 104 MB of XML and was charged about 312 MB, above the 256 MB total,
-    // so the engine could not read its own export back.
-    const rows = 120_000;
+    // counted twice. The engine's own 120 000 x 20 export (about 104 MB of XML) was charged about
+    // 312 MB, above the 256 MB total, so the engine could not read its own export back.
+    //
+    // The sheet here is small and its part is padded to the same size instead: what the case proves
+    // is the charge (the sum is over the budget, the larger of the two is under it), and building,
+    // writing and reading 2.4 M real cells took 81 s on a cold machine against a 60 s timeout.
+    const rows = 2_000;
+    const padding = 100 * 1024 * 1024;
     const builder = new SheetBuilder('Big');
 
     for (let row = 1; row <= rows; row++) {
@@ -224,14 +270,20 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     written.sheets.push(builder.toSnapshot());
     written.compression = 6;
 
-    const bytes = await writeWorkbook(written, new DroppedFeatures());
-    const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-    const names = (await readZip(buffer)).names();
+    const exported = await writeWorkbook(written, new DroppedFeatures());
+    const exportedZip = await readZip(toArrayBuffer(exported));
+    const entries = [];
     let inflated = 0;
 
-    for (const name of names) {
-      // eslint-disable-next-line no-await-in-loop -- a fresh archive per part, so no budget is shared.
-      inflated += encoder.encode(await (await readZip(buffer)).text(name)).byteLength;
+    for (const name of exportedZip.names()) {
+      // eslint-disable-next-line no-await-in-loop -- one entry at a time, as the reader reads them.
+      const text = await exportedZip.text(name);
+      const data = encoder.encode(name === 'xl/worksheets/sheet1.xml'
+        ? text.replace('<sheetData>', `<!--${' '.repeat(padding)}--><sheetData>`)
+        : text);
+
+      inflated += data.byteLength;
+      entries.push({ name, data });
     }
 
     // The shape the test needs: the old charge (bytes + 2 bytes per character) is over the budget,
@@ -239,7 +291,7 @@ describe('native reader hardening: the inflated-bytes budget', () => {
     expect(inflated * 3).toBeGreaterThan(MAX_INFLATED_TOTAL_BYTES);
     expect(inflated * 2).toBeLessThan(MAX_INFLATED_TOTAL_BYTES);
 
-    const snapshot = await read(bytes);
+    const snapshot = await read(await writeZip(entries, true));
     const last = snapshot.sheets[0].rows[rows - 1];
 
     expect(snapshot.sheets[0].rows.length).toBe(rows);
@@ -536,7 +588,9 @@ function craftAliasedArchive(data, aliases) {
     view.setUint32(offset, 0x02014b50, true);
     view.setUint16(offset + 4, 20, true);
     view.setUint16(offset + 6, 20, true);
-    view.setUint32(offset + 16, crc, true);
+    // Each record declares the checksum of the bytes it really names, so an alias over a shorter
+    // slice of the region is a well-formed record and only the case's own subject is under test.
+    view.setUint32(offset + 16, compressed === data.byteLength ? crc : crc32(data.subarray(0, compressed)), true);
     view.setUint32(offset + 20, compressed, true);
     view.setUint32(offset + 24, alias.uncompressedSize ?? compressed, true);
     view.setUint16(offset + 28, names[index].byteLength, true);
@@ -905,5 +959,85 @@ describe('native reader hardening: an entry declaring zero inflated bytes', () =
       'The ZIP entry "xl/styles.xml" inflates above the 0-byte limit this reader accepts.'
     );
     await expect(read(bytes)).rejects.toMatchObject({ cause: { handsontable: true, limit: true } });
+  });
+});
+
+describe('native reader hardening: one part read for many sheets', () => {
+  it('should charge every further sheet that tokenizes a part again, against the inflated budget', async() => {
+    // The memo inflates a shared part once, but each `<sheet>` naming it tokenizes it again and an
+    // empty sheet charges one cell: 2048 sheets over one 40 MB cell-less part sat inside every
+    // budget and extrapolated to about twenty minutes of work. A repeated read now costs what a
+    // copy of the part would have.
+    const padding = 30 * 1024 * 1024;
+    const bytes = await repack('values', (part, text) => {
+      if (part === 'xl/workbook.xml') {
+        return withSheetCount(text, 8);
+      }
+
+      return part === 'xl/worksheets/sheet1.xml'
+        ? text.replace('<sheetData>', `<!--${' '.repeat(padding)}--><sheetData>`)
+        : text;
+    });
+
+    await expect(read(bytes)).rejects.toThrow(new RegExp('The archive entry "xl/worksheets/sheet1.xml" is read '
+      + 'again for another sheet, bringing the inflated total to \\d+ bytes, '
+      + `above the ${MAX_INFLATED_TOTAL_BYTES}-byte limit`));
+    await expect(read(bytes)).rejects.toMatchObject({ cause: { limit: true } });
+  });
+});
+
+describe('native reader hardening: an absolute relationship target with ..', () => {
+  /**
+   * The values fixture with every `.xml` part typed as a worksheet by `<Default>` (the main part keeps
+   * its own override), its sheet relationship pointed at `target`, and an `alias` entry carrying a
+   * copy of the real worksheet.
+   *
+   * @param {string} target The relationship target.
+   * @param {string} alias The name of the extra entry.
+   * @returns {Promise<Uint8Array>}
+   */
+  async function aliased(target, alias) {
+    let sheetText = '';
+    const bytes = await repack('values', (part, text) => {
+      if (part === 'xl/worksheets/sheet1.xml') {
+        sheetText = text;
+      }
+
+      if (part === '[Content_Types].xml') {
+        return text.replace('<Default Extension="xml" ContentType="application/xml"/>',
+          '<Default Extension="xml" '
+          + 'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>');
+      }
+
+      return part === 'xl/_rels/workbook.xml.rels'
+        ? text.replace('Target="worksheets/sheet1.xml"', `Target="${target}"`)
+        : text;
+    });
+    const zip = await readZip(toArrayBuffer(bytes));
+    const entries = [];
+
+    for (const name of zip.names()) {
+      // eslint-disable-next-line no-await-in-loop -- one entry at a time.
+      entries.push({ name, data: encoder.encode(await zip.text(name)) });
+    }
+
+    entries.push({ name: alias, data: encoder.encode(sheetText) });
+
+    return writeZip(entries, true);
+  }
+
+  it('should collapse the segments before the package floor is checked', async() => {
+    // Only a relative target was walked segment by segment; `/xl/../[Content_Types].xml` kept its
+    // `..` and so matched an entry carrying that literal name instead of the floor name it means.
+    const bytes = await aliased('/xl/../[Content_Types].xml', 'xl/../[Content_Types].xml');
+
+    await expect(read(bytes)).rejects.toThrow(/the sheet "Values" has no worksheet part\./);
+  });
+
+  it('should read the sheet an absolute target with .. really names', async() => {
+    const bytes = await aliased('/xl/worksheets/../worksheets/sheet1.xml', 'xl/unused.xml');
+    const snapshot = await read(bytes);
+
+    expect(snapshot.sheets[0].rows[1][0].value).toBe('Ana Garc\u00EDa');
   });
 });
