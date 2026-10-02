@@ -739,11 +739,22 @@
     // The line count comes from the wrapper's own custom property, so any number of lines needs no
     // extra rule. The prefixed property is deliberate: the unprefixed `line-clamp` is not available
     // in the Chrome 130+, Firefox 132+ and Safari 18.2+ the grid targets (`browser-targets.js`).
+    // The wrapper matches `$user-cell-content` like `.htCellClip`, so it skips the normalize block
+    // and a host rule such as `.handsontable td div { padding: 4px }` reaches it. Padding at the bottom
+    // of an `overflow: hidden` clamp box shows the top of the next line under the ellipsis, so it
+    // resets its own box. It also restores wrapping: a cell that carries `htTextEllipsis` for the
+    // renderers that can't clamp is `nowrap`, and the wrapper inherits that.
     .htLineClamp {
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: var(--ht-text-line-clamp);
       overflow: hidden;
+      white-space: pre-wrap;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      min-height: 0;
+      box-sizing: border-box;
     }
 
     // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no

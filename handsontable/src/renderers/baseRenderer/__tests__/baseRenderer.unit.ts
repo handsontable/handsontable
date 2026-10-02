@@ -121,14 +121,14 @@ describe('baseRenderer', () => {
       expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
     });
 
-    it('should add the line-clamp class name when `textEllipsis` is a number of 2 or more', () => {
+    it('should add the single-line class name when `textEllipsis` is a number of 2 or more, as the fallback for a renderer that cannot clamp', () => {
       const TD = document.createElement('td');
 
       baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
         textEllipsis: 3,
       });
 
-      expect(TD.outerHTML).toMatchHTML('<td class="htTextLineClamp"></td>', toMatchHTMLConfig);
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
     });
 
     it('should add the single-line ellipsis class name when `textEllipsis` is `1`', () => {

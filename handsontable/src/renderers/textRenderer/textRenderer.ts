@@ -6,12 +6,16 @@ import {
   getTextTruncation,
   LINE_CLAMP_CSS_VARIABLE,
   LINE_CLAMP_WRAPPER_CLASS_NAME,
+  TEXT_LINE_CLAMP_CLASS_NAME,
 } from '../baseRenderer/textTruncation';
 
 export const RENDERER_TYPE: 'text' = 'text';
 
 /**
- * Returns the clamp wrapper of the cell, or `null` when the cell doesn't hold one.
+ * Returns the clamp wrapper of the cell, or `null` when the cell doesn't hold one. The wrapper is a direct
+ * child of the cell, or sits one level inside a link: the whole-cell link modes (`autoLink` with
+ * `inline: false`, the Formulas `HYPERLINK` function) move the rendered content into an anchor, and
+ * looking inside it keeps the wrapper from being rebuilt on every draw.
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @returns {HTMLElement | null}
@@ -20,9 +24,16 @@ function findLineClampWrapper(TD: HTMLTableCellElement): HTMLElement | null {
   // This runs for every text cell on every draw, and a plain cell holds a single text node. The
   // `nodeType` compare is an integer check, so that cell leaves before the element guard runs.
   for (let child = TD.firstChild; child; child = child.nextSibling) {
-    if (child.nodeType === Node.ELEMENT_NODE && isHTMLElement(child) &&
-        hasClass(child, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
-      return child;
+    if (child.nodeType === Node.ELEMENT_NODE && isHTMLElement(child)) {
+      if (hasClass(child, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
+        return child;
+      }
+
+      const inner = child.firstChild;
+
+      if (child.localName === 'a' && isHTMLElement(inner) && hasClass(inner, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
+        return inner;
+      }
     }
   }
 
@@ -31,8 +42,9 @@ function findLineClampWrapper(TD: HTMLTableCellElement): HTMLElement | null {
 
 /**
  * Writes the text into the cell's clamp wrapper. The wrapper is created once and kept across draws, so a
- * redraw only replaces the text node. Anything else in the cell is removed, because the renderers that
- * decorate the cell (for example, the autocomplete arrow) add their markup after this one.
+ * redraw only replaces the text node. Anything that sits beside the wrapper is removed, so the markup a
+ * decorating renderer added after the previous draw (the autocomplete arrow) is rebuilt together with the
+ * text. A wrapper inside a link keeps its place, and the link keeps the cell.
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @param {string} text The text to write.
@@ -42,12 +54,14 @@ function writeClampedText(TD: HTMLTableCellElement, text: string, lines: number)
   let wrapper = findLineClampWrapper(TD);
 
   if (wrapper) {
+    const parent = wrapper.parentNode!;
+
     while (wrapper.previousSibling) {
-      TD.removeChild(wrapper.previousSibling);
+      parent.removeChild(wrapper.previousSibling);
     }
 
     while (wrapper.nextSibling) {
-      TD.removeChild(wrapper.nextSibling);
+      parent.removeChild(wrapper.nextSibling);
     }
 
   } else {
@@ -57,6 +71,7 @@ function writeClampedText(TD: HTMLTableCellElement, text: string, lines: number)
     TD.appendChild(wrapper);
   }
 
+  addClass(TD, TEXT_LINE_CLAMP_CLASS_NAME);
   wrapper.style.setProperty(LINE_CLAMP_CSS_VARIABLE, String(lines));
   fastInnerText(wrapper, text);
 }

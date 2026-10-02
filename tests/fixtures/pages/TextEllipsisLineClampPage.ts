@@ -6,21 +6,37 @@ import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
  * recycles `<tr>`/`<td>` nodes across a draw and two separate reads could describe different rows.
  */
 export interface CellMeasure {
-  /** Height of the `<tr>` that holds the cell, in px. */
+  /**
+   * Height of the `<tr>` that holds the cell, in px.
+   */
   rowHeight: number;
-  /** Whether the cell holds an inner `.htLineClamp` wrapper. */
+  /**
+   * Whether the cell holds an inner `.htLineClamp` wrapper.
+   */
   hasWrapper: boolean;
-  /** The wrapper's `clientHeight`, or `null` without a wrapper. */
+  /**
+   * The wrapper's `clientHeight`, or `null` without a wrapper.
+   */
   wrapperClientHeight: number | null;
-  /** The wrapper's `scrollHeight`, or `null` without a wrapper. */
+  /**
+   * The wrapper's `scrollHeight`, or `null` without a wrapper.
+   */
   wrapperScrollHeight: number | null;
-  /** The inline `--ht-text-line-clamp` value of the wrapper, or `null`. */
+  /**
+   * The inline `--ht-text-line-clamp` value of the wrapper, or `null`.
+   */
   clampVar: string | null;
-  /** The computed line height, in px, of the wrapper (or of the cell without one). */
+  /**
+   * The computed line height, in px, of the wrapper (or of the cell without one).
+   */
   lineHeight: number;
-  /** The cell's class list. */
+  /**
+   * The cell's class list.
+   */
   classes: string[];
-  /** The cell's full `textContent`. */
+  /**
+   * The cell's full `textContent`.
+   */
   text: string;
 }
 
@@ -71,29 +87,49 @@ export class TextEllipsisLineClampPage {
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
-  /** A master cell by visual row/column, through its stable test id. */
+  /**
+
+   * A master cell by visual row/column, through its stable test id.
+
+   */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** The clamp wrapper inside a master cell. */
+  /**
+
+   * The clamp wrapper inside a master cell.
+
+   */
   wrapper(row: number, col: number): Locator {
     return this.cell(row, col).locator('.htLineClamp');
   }
 
-  /** The full text every long cell holds. */
+  /**
+
+   * The full text every long cell holds.
+
+   */
   longText(): Promise<string> {
     return this.page.evaluate(() => (window as any).LONG_TEXT as string);
   }
 
-  /** Change settings at runtime. */
+  /**
+
+   * Change settings at runtime.
+
+   */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate((s) => {
       (window as any).hot.updateSettings(s);
     }, settings);
   }
 
-  /** Write cell meta and redraw, the way an application changes one cell at runtime. */
+  /**
+
+   * Write cell meta and redraw, the way an application changes one cell at runtime.
+
+   */
   async setCellMetaAndRender(row: number, col: number, key: string, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, k, v]) => {
       const hot = (window as any).hot;
@@ -103,7 +139,11 @@ export class TextEllipsisLineClampPage {
     }, [row, col, key, value] as const);
   }
 
-  /** Select a cell with a real click, then press Enter so the editor opens by keyboard. */
+  /**
+
+   * Select a cell with a real click, then press Enter so the editor opens by keyboard.
+
+   */
   async openEditorWithKeyboard(row: number, col: number): Promise<void> {
     await this.cell(row, col).click();
     await this.openEditorFromSelection();
@@ -127,36 +167,60 @@ export class TextEllipsisLineClampPage {
     return this.page.evaluate(() => (window as any).hot.getActiveEditor()?.isOpened() === true);
   }
 
-  /** Write one cell's value through the API, the way an application loads data at runtime. */
+  /**
+
+   * Write one cell's value through the API, the way an application loads data at runtime.
+
+   */
   async setDataAt(row: number, col: number, value: unknown): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {
       (window as any).hot.setDataAtCell(r, c, v);
     }, [row, col, value] as const);
   }
 
-  /** Redraw the grid without changing anything, to prove a second draw leaves a cell as it was. */
+  /**
+
+   * Redraw the grid without changing anything, to prove a second draw leaves a cell as it was.
+
+   */
   async render(): Promise<void> {
     await this.page.evaluate(() => {
       (window as any).hot.render();
     });
   }
 
-  /** How many dropdown arrows a master cell holds. */
+  /**
+
+   * How many dropdown arrows a master cell holds.
+
+   */
   arrows(row: number, col: number): Locator {
     return this.cell(row, col).locator('.htAutocompleteArrow');
   }
 
-  /** The value in the source data. */
+  /**
+
+   * The value in the source data.
+
+   */
   dataAt(row: number, col: number): Promise<unknown> {
     return this.page.evaluate(([r, c]) => (window as any).hot.getDataAtCell(r, c), [row, col] as const);
   }
 
-  /** What the clipboard would carry for a one-cell range. */
+  /**
+
+   * What the clipboard would carry for a one-cell range.
+
+   */
   copyableAt(row: number, col: number): Promise<unknown> {
     return this.page.evaluate(([r, c]) => (window as any).hot.getCopyableData(r, c), [row, col] as const);
   }
 
-  /** Measure a master cell: its row, its wrapper and its line height, in one round trip. */
+  /**
+
+   * Measure a master cell: its row, its wrapper and its line height, in one round trip.
+
+   */
   async measure(row: number, col: number): Promise<CellMeasure> {
     return this.grid.evaluate((root, [r, c]) => {
       const td = root.querySelector(`.ht_master td[data-row="${r}"][data-col="${c}"]`);

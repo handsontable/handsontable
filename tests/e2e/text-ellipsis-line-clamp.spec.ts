@@ -7,17 +7,29 @@ import { TextEllipsisLineClampPage, type CellMeasure } from '../fixtures/pages/T
  * measured wrapper is exactly `n` line heights tall AND its content overflows that box.
  */
 
-/** How many whole lines the clamp wrapper shows, or `0` when there is no wrapper. */
+/**
+
+ * How many whole lines the clamp wrapper shows, or `0` when there is no wrapper.
+
+ */
 const clampedLines = (m: CellMeasure): number => (
   m.hasWrapper ? Math.round((m.wrapperClientHeight as number) / m.lineHeight) : 0
 );
 
-/** Sub-pixel layout differs per theme, so geometry is compared within one pixel. */
+/**
+
+ * Sub-pixel layout differs per theme, so geometry is compared within one pixel.
+
+ */
 const expectNear = (actual: number, expected: number): void => {
   expect(Math.abs(actual - expected), `${actual} should be within 1px of ${expected}`).toBeLessThanOrEqual(1);
 };
 
-/** The wrapper is `n` lines tall, its text is taller than that box, and the cell carries the mode class. */
+/**
+
+ * The wrapper is `n` lines tall, its text is taller than that box, and the cell carries the mode class.
+
+ */
 const expectClamped = (m: CellMeasure, lines: number): void => {
   expect(m.hasWrapper).toBe(true);
   expect(m.clampVar).toBe(String(lines));
@@ -283,10 +295,17 @@ test.describe('textEllipsis line clamp', () => {
 
     expect(boxes.arrowInside).toBe(true);
 
-    // An empty clamped cell keeps a line of height instead of collapsing around an empty wrapper.
+    // An empty clamped cell must neither collapse nor grow around its empty wrapper: its row is exactly as
+    // tall as the row of the short one-line value in the last row.
     await grid.setDataAt(0, 0, '');
     await expect(grid.arrows(0, 0)).toHaveCount(1);
-    expect((await grid.measure(0, 0)).rowHeight).toBeGreaterThanOrEqual((await grid.measure(0, 0)).lineHeight);
+    await expect.poll(async() => (await grid.measure(0, 0)).hasWrapper).toBe(true);
+
+    const empty = await grid.measure(0, 0);
+    const oneLine = await grid.measure(4, 0);
+
+    expect(oneLine.text.length).toBeLessThan(5);
+    expectNear(empty.rowHeight, oneLine.rowHeight);
   });
 
   test('drops the wrapper when the renderer changes, and clamps again when it changes back', async({ page, theme, bundle }) => {
@@ -298,7 +317,12 @@ test.describe('textEllipsis line clamp', () => {
     // The `html` renderer draws its own markup and ignores a number, so no wrapper may be left behind.
     await grid.updateSettings({ columns: [{ renderer: 'html', textEllipsis: 2 }] });
     await expect(grid.wrapper(0, 0)).toHaveCount(0);
-    expect((await grid.measure(0, 0)).hasWrapper).toBe(false);
+
+    // A renderer that can't clamp falls back to the single-line ellipsis a truthy value always gave.
+    const fallback = await grid.measure(0, 0);
+
+    expect(fallback.hasWrapper).toBe(false);
+    expect(fallback.classes).toContain('htTextEllipsis');
 
     await grid.updateSettings({ columns: [{ renderer: 'text', textEllipsis: 2 }] });
     await expect.poll(async() => clampedLines(await grid.measure(0, 0))).toBe(2);

@@ -279,11 +279,11 @@ The truncation only changes how the cell looks. The full text stays in the cell 
 
 You can set `textEllipsis` at the grid, column, and cell level, like other [cascading options](@/guides/configuration/configuration-option-levels/configuration-option-levels.md). To override a column for a single cell, return a different value from the [`cells`](@/api/options.md#cells) function.
 
-A number works in cells that render plain text, such as the `text`, `numeric`, `date`, `time`, `select`, `autocomplete`, and `dropdown` cell types. Cells with their own markup, such as the `checkbox` cell type and cells that use the `html` renderer, ignore a number.
+A number works in cells that render plain text, such as the `text`, `numeric`, `date`, `time`, `select`, `autocomplete`, and `dropdown` cell types. Cells with their own markup, such as cells that use the `html` renderer, can't clamp. For them a number works like `true`: the text stays on one line and ends with an ellipsis.
 
 If you set [`wordWrap`](@/api/options.md#wordwrap) to `false`, the text can't wrap. The cell then keeps the text on one line and ends it with an ellipsis, whatever number you set.
 
-In this example, three columns show the same note. The first column has no truncation, the second keeps the note on one line, and the third shows two lines.
+In this example, the **Note** column shows two lines of each note. The rows stay compact, however long the text is. Without `textEllipsis`, the longest notes would make their rows five lines tall.
 
 ::: only-for javascript
 

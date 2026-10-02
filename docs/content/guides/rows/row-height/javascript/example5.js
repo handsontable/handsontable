@@ -11,29 +11,29 @@ new Handsontable(container, {
     [
       'SKU-4821',
       'Stainless Steel Water Bottle',
+      'Harbor Goods',
       'Ships in recyclable packaging. Harbor Goods needs ten days to restock this item, so order early.',
     ],
     [
       'SKU-0093',
       'Wireless Mouse',
+      'Alpine Supply Co.',
       'Available in black and silver. The silver version is on backorder until the end of the month.',
     ],
     [
       'SKU-1170',
       'Ergonomic Office Chair',
+      'Cascade Distributors',
       'Assembly required. Cascade Distributors includes a hex key and a printed guide in the box.',
     ],
-    ['SKU-2208', 'USB-C Charging Cable', 'In stock.'],
-  ].map(([sku, product, note]) => [sku, product, note, note, note]),
-  colHeaders: ['SKU', 'Product', 'Note', 'Note (one line)', 'Note (two lines)'],
-  colWidths: [100, 190, 170, 170, 170],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'In stock.'],
+  ],
+  colHeaders: ['SKU', 'Product', 'Supplier', 'Note'],
+  colWidths: [100, 190, 170, 220],
   columns: [
     {},
     {},
-    // no truncation (default): the row grows to fit the whole note
     {},
-    // keep the note on one line and end it with an ellipsis
-    { textEllipsis: true },
     // show two lines of the note and end the second one with an ellipsis
     { textEllipsis: 2 },
   ],

@@ -7424,8 +7424,9 @@ export default (): Record<string, unknown> => {
      * A number works in cells whose renderer writes plain text through the built-in `textRenderer`.
      * That covers the `text`, `numeric`, `date`, `time`, `intl-date`, `intl-datetime`, `intl-time`, `select`,
      * `autocomplete`, `dropdown`, and `handsontable` cell types, and any custom renderer that calls
-     * `textRenderer`. Renderers that draw their own markup, such as the `checkbox` and `html` renderers (and
-     * the `autocomplete` renderer with `allowHtml: true`), ignore a number.
+     * `textRenderer`. Renderers that draw their own markup, such as the `html` and `password` renderers (and
+     * the `autocomplete` renderer with `allowHtml: true`), can't clamp: for them a number works like `true`,
+     * and the text stays on one line with an ellipsis.
      *
      * Truncation only changes how the text looks. The full text stays in the cell's DOM, in
      * [`getData()`](@/api/core.md#getdata), and in copied data. The grid shows no tooltip with the full text.

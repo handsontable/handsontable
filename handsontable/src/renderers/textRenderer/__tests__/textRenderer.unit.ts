@@ -116,6 +116,18 @@ describe('textRenderer', () => {
         expect((TD.firstElementChild as HTMLElement).style.getPropertyValue('--ht-text-line-clamp')).toBe('3');
       });
 
+      it('should mark the cell with the line-clamp class only when it wrote a wrapper', () => {
+        const instance = getInstance();
+        const clamped = document.createElement('td');
+        const plain = document.createElement('td');
+
+        textRenderer(instance, clamped, undefined, undefined, undefined, 'Text', { textEllipsis: 2 });
+        textRenderer(instance, plain, undefined, undefined, undefined, 'Text', { textEllipsis: true });
+
+        expect(clamped.classList.contains('htTextLineClamp')).toBe(true);
+        expect(plain.classList.contains('htTextLineClamp')).toBe(false);
+      });
+
       it('should keep the same wrapper element across redraws and update its text and line count', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
@@ -129,6 +141,27 @@ describe('textRenderer', () => {
         expect(TD.firstElementChild).toBe(wrapper);
         expect(wrapper.textContent).toBe('Second');
         expect(wrapper.style.getPropertyValue('--ht-text-line-clamp')).toBe('4');
+      });
+
+      it('should reuse a wrapper that a whole-cell link moved inside the anchor', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'First', { textEllipsis: 2 });
+
+        // what `wrapCellContent()` does for `autoLink` with `inline: false` and for `HYPERLINK`
+        const wrapper = TD.firstElementChild as HTMLElement;
+        const link = document.createElement('a');
+
+        link.appendChild(wrapper);
+        TD.appendChild(link);
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'Second', { textEllipsis: 2 });
+
+        expect(TD.children.length).toBe(1);
+        expect(TD.firstElementChild).toBe(link);
+        expect(link.firstElementChild).toBe(wrapper);
+        expect(wrapper.textContent).toBe('Second');
       });
 
       it('should remove markup that another renderer put beside the wrapper', () => {

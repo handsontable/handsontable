@@ -23,6 +23,14 @@ describe('getTextTruncation', () => {
     expect(getTextTruncation({ textEllipsis: 10 })).toEqual({ mode: 'clamp', lines: 10 });
   });
 
+  it('should return the same frozen result for the same number of lines', () => {
+    const first = getTextTruncation({ textEllipsis: 3 });
+
+    expect(getTextTruncation({ textEllipsis: 3 })).toBe(first);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(getTextTruncation({ textEllipsis: 4 })).not.toBe(first);
+  });
+
   it('should fall back to no truncation for a number that is not a positive integer', () => {
     [0, -1, 2.5, NaN, Infinity, -Infinity].forEach((textEllipsis) => {
       expect(getTextTruncation({ textEllipsis })).toEqual({ mode: 'none' });
