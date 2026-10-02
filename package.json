@@ -111,7 +111,7 @@
       "brace-expansion@5": "^5.0.12",
       "browserslist": "^4.28.7",
       "colord": "^2.9.4",
-      "dompurify": "^3.4.13",
+      "dompurify": "^3.4.16",
       "fast-uri": "^3.1.6",
       "http-proxy-middleware@2": "^2.0.10",
       "http-proxy-middleware@3": "^3.0.7",
