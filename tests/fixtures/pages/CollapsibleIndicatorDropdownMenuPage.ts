@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the collapsible-indicator-dropdown-menu fixture (DEV-214): one collapsible
@@ -22,6 +23,7 @@ export class CollapsibleIndicatorDropdownMenuPage {
     await this.page.goto(
       `/tests/fixtures/demo/collapsible-indicator-dropdown-menu.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+    await awaitBundle(this.page);
     await expect(this.indicator()).toBeVisible();
   }
 
@@ -70,6 +72,29 @@ export class CollapsibleIndicatorDropdownMenuPage {
   /** Click the indicator like a user: a real pointer press, not a dispatched event. */
   async clickIndicator(): Promise<void> {
     await this.indicator().click();
+  }
+
+  /** Click a data cell, optionally with a modifier key held (Shift extends the selection). */
+  async clickCell(row: number, col: number, modifiers: Array<'Shift'> = []): Promise<void> {
+    await this.page.locator('.ht_master tbody tr').nth(row).locator('td').nth(col).click({ modifiers });
+  }
+
+  /** The comment editor's textarea, only while the comment is open. */
+  commentEditor(): Locator {
+    return this.page.locator('.htCommentTextArea:visible');
+  }
+
+  /** Open the comment on a cell and type into it without leaving the editor. */
+  async typeIntoComment(row: number, col: number, text: string): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as any).hot.getPlugin('comments').showAtCell(r, c), [row, col]);
+    await expect(this.commentEditor()).toBeVisible();
+    await this.commentEditor().click();
+    await this.page.keyboard.type(text);
+  }
+
+  /** The saved comment text of a cell. */
+  async savedComment(row: number, col: number): Promise<string | undefined> {
+    return this.page.evaluate(([r, c]) => (window as any).hot.getPlugin('comments').getCommentAtCell(r, c), [row, col]);
   }
 
   async expectCollapsed(): Promise<void> {

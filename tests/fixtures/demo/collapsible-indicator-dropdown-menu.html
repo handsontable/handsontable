@@ -29,7 +29,7 @@
 <body>
   <!--
     E2E fixture for DEV-214: clicking a CollapsibleColumns indicator while a column dropdown menu, a
-    context menu, or a cell editor is open. Group "B" spans four columns and is the only collapsible group, so the page has exactly
+    context menu, a cell editor, or a comment editor is open. Group "B" spans four columns and is the only collapsible group, so the page has exactly
     one indicator.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -52,6 +52,8 @@
       collapsibleColumns: true,
       dropdownMenu: true,
       contextMenu: true,
+      comments: true,
+      cell: [{ row: 3, col: 0, comment: { value: '' } }],
       licenseKey: 'non-commercial-and-evaluation',
     });
   </script>

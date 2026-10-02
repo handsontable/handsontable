@@ -4,7 +4,7 @@ import { CollapsibleIndicatorDropdownMenuPage } from '../fixtures/pages/Collapsi
 /**
  * DEV-214. A press on a CollapsibleColumns indicator stopped the event with the shared
  * `stopImmediatePropagation()` helper, which besides the grid's own flag also sets `cancelBubble`.
- * The press therefore never reached `document`, where the dropdown menu listens for the click that
+ * The press therefore never reached `document`, where the dropdown menu listens for the mousedown that
  * closes it, so the menu stayed open over a group that had just collapsed or expanded.
  */
 test.describe('collapsible indicator pressed while a menu or editor is open', () => {
@@ -67,5 +67,30 @@ test.describe('collapsible indicator pressed while a menu or editor is open', ()
 
     await grid.expectCollapsed();
     await expect(grid.editor()).toBeVisible();
+  });
+
+  test('the press with no menu open keeps a range selection', async () => {
+    // An open menu turns `outsideClickDeselects` off, so only a press with none open can show that
+    // the grid does not treat the indicator as an outside click.
+    await grid.clickCell(1, 0);
+    await grid.clickCell(3, 2, ['Shift']);
+    const range = await grid.selection();
+
+    expect(range).toHaveLength(1);
+
+    await grid.clickIndicator();
+
+    await grid.expectCollapsed();
+    expect(await grid.selection()).toEqual(range);
+  });
+
+  test('the press keeps the text typed into an open comment', async () => {
+    await grid.typeIntoComment(3, 0, 'typed note');
+
+    await grid.clickIndicator();
+
+    await grid.expectCollapsed();
+    await expect(grid.commentEditor()).toBeHidden();
+    expect(await grid.savedComment(3, 0)).toBe('typed note');
   });
 });
