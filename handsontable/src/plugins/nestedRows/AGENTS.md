@@ -469,7 +469,31 @@ They are written in different places and can drift. Keep this in mind:
   row-move hook would otherwise get `applyStash()` replayed onto the old row numbers.
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
-  and filtering.
+  filtering, and the predefined "Clear column" menu command.
+- **A menu command that walks a column's visual rows never reaches a collapsed parent's
+  descendants**, because they are trimmed and have no visual index. "Clear column" left every
+  collapsed child with its value (DEV-150). The predefined `clear_column` callback now runs its
+  clear through `NestedRows#runWithCollapsedRowsExpanded()` (`@private`), which wraps it in
+  `batchRender()` + `stash()`/`applyStash(false)`, so the clear goes through the normal change
+  pipeline (validators, `afterChange`, undo) for every row and the collapse is put back with no
+  collapse or expand hook. Five rules ride along. (1) `batchRender()`, never `batch()`: `batch()`
+  also suspends the index cache, so the operation would still see the trimmed sequence. (2) The
+  operation must size itself from the grid, not from the selection it was handed — the selection
+  was read before the expansion — which is why the clear runs to `countRows() - 1` while this plugin
+  is on (without it, the clear keeps ending on the selection's last row, as before). (3) The call is
+  made FROM the menu item (`hot.getPlugin('nestedRows')`, the pattern `readOnly.ts` uses for
+  ColumnSummary), not by wrapping the item in a `before*MenuSetItems` hook. A wrapper looked more
+  decoupled and was measured broken: DropdownMenu (priority 230) builds its item list in
+  `callOnPluginsReady()` before this plugin (300) is enabled, and `executeCommand()` reuses that list
+  for a known key, so `dropdownMenu.executeCommand('clear_column')` before the menu was ever opened
+  ran the unwrapped callback. (4) A user callback under the same key replaces the predefined one, so
+  it is never expanded under — it receives a selection read in the collapsed grid, and expanding
+  would shift every row it addresses. (5) `beforeChange`/`afterChange` report visual rows of the
+  EXPANDED grid for that one call; undo is unaffected, because `DataChangeAction` records physical
+  rows and writes a row that is trimmed again straight to the source. The same gap is still open
+  for "Alignment" (DEV-151, cell meta instead of data): route it through the same method rather
+  than building a second mechanism. Rows trimmed by Filters or TrimRows are NOT this case — those
+  are absent by design, and "Clear column" keeps skipping them.
 - **So every visual index an insert computes is measured in the *expanded* space, and any listener
   that replays it later addresses a different row.** `beforeAddChild` opens the stash and
   `afterAddChild` closes it, which puts the whole of `addChildAtIndex()` and `addChild()` inside a
@@ -606,6 +630,7 @@ They are written in different places and can drift. Keep this in mind:
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
+| `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse, undoes, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

@@ -647,6 +647,43 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Runs an operation with every collapsed parent expanded, then collapses them back.
+   *
+   * A collapsed parent's descendants are trimmed, so they have no visual index, and an operation
+   * that walks the visual rows of a column - the predefined "Clear column" menu item - never
+   * reaches them (DEV-150). Inside the callback the whole tree is addressable, so the change runs
+   * through the regular pipeline (validators, `afterChange`, undo) for every row.
+   *
+   * The expansion uses the same stash as the row move, so no collapse or expand hook fires, and it
+   * runs in `batchRender()`, never `batch()`: `batch()` also suspends the index cache, so the
+   * operation would still see the trimmed sequence. Visual indexes reported from inside the callback
+   * are those of the expanded grid.
+   *
+   * @private
+   * @param {Function} operation The operation to run.
+   */
+  runWithCollapsedRowsExpanded(operation: () => void): void {
+    if (!this.#isOperational() || this.collapsingUI!.getCollapsedParents().length === 0) {
+      operation();
+
+      return;
+    }
+
+    const { collapsedRowsStash } = this.collapsingUI!;
+
+    this.hot.batchRender(() => {
+      collapsedRowsStash.stash();
+
+      try {
+        operation();
+
+      } finally {
+        collapsedRowsStash.applyStash(false);
+      }
+    });
+  }
+
+  /**
    * Walks the nested structure depth-first and calls back for every row that has children.
    *
    * @param {Array} nodes Row objects to walk.
