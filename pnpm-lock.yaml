@@ -638,6 +638,9 @@ importers:
       jest-environment-jsdom:
         specifier: ^27.5.1
         version: 27.5.1(form-data@4.0.6)
+      jest-environment-node:
+        specifier: ^27.5.1
+        version: 27.5.1
       jest-matcher-utils:
         specifier: ^27.5.1
         version: 27.5.1
@@ -17190,7 +17193,7 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       '@types/yargs': 16.0.11
       chalk: 4.1.2
 
@@ -24475,7 +24478,7 @@ snapshots:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       jest-mock: 27.5.1
       jest-util: 27.5.1
 
@@ -24598,7 +24601,7 @@ snapshots:
   jest-mock@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
 
   jest-mock@29.7.0:
     dependencies:
@@ -24885,7 +24888,7 @@ snapshots:
   jest-util@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 22.19.20
+      '@types/node': 20.19.42
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
