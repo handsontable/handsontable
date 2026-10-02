@@ -35,9 +35,12 @@ export class NoWordWrapClassNamePage {
   }
 
   /**
-   * Returns the computed `white-space` of a cell.
+   * Sets the `wordWrap` meta of a cell and renders the grid.
    */
-  async whiteSpace(row: number, col: number): Promise<string> {
-    return this.cell(row, col).evaluate(td => getComputedStyle(td).whiteSpace);
+  async setWordWrap(row: number, col: number, wordWrap: boolean): Promise<void> {
+    await this.page.evaluate(([r, c, value]) => {
+      window.hot.setCellMeta(r as number, c as number, 'wordWrap', value);
+      window.hot.render();
+    }, [row, col, wordWrap]);
   }
 }

@@ -101,15 +101,17 @@ describe('baseRenderer', () => {
       expect(TD.outerHTML).toMatchHTML('<td class="htNoWrap"></td>', toMatchHTMLConfig);
     });
 
-    it('should keep the default no-wrap class name when noWordWrapClassName is empty', () => {
-      const TD = document.createElement('td');
+    it('should not add any no-wrap class name when noWordWrapClassName is empty or null', () => {
+      ['', null].forEach((noWordWrapClassName) => {
+        const TD = document.createElement('td');
 
-      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
-        wordWrap: false,
-        noWordWrapClassName: '',
+        baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+          wordWrap: false,
+          noWordWrapClassName,
+        });
+
+        expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
       });
-
-      expect(TD.outerHTML).toMatchHTML('<td class="htNoWrap"></td>', toMatchHTMLConfig);
     });
 
     it('should not add any no-wrap class name when wordWrap is not false', () => {

@@ -67,14 +67,11 @@ export function baseRenderer(
     }
   }
 
-  if (cellProperties.wordWrap === false) {
-    // The built-in class carries the `white-space: nowrap` rule, so it is always applied.
-    // A custom `noWordWrapClassName` is an additional styling hook and can't turn wrapping back on.
-    classesToAdd.push(NO_WORD_WRAP_CLASS_NAME);
-
-    if (cellProperties.noWordWrapClassName) {
-      classesToAdd.push(cellProperties.noWordWrapClassName);
-    }
+  // An empty `noWordWrapClassName` keeps meaning "add no class at all", which is the documented way
+  // to opt out of the no-wrap styling.
+  if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {
+    // The built-in class carries the `white-space: nowrap` rule, so a custom class name can't replace it.
+    classesToAdd.push(NO_WORD_WRAP_CLASS_NAME, cellProperties.noWordWrapClassName);
   }
 
   if (isEmpty(value) && cellProperties.placeholder) {
