@@ -120,6 +120,15 @@ and keeps the last *n* rows, so a mid-page paste of a long clipboard writes the 
 (DEV-1119 / private #2861). The unique-value case in `__tests__/plugins/copyPaste.spec.js`
 is the regression pin; the older case used identical letters and could not catch it.
 
+**The paste start row is the selection, not `copyableRanges` (DEV-2935).** The hook's second argument
+is the copy SOURCE, and `CopyPaste#onAfterSelectionEnd` stops refreshing it when `fragmentSelection: true`,
+so it can point at the rows that were copied while the paste writes elsewhere. Clamping from it let a paste
+near the end of a page spill onto the next one. `#onBeforePaste` reads
+`getSelectedRangeActive().getTopStartCorner().row`, the cell `CopyPaste#populateValues` writes at, and
+ignores the argument. Every existing pagination paste spec selects the destination right before pasting,
+which refreshes the ranges, so none of them can tell the two sources apart; the pin is
+`tests/e2e/pagination-paste-fragment-selection.spec.ts`, which copies, moves the selection and then pastes.
+
 ## Styling: the page-size select fill lives on the wrapper, not the select
 
 In `../../styles/components/plugins/_pagination.scss`, the page-size control's background, border-radius
