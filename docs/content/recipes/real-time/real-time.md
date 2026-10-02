@@ -31,5 +31,6 @@ Current recipes:
 - [Sync rows to a Chart.js chart](@/recipes/real-time/chartjs-sync/chartjs-sync.md)
 - [Multiplayer editing with Liveblocks](@/recipes/real-time/liveblocks-multiplayer/liveblocks-multiplayer.md)
 - [Cell comments with Liveblocks](@/recipes/real-time/liveblocks-comments/liveblocks-comments.md)
+- [Agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md)
 
 </div>
