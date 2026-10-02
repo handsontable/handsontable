@@ -164,6 +164,30 @@ describe('textRenderer', () => {
         expect(wrapper.textContent).toBe('Second');
       });
 
+      it('should reuse a wrapper inside a link that holds other nodes before it', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'First', { textEllipsis: 2 });
+
+        // an autocomplete cell: the arrow sits before the wrapper when the link takes every child of the cell
+        const wrapper = TD.firstElementChild as HTMLElement;
+        const arrow = document.createElement('div');
+        const link = document.createElement('a');
+
+        arrow.className = 'htAutocompleteArrow';
+        link.appendChild(arrow);
+        link.appendChild(wrapper);
+        TD.appendChild(link);
+
+        textRenderer(instance, TD, undefined, undefined, undefined, 'Second', { textEllipsis: 2 });
+
+        expect(TD.children.length).toBe(1);
+        expect(link.children.length).toBe(1);
+        expect(link.firstElementChild).toBe(wrapper);
+        expect(wrapper.textContent).toBe('Second');
+      });
+
       it('should remove markup that another renderer put beside the wrapper', () => {
         const TD = document.createElement('td');
         const instance = getInstance();

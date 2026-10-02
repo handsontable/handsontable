@@ -12,26 +12,44 @@ import {
 export const RENDERER_TYPE: 'text' = 'text';
 
 /**
+ * Returns the direct child of a node that is the clamp wrapper, or `null` when there is none.
+ *
+ * @param {Node} parent The node whose children are searched.
+ * @returns {HTMLElement | null}
+ */
+function findWrapperChild(parent: Node): HTMLElement | null {
+  for (let child = parent.firstChild; child; child = child.nextSibling) {
+    if (child.nodeType === Node.ELEMENT_NODE && isHTMLElement(child) &&
+        hasClass(child, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
+      return child;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Returns the clamp wrapper of the cell, or `null` when the cell doesn't hold one. The wrapper is a direct
- * child of the cell, or sits one level inside a link: the whole-cell link modes (`autoLink` with
- * `inline: false`, the Formulas `HYPERLINK` function) move the rendered content into an anchor, and
- * looking inside it keeps the wrapper from being rebuilt on every draw.
+ * child of the cell, or sits inside a link: the whole-cell link modes (`autoLink` with `inline: false`,
+ * the Formulas `HYPERLINK` function) move every child of the cell into an anchor, so the wrapper can follow
+ * other nodes there (the autocomplete arrow). Looking inside the anchor keeps the wrapper from being rebuilt
+ * on every draw.
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
  * @returns {HTMLElement | null}
  */
 function findLineClampWrapper(TD: HTMLTableCellElement): HTMLElement | null {
   // This runs for every text cell on every draw, and a plain cell holds a single text node. The
-  // `nodeType` compare is an integer check, so that cell leaves before the element guard runs.
+  // `nodeType` compare is an integer check, so that cell leaves before any element guard runs.
   for (let child = TD.firstChild; child; child = child.nextSibling) {
     if (child.nodeType === Node.ELEMENT_NODE && isHTMLElement(child)) {
       if (hasClass(child, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
         return child;
       }
 
-      const inner = child.firstChild;
+      const inner = child.localName === 'a' ? findWrapperChild(child) : null;
 
-      if (child.localName === 'a' && isHTMLElement(inner) && hasClass(inner, LINE_CLAMP_WRAPPER_CLASS_NAME)) {
+      if (inner) {
         return inner;
       }
     }
