@@ -744,6 +744,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return true;
   },
+  beforePasteParse: (clipboardData, event) => {
+    const _types: string[] = clipboardData.types;
+    const _text: string = clipboardData.getData('text/plain');
+    const _event: ClipboardEvent | null = event;
+
+    clipboardData.setData('text/plain', _text);
+    clipboardData.clearData('text/html');
+    clipboardData.clearData();
+
+    return false;
+  },
   beforePaste: (data, coords) => {
     data.splice(0, 1);
 

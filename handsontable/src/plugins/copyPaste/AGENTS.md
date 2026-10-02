@@ -190,6 +190,41 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
   Identity is what survives that — do not switch the check to a content comparison.
 - `modifyCopyableRange` is the hook for constraining what may be copied (DEV-844).
 
+## The `beforePasteParse` hook (DEV-2930)
+
+It fires inside `onPaste()`, after the guard and `preventDefault()`, and before `#readClipboardData()`
+sanitizes and parses anything. The order of a paste is `beforePasteParse`, `beforePaste`,
+`populateValues`, `afterPaste`. A native `paste` listener cannot do its job, because a trusted event's
+`clipboardData` is read-only, and `beforePaste` is too late, because the spreadsheet formatting is gone by
+then. The hook inherits every property of `onPaste()`: it fires once per event (the
+`#processedClipboardEvents` registry), only for the listening grid, never with an editor open, and in a
+shadow root or under Lightning Web Security wherever the plugin gets the event.
+
+- **The callbacks edit a `PasteClipboardSnapshot`** (`pasteClipboardData.ts`), not the event. `types`,
+  `getData()` (`''` when absent, like `DataTransfer`), `setData()` and `clearData()` are the public
+  `PasteClipboardData` interface in `core/settings.ts`. `isChanged()` and `resolve()` are the plugin's
+  own and stay off the public type.
+- **`resolve()` is what keeps the no-callback path byte-identical.** A real `DataTransfer` answers `''`
+  for a missing `text/plain`, and `parse('')` yields `[['']]`, so a real paste with no text **blanks the
+  whole selection**, today and with the hook. The programmatic `paste()` answers `undefined` and is a
+  no-op. Both are pinned in `beforePasteParse.unit.ts`. `resolve()` answers what the source answered for a flavor no callback touched, and what the
+  callbacks left for one they set or cleared. Do not replace it with `getData()`.
+- **Only `false` is read from the return value, and `Hooks#run` threads any other non-`undefined` return
+  into the next callback's first argument.** The plugin keeps its own snapshot reference for that reason.
+  A callback that returns `true`, or `false`, hands it to the next one as `clipboardData`, so a second
+  callback after a cancel throws on `false.getData`. The JSDoc says to return `false` from the last or only
+  callback, and nothing otherwise. A callback that clears `text/plain` writes nothing, while one that sets
+  it to `""` blanks the selection.
+- **A `<table>` in `text/html` wins over `text/plain`**, the rule `#readClipboardData()` already had. A
+  callback that cleans only `text/plain` has to `clearData('text/html')`.
+- **The private flavor is dropped when a callback changes `text/plain` or `text/html` and leaves it
+  alone** (`#runBeforePasteParse()`). `populateValues()` prefers it for a cell with `parsePastedValue`
+  whose value equals the original parsed one, so keeping it would bring back what the callback cleaned.
+  A callback that edits the private flavor keeps it. Change detection compares strings before and after.
+- **Sanitizing still applies** to whatever the callbacks leave in `text/html` and the private flavor.
+- **`paste()` from inside the hook recurses** into `onPaste()` and fires the hook again with
+  `event === null`. No guard exists on purpose, and the docs tell people to edit the snapshot instead.
+
 Paste sizing is inherently two-phase: the plugin tries to populate all copied data, or repeat it within the
 selection, but **it cannot know up front whether the populated data exceeds the selection** — some cells
 reject values, and that is only known after reading their cell meta.

@@ -222,6 +222,20 @@
       window.__pasteHookCalls += 1;
     });
 
+    // What each `beforePasteParse` call received (DEV-2930), copied out at call time. The hook has
+    // to fire once per paste in this fixture as well: all three listeners (document, shadow root,
+    // container) see the event under the default delivery, and only the `lws-shape` one reaches
+    // the plugin through a single listener.
+    window.__beforePasteParseCalls = [];
+    hot.addHook('beforePasteParse', (clipboardData, event) => {
+      window.__beforePasteParseCalls.push({
+        eventType: event === null ? null : event.type,
+        eventIsClipboardEvent: event instanceof ClipboardEvent,
+        types: clipboardData.types.slice(),
+        plain: clipboardData.getData('text/plain'),
+      });
+    });
+
     document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
       event.preventDefault();
       document.querySelector('[data-testid="outside-input"]').focus();
@@ -247,6 +261,7 @@
       outsideClickTargets: () => window.__outsideClickTargets,
       clipboardEventsSeenAtDocument: () => window.__clipboardAtDocument,
       pasteHookCalls: () => window.__pasteHookCalls,
+      beforePasteParseCalls: () => window.__beforePasteParseCalls,
     };
   </script>
 </body>

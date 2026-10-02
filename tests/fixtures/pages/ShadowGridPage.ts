@@ -75,6 +75,24 @@ export class ShadowGridPage {
     return this.page.evaluate(() => (window as any).__hotProbe.pasteHookCalls());
   }
 
+  /**
+   * What each `beforePasteParse` call received, in order (fixture probe, DEV-2930). The length is
+   * the number of times the hook fired.
+   */
+  async beforePasteParseCalls(): Promise<Array<{
+    eventType: string | null;
+    eventIsClipboardEvent: boolean;
+    types: string[];
+    plain: string;
+  }>> {
+    return this.page.evaluate(() => (window as any).__hotProbe.beforePasteParseCalls());
+  }
+
+  /** Put plain text on the real clipboard (requires the clipboard permissions and a focused page). */
+  async writeClipboardText(text: string): Promise<void> {
+    await this.page.evaluate(value => navigator.clipboard.writeText(value), text);
+  }
+
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);

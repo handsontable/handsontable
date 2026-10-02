@@ -24,6 +24,7 @@ import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGrou
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
+import { PasteClipboardSnapshot, SOURCE_DATA_HTML_MIME_TYPE, type PasteClipboardSource } from './pasteClipboardData';
 import {
   CopyableRangesFactory,
   normalizeRanges,
@@ -51,6 +52,7 @@ Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
 Hooks.getSingleton().register('beforeCut');
 Hooks.getSingleton().register('afterCut');
+Hooks.getSingleton().register('beforePasteParse');
 Hooks.getSingleton().register('beforePaste');
 Hooks.getSingleton().register('afterPaste');
 Hooks.getSingleton().register('beforeCopy');
@@ -59,7 +61,6 @@ Hooks.getSingleton().register('afterCopy');
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
 const SETTING_KEYS = ['fragmentSelection'];
-const SOURCE_DATA_HTML_MIME_TYPE = 'application/ht-source-data-json-html';
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
@@ -105,14 +106,15 @@ const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
  * and `onPaste` treats `undefined` as "no paste" while an empty string would parse into a single
  * blank cell and clear the target.
  *
- * Typed to the one method it uses, so it accepts both a real `DataTransfer` and the `PasteEvent`
- * stand-in the public `paste()` method builds.
+ * It reads `PasteClipboardSnapshot#resolve()`, which answers what the source answered for a flavor
+ * no `beforePasteParse` callback touched: `''` from a real `DataTransfer`, `undefined` from the
+ * `PasteEvent` stand-in the public `paste()` method builds.
  *
- * @param {object} clipboardData The event's clipboard.
+ * @param {PasteClipboardSnapshot} clipboardData The snapshot of the paste event's clipboard.
  * @returns {unknown} The plain-text payload, with a single trailing newline removed.
  */
-function readPlainText(clipboardData: { getData(type: string): string | undefined }): unknown {
-  const text = clipboardData.getData('text/plain');
+function readPlainText(clipboardData: PasteClipboardSnapshot): unknown {
+  const text = clipboardData.resolve('text/plain');
 
   // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
   // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
@@ -1043,7 +1045,13 @@ export class CopyPaste extends BasePlugin {
 
     event.preventDefault?.();
 
-    const clipboardResult = this.#readClipboardData(event);
+    const clipboardSnapshot = this.#runBeforePasteParse(event);
+
+    if (clipboardSnapshot === false) {
+      return;
+    }
+
+    const clipboardResult = this.#readClipboardData(clipboardSnapshot);
     const { pastedSourceData } = clipboardResult;
     let { pastedData } = clipboardResult;
 
@@ -1094,17 +1102,64 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Reads pasted data and source data from a paste event's clipboard.
+   * Copies the paste event's clipboard into a writable snapshot and runs the `beforePasteParse` hook
+   * on it.
+   *
+   * The result is the plugin's own snapshot, never the hook's return value: `Hooks#run` threads a
+   * callback's non-`undefined` return into the next callback's first argument, so only `false` is
+   * read from it.
    *
    * @param {ClipboardEvent | PasteEvent} event The paste event.
+   * @returns {PasteClipboardSnapshot | null | false} The snapshot, `null` when the event carries no
+   * clipboard (the legacy `window.clipboardData` branch), or `false` when a callback canceled the paste.
+   */
+  #runBeforePasteParse(event: ClipboardEvent | PasteEvent): PasteClipboardSnapshot | null | false {
+    if (!event || typeof event.clipboardData === 'undefined') {
+      return null;
+    }
+
+    const hasCallbacks = this.hot.hasHook('beforePasteParse');
+    const snapshot = new PasteClipboardSnapshot(event.clipboardData as PasteClipboardSource, hasCallbacks);
+
+    if (!hasCallbacks) {
+      return snapshot;
+    }
+
+    const nativeEvent = event instanceof PasteEvent ? null : event;
+
+    if (this.hot.runHooks('beforePasteParse', snapshot, nativeEvent) === false) {
+      return false;
+    }
+
+    // The private flavor restores the values a callback just cleaned, because `populateValues()`
+    // prefers it for a cell whose value is unchanged. A callback that rewrote a flavor it does not
+    // know about would otherwise see its work undone, so the flavor goes unless the callback itself
+    // edited it.
+    if (
+      !snapshot.isChanged(SOURCE_DATA_HTML_MIME_TYPE) &&
+      (snapshot.isChanged('text/plain') || snapshot.isChanged('text/html'))
+    ) {
+      snapshot.clearData(SOURCE_DATA_HTML_MIME_TYPE);
+    }
+
+    return snapshot;
+  }
+
+  /**
+   * Reads pasted data and source data from a paste event's clipboard.
+   *
+   * @param {PasteClipboardSnapshot | null} clipboardData The snapshot of the event's clipboard, as the
+   * `beforePasteParse` callbacks left it. `null` when the event carries none, which sends the read to
+   * the legacy `window.clipboardData` branch.
    * @returns {{ pastedData: unknown, pastedSourceData: unknown }} The pasted data and source data.
    */
-  #readClipboardData(event: ClipboardEvent | PasteEvent): { pastedData: unknown; pastedSourceData: unknown } {
+  #readClipboardData(
+    clipboardData: PasteClipboardSnapshot | null
+  ): { pastedData: unknown; pastedSourceData: unknown } {
     let pastedData: unknown;
     let pastedSourceData: unknown;
 
-    if (event && typeof event.clipboardData !== 'undefined') {
-      const clipboardData = event.clipboardData!;
+    if (clipboardData) {
       // `SOURCE_DATA_HTML_MIME_TYPE` is written by Handsontable's own copy handler, but the
       // clipboard is not a trusted channel: any page can set the same type from its own `copy`
       // handler, so it is sanitized like the `text/html` branch below.
@@ -1130,7 +1185,7 @@ export class CopyPaste extends BasePlugin {
       // after two), so a second pass would silently rewrite cell values.
       const sourceDataHTML = sanitizeHTML(
         this.hot,
-        clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '',
+        clipboardData.resolve(SOURCE_DATA_HTML_MIME_TYPE) ?? '',
         'CopyPaste.paste.sourceData'
       );
 
@@ -1151,7 +1206,7 @@ export class CopyPaste extends BasePlugin {
         }
       }
 
-      const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
+      const textHTML = sanitizeHTML(this.hot, clipboardData.resolve('text/html') ?? '', 'CopyPaste.paste');
 
       // `String()` builds a throwaway copy for the test only. `textHTML` itself is passed on as it
       // was returned, so a `TrustedHTML` keeps its trust.

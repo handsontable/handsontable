@@ -377,12 +377,90 @@ Due to security reasons, modern browsers disallow reading from the system clipbo
 
 Due to security reasons, modern browsers disallow reading from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
 
+### Clean up pasted content before it is parsed
+
+Content that comes from a spreadsheet application often carries formatting that Handsontable cannot use as a cell value, such as a regional number format. By the time [`beforePaste`](@/api/hooks.md#beforepaste) runs, the plugin has already sanitized and parsed the clipboard, and that formatting is gone.
+
+To change the raw clipboard content, use the [`beforePasteParse`](@/api/hooks.md#beforepasteparse) hook. It fires on every paste the grid handles, before the plugin sanitizes and parses the clipboard.
+
+The hook receives two arguments:
+
+- `clipboardData` - a writable copy of the clipboard. It works like a subset of the browser's `DataTransfer` object: the `types` property lists the available formats, `getData(type)` returns a format (an empty string when the format is absent), `setData(type, value)` sets one, and `clearData(type)` removes one, or every format when you skip the argument. The formats are `text/plain`, `text/html`, and the private `application/ht-source-data-json-html` format that Handsontable writes on copy.
+- `event` - the native `ClipboardEvent`, or `null` when the paste comes from the [`paste()`](@/api/copyPaste.md#paste) method of the plugin.
+
+Editing `clipboardData` doesn't change the system clipboard. Keep these rules in mind:
+
+- If the `text/html` format contains a `<table>`, it wins over `text/plain`. A spreadsheet application always puts such a table on the clipboard. When your callback cleans only `text/plain`, also call `clipboardData.clearData('text/html')`.
+- If your callback changes `text/plain` or `text/html` and leaves the `application/ht-source-data-json-html` format untouched, the plugin drops that format. Otherwise, the [`parsePastedValue`](@/api/options.md#parsepastedvalue) option would bring back the values you just cleaned.
+- The `text/html` and `application/ht-source-data-json-html` formats still go through the [`sanitizer`](@/api/options.md#sanitizer) option after your callback.
+- The hook is synchronous. The plugin doesn't wait for a returned `Promise`.
+- Don't call `paste()` from the callback. Edit `clipboardData` instead.
+- Return `false` to cancel the paste, or return nothing. The hook passes a returned value (`false` included) to the next callback as its `clipboardData`, so return `false` only from the last callback or the only one, and never return any other value.
+- The hook doesn't fire when the plugin is disabled, when the grid isn't listening for keyboard input, when a cell editor is open, or when the paste targets an element outside the grid.
+
+The hook runs inside the paste handler of the plugin. It works in a shadow DOM and in Salesforce Lightning Web Security, where a capturing `paste` listener on the `window` object doesn't.
+
+The following example converts prices copied from a spreadsheet in a European number format (`1 234,50`) to plain numbers (`1234.50`). Copy `Wireless mouse`, `1 234,50`, and `142` from a spreadsheet application, and paste them into the grid.
+
+::: only-for javascript
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/javascript/example6.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example6.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/react/example6.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example6.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example6.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example6.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example6.vue)
+
+:::
+:::
+
+#### Cancel a paste
+
+To block a paste, return `false` from the callback. The plugin writes nothing, and the `beforePaste` and `afterPaste` hooks don't fire.
+
+```javascript
+beforePasteParse(clipboardData, event) {
+  // Reject pastes that carry no plain text, such as a pasted image
+  if (!clipboardData.getData('text/plain')) {
+    return false;
+  }
+},
+```
+
+**Related:** [`beforePasteParse`](@/api/hooks.md#beforepasteparse)
+
 ### Hooks
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
+- [`beforePasteParse`](@/api/hooks.md#beforepasteparse)
 - [`beforePaste`](@/api/hooks.md#beforepaste)
 - [`afterPaste`](@/api/hooks.md#afterpaste)
+
+The hooks run in this order: `beforePasteParse`, then `beforePaste`, then `afterPaste`.
 
 Examples of how to use them are provided in their descriptions.
 
