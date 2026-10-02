@@ -398,4 +398,52 @@ describe('String helper', () => {
       expect(() => removeCharactersBefore(`a${flag}`, 3, 1)).not.toThrow();
     });
   });
+
+  describe('the fast path for text without combining characters', () => {
+    const segmenter = new Intl.Segmenter();
+    const segmentedLength = (value: string) => Array.from(segmenter.segment(value)).length;
+    const segmentedCharacters = (value: string) => Array.from(segmenter.segment(value), segment => segment.segment);
+
+    it('should agree with the segmenter for every pair of code units below U+0300', () => {
+      const mismatches: string[] = [];
+
+      for (let first = 0; first < 0x300; first++) {
+        for (let second = 0; second < 0x300; second++) {
+          const pair = String.fromCharCode(first) + String.fromCharCode(second);
+
+          if (getCharacterLength(pair) !== segmentedLength(pair)) {
+            mismatches.push(`U+${first.toString(16)} U+${second.toString(16)}`);
+          }
+        }
+      }
+
+      expect(mismatches).toEqual([]);
+    });
+
+    it('should count a carriage return followed by a line feed as one character', () => {
+      expect(getCharacterLength('\r\n')).toBe(1);
+      expect(getCharacterLength('a\r\nb')).toBe(3);
+      expect(splitIntoCharacters('a\r\nb')).toEqual(['a', '\r\n', 'b']);
+    });
+
+    it('should split a string the same way as the segmenter does', () => {
+      const samples = [
+        '',
+        'SKU-4821',
+        'zażółć gęślą jaźń',
+        'line one\nline two',
+        'tab\tseparated',
+        'a\r\nb',
+        'e\u0301',
+        'Ana García',
+        'x 🇵🇱 y',
+        '👨‍👩‍👧',
+      ];
+
+      samples.forEach((sample) => {
+        expect(splitIntoCharacters(sample)).toEqual(segmentedCharacters(sample));
+        expect(getCharacterLength(sample)).toBe(segmentedLength(sample));
+      });
+    });
+  });
 });

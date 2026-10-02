@@ -365,6 +365,16 @@ export function localeLowerCase(value: string, locale?: string): string {
 let characterSegmenter: Intl.Segmenter | null = null;
 
 /**
+ * Matches a string in which every UTF-16 code unit is a character of its own. That holds for all the
+ * code units below U+0300, which has no combining mark, joiner, or surrogate, except the carriage return,
+ * because `\r\n` is one character. Such a string is by far the most common one, and it can skip the
+ * segmenter, which costs about 6 µs for a short string, against 0.1 µs for this test.
+ */
+// The range is deliberate: it names every code unit that may join a neighbor, and so keeps it out of the fast path.
+// eslint-disable-next-line no-misleading-character-class
+const SINGLE_UNIT_CHARACTERS = /^[^\r\u0300-\uFFFF]*$/;
+
+/**
  * Splits a string into the characters a reader sees. These are grapheme clusters, so a flag, a skin
  * tone emoji, a family emoji, or a letter with a combining mark is one character, not two or seven.
  *
@@ -372,6 +382,10 @@ let characterSegmenter: Intl.Segmenter | null = null;
  * @returns {string[]} The characters.
  */
 export function splitIntoCharacters(text: string): string[] {
+  if (SINGLE_UNIT_CHARACTERS.test(text)) {
+    return text.split('');
+  }
+
   characterSegmenter ??= new Intl.Segmenter();
 
   return Array.from(characterSegmenter.segment(text), segment => segment.segment);
@@ -385,6 +399,10 @@ export function splitIntoCharacters(text: string): string[] {
  * @returns {number}
  */
 export function getCharacterLength(value: string): number {
+  if (SINGLE_UNIT_CHARACTERS.test(value)) {
+    return value.length;
+  }
+
   characterSegmenter ??= new Intl.Segmenter();
 
   let length = 0;

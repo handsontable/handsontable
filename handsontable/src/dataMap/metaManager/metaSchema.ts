@@ -4984,8 +4984,10 @@ export default (): Record<string, unknown> => {
      * Handsontable enforces the limit in two places:
      * - In the cell editor. The [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) editor, and any custom
      * editor that extends it, stops the user from typing or pasting more characters than the limit allows.
-     * The built-in editors of the other cell types, such as `numeric`, `date`, `password`, `autocomplete`, and
-     * `dropdown`, don't limit input.
+     * The `autocomplete`, `dropdown`, and `handsontable` editors cap what the user types in the same way, but
+     * the user can still pick an option that is longer than the limit, and the validator then marks it
+     * as invalid. The built-in editors of the other cell types, such as `numeric`, `date`, and `password`,
+     * don't limit input.
      * - In the [cell validator](@/guides/cell-functions/cell-validator/cell-validator.md), which marks a
      * value that is too long as invalid. Use [`allowInvalid`](#allowinvalid) to decide whether the grid keeps
      * such a value. The validator checks the values that you type, paste into the grid, or write with

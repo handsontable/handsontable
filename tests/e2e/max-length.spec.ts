@@ -272,6 +272,112 @@ test.describe('maxLength', () => {
     });
   });
 
+  test.describe('list editors that share the text editor input', () => {
+    const suppliers = [
+      'Harbor Goods',
+      'Alpine Supply Co.',
+      'Northwest Wholesale Distribution',
+      'Northwest Trucking Co',
+    ];
+    const warehouses = ['Seattle', 'Denver', 'Salt Lake City', 'Minneapolis-Saint Paul'];
+
+    test('caps typing in an autocomplete cell and queries the list for the capped text', async () => {
+      await grid.initGrid({ columns: [{ type: 'autocomplete', source: suppliers, strict: false, maxLength: 12 }] });
+      await grid.openEditor(0, 0);
+
+      await grid.type('Northwest Trading Group');
+
+      await expect(grid.editor).toHaveValue('Northwest Tr');
+      // 'Northwest Trucking Co' matches the capped text 'Northwest Tr' but not what was typed
+      // ('Northwest Trading Group'), so finding it in the list shows that the query ran on the capped text.
+      await expect.poll(() => grid.suggestions()).toEqual(['Northwest Trucking Co']);
+
+      await grid.commit();
+
+      expect(await grid.dataAt(0, 0)).toBe('Northwest Tr');
+    });
+
+    test('does not cap an autocomplete cell without a limit, and the list filters as before', async () => {
+      await grid.initGrid({ columns: [{ type: 'autocomplete', source: suppliers, strict: false }] });
+      await grid.openEditor(0, 0);
+
+      await grid.type('Northwest Tr');
+
+      await expect(grid.editor).toHaveValue('Northwest Tr');
+      await expect.poll(() => grid.suggestions()).toEqual(['Northwest Trucking Co']);
+
+      await grid.type('ading Group');
+
+      await expect(grid.editor).toHaveValue('Northwest Trading Group');
+    });
+
+    test('rejects a long option picked in a strict autocomplete cell, although typing cannot reach it', async () => {
+      await grid.initGrid({
+        columns: [{ type: 'autocomplete', source: suppliers, strict: true, allowInvalid: false, maxLength: 12 }],
+        data: [['Harbor Goods']],
+      });
+      await grid.openEditor(0, 0);
+      await grid.page.keyboard.press('ControlOrMeta+a');
+      await grid.type('Northwest');
+
+      await expect.poll(() => grid.suggestions()).toEqual(['Northwest Wholesale Distribution', 'Northwest Trucking Co']);
+
+      // The cap is on typing only. A pick writes the whole option, which is 32 characters long, and
+      // with `allowInvalid: false` the limit turns it down: the cell keeps its old value.
+      await grid.pickWithKeyboard(1);
+
+      await expect(grid.editor).toBeVisible();
+      expect(await grid.dataAt(0, 0)).toBe('Harbor Goods');
+    });
+
+    test('stores an option that fits when it is picked in the same strict autocomplete cell', async () => {
+      await grid.initGrid({
+        columns: [{ type: 'autocomplete', source: suppliers, strict: true, allowInvalid: false, maxLength: 12 }],
+      });
+      await grid.openEditor(0, 0);
+      await grid.type('Harbor');
+
+      await expect.poll(() => grid.suggestions()).toEqual(['Harbor Goods']);
+
+      await grid.pickWithKeyboard(1);
+
+      await expect(grid.editor).toBeHidden();
+      expect(await grid.dataAt(0, 0)).toBe('Harbor Goods');
+    });
+
+    test('caps typing in a dropdown cell and marks a long option picked from it as invalid', async () => {
+      await grid.initGrid({ columns: [{ type: 'dropdown', source: warehouses, maxLength: 12, allowInvalid: true }] });
+      await grid.openEditor(0, 0);
+
+      await grid.type('Minneapolis-Saint Paul');
+
+      await expect(grid.editor).toHaveValue('Minneapolis-');
+
+      // The options of a dropdown are pick-only. The pick writes the whole option (22 characters), and
+      // with `allowInvalid: true` it is kept and marked, like any other value over the limit.
+      await grid.pickWithKeyboard(4);
+
+      await expect.poll(() => grid.dataAt(0, 0)).toBe('Minneapolis-Saint Paul');
+      await expect(grid.cell(0, 0)).toHaveClass(/htInvalid/);
+    });
+
+    test('caps typing in a handsontable-type cell', async () => {
+      await grid.initGrid({
+        columns: [{ type: 'handsontable', handsontable: { data: [['Seattle'], ['Denver']] }, maxLength: 5 }],
+      });
+      await grid.openEditor(0, 0);
+
+      await grid.type('Seattle');
+
+      await expect(grid.editor).toHaveValue('Seatt');
+    });
+
+    // The date, time and intl editors keep their `capsLength` opt-out, but there is no E2E case for it:
+    // the date input held no text after `keyboard.type('2026-10-02')` on a date column with `maxLength: 4`
+    // (measured: an empty value), so a typing assertion cannot be written without understanding the picker. The opt-out is
+    // pinned by the numeric and password case above.
+  });
+
   test.describe('inserting a line break', () => {
     test('adds one in the middle of a cell that has room', async ({ page }) => {
       await grid.initGrid({ maxLength: 10, data: [['abc']] });

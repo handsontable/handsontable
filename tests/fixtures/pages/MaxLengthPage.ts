@@ -95,6 +95,32 @@ export class MaxLengthPage {
     await this.page.keyboard.press('ControlOrMeta+v');
   }
 
+  /**
+   * The options the open list editor (autocomplete, dropdown, handsontable) is showing right now,
+   * read from the sub-grid's data. Reading the data rather than the DOM sidesteps the hidden list
+   * elements that match a selector first.
+   */
+  async suggestions(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const editor = window.hot.getActiveEditor() as unknown as { htEditor: { getData(): unknown[][] } };
+
+      return editor.htEditor.getData().map(row => String(row[0]));
+    });
+  }
+
+  /**
+   * Picks an option of the open list editor the way a keyboard user does: ArrowDown to move the
+   * highlight, then Enter. Clicking an option by selector is not an option, because a hidden list
+   * matches first.
+   */
+  async pickWithKeyboard(steps: number): Promise<void> {
+    for (let step = 0; step < steps; step++) {
+      await this.page.keyboard.press('ArrowDown');
+    }
+
+    await this.page.keyboard.press('Enter');
+  }
+
   /** The editor's caret, as the UTF-16 offsets of the selection. */
   async caret(): Promise<{ start: number | null, end: number | null }> {
     return this.editor.evaluate((element) => {

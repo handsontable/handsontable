@@ -1364,7 +1364,7 @@ Handsontable now reads the [`maxLength`](@/api/options.md#maxlength) option. A c
 
 When a cell has a finite `maxLength`:
 
-- The text editor, and any custom editor that extends it, stops typing and pasting at the limit. The built-in editors of the other cell types don't limit input.
+- The text editor, and any custom editor that extends it, stops typing and pasting at the limit. The `autocomplete`, `dropdown`, and `handsontable` editors cap what the user types in the same way, while the editors of the other cell types, such as numeric, date, and password, don't limit input.
 - The cell validator marks a string value that is longer than the limit as invalid. The length check runs before your own [`validator`](@/api/options.md#validator), and your validator isn't called for a value that is too long.
 - The limit counts the characters a reader sees (a flag or an emoji with a skin tone is one character), and it counts the value after [`trimWhitespace`](@/api/options.md#trimwhitespace) is applied.
 - The cell has a validator, so every write to it is validated asynchronously. [`setDataAtCell()`](@/api/core.md#setdataatcell) applies the value after the validation finishes, and [`getDataAtCell()`](@/api/core.md#getdataatcell) returns the previous value until then.
