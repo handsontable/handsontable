@@ -33,11 +33,11 @@ Autofill lets users drag the fill handle to copy or extend values across adjacen
 
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to repeat or extend values across adjacent cells.
 
-You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row 3) and double-click the fill handle to see this in action.
+You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row header 3) and double-click the fill handle to see this in action.
 
 ### How double-click autofill determines the range
 
-Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- rows 4 and 5 have values there, so the fill extends through both rows.
+Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill extends through both rows.
 
 Two conditions must be met for the fill to happen:
 
@@ -140,7 +140,9 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values Handsontable is about to fill in, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes.
 
-In the example below, select the four cells from Symbol to Known Isotopes in the `Lithium` row and drag the fill handle down through rows 4 and 5. The `beforeAutofill` hook rounds every filled number up to the nearest multiple of 5, and the `afterAutofill` hook logs the affected range and direction to the output box below the grid.
+In the example below, select the four cells from Symbol to Known Isotopes in the `Lithium` row and drag the fill handle down through the rows with row headers 4 and 5. The `afterAutofill` hook logs the affected range and direction to the output box below the grid. The logged row and column numbers are 0-based indices, so the two filled rows appear as `3-4`, not `4-5`.
+
+The `beforeAutofill` hook in this example rounds every filled number up to the nearest multiple of 5. This is a demonstration of what the hook can do, not the default autofill result: without the hook, Handsontable repeats the selected values as they are.
 
 When Handsontable fires [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) as part of an autofill operation, their `source` argument is `Autofill.fill`. Read more about the `source` argument in [Events and hooks: Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument).
 

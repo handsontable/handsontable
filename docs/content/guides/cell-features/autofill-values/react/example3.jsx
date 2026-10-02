@@ -41,7 +41,7 @@ const ExampleComponent = () => {
         afterAutofill={(fillData, sourceRange, targetRange, direction) => {
           setOutput(
             `Filled rows ${targetRange.from.row}-${targetRange.to.row}, ` +
-              `columns ${targetRange.from.col}-${targetRange.to.col} (direction: "${direction}").`,
+              `columns ${targetRange.from.col}-${targetRange.to.col} (direction: "${direction}").`
           );
         }}
       />
