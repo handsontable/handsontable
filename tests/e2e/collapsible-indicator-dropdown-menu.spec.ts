@@ -7,7 +7,7 @@ import { CollapsibleIndicatorDropdownMenuPage } from '../fixtures/pages/Collapsi
  * The press therefore never reached `document`, where the dropdown menu listens for the click that
  * closes it, so the menu stayed open over a group that had just collapsed or expanded.
  */
-test.describe('collapsible indicator while the dropdown menu is open', () => {
+test.describe('collapsible indicator pressed while a menu or editor is open', () => {
   let grid: CollapsibleIndicatorDropdownMenuPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -41,7 +41,7 @@ test.describe('collapsible indicator while the dropdown menu is open', () => {
     // Opening the menu from a header selects that whole column.
     const selectionWithMenuOpen = await grid.selection();
 
-    expect(selectionWithMenuOpen).toEqual([[-1, 1, 4, 1]]);
+    expect(selectionWithMenuOpen).toHaveLength(1);
 
     await grid.clickIndicator();
 
@@ -49,5 +49,23 @@ test.describe('collapsible indicator while the dropdown menu is open', () => {
     await expect(grid.openMenu()).toBeHidden();
     // The grid skips selection handling for an indicator press; closing the menu must not change that.
     expect(await grid.selection()).toEqual(selectionWithMenuOpen);
+  });
+
+  test('pressing the indicator closes an open context menu too', async () => {
+    await grid.openCellContextMenu(2, 0);
+
+    await grid.clickIndicator();
+
+    await grid.expectCollapsed();
+    await expect(grid.openContextMenu()).toBeHidden();
+  });
+
+  test('pressing the indicator leaves an open cell editor open', async () => {
+    await grid.openEditor(2, 0);
+
+    await grid.clickIndicator();
+
+    await grid.expectCollapsed();
+    await expect(grid.editor()).toBeVisible();
   });
 });

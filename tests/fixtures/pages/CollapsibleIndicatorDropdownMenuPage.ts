@@ -40,6 +40,28 @@ export class CollapsibleIndicatorDropdownMenuPage {
     return this.page.locator('.htDropdownMenu:visible');
   }
 
+  /** The context menu, only while it is on screen. */
+  openContextMenu(): Locator {
+    return this.page.locator('.htContextMenu:visible');
+  }
+
+  /** Right-click a data cell to open the context menu. */
+  async openCellContextMenu(row: number, col: number): Promise<void> {
+    await this.page.locator('.ht_master tbody tr').nth(row).locator('td').nth(col).click({ button: 'right' });
+    await expect(this.openContextMenu()).toBeVisible();
+  }
+
+  /** Open the cell editor on a data cell. */
+  async openEditor(row: number, col: number): Promise<void> {
+    await this.page.locator('.ht_master tbody tr').nth(row).locator('td').nth(col).dblclick();
+    await expect(this.editor()).toBeVisible();
+  }
+
+  /** The text editor's textarea, only while the editor is open. */
+  editor(): Locator {
+    return this.page.locator('.handsontableInput:visible');
+  }
+
   async openColumnMenu(): Promise<void> {
     await this.columnMenuButton().click();
     await expect(this.openMenu()).toBeVisible();
