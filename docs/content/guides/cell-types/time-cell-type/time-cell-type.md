@@ -24,7 +24,7 @@ The time cell type formats time values using a configurable format string. Use i
 
 The time cell type lets you treat cell values as times: format how they are displayed and validate input. Use the `intl-time` or `time` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and 24-hour time strings.
 
-Since Handsontable 18.0, `time` is the canonical name of this cell type, and `intl-time` is an alias kept for backward compatibility that works without a warning. In Handsontable 17.x, `time` accepted Moment.js format strings. Those string formats were deprecated in 17.0 in favor of `intl-time`, and removed in 18.0. To migrate from string formats, see [Migrate from 17.1 to 18.0](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md).
+Since Handsontable 18.0, `time` is the main name of this cell type. The `intl-time` name still works, without a warning, for backward compatibility. Before 18.0, `time` used Moment.js format strings, and its default `timeFormat` was a string too. Handsontable 17.0 deprecated those strings, and 18.0 dropped support for them: a string `timeFormat` now logs a console warning and falls back to `{ hour: 'numeric', minute: '2-digit' }`. To migrate, see [Migrate from 17.1 to 18.0](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-date-and-time-cells-to-iso-8601-format).
 
 ## Time cell type demo
 
