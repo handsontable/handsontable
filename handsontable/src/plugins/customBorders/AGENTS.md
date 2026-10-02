@@ -18,6 +18,11 @@ absolute:
   meta key that was never written.
 - **Remove the meta first, too.** A blocked removal leaves the cell's `borders` meta in place; dropping the
   border from the model anyway leaves the two disagreeing.
+- **The one exception is an undo or a redo.** UndoRedo restores the `borders` meta from its journal
+  before it calls `restoreState()`, so `#rebuildModelFromMeta()` only fills the model
+  (`insertBorderIntoSettings()`) and writes no meta. Going through `prepareBorderFromCustomAdded()` there
+  fired the meta hooks once per bordered cell, and a listener that vetoes border writes on locked cells
+  dropped the border from the model while the meta kept it.
 - **A cell whose write is vetoed is skipped entirely**, so the model never gets ahead of the meta.
 - **Sample the veto flag *before* the write.** A `runOnce` veto listener removes itself the moment it fires,
   so probing afterwards reads `false` for a write that was in fact vetoed.
@@ -119,6 +124,15 @@ covers the bottom-only, right-only, corner and exact-boundary (`row === countRow
 same-size control proving an in-range entry still has its meta removed, and the `updateData`
 shrink -> reset -> regrow regression. The core rule itself is pinned by
 `src/__tests__/core/removeCellMeta.unit.js`.
+
+## A progressive load is never an undo step
+
+Every `borders` meta write goes through `setCellMeta()`, which opens an operation of its own. So both
+progressive paths write under `operationScope.suppress()`: a batch run from the timer
+(`#processProgressiveChunk`) would otherwise record one undo step per bordered cell, and the flush
+(`#flushProgressiveApply`) runs from a user action's `before*` hook, so its writes would join that
+action's step - an undo of the row insert that finished the load then removed the borders it wrote.
+Pinned in `../undoRedo/__tests__/pluginState.unit.js` ("a progressive border load").
 
 ## `setCellMeta('borders', …)` written directly is supported
 

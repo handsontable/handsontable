@@ -8,7 +8,7 @@ const container = document.getElementById('example3') as HTMLElement;
 const hot = new Handsontable(container, {
   data: [],
   height: 'auto',
-  colHeaders: ['First Name', 'Last Name', 'Email'],
+  colHeaders: ['Name', 'Job title', 'Department', 'City'],
   rowHeaders: true,
   navigableHeaders: true,
   dropdownMenu: true,
@@ -42,14 +42,15 @@ const hot = new Handsontable(container, {
             description: "There's nothing to display yet. Add some data to get started.",
             buttons: [
               {
-                text: 'Add Sample Data',
+                text: 'Load employees',
                 type: 'primary',
                 callback: () => {
                   hot.loadData([
-                    ['John', 'Doe', 'john@example.com'],
-                    ['Jane', 'Smith', 'jane@example.com'],
-                    ['Bob', 'Johnson', 'bob@example.com'],
-                    ['Alice', 'Johnson', 'alice@example.com'],
+                    ['Ana García', 'Senior Engineer', 'Engineering', 'Austin'],
+                    ['James Okafor', 'Product Manager', 'Product', 'Chicago'],
+                    ['Li Wei', 'Data Analyst', 'Analytics', 'Seattle'],
+                    ['Priya Raman', 'Marketing Lead', 'Marketing', 'Denver'],
+                    ['Marcus Johnson', 'HR Business Partner', 'People Operations', 'Atlanta'],
                   ]);
                 },
               },

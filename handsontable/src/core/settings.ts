@@ -17,6 +17,7 @@ import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plug
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -209,7 +210,7 @@ export interface GridSettings {
   sourceDataWarningMessage?: string;
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
-  undo?: boolean;
+  undo?: boolean | UndoRedoSettings;
   validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
   wordWrap?: boolean;
 
@@ -647,7 +648,9 @@ export interface GridSettings {
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
   /**
-   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move. To let
+   * the move through, return nothing, or the `sourceRange` the listener received. Any other value,
+   * `true` included, cancels the move too.
    *
    * @since 18.1.0
    */

@@ -80,6 +80,16 @@ export class BooleanMap extends IndexMap {
   }
 
   /**
+   * Tells whether every value equals the default, so no array is materialized. A snapshot reads this
+   * to record the state without calling `getValues()`, which would allocate an n-element array.
+   *
+   * @returns {boolean}
+   */
+  isAllDefault(): boolean {
+    return this.#allDefault;
+  }
+
+  /**
    * Get the full list of boolean values. Returns the materialized array by reference (no per-call copy).
    *
    * @returns {boolean[]}

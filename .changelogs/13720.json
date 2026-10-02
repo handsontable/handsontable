@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a paste that could overflow the current pagination page when `fragmentSelection` was enabled.",
+  "type": "fixed",
+  "issueOrPR": 13720,
+  "breaking": false,
+  "framework": "none"
+}

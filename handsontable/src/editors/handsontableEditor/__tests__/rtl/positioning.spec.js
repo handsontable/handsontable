@@ -36,10 +36,9 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
       }
     });
 
-    // Where the list opens from every corner of a sized RTL grid is asserted in
-    // tests/e2e/handsontable-editor-list-position.spec.ts on every theme; its RTL page scrolled by the
-    // WINDOW is parked there on a known bug (see its test.fixme). ./visual-tests/tests/js-only/editors/
-    // handsontable/rtl/ keeps a look check of the mirrored list.
+    // Where the list opens from every corner, in a sized RTL grid and on an RTL page the WINDOW
+    // scrolls, is asserted in tests/e2e/handsontable-editor-list-position.spec.ts on every theme.
+    // ./visual-tests/tests/js-only/editors/handsontable/rtl/ keeps a look check of the mirrored list.
 
     it('should render the editors dropdown on the right edited cell when there is no space left on the left', async() => {
       handsontable({

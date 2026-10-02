@@ -4273,7 +4273,7 @@ describe('MergeCells', () => {
       }
     });
 
-    it('should not restore a one-cell merge when an unmerge done on a collapsed group is undone', async() => {
+    it('should restore the whole merge when an unmerge done on a collapsed group is undone', async() => {
       handsontable({
         data: nestedData(),
         nestedRows: true,
@@ -4297,15 +4297,15 @@ describe('MergeCells', () => {
 
       await render();
 
-      // a one-cell area is not a merge. Re-creating it would shrink a six-row merge to a single row
-      // for good — visible only once the group is expanded again — so the undo restores nothing.
-      expect(merges().length).toBe(3);
+      // The undo puts back the merge the unmerge removed - the six-row one, anchored on its physical
+      // rows - not a one-cell area re-created from what the collapsed group drew.
+      expect(merges().length).toBe(4);
 
       getPlugin('nestedRows').collapsingUI.expandChildren(0);
 
       await render();
 
-      expect(merges()).toEqual(groupMerges().slice(1));
+      expect(merges()).toEqual(groupMerges());
     });
   });
 });

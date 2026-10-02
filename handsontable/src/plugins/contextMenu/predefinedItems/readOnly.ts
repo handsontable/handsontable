@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import type { CellProperties } from '../../../settings';
 import { isFunction } from '../../../helpers/function';
-import { hasOwnProperty, isObject } from '../../../helpers/object';
+import { deepClone, hasOwnProperty, isObject } from '../../../helpers/object';
 import { checkSelectionConsistency, getReadOnlyStates, getSelectionCheckState } from '../utils';
 import * as C from '../../../i18n/constants';
 
@@ -173,16 +173,15 @@ export default function readOnlyItem() {
         }
       }
 
-      // Making the selection read-only: `checkSelectionConsistency()` above found no match, which
-      // means it already walked every cell to confirm that - so every affected cell's prior state
-      // is `false`, and an empty snapshot restores that correctly on undo (a cell with no explicit
-      // entry reads as `false`) with no further reads. Making it writable needs the REAL per-cell
-      // states, because the check above stopped at the FIRST read-only cell and knows nothing about
-      // the rest - restoring a mixed selection on undo is only possible with a second, full pass.
-      // That pass records a locked cell as it really is (read-only), so undo writes it back as is.
-      // The empty snapshot has no entry for it, and undo's `false` there is vetoed by ColumnSummary.
-      // A cell owned by `cells()` has no such veto: undo and redo still store a value for it, which
-      // `cells()` then covers, so what the grid shows stays right (DEV-149).
+      // The snapshot is what `beforeReadOnlyToggle` and the step's description report; undo and redo
+      // replay the journal of the writes below instead. Making the selection read-only:
+      // `checkSelectionConsistency()` above found no match, which means it already walked every cell
+      // to confirm that – so every affected cell's prior state is `false`, and an empty snapshot says
+      // so (a cell with no explicit entry reads as `false`) with no further reads. Making it writable
+      // needs the REAL per-cell states, because the check above stopped at the FIRST read-only cell
+      // and knows nothing about the rest – only a second, full pass can report a mixed selection.
+      // That pass records a locked cell as it really is (read-only). The write loop skips a locked
+      // cell, so the journal never holds one and undo and redo leave it alone (DEV-148, DEV-149).
       const stateBefore: Record<number, boolean[]> = atLeastOneReadOnly
         ? getReadOnlyStates(ranges, (row: number, col: number) => {
           const cellMeta = this.getCellMetaTransient(row, col);
@@ -198,8 +197,8 @@ export default function readOnlyItem() {
         : {};
 
       // The empty snapshot is not true for a cell `cells()` made read-only: report it as it is, so a
-      // `beforeReadOnlyToggle` listener does not read it as writable and undo restores it as it was.
-      // A column summary cell is left out on purpose, ColumnSummary vetoes the write.
+      // `beforeReadOnlyToggle` listener does not read it as writable. A column summary cell is left
+      // out on purpose, ColumnSummary vetoes the write.
       if (!atLeastOneReadOnly) {
         lockedCells.forEach(({ row, col, owner, readOnly: isReadOnly }) => {
           if (owner === 'cells' && isReadOnly) {
@@ -208,15 +207,21 @@ export default function readOnlyItem() {
         });
       }
 
-      this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
+      // The whole selection is one undo step, under the action type the toggle has always recorded.
+      // UndoRedo restores the `readOnly` meta from its journal; the step carries the toggle's own
+      // description (plain copies of the ranges – the selection's are live objects).
+      this.runOperation('read_only_toggle', () => {
+        this._getOperationScope().describe({ stateBefore, ranges: deepClone(ranges), readOnly });
+        this.runHooks('beforeReadOnlyToggle', stateBefore, ranges, readOnly);
 
-      for (const range of ranges) {
-        range.forAll((row: number, col: number) => {
-          if (row >= 0 && col >= 0 && (lockedCells.size === 0 || !lockedCells.has(`${row}:${col}`))) {
-            this.setCellMeta(row, col, 'readOnly', readOnly);
-          }
-        });
-      }
+        for (const range of ranges) {
+          range.forAll((row: number, col: number) => {
+            if (row >= 0 && col >= 0 && (lockedCells.size === 0 || !lockedCells.has(`${row}:${col}`))) {
+              this.setCellMeta(row, col, 'readOnly', readOnly);
+            }
+          });
+        }
+      }, 'ContextMenu.read_only_toggle');
 
       this.render();
     },

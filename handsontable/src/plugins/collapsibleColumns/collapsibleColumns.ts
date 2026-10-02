@@ -32,6 +32,29 @@ const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
 const VISIBLE_WHEN_MAP_NAME = 'collapsibleColumns.visibleWhen';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
+/**
+ * The collapsed header groups, as `CollapsibleColumns#captureState()` records them.
+ */
+interface CollapsedGroupsState {
+  readonly groups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>;
+  /**
+   * The header state manager's config version when the groups were recorded. Groups from another
+   * `nestedHeaders` configuration name that configuration's headers.
+   */
+  readonly configVersion: number;
+}
+
+/**
+ * Tells whether a value is a state `CollapsibleColumns#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isCollapsedGroupsState(value: unknown): value is CollapsedGroupsState {
+  return typeof value === 'object' && value !== null && 'groups' in value && Array.isArray(value.groups) &&
+    'configVersion' in value && typeof value.configVersion === 'number';
+}
+
 const actionDictionary = new Map([
   ['collapse', {
     hideColumn: true,
@@ -206,6 +229,12 @@ export class CollapsibleColumns extends BasePlugin {
    * `#collapsedColumnsMap`.
    */
   #visibleWhenMap: HidingMap | null = null;
+  /**
+   * The collapsed-groups version of the header state manager at which each state `captureState()`
+   * returned was last known to be current. Kept out of the state itself: a state returned again
+   * after a version change must still be the same object.
+   */
+  #capturedVersions = new WeakMap<object, number>();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -500,6 +529,82 @@ export class CollapsibleColumns extends BasePlugin {
    * @fires Hooks#afterColumnExpand
    */
   toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
+    this.runOperation(action === 'expand' ? 'expand_columns' : 'collapse_columns',
+      () => this.#toggleCollapsibleSection(coords, action));
+  }
+
+  /**
+   * Returns the collapsed header groups, for UndoRedo. The columns they hide are restored with the
+   * rest of the index maps. When the groups did not change since the previous capture, the previous
+   * state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.headerStateManager === null) {
+      return undefined;
+    }
+
+    const version = this.headerStateManager.getCollapsedGroupsVersion();
+    const configVersion = this.headerStateManager.getConfigVersion();
+    const isSameConfig = isCollapsedGroupsState(previous) && previous.configVersion === configVersion;
+
+    // Every transaction captures the state, so the tree is walked only when it may have changed.
+    if (isSameConfig && this.#capturedVersions.get(previous) === version) {
+      return previous;
+    }
+
+    const groups = this.headerStateManager.exportCollapsedGroups();
+    const state = (
+      isSameConfig &&
+      previous.groups.length === groups.length &&
+      previous.groups.every((group, index) => group.headerLevel === groups[index].headerLevel &&
+        group.authoredColumnIndex === groups[index].authoredColumnIndex)
+    ) ? previous : { groups, configVersion };
+
+    this.#capturedVersions.set(state, version);
+
+    return state;
+  }
+
+  /**
+   * A group is recorded by its header position, and the columns a collapse hides are in this plugin's
+   * hiding maps, which the UndoRedo check of a `columns` settings update reads column by column. So the
+   * groups themselves never make a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
+   * Collapses exactly the header groups a `captureState()` call recorded. Hook-silent: the collapse
+   * hooks fired when the user acted. Groups recorded under another `nestedHeaders` configuration are
+   * not put back: they would collapse whatever group of the new one sits at the same position.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (
+      this.headerStateManager !== null && isCollapsedGroupsState(state) &&
+      state.configVersion === this.headerStateManager.getConfigVersion()
+    ) {
+      this.headerStateManager.importCollapsedGroups(state.groups);
+    }
+  }
+
+  /**
+   * The body of `toggleCollapsibleSection()`, run inside its operation.
+   *
+   * @param {Array} coords Array of coords - section coordinates.
+   * @param {string} [action] Action definition ('collapse' or 'expand').
+   */
+  #toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
     if (action === undefined || !actionDictionary.has(action)) {
       throwWithCause(`Unsupported action is passed (${action}).`);
     }

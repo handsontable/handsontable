@@ -653,7 +653,9 @@ export const REGISTERED_HOOKS = [
   'afterOnSelectionEdgeMouseDown',
 
   /**
-   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move. To let
+   * the move through, return nothing, or the `sourceRange` the listener received. Any other value,
+   * `true` included, cancels the move too.
    *
    * @event Hooks#beforeMoveCells
    * @since 18.1.0

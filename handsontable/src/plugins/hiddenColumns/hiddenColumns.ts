@@ -286,6 +286,15 @@ export class HiddenColumns extends BasePlugin {
    * @param {number[]} columns Array of visual column indexes.
    */
   showColumns(columns: number[]): void {
+    this.runOperation('unhide_columns', () => this.#showColumns(columns));
+  }
+
+  /**
+   * The body of `showColumns()`, run inside its operation.
+   *
+   * @param {number[]} columns Array of visual column indexes.
+   */
+  #showColumns(columns: number[]): void {
     const currentHideConfig = this.getHiddenColumns();
     const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
@@ -340,6 +349,15 @@ export class HiddenColumns extends BasePlugin {
    * @param {number[]} columns Array of visual column indexes.
    */
   hideColumns(columns: number[]): void {
+    this.runOperation('hide_columns', () => this.#hideColumns(columns));
+  }
+
+  /**
+   * The body of `hideColumns()`, run inside its operation.
+   *
+   * @param {number[]} columns Array of visual column indexes.
+   */
+  #hideColumns(columns: number[]): void {
     const currentHideConfig = this.getHiddenColumns();
     const isConfigValid = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
