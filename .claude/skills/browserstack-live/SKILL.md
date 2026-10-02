@@ -16,21 +16,22 @@ Local server  -->  Cloudflare tunnel  -->  BrowserStack Live
 
 ### Option A: Handsontable demo page
 
-If the user wants to test Handsontable behavior (bug fix, feature, plugin, editor, etc.), use the **demo-page** skill to generate `handsontable/dev-generated.html`. That skill builds a two-tab HTML page (Released vs PR Build) with test-specific config and reproduction steps.
+If the user wants to test Handsontable behavior (bug fix, feature, plugin, editor, etc.), use the **demo-page** skill to generate `handsontable/dev-pr.html` and `handsontable/dev-latest.html`. That skill writes two standalone pages with the same test-specific config and reproduction steps: `dev-pr.html` loads the local build, `dev-latest.html` loads the released version from the CDN, and each links to the other.
 
-After the demo page is generated, serve it:
+After the demo pages are generated, serve them:
 
 ```bash
 python3 -m http.server 8767 --directory handsontable &
 ```
 
-Verify it works:
+Verify both work:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8767/dev-generated.html
+curl -s -o /dev/null -w "dev-pr: %{http_code}\n" http://localhost:8767/dev-pr.html && \
+curl -s -o /dev/null -w "dev-latest: %{http_code}\n" http://localhost:8767/dev-latest.html
 ```
 
-The tunnel URL path will be `/dev-generated.html`.
+The tunnel URL path will be `/dev-pr.html`. Its nav bar links to `/dev-latest.html`, so the tester can switch to the released version on the device.
 
 ### Option B: Existing local server
 
