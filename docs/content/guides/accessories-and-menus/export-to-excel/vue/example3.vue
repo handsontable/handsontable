@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -32,7 +31,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
   contextMenu: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 </script>

@@ -11,6 +11,10 @@ new Handsontable(document.createElement('div'), { importFile: true });
 new Handsontable(document.createElement('div'), { importFile: false });
 
 const settings: ImportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ImportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { importFile: nullEngineSettings });
 const hot = new Handsontable(document.createElement('div'), {});
 const plugin = hot.getPlugin('importFile');
 
@@ -28,6 +32,9 @@ const options: ImportOptions = {
   importStyles: true,
 };
 
+// A `null` override means "no override", as an absent key does.
+const nullEngineOptions: ImportOptions = { engine: null };
+
 const supported: boolean = plugin.supportsImportFormat('xlsx');
 
 /**
@@ -37,11 +44,12 @@ const supported: boolean = plugin.supportsImportFormat('xlsx');
 async function run(buffer: ArrayBuffer, blob: Blob) {
   const fromBuffer: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, options);
   const fromBlob: ImportResult = await plugin.importFromBlob('xlsx', blob);
+  const fromNullEngine: ImportResult = await plugin.importFromArrayBuffer('xlsx', buffer, { engine: null });
 
   const data: unknown[][] = fromBuffer.data;
   const headers: string[] | undefined = fromBlob.colHeaders;
   const dropped: string[] = fromBuffer.dropped;
-  const kind: 'exceljs' = fromBuffer.engine.kind;
+  const kind: 'exceljs' | 'native' = fromBuffer.engine.kind;
   const styles: Record<string, string> | undefined = fromBuffer.styles;
   const borders: ImportedBorder[] | undefined = fromBuffer.customBorders;
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;

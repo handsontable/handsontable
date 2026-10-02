@@ -56,12 +56,50 @@ export interface MergeSnapshot {
 }
 
 /**
+ * The permissions a protected sheet may grant, every one of them optional and absent by default.
+ * `true` means the action stays ALLOWED on a protected sheet, which is the sense ExcelJS's
+ * `worksheet.protect()` uses — OOXML stores most of them inverted, and each adapter's writer and
+ * reader is what flips them.
+ *
+ * The set is closed on purpose: a reader takes these names out of a file and nothing else, so an
+ * unknown or hostile `<sheetProtection>` attribute cannot ride along in the snapshot.
+ */
+const SHEET_PROTECTION_OPTION_NAMES = [
+  'sheet', 'objects', 'scenarios', 'selectLockedCells', 'selectUnlockedCells', 'formatCells',
+  'formatColumns', 'formatRows', 'insertColumns', 'insertRows', 'insertHyperlinks', 'deleteColumns',
+  'deleteRows', 'sort', 'autoFilter', 'pivotTables',
+] as const;
+
+/**
+ * One permission name.
+ */
+export type SheetProtectionOptionName = typeof SHEET_PROTECTION_OPTION_NAMES[number];
+
+/**
+ * The permissions themselves, keyed by name.
+ */
+export type SheetProtectionOptions = { [K in SheetProtectionOptionName]?: boolean };
+
+/**
+ * The names above as a set, for the membership test below.
+ */
+const PROTECTION_OPTION_NAME_SET = new Set<string>(SHEET_PROTECTION_OPTION_NAMES);
+
+/**
+ * Whether an attribute name a file carries is one of the permissions the model declares. This is
+ * the allow-list both readers filter `<sheetProtection>` through.
+ */
+export function isProtectionOptionName(name: string): name is SheetProtectionOptionName {
+  return PROTECTION_OPTION_NAME_SET.has(name);
+}
+
+/**
  * Sheet protection. `options` carries the engine-neutral permission flags the export sets today.
  */
 export interface SheetProtectionSnapshot {
   enabled: boolean;
   password: string | null;
-  options: Record<string, boolean>;
+  options: SheetProtectionOptions;
 }
 
 /**
@@ -136,4 +174,32 @@ export function createCellSnapshot(): CellSnapshot {
     locked: null,
     comment: null,
   };
+}
+
+/**
+ * The snapshot of a cell a merge COVERS: its own style and lock, and nothing else. Both readers
+ * build it through here so they agree. The value belongs to the merge's master; the number format
+ * formats no value, and kept it would sway the column's type inference. The lock is the reason
+ * this exists: a covered cell read as `null` imported read-only under sheet protection whatever its
+ * own `locked="0"` said, which showed once the user unmerged. Returns `null` when the cell carries
+ * neither, which is what a covered cell with no formatting reads as.
+ *
+ * @param {CellStyleSnapshot|null} style The covered cell's own style.
+ * @param {boolean|null} locked The covered cell's own lock.
+ * @returns {CellSnapshot|null}
+ */
+export function createCoveredCellSnapshot(
+  style: CellStyleSnapshot | null,
+  locked: boolean | null,
+): CellSnapshot | null {
+  if (style === null && locked === null) {
+    return null;
+  }
+
+  const cell = createCellSnapshot();
+
+  cell.style = style;
+  cell.locked = locked;
+
+  return cell;
 }

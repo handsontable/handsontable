@@ -1,4 +1,6 @@
 import { applyImportResult, installImportedStyles, removeImportedStyles } from '../applier';
+import { fontFillRule } from '../styles';
+import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../utils/xlsxEngine/readOnlyStyle';
 import * as consoleHelpers from '../../../helpers/console';
 
 const STYLE_SELECTOR = 'style[data-hot-imported-styles="hot-1"]';
@@ -518,5 +520,105 @@ describe('installImportedStyles – mount point', () => {
     removeImportedStyles(hot);
 
     expect(hot.rootWrapperElement.querySelector(STYLE_SELECTOR)).toBeNull();
+  });
+});
+
+describe('installImportedStyles - declaration allow-list', () => {
+  let warnSpy;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(consoleHelpers, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+    document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
+  });
+
+  function installs(declarations) {
+    const hot = fakeHot();
+
+    installImportedStyles(hot, { 'htImported-a': declarations });
+
+    const installed = document.querySelector(STYLE_SELECTOR) !== null;
+
+    removeImportedStyles(hot);
+
+    return installed;
+  }
+
+  /**
+   * Every rule `fontFillRule` can produce: each combination of the three font flags and the two
+   * colors, with six- and eight-digit, upper- and lower-case ARGB input, on read-only and editable
+   * cells alike. Derived from `fontFillRule` itself, so the allow-list cannot drift from it.
+   */
+  function everyFontFillRule() {
+    const rules = [];
+    const colors = [undefined, 'FF00FF00', 'ab12cd', READ_ONLY_TEXT_ARGB, READ_ONLY_FILL_ARGB];
+
+    [false, true].forEach((bold) => {
+      [false, true].forEach((italic) => {
+        [false, true].forEach((underline) => {
+          colors.forEach((color) => {
+            colors.forEach((fill) => {
+              [false, true].forEach((readOnly) => {
+                const rule = fontFillRule({
+                  font: { bold, italic, underline, color: color ? { argb: color } : undefined },
+                  fill: fill ? { fgColor: { argb: fill } } : undefined,
+                }, { readOnly });
+
+                if (rule) {
+                  rules.push(rule.declarations);
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+
+    return rules;
+  }
+
+  it('should accept every declaration block fontFillRule can produce', () => {
+    const rules = everyFontFillRule();
+
+    // Sanity: the derivation reaches every declaration shape the builder writes.
+    expect(rules).toContain('font-weight:bold;font-style:italic;text-decoration:underline;color:#00ff00;'
+      + 'background-color:#ab12cd');
+    expect(rules.length).toBeGreaterThan(100);
+
+    rules.forEach((declarations) => {
+      expect([declarations, installs(declarations)]).toEqual([declarations, true]);
+    });
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  [
+    'color:expression(alert(1))',
+    'background-color:rgb(1,2,3)',
+    'background-image:url(x.png)',
+    'background:url(x.png)',
+    '-moz-binding:url(x.xml)',
+    'behavior:url(x.htc)',
+    'list-style-image:url(x.png)',
+    'cursor:url(x.cur)',
+    'content:attr(title)',
+    'color:red',
+    'color:#ff0000 ',
+    'color:#ff00',
+    'color:#ff0000;font-weight:900',
+    'font-weight:bold;position:fixed',
+    'font-style:oblique',
+    'text-decoration:underline overline',
+    'font-weight:bold;',
+    'font-weight:bold;;color:#000000',
+    'constructor:#000000',
+    '',
+  ].forEach((declarations) => {
+    it(`should reject "${declarations}"`, () => {
+      expect(installs(declarations)).toBe(false);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

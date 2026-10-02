@@ -1,12 +1,17 @@
 /**
  * @jest-environment node
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { Blob } from 'node:buffer';
 import ExcelJS from 'exceljs';
 import { ImportFile, PLUGIN_KEY, PLUGIN_PRIORITY } from '../importFile';
 import { installImportedStyles } from '../applier';
+import { mapWorkbook, resolveImportOptions } from '../mapper';
+import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { excelJsAdapter } from '../../../utils/xlsxEngine/adapters/exceljs';
+import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { SheetBuilder } from '../../../utils/xlsxEngine/builder';
+import { createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { loadFixture as fixture, toArrayBuffer } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
@@ -55,12 +60,6 @@ function fakeDocument() {
       },
     },
   };
-}
-
-function fixture(name) {
-  const bytes = readFileSync(join(__dirname, '../../../utils/xlsxEngine/__tests__/fixtures', `${name}.xlsx`));
-
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
 
 function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false } = {}) {
@@ -119,17 +118,26 @@ describe('ImportFile statics', () => {
 describe('ImportFile#supportsImportFormat', () => {
   const supports = (settings, format) => ImportFile.prototype.supportsImportFormat.call(fakeCtx(settings), format);
 
-  it('should return false when no engine is configured', () => {
-    expect(supports(undefined, 'xlsx')).toBe(false);
-    expect(supports(true, 'xlsx')).toBe(false);
-    expect(supports({}, 'xlsx')).toBe(false);
-    expect(supports({ engines: {} }, 'xlsx')).toBe(false);
+  it('should answer true for xlsx through the built-in engine when nothing is configured', () => {
+    expect(supports(undefined, 'xlsx')).toBe(true);
+    expect(supports(true, 'xlsx')).toBe(true);
+    expect(supports({}, 'xlsx')).toBe(true);
+    expect(supports({ engines: {} }, 'xlsx')).toBe(true);
+    // A map that names another format names no xlsx engine either, so xlsx still falls back.
+    expect(supports({ engines: { csv: ExcelJS } }, 'xlsx')).toBe(true);
+    expect(supports(undefined, 'xls')).toBe(false);
+    expect(supports(undefined, 'csv')).toBe(false);
   });
 
   it('should return true for xlsx with ExcelJS and false for formats ExcelJS cannot read', () => {
     expect(supports({ engines: { xlsx: ExcelJS } }, 'xlsx')).toBe(true);
     expect(supports({ engines: { xlsx: ExcelJS } }, 'xls')).toBe(false);
     expect(supports({ engines: { xlsx: ExcelJS } }, 'csv')).toBe(false);
+  });
+
+  it('should answer true for xlsx when the configured entry is null, through the built-in engine', () => {
+    // A nullish entry is "no engine", the same as an absent key, and the import reads it that way.
+    expect(supports({ engines: { xlsx: null } }, 'xlsx')).toBe(true);
   });
 
   it('should return false, not throw, for an engine of unknown shape', () => {
@@ -205,16 +213,78 @@ describe('ImportFile#importFromArrayBuffer', () => {
     const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
     const noEngine = pluginWithFakeHot(undefined).plugin;
 
-    // `engines` is keyed by format, so a format with no engine of its own is named as such.
+    // `engines` is keyed by format, so a format the map does not name falls back to the built-in
+    // engine — the same thing `supportsImportFormat` predicts and `exportFile` does. The refusal
+    // then comes from that engine's own format check and names it, so the message proves which
+    // engine the fallback picked.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values')))
-      .rejects.toThrow(/no engine is configured for "csv".*Configured formats: xlsx/);
+      .rejects.toThrow(/The "native" xlsx engine cannot import "csv" files.*Supported formats: xlsx/);
     // A per-call engine still goes through the format check of the engine it detects.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
       .rejects.toThrow(/cannot import "csv".*xlsx/);
-    await expect(noEngine.importFromArrayBuffer('xlsx', fixture('values')))
-      .rejects.toThrow(/Missing or invalid ExcelJS engine.*`importFile: \{ engines: \{ xlsx: ExcelJS \} \}`/);
+    // No `engines` at all means the built-in engine, so the import succeeds and names it.
+    const viaNative = await noEngine.importFromArrayBuffer('xlsx', fixture('values'));
+
+    expect(viaNative.engine).toEqual({ kind: 'native', version: null });
     await expect(plugin.importFromArrayBuffer('xlsx', new Uint8Array([1, 2]).buffer))
       .rejects.toThrow(/could not be parsed/);
+  });
+
+  it('should read, map and apply a workbook through the built-in engine when importFile is true', async() => {
+    const { plugin, calls } = pluginWithFakeHot(true);
+    // `values.xlsx`'s first sheet row is the header band; without promoting it, `data[0][0]` would
+    // be the header label `'Name'` rather than the first data row's value, for any engine.
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    expect(result.engine).toEqual({ kind: 'native', version: null });
+    expect(result.data[0][0]).toBe('Ana García');
+    expect(calls.some(([method]) => method === 'updateSettings')).toBe(true);
+  });
+
+  it('should import through the built-in engine when engines is an empty map', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: {} }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: {} });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // The predicate and the import have to answer the same thing: an empty map injects nothing, so
+    // both take the built-in engine.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should import through the built-in engine when engines names another format only', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: { csv: ExcelJS } }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: { csv: ExcelJS } });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // `engines` is keyed by format, so a map without `xlsx` leaves xlsx uninjected — the same
+    // configuration `exportFile` falls back on, and the one the engine table documents.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should import through the built-in engine when the engines entry for the format is null', async() => {
+    const supports = ImportFile.prototype.supportsImportFormat.call(fakeCtx({ engines: { xlsx: null } }), 'xlsx');
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: null } });
+    const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { colHeaders: 'firstRow' });
+
+    // `engines: { xlsx: null }` is what `xlsx: useExcelJs ? ExcelJS : null` writes. A nullish entry
+    // is "no engine", the same as an absent key — and `exportFile` reads the same map the same way.
+    expect(supports).toBe(true);
+    expect(result.engine.kind).toBe('native');
+    expect(result.data[0][0]).toBe('Ana García');
+  });
+
+  it('should still refuse an engine of unknown shape configured for the format', async() => {
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: {} } });
+
+    // The fallback covers a MISSING entry only. An entry that is present and does not duck-type is
+    // a configuration mistake, and it keeps throwing rather than silently exporting the built-in
+    // engine's behavior.
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values')))
+      .rejects.toThrow(/Invalid xlsx engine module/);
   });
 
   it('should report layoutDirection as dropped when the grid direction disagrees with the sheet', async() => {
@@ -274,7 +344,7 @@ describe('ImportFile#disablePlugin', () => {
     const { plugin, hot } = pluginWithFakeHot({});
     const selector = 'style[data-hot-imported-styles="hot-1"]';
 
-    installImportedStyles(hot, { 'htImported-a': 'color:red' });
+    installImportedStyles(hot, { 'htImported-a': 'color:#ff0000' });
     plugin.disablePlugin();
 
     expect(hot.rootDocument.head.querySelector(selector)).toBeNull();
@@ -294,12 +364,154 @@ describe('ImportFile#destroy', () => {
     const { plugin, hot } = pluginWithFakeHot({});
     const selector = 'style[data-hot-imported-styles="hot-1"]';
 
-    installImportedStyles(hot, { 'htImported-a': 'color:red' });
+    installImportedStyles(hot, { 'htImported-a': 'color:#ff0000' });
 
     expect(hot.rootDocument.head.querySelector(selector)).not.toBeNull();
 
     expect(() => plugin.destroy()).not.toThrow();
 
     expect(hot.rootDocument.head.querySelector(selector)).toBeNull();
+  });
+});
+
+describe('mapWorkbook on a merge whose covered cells were never written', () => {
+  /**
+   * Builds `A1:B1` merged with only A1 carrying a value, writes it with the given engine, then
+   * reads those bytes back with the same engine and maps them the way the plugin does.
+   * @param adapter
+   * @param engine
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 'master';
+    sheet.cell(2, 1).value = 'below';
+    sheet.merge(1, 1, 1, 2);
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({ headerRows: 1 }),
+      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  it('should keep the merge on a native-written file, exactly as on an ExcelJS-written one', async() => {
+    // The end-to-end consequence of the reader's merge-member materialization. `mapWorkbook` takes
+    // the used column count from the widest row, so a reader that left the covered slot out
+    // narrowed the sheet to one column and then dropped the merge entirely — the native engine's
+    // own export/import round trip silently lost every merge whose covered cells carried no style.
+    const viaNative = await roundTrip(nativeAdapter, undefined);
+    const viaExcelJs = await roundTrip(excelJsAdapter, ExcelJS);
+
+    expect(viaNative.mergeCells).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+    expect(viaNative.mergeCells).toEqual(viaExcelJs.mergeCells);
+    expect(viaNative.colHeaders).toEqual(viaExcelJs.colHeaders);
+    expect(viaNative.data).toEqual(viaExcelJs.data);
+  });
+});
+
+describe('mapWorkbook on a protected sheet with an unlocked cell under a merge', () => {
+  /**
+   * Writes a protected sheet whose merge A1:B1 covers an UNLOCKED B1 with the given engine, reads
+   * the bytes back with the same engine and maps them the way the plugin does.
+   *
+   * @param {object} adapter The engine adapter.
+   * @param {object} engine The engine module, or `undefined` for the built-in one.
+   * @returns {Promise<object>}
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 'merged';
+    sheet.cell(1, 2).locked = false;
+    sheet.cell(1, 3).value = 'locked';
+    sheet.merge(1, 1, 1, 2);
+    sheet.protect('');
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({}),
+      { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  /**
+   * The `readOnly` a cell ends up with: its own `cellsMeta` entry first, then its column's.
+   *
+   * @param {object} result The mapped import result.
+   * @param {number} row The 0-based row.
+   * @param {number} col The 0-based column.
+   * @returns {boolean}
+   */
+  function readOnlyAt(result, row, col) {
+    const own = (result.cellsMeta ?? []).find(meta => meta.row === row && meta.col === col && 'readOnly' in meta);
+
+    return own ? own.readOnly : (result.columns?.[col]?.readOnly ?? false);
+  }
+
+  it('should keep the covered cell editable, whichever engine read the file', async() => {
+    // A merge member used to be blanked to `null` on read, losing its own `locked="0"`, and the
+    // mapper imports a blank under sheet protection as read-only. It showed once the user unmerged.
+    for (const [adapter, engine] of [[nativeAdapter, undefined], [excelJsAdapter, ExcelJS]]) {
+      // eslint-disable-next-line no-await-in-loop -- one engine at a time.
+      const result = await roundTrip(adapter, engine);
+
+      expect(result.mergeCells).toEqual([{ row: 0, col: 0, rowspan: 1, colspan: 2 }]);
+      expect(readOnlyAt(result, 0, 1)).toBe(false);
+      expect(readOnlyAt(result, 0, 0)).toBe(true);
+      expect(readOnlyAt(result, 0, 2)).toBe(true);
+    }
+  });
+});
+
+describe('mapWorkbook on a formula Excel stored with a function prefix', () => {
+  /**
+   * Writes one `_xlfn.`-prefixed formula with the given engine, reads the bytes back with the same
+   * engine and maps them with the Formulas plugin enabled, the way the plugin does.
+   *
+   * @param {object} adapter The engine adapter.
+   * @param {object} engine The engine module, or `undefined` for the built-in one.
+   * @returns {Promise<object>}
+   */
+  async function roundTrip(adapter, engine) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 1;
+    sheet.cell(2, 1).value = 3;
+    sheet.cell(1, 2).formula = { text: '_xlfn.STDEV.S(A1:A2)', result: 1.4142135623730951 };
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const bytes = await adapter.write(snapshot, engine, new DroppedFeatures());
+    const read = await adapter.read(toArrayBuffer(bytes), engine, new DroppedFeatures());
+
+    return mapWorkbook(
+      read,
+      resolveImportOptions({}),
+      { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false },
+      new DroppedFeatures(),
+    );
+  }
+
+  it('should hand HyperFormula the formula without the prefix, whichever engine read the file', async() => {
+    // Excel writes every post-2007 function as `_xlfn.<NAME>` in `<f>`, and both readers hand the
+    // stored text over verbatim. HyperFormula does not know `_xlfn.STDEV.S` and shows `#NAME?`.
+    const viaNative = await roundTrip(nativeAdapter, undefined);
+    const viaExcelJs = await roundTrip(excelJsAdapter, ExcelJS);
+
+    expect(viaNative.data[0][1]).toBe('=STDEV.S(A1:A2)');
+    expect(viaExcelJs.data[0][1]).toBe('=STDEV.S(A1:A2)');
   });
 });

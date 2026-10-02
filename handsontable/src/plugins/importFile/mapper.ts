@@ -1,9 +1,15 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
-import type { DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
+import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
 import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
+import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
+import { MAX_TRANSLATED_FORMULA_CHARS, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
+import {
+  MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
+  MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
+} from '../../utils/xlsxEngine/units';
 import {
   excelWidthToPx,
   cellDisplayValue,
@@ -236,6 +242,8 @@ function toMeta(inferred: InferredType): ImportColumn {
         : { type: 'numeric' };
     case 'date':
       return { type: 'date', dateFormat: inferred.dateFormat };
+    case 'intl-datetime':
+      return { type: 'intl-datetime', dateTimeFormat: inferred.dateTimeFormat };
     case 'time':
       return { type: 'time', timeFormat: inferred.timeFormat };
     default:
@@ -318,7 +326,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
   const meta: ImportColumn | null = source ? { type: 'dropdown', source } : null;
 
   if (!meta) {
-    scope.dropped.record('dataValidation:unresolvedList');
+    scope.dropped.record(DROPPED_FEATURES.dataValidationUnresolvedList);
   }
 
   scope.listMetaByFormula.set(key, meta);
@@ -331,11 +339,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
  * shared with every other cell of the same number format.
  */
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
-  const { inferred, meta } = inferredMeta;
-
-  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
-  }
+  const { meta } = inferredMeta;
 
   if (cell.validation) {
     const dropdown = resolveDropdownMeta(cell, scope);
@@ -364,6 +368,74 @@ interface FormulaShift {
 }
 
 /**
+ * Escapes a plain text value the grid would otherwise reinterpret.
+ *
+ * TWO shapes need it, and they are exactly the values the Formulas plugin's own
+ * `unescapeFormulaExpression` would change (`plugins/formulas/utils.ts`; the predicates are
+ * mirrored here rather than imported, because a plugin never imports another plugin).
+ *
+ * A cell holding the TEXT `=HYPERLINK("http://…")` is inert in Excel - it is a string, not a
+ * formula - but the grid hands every `=`-leading string to HyperFormula, so importing it verbatim
+ * turned the file's text into a formula the file never had.
+ *
+ * A cell whose text is `'=1+1` is the other half: the leading apostrophe is the FILE's own
+ * character, and `isEscapedFormulaExpression` (an apostrophe followed by `=`) reads it as the
+ * grid's escape marker and strips it. Escaping it keeps the file's apostrophe in the data. A value
+ * starting with an apostrophe that is NOT followed by `=` is left alone, because the grid leaves it
+ * alone too - the marker is `'=`, not a bare `'`.
+ *
+ * Only applied when the plugin is enabled: without it an apostrophe would be part of the value.
+ */
+function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
+  if (!formulasEnabled || typeof value !== 'string') {
+    return value;
+  }
+
+  return value.startsWith('=') || value.startsWith('\'=') ? `'${value}` : value;
+}
+
+/**
+ * Matches the start of a prefix Excel stores in a formula (`_xlfn.`, `_xlws.`, `_xlpm.`), the cheap
+ * test that decides whether `stripFunctionPrefixes` has to walk the formula at all.
+ */
+const STORED_PREFIX_HINT = /_xl/i;
+
+/**
+ * Charges one formula walk against the pass's budget, refusing the workbook once the sum crosses
+ * `MAX_TRANSLATED_FORMULA_CHARS` - the same budget the native reader charges a shared formula's
+ * translation. Charged before the walk, so the refusal lands before the work it bounds: a shifted
+ * import runs `REFERENCE_REGEX` over every formula's whole text, and nothing else bounds the
+ * product of the cell count and the formula length.
+ */
+function chargeFormulaWalk(length: number, scope: CollectContext): void {
+  scope.walkedFormulaChars += length;
+
+  if (scope.walkedFormulaChars > MAX_TRANSLATED_FORMULA_CHARS) {
+    throwLimitExceeded('The workbook\'s formulas rewrite to more than '
+      + `${MAX_TRANSLATED_FORMULA_CHARS} characters, above the limit this reader accepts.`);
+  }
+}
+
+/**
+ * The formula as the grid takes it: the `_xlfn.`/`_xlws.`/`_xlpm.` prefixes Excel stores in front of
+ * post-2007 functions and `LET`/`LAMBDA` parameters removed, so HyperFormula does not read them as
+ * unknown names (`#NAME?`). Every engine hands the stored text over verbatim, so the mapper strips
+ * it for both. A formula that a walk will run over - the strip, or a shift by a non-zero window
+ * origin - is charged against the budget first.
+ */
+function readFormulaText(text: string, scope: CollectContext): string {
+  const { shift } = scope;
+  const stripping = STORED_PREFIX_HINT.test(text);
+  const shifting = shift !== null && (shift.rowDelta !== 0 || shift.colDelta !== 0);
+
+  if (stripping || shifting) {
+    chargeFormulaWalk(text.length, scope);
+  }
+
+  return stripping ? stripFunctionPrefixes(text) : text;
+}
+
+/**
  * Pushes one cell's value onto the data row, writing a live formula string when the formulas
  * plugin is enabled and recording the cached formula otherwise.
  *
@@ -375,10 +447,12 @@ interface FormulaShift {
  */
 function pushCellValue(
   pass: CellPass, cell: CellSnapshot, inferred: InferredType | null,
-  shift: FormulaShift | null, row: number, col: number, dropped: DroppedFeatures
+  row: number, col: number, scope: CollectContext
 ): void {
-  const live = cell.formula && shift
-    ? shiftFormulaReferences(cell.formula.text, shift.rowDelta, shift.colDelta)
+  const { shift, dropped } = scope;
+  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
+  const live = formula !== null && shift
+    ? shiftFormulaReferences(formula, shift.rowDelta, shift.colDelta)
     : null;
 
   if (live !== null) {
@@ -387,13 +461,15 @@ function pushCellValue(
     return;
   }
 
-  pass.data[pass.data.length - 1].push(toGridValue(cell, inferred));
+  pass.data[pass.data.length - 1].push(
+    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
+  );
 
-  if (cell.formula) {
-    pass.formulas.push({ row, col, formula: cell.formula.text });
+  if (formula !== null) {
+    pass.formulas.push({ row, col, formula });
 
     if (shift) {
-      dropped.record('formula:outOfRange');
+      dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
   }
 }
@@ -505,6 +581,11 @@ interface CollectContext {
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
    */
   inferredByFormat: Map<string, InferredMeta>;
+  /**
+   * Characters of formula text walked so far in this pass (prefix strip and reference shift),
+   * charged against `MAX_TRANSLATED_FORMULA_CHARS`.
+   */
+  walkedFormulaChars: number;
 }
 
 /**
@@ -517,7 +598,8 @@ interface InferredMeta {
 
 /**
  * Infers a cell's type through the pass cache. The key is the number format plus the kind of value,
- * which is everything `inferCellType` reads.
+ * which is everything `inferCellType` reads. An unsupported format is reported here, once per
+ * distinct key, rather than once per cell.
  */
 function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
   const key = `${cell.numFmt ?? ''}\u0000${typeof cellDisplayValue(cell)}`;
@@ -530,6 +612,12 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
   const inferred = inferCellType(cell);
   const entry: InferredMeta = { inferred, meta: inferred ? toMeta(inferred) : null };
 
+  // Reported on the cache miss only: `recordUnsupported` bounds and copies the whole format string,
+  // so once per cell cost one walk of a file-sized string per cell for a name it records once.
+  if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
+    scope.dropped.recordUnsupported('numFmt', inferred.unsupportedNumFmt);
+  }
+
   scope.inferredByFormat.set(key, entry);
 
   return entry;
@@ -539,7 +627,7 @@ function inferForCell(cell: CellSnapshot, scope: CollectContext): InferredMeta {
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, options, context, shift, dropped } = scope;
+  const { sheet, options, context } = scope;
   const inferredMeta = options.inferCellTypes ? inferForCell(cell, scope) : null;
   const inferred = inferredMeta?.inferred ?? null;
   const meta = inferredMeta ? resolveCellMeta(cell, inferredMeta, scope) : null;
@@ -548,7 +636,7 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.metaByCell.set(`${row}:${col}`, meta);
   }
 
-  pushCellValue(pass, cell, inferred, shift, row, col, dropped);
+  pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
     if (context.commentsEnabled) {
@@ -602,6 +690,7 @@ function collectCells(
     dropped,
     listMetaByFormula: new Map(),
     inferredByFormat: new Map(),
+    walkedFormulaChars: 0,
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -873,6 +962,47 @@ function cropMerge(
 }
 
 /**
+ * Converts a file-supplied column width or row height to pixels, or `undefined` when the file's
+ * value is not a finite, positive size inside Excel's own limit. This is the plugin's half of the
+ * bound, independent of the engine: `-350`, `7e+300` and `Infinity` reached `updateSettings` as
+ * column widths before it.
+ */
+function toLayoutPixels(size: unknown, max: number, toPx: (value: number) => number): number | undefined {
+  if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0 || size > max) {
+    return undefined;
+  }
+
+  const pixels = toPx(size);
+
+  return pixels > 0 ? pixels : undefined;
+}
+
+/**
+ * Turns a file-supplied freeze count into the whole, non-negative number of rows or columns to fix
+ * in the window: floored, shifted by the window origin and clamped to the window. Anything that is
+ * not a number, and `NaN`, freezes nothing.
+ */
+function toFreezeCount(value: unknown, shift: number, count: number): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(Math.floor(value) - shift, count));
+}
+
+/**
+ * Shifts file-supplied hidden indexes into the window, dropping each one that is not a whole
+ * number or falls outside the window ON ITS OWN. `HiddenRows`/`HiddenColumns` reject the whole list
+ * when one entry is invalid, so a single `0.5` used to unhide every row the file legitimately hid.
+ */
+function toHiddenIndexes(indexes: unknown[], shift: number, count: number): number[] {
+  return indexes
+    .filter((index): index is number => Number.isInteger(index))
+    .map(index => index - shift)
+    .filter(index => index >= 0 && index < count);
+}
+
+/**
  * Shifts and crops the sheet layout into the window's coordinates.
  */
 function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportResult> {
@@ -880,27 +1010,22 @@ function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportRes
   const colShift = window.firstCol;
   const rowCount = window.lastRow - window.firstRow + 1;
   const colCount = window.lastCol - window.firstCol + 1;
-  const inWindow = (row: number, col: number) => row >= 0 && row < rowCount && col >= 0 && col < colCount;
 
   const mergeCells = sheet.merges
     .map(merge => cropMerge(merge, rowShift, colShift, rowCount, colCount))
     .filter((merge): merge is MergeSnapshot => merge !== null);
-  const hiddenRows = sheet.hiddenRows.map(row => row - rowShift).filter(row => inWindow(row, 0));
-  const hiddenColumns = sheet.hiddenCols.map(col => col - colShift).filter(col => inWindow(0, col));
-  const colWidths = Array.from({ length: colCount }, (_, c) => {
-    const width = sheet.colWidths[c + colShift];
-
-    return width === null || width === undefined ? undefined : excelWidthToPx(width);
-  });
-  const rowHeights = Array.from({ length: rowCount }, (_, r) => {
-    const height = sheet.rowHeights[r + rowShift];
-
-    return height === null || height === undefined ? undefined : pointsToPx(height);
-  });
+  const hiddenRows = toHiddenIndexes(sheet.hiddenRows, rowShift, rowCount);
+  const hiddenColumns = toHiddenIndexes(sheet.hiddenCols, colShift, colCount);
+  const colWidths = Array.from({ length: colCount }, (_, c) => (
+    toLayoutPixels(sheet.colWidths[c + colShift], MAX_EXCEL_COLUMN_WIDTH, excelWidthToPx)
+  ));
+  const rowHeights = Array.from({ length: rowCount }, (_, r) => (
+    toLayoutPixels(sheet.rowHeights[r + rowShift], MAX_EXCEL_ROW_HEIGHT_POINTS, pointsToPx)
+  ));
   // Clamped to the window like every other layout value: a freeze reaching past a short `range`
   // would otherwise ask the grid to freeze more rows than it has.
-  const fixedRowsTop = sheet.freeze ? Math.min(sheet.freeze.rows - rowShift, rowCount) : 0;
-  const fixedColumnsStart = sheet.freeze ? Math.min(sheet.freeze.cols - colShift, colCount) : 0;
+  const fixedRowsTop = sheet.freeze ? toFreezeCount(sheet.freeze.rows, rowShift, rowCount) : 0;
+  const fixedColumnsStart = sheet.freeze ? toFreezeCount(sheet.freeze.cols, colShift, colCount) : 0;
 
   return {
     mergeCells: mergeCells.length > 0 ? mergeCells : undefined,
@@ -945,7 +1070,7 @@ function mapConditionalFormatting(
     // Flag a token the parser refused, not a difference in counts: a parser that one day coalesces
     // duplicate rectangles must not read as a loss.
     if (tokens.some(token => parseRangeRef(token) === null)) {
-      dropped.record('conditionalFormatting:unparsedRef');
+      dropped.record(DROPPED_FEATURES.conditionalFormattingUnparsedRef);
     }
 
     ranges.forEach((range) => {
@@ -1113,14 +1238,14 @@ export function mapWorkbook(
 
   if (options.importStyles) {
     if (pass.droppedBorders) {
-      dropped.record('cellStyles:borders');
+      dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
   } else if (pass.sawStyle) {
-    dropped.record('cellStyles');
+    dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
   if (pass.droppedComments) {
-    dropped.record('comments');
+    dropped.record(DROPPED_FEATURES.comments);
   }
 
   const result: MappedResult = {

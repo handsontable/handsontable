@@ -1,5 +1,4 @@
-const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
-const MS_PER_DAY = 86400000;
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../../../utils/xlsxEngine/dates';
 
 /**
  * Converts a JavaScript `Date` to an Excel date serial number.

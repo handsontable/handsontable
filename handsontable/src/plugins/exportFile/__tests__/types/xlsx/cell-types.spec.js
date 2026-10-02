@@ -1,576 +1,623 @@
 import ExcelJS from 'exceljs';
 
-describe('exportFile XLSX type — cell types', () => {
-  const id = 'testContainer';
+// Every spec runs on both engines: the built-in one (`exportFile: true`) and ExcelJS injected
+// through the plugin-level `engines` option, so a regression on either path is caught here.
+[['built-in', true], ['ExcelJS', { engines: { xlsx: ExcelJS } }]].forEach(([engineName, exportFile]) => {
+  describe(`exportFile XLSX type — cell types (${engineName} engine)`, () => {
+    const id = 'testContainer';
 
-  beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-  });
-
-  afterEach(function() {
-    if (this.$container) {
-      destroy();
-      this.$container.remove();
-    }
-  });
-
-  describe('cell data', () => {
-    it('should export string cell values', async() => {
-      handsontable({
-        data: [['Hello', 'World']],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe('Hello');
-      expect(ws.getRow(1).getCell(2).value).toBe('World');
+    beforeEach(function() {
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    it('should export null and undefined cells as null', async() => {
-      handsontable({
-        data: [[null, undefined]],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBeNull();
-      expect(ws.getRow(1).getCell(2).value).toBeNull();
+    afterEach(function() {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
     });
 
-    it('should export a multi-row, multi-column table', async() => {
-      handsontable({
-        data: createSpreadsheetData(3, 3),
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('cell data', () => {
+      it('should export string cell values', async() => {
+        handsontable({
+          data: [['Hello', 'World']],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('Hello');
+        expect(ws.getRow(1).getCell(2).value).toBe('World');
       });
 
-      const ws = await parseXlsx();
+      it('should export null and undefined cells as null', async() => {
+        handsontable({
+          data: [[null, undefined]],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).value).toBe('A1');
-      expect(ws.getRow(1).getCell(3).value).toBe('C1');
-      expect(ws.getRow(3).getCell(1).value).toBe('A3');
-      expect(ws.getRow(3).getCell(3).value).toBe('C3');
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBeNull();
+        expect(ws.getRow(1).getCell(2).value).toBeNull();
+      });
+
+      it('should export a multi-row, multi-column table', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 3),
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('A1');
+        expect(ws.getRow(1).getCell(3).value).toBe('C1');
+        expect(ws.getRow(3).getCell(1).value).toBe('A3');
+        expect(ws.getRow(3).getCell(3).value).toBe('C3');
+      });
+
+      it('should export numeric type cells as JavaScript numbers', async() => {
+        handsontable({
+          data: [[42, '3.14']],
+          columns: [
+            { type: 'numeric' },
+            { type: 'numeric' },
+          ],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe(42);
+        expect(ws.getRow(1).getCell(2).value).toBe(3.14);
+      });
+
+      it('should place the currency symbol before the number for prefix locales (en-US / USD)', async() => {
+        handsontable({
+          data: [[1234.56]],
+          columns: [{
+            type: 'numeric',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
+            locale: 'en-US',
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('$#,##0.00');
+      });
+
+      it('should place the currency symbol after the number for suffix locales (fr-FR / EUR)', async() => {
+        handsontable({
+          data: [[1234.56]],
+          columns: [{
+            type: 'numeric',
+            numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
+            locale: 'fr-FR',
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+      });
+
+      it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', async() => {
+        handsontable({
+          data: [[1234.56]],
+          columns: [{
+            type: 'numeric',
+            numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
+            locale: 'de-DE',
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+      });
+
+      it('should not set numFmt on numeric cells without a numericFormat pattern', async() => {
+        handsontable({
+          data: [[42]],
+          columns: [{ type: 'numeric' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        // ExcelJS returns undefined for cells with no explicit numFmt (default "General" format).
+        expect(ws.getRow(1).getCell(1).numFmt).toBeUndefined();
+      });
+
+      it('should export non-parseable values in numeric type cells as strings', async() => {
+        handsontable({
+          data: [['not-a-number']],
+          columns: [{ type: 'numeric' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('not-a-number');
+      });
+
+      it('should export non-numeric type cells as strings', async() => {
+        handsontable({
+          data: [[123]],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('123');
+      });
     });
 
-    it('should export numeric type cells as JavaScript numbers', async() => {
-      handsontable({
-        data: [[42, '3.14']],
-        columns: [
-          { type: 'numeric' },
-          { type: 'numeric' },
-        ],
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('date type cells', () => {
+      it('should export a `date` type cell as an Excel date serial (recognized as Date category in Excel)', async() => {
+        handsontable({
+          data: [['2016-02-28']],
+          columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const cell = ws.getRow(1).getCell(1);
+
+        // ExcelJS reads a serial + date numFmt back as a JavaScript Date object.
+        expect(cell.value instanceof Date).toBe(true);
+        expect(cell.value.getUTCFullYear()).toBe(2016);
+        expect(cell.value.getUTCMonth()).toBe(1);
+        expect(cell.value.getUTCDate()).toBe(28);
       });
 
-      const ws = await parseXlsx();
+      it('should derive the date numFmt from the cell\'s dateFormat Intl options', async() => {
+        handsontable({
+          data: [['2020-01-15']],
+          columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).value).toBe(42);
-      expect(ws.getRow(1).getCell(2).value).toBe(3.14);
+        const ws = await parseXlsx();
+
+        // A four-digit year is `yyyy`, not `yy`: the import inverts the pattern back into these same
+        // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year. The order and the
+        // separator follow the cell's `locale`, `en-US` by default, so Excel shows what the grid showed.
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('mm/dd/yyyy');
+      });
+
+      it('should export an `intl-date` type cell as an Excel date', async() => {
+        handsontable({
+          data: [['2023-07-04']],
+          columns: [{ type: 'intl-date' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const cell = ws.getRow(1).getCell(1);
+
+        expect(cell.value instanceof Date).toBe(true);
+        expect(cell.value.getUTCFullYear()).toBe(2023);
+        expect(cell.value.getUTCMonth()).toBe(6);
+        expect(cell.value.getUTCDate()).toBe(4);
+      });
+
+      it('should export an empty date cell as null', async() => {
+        handsontable({
+          data: [[null]],
+          columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBeNull();
+      });
+
+      it('should fall back to a plain string when the value is not a valid ISO 8601 date', async() => {
+        handsontable({
+          data: [['not-a-date']],
+          columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('not-a-date');
+      });
     });
 
-    it('should place the currency symbol before the number for prefix locales (en-US / USD)', async() => {
-      handsontable({
-        data: [[1234.56]],
-        columns: [{
-          type: 'numeric',
-          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
-          locale: 'en-US',
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('time type cells', () => {
+      it('should export a `time` type cell as an Excel time serial with a time numFmt', async() => {
+        handsontable({
+          data: [['12:30:00']],
+          columns: [{
+            type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const cell = ws.getRow(1).getCell(1);
+
+        // 12:30:00 = (12*3600 + 30*60) / 86400 = 45000/86400 ≈ 0.520833…
+        // ExcelJS reads a fractional-day serial + time numFmt back as a Date object.
+        expect(cell.value instanceof Date).toBe(true);
+        expect(cell.value.getUTCHours()).toBe(12);
+        expect(cell.value.getUTCMinutes()).toBe(30);
+        expect(cell.value.getUTCSeconds()).toBe(0);
       });
 
-      const ws = await parseXlsx();
+      it('should derive the time numFmt from the cell\'s timeFormat Intl options', async() => {
+        handsontable({
+          data: [['08:05:30']],
+          columns: [{
+            type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+          }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('$#,##0.00');
+        const ws = await parseXlsx();
+
+        // Excel still categorizes this as Time rather than Custom; the padding now follows the
+        // cell's own options so the import recovers them.
+        expect(ws.getRow(1).getCell(1).numFmt).toBe('hh:mm:ss');
+      });
+
+      it('should export midnight (00:00:00) correctly', async() => {
+        handsontable({
+          data: [['00:00:00']],
+          columns: [{
+            type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const cell = ws.getRow(1).getCell(1);
+
+        expect(cell.value instanceof Date).toBe(true);
+        expect(cell.value.getUTCHours()).toBe(0);
+        expect(cell.value.getUTCMinutes()).toBe(0);
+        expect(cell.value.getUTCSeconds()).toBe(0);
+      });
+
+      it('should export a 12-hour time string with AM/PM', async() => {
+        handsontable({
+          data: [['3:45:00 PM']],
+          columns: [{
+            type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const cell = ws.getRow(1).getCell(1);
+
+        expect(cell.value instanceof Date).toBe(true);
+        expect(cell.value.getUTCHours()).toBe(15);
+        expect(cell.value.getUTCMinutes()).toBe(45);
+      });
+
+      it('should fall back to a plain string when the value is not a valid time', async() => {
+        handsontable({
+          data: [['not-a-time']],
+          columns: [{
+            type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+          }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('not-a-time');
+      });
     });
 
-    it('should place the currency symbol after the number for suffix locales (fr-FR / EUR)', async() => {
-      handsontable({
-        data: [[1234.56]],
-        columns: [{
-          type: 'numeric',
-          numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
-          locale: 'fr-FR',
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('checkbox type cells', () => {
+      it('should export a checked checkbox as boolean true', async() => {
+        handsontable({
+          data: [[true]],
+          columns: [{ type: 'checkbox' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe(true);
       });
 
-      const ws = await parseXlsx();
+      it('should export an unchecked checkbox as boolean false', async() => {
+        handsontable({
+          data: [[false]],
+          columns: [{ type: 'checkbox' }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe(false);
+      });
+
+      it('should export an empty checkbox as an empty cell, not as boolean false', async() => {
+        handsontable({
+          data: [[null], [undefined], [''], [true]],
+          columns: [{ type: 'checkbox' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBeNull();
+        expect(ws.getRow(2).getCell(1).value).toBeNull();
+        expect(ws.getRow(3).getCell(1).value).toBeNull();
+        expect(ws.getRow(4).getCell(1).value).toBe(true);
+      });
+
+      it('should export an empty checkbox with custom templates as an empty cell', async() => {
+        handsontable({
+          data: [[null], ['yes'], ['no']],
+          columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBeNull();
+        expect(ws.getRow(2).getCell(1).value).toBe(true);
+        expect(ws.getRow(3).getCell(1).value).toBe(false);
+      });
+
+      it('should export an empty string as false when it is the uncheckedTemplate', async() => {
+        handsontable({
+          data: [[''], ['x'], [null]],
+          columns: [{ type: 'checkbox', checkedTemplate: 'x', uncheckedTemplate: '' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe(false);
+        expect(ws.getRow(2).getCell(1).value).toBe(true);
+        expect(ws.getRow(3).getCell(1).value).toBeNull();
+      });
+
+      it('should use a custom checkedTemplate to determine the boolean value', async() => {
+        handsontable({
+          data: [['yes'], ['no']],
+          columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe(true);
+        expect(ws.getRow(2).getCell(1).value).toBe(false);
+      });
     });
 
-    it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', async() => {
-      handsontable({
-        data: [[1234.56]],
-        columns: [{
-          type: 'numeric',
-          numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
-          locale: 'de-DE',
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('dropdown / autocomplete cells', () => {
+      it('should add an Excel list data validation for a `dropdown` type cell', async() => {
+        handsontable({
+          data: [['Option A']],
+          columns: [{ type: 'dropdown', source: ['Option A', 'Option B', 'Option C'] }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const validation = ws.getRow(1).getCell(1).dataValidation;
+
+        expect(validation.type).toBe('list');
+        expect(validation.formulae[0]).toMatch(/^'/);
+        expect(validation.allowBlank).toBe(true);
       });
 
-      const ws = await parseXlsx();
+      it('should add a list validation for an `autocomplete` type cell', async() => {
+        handsontable({
+          data: [['red']],
+          columns: [{ type: 'autocomplete', source: ['red', 'green', 'blue'] }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+        const ws = await parseXlsx();
+        const validation = ws.getRow(1).getCell(1).dataValidation;
+
+        expect(validation.type).toBe('list');
+        expect(validation.formulae[0]).toMatch(/^'/);
+      });
+
+      it('should not add data validation when source is a function', async() => {
+        handsontable({
+          data: [['dynamic']],
+          columns: [{ type: 'dropdown', source: () => ['a', 'b'] }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
+      });
+
+      it('should not add data validation for a plain text cell', async() => {
+        handsontable({
+          data: [['plain']],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
+      });
+
+      it('should handle source values containing double-quote characters', async() => {
+        handsontable({
+          data: [['say "hello"']],
+          columns: [{ type: 'dropdown', source: ['say "hello"', 'world'] }],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+        const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+        expect(validationSheet).toBeDefined();
+        expect(validationSheet.getCell(1, 1).value).toBe('say "hello"');
+        expect(validationSheet.getCell(2, 1).value).toBe('world');
+      });
+
+      it('should handle source values containing comma characters', async() => {
+        handsontable({
+          data: [['A,B']],
+          columns: [{ type: 'dropdown', source: ['A,B', 'C'] }],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+        const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+        expect(validationSheet).toBeDefined();
+        expect(validationSheet.getCell(1, 1).value).toBe('A,B');
+        expect(validationSheet.getCell(2, 1).value).toBe('C');
+      });
+
+      it('should write each unique source array to a separate column and deduplicate shared sources', async() => {
+        handsontable({
+          data: [['a', 'x', 'a']],
+          columns: [
+            { type: 'dropdown', source: ['a', 'b'] },
+            { type: 'dropdown', source: ['x', 'y', 'z'] },
+            { type: 'dropdown', source: ['a', 'b'] },
+          ],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+        const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+        expect(validationSheet.columnCount).toBe(2);
+      });
+
+      it('should use the same range reference for cells with identical sources', async() => {
+        handsontable({
+          data: [['a', 'a']],
+          columns: [
+            { type: 'dropdown', source: ['a', 'b'] },
+            { type: 'dropdown', source: ['a', 'b'] },
+          ],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+        const ref1 = ws.getRow(1).getCell(1).dataValidation.formulae[0];
+        const ref2 = ws.getRow(1).getCell(2).dataValidation.formulae[0];
+
+        expect(ref1).toBe(ref2);
+      });
+
+      it('should not create a validation sheet when there are no dropdown cells', async() => {
+        handsontable({
+          data: [['hello']],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+
+        expect(allSheets.length).toBe(1);
+        expect(allSheets[0].name).toBe('Sheet1');
+      });
+
+      it('should not create a validation sheet for a dropdown column with an empty source array', async() => {
+        handsontable({
+          data: [['']],
+          columns: [{ type: 'dropdown', source: [] }],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+
+        expect(allSheets.length).toBe(1);
+        expect(allSheets[0].name).toBe('Sheet1');
+      });
+
+      it('should write the display value (`.value` property) of key-value object sources to the validation sheet', async() => {
+        handsontable({
+          data: [['red']],
+          columns: [{
+            type: 'dropdown',
+            source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
+          }],
+          exportFile,
+        });
+
+        const allSheets = await parseXlsxAllSheets();
+        const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+        expect(validationSheet).toBeDefined();
+        expect(validationSheet.getCell(1, 1).value).toBe('red');
+        expect(validationSheet.getCell(2, 1).value).toBe('green');
+        expect(validationSheet.getCell(3, 1).value).toBe('blue');
+      });
     });
 
-    it('should not set numFmt on numeric cells without a numericFormat pattern', async() => {
-      handsontable({
-        data: [[42]],
-        columns: [{ type: 'numeric' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+    describe('multiselect type cells', () => {
+      it('should export a multiselect cell as a comma-separated string of selected values', async() => {
+        handsontable({
+          data: [[['red', 'green']]],
+          columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
+          exportFile,
+        });
+
+        const ws = await parseXlsx();
+
+        expect(ws.getRow(1).getCell(1).value).toBe('red, green');
       });
 
-      const ws = await parseXlsx();
+      it('should export key-value object selections using their display value', async() => {
+        handsontable({
+          data: [[
+            [{ key: 'r', value: 'red' }, { key: 'b', value: 'blue' }],
+          ]],
+          columns: [{
+            type: 'multiselect',
+            source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
+          }],
+          exportFile,
+        });
 
-      // ExcelJS returns undefined for cells with no explicit numFmt (default "General" format).
-      expect(ws.getRow(1).getCell(1).numFmt).toBeUndefined();
-    });
+        const ws = await parseXlsx();
 
-    it('should export non-parseable values in numeric type cells as strings', async() => {
-      handsontable({
-        data: [['not-a-number']],
-        columns: [{ type: 'numeric' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        expect(ws.getRow(1).getCell(1).value).toBe('red, blue');
       });
 
-      const ws = await parseXlsx();
+      it('should export an empty multiselect cell as null', async() => {
+        handsontable({
+          data: [[null]],
+          columns: [{ type: 'multiselect', source: ['a', 'b'] }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).value).toBe('not-a-number');
-    });
+        const ws = await parseXlsx();
 
-    it('should export non-numeric type cells as strings', async() => {
-      handsontable({
-        data: [[123]],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        expect(ws.getRow(1).getCell(1).value).toBeNull();
       });
 
-      const ws = await parseXlsx();
+      it('should not add data validation for multiselect cells', async() => {
+        // Excel has no native multi-select type. Adding a single-value list
+        // validation would flag every multi-selected cell as invalid because the
+        // comma-separated string ('red, green') is not in the source list.
+        handsontable({
+          data: [[['red', 'green']]],
+          columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
+          exportFile,
+        });
 
-      expect(ws.getRow(1).getCell(1).value).toBe('123');
-    });
-  });
+        const ws = await parseXlsx();
 
-  describe('date type cells', () => {
-    it('should export a `date` type cell as an Excel date serial (recognized as Date category in Excel)', async() => {
-      handsontable({
-        data: [['2016-02-28']],
-        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
-        exportFile: { engines: { xlsx: ExcelJS } },
+        expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
       });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      // ExcelJS reads a serial + date numFmt back as a JavaScript Date object.
-      expect(cell.value instanceof Date).toBe(true);
-      expect(cell.value.getUTCFullYear()).toBe(2016);
-      expect(cell.value.getUTCMonth()).toBe(1);
-      expect(cell.value.getUTCDate()).toBe(28);
-    });
-
-    it('should derive the date numFmt from the cell\'s dateFormat Intl options', async() => {
-      handsontable({
-        data: [['2020-01-15']],
-        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      // A four-digit year is `yyyy`, not `yy`: the import inverts the pattern back into these same
-      // options, so a fixed `mm-dd-yy` made every round trip show a two-digit year. The order and the
-      // separator follow the cell's `locale`, `en-US` by default, so Excel shows what the grid showed.
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('mm/dd/yyyy');
-    });
-
-    it('should export an `intl-date` type cell as an Excel date', async() => {
-      handsontable({
-        data: [['2023-07-04']],
-        columns: [{ type: 'intl-date' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      expect(cell.value instanceof Date).toBe(true);
-      expect(cell.value.getUTCFullYear()).toBe(2023);
-      expect(cell.value.getUTCMonth()).toBe(6);
-      expect(cell.value.getUTCDate()).toBe(4);
-    });
-
-    it('should export an empty date cell as null', async() => {
-      handsontable({
-        data: [[null]],
-        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBeNull();
-    });
-
-    it('should fall back to a plain string when the value is not a valid ISO 8601 date', async() => {
-      handsontable({
-        data: [['not-a-date']],
-        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe('not-a-date');
-    });
-  });
-
-  describe('time type cells', () => {
-    it('should export a `time` type cell as an Excel time serial with a time numFmt', async() => {
-      handsontable({
-        data: [['12:30:00']],
-        columns: [{
-          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      // 12:30:00 = (12*3600 + 30*60) / 86400 = 45000/86400 ≈ 0.520833…
-      // ExcelJS reads a fractional-day serial + time numFmt back as a Date object.
-      expect(cell.value instanceof Date).toBe(true);
-      expect(cell.value.getUTCHours()).toBe(12);
-      expect(cell.value.getUTCMinutes()).toBe(30);
-      expect(cell.value.getUTCSeconds()).toBe(0);
-    });
-
-    it('should derive the time numFmt from the cell\'s timeFormat Intl options', async() => {
-      handsontable({
-        data: [['08:05:30']],
-        columns: [{
-          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      // Excel still categorizes this as Time rather than Custom; the padding now follows the
-      // cell's own options so the import recovers them.
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('hh:mm:ss');
-    });
-
-    it('should export midnight (00:00:00) correctly', async() => {
-      handsontable({
-        data: [['00:00:00']],
-        columns: [{
-          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      expect(cell.value instanceof Date).toBe(true);
-      expect(cell.value.getUTCHours()).toBe(0);
-      expect(cell.value.getUTCMinutes()).toBe(0);
-      expect(cell.value.getUTCSeconds()).toBe(0);
-    });
-
-    it('should export a 12-hour time string with AM/PM', async() => {
-      handsontable({
-        data: [['3:45:00 PM']],
-        columns: [{
-          type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      expect(cell.value instanceof Date).toBe(true);
-      expect(cell.value.getUTCHours()).toBe(15);
-      expect(cell.value.getUTCMinutes()).toBe(45);
-    });
-
-    it('should fall back to a plain string when the value is not a valid time', async() => {
-      handsontable({
-        data: [['not-a-time']],
-        columns: [{
-          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe('not-a-time');
-    });
-  });
-
-  describe('checkbox type cells', () => {
-    it('should export a checked checkbox as boolean true', async() => {
-      handsontable({
-        data: [[true]],
-        columns: [{ type: 'checkbox' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe(true);
-    });
-
-    it('should export an unchecked checkbox as boolean false', async() => {
-      handsontable({
-        data: [[false]],
-        columns: [{ type: 'checkbox' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe(false);
-    });
-
-    it('should use a custom checkedTemplate to determine the boolean value', async() => {
-      handsontable({
-        data: [['yes'], ['no']],
-        columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe(true);
-      expect(ws.getRow(2).getCell(1).value).toBe(false);
-    });
-  });
-
-  describe('dropdown / autocomplete cells', () => {
-    it('should add an Excel list data validation for a `dropdown` type cell', async() => {
-      handsontable({
-        data: [['Option A']],
-        columns: [{ type: 'dropdown', source: ['Option A', 'Option B', 'Option C'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const validation = ws.getRow(1).getCell(1).dataValidation;
-
-      expect(validation.type).toBe('list');
-      expect(validation.formulae[0]).toMatch(/^'/);
-      expect(validation.allowBlank).toBe(true);
-    });
-
-    it('should add a list validation for an `autocomplete` type cell', async() => {
-      handsontable({
-        data: [['red']],
-        columns: [{ type: 'autocomplete', source: ['red', 'green', 'blue'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const validation = ws.getRow(1).getCell(1).dataValidation;
-
-      expect(validation.type).toBe('list');
-      expect(validation.formulae[0]).toMatch(/^'/);
-    });
-
-    it('should not add data validation when source is a function', async() => {
-      handsontable({
-        data: [['dynamic']],
-        columns: [{ type: 'dropdown', source: () => ['a', 'b'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
-    });
-
-    it('should not add data validation for a plain text cell', async() => {
-      handsontable({
-        data: [['plain']],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
-    });
-
-    it('should handle source values containing double-quote characters', async() => {
-      handsontable({
-        data: [['say "hello"']],
-        columns: [{ type: 'dropdown', source: ['say "hello"', 'world'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
-
-      expect(validationSheet).toBeDefined();
-      expect(validationSheet.getCell(1, 1).value).toBe('say "hello"');
-      expect(validationSheet.getCell(2, 1).value).toBe('world');
-    });
-
-    it('should handle source values containing comma characters', async() => {
-      handsontable({
-        data: [['A,B']],
-        columns: [{ type: 'dropdown', source: ['A,B', 'C'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
-
-      expect(validationSheet).toBeDefined();
-      expect(validationSheet.getCell(1, 1).value).toBe('A,B');
-      expect(validationSheet.getCell(2, 1).value).toBe('C');
-    });
-
-    it('should write each unique source array to a separate column and deduplicate shared sources', async() => {
-      handsontable({
-        data: [['a', 'x', 'a']],
-        columns: [
-          { type: 'dropdown', source: ['a', 'b'] },
-          { type: 'dropdown', source: ['x', 'y', 'z'] },
-          { type: 'dropdown', source: ['a', 'b'] },
-        ],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
-
-      expect(validationSheet.columnCount).toBe(2);
-    });
-
-    it('should use the same range reference for cells with identical sources', async() => {
-      handsontable({
-        data: [['a', 'a']],
-        columns: [
-          { type: 'dropdown', source: ['a', 'b'] },
-          { type: 'dropdown', source: ['a', 'b'] },
-        ],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const ref1 = ws.getRow(1).getCell(1).dataValidation.formulae[0];
-      const ref2 = ws.getRow(1).getCell(2).dataValidation.formulae[0];
-
-      expect(ref1).toBe(ref2);
-    });
-
-    it('should not create a validation sheet when there are no dropdown cells', async() => {
-      handsontable({
-        data: [['hello']],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-
-      expect(allSheets.length).toBe(1);
-      expect(allSheets[0].name).toBe('Sheet1');
-    });
-
-    it('should not create a validation sheet for a dropdown column with an empty source array', async() => {
-      handsontable({
-        data: [['']],
-        columns: [{ type: 'dropdown', source: [] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-
-      expect(allSheets.length).toBe(1);
-      expect(allSheets[0].name).toBe('Sheet1');
-    });
-
-    it('should write the display value (`.value` property) of key-value object sources to the validation sheet', async() => {
-      handsontable({
-        data: [['red']],
-        columns: [{
-          type: 'dropdown',
-          source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const allSheets = await parseXlsxAllSheets();
-      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
-
-      expect(validationSheet).toBeDefined();
-      expect(validationSheet.getCell(1, 1).value).toBe('red');
-      expect(validationSheet.getCell(2, 1).value).toBe('green');
-      expect(validationSheet.getCell(3, 1).value).toBe('blue');
-    });
-  });
-
-  describe('multiselect type cells', () => {
-    it('should export a multiselect cell as a comma-separated string of selected values', async() => {
-      handsontable({
-        data: [[['red', 'green']]],
-        columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe('red, green');
-    });
-
-    it('should export key-value object selections using their display value', async() => {
-      handsontable({
-        data: [[
-          [{ key: 'r', value: 'red' }, { key: 'b', value: 'blue' }],
-        ]],
-        columns: [{
-          type: 'multiselect',
-          source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBe('red, blue');
-    });
-
-    it('should export an empty multiselect cell as null', async() => {
-      handsontable({
-        data: [[null]],
-        columns: [{ type: 'multiselect', source: ['a', 'b'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).value).toBeNull();
-    });
-
-    it('should not add data validation for multiselect cells', async() => {
-      // Excel has no native multi-select type. Adding a single-value list
-      // validation would flag every multi-selected cell as invalid because the
-      // comma-separated string ('red, green') is not in the source list.
-      handsontable({
-        data: [[['red', 'green']]],
-        columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
     });
   });
 });

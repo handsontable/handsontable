@@ -2,7 +2,6 @@
 import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -60,7 +59,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
   afterInit() {
     this.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
     this.render();

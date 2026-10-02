@@ -56,11 +56,45 @@ const STYLE_ATTRIBUTE = 'data-hot-imported-styles';
 const IMPORTED_CLASS_PATTERN = /^htImported-[0-9a-z]+(-[0-9]+)?$/;
 
 /**
- * Declarations the generated stylesheet accepts: `property:value` pairs separated by single `;`,
- * where a value is limited to letters, digits, `#`, space, comma, dot, parentheses and hyphen. No
- * `{`, `}`, `<`, `/`, quote or backslash can pass, so no value can close the rule it sits in.
+ * A six-digit lower-case hex color, the only color shape `styles.ts#argbToCssHex` writes.
  */
-const IMPORTED_DECLARATIONS_PATTERN = /^[a-z-]+:[#0-9a-z ,.()-]+(;[a-z-]+:[#0-9a-z ,.()-]+)*$/;
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/;
+
+/**
+ * Answers whether a declaration value is allowed for the property it is keyed under.
+ */
+type ValueCheck = (value: string) => boolean;
+
+/**
+ * The declarations the generated stylesheet accepts, keyed by property: exactly what
+ * `styles.ts#fontFillRule` emits, and nothing else. A value is a hex color or one fixed keyword, so
+ * it can carry no parenthesis (`url()`, `expression()`, `attr()`), no `}` and no second property.
+ * A `Map`, because the property name comes from the declaration string.
+ */
+const IMPORTED_DECLARATIONS: Map<string, ValueCheck> = new Map([
+  ['font-weight', value => value === 'bold'],
+  ['font-style', value => value === 'italic'],
+  ['text-decoration', value => value === 'underline'],
+  ['color', value => HEX_COLOR_PATTERN.test(value)],
+  ['background-color', value => HEX_COLOR_PATTERN.test(value)],
+]);
+
+/**
+ * Checks a declaration block against `IMPORTED_DECLARATIONS`: one or more `property:value` pairs
+ * separated by single `;`, every one of them allow-listed.
+ */
+function isAllowedDeclarationBlock(declarations: string): boolean {
+  if (declarations === '') {
+    return false;
+  }
+
+  return declarations.split(';').every((declaration) => {
+    const separator = declaration.indexOf(':');
+    const accepts = separator === -1 ? undefined : IMPORTED_DECLARATIONS.get(declaration.slice(0, separator));
+
+    return accepts !== undefined && accepts(declaration.slice(separator + 1));
+  });
+}
 
 /**
  * Builds the `updateSettings` payload from the result, including only the keys the workbook set.
@@ -190,8 +224,10 @@ function resetOmittedLayout(
  *
  * Nothing the workbook carries reaches the stylesheet unchecked. Every class name has to match the
  * mapper's own `htImported-<hash>` shape and every declaration block has to be `property:value`
- * pairs built from letters, digits, `#`, space, comma, dot, parentheses and hyphen, so no value can
- * carry a `}` and close the rule it sits in. A rule that fails either test is dropped and the
+ * pairs separated by `;`, each property listed in `IMPORTED_DECLARATIONS` and each value passing
+ * that property's check (a six-digit hex color or one fixed keyword). So no value can carry a `}`
+ * that closes the rule it sits in, a parenthesis that opens `url()` or `expression()`, or a second
+ * property. A rule that fails either test is dropped and the
  * rejected class names are named in one `warn()`. That is the second layer: `argbToCssHex` in
  * `styles.ts` already refuses a color that is not plain hex, and this is what keeps a future
  * declaration source honest too.
@@ -219,7 +255,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
   const rejected: string[] = [];
 
   Object.entries(styles).forEach(([className, declarations]) => {
-    if (!IMPORTED_CLASS_PATTERN.test(className) || !IMPORTED_DECLARATIONS_PATTERN.test(declarations)) {
+    if (!IMPORTED_CLASS_PATTERN.test(className) || !isAllowedDeclarationBlock(declarations)) {
       rejected.push(className);
 
       return;

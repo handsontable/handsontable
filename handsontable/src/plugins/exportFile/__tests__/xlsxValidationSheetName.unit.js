@@ -265,6 +265,15 @@ describe('Xlsx sheet-name sanitization', () => {
       ['Data', '_HotValidation', 'data1', '_HotValidation1'],
     );
   });
+
+  it('should strip control characters BEFORE de-duplicating, so two names cannot collapse into one', async() => {
+    // `workbook.xml` drops a control character from the attribute, so `Sheet\u0001` and
+    // `Sheet\u0002` passed the duplicate check and then both landed as `name="Sheet"`.
+    expect(await exportSheetsNamed('Sheet\u0001', 'Sheet\u0002')).toEqual(
+      ['Sheet', '_HotValidation', 'Sheet1', '_HotValidation1'],
+    );
+    expect(await exportSheetsNamed('a\tb\nc\u007F')).toEqual(['abc', '_HotValidation']);
+  });
 });
 
 describe('Xlsx compression default', () => {

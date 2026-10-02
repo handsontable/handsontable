@@ -6207,6 +6207,12 @@ export default function Core(
   /**
    * Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
    *
+   * An index that lies outside the grid's current range is not translated – it is used as the physical index as it
+   * is, the same way {@link Core#setCellMeta} writes one. With nothing trimmed, that keeps a coordinate captured
+   * before the data shrank (through `updateData`, which keeps the cell meta) addressing the record it was written
+   * to. With rows or columns trimmed (`trimRows`, a filter), the physical index the raw value names can be a live
+   * trimmed record, so such a call removes the key from that record – pass the visual index of the cell instead.
+   *
    * @memberof Core#
    * @function removeCellMeta
    * @param {number} row Visual row index.
@@ -6217,7 +6223,7 @@ export default function Core(
    */
   this.removeCellMeta = function(row: number, column: number, key: string) {
     operationScope.run('remove_cell_meta', undefined, () => {
-      const [physicalRow, physicalColumn] = [instance.toPhysicalRow(row), instance.toPhysicalColumn(column)];
+      const [physicalRow, physicalColumn] = toCellMetaPhysicalCoords(row, column);
 
       let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
@@ -6234,6 +6240,25 @@ export default function Core(
       cachedValue = null;
     });
   };
+
+  /**
+   * Translates the visual coordinates a cell meta mutator receives into the physical ones the meta
+   * manager stores under. An index inside the grid's current range is translated through the index
+   * mappers; an index outside it is used as the physical index as it is, so a key written past the
+   * current range can be read and removed again by the same coordinates. {@link Core#setCellMeta},
+   * {@link Core#removeCellMeta} and `_setCellMetaDeclarative` all resolve their coordinates here, so
+   * a change to the rule (for example for trimmed rows) reaches every one of them.
+   *
+   * @param {number} row Visual row index, or a raw index past the current range.
+   * @param {number} column Visual column index, or a raw index past the current range.
+   * @returns {number[]} The `[physicalRow, physicalColumn]` pair.
+   */
+  function toCellMetaPhysicalCoords(row: number, column: number): [number, number] {
+    const physicalRow = row < instance.countRows() ? instance.toPhysicalRow(row) : row;
+    const physicalColumn = column < instance.countCols() ? instance.toPhysicalColumn(column) : column;
+
+    return [physicalRow, physicalColumn];
+  }
 
   /**
    * Runs one cell meta write and journals it when a transaction records. Only an imperative write
@@ -6367,16 +6392,7 @@ export default function Core(
    * @param {*} value The value to write.
    */
   this._setCellMetaDeclarative = function(row: number, column: number, key: string, value: unknown) {
-    let physicalRow = row;
-    let physicalColumn = column;
-
-    if (row < instance.countRows()) {
-      physicalRow = instance.toPhysicalRow(row);
-    }
-
-    if (column < instance.countCols()) {
-      physicalColumn = instance.toPhysicalColumn(column);
-    }
+    const [physicalRow, physicalColumn] = toCellMetaPhysicalCoords(row, column);
 
     metaManager.disableUserDefinedMetaRecording();
 
@@ -6398,6 +6414,12 @@ export default function Core(
    * [render()](@/api/core.md#render) inside its callback. For why the repaint is a separate step, see the
    * [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
+   * An index that lies outside the grid's current range is not translated – it is used as the physical index as it
+   * is. {@link Core#removeCellMeta} reads such an index the same way, so a key written past the current range can
+   * be removed again by the same coordinates. That holds with nothing trimmed. With rows or columns trimmed
+   * (`trimRows`, a filter), the physical index the raw value names can be a live trimmed record, so such a call
+   * writes the key onto that record – pass the visual index of the cell instead.
+   *
    * @memberof Core#
    * @function setCellMeta
    * @param {number} row Visual row index.
@@ -6415,16 +6437,7 @@ export default function Core(
         return;
       }
 
-      let physicalRow = row;
-      let physicalColumn = column;
-
-      if (row < instance.countRows()) {
-        physicalRow = instance.toPhysicalRow(row);
-      }
-
-      if (column < instance.countCols()) {
-        physicalColumn = instance.toPhysicalColumn(column);
-      }
+      const [physicalRow, physicalColumn] = toCellMetaPhysicalCoords(row, column);
 
       writeCellMetaChange(physicalRow, physicalColumn, key, () => {
         metaManager.setCellMeta(physicalRow, physicalColumn, key, value);

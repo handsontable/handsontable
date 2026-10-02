@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import type {
   ExportFileSettings,
+  ExportOptions,
   SheetOptions,
   ConditionalFormattingDescriptor,
   Settings as ExportFileLegacySettings,
@@ -16,6 +17,10 @@ new Handsontable(document.createElement('div'), {
 
 // Settings object is assignable to ExportFileSettings.
 const settings: ExportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ExportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { exportFile: nullEngineSettings });
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});
@@ -121,6 +126,11 @@ exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
 // ─── ExportOptions: engine (per-call override) ────────────────────────────
 exportPlugin.downloadFileAsync('xlsx', { engine: {} });
 exportPlugin.exportAsBlobAsync('xlsx', { engine: {} });
+// A `null` override means "no override", as an absent key does.
+exportPlugin.downloadFileAsync('xlsx', { engine: null });
+exportPlugin.exportAsBlobAsync('xlsx', { engine: null });
+const nullEngineExportOptions: ExportOptions = { engine: null };
+const objectEngineExportOptions: ExportOptions = { engine: {} };
 
 // ─── sanitizeValues variants ───────────────────────────────────────────────
 

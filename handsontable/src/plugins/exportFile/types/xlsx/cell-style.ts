@@ -347,7 +347,7 @@ export function getCssStyleFromElement(
 }
 
 /**
- * Converts a CSS hex color string to an ARGB hex string expected by ExcelJS.
+ * Converts a CSS hex color string to an ARGB hex string, in an ExcelJS-compatible shape.
  *
  * @private
  * @param {string} color CSS color string.
@@ -380,7 +380,7 @@ export function cssColorToArgb(color: string): string {
 }
 
 /**
- * Derives an ExcelJS `alignment` object from a CSS className string.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from a CSS className string.
  *
  * @private
  * @param {string|undefined} className CSS class string.
@@ -395,7 +395,7 @@ export function getAlignmentFromClassName(className: string | undefined): CellSt
 }
 
 /**
- * Derives an ExcelJS `alignment` object from the cell meta `className`.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from the cell meta `className`.
  *
  * Recognized Handsontable alignment classes:
  * - Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`
@@ -435,7 +435,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnaps
 }
 
 /**
- * Maps a Handsontable border pixel width to the closest ExcelJS border style string.
+ * Maps a Handsontable border pixel width to the closest xlsx border style string.
  *
  * Excel does not support arbitrary pixel widths; it uses a fixed set of named styles.
  * The mapping used here:
@@ -445,7 +445,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnaps
  *
  * @private
  * @param {number} width Border width in pixels.
- * @returns {string} ExcelJS border style name.
+ * @returns {string} xlsx border style name.
  */
 function borderWidthToExcelStyle(width: number): string {
   if (width >= 3) {
@@ -460,7 +460,8 @@ function borderWidthToExcelStyle(width: number): string {
 }
 
 /**
- * Derives an ExcelJS `border` object from custom border data stored in cell meta.
+ * Derives a `border` object, in an ExcelJS-compatible shape, from custom border data stored in cell
+ * meta.
  *
  * Border widths are mapped to the nearest Excel border style:
  * `1` → `'thin'`, `2` → `'medium'`, `3+` → `'thick'`.
@@ -491,7 +492,7 @@ export function getBorderFromMeta(meta: CellMeta | undefined): CellStyleSnapshot
 }
 
 /**
- * Derives an ExcelJS `font` object from computed CSS style.
+ * Derives a `font` object, in an ExcelJS-compatible shape, from computed CSS style.
  *
  * All boolean properties (bold, italic, underline) and color are read exclusively
  * from the `cssStyle` object produced by `getCssStyleFromElement`. When `cssStyle`
@@ -545,7 +546,8 @@ export function getFontFromMeta(
 }
 
 /**
- * Derives an ExcelJS solid `fill` object from the computed CSS background color.
+ * Derives a solid `fill` object, in an ExcelJS-compatible shape, from the computed CSS background
+ * color.
  *
  * Background color is read exclusively from `cssStyle.backgroundColor`.
  * When `meta.readOnly` is `true` and no explicit color is found, a default light gray fill
@@ -580,7 +582,8 @@ export function getFillFromMeta(
 }
 
 /**
- * Returns an ExcelJS data validation object for dropdown and autocomplete cell types.
+ * Returns a data validation object, in an ExcelJS-compatible shape, for dropdown and autocomplete
+ * cell types.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.

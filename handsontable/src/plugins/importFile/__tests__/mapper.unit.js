@@ -1,5 +1,7 @@
+import Handsontable from 'handsontable';
 import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
 
 function cell(overrides) {
@@ -405,6 +407,81 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).not.toContain('formula:outOfRange');
   });
 
+  it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
+    // Excel stores every post-2007 function with a prefix the formula bar never shows; handed to
+    // HyperFormula verbatim, `_xlfn.STDEV.S(...)` is an unknown name and the cell shows `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('Value'), text('Spread')],
+      [cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.STDEV.S(A2:A4)', result: 1 } })],
+      [cell({ value: 2 }), cell({ value: null, formula: { text: '_xlfn._xlws.SORT(A2:A4)', result: 1 } })],
+      [cell({ value: 3 }), cell({ value: null, formula: { text: '_xlfn.LET(_xlpm.x,A4,_xlpm.x*2)', result: 6 } })],
+    ];
+
+    const live = map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data.map(row => row[1])).toEqual(['=STDEV.S(A1:A3)', '=SORT(A1:A3)', '=LET(x,A3,x*2)']);
+
+    const recorded = map(workbook(sheet), { colHeaders: 'firstRow' }).result;
+
+    expect(recorded.formulas.map(entry => entry.formula))
+      .toEqual(['STDEV.S(A2:A4)', 'SORT(A2:A4)', 'LET(x,A4,x*2)']);
+  });
+
+  it('should strip the prefixes on a formula that needs no shift', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.IFS(A1>0,"y")', result: 'y' } })]];
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data[0][1]).toBe('=IFS(A1>0,"y")');
+  });
+
+  it('should refuse a workbook whose formulas would cost more shift work than the reader\'s budget', () => {
+    // A shift runs a regex over every formula's whole text once the window origin is not (0, 0), so
+    // N cells at the 32 768-character formula cap cost N x 32 768 characters of regex work with no
+    // other bound. The import charges the same budget the native reader charges a shared formula's
+    // translation and refuses past it, before the work it bounds.
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('Header')]];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should not charge the shift budget for formulas that need no shift', () => {
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data).toHaveLength(formulas);
+  });
+
   it('should fall back to the cached value for a formula pointing into the removed header band', () => {
     const sheet = createSheetSnapshot('Data');
 
@@ -422,6 +499,45 @@ describe('mapWorkbook', () => {
     expect(result.data[0][1]).toBe('Rate rate');
     expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'B1&" rate"' }]);
     expect(dropped.list()).toContain('formula:outOfRange');
+  });
+
+  it('should escape a text value that starts with = when the formulas plugin is enabled', () => {
+    // The cell is a STRING in the file, inert in Excel. The grid hands every `=`-leading string to
+    // HyperFormula, so importing it verbatim turns the file's text into a formula it never had.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('=HYPERLINK("http://evil","x")')], [text('plain')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    // The leading apostrophe is the Formulas plugin's own text escape and is unescaped on read, so
+    // the cell renders the text the file carried.
+    expect(withFormulas.data[0][0]).toBe('\'=HYPERLINK("http://evil","x")');
+    expect(withFormulas.data[1][0]).toBe('plain');
+    // Without the plugin nothing evaluates the string, and an apostrophe would be part of the value.
+    expect(withoutFormulas.data[0][0]).toBe('=HYPERLINK("http://evil","x")');
+  });
+
+  it('should escape a text value the grid would read as its own escape marker', () => {
+    // The other half of the escape. `'=1+1` is the FILE's text — the apostrophe is a character of
+    // the cell, not a marker — and `isEscapedFormulaExpression` (an apostrophe followed by `=`) is
+    // exactly the shape the Formulas plugin strips on read, so importing it verbatim hands the
+    // grid the file's own apostrophe to eat. A value whose apostrophe is NOT followed by `=` is
+    // left alone, because the plugin leaves it alone too: the marker is `'=`, never a bare `'`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('\'=1+1')], [text('\'hello')], [text('it\'s fine')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    expect(withFormulas.data[0][0]).toBe('\'\'=1+1');
+    expect(withFormulas.data[1][0]).toBe('\'hello');
+    expect(withFormulas.data[2][0]).toBe('it\'s fine');
+    // With no plugin to unescape anything, every value keeps exactly what the file carried.
+    expect(withoutFormulas.data[0][0]).toBe('\'=1+1');
+    expect(withoutFormulas.data[1][0]).toBe('\'hello');
   });
 
   it('should keep cached values when importFormulas is false', () => {
@@ -577,6 +693,22 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(workbook(sheet));
 
     expect(result.columns).toEqual([{ type: 'numeric' }]);
+    expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
+  });
+
+  it('should report an unsupported number format once per distinct format, not once per cell', () => {
+    // `recordUnsupported` bounds and copies the whole format string on every call, so calling it
+    // per cell made a long format on many cells cost one string walk per cell.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: 500 }, (_, row) => [cell({ value: row, numFmt: '0.00E+00' })]);
+
+    const dropped = new DroppedFeatures();
+    const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
+
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), { formulasEnabled: false, commentsEnabled: false }, dropped);
+
+    expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
   });
 
@@ -992,5 +1124,158 @@ describe('mapWorkbook – conditionalFormatting', () => {
     expect(map(workbook(sheet), { importLayout: false }).result.conditionalFormatting)
       .toEqual([{ rows: [1, 2], cols: [1, 1], rules: [rule] }]);
     expect(map(workbook(cfSheet())).result.conditionalFormatting).toBeUndefined();
+  });
+});
+
+describe('mapWorkbook - date-time cells', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = null;
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    container.remove();
+  });
+
+  it('should map a date-time format to an intl-datetime column carrying dateTimeFormat and an ISO value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' }), cell({ value: 45292.25, numFmt: 'm/d/yy h:mm' })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data).toEqual([['2024-01-01 12:00:00', '2024-01-01 06:00:00']]);
+    expect(result.columns).toEqual([
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        },
+      },
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: false,
+        },
+      },
+    ]);
+  });
+
+  it('should render and validate an imported date-time cell instead of showing #bad-value#', async() => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' })]];
+
+    const { result } = map(workbook(sheet));
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: result.data,
+      columns: result.columns,
+      locale: 'en-US',
+    });
+
+    expect(hot.getCell(0, 0).textContent).toBe('01/01/2024, 12:00:00');
+
+    const valid = await new Promise(resolve => hot.validateCells(resolve));
+
+    expect(valid).toBe(true);
+  });
+});
+
+describe('mapLayout - file-controlled layout values', () => {
+  // The layout comes straight from the file, through whichever engine read it. Whatever the
+  // reader lets through, the grid must only ever be handed finite, positive sizes and
+  // non-negative integer counts and indexes.
+  function layoutSheet() {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('a'), text('b'), text('c'), text('d')],
+      [text('e'), text('f'), text('g'), text('h')],
+      [text('i'), text('j'), text('k'), text('l')],
+      [text('m'), text('n'), text('o'), text('p')],
+    ];
+
+    return sheet;
+  }
+
+  it('should omit a column width that is not finite and positive, or wider than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
+    // (255.7109375 at a 7 px digit width); the cap is 260 width units.
+    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10];
+    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w')));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.colWidths).toEqual([
+      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70,
+    ]);
+  });
+
+  it('should omit a row height that is not finite and positive, or taller than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // 409.5 points is Excel's maximum row height.
+    sheet.rowHeights = [1.33e300, -15, 409.5, 410];
+
+    expect(map(workbook(sheet)).result.rowHeights).toEqual([undefined, undefined, 546, undefined]);
+
+    sheet.rowHeights = [NaN, Infinity, 0, -1];
+
+    expect(map(workbook(sheet)).result.rowHeights).toBeUndefined();
+  });
+
+  it('should hand the grid whole, non-negative freeze counts', () => {
+    const sheet = layoutSheet();
+
+    sheet.freeze = { rows: 2.7, cols: 1.5 };
+
+    let { result } = map(workbook(sheet));
+
+    expect(result.fixedRowsTop).toBe(2);
+    expect(result.fixedColumnsStart).toBe(1);
+
+    sheet.freeze = { rows: -3, cols: NaN };
+    ({ result } = map(workbook(sheet)));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBeUndefined();
+
+    // A fractional freeze is floored before the promoted header row is taken off it.
+    sheet.freeze = { rows: 1.5, cols: Infinity };
+    ({ result } = map(workbook(sheet), { colHeaders: 'firstRow' }));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBe(4);
+  });
+
+  it('should drop each hidden index that is not a whole number on its own, keeping the valid ones', () => {
+    const sheet = layoutSheet();
+
+    // HiddenRows rejects a whole list that holds one bad index, so one stray `0.5` used to make the
+    // legitimately hidden row 1 visible.
+    sheet.hiddenRows = [0.5, 1, -1, NaN, Infinity, 3];
+    sheet.hiddenCols = [2, 1.25, 0, '1'];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.hiddenRows).toEqual([1, 3]);
+    expect(result.hiddenColumns).toEqual([2, 0]);
   });
 });
