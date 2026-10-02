@@ -13,7 +13,8 @@ module.exports = {
     // file's own comment for what it overrides in a real browser.
     '<rootDir>/test/jsdomThemeVars.js',
     // Jest only, for the same reason as above.
-    '<rootDir>/test/jsdomThemeCssFilter.js'
+    '<rootDir>/test/jsdomThemeCssFilter.js',
+    '<rootDir>/test/jsdomWindowScroll.js'
   ],
   testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: [
