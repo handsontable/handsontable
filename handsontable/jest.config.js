@@ -11,7 +11,9 @@ module.exports = {
     '<rootDir>/test/bootstrap.js',
     // Jest only. Must NOT be added to `ALLOWED_E2E_MODULES` in `.config/test-e2e.js` — see the
     // file's own comment for what it overrides in a real browser.
-    '<rootDir>/test/jsdomThemeVars.js'
+    '<rootDir>/test/jsdomThemeVars.js',
+    // Jest only, for the same reason as above.
+    '<rootDir>/test/jsdomThemeCssFilter.js'
   ],
   testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: [
