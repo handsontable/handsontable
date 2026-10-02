@@ -4,6 +4,7 @@ import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -310,8 +311,10 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * The frozen end columns are a band of their own: a move may not take a column out of it, bring one into
-   * it, or carry a mixed selection across its line. Without `fixedColumnsEnd` nothing is restricted.
+   * The frozen end columns are a band of their own: a move may not change which columns the band holds. A column
+   * cannot leave it, a scrolling column cannot land in it, and a selection that holds both is allowed only when
+   * the result puts the same columns back in the band (for example a full saved column order that keeps the
+   * end columns last). Without `fixedColumnsEnd` nothing is restricted.
    *
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
@@ -326,16 +329,29 @@ export class ManualColumnMove extends BasePlugin {
 
     // The band sits at the end of the columns the grid draws (`countCols()`, capped by `maxCols`), which is not
     // the end of the not trimmed ones when `maxCols` is lower than the source column count.
-    const bandStart = this.hot.countCols() - endCount;
-    const movedFromBand = movedColumns.filter(column => column >= bandStart).length;
+    const totalColumns = this.hot.countCols();
+    const bandStart = totalColumns - endCount;
+    const length = this.hot.columnIndexMapper.getNotTrimmedIndexesLength();
+    const moved = new Set(movedColumns);
+    const remaining: number[] = [];
 
-    if (movedFromBand === 0) {
-      // The columns have to land before the band.
-      return finalIndex + movedColumns.length <= bandStart;
+    for (let column = 0; column < length; column++) {
+      if (!moved.has(column)) {
+        remaining.push(column);
+      }
     }
 
-    // The columns of the band have to stay in the band, and nothing else may come along.
-    return movedFromBand === movedColumns.length && finalIndex >= bandStart;
+    // The order after the move: the moved columns are taken out and put back at the final index.
+    const order = [...remaining.slice(0, finalIndex), ...movedColumns, ...remaining.slice(finalIndex)];
+
+    // The band is intact when its slots still hold columns that were in the band before the move.
+    for (let slot = bandStart; slot < totalColumns; slot++) {
+      if (order[slot] < bandStart || order[slot] >= totalColumns) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -454,10 +470,17 @@ export class ManualColumnMove extends BasePlugin {
    * @returns {number}
    */
   getFixedColumnsEndCount(): number {
+    const { fixedColumnsEnd, fixedColumnsStart } = this.hot.getSettings();
+
     // The initial `manualColumnMove` array moves the columns while the plugin is enabled, before the table view
     // exists. A grid with no end columns has nothing to count, so answer without reading the view.
-    if (!this.hot.getSettings().fixedColumnsEnd) {
+    if (!fixedColumnsEnd) {
       return 0;
+    }
+
+    // Without the view, count over the same total the view uses (`countCols()`, capped by `maxCols`).
+    if (!this.hot.view) {
+      return clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, this.hot.countCols());
     }
 
     return this.hot.view.countFixedColumnsEnd();
@@ -473,7 +496,9 @@ export class ManualColumnMove extends BasePlugin {
   isFixedColumnsEnd(column: number): boolean {
     const endCount = this.getFixedColumnsEndCount();
 
-    return endCount > 0 && column >= this.hot.countCols() - endCount;
+    const totalColumns = this.hot.countCols();
+
+    return endCount > 0 && column >= totalColumns - endCount && column < totalColumns;
   }
 
   /**

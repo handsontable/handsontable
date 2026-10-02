@@ -213,6 +213,50 @@ describe('ManualColumnMove – fixedColumnsEnd', () => {
     expect(plugin.moveColumns([8], 3)).toBe(false);
   });
 
+  it('should not treat the columns that maxCols hides past the drawn ones as end columns', () => {
+    const plugin = createGrid({
+      data: [Array.from({ length: 15 }, (_, index) => String.fromCharCode(65 + index))],
+      maxCols: 10,
+      fixedColumnsEnd: 2,
+    });
+
+    // Indexes 10...14 are mapper columns the grid does not draw, they lie past the band.
+    expect(plugin.isFixedColumnsEnd(9)).toBe(true);
+    expect(plugin.isFixedColumnsEnd(10)).toBe(false);
+    expect(plugin.isFixedColumnsEnd(14)).toBe(false);
+    // A hidden column moved among the hidden ones leaves the drawn band alone.
+    expect(plugin.isMovePossible([10], 12)).toBe(true);
+    // Brought into the drawn columns it would push a scrolling column into the band.
+    expect(plugin.isMovePossible([10], 3)).toBe(false);
+  });
+
+  it('should build a grid with an initial column order and end columns', () => {
+    // The initial `manualColumnMove` array moves the columns while the plugin is enabled, before the table view
+    // exists. Reading the end band from the view there threw during the init.
+    expect(() => {
+      createGrid({ manualColumnMove: [1, 0, 2, 3, 4, 5, 6, 7], fixedColumnsEnd: 2 });
+    }).not.toThrow();
+
+    const orderWithEndColumns = order();
+
+    hot.destroy();
+    hot = null;
+
+    // The same initial array without end columns is the control: the end columns must not change the result.
+    createGrid({ manualColumnMove: [1, 0, 2, 3, 4, 5, 6, 7] });
+    expect(orderWithEndColumns).toBe(order());
+    expect(hot.getPlugin('manualColumnMove').getFixedColumnsEndCount()).toBe(0);
+  });
+
+  it('should allow a full column order that keeps the end columns last', () => {
+    const plugin = createGrid({ fixedColumnsEnd: 2 });
+
+    expect(plugin.isMovePossible([1, 0, 2, 3, 4, 5, 6, 7], 0)).toBe(true);
+    expect(plugin.isMovePossible([1, 0, 2, 3, 4, 5, 7, 6], 0)).toBe(true);
+    // A full order that takes a scrolling column into the band is refused.
+    expect(plugin.isMovePossible([0, 1, 2, 3, 4, 6, 7, 5], 0)).toBe(false);
+  });
+
   it('should follow the option when it changes', () => {
     const plugin = createGrid({ fixedColumnsEnd: 2 });
 

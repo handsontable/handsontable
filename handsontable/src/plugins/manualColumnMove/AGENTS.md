@@ -96,8 +96,12 @@ regressions.
 ## `fixedColumnsEnd`: the end columns are a band of their own
 
 `isMovePossible()` also refuses a move that crosses the end line (`#keepsEndBandIntact`), so `moveColumns()`,
-`dragColumns()` and the UI all honor it: an end column cannot leave the band, a scrolling column cannot land
-inside it, and a selection that holds both cannot move. Nothing is restricted while `fixedColumnsEnd` is `0`.
+`dragColumns()` and the UI all honor it: a move may not change which columns the band holds. An end column
+cannot leave the band, a scrolling column cannot land inside it, and a selection that holds both moves only when
+the result puts the same columns back in the band (a full saved column order that keeps the end columns last
+passes, which is also what the initial `manualColumnMove` array relies on). The band is the last `fixedColumnsEnd`
+columns the grid DRAWS, so the columns `maxCols` hides lie past it and are not frozen. The plugin is enabled before
+the table view exists, so `getFixedColumnsEndCount()` falls back to the same clamp over `countCols()` there. Nothing is restricted while `fixedColumnsEnd` is `0`.
 Unlike the start side (where the veto lives in `ManualColumnFreeze`, and only after a freeze), the end side is
 guarded here, because no other plugin owns the end band. `ManualColumnFreeze` additionally refuses to freeze or
 move columns that sit in the end band, so a move across the end line is vetoed on both paths. The count is
