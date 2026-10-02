@@ -109,6 +109,48 @@ describe('Formulas sheet reload dimensions', () => {
     expect(engine.getSheetSerialized(engine.getSheetId('Other'))).toEqual(jagged);
   });
 
+  it('should keep the last column on a grid with a `columns` function when its first-row cell is emptied', () => {
+    const settings = {
+      formulas: { engine, sheetName: 'Sheet1' },
+      columns: () => ({}),
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    hot = new Handsontable(container, settings);
+
+    engine.setSheetContent(
+      engine.getSheetId('Sheet1'),
+      Array.from({ length: ROWS }, (_, row) => Array.from({ length: COLUMNS }, (__, col) => `R${row}C${col}`))
+    );
+    hot.updateSettings({ ...settings });
+
+    expect(hot.countCols()).toBe(COLUMNS);
+
+    hot.setDataAtCell(0, COLUMNS - 1, null);
+    hot.updateSettings({ ...settings });
+
+    expect(hot.countCols()).toBe(COLUMNS);
+    expect(hot.getDataAtCell(1, COLUMNS - 1)).toBe(`R1C${COLUMNS - 1}`);
+  });
+
+  it('should not narrow the engine sheet when switching to a jagged sheet on a grid with a `dataSchema`', () => {
+    const jagged = [['a', 'b'], ['c', 'd', 'e', 'f', 'g']];
+
+    hot = new Handsontable(container, {
+      data: [[1, 2, 3], [4, 5, 6]],
+      dataSchema: [null, null, null],
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    engine.addSheet('Other');
+    engine.setSheetContent(engine.getSheetId('Other'), jagged);
+    hot.getPlugin('formulas').switchSheet('Other');
+    hot.updateSettings({});
+
+    expect(engine.getSheetSerialized(engine.getSheetId('Other'))).toEqual(jagged);
+  });
+
   it('should load the widest row of a jagged sheet on a switch to it', () => {
     hot = new Handsontable(container, {
       data: [[1], [2]],

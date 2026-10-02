@@ -1978,15 +1978,16 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Tells whether the `columns` or the `dataSchema` setting decides how many columns the grid has,
-   * rather than the width of the loaded rows.
+   * Tells whether an array `columns` or the `dataSchema` setting decides how many columns the grid has,
+   * rather than the width of the loaded rows. A `columns` function does not: it never states a count,
+   * so the grid still takes the width from the first loaded row.
    *
    * @returns {boolean}
    */
   #isColumnCountFixedBySettings(): boolean {
     const { columns, dataSchema } = this.hot.getSettings();
 
-    return isDefined(columns) || isDefined(dataSchema);
+    return Array.isArray(columns) || isDefined(dataSchema);
   }
 
   /**

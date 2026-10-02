@@ -434,12 +434,15 @@ Three limits are deliberate.
   old size, but `getSheetSerialized()` omits a trailing column or row that is empty throughout, and the grid
   has no record that it was ever there. Padding to the dimensions would fix that and is not an option for the
   reason above.
-- **A grid whose `columns` or `dataSchema` fix the column count is not padded
+- **A grid whose `columns` array or `dataSchema` fixes the column count is not padded
   (`#isColumnCountFixedBySettings()`).** Those options decide `countCols()` there, so padding only raises
   `countSourceCols()` past it. That flips `#areSourceColumnsSkipped()`, and the next resync writes just the
   visible columns back into the sheet, deleting engine data (a sheet of `[['a', 'b'], ['c', 'd', 'e', 'f', 'g']]`
   came back as three columns under a three-entry `columns` array). The same hazard already exists for a
-  rectangular sheet wider than `columns`; it is untouched here.
+  rectangular sheet wider than `columns`; it is untouched here. A `columns` **function** is not in this
+  group: it never states a number, so the grid still takes its width from the first loaded row and needs the
+  padding. A first version skipped it for any defined `columns` and brought the original bug back for the
+  function form.
 
 Pinned by `__tests__/sheetReloadDimensions.unit.js` and `tests/e2e/formulas-sheet-reload.spec.ts`.
 
