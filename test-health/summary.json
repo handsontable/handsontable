@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-02T06:50:34.248Z",
+  "generatedAt": "2026-10-02T10:20:54.503Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 308,
+    "tests": 309,
     "needsTicket": 9,
     "quarantined": 0,
-    "entries": 1732
+    "entries": 1733
   },
   "rows": [
     {
@@ -11346,6 +11346,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/cross-browser/columns-filter.spec.ts|columns-filter-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
+      "line": null,
+      "title": "columns-filter-2",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-02T10:19:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/36884849426",
+        "branch": "feature/DEV-3219_React-examples-CRA-to-Vite",
+        "leg": "cross-browser/webkit",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 4fc6d0de5bac",
         "source": "ci"
       },
       "needsTicket": false
