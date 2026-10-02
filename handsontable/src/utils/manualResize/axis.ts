@@ -79,9 +79,27 @@ export interface ResizeAxis {
    */
   getHeaderPosition(hot: HotInstance, header: HTMLElement, coords: CellCoords): HeaderPosition | undefined;
   /**
+   * Checks whether a header is anchored to the inline-end edge of the grid, as the frozen end columns are.
+   * Such a header keeps its inline-end edge when it is resized, so the gesture puts the handle on its
+   * inline-start edge. Optional: an axis without anchored headers leaves it out.
+   */
+  isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
+  /**
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
+}
+
+/**
+ * Checks whether a header is rendered by the top inline-end corner overlay (the headers of the frozen
+ * end columns).
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {HTMLElement} header The header element.
+ * @returns {boolean}
+ */
+function isInTopInlineEndCorner(hot: HotInstance, header: HTMLElement): boolean {
+  return hot.view._wt.wtOverlays.topInlineEndCornerOverlay.clone?.wtTable.holder.contains(header) === true;
 }
 
 /**
@@ -194,12 +212,17 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
 
   isHeaderElement(hot, element) {
     const thead = closest(element, ['THEAD'], hot.rootElement) as HTMLElement | null;
-    const { topOverlay, topInlineStartCornerOverlay } = hot.view._wt.wtOverlays;
+    const { topOverlay, topInlineStartCornerOverlay, topInlineEndCornerOverlay } = hot.view._wt.wtOverlays;
 
     return ([
       topOverlay.clone!.wtTable.THEAD,
       topInlineStartCornerOverlay.clone!.wtTable.THEAD,
-    ] as (HTMLElement | null)[]).includes(thead);
+      topInlineEndCornerOverlay.clone?.wtTable.THEAD,
+    ] as (HTMLElement | null | undefined)[]).includes(thead);
+  },
+
+  isAnchoredAtInlineEnd(hot, header) {
+    return isInTopInlineEndCorner(hot, header);
   },
 
   canResizeHeader(header) {
@@ -220,6 +243,10 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
 
     if (fixedColumn) {
       position = wt.wtOverlays.topInlineStartCornerOverlay.getRelativeCellPosition(header, row, column);
+
+    } else if (isInTopInlineEndCorner(hot, header)) {
+      // A header of the frozen end columns lives in the top inline-end corner overlay.
+      position = wt.wtOverlays.topInlineEndCornerOverlay.getRelativeCellPosition(header, row, column);
     }
 
     // If the TH is not a child of the top-left overlay, recalculate using

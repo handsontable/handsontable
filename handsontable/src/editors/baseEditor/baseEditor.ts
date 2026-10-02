@@ -14,6 +14,7 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
@@ -691,7 +692,7 @@ export class BaseEditor {
     currentOffset.top += spreaderOffset.y;
     currentOffset.left += spreaderOffset.x;
 
-    const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
+    const scrollTop = ['master', 'inline_start', 'inline_end'].includes(overlayName) ? containerScrollTop : 0;
     const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
 
     // If colHeaders is disabled, cells in the first row have border-top
@@ -711,7 +712,7 @@ export class BaseEditor {
     // position always returns 0.
     // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already
     // shifted in the layout `offset()` walks (DEV-126 on this axis).
-    if (['top', 'top_inline_start_corner'].includes(overlayName)) {
+    if (['top', 'top_inline_start_corner', 'top_inline_end_corner'].includes(overlayName)) {
       topPos += wtOverlays.topOverlay?.getOverlayTransformOffset() ?? 0;
     }
 
@@ -719,6 +720,11 @@ export class BaseEditor {
     // shifted in the layout `offset()` walks (DEV-127).
     if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
       inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayTransformOffset() ?? 0);
+    }
+
+    // The same for the clones pinned to the inline-end edge, which have an overlay of their own.
+    if (['inline_end', 'top_inline_end_corner'].includes(overlayName)) {
+      inlineStartPos += Math.abs(wtOverlays.inlineEndOverlay?.getOverlayTransformOffset() ?? 0);
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
@@ -753,8 +759,15 @@ export class BaseEditor {
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const cellTopOffset = this.#calcCellTopOffset(TD, overlayName, firstRowOffset,
       verticalScrollPosition, scrollbarWidth);
-    const cellStartOffset = this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth,
-      firstColumnOffset, horizontalScrollPosition);
+    // The end clones are pinned to the inline-end edge, so a position inside the clone says nothing about
+    // where the cell stands in the grid. The editor's own inline-start position is measured from the grid's
+    // inline-start edge already, and the width the editor may grow to is the room left from there. When the
+    // window scrolls the grid, that position is in the page, so the scroll comes off it, the way it does for
+    // the cells of the main table.
+    const cellStartOffset = ['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'].includes(overlayName) ?
+      inlineStartPos - (wtOverlays.inlineStartOverlay?.mainTableScrollableElement === rootWindow ?
+        horizontalScrollPosition : 0) :
+      this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth, firstColumnOffset, horizontalScrollPosition);
 
     const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
@@ -795,11 +808,14 @@ export class BaseEditor {
     let cellTopOffset = TD.offsetTop;
     const { wtOverlays } = this.hot.view._wt;
 
-    if (['inline_start', 'master'].includes(overlayName)) {
+    if (['inline_start', 'inline_end', 'master'].includes(overlayName)) {
       cellTopOffset += firstRowOffset - verticalScrollPosition;
     }
 
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay?.clone) {
+    if (
+      ['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'].includes(overlayName) &&
+      wtOverlays.bottomOverlay?.clone
+    ) {
       const {
         wtViewport: bottomWtViewport,
         wtTable: bottomWtTable,
@@ -858,14 +874,20 @@ export class BaseEditor {
     switch (editorSection) {
       case 'inline-start':
         return 'ht_clone_left ht_clone_inline_start';
+      case 'inline-end':
+        return 'ht_clone_inline_end';
       case 'bottom':
         return 'ht_clone_bottom';
       case 'bottom-inline-start-corner':
         return 'ht_clone_bottom_left_corner ht_clone_bottom_inline_start_corner';
+      case 'bottom-inline-end-corner':
+        return 'ht_clone_bottom_inline_end_corner';
       case 'top':
         return 'ht_clone_top';
       case 'top-inline-start-corner':
         return 'ht_clone_top_left_corner ht_clone_top_inline_start_corner';
+      case 'top-inline-end-corner':
+        return 'ht_clone_top_inline_end_corner';
       default:
         return 'ht_clone_master';
     }
@@ -896,24 +918,37 @@ export class BaseEditor {
     }
 
     const totalRows = this.hot.countRows();
+    const totalColumns = this.hot.countCols();
     const settings = this.hot.getSettings();
+    const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+    // The start band has priority, so only the columns it leaves can belong to the end band.
+    const firstFixedColumnEnd = totalColumns -
+      clampFixedColumnsEnd(settings.fixedColumnsEnd, fixedColumnsStart, totalColumns);
+    const isInlineStart = this.col < fixedColumnsStart;
+    const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';
 
     if (this.row < (settings.fixedRowsTop ?? 0)) {
-      if (this.col < (settings.fixedColumnsStart ?? 0)) {
+      if (isInlineStart) {
         section = 'top-inline-start-corner';
+      } else if (isInlineEnd) {
+        section = 'top-inline-end-corner';
       } else {
         section = 'top';
       }
     } else if (settings.fixedRowsBottom &&
                this.row >= totalRows - settings.fixedRowsBottom) {
-      if (this.col < (settings.fixedColumnsStart ?? 0)) {
+      if (isInlineStart) {
         section = 'bottom-inline-start-corner';
+      } else if (isInlineEnd) {
+        section = 'bottom-inline-end-corner';
       } else {
         section = 'bottom';
       }
-    } else if (this.col < (settings.fixedColumnsStart ?? 0)) {
+    } else if (isInlineStart) {
       section = 'inline-start';
+    } else if (isInlineEnd) {
+      section = 'inline-end';
     }
 
     return section;

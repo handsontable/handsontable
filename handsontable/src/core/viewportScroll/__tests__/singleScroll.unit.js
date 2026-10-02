@@ -13,6 +13,8 @@ function createOversizedHot({
   rowHeight = 400,
   viewportHeight = 200,
   fixedColumnsStart = 0,
+  fixedColumnsEnd = 0,
+  totalCols = 10,
   fixedRowsTop = 0,
   fixedRowsBottom = 0,
   totalRows = 10,
@@ -20,8 +22,9 @@ function createOversizedHot({
 } = {}) {
   return {
     getColWidth: () => colWidth,
-    getSettings: () => ({ fixedColumnsStart, fixedRowsTop, fixedRowsBottom }),
+    getSettings: () => ({ fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom }),
     countRows: () => totalRows,
+    countCols: () => totalCols,
     rowIndexMapper: {
       getRenderableFromVisualIndex: () => renderableRow,
     },
@@ -217,6 +220,21 @@ describe('isColumnOversized', () => {
     const hot = createOversizedHot({ fixedColumnsStart: 0 });
 
     expect(isColumnOversized(hot, 0)).toBe(true);
+  });
+});
+
+describe('isColumnOversized with fixedColumnsEnd', () => {
+  it('should treat a frozen end column as not oversized even when it is wider than the viewport', () => {
+    const hot = createOversizedHot({ fixedColumnsEnd: 2, totalCols: 10 });
+
+    expect(isColumnOversized(hot, 8)).toBe(false);
+    expect(isColumnOversized(hot, 9)).toBe(false);
+  });
+
+  it('should treat the last scrollable column as oversized when it is wider than the viewport', () => {
+    const hot = createOversizedHot({ fixedColumnsEnd: 2, totalCols: 10 });
+
+    expect(isColumnOversized(hot, 7)).toBe(true);
   });
 });
 

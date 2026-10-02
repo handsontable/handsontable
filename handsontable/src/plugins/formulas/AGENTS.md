@@ -604,3 +604,12 @@ needs more than `formulas.spec.js`, and `memoryLeak.spec.js` is the one people f
 ## `HYPERLINK` cells and `renderMode: 'onChange'`
 
 A `HYPERLINK` whose URL argument lives in another cell keeps its label when that cell changes, so the engine exports no value change for it and an incremental render would keep the stale `href`. `#onAfterRenderer` records every cell it wrapped in `#hyperlinkCells` (physical coordinates) and `#onEngineValuesUpdated` calls `hot.markCellChanged()` for each of them, so any engine update rebuilds the anchors on the next render. A cell that BECOMES a `HYPERLINK` while keeping the label it already showed is not in the set yet and changes nothing the paint compares, so `#onEngineValuesUpdated` also walks the engine's change list and marks every updated cell whose `#getHyperlinkHref` is non-null (`#markCellsThatBecameHyperlinks`). `markCellChanged()` touches stored meta only, so a recorded cell that scrolled out and was evicted costs nothing. The set is cleared in `disablePlugin`, at the top of `#onAfterLoadData`, and in the four create/remove row/column handlers: physical keys drift after a removal, and every one of those paths repaints all rendered cells, which re-registers them. Plain dependents need nothing: the render compares the formatted value, which HyperFormula already changed.
+
+## Frozen end columns need nothing here
+
+The freeze hooks (`beforeColumnFreeze` and friends) belong to `ManualColumnFreeze`, which only moves the start
+freeze line. The end band changes the column order only through `ManualColumnMove`, which refuses a move across
+its line, so the engine never sees a column leave or enter the band. `fixedColumnsEnd` and `minSpareCols`
+together: the spare column is appended after the last column, so it lands INSIDE the end band and the band then
+holds a spare column; typing into it appends the next spare and pushes the previous last column out of the band.
+This is the same cosmetic quirk `fixedRowsBottom` has with `minSpareRows`, and it is not worked around.

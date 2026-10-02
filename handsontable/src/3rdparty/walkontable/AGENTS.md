@@ -20,7 +20,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 ## Key Subsystems
 
-- **Overlay system** (6 types): Frozen rows/columns and scroll sync. Fragile - proceed with caution.
+- **Overlay system** (8 subclasses plus the shared base): Frozen rows/columns on all four edges and scroll sync. Fragile - proceed with caution. See "The inline-end overlay (`fixedColumnsEnd`)" below.
 - **Viewport calculation**: Determines visible rows/columns based on scroll position
 - **Renderer**: DOM element management, cell reuse
 - **Scroll handling**: requestAnimationFrame batching required
@@ -209,8 +209,8 @@ merged-cell and plain-cell cases in `tests/e2e/ipad-selection-handles.spec.ts`, 
 
 `.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
 the scroll holder and every browser-promoted scrolling layer below the overlay clone divs
-(`inline_start` 120, `bottom` 130, `bottom_inline_start_corner` 150, `top` 160,
-`top_inline_start_corner` 180). Removing the stacking context lets the holder compete directly with
+(`inline_start` and `inline_end` 120, `bottom` 130, `bottom_inline_start_corner` and
+`bottom_inline_end_corner` 150, `top` 160, `top_inline_start_corner` and `top_inline_end_corner` 180). Removing the stacking context lets the holder compete directly with
 the clones. Under a transformed ancestor, mobile browsers can then composite the scrolling master
 above the frozen panes.
 
@@ -1633,3 +1633,96 @@ The first tool call should be `ToolSearch` for the graph schema whenever the use
 | `query_graph` pattern=`children_of` | Listing all methods in a class (use minimal mode) |
 | `get_impact_radius` | Quick blast-radius count before a large refactor |
 | `semantic_search_nodes` | Name-based lookup by exact or partial function/class name |
+
+## The inline-end overlay (`fixedColumnsEnd`)
+
+The overlay set is 8 concrete overlays (plus the shared base class): `top`, `bottom`, `inline_start`, `inline_end`, and the four corners
+(`top_inline_start_corner`, `top_inline_end_corner`, `bottom_inline_start_corner`,
+`bottom_inline_end_corner`). The end overlays mirror the start ones: `overlay/regions/inlineEndOverlay.ts`,
+`topInlineEndCornerOverlay.ts`, `bottomInlineEndCornerOverlay.ts`, backed by `table/regions/inlineEndTable.ts`
+and the two end corner tables. The end band is the LAST `fixedColumnsEnd` columns, so the end clone renders
+the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsEnd.ts`.
+
+- **The overlap clamp lives in one place.** `clampFixedColumnsEnd` in `settings/fixedColumnsEnd.ts` is
+  applied by `Settings#getSetting('fixedColumnsEnd')` (`settings/accessor.ts`), so every reader in the
+  engine sees the clamped number. Start has priority: `min(end, max(0, total - start))`. The host
+  (`TableView#countNotHiddenFixedColumnsEnd`) counts only columns that are not hidden or trimmed, then
+  passes the number in. Do not re-clamp in a caller, and do not read the raw option.
+- **The end clone is positioned like the bottom clone, not like the inline-start one.** In element
+  mode it is an absolutely positioned box with an inline-end inset, lifted off the holder's vertical
+  scrollbar. In window mode it is held by `position: sticky` in a rail, anchored to the rail's inline END:
+  `RailPlacement.inlineEdge` (`'start'` default, `'end'`) in `overlay/overlayRail.ts`. An inline-end
+  sticky inset only engages when the clone stands at the rail's inline end, so the rail pushes it there
+  with an auto margin on the clone's physical start side. Re-test all nine rail rules for the end side,
+  in LTR and RTL, when you touch the rail.
+- **`ScrollSync` mirrors vertical scroll to both vertical-axis holders.** The inline-start and the
+  inline-end clones hold the same rows, so every vertical write that used to reach only the start holder
+  (`#writeCloneScrollTop` and its readers) now reaches the end holder too. A new vertical write path
+  that forgets the end holder leaves the end columns showing stale rows.
+- **Scrollbar clearance.** The vertical scrollbar sits on the inline-end edge, exactly where the end
+  clone stands. `overlay/scrollbarClearance.ts` (`axisScrollbarClearance`, `overlayExtentBesideScrollbar`)
+  lifts the end clone off a real scrollbar and keeps an overlay ("floating") scrollbar reachable. The end
+  clone is the only overlay that needs the inline-end clearance.
+- **The main table renders the end columns only when the viewport is near the end.** The master draws a
+  contiguous band of columns, so while it is scrolled far from the end it does not render the last
+  columns at all. `TableView#isMainTableNotFullyCoveredByOverlays` therefore subtracts only the
+  end columns the master really rendered (`getLastRenderedColumn()` against `total - fixedColumnsEnd`).
+  A plain `renderedCols - fixedColumnsEnd` sum is wrong and makes the check lie in the middle of the
+  scroll range.
+- **The editor layer class drives the editor's z-index.** `checkEditorSection` and
+  `getEditedCellsLayerClass` (`editors/baseEditor/baseEditor.ts`) pick the overlay class the editor
+  is stacked with. An end-column cell must resolve to the end class, or the editor opens under the clone.
+- **Walkontable's overlay holder is a DIV in window mode.** A `scrollableContainerLeft !== rootWindow`
+  check in `getEditedCellRect` is therefore always true. Use `mainTableScrollableElement` to decide
+  which element scrolls.
+- **Local test traps.** A CSS-only rebuild (`build:styles`) makes a negative control pass falsely:
+  `handsontableStyles.ts` is bundled and injected, so rebuild `build:umd` after any SCSS change. This
+  Mac's Puppeteer Chrome directory may be empty: set `PUPPETEER_EXECUTABLE_PATH`.
+- **The three end clones are always constructed, even when the option is 0.** That is a decision, the same
+  one the bottom corners follow: an idle clone costs one empty `ht_clone_inline_end*` root and nothing per
+  draw (`shouldBeRendered()` gates every read, `resetFixedPosition()` returns first), so the DOM of every
+  grid holds three idle end roots. Building them lazily was weighed and rejected as not worth the lifecycle
+  cost. Do not make them lazy without re-checking `updateSettings` toggling, `Overlays#currentLayoutSignature` and the scroll sync,
+  which all assume the clones exist.
+- **`getSetting('fixedColumnsEnd')` is a hot read, and 0 must stay cheap.** It runs many times per draw and
+  per pointer move (`CoreAbstract#getCell`, `getCellCoordsFromMousePosition`, the `Border` freeze-line
+  predicates, `shouldRenderInlineEndOverlay`, `stickyColumnsEnd`), and the clamp needs `fixedColumnsStart`,
+  which in core is a thunk that walks the index mapper. The accessor therefore returns 0 as soon as the
+  requested value is not positive, before it touches the start band or the column count. Keep that order,
+  and read the setting once into a local in a hot path instead of calling it twice
+  (`test/unit/settings/fixedColumnsEnd.unit.ts` spies on the other thunks).
+- **An idle end overlay is not refreshed by `ScrollSync`, so it refreshes itself when it wakes up.**
+  `ScrollSync#updateMainScrollableElements` skips an overlay with `needFullRender === false`, and
+  `#refreshAxisOwners` skips the end overlay's owner too. A grid that starts with `fixedColumnsEnd: 0` and
+  later gets a definite `width` or `height`, or a different `preventOverflow`, would then wake the end
+  overlay with the element it was born against. `InlineEndOverlay#updateStateOfRendering` re-reads
+  `mainTableScrollableElement` on the idle-to-active edge. The horizontal axis is owned by the
+  inline-start overlay; the end overlay only mirrors its answer.
+- **A selection edge on the first end column is drawn by the end clones alone.** The master and the top and
+  bottom clones also render that column, under the end overlay, and their copy of the start edge sits one
+  pixel off the freeze line, so both showed and the edge came out thicker (3px against 1px for an area in
+  the `main` theme). `Border#appear` hides it through `isFrozenEndBoundaryOppositeEdge`, the mirror of the
+  `isFrozenBoundaryEdge('column', ...)` rule on the start side. The end edge of a selection that stops at
+  the last scrollable column needs nothing: the master draws it inside its own cell, and the end overlay
+  starts right after that cell.
+- **Known limitation: a selection that crosses the freeze line shows a seam line, on both sides.** An area
+  that spans the last scrollable column and the first end column is drawn once by the master and once by the
+  end clone, each clamped to what it renders, so the clone draws an edge on its own start boundary inside the
+  selection. The start side behaves identically with `fixedColumnsStart` (a crossing area shows a line on the
+  freeze line). It is one border wide and has been so since before `fixedColumnsEnd`. The same goes for an
+  area that crosses the `fixedRowsTop` or `fixedRowsBottom` line inside the end columns, where the end clone
+  and the end corner each draw their own clamped slice and the corner's slice sits above the clone's.
+- **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
+  `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
+  which is the inline-start margin. In RTL that margin is on the right and `getTableParentOffset()` reports the
+  left one, so the sum was off by the right margin (a page with a margin on the inline-start side reported
+  "resting" up to that many pixels too early). The RTL branch measures where the hider's left edge really is
+  against the viewport's left edge (`documentElement.clientLeft` carries a left-hand scrollbar).
+- **Tests.** Do not add Walkontable Jasmine specs (the suite is frozen). New coverage is Jest
+  (`test/unit/**`, for example `test/unit/settings/`, `test/unit/table/stickyColumnsEnd.unit.ts`,
+  `test/unit/viewport/columnsCalculatorEnd.unit.ts`, `test/unit/overlay/inlineEndOverlay.unit.ts`,
+  `test/unit/table/endCloneAccess.unit.ts`) plus Playwright
+  (`tests/e2e/walkontable/inline-end-overlay.spec.ts`,
+  `tests/e2e/walkontable/inline-end-overlay-review.spec.ts`, `tests/e2e/fixed-columns-end.spec.ts`).
+  A unit test of an overlay or table module imports the `walkontable/overlay` barrel first: the table
+  modules and the overlays import each other and only that entry resolves the cycle.

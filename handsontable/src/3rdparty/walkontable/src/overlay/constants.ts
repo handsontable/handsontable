@@ -1,17 +1,34 @@
 /**
- * @typedef {'top'|'bottom'|'inline_start'|'top_inline_start_corner'|'bottom_inline_start_corner'} CLONE_TYPES_ENUM
+ * @typedef {'top'|'bottom'|'inline_start'|'inline_end'|'top_inline_start_corner'|'bottom_inline_start_corner'|
+ * 'top_inline_end_corner'|'bottom_inline_end_corner'} CLONE_TYPES_ENUM
  */
 export const CLONE_TOP = 'top';
 export const CLONE_BOTTOM = 'bottom';
 export const CLONE_INLINE_START = 'inline_start';
+export const CLONE_INLINE_END = 'inline_end';
 export const CLONE_TOP_INLINE_START_CORNER = 'top_inline_start_corner';
 export const CLONE_BOTTOM_INLINE_START_CORNER = 'bottom_inline_start_corner';
+export const CLONE_TOP_INLINE_END_CORNER = 'top_inline_end_corner';
+export const CLONE_BOTTOM_INLINE_END_CORNER = 'bottom_inline_end_corner';
 export const CLONE_TYPES = [
   CLONE_TOP,
   CLONE_BOTTOM,
   CLONE_INLINE_START,
+  CLONE_INLINE_END,
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_TOP_INLINE_END_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
+];
+
+/**
+ * The clones that render the last columns of the grid (`fixedColumnsEnd`). They draw no row headers:
+ * row headers belong to the inline-start clone only.
+ */
+export const INLINE_END_CLONE_TYPES = [
+  CLONE_INLINE_END,
+  CLONE_TOP_INLINE_END_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
 ];
 
 /**
@@ -121,4 +138,7 @@ export const CLONE_CLASS_NAMES = new Map([
   [CLONE_INLINE_START, `ht_clone_${CLONE_INLINE_START} ht_clone_left`],
   [CLONE_TOP_INLINE_START_CORNER, `ht_clone_${CLONE_TOP_INLINE_START_CORNER} ht_clone_top_left_corner`],
   [CLONE_BOTTOM_INLINE_START_CORNER, `ht_clone_${CLONE_BOTTOM_INLINE_START_CORNER} ht_clone_bottom_left_corner`],
+  [CLONE_INLINE_END, `ht_clone_${CLONE_INLINE_END}`],
+  [CLONE_TOP_INLINE_END_CORNER, `ht_clone_${CLONE_TOP_INLINE_END_CORNER}`],
+  [CLONE_BOTTOM_INLINE_END_CORNER, `ht_clone_${CLONE_BOTTOM_INLINE_END_CORNER}`],
 ]);

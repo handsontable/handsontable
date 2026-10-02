@@ -248,6 +248,7 @@ export interface GridSettings {
   autoWrapRow?: boolean;
 
   // Fixed / frozen
+  fixedColumnsEnd?: number;
   fixedColumnsLeft?: number;
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;

@@ -54,6 +54,45 @@ export function findColumnAtX(
 }
 
 /**
+ * Finds which of the frozen end columns the mouse is over.
+ *
+ * The end band lies past the scrollable columns, so a pointer that is not before its first column
+ * belongs to it - past the last one it maps to the last column. A pointer before the band is left to
+ * the scrollable columns (`null`).
+ *
+ * @param {Walkontable} wotInstance The Walkontable instance.
+ * @param {number} row Row to use for measuring cell widths.
+ * @param {number} firstEndColumn First column of the end band.
+ * @param {number} lastEndColumn Last column of the end band (inclusive).
+ * @param {number} mouseX Client X coordinate of the mouse, clamped to the table.
+ * @param {boolean} isRtl Whether the grid is right-to-left.
+ * @returns {number | null} Column index, or null if the mouse is before the end band.
+ */
+export function findEndColumnAtX(
+  wotInstance: WalkontableInstance,
+  row: number,
+  firstEndColumn: number,
+  lastEndColumn: number,
+  mouseX: number,
+  isRtl: boolean
+): number | null {
+  const firstEndCell = wotInstance.getCell({ row, col: firstEndColumn }, true);
+
+  if (!isHTMLElement(firstEndCell)) {
+    return null;
+  }
+
+  const rect = wotInstance.domBindings.geometryReader.getBoundingClientRect(firstEndCell);
+  const relativeX = isRtl ? rect.right - mouseX : mouseX - rect.left;
+
+  if (relativeX < 0) {
+    return null;
+  }
+
+  return findColumnAtX(wotInstance, row, firstEndColumn, lastEndColumn, relativeX) ?? lastEndColumn;
+}
+
+/**
  * Finds which row the mouse is over within a given row range.
  *
  * @param {Walkontable} wotInstance The Walkontable instance.
@@ -107,6 +146,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
   const wot = deps.facadeGetter();
 
   const numberOfFixedColumnsStart = deps.wtSettings.getSetting<number>('fixedColumnsStart');
+  const numberOfFixedColumnsEnd = deps.wtSettings.getSetting<number>('fixedColumnsEnd');
   const numberOfFixedRowsTop = deps.wtSettings.getSetting<number>('fixedRowsTop');
   const numberOfFixedRowsBottom = deps.wtSettings.getSetting<number>('fixedRowsBottom');
 
@@ -164,6 +204,14 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
 
       foundColumn = findColumnAtX(wot, firstPartiallyVisibleRow, 0, numberOfFixedColumnsStart - 1, fixedRelativeX);
     }
+  }
+
+  if (foundColumn === null && numberOfFixedColumnsEnd > 0) {
+    const totalColumns = deps.wtSettings.getSetting<number>('totalColumns');
+
+    foundColumn = findEndColumnAtX(
+      wot, firstPartiallyVisibleRow, totalColumns - numberOfFixedColumnsEnd, totalColumns - 1, clampedX, isRtl
+    );
   }
 
   if (foundColumn === null) {

@@ -141,3 +141,10 @@ breaks** — that is expected; update the assertion and reference the issue.
 
 `__tests__/` has separate `hidingColumns.spec.js`, `hidingRows.spec.js`, `borderStyle.spec.js`,
 `backward-compatibility.spec.js` and `rtl/` — the hiding and RTL specs catch most regressions here.
+
+## `fixedColumnsEnd` joins the working window
+
+`#syncViewportSelections` passes the real end count to `isIndexInViewportUnion()` (the `fixedColumnsEnd` setting,
+cut down by `clampFixedColumnsEnd()` so the start columns keep the priority). The end clone renders the last
+columns even when the master range is far from them, exactly like the start clone, so a border on an end column
+has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.

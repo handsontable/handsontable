@@ -35,6 +35,7 @@ import {
 } from './helpers/dom/event';
 import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
+import { clampFixedColumnsEnd } from './3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { getSanitizer } from './utils/sanitizer';
@@ -917,6 +918,22 @@ class TableView {
   }
 
   /**
+   * The function returns the number of not hidden column indexes that fit between the first and
+   * last fixed column in the right (or left in RTL mode) overlay.
+   *
+   * The count is the requested one. Walkontable cuts it down against `fixedColumnsStart`
+   * (`Settings#getSetting('fixedColumnsEnd')`), so the two bands never overlap.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedColumnsEnd() {
+    const countCols = this.hot.countCols();
+    const visualFixedColumnsEnd = Math.max(countCols - (Number(this.settings.fixedColumnsEnd) || 0), 0);
+
+    return this.countNotHiddenColumnIndexes(visualFixedColumnsEnd, 1);
+  }
+
+  /**
    * The function returns the number of not hidden row indexes that fit between the first and
    * last fixed row in the top overlay.
    *
@@ -981,16 +998,33 @@ class TableView {
   }
 
   /**
-   * Checks if at least one cell than belongs to the main table is not covered by the top, left or
-   * bottom overlay.
+   * Checks if at least one cell than belongs to the main table is not covered by the top, bottom,
+   * inline-start or inline-end overlay.
+   *
+   * The inline-end band is counted the way Walkontable renders it: cut down by the inline-start band,
+   * which has priority, so the two never count the same column twice.
+   *
+   * Unlike the start band, the end columns are not always among the columns the main table renders: it
+   * draws them (under the inline-end overlay) only once the grid is scrolled close enough to its end. So
+   * the end columns are taken off the rendered count only when they are in it. Adding the end band to the
+   * fixed columns unconditionally reports a grid as covered while a column still scrolls beside the bands.
    *
    * @returns {boolean}
    */
   isMainTableNotFullyCoveredByOverlays() {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
-    const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
+    const fixedColumnsStart = this.countNotHiddenFixedColumnsStart();
+    const totalColumns = this.countRenderableColumns();
+    const fixedColumnsEnd = clampFixedColumnsEnd(
+      this.countNotHiddenFixedColumnsEnd(),
+      fixedColumnsStart,
+      totalColumns
+    );
+    const lastRenderedColumn = fixedColumnsEnd > 0 ? this._wt.wtTable.getLastRenderedColumn() : -1;
+    const renderedFixedColumnsEnd = Math.max(lastRenderedColumn - (totalColumns - fixedColumnsEnd) + 1, 0);
+    const renderedMainColumns = this.hot.countRenderedCols() - renderedFixedColumnsEnd;
 
-    return this.hot.countRenderedRows() > fixedAllRows && this.hot.countRenderedCols() > fixedAllColumns;
+    return this.hot.countRenderedRows() > fixedAllRows && renderedMainColumns > fixedColumnsStart;
   }
 
   /**
@@ -1038,6 +1072,10 @@ class TableView {
       totalColumns: () => this.countRenderableColumns(),
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: () => this.countNotHiddenFixedColumnsStart(),
+      // Number of renderable columns for the right (or left in RTL mode) overlay. The engine cuts it down
+      // against `fixedColumnsStart`, and enables the inline end overlay from that clamped number
+      // (its default `shouldRenderInlineEndOverlay`), so an end band the start band fully covers renders nothing.
+      fixedColumnsEnd: () => this.countNotHiddenFixedColumnsEnd(),
       // Number of renderable rows for the top overlay.
       fixedRowsTop: () => this.countNotHiddenFixedRowsTop(),
       // Number of renderable rows for the bottom overlay.
@@ -2572,7 +2610,7 @@ class TableView {
    * Checks to what overlay the provided element belongs.
    *
    * @param {HTMLElement} element The DOM element to check.
-   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   * @returns {'master'|'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
     return this.#getOwningWt(element).wtTable.name;
@@ -2581,7 +2619,7 @@ class TableView {
   /**
    * Gets the overlay instance by its name.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
   getOverlayByName(overlayName: string) {

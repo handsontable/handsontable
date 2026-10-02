@@ -10,10 +10,13 @@ import { arrayEach } from '../../../../helpers/array';
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import {
   InlineStartOverlay,
+  InlineEndOverlay,
   TopOverlay,
   TopInlineStartCornerOverlay,
+  TopInlineEndCornerOverlay,
   BottomOverlay,
   BottomInlineStartCornerOverlay,
+  BottomInlineEndCornerOverlay,
 } from './index';
 import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
@@ -267,12 +270,36 @@ class Overlays {
   declare inlineStartOverlay: Overlay;
 
   /**
+   * Refer to the InlineEndOverlay instance.
+   *
+   * @protected
+   * @type {InlineEndOverlay}
+   */
+  declare inlineEndOverlay: InlineEndOverlay;
+
+  /**
    * Refer to the TopInlineStartCornerOverlay instance.
    *
    * @protected
    * @type {TopInlineStartCornerOverlay}
    */
   declare topInlineStartCornerOverlay: Overlay;
+
+  /**
+   * Refer to the TopInlineEndCornerOverlay instance.
+   *
+   * @protected
+   * @type {TopInlineEndCornerOverlay}
+   */
+  declare topInlineEndCornerOverlay: TopInlineEndCornerOverlay;
+
+  /**
+   * Refer to the BottomInlineEndCornerOverlay instance.
+   *
+   * @protected
+   * @type {BottomInlineEndCornerOverlay}
+   */
+  declare bottomInlineEndCornerOverlay: BottomInlineEndCornerOverlay;
 
   /**
    * Refer to the BottomInlineStartCornerOverlay instance.
@@ -388,7 +415,8 @@ class Overlays {
    *
    * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
    * element.
-   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|TopInlineStartCornerOverlay|BottomInlineStartCornerOverlay)[]}
+   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|InlineEndOverlay|TopInlineStartCornerOverlay|
+   * BottomInlineStartCornerOverlay|TopInlineEndCornerOverlay|BottomInlineEndCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
     const overlays: Array<Overlay | Table> = [...this.#overlays];
@@ -414,6 +442,7 @@ class Overlays {
     this.topOverlay = new TopOverlay(makeDeps());
     this.bottomOverlay = new BottomOverlay(makeDeps());
     this.inlineStartOverlay = new InlineStartOverlay(makeDeps());
+    this.inlineEndOverlay = new InlineEndOverlay(makeDeps());
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
@@ -421,13 +450,22 @@ class Overlays {
       this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(makeDeps(),
       this.bottomOverlay, this.inlineStartOverlay);
+    this.topInlineEndCornerOverlay = new TopInlineEndCornerOverlay(makeDeps(),
+      this.topOverlay, this.inlineEndOverlay);
+    this.bottomInlineEndCornerOverlay = new BottomInlineEndCornerOverlay(makeDeps(),
+      this.bottomOverlay, this.inlineEndOverlay);
 
+    // The overlays that existed before the end ones keep their places, so a caller that reads the list
+    // by position still finds them where it always did.
     this.#overlays = [
       this.topOverlay,
       this.bottomOverlay,
       this.inlineStartOverlay,
       this.topInlineStartCornerOverlay,
       this.bottomInlineStartCornerOverlay,
+      this.inlineEndOverlay,
+      this.topInlineEndCornerOverlay,
+      this.bottomInlineEndCornerOverlay,
     ];
   }
 
@@ -469,11 +507,18 @@ class Overlays {
   }
 
   /**
-   * Re-resolves the axis owners held by the three region overlays (the corners read those).
+   * Re-resolves the axis owners held by the region overlays (the corners read those).
    */
   #refreshAxisOwners() {
     this.topOverlay.updateTrimmingContainer();
     this.inlineStartOverlay.updateTrimmingContainer();
+
+    // Idle until `fixedColumnsEnd` is set: the owner is re-resolved before the first draw that renders it
+    // (`InlineEndOverlay#adjustElementsSize`), so a grid without end columns pays no style read for it.
+    if (this.inlineEndOverlay.shouldBeRendered()) {
+      this.inlineEndOverlay.updateTrimmingContainer();
+    }
+
     this.bottomOverlay.updateTrimmingContainer();
   }
 
@@ -805,6 +850,7 @@ class Overlays {
       this.bottomOverlay.destroy();
     }
     this.inlineStartOverlay.destroy();
+    this.inlineEndOverlay.destroy();
 
     if (this.topInlineStartCornerOverlay) {
       this.topInlineStartCornerOverlay.destroy();
@@ -813,6 +859,9 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.destroy();
     }
+
+    this.topInlineEndCornerOverlay.destroy();
+    this.bottomInlineEndCornerOverlay.destroy();
 
     this.destroyed = true;
   }
@@ -848,6 +897,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
+    this.inlineEndOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
 
     if (this.topInlineStartCornerOverlay) {
@@ -857,6 +907,10 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
     }
+
+    // The end corners render the same fixed rows over the same fixed end columns, like their start twins.
+    this.topInlineEndCornerOverlay.refresh(fastDraw);
+    this.bottomInlineEndCornerOverlay.refresh(bottomFastDraw);
   }
 
   /**
@@ -873,6 +927,8 @@ class Overlays {
       this.topOverlay.clone?.wtTable,
       this.inlineStartOverlay.clone?.wtTable,
       this.topInlineStartCornerOverlay?.clone?.wtTable,
+      this.inlineEndOverlay.clone?.wtTable,
+      this.topInlineEndCornerOverlay.clone?.wtTable,
     ];
 
     headerBearingTables.forEach((table) => {
@@ -1006,6 +1062,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+    this.inlineEndOverlay.applyToDOM();
     this.#stickyScroll.syncOffsets();
   }
 
@@ -1029,9 +1086,12 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.inlineStartOverlay,
+      this.inlineEndOverlay,
       this.bottomOverlay,
       this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
+      this.bottomInlineStartCornerOverlay,
+      this.topInlineEndCornerOverlay,
+      this.bottomInlineEndCornerOverlay,
     ];
     let result = null;
 
@@ -1101,9 +1161,12 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.inlineStartOverlay,
+      this.inlineEndOverlay,
       this.bottomOverlay,
       this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
+      this.bottomInlineStartCornerOverlay,
+      this.topInlineEndCornerOverlay,
+      this.bottomInlineEndCornerOverlay,
     ];
 
     arrayEach(overlays, (elem) => {
@@ -1153,7 +1216,9 @@ class Overlays {
     const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const fixedColumnsEnd = wtSettings.getSetting<number>('fixedColumnsEnd');
     const totalRows = wtSettings.getSetting<number>('totalRows');
+    const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     return [
       // What the write would produce.
@@ -1175,14 +1240,17 @@ class Overlays {
       wtSettings.getSetting('shouldRenderTopOverlay'),
       wtSettings.getSetting('shouldRenderInlineStartOverlay'),
       wtSettings.getSetting('shouldRenderBottomOverlay'),
+      wtSettings.getSetting('shouldRenderInlineEndOverlay'),
       // How deep the frozen regions reach. A move can change these while both totals stay equal,
       // because a sum does not care about order.
       fixedRowsTop,
       fixedRowsBottom,
       fixedColumnsStart,
+      fixedColumnsEnd,
       this.topOverlay.sumCellSizes(0, fixedRowsTop),
       this.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows),
       this.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart),
+      this.inlineEndOverlay.sumCellSizes(totalColumns - fixedColumnsEnd, totalColumns),
     ].join('|');
   }
 

@@ -90,15 +90,19 @@ export function createNativeScrollInputDeps(
       overlays.topOverlay,
       overlays.bottomOverlay,
       overlays.inlineStartOverlay,
+      overlays.inlineEndOverlay,
       overlays.topInlineStartCornerOverlay,
       overlays.bottomInlineStartCornerOverlay,
+      overlays.topInlineEndCornerOverlay,
+      overlays.bottomInlineEndCornerOverlay,
     ],
-    // The three clones `ScrollSync` mirrors the master's offset onto, and so the three whose
-    // holders are scroll containers (the clone-holder rule in `src/styles/base/_base.scss`).
+    // The clones `ScrollSync` mirrors the master's offset onto, and so the ones whose holders are
+    // scroll containers (the clone-holder rule in `src/styles/base/_base.scss`).
     getScrollMirroredOverlays: () => [
       overlays.topOverlay,
       overlays.bottomOverlay,
       overlays.inlineStartOverlay,
+      overlays.inlineEndOverlay,
     ],
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),

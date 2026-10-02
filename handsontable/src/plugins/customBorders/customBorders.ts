@@ -32,6 +32,7 @@ import {
 import type { BorderSettings, BorderObject, CustomBorderConfig, BordersCellProperties } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import type { HotInstance } from '../../core/types';
 import type VisualSelection from '../../selection/highlight/visualSelection';
 
@@ -1229,6 +1230,8 @@ export class CustomBorders extends BasePlugin {
     const fixedColumnsStart = Number(settings.fixedColumnsStart) || 0;
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
+    // The start columns have priority over the end ones when the two bands would overlap.
+    const fixedColumnsEnd = clampFixedColumnsEnd(settings.fixedColumnsEnd, fixedColumnsStart, totalColumns);
     const rowRanges = getViewportUnionRanges(firstRow, lastRow, fixedRowsTop, fixedRowsBottom, totalRows);
     const shouldBeVisible = new Set<string>();
 
@@ -1241,7 +1244,9 @@ export class CustomBorders extends BasePlugin {
         }
 
         arrayEach(rowBorders, (border) => {
-          if (isIndexInViewportUnion(border.col, firstColumn, lastColumn, fixedColumnsStart, 0, totalColumns)) {
+          if (isIndexInViewportUnion(
+            border.col, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
+          )) {
             shouldBeVisible.add(border.id);
 
             if (!this.#customSelectionsCache.has(border.id)) {

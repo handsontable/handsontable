@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Core fixedColumnsEnd e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param is never reflected into the document. An
+    // unknown value THROWS instead of falling back, so a typo is one red leg, not a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    The `fixedColumnsEnd` option through a real grid, for core behaviors (editors, keyboard, mouse). Query
+    params, all numbers or flags: rtl=1, windowScroll=1 (no width/height, the page scrolls),
+    fixedColumnsStart, fixedColumnsEnd, fixedRowsTop, fixedRowsBottom, minSpareCols, cols, rows, rowHeaders=0,
+    colHeaders=0, manualColumnMove=1, manualColumnResize=1, customBorders=1 (each switches the plugin on).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    try {
+    const container = document.querySelector('[data-testid="grid"]');
+    const number = (name, fallback) => {
+      const value = Number(htParams.get(name) ?? fallback);
+
+      if (!Number.isInteger(value) || value < 0) {
+        throw new Error('Invalid ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
+    const rows = number('rows', 40);
+    const cols = number('cols', 30);
+    const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    if (htParams.get('rtl') === '1') {
+      document.documentElement.setAttribute('dir', 'rtl');
+    }
+
+    const settings = {
+      data,
+      colWidths: 72,
+      fixedColumnsStart: number('fixedColumnsStart', 0),
+      fixedColumnsEnd: number('fixedColumnsEnd', 0),
+      fixedRowsTop: number('fixedRowsTop', 0),
+      fixedRowsBottom: number('fixedRowsBottom', 0),
+      minSpareCols: number('minSpareCols', 0),
+      rowHeaders: htParams.get('rowHeaders') !== '0',
+      colHeaders: htParams.get('colHeaders') !== '0',
+      renderer: testIdRenderer,
+      manualColumnMove: htParams.get('manualColumnMove') === '1',
+      manualColumnResize: htParams.get('manualColumnResize') === '1',
+      customBorders: htParams.get('customBorders') === '1',
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (htParams.get('windowScroll') !== '1') {
+      settings.width = 500;
+      settings.height = 300;
+    }
+
+    window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      // A build failure is reported by the page object's goto(), not as a mute timeout.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

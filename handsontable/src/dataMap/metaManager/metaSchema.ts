@@ -3610,6 +3610,59 @@ export default (): Record<string, unknown> => {
     filterSelectedItems: true,
 
     /**
+     * The `fixedColumnsEnd` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the end edge of the grid.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default), the end edge is the right-hand edge.
+     * If your layout direction is RTL, the end edge is the left-hand edge.
+     *
+     * The frozen columns are the last columns of the grid. They stay in place while the rest of the grid scrolls horizontally.
+     * Use `fixedColumnsEnd` together with [`fixedColumnsStart`](#fixedcolumnsstart), [`fixedRowsTop`](#fixedrowstop),
+     * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
+     *
+     * ::: tip
+     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining columns into view.
+     * :::
+     *
+     * ::: tip
+     * While `fixedColumnsEnd` is above `0`, Handsontable doesn't add spare columns for [`minSpareCols`](#minSpareCols).
+     * A spare column added after the last end column would take over the frozen position
+     * and unfreeze the column that holds your data.
+     * :::
+     *
+     * ::: tip
+     * If [`fixedColumnsStart`](#fixedcolumnsstart) and `fixedColumnsEnd` together exceed the number of columns,
+     * `fixedColumnsStart` takes priority and Handsontable reduces the end columns to the columns that remain.
+     * :::
+     *
+     * Read more:
+     * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
+     * - [`fixedRowsBottom`](#fixedrowsbottom)
+     * - [`layoutDirection`](#layoutDirection)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {number}
+     * @default 0
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // freeze the last 2 columns at the end edge of the grid
+     * // (the right-hand edge in LTR, the left-hand edge in RTL)
+     * fixedColumnsEnd: 2,
+     * ```
+     */
+    fixedColumnsEnd: 0,
+
+    /**
      * `fixedColumnsLeft` is a legacy option.
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default), `fixedColumnsLeft` acts like the [`fixedColumnsStart`](#fixedColumnsStart) option.
@@ -3653,6 +3706,7 @@ export default (): Record<string, unknown> => {
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md)
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
+     * - [`fixedColumnsEnd`](#fixedcolumnsend)
      * - [`layoutDirection`](#layoutDirection)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -4527,6 +4581,7 @@ export default (): Record<string, unknown> => {
      * - [`language`](#language)
      * - [`locale`](#locale)
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
+     * - [`fixedColumnsEnd`](#fixedcolumnsend)
      * - [`customBorders`](#customBorders)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -5230,6 +5285,9 @@ export default (): Record<string, unknown> => {
      * and returning `false` from `beforeRemoveCol` keeps the columns.
      *
      * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
+     *
+     * While [`fixedColumnsEnd`](#fixedColumnsEnd) is above `0`, Handsontable doesn't add spare columns,
+     * because a spare column would take over the frozen position at the grid's end.
      *
      * The `minSpareCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects),
@@ -6853,7 +6911,8 @@ export default (): Record<string, unknown> => {
      *
      * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
      * boundary -- or that lands on a frozen-pane line ([`fixedRowsTop`](#fixedrowstop),
-     * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart)). The option
+     * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart),
+     * [`fixedColumnsEnd`](#fixedcolumnsend)). The option
      * has no effect when [`selectionMode`](#selectionmode) is `'single'`.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).

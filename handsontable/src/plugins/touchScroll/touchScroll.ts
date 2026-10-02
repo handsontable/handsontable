@@ -53,6 +53,10 @@ export class TouchScroll extends BasePlugin {
    */
   lockedCollection: boolean = false;
   /**
+   * Whether the collected overlays include the ones of the frozen end columns.
+   */
+  #collectedEndOverlays = false;
+  /**
    * Flag which determines if walkontable should freeze overlays while scrolling.
    *
    * @type {boolean}
@@ -113,19 +117,26 @@ export class TouchScroll extends BasePlugin {
    * After view render listener.
    */
   #onAfterViewRender = () => {
-    if (this.lockedCollection) {
-      return;
-    }
-
     const {
       topOverlay,
       bottomOverlay,
       inlineStartOverlay,
+      inlineEndOverlay,
       topInlineStartCornerOverlay,
-      bottomInlineStartCornerOverlay
+      bottomInlineStartCornerOverlay,
+      topInlineEndCornerOverlay,
+      bottomInlineEndCornerOverlay
     } = this.hot.view._wt.wtOverlays;
+    // The end overlays exist only while `fixedColumnsEnd` is set, which can change at any time. The
+    // collection is rebuilt when they appear or go away.
+    const hasEndOverlays = !!inlineEndOverlay?.clone;
+
+    if (this.lockedCollection && hasEndOverlays === this.#collectedEndOverlays) {
+      return;
+    }
 
     this.lockedCollection = true;
+    this.#collectedEndOverlays = hasEndOverlays;
     this.scrollbars.length = 0;
     this.scrollbars.push(topOverlay);
 
@@ -140,6 +151,17 @@ export class TouchScroll extends BasePlugin {
     }
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.scrollbars.push(bottomInlineStartCornerOverlay);
+    }
+
+    if (hasEndOverlays) {
+      this.scrollbars.push(inlineEndOverlay);
+
+      if (topInlineEndCornerOverlay?.clone) {
+        this.scrollbars.push(topInlineEndCornerOverlay);
+      }
+      if (bottomInlineEndCornerOverlay?.clone) {
+        this.scrollbars.push(bottomInlineEndCornerOverlay);
+      }
     }
 
     this.clones = [];
@@ -158,6 +180,17 @@ export class TouchScroll extends BasePlugin {
     }
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+    }
+
+    if (hasEndOverlays) {
+      this.clones.push(inlineEndOverlay.clone?.wtTable.holder.parentNode);
+
+      if (topInlineEndCornerOverlay?.clone) {
+        this.clones.push(topInlineEndCornerOverlay.clone.wtTable.holder.parentNode);
+      }
+      if (bottomInlineEndCornerOverlay?.clone) {
+        this.clones.push(bottomInlineEndCornerOverlay.clone.wtTable.holder.parentNode);
+      }
     }
   };
 

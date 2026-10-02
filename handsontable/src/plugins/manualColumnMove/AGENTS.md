@@ -92,3 +92,24 @@ hand. If you move that to `BasePlugin`, do both at once.
 `__tests__/` splits into `manualColumnMove.spec.js`, `manualColumnMoveUI.spec.js`, `positioning.spec.js`,
 `scrolling.spec.js`, `selection.spec.js`, plus `ui/` and `rtl/`. Positioning and RTL catch most UI
 regressions.
+
+## `fixedColumnsEnd`: the end columns are a band of their own
+
+`isMovePossible()` also refuses a move that crosses the end line (`#keepsEndBandIntact`), so `moveColumns()`,
+`dragColumns()` and the UI all honor it: an end column cannot leave the band, a scrolling column cannot land
+inside it, and a selection that holds both cannot move. Nothing is restricted while `fixedColumnsEnd` is `0`.
+Unlike the start side (where the veto lives in `ManualColumnFreeze`, and only after a freeze), the end side is
+guarded here, because no other plugin owns the end band. The count is `clampFixedColumnsEnd()` over the not
+trimmed column count, so `fixedColumnsStart` keeps the priority when the bands would overlap.
+
+The backlight and the guideline live in the master's hider and scroll with it, while the end clone stands at the
+inline-end edge. `#getEndBandShift()` is the distance between the two, never positive and zero at the inline-end
+scroll limit, added for a hovered or grabbed end column the way the scroll offset is added for a start column.
+It is read from the rendered boxes (the end clone against the hider: `clone.right - hider.right` in LTR,
+`hider.left - clone.left` in RTL), not computed from the scroll metrics. The first version used
+`scrollX + window.innerWidth - hiderWidth` for a window-scrolled grid; that ignores the offset of the grid's root
+in the page (a body margin shifted the guideline by exactly that margin) and counts the vertical scrollbar.
+The boxes serve a grid the element scrolls and a grid the window scrolls alike.
+Pinned by `__tests__/fixedColumnsEnd.unit.js` (including hidden and trimmed columns: the band is the last
+`fixedColumnsEnd` VISUAL columns of the not trimmed ones, a hidden column in it is part of the band but not drawn)
+and `tests/e2e/fixed-columns-end-plugins.spec.ts` (element scroll and window scroll, LTR and RTL).

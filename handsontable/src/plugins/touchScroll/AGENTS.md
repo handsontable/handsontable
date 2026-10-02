@@ -74,3 +74,11 @@ mandatory-test rule still applies — new coverage should be Playwright
 There is no existing suite to run. Walkontable has its own pipeline
 (`npm run test:walkontable --prefix handsontable`) — do **not** mix Walkontable tests with the main E2E
 tests.
+
+## The end overlays
+
+The frozen end columns add `inlineEndOverlay`, `topInlineEndCornerOverlay` and `bottomInlineEndCornerOverlay` to
+`scrollbars` and `clones`. Unlike the start ones they appear and go away with `updateSettings({ fixedColumnsEnd })`,
+so the collection is rebuilt when `inlineEndOverlay.clone` shows up or disappears (`#collectedEndOverlays`), not
+only after `updatePlugin()` clears `lockedCollection`. Pinned by `__tests__/fixedColumnsEnd.unit.js`, the plugin's
+first unit coverage (it fakes touch support with `window.ontouchstart`).

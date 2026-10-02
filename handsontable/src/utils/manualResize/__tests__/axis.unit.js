@@ -34,6 +34,84 @@ describe('manual resize axes', () => {
     });
   });
 
+  describe('the frozen end columns (the top inline-end corner overlay)', () => {
+    function hotWithEndCorner(cornerHeader, { clone = true } = {}) {
+      const position = { top: 1, start: 2 };
+      const topInlineEndCornerOverlay = {
+        clone: clone ?
+          { wtTable: { THEAD: document.createElement('thead'), holder: document.createElement('div') } } : undefined,
+        getRelativeCellPosition: jest.fn(() => position),
+      };
+
+      if (cornerHeader && clone) {
+        topInlineEndCornerOverlay.clone.wtTable.holder.appendChild(cornerHeader);
+      }
+
+      const startCorner = {
+        clone: { wtTable: { THEAD: document.createElement('thead') } },
+        getRelativeCellPosition: jest.fn(),
+      };
+      const topOverlay = {
+        clone: { wtTable: { THEAD: document.createElement('thead') } },
+        getRelativeCellPosition: jest.fn(),
+      };
+
+      return {
+        position,
+        topInlineEndCornerOverlay,
+        topOverlay,
+        hot: {
+          view: {
+            _wt: {
+              getSetting: () => 0,
+              wtOverlays: { topOverlay, topInlineStartCornerOverlay: startCorner, topInlineEndCornerOverlay },
+            },
+          },
+        },
+      };
+    }
+
+    it('should position the handle of a header of the end corner against that corner', () => {
+      const endHeader = header();
+      const { hot, position, topInlineEndCornerOverlay, topOverlay } = hotWithEndCorner(endHeader);
+
+      expect(COLUMN_RESIZE_AXIS.getHeaderPosition(hot, endHeader, { row: -1, col: 28 })).toBe(position);
+      expect(topInlineEndCornerOverlay.getRelativeCellPosition).toHaveBeenCalledWith(endHeader, -1, 28);
+      expect(topOverlay.getRelativeCellPosition).not.toHaveBeenCalled();
+    });
+
+    it('should recognize the head of the end corner as a header of the column axis', () => {
+      const { hot, topInlineEndCornerOverlay } = hotWithEndCorner(null);
+      const inside = document.createElement('th');
+
+      topInlineEndCornerOverlay.clone.wtTable.THEAD.appendChild(inside);
+      hot.rootElement = document.body;
+      document.body.appendChild(topInlineEndCornerOverlay.clone.wtTable.THEAD);
+
+      expect(COLUMN_RESIZE_AXIS.isHeaderElement(hot, inside)).toBe(true);
+
+      topInlineEndCornerOverlay.clone.wtTable.THEAD.remove();
+    });
+
+    it('should anchor only the headers rendered by the end corner to the inline end', () => {
+      const endHeader = header();
+      const { hot } = hotWithEndCorner(endHeader);
+
+      expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, endHeader)).toBe(true);
+      expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, header())).toBe(false);
+    });
+
+    it('should not anchor any header when the grid has no end columns', () => {
+      const { hot } = hotWithEndCorner(null, { clone: false });
+
+      expect(COLUMN_RESIZE_AXIS.isAnchoredAtInlineEnd(hot, header())).toBe(false);
+    });
+
+    it('should not anchor a row header', () => {
+      expect(ROW_RESIZE_AXIS.isAnchoredAtInlineEnd).toBeUndefined();
+    });
+  });
+
   describe('getHookSize', () => {
     it('should report the rendered height when a row renders taller than it was dragged, because rows can only grow', () => {
       expect(ROW_RESIZE_AXIS.getHookSize(hotRenderingRowAt(45), 2, 30)).toBe(45);
