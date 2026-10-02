@@ -1980,8 +1980,9 @@ export class Formulas extends BasePlugin {
 
   /**
    * Tells whether the settings, rather than the width of the loaded rows, decide how many columns the
-   * grid has. That is the case for an array `columns`, for a `dataSchema`, and for a `columns` function
-   * that returns a falsy value for any of the first `width` columns. The core counts the columns of an
+   * grid has. That is the case for a finite `maxCols` below `width`, for an array `columns`, for a
+   * `dataSchema`, and for a `columns` function that returns a falsy value for any of the first `width`
+   * columns. The core counts the columns of an
    * array-of-arrays dataset under a function by keeping those it returns a truthy value for, so a
    * function that accepts every one of them leaves the count to the data.
    *
@@ -1989,7 +1990,11 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   #isColumnCountCappedBySettings(width: number): boolean {
-    const { columns, dataSchema } = this.hot.getSettings();
+    const { columns, dataSchema, maxCols } = this.hot.getSettings();
+
+    if (typeof maxCols === 'number' && maxCols < width) {
+      return true;
+    }
 
     if (typeof columns === 'function') {
       for (let columnIndex = 0; columnIndex < width; columnIndex++) {

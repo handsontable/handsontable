@@ -169,6 +169,26 @@ describe('Formulas sheet reload dimensions', () => {
     expect(engine.getSheetSerialized(engine.getSheetId('Other'))).toEqual(jagged);
   });
 
+  it('should not narrow the engine sheet when `maxCols` caps the columns of a jagged sheet', () => {
+    const jagged = [['a', 'b'], ['c', 'd', 'e', 'f', 'g']];
+
+    hot = new Handsontable(container, {
+      data: [[1, 2, 3], [4, 5, 6]],
+      maxCols: 3,
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    engine.addSheet('Other');
+    engine.setSheetContent(engine.getSheetId('Other'), jagged);
+    hot.getPlugin('formulas').switchSheet('Other');
+    hot.updateSettings({});
+    hot.setDataAtCell(0, 0, 'X');
+
+    expect(engine.getSheetSerialized(engine.getSheetId('Other')))
+      .toEqual([['X', 'b'], ['c', 'd', 'e', 'f', 'g']]);
+  });
+
   it('should load the widest row of a jagged sheet on a switch to it', () => {
     hot = new Handsontable(container, {
       data: [[1], [2]],

@@ -435,7 +435,8 @@ Three limits are deliberate.
   has no record that it was ever there. Padding to the dimensions would fix that and is not an option for the
   reason above.
 - **A grid whose settings cap the column count is not padded (`#isColumnCountCappedBySettings()`).** That is
-  an array `columns`, a `dataSchema`, or a `columns` function that returns a falsy value for any of the first
+  a finite `maxCols` below the padded width, an array `columns`, a `dataSchema`, or a `columns` function that
+  returns a falsy value for any of the first
   `width` columns (the core counts an array-of-arrays dataset under a function by keeping the columns it
   returns a truthy value for, so a function that accepts all of them leaves the count to the data). Under a
   cap the settings decide `countCols()`, so padding only raises `countSourceCols()` past it. That flips
