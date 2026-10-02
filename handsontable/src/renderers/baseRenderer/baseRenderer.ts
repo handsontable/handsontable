@@ -11,9 +11,9 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 import { isEmpty } from '../../helpers/mixed';
+import { getTextTruncation, TEXT_ELLIPSIS_CLASS_NAME } from './textTruncation';
 
 export const RENDERER_TYPE: 'base' = 'base';
-const TEXT_ELLIPSIS_CLASS_NAME = 'htTextEllipsis';
 const NO_WORD_WRAP_CLASS_NAME = 'htNoWrap';
 
 /**
@@ -78,7 +78,11 @@ export function baseRenderer(
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
 
-  if (cellProperties.textEllipsis) {
+  // A line count also gets the single-line class. The text renderer clamps the text inside a wrapper that
+  // restores wrapping, so for it the class is inert. A renderer that doesn't write through the text
+  // renderer (`html`, `password`) can't clamp, and the cell then falls back to a single line with an
+  // ellipsis, the way any truthy `textEllipsis` behaved before the option accepted numbers.
+  if (getTextTruncation(cellProperties).mode !== 'none') {
     classesToAdd.push(TEXT_ELLIPSIS_CLASS_NAME);
   }
 

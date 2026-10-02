@@ -7415,25 +7415,46 @@ export default (): Record<string, unknown> => {
     tableClassName: undefined,
 
     /**
-     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
+     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots), either on one line or after a number of lines. Support for a number was added in 19.0.0.
      *
      * You can set the `textEllipsis` option to one of the following:
      *
-     * | Setting           | Description                                   |
-     * | ----------------- | --------------------------------------------- |
-     * | `false` (default) | Don't truncate text content with an ellipsis  |
-     * | `true`            | Truncate text content with an ellipsis        |
+     * | Setting                    | Description                                                                |
+     * | -------------------------- | -------------------------------------------------------------------------- |
+     * | `false` (default)          | Don't truncate text content with an ellipsis                               |
+     * | `true`                     | Keep text content on one line and truncate it with an ellipsis             |
+     * | A number, `2` or greater   | Wrap text content and truncate it with an ellipsis after that many lines  |
+     *
+     * A number of `1` works like `true`. A number that is not a positive integer (such as `0`, `-1`, or `2.5`)
+     * works like `false`.
+     *
+     * A number works in cells whose renderer writes plain text through the built-in `textRenderer`.
+     * That covers the `text`, `numeric`, `date`, `time`, `intl-date`, `intl-datetime`, `intl-time`, `select`,
+     * `autocomplete`, `dropdown`, and `handsontable` cell types, and any custom renderer that calls
+     * `textRenderer`. Renderers that draw their own markup, such as the `html` and `password` renderers (and
+     * the `autocomplete` renderer with `allowHtml: true`), can't clamp: for them a number works like `true`,
+     * and the text stays on one line with an ellipsis.
+     *
+     * Truncation only changes how the text looks. The full text stays in the cell's DOM, in
+     * [`getData()`](@/api/core.md#getdata), and in copied data. The grid shows no tooltip with the full text.
+     *
+     * The [`wordWrap`](#wordwrap) option set to `false` takes precedence over a number: the text stays on
+     * one line and ends with an ellipsis.
+     *
+     * A row grows up to the given number of lines, so the clamped text stays readable.
      *
      * ::: tip
      * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
      * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
      * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
-     * `setCellMeta`). This changed in 19.0.0.
+     * `setCellMeta`). To show a number of lines in them, set the number there too. A grid-level `textEllipsis`
+     * does not reach these columns, because the cell type's own value wins over the grid level. This changed in
+     * 19.0.0.
      * :::
      *
      * @since 16.0.0
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|number}
      * @default false
      * @category Core
      * @configScope grid columns cells cell
@@ -7444,6 +7465,10 @@ export default (): Record<string, unknown> => {
      *   {
      *     // truncate text content with an ellipsis
      *     textEllipsis: true,
+     *   },
+     *   {
+     *     // wrap text content and truncate it with an ellipsis after 3 lines
+     *     textEllipsis: 3,
      *   },
      *   {
      *     // don't truncate text content with an ellipsis

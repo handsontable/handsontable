@@ -167,6 +167,47 @@ describe('baseRenderer', () => {
 
       expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
     });
+
+    it('should add the single-line class name when `textEllipsis` is a number of 2 or more, as the fallback for a renderer that cannot clamp', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textEllipsis: 3,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
+    });
+
+    it('should add the single-line ellipsis class name when `textEllipsis` is `1`', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textEllipsis: 1,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
+    });
+
+    it('should add the single-line ellipsis class name instead of the line-clamp one when `wordWrap` is `false`', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textEllipsis: 3,
+        wordWrap: false,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
+    });
+
+    it.each([0, -2, 2.5, NaN, Infinity])('should not truncate the text when `textEllipsis` is %p', (value) => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textEllipsis: value,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
+    });
   });
 
 });
