@@ -2,7 +2,7 @@
 type: how-to
 title: Column freezing
 metaTitle: Column freezing - JavaScript Data Grid | Handsontable
-description: Lock (freeze) the position of specified columns, keeping them visible while scrolling to another area of the grid.
+description: Lock (freeze) the position of specified columns at the start or end of the grid, keeping them visible while scrolling to another area of the grid.
 permalink: /column-freezing
 canonicalUrl: /column-freezing
 tags:
@@ -10,6 +10,9 @@ tags:
   - snapping columns
   - pinning columns
   - fixedColumns
+  - fixedColumnsEnd
+  - freezing columns at the end
+  - right frozen columns
 react:
   metaTitle: Column freezing - React Data Grid | Handsontable
 angular:
@@ -29,7 +32,7 @@ Lock the position of specified columns, keeping them visible when scrolling.
 Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to
 another area of the grid. We refer to frozen columns as _fixed_.
 
-You can freeze columns during initialization and by the user.
+You can freeze columns at the start or at the end of the grid. You can freeze them during initialization and by the user.
 
 ## Freeze columns at initialization
 
@@ -80,6 +83,127 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 :::
 
 :::
+
+## Freeze columns at the end
+
+To freeze the last columns of the grid, use the [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend) option. The frozen columns stay at the end edge of the grid while the rest of the grid scrolls horizontally. The default value is `0`.
+
+The _end_ edge depends on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md):
+
+- If the layout direction is `ltr`, the end edge is the right side of the grid.
+- If the layout direction is `rtl`, the end edge is the left side of the grid.
+
+`fixedColumnsEnd` counts from the last column. For example, `fixedColumnsEnd: 2` freezes the last two columns of the grid.
+
+You can combine `fixedColumnsEnd` with `fixedColumnsStart`. The following example freezes the first column (SKU) and the last column (Total):
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/javascript/example3.js)
+@[code](@/content/guides/columns/column-freezing/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/react/example3.jsx)
+@[code](@/content/guides/columns/column-freezing/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example3.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example3.vue)
+
+:::
+
+:::
+
+### Freeze all four edges
+
+Combine `fixedColumnsStart` and `fixedColumnsEnd` with [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) to freeze every edge of the grid. For more about frozen rows, see [Row freezing](@/guides/rows/row-freezing/row-freezing.md).
+
+In the following example, the first row (Target) and the last row (Total) stay at the top and bottom edges. The first column (SKU) and the last column (Total) stay at the start and end edges:
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/javascript/example4.js)
+@[code](@/content/guides/columns/column-freezing/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-freezing/react/example4.jsx)
+@[code](@/content/guides/columns/column-freezing/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example4.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example4.vue)
+
+:::
+
+:::
+
+### How fixedColumnsEnd interacts with other settings
+
+- **Overlap.** If `fixedColumnsStart` and `fixedColumnsEnd` together exceed the number of columns, `fixedColumnsStart` takes priority. Handsontable reduces the end columns to the columns that remain. The `fixedColumnsEnd` value you set doesn't change.
+- **Hidden columns.** Hidden and trimmed columns don't take a frozen slot. Hiding a column inside the end band shrinks the frozen area by that column.
+- **Size limit.** The [frozen area size limit](#frozen-area-size-limit) applies to the start and end columns together. Keep the combined width of all frozen columns smaller than the width of the grid.
+- **Changing the value.** You can change `fixedColumnsEnd` at any time with [`updateSettings()`](@/api/core.md#updatesettings). When you remove columns that belong to the end band, Handsontable lowers the value by the number of removed frozen columns.
+
+- **Spare and minimum columns.** While `fixedColumnsEnd` is above `0`, Handsontable doesn't add empty columns for [`minSpareCols`](@/api/options.md#minsparecols) or [`minCols`](@/api/options.md#mincols). A column added after the last end column would take over the frozen position and unfreeze the column that holds your data. Pressing <kbd>**Enter**</kbd> or <kbd>**Tab**</kbd> at the last column doesn't add a column either.
+- **End and Ctrl+End.** <kbd>**End**</kbd> and <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd> move to the last column that isn't frozen at the end. They don't move into the end columns. To reach the end columns, use the arrow keys or <kbd>**Tab**</kbd>. If the start and end columns cover every column of the grid, <kbd>**End**</kbd> and <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd> do nothing.
+
+### Known limitations
+
+- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) freezes and unfreezes columns on the start side only. It doesn't change `fixedColumnsEnd`.
+- XLSX export and import don't carry frozen end columns.
+- You can't move a column across the boundary between the scrollable columns and the frozen end columns with [`manualColumnMove`](@/api/options.md#manualcolumnmove).
 
 ## User-triggered freeze
 
@@ -147,6 +271,9 @@ To avoid this, keep the combined width of your frozen columns smaller than the w
 <div class="boxes-list">
 
 - [fixedColumnsStart](@/api/options.md#fixedcolumnsstart)
+- [fixedColumnsEnd](@/api/options.md#fixedcolumnsend)
+- [fixedRowsTop](@/api/options.md#fixedrowstop)
+- [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
 - [manualColumnFreeze](@/api/options.md#manualcolumnfreeze)
 
 </div>

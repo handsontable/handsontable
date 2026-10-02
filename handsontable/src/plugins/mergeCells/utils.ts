@@ -37,3 +37,62 @@ export function sumCellsHeights(hotInstance: HotInstance, row: number, rowspan: 
 
   return height;
 }
+
+const TOP_ROW_OVERLAYS = ['top', 'top_inline_start_corner', 'top_inline_end_corner'];
+const START_COLUMN_OVERLAYS = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'];
+const END_COLUMN_OVERLAYS = ['inline_end', 'top_inline_end_corner', 'bottom_inline_end_corner'];
+
+/**
+ * Checks whether the overlay renders the `fixedColumnsEnd` columns (the inline-end clone or one of its corners).
+ *
+ * @param {string} overlayName The Walkontable overlay name.
+ * @returns {boolean}
+ */
+export function isEndColumnOverlay(overlayName: string): boolean {
+  return END_COLUMN_OVERLAYS.includes(overlayName);
+}
+
+/**
+ * Returns the first row the active overlay renders. The top overlays always start at the first row,
+ * every other overlay starts where the main table starts.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} overlayName The Walkontable overlay name.
+ * @returns {number}
+ */
+export function getFirstRenderedRowOfOverlay(hotInstance: HotInstance, overlayName: string): number {
+  return TOP_ROW_OVERLAYS.includes(overlayName) ? 0 : hotInstance.getFirstRenderedVisibleRow();
+}
+
+/**
+ * Returns the first (visual) column the active overlay renders. The inline-start overlays always start at
+ * the first column and the inline-end overlays start at the first `fixedColumnsEnd` column. Every other
+ * overlay starts where the main table starts.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} overlayName The Walkontable overlay name.
+ * @returns {number}
+ */
+export function getFirstRenderedColumnOfOverlay(hotInstance: HotInstance, overlayName: string): number {
+  if (START_COLUMN_OVERLAYS.includes(overlayName)) {
+    return 0;
+  }
+
+  if (END_COLUMN_OVERLAYS.includes(overlayName)) {
+    const renderableColumn = hotInstance.view?._wt?.wtOverlays?.inlineEndOverlay?.clone?.wtTable
+      ?.getFirstRenderedColumn();
+
+    if (typeof renderableColumn === 'number' && renderableColumn >= 0) {
+      const { columnIndexMapper } = hotInstance;
+      const visualColumn = columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+
+      const nearestColumn = visualColumn === null ? null : columnIndexMapper.getNearestNotHiddenIndex(visualColumn, 1);
+
+      if (nearestColumn !== null) {
+        return nearestColumn;
+      }
+    }
+  }
+
+  return hotInstance.getFirstRenderedVisibleColumn() as number;
+}

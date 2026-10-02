@@ -441,6 +441,35 @@ Pinned by `__tests__/keyboardShortcuts/arrowLeft.spec.js` / `arrowRight.spec.js`
 including hidden columns and the multi-merge chain), the unchanged `arrowUp`/`arrowDown` and
 `tab`/`shiftTab` specs (the three exclusions), and `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
 
+## `fixedColumnsEnd`: the end clone draws the part of a merge that crosses the line
+
+The inline-end clone renders only the LAST `fixedColumnsEnd` columns, and the top/bottom end corners render the same
+columns. A merge is anchored at its top-left (lowest visual column, in LTR and RTL alike), so a merge that starts
+in the master and reaches into the band has its anchor OUTSIDE the clone. Every cell of the merge in the clone is a
+covered cell, and without help the renderer hides all of them: the band shows a hole. A merge inside the band, or
+starting on its first column, is anchored in the clone and needs nothing.
+
+- `utils.ts` owns the overlay-name lists. `getFirstRenderedColumnOfOverlay` answers 0 for the start overlays and the
+  first column of the end band (visual, not hidden) for `inline_end` and the two end corners; every other overlay
+  starts where the main table starts. `getFirstRenderedRowOfOverlay` is the row counterpart (the top overlays start at
+  0). `renderer.ts`, `mergeCells.ts` (`modifyGetCellCoords` virtualized clamp) and `cellsCollection.ts`
+  (`isFirstRenderableMergedCell`) all go through them. **Do not add another inline list of overlay names.**
+- `renderer.ts` clamps the merge's anchor column to the first end column on the end overlays EVEN WHEN `virtualized` is
+  off. The rows are clamped only when `virtualized` is on, as before. With `fixedColumnsEnd: 0` nothing changes.
+- The continuation cell is the covered cell of the FIRST end column of the merge's first row, with the `colspan` the
+  renderer already computes from that column (`min(origColspan, columns left)`), so it never reaches past the band.
+  Its text is the merge anchor's, because covered cells resolve to the anchor through `modifyGetCellCoords`.
+- **That same hook is why `Core#getCell(row, endColumn, true)` does not return the continuation.** It resolves the
+  covered coordinates to the anchor, which is a master cell (and is not rendered at all while the master is scrolled
+  away from it). Tests that need the end clone's cell read the clone's DOM. Editors and selection of such a merge go
+  through the anchor, as they do for every merge.
+- `#onModifyRowHeightByOverlayName` treats `top_inline_end_corner` like the top corners and
+  `bottom_inline_end_corner` like the bottom ones ("merged cells do not work with the bottom overlays" is unchanged:
+  a merge that crosses the master/bottom or the bottom/end line is NOT supported, the bottom clone shows no
+  continuation).
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL, `virtualized` on and off) and
+  `__tests__/overlayBounds.unit.ts`.
+
 ## `getSourceDataAtCell` takes a visual column
 
 `getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`

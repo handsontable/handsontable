@@ -287,3 +287,20 @@ stylesheet needs both bundles rebuilt (`build:umd` and `build:umd.min`, or the f
 Playwright legs see it: the bundles inline the base stylesheet and their copy wins the cascade over the
 linked one, and each pair of legs loads one of them (`../../../AGENTS.md`, Build; `tests/AGENTS.md`, The
 matrix).
+
+## The frozen end columns anchor to the inline-end edge
+
+A column header rendered by the top inline-end corner overlay (`fixedColumnsEnd`) keeps its inline-end edge
+when it is resized: the band stands at the grid's edge, so a wider column grows towards the inline start.
+`ResizeAxis#isAnchoredAtInlineEnd` (optional; only `COLUMN_RESIZE_AXIS` implements it, by checking whether the
+header sits in `topInlineEndCornerOverlay`) tells the gesture, and then:
+
+- the handle sits on the header's inline-START edge, not the inline-end one;
+- the pointer delta is inverted (dragging towards the inline start widens, in RTL too, because the direction
+  factor is applied first);
+- the handle moves with the growing edge (`2 * startSize - currentSize`).
+
+`isHeaderElement` includes the end corner's `THEAD`, and `getHeaderPosition` resolves against that corner (the
+overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
+and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
+`tests/e2e/fixed-columns-end-plugins.spec.ts`.

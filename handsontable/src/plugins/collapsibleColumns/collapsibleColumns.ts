@@ -20,6 +20,7 @@ import {
 } from '../../helpers/a11y';
 import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
 import type StateManager from '../nestedHeaders/stateManager';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -452,6 +453,13 @@ export class CollapsibleColumns extends BasePlugin {
 
           removeButton(button);
         }
+      });
+
+      // The inline-end clones render only the last columns, so they are walked on their own.
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
+        endHeaders.childNodes[i]?.childNodes.forEach((endChild) => {
+          removeButton((endChild as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`));
+        });
       });
     });
   }
@@ -934,6 +942,30 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * Checks whether a group that starts at the column and spans `colspan` columns touches the
+   * `fixedColumnsEnd` band. Such a group gets no toggle: collapsing it would move the band over other columns
+   * (the same reason a group that starts in the `fixedColumnsStart` band gets none).
+   *
+   * @param {number} column The visual column the group starts at.
+   * @param {number} colspan The authored number of columns of the group.
+   * @returns {boolean}
+   */
+  #reachesFixedColumnsEnd(column: number, colspan: number): boolean {
+    const wt = this.hot.view?._wt;
+    const fixedColumnsEnd = (wt?.getSetting('fixedColumnsEnd') as number | undefined) ?? 0;
+
+    if (!fixedColumnsEnd) {
+      return false;
+    }
+
+    const { columnIndexMapper } = this.hot;
+    const lastVisual = columnIndexMapper.getNearestNotHiddenIndex(column + colspan - 1, -1);
+    const lastRenderable = lastVisual === null ? null : columnIndexMapper.getRenderableFromVisualIndex(lastVisual);
+
+    return lastRenderable !== null && lastRenderable >= (wt.getSetting('totalColumns') as number) - fixedColumnsEnd;
+  }
+
+  /**
    * Adds the indicator to the headers.
    *
    * @param {number} column Column index.
@@ -946,7 +978,8 @@ export class CollapsibleColumns extends BasePlugin {
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true &&
       (origColspan ?? 0) > 1 &&
-      column >= (this.hot.getSettings().fixedColumnsStart ?? 0);
+      column >= (this.hot.getSettings().fixedColumnsStart ?? 0) &&
+      !this.#reachesFixedColumnsEnd(column, origColspan ?? 0);
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 

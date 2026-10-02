@@ -131,6 +131,12 @@ export class ResizeGesture {
    */
   #scaleFactor = 1;
   /**
+   * Whether the header is anchored to the inline-end edge of the grid (the frozen end columns). Its
+   * inline-end edge never moves when the column is resized, the inline-start edge does. So the handle
+   * sits on the inline-start edge, and dragging towards the inline start makes the column wider.
+   */
+  #anchoredAtInlineEnd = false;
+  /**
    * The draggable resize handle.
    */
   #handle: HTMLElement;
@@ -472,8 +478,11 @@ export class ResizeGesture {
     const alongOffset = this.#isVertical() ? headerPosition.top : headerPosition.start;
     const acrossOffset = this.#isVertical() ? headerPosition.start : headerPosition.top;
 
-    this.#startOffset = alongOffset - 6;
+    this.#anchoredAtInlineEnd = this.#axis.isAnchoredAtInlineEnd?.(this.#hot, TH) === true;
     this.#startSize = this.#measureAlong(TH);
+    // The handle sits on the edge that moves: the inline-end one, or the inline-start one for a
+    // header anchored to the inline end of the grid.
+    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startSize : 0);
     this.#scaleFactor = getElementScaleFactor(TH, this.#axis.orientation);
 
     this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startSize}px`;
@@ -521,7 +530,12 @@ export class ResizeGesture {
    * Moves the resize handle to the size the pointer describes.
    */
   #refreshHandlePosition() {
-    this.#handle.style[this.#alongProp()] = `${(this.#startOffset ?? 0) + (this.#currentSize ?? 0)}px`;
+    const startSize = this.#startSize ?? 0;
+    const currentSize = this.#currentSize ?? 0;
+    // A header anchored to the inline end grows towards the inline start, so its handle moves that way.
+    const handleSize = this.#anchoredAtInlineEnd ? (2 * startSize) - currentSize : currentSize;
+
+    this.#handle.style[this.#alongProp()] = `${(this.#startOffset ?? 0) + handleSize}px`;
   }
 
   /**
@@ -635,7 +649,7 @@ export class ResizeGesture {
     const pointerChange = this.#readPointer(event) - (this.#startPointer ?? 0);
     // The inline axis runs the other way under RTL; the block axis never does.
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
-    const change = normalizeVisualDelta(visualChange, this.#scaleFactor);
+    const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
 
     this.#currentSize = (this.#startSize ?? 0) + change;
     this.#newSize = this.#owner.clampSize(this.#currentSize);

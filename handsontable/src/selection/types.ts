@@ -34,6 +34,7 @@ export interface SelectionTableProps {
   findFirstNonHiddenRenderableColumn(from: number, to: number): number | null;
   navigableHeaders(): boolean;
   fixedRowsBottom(): number;
+  fixedColumnsEnd(): number;
   minSpareRows(): number;
   minSpareCols(): number;
   autoWrapRow(): boolean;
@@ -51,6 +52,7 @@ export interface SelectionSettings {
   currentColClassName?: string;
   navigableHeaders?: boolean;
   fixedRowsBottom?: number;
+  fixedColumnsEnd?: number;
   minSpareRows?: number;
   minSpareCols?: number;
   autoWrapRow?: boolean;

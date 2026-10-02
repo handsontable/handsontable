@@ -355,3 +355,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `typeof window === 'undefined'` guards in `test/bootstrap.js` and `test/helpers/custom-matchers.js`,
   which keep the shared Jest setup from crashing on a spec file that has no `window`/`document`.
 - End to end: `tests/e2e/xlsx-import.spec.ts` (export → import round trip in one page, no download).
+
+## `fixedColumnsEnd` is left alone on import
+
+An XLSX file cannot carry frozen end columns, so no import ever sets `fixedColumnsEnd`. It is deliberately NOT in
+`RESETTABLE_LAYOUT_KEYS` in `applier.ts`: those keys are reset because an earlier import may have set them, while a
+`fixedColumnsEnd` can only come from the user's own configuration, and resetting it would discard that on every
+import. Revisit this if a format that carries it is ever added.

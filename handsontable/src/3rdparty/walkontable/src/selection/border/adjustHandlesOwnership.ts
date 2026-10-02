@@ -11,9 +11,12 @@
  */
 import {
   CLONE_BOTTOM,
+  CLONE_BOTTOM_INLINE_END_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_END,
   CLONE_INLINE_START,
   CLONE_TOP,
+  CLONE_TOP_INLINE_END_CORNER,
   CLONE_TOP_INLINE_START_CORNER,
 } from '../../overlay/constants';
 
@@ -29,7 +32,8 @@ export type AdjustHandleEdge = typeof ADJUST_HANDLE_EDGES[number];
 
 /**
  * The frozen-pane segment an index falls in on one axis: `start` for the `fixedRowsTop` /
- * `fixedColumnsStart` pane, `end` for the `fixedRowsBottom` pane, `main` for the scrollable part.
+ * `fixedColumnsStart` pane, `end` for the `fixedRowsBottom` / `fixedColumnsEnd` pane, `main` for the
+ * scrollable part.
  */
 export type AxisSegment = 'start' | 'main' | 'end';
 
@@ -62,9 +66,9 @@ export interface AdjustHandlesLayout {
 }
 
 /**
- * Tells which segment an overlay renders on one axis. The `inline_start` overlay and the corners
- * render the frozen columns; the `top`/`bottom` overlays and their corners render the frozen rows;
- * everything else belongs to the scrollable part.
+ * Tells which segment an overlay renders on one axis. The `inline_start` and `inline_end` overlays and
+ * their corners render the frozen start and end columns; the `top`/`bottom` overlays and their corners
+ * render the frozen rows; everything else belongs to the scrollable part.
  *
  * Every clone type in `CLONE_TYPES` (`overlay/constants.ts`) must be listed here: a name this
  * function does not know falls through to `main` on both axes, and that overlay would then claim the
@@ -76,14 +80,21 @@ export interface AdjustHandlesLayout {
  */
 export function getOverlaySegment(overlayName: string, axis: 'row' | 'column'): AxisSegment {
   if (axis === 'column') {
-    return [CLONE_INLINE_START, CLONE_TOP_INLINE_START_CORNER, CLONE_BOTTOM_INLINE_START_CORNER]
-      .includes(overlayName) ? 'start' : 'main';
+    if ([CLONE_INLINE_START, CLONE_TOP_INLINE_START_CORNER, CLONE_BOTTOM_INLINE_START_CORNER]
+      .includes(overlayName)) {
+      return 'start';
+    }
+
+    return [CLONE_INLINE_END, CLONE_TOP_INLINE_END_CORNER, CLONE_BOTTOM_INLINE_END_CORNER]
+      .includes(overlayName) ? 'end' : 'main';
   }
-  if (overlayName === CLONE_TOP || overlayName === CLONE_TOP_INLINE_START_CORNER) {
+  if (overlayName === CLONE_TOP || overlayName === CLONE_TOP_INLINE_START_CORNER ||
+      overlayName === CLONE_TOP_INLINE_END_CORNER) {
     return 'start';
   }
 
-  return overlayName === CLONE_BOTTOM || overlayName === CLONE_BOTTOM_INLINE_START_CORNER ? 'end' : 'main';
+  return overlayName === CLONE_BOTTOM || overlayName === CLONE_BOTTOM_INLINE_START_CORNER ||
+    overlayName === CLONE_BOTTOM_INLINE_END_CORNER ? 'end' : 'main';
 }
 
 /**

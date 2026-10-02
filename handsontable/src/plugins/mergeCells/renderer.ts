@@ -1,5 +1,10 @@
 import { isSafari } from '../../helpers/browser';
-import { sumCellsHeights } from './utils';
+import {
+  sumCellsHeights,
+  isEndColumnOverlay,
+  getFirstRenderedRowOfOverlay,
+  getFirstRenderedColumnOfOverlay,
+} from './utils';
 import type { HotInstance } from '../../core/types';
 
 /**
@@ -33,23 +38,19 @@ interface MergeCellsPluginInstance {
 function clampToVirtualViewport(
   hot: HotInstance,
   notHiddenRow: number | null,
-  notHiddenColumn: number | null
+  notHiddenColumn: number | null,
+  clampRow: boolean
 ): [number | null, number | null] {
   const overlayName = hot.view.getActiveOverlayName();
+  const firstRenderedVisibleRow = getFirstRenderedRowOfOverlay(hot, overlayName);
+  const firstRenderedVisibleColumn = getFirstRenderedColumnOfOverlay(hot, overlayName);
 
-  if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
-    const firstRenderedVisibleRow = hot.getFirstRenderedVisibleRow();
-
-    if (notHiddenRow !== null && firstRenderedVisibleRow !== null) {
-      notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
-    }
+  if (clampRow && notHiddenRow !== null && firstRenderedVisibleRow !== null) {
+    notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
   }
-  if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
-    const firstRenderedVisibleColumn = hot.getFirstRenderedVisibleColumn();
 
-    if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
-      notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
-    }
+  if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
+    notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
   }
 
   return [notHiddenRow, notHiddenColumn];
@@ -122,9 +123,11 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     let notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
     let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
 
-    if (isVirtualRenderingEnabled) {
+    // The inline-end clone renders only the last columns, so a merge anchored before them has to be
+    // drawn from the first end column whether or not the virtualized rendering is on.
+    if (isVirtualRenderingEnabled || isEndColumnOverlay(hot.view.getActiveOverlayName())) {
       [notHiddenRow, notHiddenColumn] = clampToVirtualViewport(
-        hot, notHiddenRow, notHiddenColumn
+        hot, notHiddenRow, notHiddenColumn, !!isVirtualRenderingEnabled
       );
     }
 
