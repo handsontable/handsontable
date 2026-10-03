@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Não foi possível remover as linhas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Falha na solicitação',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Selecionar linha [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Selecionar todas as linhas ([selected] de [total] selecionadas)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Marcar tudo ([checked] de [total] marcadas)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Linha [row] selecionada',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Linha [row] desmarcada',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] linhas selecionadas',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Remover linhas selecionadas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Limpar seleção de linhas',
 };
 
 export default dictionary;

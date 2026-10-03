@@ -4038,6 +4038,50 @@ export default (): Record<string, unknown> => {
     headerClassName: undefined,
 
     /**
+     * @description
+     * The `headerCheckbox` option adds a "check all" checkbox to the header of a
+     * [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. A click on it checks every
+     * checkbox in the column, or unchecks them when all of them are checked, and writes the values into
+     * the data in one undo step. When only some cells are checked, the header checkbox shows the mixed
+     * state. Read-only cells are skipped.
+     *
+     * You can set the `headerCheckbox` option to one of the following:
+     *
+     * | Setting                  | Description                                                                    |
+     * | ------------------------ | ------------------------------------------------------------------------------ |
+     * | `false` (default)        | No header checkbox                                                             |
+     * | `true`                   | A header checkbox that writes to the rows that pass the filters (all pages)    |
+     * | `{ scope: 'filtered' }`  | The same as `true`                                                             |
+     * | `{ scope: 'all' }`       | Also writes to the rows the filters hide                                       |
+     * | `{ scope: 'currentPage' }` | Writes only to the rows on the current page of the [`Pagination`](@/api/pagination.md) plugin |
+     *
+     * The option works only on columns whose [`type`](#type) is `'checkbox'`. Rows hidden with the
+     * [`HiddenRows`](@/api/hiddenRows.md) plugin and rows trimmed with the [`TrimRows`](@/api/trimRows.md)
+     * plugin are never written.
+     *
+     * Read more:
+     * - [Checkbox cell type: Check all in the column header](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#check-all-in-the-column-header)
+     * - [Plugins: `CheckboxHeader`](@/api/checkboxHeader.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category CheckboxHeader
+     * @since 18.2.0
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   { data: 'name' },
+     *   // a "check all" checkbox in the header of the `active` column
+     *   { data: 'active', type: 'checkbox', headerCheckbox: true },
+     * ],
+     * ```
+     */
+    headerCheckbox: undefined,
+
+    /**
      * The `height` option configures the height of your grid.
      *
      * You can set the `height` option to one of the following:
@@ -6786,6 +6830,73 @@ export default (): Record<string, unknown> => {
      * ```
      */
     rowHeights: undefined,
+
+    /**
+     * @description
+     * The `rowSelection` option configures the [`RowSelection`](@/api/rowSelection.md) plugin, which
+     * lets the user select rows with checkboxes, including a "select all" checkbox.
+     *
+     * The row selection is a state of its own. It is not the cell selection, and the plugin never
+     * writes it into the data.
+     *
+     * You can set the `rowSelection` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`RowSelection`](@/api/rowSelection.md) plugin                  |
+     * | `true`    | Enable the [`RowSelection`](@/api/rowSelection.md) plugin with its defaults |
+     * | An object | Enable the plugin and configure it                                          |
+     *
+     * If you set the `rowSelection` option to an object, you can configure the following options:
+     *
+     * | Option                   | Possible settings                                             | Default       |
+     * | ------------------------ | ------------------------------------------------------------- | ------------- |
+     * | `mode`                   | `'multiRow'` \| `'singleRow'`                                  | `'multiRow'`  |
+     * | `checkboxes`             | A boolean, or a function `(rowData, physicalRow) => boolean`  | `true`        |
+     * | `headerCheckbox`         | A boolean                                                     | `true`        |
+     * | `selectAll`              | `'all'` \| `'filtered'` \| `'currentPage'`                     | `'all'`       |
+     * | `enableClickSelection`   | `true` \| `false` \| `'enableSelection'` \| `'enableDeselection'` | `false`  |
+     * | `isRowSelectable`        | A function `(rowData, physicalRow) => boolean`                | -             |
+     * | `hideDisabledCheckboxes` | A boolean                                                     | `false`       |
+     * | `checkboxLocation`       | `'rowHeader'` \| `'firstColumn'` \| `{ column }`                | `'rowHeader'` |
+     * | `groupSelects`           | `'descendants'` \| `'self'` \| `'topLevel'`                    | `'descendants'` |
+     *
+     * With the [`NestedRows`](@/api/nestedRows.md) plugin, `groupSelects` sets how the rows of the tree are
+     * selected. With `'descendants'`, selecting a parent row selects every row under it, and a parent shows a
+     * mixed state while only some of the rows under it are selected. With `'self'`, every row is selected on its
+     * own. With `'topLevel'`, only the top-level rows can be selected. The `'singleRow'` mode and a bound
+     * checkbox column (`checkboxLocation: { column }`) use `'self'` in place of `'descendants'`.
+     *
+     * With `checkboxLocation: { column: 'selected' }`, the values of a checkbox column (its `data` property,
+     * or its physical index) are the selection: selecting a row checks its cell, and checking a cell
+     * selects its row.
+     *
+     * Read more:
+     * - [Plugins: `RowSelection`](@/api/rowSelection.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category RowSelection
+     * @since 18.2.0
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `RowSelection` plugin with its defaults
+     * rowSelection: true,
+     *
+     * // "select all" acts on the filtered rows, and archived rows cannot be selected
+     * rowSelection: {
+     *   selectAll: 'filtered',
+     *   isRowSelectable: (rowData) => rowData.status !== 'archived',
+     * },
+     * ```
+     */
+    rowSelection: undefined,
 
     /**
      * @description

@@ -155,6 +155,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Atlasīt rindu [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Atlasīt visas rindas (atlasītas [selected] no [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Atzīmēt visu (atzīmētas [checked] no [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rinda [row] atlasīta',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Rindas [row] atlase atcelta',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Atlasītas [selected] no [total] rindām',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Noņemt atlasītās rindas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Notīrīt rindu atlasi',
 };
 
 export default dictionary;

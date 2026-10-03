@@ -59,6 +59,8 @@ describe('`registerAllPlugins`', () => {
       'Dialog',
       'EmptyDataState',
       'Notification',
+      'RowSelection',
+      'CheckboxHeader',
       'Pagination',
       'SheetsBar',
       'DataProvider',

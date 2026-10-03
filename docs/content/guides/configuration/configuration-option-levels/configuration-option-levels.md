@@ -182,6 +182,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="hashLength" data-levels="grid columns cells cell"></span>[`hashLength`](@/api/options.md#hashlength) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashRevealDelay" data-levels="grid columns cells cell"></span>[`hashRevealDelay`](@/api/options.md#hashrevealdelay) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="hashSymbol" data-levels="grid columns cells cell"></span>[`hashSymbol`](@/api/options.md#hashsymbol) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="headerCheckbox" data-levels="grid columns"></span>[`headerCheckbox`](@/api/options.md#headercheckbox) | Yes | Yes | No | No | CheckboxHeader |  |
 | <span data-option="headerClassName" data-levels="grid columns"></span>[`headerClassName`](@/api/options.md#headerclassname) | Yes | Yes | No | No | Core | Applies to column headers, so it stops at the column level. |
 | <span data-option="height" data-levels="grid"></span>[`height`](@/api/options.md#height) | Yes | No | No | No | Core |  |
 | <span data-option="hiddenColumns" data-levels="grid"></span>[`hiddenColumns`](@/api/options.md#hiddencolumns) | Yes | No | No | No | HiddenColumns |  |
@@ -241,6 +242,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="rowHeaders" data-levels="grid"></span>[`rowHeaders`](@/api/options.md#rowheaders) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeaderWidth" data-levels="grid"></span>[`rowHeaderWidth`](@/api/options.md#rowheaderwidth) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeights" data-levels="grid"></span>[`rowHeights`](@/api/options.md#rowheights) | Yes | No | No | No | Core |  |
+| <span data-option="rowSelection" data-levels="grid"></span>[`rowSelection`](@/api/options.md#rowselection) | Yes | No | No | No | RowSelection |  |
 | <span data-option="sanitizer" data-levels="grid"></span>[`sanitizer`](@/api/options.md#sanitizer) | Yes | No | No | No | Core |  |
 | <span data-option="search" data-levels="grid columns cells cell"></span>[`search`](@/api/options.md#search) | Yes | Yes | Yes | Yes | Search | The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell. |
 | <span data-option="searchInput" data-levels="grid columns cells cell"></span>[`searchInput`](@/api/options.md#searchinput) | Yes | Yes | Yes | Yes | Core |  |

@@ -157,6 +157,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Rij [row] selecteren',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Alle rijen selecteren ([selected] van [total] geselecteerd)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Alles aanvinken ([checked] van [total] aangevinkt)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rij [row] geselecteerd',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Selectie van rij [row] opgeheven',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] van [total] rijen geselecteerd',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Geselecteerde rijen verwijderen ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Rijselectie wissen',
 };
 
 export default dictionary;

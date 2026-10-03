@@ -158,6 +158,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Select row [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Select all rows ([selected] of [total] selected)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Check all ([checked] of [total] checked)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Row [row] selected',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Row [row] deselected',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] of [total] rows selected',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Remove selected rows ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Clear row selection',
 };
 
 export default dictionary;

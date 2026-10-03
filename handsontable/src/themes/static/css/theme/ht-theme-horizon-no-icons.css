@@ -85,6 +85,7 @@
   --ht-cell-vertical-border-color: var(--ht-border-color);
   --ht-cell-selection-border-color: var(--ht-accent-color);
   --ht-cell-selection-background-color: var(--ht-accent-color);
+  --ht-row-selection-background-color: light-dark(#37bc6c1a, #f1b93e33);
   --ht-cell-success-background-color: #37bc6c4d;
   --ht-cell-error-background-color: #fa4d324d;
   --ht-cell-read-only-background-color: var(--ht-background-secondary-color);

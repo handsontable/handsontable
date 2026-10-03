@@ -155,6 +155,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Izaberi red [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Izaberi sve redove (izabrano [selected] od [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Označi sve (označeno [checked] od [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Red [row] izabran',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Izbor reda [row] poništen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Izabrano [selected] od [total] redova',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni izabrane redove ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi izbor redova',
 };
 
 export default dictionary;

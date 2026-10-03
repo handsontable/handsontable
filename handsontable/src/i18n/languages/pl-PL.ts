@@ -161,6 +161,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Zaznacz wiersz [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Zaznacz wszystkie wiersze (zaznaczono [selected] z [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Zaznacz wszystkie (zaznaczono [checked] z [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Zaznaczono wiersz [row]',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Odznaczono wiersz [row]',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Zaznaczono [selected] z [total] wierszy',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Usuń zaznaczone wiersze ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Wyczyść zaznaczenie wierszy',
 };
 
 export default dictionary;

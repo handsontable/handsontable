@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '無法刪除列',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '要求失敗',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新載入',
+  [C.ROW_SELECTION_SELECT_ROW]: '選取第 [row] 列',
+  [C.ROW_SELECTION_SELECT_ALL]: '選取所有列（已選取 [selected]/[total]）',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: '全選（已勾選 [checked]/[total]）',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '已選取第 [row] 列',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '已取消選取第 [row] 列',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '已選取 [selected]/[total] 列',
+  [C.ROW_SELECTION_MENU_REMOVE]: '刪除所選列 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '清除列選取',
 };
 
 export default dictionary;

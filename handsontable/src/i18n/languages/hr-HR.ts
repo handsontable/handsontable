@@ -167,6 +167,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Odaberi redak [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Odaberi sve retke (odabrano [selected] od [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Označi sve (označeno [checked] od [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Redak [row] odabran',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Odabir retka [row] poništen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Odabrano [selected] od [total] redaka',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni odabrane retke ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi odabir redaka',
 };
 
 export default dictionary;
