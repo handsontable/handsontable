@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import type { DataProviderQueryParameters } from 'handsontable/plugins/dataProvider';
@@ -24,23 +24,29 @@ const fetchOrders = async({ page, pageSize }: DataProviderQueryParameters) => ({
   totalRows: serverOrders.length,
 });
 
+// The React wrapper calls `updateSettings` after every HotTable render. With
+// `dataProvider`, each call refetches the current page. Keep this object
+// stable, and write the selection status through a DOM ref so a checkbox
+// click does not re-render HotTable.
+const dataProvider = {
+  // the row selection keeps rows by this id, so it survives page changes
+  rowId: 'id',
+  fetchRows: fetchOrders,
+  onRowsCreate: async() => {},
+  onRowsUpdate: async() => {},
+  onRowsRemove: async() => {},
+};
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
-  const [output, setOutput] = useState('0 selected');
+  const outputRef = useRef<HTMLOutputElement>(null);
 
   return (
     <>
       <HotTable
         ref={hotRef}
         licenseKey="non-commercial-and-evaluation"
-        dataProvider={{
-          // the row selection keeps rows by this id, so it survives page changes
-          rowId: 'id',
-          fetchRows: fetchOrders,
-          onRowsCreate: async() => {},
-          onRowsUpdate: async() => {},
-          onRowsRemove: async() => {},
-        }}
+        dataProvider={dataProvider}
         columns={[
           { data: 'id', title: 'Order', readOnly: true },
           { data: 'customer', title: 'Customer' },
@@ -61,15 +67,15 @@ const ExampleComponent = () => {
         afterRowSelectionChange={() => {
           const rowSelection = hotRef.current?.hotInstance?.getPlugin('rowSelection');
 
-          if (rowSelection) {
+          if (rowSelection && outputRef.current) {
             // send this object to your server, which applies it to the rows it did not send
-            setOutput(`${rowSelection.getSelectedCount()} selected: ${JSON.stringify(rowSelection.getServerSelection())}`);
+            outputRef.current.textContent = `${rowSelection.getSelectedCount()} selected: ${JSON.stringify(rowSelection.getServerSelection())}`;
           }
         }}
         autoWrapRow={true}
         autoWrapCol={true}
       />
-      <output className="console">{output}</output>
+      <output className="console" ref={outputRef}>0 selected</output>
     </>
   );
 };
