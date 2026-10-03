@@ -157,6 +157,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Seleccionar fila [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Seleccionar todas las filas ([selected] de [total] seleccionadas)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Marcar todo ([checked] de [total] marcadas)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Fila [row] seleccionada',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Fila [row] deseleccionada',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] filas seleccionadas',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Eliminar filas seleccionadas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Borrar selección de filas',
 };
 
 export default dictionary;

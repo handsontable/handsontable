@@ -152,6 +152,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Vybrat řádek [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Vybrat všechny řádky (vybráno [selected] z [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Zaškrtnout vše (zaškrtnuto [checked] z [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Řádek [row] vybrán',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Výběr řádku [row] zrušen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Vybráno [selected] z [total] řádků',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Odstranit vybrané řádky ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Zrušit výběr řádků',
 };
 
 export default dictionary;

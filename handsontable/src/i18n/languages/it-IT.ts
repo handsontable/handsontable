@@ -154,6 +154,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossibile rimuovere le righe',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Richiesta non riuscita',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ricarica',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Seleziona riga [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Seleziona tutte le righe ([selected] di [total] selezionate)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Seleziona tutto ([checked] di [total] selezionate)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Riga [row] selezionata',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Riga [row] deselezionata',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] di [total] righe selezionate',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Rimuovi righe selezionate ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Cancella selezione righe',
 };
 
 export default dictionary;

@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Выбрать строку [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Выбрать все строки (выбрано [selected] из [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Отметить все (отмечено [checked] из [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Строка [row] выбрана',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Выбор строки [row] снят',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Выбрано [selected] из [total] строк',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Удалить выбранные строки ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Снять выбор строк',
 };
 
 export default dictionary;

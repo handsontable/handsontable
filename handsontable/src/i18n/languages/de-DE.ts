@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Zeilen konnten nicht entfernt werden',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Anfrage fehlgeschlagen',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Neu laden',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Zeile [row] auswählen',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Alle Zeilen auswählen ([selected] von [total] ausgewählt)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Alle auswählen ([checked] von [total] ausgewählt)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Zeile [row] ausgewählt',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Auswahl von Zeile [row] aufgehoben',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] von [total] Zeilen ausgewählt',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Ausgewählte Zeilen entfernen ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Zeilenauswahl aufheben',
 };
 
 export default dictionary;

@@ -1,0 +1,11 @@
+// Handsontable CheckboxHeader
+
+@mixin output {
+  .handsontable {
+    // The header container is a centering flex row; the checkbox rule's `margin-top: -2px` would
+    // only push the checkbox off center there.
+    th.htCheckboxHeader .htCheckboxHeaderInput {
+      margin-block: 0;
+    }
+  }
+}

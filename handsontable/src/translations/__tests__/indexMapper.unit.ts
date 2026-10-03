@@ -30,6 +30,25 @@ describe('IndexMapper', () => {
     expect(indexMapper.getNotTrimmedIndexesLength()).toBe(10);
   });
 
+  it('should count the indexes without materializing an identity sequence', () => {
+    const indexMapper = new IndexMapper();
+
+    indexMapper.initToLength(100000);
+
+    const getValues = jest.spyOn(indexMapper.indexesSequence, 'getValues');
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(100000);
+    expect(getValues).not.toHaveBeenCalled();
+
+    indexMapper.moveIndexes([0], 5);
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(100000);
+
+    indexMapper.removeIndexes([1, 2]);
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(99998);
+  });
+
   it('should reset values in registered maps properly after calling `initToLength` method', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();

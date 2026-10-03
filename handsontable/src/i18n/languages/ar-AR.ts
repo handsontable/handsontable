@@ -153,6 +153,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
+  [C.ROW_SELECTION_SELECT_ROW]: 'تحديد الصف [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'تحديد كل الصفوف (تم تحديد [selected] من [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'تحديد الكل ([checked] من [total] محدد)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'تم تحديد الصف [row]',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'تم إلغاء تحديد الصف [row]',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'تم تحديد [selected] من [total] صفوف',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'إزالة الصفوف المحددة ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'مسح تحديد الصفوف',
 };
 
 export default dictionary;

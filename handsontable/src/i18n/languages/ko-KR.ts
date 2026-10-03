@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
+  [C.ROW_SELECTION_SELECT_ROW]: '[row]행 선택',
+  [C.ROW_SELECTION_SELECT_ALL]: '모든 행 선택 ([total]개 중 [selected]개 선택됨)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: '모두 선택 ([total]개 중 [checked]개 선택됨)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '[row]행 선택됨',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '[row]행 선택 해제됨',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total]개 행 중 [selected]개 선택됨',
+  [C.ROW_SELECTION_MENU_REMOVE]: '선택한 행 삭제 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '행 선택 해제',
 };
 
 export default dictionary;

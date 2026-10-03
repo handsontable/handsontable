@@ -91,6 +91,10 @@ ${prefix}.htCheckboxRendererInput::after {
   ${icon(icons, 'checkbox')}
 }
 
+${prefix}.htCheckboxRendererInput:indeterminate::after {
+  ${icon(icons, 'collapseOff')}
+}
+
 ${prefix}th.beforeHiddenColumn::after {
   ${icon(icons, 'caretHiddenLeft')}
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Checkbox Header Toggle</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const ROWS = 100000;
+    const COLS = 10;
+    const data = new Array(ROWS);
+
+    for (let row = 0; row < ROWS; row++) {
+      const cells = new Array(COLS);
+
+      cells[0] = false;
+
+      for (let col = 1; col < COLS; col++) {
+        cells[col] = `R${row}C${col}`;
+      }
+
+      data[row] = cells;
+    }
+
+    // The column-level option the CheckboxHeader plugin acts on (its default scope is 'filtered').
+    const columns = [{ type: 'checkbox', headerCheckbox: true }];
+
+    for (let col = 1; col < COLS; col++) {
+      columns.push({});
+    }
+
+    const hot = new Handsontable(document.getElementById('hot'), {
+      data,
+      columns,
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1280,
+      height: 600,
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    window.__hot = hot;
+  </script>
+</body>
+</html>

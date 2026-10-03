@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 176,
+  "total": 178,
   "counts": {
-    "grid": 107,
+    "grid": 108,
     "grid columns cells cell": 62,
-    "grid columns": 6,
+    "grid columns": 7,
     "columns": 1
   },
   "options": [
@@ -730,6 +730,16 @@
       "note": null
     },
     {
+      "name": "headerCheckbox",
+      "category": "CheckboxHeader",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "18.2.0",
+      "note": null
+    },
+    {
       "name": "headerClassName",
       "category": "Core",
       "levels": [
@@ -1308,6 +1318,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "rowSelection",
+      "category": "RowSelection",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.2.0",
       "note": null
     },
     {
