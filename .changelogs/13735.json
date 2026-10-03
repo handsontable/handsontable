@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added row selection checkboxes with a \"select all\" checkbox in the header (the `rowSelection` option), with server-side and nested rows support, and a \"check all\" checkbox for checkbox columns (the `headerCheckbox` column option).",
+  "type": "added",
+  "issueOrPR": 13735,
+  "breaking": false,
+  "framework": "none"
+}
