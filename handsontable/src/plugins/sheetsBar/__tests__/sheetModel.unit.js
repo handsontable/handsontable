@@ -91,6 +91,17 @@ describe('SheetModel', () => {
     expect(sheet.name).toBe('🙂'.repeat(MAX_SHEET_NAME_LENGTH));
   });
 
+  it('counts a flag and a ZWJ family emoji as one character each when it cuts a name', () => {
+    const model = new SheetModel();
+    const flag = '🇵🇱';
+    const family = '👨‍👩‍👧';
+    const flagSheet = model.addSheet(flag.repeat(MAX_SHEET_NAME_LENGTH + 5), [[]]);
+    const familySheet = model.addSheet(family.repeat(MAX_SHEET_NAME_LENGTH + 5), [[]]);
+
+    expect(flagSheet.name).toBe(flag.repeat(MAX_SHEET_NAME_LENGTH));
+    expect(familySheet.name).toBe(family.repeat(MAX_SHEET_NAME_LENGTH));
+  });
+
   it('keeps a collision suffix inside the limit by shortening the base', () => {
     const model = new SheetModel();
     const long = 'y'.repeat(MAX_SHEET_NAME_LENGTH);

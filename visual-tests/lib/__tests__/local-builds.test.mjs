@@ -28,7 +28,7 @@ const PACKAGE_ROOT = join(import.meta.dirname, '..', '..');
 const REPO_ROOT = join(PACKAGE_ROOT, '..');
 const INSTALL_JS = 'npm run examples:install next/visual-tests/js';
 const GUARD = 'node ../../../../../visual-tests/scripts/check-linked-packages.mjs';
-const BUILD_TOOL = /\b(vite build|ng build|react-app-rewired build)\b/;
+const BUILD_TOOL = /\b(vite build|ng build)\b/;
 // The core's own ignore rules for what its build writes under `src/`, as `handsontable/.gitignore` has them, plus
 // `languages/` and `dev*.ts` without the leading slash they carry there now: git applies an unanchored rule under
 // `src/` too, and the age check must still count the sources it matches.

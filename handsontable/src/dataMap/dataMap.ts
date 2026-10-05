@@ -21,6 +21,7 @@ import { isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
+import { recordRemovedColumns, recordRemovedRows } from './dataJournal';
 import { colToPropOrIndex } from '../helpers/columnProp';
 
 /*
@@ -468,6 +469,16 @@ class DataMap {
 
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
+    if (numberOfCreatedRows > 0) {
+      // The index mapper already holds the new rows.
+      this.hot!._getOperationScope().record({
+        type: 'insertRows',
+        physicalIndex: physicalRowIndex,
+        amount: numberOfCreatedRows,
+        atAxisEnd: physicalRowIndex === this.hot!.rowIndexMapper.getNumberOfIndexes() - numberOfCreatedRows,
+      });
+    }
+
     const newVisualRowIndex = this.hot!.toVisualRow(physicalRowIndex);
 
     // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
@@ -546,6 +557,16 @@ class DataMap {
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
       numberOfSourceRows, numberOfCreatedCols
     );
+
+    if (numberOfCreatedCols > 0) {
+      // The index mapper takes the new columns below, after the record.
+      this.hot!._getOperationScope().record({
+        type: 'insertColumns',
+        physicalIndex: firstNewPhysicalColumnIndex,
+        amount: numberOfCreatedCols,
+        atAxisEnd: firstNewPhysicalColumnIndex === this.hot!.columnIndexMapper.getNumberOfIndexes(),
+      });
+    }
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -750,6 +771,8 @@ class DataMap {
     // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
     const numberOfRemovedIndexes = removedPhysicalIndexes.length;
 
+    // Journaled from the final list, after the hook widened it and before the rows go.
+    recordRemovedRows(this.hot!, removedPhysicalIndexes);
     this.#trackRemovedRows(removedPhysicalIndexes);
 
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
@@ -814,6 +837,7 @@ class DataMap {
       }
     }
 
+    recordRemovedColumns(this.hot!, data, removedPhysicalIndexes);
     this.#trackRemovedColumns(removedPhysicalIndexes);
 
     this.#spliceRemovedColumns(data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount);

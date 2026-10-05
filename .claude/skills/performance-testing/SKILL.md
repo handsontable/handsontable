@@ -206,8 +206,11 @@ These combine `scrollViewportTo()` with a deterministic `waitForFunction` that c
 | cell-editing | 5000x10 | selectCell + Enter + type + Enter x 20 | - |
 | initial-load | 100000x100 | `new Handsontable(...)` | Grid construction only |
 | source-data-validator-load | 100000x100 | `new Handsontable(...)` with `sourceDataValidator` | initial-load's fixture plus the one option |
+| undo-edit | 100000x100 | `undoRedo.undo()` of one cell edit | Hook timing; redo in `resetFn` |
+| undo-sort | 100000x100 | `undoRedo.undo()` of a sort | Hook timing; redo in `resetFn` |
+| undo-remove-rows | 100000x100 | `undoRedo.undo()` of a 100-row removal | Hook timing; redo in `resetFn` |
 
-Iterations: 3 for the scroll and cell-editing scenarios, 5 for filtering, sorting, initial-load and source-data-validator-load. Each of those four states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations are cheap next to the fixture load. `lib/__tests__/scenario-configs.test.mjs` pins the counts, so change the config and the test together. Do not raise the scroll scenarios: each iteration is 500 wheel round trips.
+Iterations: 3 for the scroll and cell-editing scenarios, 5 for filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort and undo-remove-rows. Each of those seven states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations are cheap next to the fixture load. `lib/__tests__/scenario-configs.test.mjs` pins the counts, so change the config and the test together. Do not raise the scroll scenarios: each iteration is 500 wheel round trips.
 
 ## Run Commands
 

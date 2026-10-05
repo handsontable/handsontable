@@ -252,6 +252,14 @@ collapsibleColumns: [
 
 :::
 
+The `row` coordinate is negative - counting from the first table row upwards - so `-1` points to the header row directly above the first table row, and `-4` points to the top header row of four nested levels. The `col` coordinate is the zero-based index of the column where the header starts.
+
+<span class="img-invert">
+
+![Diagram of the collapsibleColumns coordinate system: header-row indexes -4 to -1 counted from the first table row upwards, column indexes 0 to 6, and expand/collapse buttons at row -4, col 1 and at row -3, col 5](/img/collapsible_columns.svg)
+
+</span>
+
 ### Example
 
 ::: only-for javascript

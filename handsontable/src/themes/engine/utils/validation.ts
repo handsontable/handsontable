@@ -58,6 +58,8 @@ export const VALID_ICON_KEYS = new Set([
   'radio',
   'chipClose',
   'search',
+  'plus',
+  'menuList',
 ]);
 
 /**

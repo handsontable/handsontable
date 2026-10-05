@@ -47,6 +47,14 @@ export interface ResizeAxis {
    */
   afterResizeHook: 'afterRowResize' | 'afterColumnResize';
   /**
+   * The name of the undo step a resize is recorded as.
+   */
+  operationName: 'resize_row' | 'resize_column';
+  /**
+   * The source the undo step of a resize carries.
+   */
+  operationSource: string;
+  /**
    * Returns the index mapper of this axis.
    */
   getIndexMapper(hot: HotInstance): IndexMapper;
@@ -85,6 +93,8 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
   guideClassName: 'manualRowResizerGuide',
   beforeResizeHook: 'beforeRowResize',
   afterResizeHook: 'afterRowResize',
+  operationName: 'resize_row',
+  operationSource: 'manualRowResize.resize_row',
 
   getIndexMapper(hot) {
     return hot.rowIndexMapper;
@@ -167,6 +177,8 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
   guideClassName: 'manualColumnResizerGuide',
   beforeResizeHook: 'beforeColumnResize',
   afterResizeHook: 'afterColumnResize',
+  operationName: 'resize_column',
+  operationSource: 'manualColumnResize.resize_column',
 
   getIndexMapper(hot) {
     return hot.columnIndexMapper;

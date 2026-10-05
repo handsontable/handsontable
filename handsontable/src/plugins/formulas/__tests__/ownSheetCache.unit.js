@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { UndoRedo } from '../../undoRedo';
+import { ColumnSorting } from '../../columnSorting';
 
 /**
  * The `modifyData` hook runs once per cell of every bulk read, and it used to ask the engine whether
@@ -86,10 +87,9 @@ describe('Formulas own-sheet cache', () => {
   });
 
   /**
-   * Puts the two undo stacks out of step the way a shared-engine host does: a grid edit gives the
-   * grid an undo entry, and a sheet removal made on the engine directly lands on top of the
-   * engine's stack with no grid entry. The grid's next undo then runs `engine.undo()` against the
-   * sheet removal, which the engine performs through its UndoRedo operations - no sheet event.
+   * A grid edit gives the grid an undo step, and a sheet removal made on the engine directly lands on
+   * the engine's own stack only. The grid's undo never runs `engine.undo()`, so the sheet stays
+   * removed whatever the grid undoes.
    */
   function editThenRemoveSheetExternally() {
     hot.setDataAtCell(2, 0, 5);
@@ -98,30 +98,46 @@ describe('Formulas own-sheet cache', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('=A1+10');
   }
 
-  it('asks the engine again after an undo that restores the removed sheet', () => {
+  it('keeps reading the source after a grid undo and redo, which leave the removed sheet removed', () => {
     build();
     editThenRemoveSheetExternally();
 
     hot.getPlugin('undoRedo').undo();
 
-    expect(engine.doesSheetExist('Sheet1')).toBe(true);
-    expect(() => hot.getDataAtCell(0, 1)).not.toThrow();
-    expect(hot.getDataAtCell(0, 1)).toBe(11);
-  });
-
-  it('asks the engine again after a redo that removes the sheet', () => {
-    build();
-    editThenRemoveSheetExternally();
-
-    hot.getPlugin('undoRedo').undo();
-
-    expect(hot.getDataAtCell(0, 1)).toBe(11);
-
-    hot.getPlugin('undoRedo').redo();
-
+    expect(hot.getSourceDataAtCell(2, 0)).toBe(3);
     expect(engine.doesSheetExist('Sheet1')).toBe(false);
     expect(() => hot.getDataAtCell(0, 1)).not.toThrow();
     expect(hot.getDataAtCell(0, 1)).toBe('=A1+10');
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(hot.getSourceDataAtCell(2, 0)).toBe(5);
+    expect(engine.doesSheetExist('Sheet1')).toBe(false);
+    expect(hot.getDataAtCell(0, 1)).toBe('=A1+10');
+  });
+
+  // A structural undo reloads the engine's sheet, and the grid's order is sent to the engine: both
+  // have to leave a sheet the host removed alone.
+  it('undoes a row insertion after the bound sheet was removed from the engine directly', () => {
+    build();
+    hot.alter('insert_row_above', 0);
+    engine.removeSheet(engine.getSheetId('Sheet1'));
+
+    expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+    expect(hot.getSourceData()).toEqual([[1, '=A1+10'], [2, '=A2+10'], [3, '=A3+10']]);
+    expect(engine.doesSheetExist('Sheet1')).toBe(false);
+  });
+
+  it('undoes a sort after the bound sheet was removed from the engine directly', () => {
+    registerPlugin(ColumnSorting);
+    build();
+    hot.updateSettings({ columnSorting: true });
+    hot.getPlugin('undoRedo').clear();
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    engine.removeSheet(engine.getSheetId('Sheet1'));
+
+    expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
   });
 
   it('answers an out-of-bounds read from the source value without asking the engine', () => {

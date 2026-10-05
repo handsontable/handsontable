@@ -410,7 +410,7 @@ export function getProperty<T = unknown>(object: Record<string | symbol, unknown
  * @param {string} propName The own property name to write.
  * @param {*} value The value to write.
  */
-function writeOwnProperty(target: Record<string, unknown>, propName: string, value: unknown): void {
+export function writeOwnProperty(target: Record<string, unknown>, propName: string, value: unknown): void {
   if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
     // Security: prototype-polluting is not allowed
     return;

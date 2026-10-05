@@ -43,7 +43,7 @@ export function getPinnedPhysicalRows(
  *
  * At column level, `false` turns the filter UI off, and an object is read for `availableConditions`
  * only. The other sub-options are resolved once, for the whole grid, so they are silently dropped
- * from `columns` - and a user who found the per-column settings is likely to try them there too.
+ * from `columns` – and a user who found the per-column settings is likely to try them there too.
  */
 export function warnAboutPerColumnFilterSettings(scope: object, pluginKey: string) {
   warnOnce(scope, `perColumn.${pluginKey}`, toSingleLine`The \`${pluginKey}\` option set inside\x20

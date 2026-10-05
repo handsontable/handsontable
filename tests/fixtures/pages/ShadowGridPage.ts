@@ -14,6 +14,8 @@ export class ShadowGridPage {
   readonly bundle: string;
   /** Clipboard-event delivery mode: `'normal'`, or `'lws-shape'` to stand in for LWS. */
   readonly delivery: string;
+  /** Registers the `beforePasteParse` probe in the fixture. Off by default, so other specs paste with no callback. */
+  readonly pasteParseProbe: boolean;
   readonly grid: Locator;
   readonly beforeGrid: Locator;
   readonly cellWidgetButton: Locator;
@@ -25,8 +27,9 @@ export class ShadowGridPage {
   readonly commentTooltipInput: Locator;
   readonly otherShadowContent: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd', delivery = 'normal') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', delivery = 'normal', pasteParseProbe = false) {
     this.page = page;
+    this.pasteParseProbe = pasteParseProbe;
     this.theme = theme;
     this.bundle = bundle;
     this.delivery = delivery;
@@ -54,7 +57,7 @@ export class ShadowGridPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}&delivery=${this.delivery}`
+      `/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}&delivery=${this.delivery}${this.pasteParseProbe ? '&pasteParseProbe=1' : ''}`
     );
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -73,6 +76,24 @@ export class ShadowGridPage {
    */
   async pasteHookCalls(): Promise<number> {
     return this.page.evaluate(() => (window as any).__hotProbe.pasteHookCalls());
+  }
+
+  /**
+   * What each `beforePasteParse` call received, in order (fixture probe, DEV-2930). The length is
+   * the number of times the hook fired.
+   */
+  async beforePasteParseCalls(): Promise<Array<{
+    eventType: string | null;
+    eventIsClipboardEvent: boolean;
+    types: string[];
+    plain: string;
+  }>> {
+    return this.page.evaluate(() => (window as any).__hotProbe.beforePasteParseCalls());
+  }
+
+  /** Put plain text on the real clipboard (requires the clipboard permissions and a focused page). */
+  async writeClipboardText(text: string): Promise<void> {
+    await this.page.evaluate(value => navigator.clipboard.writeText(value), text);
   }
 
   /** A single data cell, by visual row/column, via its stable test id. */

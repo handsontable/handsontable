@@ -101,28 +101,22 @@ test.describe('moveCells undo/redo', () => {
     expect(await grid.cellValue(2, 2)).toBe(null);
   });
 
-  test('keeps the move available for redo when the redo is vetoed', async () => {
+  test('redo restores the moved state without asking beforeMoveCells again', async () => {
     await grid.moveCellRange([2, 2, 3, 3], [5, 5]);
     await grid.undo();
 
+    // The redo puts back the recorded state; it does not run the move again, so a veto the host
+    // adds after the move does not reach it. `beforeRedo` is the hook that can stop a redo.
     await grid.setBeforeMoveCellsVeto(true);
     await grid.redo();
 
-    // A rejected redo must put the action back on the undone stack, not swallow it.
-    expect(await grid.isRedoAvailable()).toBe(true);
-    expect(await grid.isUndoAvailable()).toBe(false);
-    expect(await grid.cellValue(2, 2)).toBe('R3C3');
-    expect(await grid.cellValue(5, 5)).not.toBe('R3C3');
-
-    await grid.setBeforeMoveCellsVeto(false);
-    await grid.redo();
-
+    expect(await grid.isRedoAvailable()).toBe(false);
     expect(await grid.doneActionsCount()).toBe(1);
     expect(await grid.cellValue(2, 2)).toBe(null);
     expect(await grid.cellValue(5, 5)).toBe('R3C3');
   });
 
-  test('does not register a second undo action when the redo re-runs the move', async () => {
+  test('does not register a second undo action when the redo restores the move', async () => {
     await grid.moveCellRange([2, 2, 3, 3], [5, 5]);
 
     expect(await grid.doneActionsCount()).toBe(1);
@@ -130,7 +124,7 @@ test.describe('moveCells undo/redo', () => {
     await grid.undo();
     await grid.redo();
 
-    // The redo calls `moveCellRange` again; its `afterMoveCells` must not record a fresh action.
+    // What the redo writes back must not be recorded as a fresh action.
     expect(await grid.doneActionsCount()).toBe(1);
   });
 });

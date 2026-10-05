@@ -231,15 +231,16 @@ describe('Filters UI cooperation with UndoRedo', () => {
 
     undoPlugin.undo();
 
-    // The condition is back and nothing matches it any more, so the grid shows no rows.
-    expect(countRows()).toBe(0);
+    // An undo puts back the grid as it was before the step, not the result of filtering again: the
+    // condition is back, and so is the one row it showed then - the edited one, although its new
+    // value no longer matches (editing a cell does not re-run the filter).
+    expect(filtersPlugin.exportConditions().length).toBe(1);
+    expect(getDataAtCol(2)).toEqual([null]);
 
     undoPlugin.undo();
 
-    // Restoring a trimmed row writes to the source data, which does not re-run the filter - so the
-    // grid still shows no rows. What matters is that the value went back to its own record, and
-    // that no row was invented to hold it.
-    expect(countRows()).toBe(0);
+    // The value went back to its own record, and no row was invented to hold it.
+    expect(getDataAtCol(2)).toEqual(['Gardiner']);
     expect(countSourceRows()).toBe(5);
 
     undoPlugin.undo();
