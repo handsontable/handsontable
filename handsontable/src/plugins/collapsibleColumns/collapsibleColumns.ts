@@ -8,11 +8,11 @@ import {
   eventTargetEl,
   hasClass,
   removeClass,
-  fastInnerText,
   removeAttribute,
   setAttribute
 } from '../../helpers/dom/element';
 import { throwWithCause } from '../../helpers/errors';
+import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   A11Y_EXPANDED,
@@ -26,6 +26,12 @@ export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
 const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
+/**
+ * The `syncIcon()` slot class of the collapse/expand icon inside the indicator.
+ *
+ * @type {string}
+ */
+const INDICATOR_ICON_SLOT_CLASS = 'collapsibleIndicator__icon';
 // Name of the hiding map that holds columns hidden by the per-child `visibleWhen` rules (issue
 // #10243). Kept separate from the main collapsed-columns map so `getCollapsedColumns()` and the
 // collapse hooks never report a column that is merely hidden in the expanded state.
@@ -942,6 +948,34 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
+   * Brings an indicator's content in line with its state: the '+'/'-' text, kept as a no-CSS
+   * fallback (`text-indent` and `font-size: 0` hide it visually), followed by one icon.
+   *
+   * This runs for every collapsible header on every draw, so it touches only what changed. The
+   * text node is updated in place and the icon goes through `syncIcon()`, which keeps the same
+   * element (and does not re-run a renderer callback) until the state or the theme's icon mapping
+   * changes. Emptying the indicator on each draw, which `fastInnerText()` does once the text has
+   * a sibling, rebuilt both nodes per header per scroll frame.
+   *
+   * @param {HTMLElement} indicator The `.collapsibleIndicator` element.
+   * @param {string} text The fallback text.
+   * @param {string} iconName The icon to show.
+   */
+  #syncIndicatorContent(indicator: HTMLElement, text: string, iconName: 'collapseOn' | 'collapseOff') {
+    const first = indicator.firstChild;
+
+    if (first?.nodeType === 3) {
+      if (first.textContent !== text) {
+        first.textContent = text;
+      }
+    } else {
+      indicator.insertBefore(this.hot.rootDocument.createTextNode(text), first);
+    }
+
+    syncIcon(this.hot, indicator, INDICATOR_ICON_SLOT_CLASS, iconName);
+  }
+
+  /**
    * Checks whether a group that starts at the column and spans `colspan` columns touches the
    * `fixedColumnsEnd` band. Such a group gets no toggle: collapsing it would move the band over other columns
    * (the same reason a group that starts in the `fixedColumnsStart` band gets none).
@@ -1000,8 +1034,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       if (isCollapsed) {
         addClass(el, 'collapsed');
-
-        fastInnerText(el, '+');
+        this.#syncIndicatorContent(el, '+', 'collapseOn');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -1010,8 +1043,7 @@ export class CollapsibleColumns extends BasePlugin {
 
       } else {
         addClass(el, 'expanded');
-
-        fastInnerText(el, '-');
+        this.#syncIndicatorContent(el, '-', 'collapseOff');
 
         // Add ARIA tags
         if (isAriaTagsEnabled) {
@@ -1035,9 +1067,11 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} coords Event coordinates.
    */
   #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
-    const target = eventTargetEl(event)!;
+    // Matched by ancestor, like every other icon host's gate: an icon renderer can put markup
+    // that takes pointer events inside the indicator, and a press on it must still toggle.
+    const target = eventTargetEl(event)?.closest<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-    if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
+    if (target) {
       if (hasClass(target, 'expanded')) {
         this.eventManager.fireEvent(target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'collapse');

@@ -6,6 +6,7 @@ import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { localeLowerCase } from '../../../helpers/string';
+import { linkIconSource } from '../../../themes/engine/icons';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
 import { InputUI } from './input';
@@ -382,6 +383,10 @@ export class MultipleSelectUI extends BaseUI {
       themeName: hot.getCurrentThemeName(),
       layoutDirection: hot.isRtl() ? 'rtl' : 'ltr',
     });
+    // The list is a nested instance, so it never gets a ThemeManager of its own (`core.ts` builds
+    // one for a root instance only). Linked before `init()` renders the first checkbox, so its
+    // ticks follow the grid's class-list or renderer mapping instead of the plain-glyph fallback.
+    linkIconSource(this.#itemsBox, hot);
     this.#itemsBox.init();
 
     const shortcutManager = this.#itemsBox.getShortcutManager();

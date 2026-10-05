@@ -10,6 +10,17 @@ import handsontableStyles from '../styles/handsontableStyles';
 const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
+ * Checks whether a value has the format of a theme class name (`ht-theme-<theme-name>`), the only
+ * format `StylesHandler#useTheme()` accepts.
+ *
+ * @param {unknown} themeName The value to check.
+ * @returns {boolean}
+ */
+export function isValidThemeName(themeName: unknown): themeName is string {
+  return typeof themeName === 'string' && /ht-theme-.*/.test(themeName);
+}
+
+/**
  * Handles the theme-related style operations.
  */
 export class StylesHandler {
@@ -267,7 +278,7 @@ export class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName: string | undefined | boolean) {
-    if (typeof themeName !== 'string' || !/ht-theme-.*/.test(themeName)) {
+    if (!isValidThemeName(themeName)) {
       warn(`${themeName} isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.`);
 
       return;

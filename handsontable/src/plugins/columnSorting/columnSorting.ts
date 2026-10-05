@@ -16,8 +16,11 @@ import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { createTrackedIconSync } from '../../themes/engine/icons';
 import {
   HEADER_SPAN_CLASS,
+  ASC_SORT_STATE,
+  DESC_SORT_STATE,
   getNextSortOrder,
   areValidSortStates,
   getHeaderSpanElement,
@@ -88,6 +91,13 @@ const SORT_FIXED_ROWS_DEFAULT = false;
  * what it must not do. A class rather than a `:has()` selector, which is banned in this package.
  */
 const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
+/**
+ * The `syncIcon()` slot class for the sort-direction arrow. Keeps exactly one icon element inside
+ * the header container across renders - created when the column becomes sorted, kept
+ * across re-renders while the direction is unchanged, replaced when the direction flips, and
+ * removed when the column is not showing an indicator.
+ */
+const SORT_INDICATOR_SLOT_CLASS = 'ht-sort-indicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 markBuiltInRootComparator(rootComparator, positionComparator);
@@ -207,6 +217,14 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
+   * `syncIcon()` for the sort arrow, remembering which headers ever got one. The header hook clears
+   * the slot on every unsorted column, so a header that never held an arrow skips the subtree
+   * query.
+   *
+   * @type {Function}
+   */
+  #syncIcon = createTrackedIconSync();
+  /**
    * Main settings key designed for the plugin.
    *
    * @private
@@ -308,6 +326,12 @@ export class ColumnSorting extends BasePlugin {
 
       this.updateHeaderClasses(headerSpanElement);
       this.#syncIndicatorReserve(headerSpanElement);
+
+      const container = headerSpanElement.parentElement;
+
+      if (container) {
+        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+      }
     };
 
     pluginConflictsState.delete(this.hot);
@@ -1066,6 +1090,25 @@ export class ColumnSorting extends BasePlugin {
     );
     this.#syncIndicatorReserve(headerSpanElement);
 
+    const container = headerSpanElement.parentElement;
+
+    if (container) {
+      const order = this.columnStatesManager?.getSortOrderOfColumn(column);
+      let iconName: 'arrowNarrowUp' | 'arrowNarrowDown' | null = null;
+
+      // With `headerAction: false` the label never gets `sortAction`, and 18.1 painted the arrow
+      // only on `.sortAction`, so such a column shows no indicator (its `aria-sort` stays set).
+      const indicatorVisible = showSortIndicator && headerActionEnabled;
+
+      if (indicatorVisible && order === ASC_SORT_STATE) {
+        iconName = 'arrowNarrowUp';
+      } else if (indicatorVisible && order === DESC_SORT_STATE) {
+        iconName = 'arrowNarrowDown';
+      }
+
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, iconName);
+    }
+
     if (this.hot.getSettings().ariaTags) {
       const currentSortState = this.columnStatesManager?.getSortOrderOfColumn(column);
 
@@ -1117,8 +1160,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     // `sortAction` is required: the CSS that pulls the indicator out of the flex row is keyed on
-    // it. With `headerAction: false` the label shows an indicator but keeps its full width, so
-    // reserving would just push it inwards.
+    // it, and with `headerAction: false` no indicator is rendered, so there is nothing to reserve.
     const showsIndicator = hasClass(headerSpanElement, HEADER_ACTION_CLASS) && (
       hasClass(headerSpanElement, HEADER_CLASS_ASC_SORT) ||
       hasClass(headerSpanElement, HEADER_CLASS_DESC_SORT)
@@ -1195,8 +1237,18 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettingsForColumn = columnSettings[this.pluginKey] as ColumnSortingPluginColumnSettings;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
+    const target = eventTargetEl(event)!;
+
+    // The indicator used to be a `::before` of the label, so a press on the arrow targeted the
+    // label itself. It is a sibling `<i>` now with its own hit surface, so accept it
+    // as a sort click too - otherwise the arrow becomes the one part of a sortable header that
+    // does not sort. Matched by ancestor, not by the target's own class: a theme `icons`
+    // renderer callback may put its own markup inside the `<i>` (an inline SVG, a ligature
+    // span), and a press then targets that child.
+    const pressedIndicator = target.closest(`.${SORT_INDICATOR_SLOT_CLASS}`) !== null;
+
     return (
-      headerActionEnabled && hasClass(eventTargetEl(event)!, HEADER_SPAN_CLASS)
+      headerActionEnabled && (hasClass(target, HEADER_SPAN_CLASS) || pressedIndicator)
     );
   }
 

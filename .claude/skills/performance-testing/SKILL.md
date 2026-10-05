@@ -6,73 +6,35 @@ description: Use when adding, modifying, or debugging Handsontable performance t
 
 # Performance Testing
 
-## Overview
+`performance-tests/` measures rendering and interaction performance with Playwright + CDP traces. It is a standalone package outside the pnpm workspace (own `package.json`, `node_modules`, ESLint config). Each scenario traces one interaction, parses the trace into DevTools categories (scripting, rendering, painting, idle), and produces a markdown PR comment plus an HTML report compared against a golden baseline from `develop`. Fuller reference: `performance-tests/README.md`.
 
-The `performance-tests/` package measures Handsontable rendering and interaction performance using Playwright + Chrome DevTools Protocol (CDP) traces. It is a **standalone package outside the pnpm workspace** -- it has its own `package.json`, `node_modules`, and ESLint config.
+## Package structure
 
-Each scenario traces a specific user interaction (scrolling, filtering, sorting, editing), parses the CDP trace into DevTools-equivalent categories (scripting, rendering, painting, idle), and produces a compact markdown PR comment plus a self-contained interactive HTML report comparing against a golden baseline from `develop`.
+`scripts/run.mjs` (build HOT UMD, copy to `fixtures/`, run Playwright), `scripts/replay-goldens.mjs` (replays gh-pages develop goldens to re-derive callout thresholds), `trace-parser.mjs`, `lib/` (`trace-runner.mjs` owns `HARNESS_VERSION`; `environment.mjs`, `snapshot-store.mjs`, `median-snapshot.mjs`, `thresholds.mjs`, `hook-timing.mjs`, `scroll-utils.mjs`, `fs-utils.mjs`, `teardown.mjs`, report builders), `scenarios/<name>/{scenario.config.mjs, fixture.html, <name>.spec.ts}`. Playwright runs sequentially, 1 worker, 5 min timeout, chromium only. `fixtures/`, `golden/` (fetched from gh-pages) and `output/` are gitignored.
 
-## Package Structure
+## Adding a scenario
 
-```
-performance-tests/
-  scripts/run.mjs           # Orchestrator: build HOT UMD -> copy to fixtures -> run Playwright
-  scripts/replay-goldens.mjs # Replays gh-pages develop goldens to re-derive the callout thresholds
-  playwright.config.ts       # Sequential, 1 worker, 5 min timeout, chromium only
-  trace-parser.mjs           # CDP trace -> DevTools-equivalent category breakdown
-  .eslintrc.js               # Extends root config, relaxes JSDoc/console/await-in-loop rules
-  lib/
-    setup.mjs                 # Playwright globalSetup: records Chromium build + machine to output/environment.json
-    environment.mjs           # Run provenance and the baseline compatibility key (Chromium, platform, harness version)
-    trace-runner.mjs          # CDP Tracing.start/stop + warmup/iteration loop + progress output; owns HARNESS_VERSION
-    hook-timing.mjs           # Hook pair timing (inject/get/save) for before/after measurements
-    snapshot-store.mjs        # Golden baseline save/load; refuses an incompatible baseline and says why
-    median-snapshot.mjs       # Synthesizes the rolling-median develop baseline (+ its run-to-run spread)
-    thresholds.mjs            # Shared classification logic (regression/improvement thresholds)
-    chart-generator.mjs       # Inline SVG horizontal bar charts (base64 data URIs)
-    report-builder.mjs        # Compact markdown PR comment (summary table + regression callouts)
-    html-report-builder.mjs   # Self-contained interactive HTML report (inline CSS + JS)
-    build-history-index.mjs   # Generates gh-pages history listing for develop runs
-    teardown.mjs              # Playwright globalTeardown: parse traces -> report
-    fs-utils.mjs              # Shared filesystem helpers (exists)
-    scroll-utils.mjs          # Scroll-and-wait helpers (scrollToRow, scrollToColumn)
-  scenarios/
-    <name>/
-      scenario.config.mjs     # { name, warmupRuns, iterations }
-      fixture.html             # Standalone HTML loading HOT UMD from ../../fixtures/
-      <name>.spec.ts           # Playwright test using runTracedScenario()
-  fixtures/
-    .gitkeep                   # Built JS/CSS copied here by run.mjs (gitignored)
-  golden/                      # Golden snapshots (gitignored, fetched from gh-pages branch)
-  output/                      # Trace JSONs + result.md + report.html (gitignored)
-```
-
-## Adding a New Scenario
-
-Every scenario needs exactly three files in `scenarios/<name>/`:
+Three files in `scenarios/<name>/`.
 
 ### 1. scenario.config.mjs
 
 ```js
 // Grid: <rows> x <cols> -- <rationale for this grid size>
 export default {
-  name: 'my-scenario',
+  name: 'my-scenario',   // must equal the directory name
   warmupRuns: 1,
   iterations: 3,
-  // Bump when this spec changes what the marked window contains, or when `iterations` changes: the
-  // median baseline only draws on develop goldens recorded at the same version (see
-  // lib/environment.mjs).
   measurementVersion: 1,
 };
 ```
 
-`measurementVersion` covers everything scenario-local that changes the published number or its spread: the window's contents, and the iteration count (a mean of five and a mean of three have the same expected value but different spreads, and `CV run` would mean something different per row). `HARNESS_VERSION` covers runner-wide changes. When both change in one PR, the harness bump already restarts the whole golden pool and the scenario bump is not needed on top; say so in the config comment.
+`name` determines `output/<name>/`, and teardown reads `measurementVersion` by that name. Comment the grid size and why.
 
-The `name` must match the directory name -- it determines the `output/<name>/` subdirectory, and the teardown reads `measurementVersion` from the config by that name. Add a comment documenting the grid size and why it was chosen.
+Bump `measurementVersion` when the spec changes what the marked window contains or when `iterations` changes: the median baseline draws only on develop goldens at the same version. `HARNESS_VERSION` covers runner-wide changes; when both change in one PR the harness bump already restarts the golden pool, so skip the scenario bump and say so in the config comment.
 
 ### 2. fixture.html
 
-A standalone HTML file that creates a Handsontable instance and exposes it as `window.__hot`:
+Standalone page that exposes the instance as `window.__hot`:
 
 ```html
 <!DOCTYPE html>
@@ -84,32 +46,22 @@ A standalone HTML file that creates a Handsontable instance and exposes it as `w
   <script src="../../fixtures/handsontable.full.js"></script>
 </head>
 <body>
-  <div id="hot"></div>
-  <script>
-    const hot = new Handsontable(document.getElementById('hot'), {
-      data: Handsontable.helper.createSpreadsheetData(5000, 10),
-      rowHeaders: true,
-      colHeaders: true,
-      width: 1280,
-      height: 600,
-      autoRowSize: false,
-      autoColumnSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
-      // Add scenario-specific options (filters, columnSorting, etc.)
-    });
-    window.__hot = hot;
-  </script>
+<div id="hot"></div>
+<script>
+  window.__hot = new Handsontable(document.getElementById('hot'), {
+    data: Handsontable.helper.createSpreadsheetData(5000, 10),
+    rowHeaders: true, colHeaders: true, width: 1280, height: 600,
+    autoRowSize: false, autoColumnSize: false,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+</script>
 </body>
 </html>
 ```
 
-Important rules for fixtures:
-- Always set `autoRowSize: false` and `autoColumnSize: false` -- these async plugins interfere with measurements.
-- CSS path is `../../fixtures/handsontable.css` (not `handsontable.full.css`).
-- JS path is `../../fixtures/handsontable.full.js`.
-- Always expose the instance as `window.__hot`.
+Set `autoRowSize: false` and `autoColumnSize: false` (async sizing interferes with measurements). CSS is `handsontable.css` (no `full` CSS variant); JS is `handsontable.full.js`.
 
-### 3. Spec file (`<name>.spec.ts`)
+### 3. Spec
 
 ```ts
 import { test } from '@playwright/test';
@@ -122,207 +74,107 @@ const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
   await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
-
-  // Optional pre-trace setup (e.g., scroll to position)
-
   await runTracedScenario({
     page,
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir: path.resolve('output', config.name),
-    actionFn: async() => {
-      // The measured action goes here
-    },
-    // Optional: resetFn to restore state between iterations
+    actionFn: async() => { /* measured action */ },
+    // optional: setupFn, resetFn, afterActionFn, skipSettle
   });
 });
 ```
 
-The `runTracedScenario` function handles:
-- Creating the output directory
-- Running warmup iterations (no tracing) with progress output
-- Running measured iterations with CDP tracing and heartbeat dots
-- Writing trace JSON files as `iteration-{n}.json`
+`runTracedScenario` creates the output dir, runs untraced warmups, runs traced iterations, and writes `iteration-{n}.json`. Add a `resetFn` for repeatable actions, otherwise iterations 2+ start from iteration 1's end state.
 
-### Adding hook timing (filtering/sorting scenarios)
-
-For scenarios that measure a specific hook pair (e.g., `beforeFilter` -> `afterFilter`):
+### Hook timing (filtering/sorting)
 
 ```ts
 import { injectHookTimer, getHookTiming, saveHookTimings } from '../../lib/hook-timing.mjs';
 
-// Before tracing, inject the timer:
-await injectHookTimer(page, 'beforeFilter', 'afterFilter');
-
+await injectHookTimer(page, 'beforeFilter', 'afterFilter');   // before tracing; call again in resetFn (idempotent, resets the store)
 const hookDeltas: number[] = [];
-const outputDir = path.resolve('output', config.name);
 
-// In afterActionFn -- NOT actionFn. getHookTiming is a page.evaluate, and inside
-// actionFn its CDP round trip falls inside the marked window, so it is measured as
-// part of the operation on measured iterations only:
-afterActionFn: async() => {
+// in runTracedScenario:
+afterActionFn: async() => {   // afterActionFn, because getHookTiming is a page.evaluate and inside actionFn its CDP round trip is measured as part of the operation
   const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
-  if (timing.deltaMs != null) {
-    hookDeltas.push(timing.deltaMs);
-  }
+  if (timing.deltaMs != null) hookDeltas.push(timing.deltaMs);
 },
 
-// Inside resetFn, call injectHookTimer again to reset the store
-// (it is idempotent -- prevents duplicate listener registration):
-await injectHookTimer(page, 'beforeFilter', 'afterFilter');
-
-// After runTracedScenario, save hook timing:
-await saveHookTimings(outputDir, hookDeltas);
+await saveHookTimings(path.resolve('output', config.name), hookDeltas); // writes hook-timing.json; teardown picks it up
 ```
 
-The `saveHookTimings` helper computes the average and writes `hook-timing.json`. The teardown automatically picks it up from each scenario directory.
+### Scroll helpers
 
-### Using scroll helpers
+`scrollToRow(page, row)` and `scrollToColumn(page, col)` from `lib/scroll-utils.mjs` combine `scrollViewportTo()` with a deterministic `waitForFunction` on the index mapper; use them in place of `waitForTimeout`.
 
-For scenarios that need to pre-scroll the grid (e.g., scroll-up starts from the bottom):
+## Existing scenarios
 
-```ts
-import { scrollToRow, scrollToColumn } from '../../lib/scroll-utils.mjs';
+Listed under `scenarios/`: scroll-down/up/right/left (500 wheel events each; up and left pre-scroll via `scrollToRow`/`scrollToColumn`), filtering, sorting, cell-editing (5000x10), initial-load, source-data-validator-load (initial-load's fixture plus the one option), undo-edit, undo-sort, undo-remove-rows (redo in `resetFn`). Filtering, sorting and the undo scenarios use hook timing. Grids are 10000x50 (vertical scroll), 10x5000 (horizontal scroll), 100000x100 (the rest).
 
-// Scroll to row 4999 and wait until it's rendered (no arbitrary timeouts)
-await scrollToRow(page, 4999);
+Iterations: 3 for scroll and cell-editing; 5 for filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows. Each of those seven states its reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor). `lib/__tests__/scenario-configs.test.mjs` pins the counts, so change config and test together. Keep the scroll scenarios at 3: each iteration is 500 wheel round trips.
 
-// Or scroll to column 4999
-await scrollToColumn(page, 4999);
-```
-
-These combine `scrollViewportTo()` with a deterministic `waitForFunction` that checks the index mapper -- always use them instead of `waitForTimeout`.
-
-## Existing Scenarios
-
-| Scenario | Grid size | Action | Special |
-|---|---|---|---|
-| scroll-down | 10000x50 | `mouse.wheel(0, 350)` x 500 | - |
-| scroll-up | 10000x50 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom via `scrollToRow` |
-| scroll-right | 10x5000 | `mouse.wheel(350, 0)` x 500 | - |
-| scroll-left | 10x5000 | `mouse.wheel(-350, 0)` x 500 | Pre-scrolls to right via `scrollToColumn` |
-| filtering | 100000x100 | `filters.addCondition` + `filter()` | Hook timing |
-| sorting | 100000x100 | `columnSorting.sort()` asc/desc alternating | Hook timing |
-| cell-editing | 5000x10 | selectCell + Enter + type + Enter x 20 | - |
-| initial-load | 100000x100 | `new Handsontable(...)` | Grid construction only |
-| source-data-validator-load | 100000x100 | `new Handsontable(...)` with `sourceDataValidator` | initial-load's fixture plus the one option |
-| undo-edit | 100000x100 | `undoRedo.undo()` of one cell edit | Hook timing; redo in `resetFn` |
-| undo-sort | 100000x100 | `undoRedo.undo()` of a sort | Hook timing; redo in `resetFn` |
-| undo-remove-rows | 100000x100 | `undoRedo.undo()` of a 100-row removal | Hook timing; redo in `resetFn` |
-
-Iterations: 3 for the scroll and cell-editing scenarios, 5 for filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort and undo-remove-rows. Each of those seven states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations are cheap next to the fixture load. `lib/__tests__/scenario-configs.test.mjs` pins the counts, so change the config and the test together. Do not raise the scroll scenarios: each iteration is 500 wheel round trips.
-
-## Run Commands
+## Run commands
 
 ```bash
-# Full pipeline (build HOT + copy fixtures + run all scenarios)
-cd performance-tests && node scripts/run.mjs
-
-# Run specific scenario only (fixtures must exist)
-npx playwright test --grep "scroll-down"
-
-# Golden mode (saves baseline snapshot)
-PERF_MODE=golden node scripts/run.mjs
-
-# Compare mode (loads golden, generates delta report)
-PERF_MODE=compare node scripts/run.mjs
-
-# Lint
+cd performance-tests && node scripts/run.mjs        # build HOT + copy fixtures + run all
+npx playwright test --grep "scroll-down"            # one scenario (fixtures must exist)
+PERF_MODE=golden node scripts/run.mjs               # save baseline snapshot
+PERF_MODE=compare node scripts/run.mjs              # load golden, generate delta report
 npm run lint
-
-# Type-check spec files
-npm run typecheck
+npm run typecheck                                   # spec files
 ```
 
-Build artifacts (`handsontable/dist/` and `handsontable/styles/`) must exist before running tests directly with `npx playwright test`. The `scripts/run.mjs` orchestrator handles building automatically.
+`handsontable/dist/` and `handsontable/styles/` must exist before running `npx playwright test` directly; `scripts/run.mjs` builds them.
 
-## CI Workflow
+## CI workflow
 
-The GitHub Actions workflow (`.github/workflows/performance-tests.yml`) operates in two modes:
+`.github/workflows/performance-tests.yml`:
 
-- **`push` to `develop`**: Runs all scenarios in `golden` mode, deploys `snapshots.json` + `report.html` to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. Updates `latest.json` as a pointer for PR comparisons. Builds a history index page listing all past runs with their commit, Chromium build and CPU. The run is also **compared against the trailing median** of compatible develop goldens, for its report, the job summary and one `::warning` annotation per regressed scenario -- so a shift on develop is seen on the develop run that introduced it. The snapshot it saves is never derived from history (teardown saves before it loads).
-- **`pull_request`**: Fetches the last 20 develop goldens from `gh-pages` into `golden/history/` (plus `latest.json` as a single-file fallback), runs all scenarios in `compare` mode, posts a compact sticky PR comment with a summary table and regression callouts, and deploys the full HTML report to `performance-reports/<branch-slug>/` on GitHub Pages.
+- **`push` to `develop`**: runs all scenarios in `golden` mode, deploys `snapshots.json` + `report.html` to `gh-pages` under `performance-reports/develop/<timestamp>/`, updates `latest.json` (the pointer for PR comparisons), and builds a history index page. The run is also compared against the trailing median of compatible develop goldens, for its report, job summary and one `::warning` annotation per regressed scenario. The snapshot it saves is never derived from history (teardown saves before it loads).
+- **`pull_request`**: fetches the last 20 develop goldens into `golden/history/` (plus `latest.json` as a single-file fallback), runs all scenarios in `compare` mode, posts a sticky PR comment (summary table + regression callouts), and deploys the HTML report to `performance-reports/<branch-slug>/`.
 
-Push retries with rebase (up to 3 attempts) protect against concurrent gh-pages writes.
+Push retries with rebase (up to 3 attempts) for concurrent gh-pages writes.
 
 ### Baseline compatibility and provenance
 
-Replaying the develop goldens showed that the numbers move for reasons unrelated to the grid: a Playwright bump (new Chromium) shifted initial-load by -18% and sorting by -20% in one develop push, and the median-of-5 baseline carried the old browser's numbers for five more pushes, so unrelated PRs were told they had regressed. Three mechanisms now address that, all in `lib/environment.mjs`:
+All in `lib/environment.mjs`. A Playwright bump (new Chromium) once shifted initial-load by -18% and sorting by -20% in one develop push, and the median-of-5 baseline carried the old browser's numbers for five more pushes.
 
-- **Provenance.** `lib/setup.mjs` (Playwright `globalSetup`) records the Chromium build (`browser.version()`), CPU model and count, memory, platform and the GitHub runner image into `output/environment.json`. The teardown stamps it on the snapshot (`environment`, `harnessVersion`) and both reports print it in their footer.
-- **Compatibility key.** `{ chromium, platform, harnessVersion }` at the snapshot level, `measurementVersion` per scenario. `computeMedianSnapshot(..., { compatibleWith })` draws only on goldens with the same key, and within a scenario only on entries at the same `measurementVersion`. A golden recorded before provenance existed has no key and is excluded by the absence of the fields, like a pre-marks golden is by `windowSource`. With no compatible golden at all the comment says "no comparable baseline" and why (`describeKeyMismatch`, or one of `BASELINE_REFUSALS` in `snapshot-store.mjs`: empty history, no marks-valid golden, every scenario redefined, disjoint scenarios, an empty `latest.json`). With exactly one, the single-file fallback serves and the footer says "single develop run"; the median needs two. So deltas resume with the next develop push, and as a median once two have run. **Bump `HARNESS_VERSION` in `trace-runner.mjs`** when the runner changes what a window contains (settle, GC between iterations, work moved in or out); **bump a scenario's `measurementVersion`** when only that spec's definition changes.
-- **Run shift.** The comment's `Δ vs shift` column and the footer's `Run shift` line name the median delta across scenarios: how much faster or slower this runner ran than the baseline's, which every scenario shares (the per-run factor spans 0.63x-1.12x across develop goldens and removing it takes the scroll scenarios' run-to-run CV from ~13% to ~3%). It is reported, never gated on: the callouts fire on the raw `Δ Total`, because a change that slows every scenario alike is exactly what a median cannot see.
+- **Provenance.** `lib/setup.mjs` (Playwright `globalSetup`) records the Chromium build (`browser.version()`), CPU model and count, memory, platform and GitHub runner image into `output/environment.json`. Teardown stamps it on the snapshot (`environment`, `harnessVersion`); both reports print it in the footer.
+- **Compatibility key.** `{ chromium, platform, harnessVersion }` per snapshot, `measurementVersion` per scenario. `computeMedianSnapshot(..., { compatibleWith })` draws only on goldens with the same key, and within a scenario only on entries at the same `measurementVersion`. A golden without the provenance fields is excluded, as a pre-marks golden is by `windowSource`. With no compatible golden the comment says "no comparable baseline" and why (`describeKeyMismatch`, or one of `BASELINE_REFUSALS` in `snapshot-store.mjs`: empty history, no marks-valid golden, every scenario redefined, disjoint scenarios, empty `latest.json`). With exactly one, the single-file fallback serves and the footer says "single develop run"; the median needs two. **Bump `HARNESS_VERSION` in `trace-runner.mjs`** when the runner changes what a window contains (settle, GC between iterations, work moved in or out); **bump a scenario's `measurementVersion`** when only that spec's definition changes.
+- **Run shift.** The comment's `Δ vs shift` column and the footer's `Run shift` line give the median delta across scenarios (how much faster or slower this runner ran than the baseline's; the per-run factor spans 0.63x-1.12x across develop goldens, and removing it takes the scroll scenarios' CV from ~13% to ~3%). It is reported only; callouts fire on the raw `Δ Total`, because a change that slows every scenario alike is invisible to a median.
 
-`scripts/replay-goldens.mjs` groups goldens by key before replaying, so a replay across a platform or Chromium change never medians two environments together; its `Compatibility groups` block shows how many goldens sit in each.
+`scripts/replay-goldens.mjs` groups goldens by key before replaying; its `Compatibility groups` block shows the counts per group.
 
-## The Trace Pipeline
-
-Understanding the data flow helps when debugging or extending:
+## The trace pipeline
 
 ### The measured window (read before adding a scenario)
 
-Everything published describes the slice between the two `performance.mark`s that
-`runTracedScenario()` writes around the action. Two rules follow:
+Everything published describes the slice between the two `performance.mark`s that `runTracedScenario()` writes around the action.
 
-- **No harness round trips inside `actionFn`.** A `page.evaluate` that reads a value back
-  is measured as part of the operation. Put readbacks in `afterActionFn`, which runs after
-  the end mark.
-- **A `resetFn` must leave no frame behind.** The runner settles after `setupFn` and
-  `resetFn` for this reason, and `skipSettle` does not turn those off. Note that
-  `scrollToRow`/`scrollToColumn` report trimming, not scroll position, so their
-  `waitForFunction` returns before the scroll has rendered.
+- Keep harness round trips out of `actionFn`: a `page.evaluate` that reads a value back is measured as part of the operation. Put readbacks in `afterActionFn`, which runs after the end mark.
+- A `resetFn` must leave no frame behind. The runner settles after `setupFn` and `resetFn`, and `skipSettle` does not turn those off. `scrollToRow`/`scrollToColumn` report trimming, not scroll position, so their `waitForFunction` returns before the scroll has rendered.
 
-A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero iteration among
-zeros, with the sample standard deviation `calcCv` uses: `173.21%` at three iterations, `223.61%`
-at five), means the window is wrong -- not that the operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero iteration among zeros: `173.21%` at three iterations, `223.61%` at five, using the sample standard deviation `calcCv` uses), means the window is wrong, not that the operation was cheap.
 
-1. **Spec** calls `runTracedScenario()` -> forced GC (over a control CDP session), CDP `Tracing.start`, start mark, action, settle, end mark, `afterActionFn`, forced GC + `Runtime.getHeapUsage` readback, `Tracing.end` -> raw JSON per iteration, plus `heap-after-gc.json` for the scenario. The GC before tracing keeps the previous reset's garbage out of the window (initial-load's third iteration read ~50% slower than its first two before it); the readback after the end mark is the live set, recorded as `updateCounters.jsHeapAfterGcBytes`. Both are part of `HARNESS_VERSION` 2.
-2. **Teardown** (`lib/teardown.mjs`) discovers `output/*/iteration-*.json`, calls `parseTrace()` from `trace-parser.mjs`
-3. **trace-parser.mjs** categorizes events into DevTools categories (scripting, rendering, painting, loading, system, idle), measures the window `runTracedScenario()` marked around the action (falling back to the auto-zoomed window only for traces recorded without marks), synthesizes ProfileCall scripting from CPU profile data
-4. **Teardown** averages across iterations via `averageParsedTraces()`, collects per-iteration values for CV% calculation, strips internal fields (`_iterationValues`, `_debug`) from saved snapshots
-5. **report-builder.mjs** assembles a compact markdown PR comment; **html-report-builder.mjs** generates a full interactive HTML report with inline SVG charts from **chart-generator.mjs**
-6. If `PERF_MODE=golden`: `snapshot-store.mjs` saves averaged results, deployed to gh-pages
-7. If `PERF_MODE=compare`: teardown loads golden from gh-pages, report shows deltas
+1. **Spec** calls `runTracedScenario()`: forced GC (over a control CDP session), `Tracing.start`, start mark, action, settle, end mark, `afterActionFn`, forced GC + `Runtime.getHeapUsage` readback, `Tracing.end` -> raw JSON per iteration, plus `heap-after-gc.json` per scenario. The GC before tracing keeps the previous reset's garbage out of the window (initial-load's third iteration read ~50% slower before it); the readback is recorded as `updateCounters.jsHeapAfterGcBytes`. Both are part of `HARNESS_VERSION` 2.
+2. **Teardown** (`lib/teardown.mjs`) runs `parseTrace()` (`trace-parser.mjs`) on `output/*/iteration-*.json`, measuring the marked window (the auto-zoomed window only for traces recorded without marks), averages via `averageParsedTraces()`, collects per-iteration values for CV%, and strips `_iterationValues` and `_debug` from saved snapshots.
+3. `PERF_MODE=golden`: `snapshot-store.mjs` saves averaged results for gh-pages. `PERF_MODE=compare`: teardown loads the golden and the report shows deltas.
 
-## Shared Utilities
+## Shared utilities
 
-The `lib/` directory provides reusable helpers to avoid duplication across scenarios:
+Import from `lib/` (`fs-utils.mjs` `exists`, `scroll-utils.mjs`, `hook-timing.mjs`, `environment.mjs`, `thresholds.mjs`) in specs and scripts. `thresholds.mjs` is the single source of the callout thresholds and colour bands: reference them from there, never restate either number elsewhere, and derive any retune from `scripts/replay-goldens.mjs`, never by eye. Heap has per-scenario overrides in `HEAP_THRESHOLDS_BY_SCENARIO` (the horizontal-scroll scenarios' peak heap is GC timing, CV 4.4-6.3%); read them through `heapThresholdFor(name)`. Never read `REGRESSION_CALLOUT_THRESHOLD_HEAP` directly at a render site: a bypass disagrees with the callouts.
 
-| Module | Exports | Purpose |
-|---|---|---|
-| `fs-utils.mjs` | `exists(path)` | Async file existence check (used by teardown, snapshot-store, run.mjs) |
-| `scroll-utils.mjs` | `scrollToRow(page, row)`, `scrollToColumn(page, col)` | Scroll + deterministic wait for renderable index |
-| `thresholds.mjs` | `pctChange()`, `classifyChange()`, `sumActiveComparable()`, `calcCv()`, `heapThresholdFor()`, `runShift()`, `relativeToShift()`, `fmtMs()`, `fmtPct()`, `fmtCv()`, etc. | Shared classification and formatting for both report builders. The single source of the callout thresholds and colour bands: never restate either number elsewhere, and never retune one by eye (see `scripts/replay-goldens.mjs`). Heap has per-scenario overrides in `HEAP_THRESHOLDS_BY_SCENARIO` (the horizontal-scroll scenarios' peak heap is GC timing, CV 4.4-6.3%); read them through `heapThresholdFor(name)` |
-| `environment.mjs` | `collectEnvironment()`, `baselineKey()`, `isCompatibleBaseline()`, `describeKeyMismatch()`, `formatEnvironment()`, `currentKey()` | Run provenance and the baseline compatibility key; see [Baseline compatibility and provenance](#baseline-compatibility-and-provenance) |
-| `hook-timing.mjs` | `injectHookTimer()`, `getHookTiming()`, `saveHookTimings()` | Hook pair timing injection, retrieval, and persistence |
+## .mjs convention
 
-Always import from these shared modules rather than duplicating logic in scenario specs.
+Follow `node-scripts-dev`. `.mjs` files are plain JavaScript: use `/** @type {any} */ (window)` JSDoc casts instead of `as any`.
 
-## .mjs Convention
-
-All `.mjs` files in this package follow the `node-scripts-dev` skill conventions:
-- `node:` prefix for builtins
-- `node:fs/promises` async APIs (never sync)
-- `import.meta.dirname` for paths
-- `join()` from `node:path` for cross-platform paths
-- **No TypeScript syntax** -- `.mjs` files are plain JavaScript. Use `/** @type {any} */` JSDoc casts, not `as any`.
-
-## Common Mistakes
+## Common mistakes
 
 | Mistake | Fix |
 |---|---|
-| Using `handsontable.full.css` in fixture | Use `handsontable.css` -- there is no `full` CSS variant |
-| Forgetting `autoRowSize: false` | Always disable -- async sizing interferes with measurements |
-| Scenario name doesn't match directory name | The `name` in config must match the directory name exactly |
-| Running `npx playwright test` without built fixtures | Run `node scripts/run.mjs` or build HOT first and copy dist files |
-| Using sync fs APIs in `.mjs` files | Use `node:fs/promises` async APIs |
-| Missing `window.__hot` in fixture | The spec's `waitForFunction` and `page.evaluate` depend on it |
-| Forgetting `resetFn` when measuring repeatable actions | Without reset, iterations 2+ start from the end state of iteration 1 |
-| `waitForFunction()` without `{ polling }` | The rAF default is starved on a loaded machine and times out on a healthy page. Pass `undefined, { polling: 100 }`; the tier's eslint config bans the default |
-| Using `waitForTimeout()` for scroll/render waits | Use `scrollToRow()` / `scrollToColumn()` from `lib/scroll-utils.mjs`, or `waitForFunction` with a renderable index check |
-| Manually writing `hook-timing.json` with `writeFile` | Use `saveHookTimings(outputDir, deltas)` from `lib/hook-timing.mjs` |
-| Using TypeScript syntax (`as any`) in `.mjs` files | Use JSDoc casts: `/** @type {any} */ (window)` -- `.mjs` is not transpiled |
-| Defining `exists()` locally in a new `.mjs` file | Import from `lib/fs-utils.mjs` -- it is the single source |
-| Changing what a window contains without bumping a version | Bump `HARNESS_VERSION` (`lib/trace-runner.mjs`) for a runner change, or the scenario's `measurementVersion` for a spec change; otherwise the median window averages two definitions of the scenario for five develop pushes |
-| Reading `REGRESSION_CALLOUT_THRESHOLD_HEAP` directly at a render site | Use `heapThresholdFor(name)` -- two scenarios carry a wider band, and a site that bypasses it disagrees with the callouts |
-| Gating a callout on `Δ vs shift` | Never. The shift is a median across scenarios, blind to a uniform regression; it is shown beside the raw delta so a reader can weigh it, not used to suppress anything |
+| `npx playwright test` without built fixtures | Run `node scripts/run.mjs` or build HOT and copy dist files |
+| `waitForFunction()` without `{ polling }` | The rAF default is starved on a loaded machine. Pass `undefined, { polling: 100 }`; the tier's eslint config bans the default |
+| `waitForTimeout()` for scroll/render waits | `scrollToRow()` / `scrollToColumn()`, or `waitForFunction` with a renderable-index check |
+| Changing a window's contents without a version bump | Bump `HARNESS_VERSION` (`lib/trace-runner.mjs`) for a runner change, or the scenario's `measurementVersion` for a spec change; otherwise the median averages two definitions of the scenario for five develop pushes |
+| Gating a callout on `Δ vs shift` | Gate on the raw delta; the shift is a median across scenarios and is shown beside it for the reader to weigh |
