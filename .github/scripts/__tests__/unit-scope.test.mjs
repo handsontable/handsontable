@@ -18,10 +18,12 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // This pins the filter to what the Jest run loads. The walk starts at every test
 // the Jest config collects, every file the config and the `test:unit` task name,
 // every Babel config babel-jest can read, and every manual mock, then follows
-// static relative imports through `src/` and out of it. A moved directory, a new
-// setup file, a new import outside the route, or a narrowed entry fails here. It
-// lives in the tooling suite rather than next to the tests it routes, because a
-// pull request that edits only checks.yml never routes Unit.
+// static imports the way Jest resolves them: through `moduleNameMapper` first
+// (`handsontable/...`, `walkontable/...`), else relative to the importing file,
+// through `src/` and out of it. A moved directory, a new setup file, a new import
+// outside the route, or a narrowed entry fails here. It lives in the tooling
+// suite rather than next to the tests it routes, because a pull request that
+// edits only checks.yml never routes Unit.
 //
 // Limits: a path built at run time (a template literal, `require(join(dir,
 // name))`) is invisible to the walk, and a Jest config key this test does not
@@ -59,9 +61,13 @@ const SPECIFIER_LEADS = [
   /\bjest\.(?:mock|doMock|unmock|setMock|requireActual|requireMock|createMockFromModule)\s*\(\s*/,
   /\bextends:\s*\[?\s*/,
 ];
-const RELATIVE_SPECIFIER = new RegExp(
-  `(?:${SPECIFIER_LEADS.map(lead => lead.source).join('|')})['"](\\.\\.?\\/[^'"\\n]*)['"]`, 'g'
+const SPECIFIER = new RegExp(
+  `(?:${SPECIFIER_LEADS.map(lead => lead.source).join('|')})['"]([^'"\\n]+)['"]`, 'g'
 );
+// Jest maps every specifier through `moduleNameMapper` first, a relative one included: the first
+// pattern that matches replaces the whole specifier with its target, `$n` filled in from the match.
+const MODULE_MAPPINGS = Object.entries(jestConfig.moduleNameMapper ?? {})
+  .map(([pattern, target]) => ({ pattern: new RegExp(pattern), targets: [target].flat() }));
 // Jest's default module file extensions, then the same names as a directory index.
 const MODULE_EXTENSIONS = ['.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx', '.json'];
 const RESOLVE_SUFFIXES = ['', ...MODULE_EXTENSIONS, ...MODULE_EXTENSIONS.map(extension => `/index${extension}`)];
@@ -217,8 +223,8 @@ function filterGlobs(filters, name, via = []) {
 
     const match = line.match(GLOB_ENTRY);
 
-    assert.ok(match, `checks.yml: the ${name} filter, which ${UNIT_FILTER} takes in, has the entry `
-      + `${JSON.stringify(line.trim())}, which this test cannot read`);
+    assert.ok(match, `checks.yml: the ${name} filter has the entry ${JSON.stringify(line.trim())}, `
+      + 'which this test cannot read');
 
     const glob = match[1] ?? match[2] ?? match[3];
 
@@ -285,13 +291,52 @@ function jestTests(tracked) {
 }
 
 /**
- * Every tracked file `start` loads through static relative imports, transitively, with the file
- * that first imported it. An untracked target (build output) is skipped, since no pull request
- * can change it.
+ * The tracked file a specifier in `from` resolves to, the way Jest resolves it: through the first
+ * `moduleNameMapper` pattern that matches, else relative to `from` (`'.'` and `'..'` included). A
+ * package name, or a path to an untracked file such as build output, resolves to nothing, since no
+ * pull request can change it.
+ *
+ * @param {string} from The importing file, relative to the repository root.
+ * @param {string} specifier The module path as written.
+ * @param {Set<string>} tracked The tracked files.
+ * @returns {{file: string, mapped: boolean}|null} The file, and whether a mapping produced it.
+ */
+function resolveSpecifier(from, specifier, tracked) {
+  const mapping = MODULE_MAPPINGS.find(({ pattern }) => pattern.test(specifier));
+  let bases = [];
+
+  if (mapping) {
+    const match = specifier.match(mapping.pattern);
+
+    bases = mapping.targets
+      .map(target => target.replace(/\$(\d+)/g, (_, index) => match[Number(index)] ?? ''))
+      .filter(target => target.startsWith('<rootDir>/'))
+      .map(fromRootDir);
+  } else if (/^\.\.?(?:\/|$)/.test(specifier)) {
+    bases = [path.posix.join(path.posix.dirname(from), specifier)];
+  }
+
+  for (const base of bases) {
+    // `'../../'` imports the directory's index; join() keeps the trailing slash.
+    const trimmed = base.replace(/\/+$/, '');
+    const file = RESOLVE_SUFFIXES.map(suffix => `${trimmed}${suffix}`).find(candidate => tracked.has(candidate));
+
+    if (file) {
+      return { file, mapped: Boolean(mapping) };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Every tracked file `start` loads through static imports, transitively, with the file that first
+ * imported it and whether that import went through `moduleNameMapper`.
  *
  * @param {string[]} start The files the walk begins at.
  * @param {Set<string>} tracked The tracked files.
- * @returns {Map<string, string|null>} Each reached file, mapped to its first importer (null for a start file).
+ * @returns {Map<string, {importer: string, mapped: boolean}|null>} Each reached file and how it was
+ * first reached (null for a start file).
  */
 function importClosure(start, tracked) {
   const reached = new Map(start.map(file => [file, null]));
@@ -300,14 +345,12 @@ function importClosure(start, tracked) {
   while (queue.length > 0) {
     const file = queue.shift();
 
-    for (const [, specifier] of read(file).matchAll(RELATIVE_SPECIFIER)) {
-      // `'../../'` imports the directory's index; join() keeps the trailing slash.
-      const base = path.posix.join(path.posix.dirname(file), specifier).replace(/\/+$/, '');
-      const target = RESOLVE_SUFFIXES.map(suffix => `${base}${suffix}`).find(candidate => tracked.has(candidate));
+    for (const [, specifier] of read(file).matchAll(SPECIFIER)) {
+      const resolved = resolveSpecifier(file, specifier, tracked);
 
-      if (target && !reached.has(target)) {
-        reached.set(target, file);
-        queue.push(target);
+      if (resolved && !reached.has(resolved.file)) {
+        reached.set(resolved.file, { importer: file, mapped: resolved.mapped });
+        queue.push(resolved.file);
       }
     }
   }
@@ -355,10 +398,15 @@ test('the scope router reads the filter, and the Unit job runs the Jest config t
     `test.yml: the unit job must run when the scope router flags ${UNIT_FILTER}`);
   assert.match(unitJob, /^ {4}uses: \.\/\.github\/workflows\/unit\.yml$/m);
 
-  // unit.yml runs the core's test:unit pipeline, which runs Jest with its default config lookup and
-  // forwards no flag that changes what Jest loads.
-  assert.match(read('.github/workflows/unit.yml'), /^ +cd handsontable\n(?: +#.*\n)* +npm run test:unit\b/m,
-    'unit.yml must run the core test:unit pipeline from handsontable/');
+  // unit.yml runs the core's test:unit script, that script runs the test:unit pipeline, and the
+  // pipeline runs Jest with its default config lookup and no flag that changes what Jest loads. The
+  // lookahead keeps `npm run test:unit.jest` or `test:unit:ci` from passing for the script itself.
+  assert.match(read('.github/workflows/unit.yml'), /^ +cd handsontable\n(?: +#.*\n)* +npm run test:unit(?![\w.:-])/m,
+    'unit.yml must run the core test:unit script from handsontable/');
+  const unitScript = JSON.parse(read(`${CORE}/package.json`)).scripts['test:unit'];
+
+  assert.equal(unitScript, 'node scripts/run.mjs --sequential test:unit',
+    'handsontable/package.json: the test:unit script must run the test:unit pipeline');
   assert.deepEqual(tasks.pipelines['test:unit'].tasks, ['test:unit.jest']);
 
   const jestTask = tasks.tasks['test:unit.jest'];
@@ -370,6 +418,21 @@ test('the scope router reads the filter, and the Unit job runs the Jest config t
   assert.match(jestTask.cmd, /\bjest$/, 'test:unit.jest must run Jest with no flags of its own');
   assert.deepEqual(jestTask.passthroughFilter.filter(flag => loadFlag.test(flag)), [],
     'test:unit.jest must not forward a flag that changes what Jest loads');
+});
+
+test('the browser floor and the root Babel config reach every job that compiles the core', () => {
+  const filters = parseFilters(checks);
+  const configFiles = filterGlobs(filters, 'config-files');
+
+  // Every build config in handsontable/.config/ requires browser-targets.js, and the core's Babel
+  // config extends the root one. Both belong in `config-files`, which every `*hot-shared` filter
+  // takes in, so a floor change builds the bundles, runs every suite, and renders the visual tier,
+  // which follows the ES + CJS build. Listed in the Unit filter alone, Build, E2E, Walkontable, and
+  // Visual all skipped such a change. Walkontable lists `.config/` by hand, so it names the floor.
+  assert.ok(routes(configFiles, 'browser-targets.js'), 'checks.yml: config-files must route browser-targets.js');
+  assert.ok(routes(configFiles, 'babel.config.js'), 'checks.yml: config-files must route the root babel.config.js');
+  assert.ok(routes(filterGlobs(filters, 'test-handsontable-walkontable'), 'browser-targets.js'),
+    'checks.yml: test-handsontable-walkontable must route browser-targets.js, which its configs require');
 });
 
 test('every entry of the Unit filter matches a tracked file', () => {
@@ -443,18 +506,20 @@ test('the Unit filter routes every file the core Jest run loads', () => {
 
   const reached = importClosure(start, tracked);
 
-  // Vacuity guards, and the reasons behind the entries outside `test/`: the walk must follow a bare
-  // import (bootstrap.js), a Babel `extends` (the core config extends the root one), a require (the
-  // root config loads the browser floor), and an import that leaves `src/`. If it stops reaching
-  // these, its parsing broke.
-  assert.equal(reached.get(`${CORE}/test/helpers/custom-matchers.js`), `${CORE}/test/bootstrap.js`);
-  assert.equal(reached.get('babel.config.js'), `${CORE}/babel.config.js`);
+  // Vacuity guards, and the reasons behind the root entries in `config-files`: the walk must follow
+  // a bare import (bootstrap.js), a Babel `extends` (the core config extends the root one), a require
+  // (the root config loads the browser floor), an import that leaves `src/`, and an import Jest maps
+  // through `moduleNameMapper` (`walkontable/...`, `handsontable/...`). If it stops reaching these,
+  // its parsing broke.
+  assert.equal(reached.get(`${CORE}/test/helpers/custom-matchers.js`)?.importer, `${CORE}/test/bootstrap.js`);
+  assert.equal(reached.get('babel.config.js')?.importer, `${CORE}/babel.config.js`);
   assert.ok(reached.has('browser-targets.js'), 'the walk no longer reaches browser-targets.js');
-  assert.ok([...reached].some(([file, importer]) => importer?.startsWith(`${CORE}/src/`)
+  assert.ok([...reached].some(([file, edge]) => edge?.importer.startsWith(`${CORE}/src/`)
     && !file.startsWith(`${CORE}/src/`)), 'the walk no longer follows an import out of src/');
+  assert.ok([...reached.values()].some(edge => edge?.mapped), 'the walk no longer follows a mapped import');
 
-  for (const [file, importer] of reached) {
-    const why = importer === null ? 'where the walk starts' : `imported by ${importer}`;
+  for (const [file, edge] of reached) {
+    const why = edge === null ? 'where the walk starts' : `imported by ${edge.importer}`;
 
     assert.ok(routes(unitGlobs, file),
       `checks.yml: ${UNIT_FILTER} does not route ${file} (${why}), so a pull request that changes only it `
