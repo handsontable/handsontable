@@ -50,6 +50,22 @@ describe('`minSpareCols` and the `fixedColumnsEnd` option', () => {
     expect(core.countCols()).toBe(3);
   });
 
+  it.each([0.4, -1, -0.5, NaN, 'abc'])(
+    'should append a spare column when `fixedColumnsEnd` (%s) freezes no column',
+    (fixedColumnsEnd) => {
+      // The renderer floors the option, so these values draw no end columns and must not block the spare ones.
+      createGrid({ fixedColumnsEnd });
+
+      expect(core.countCols()).toBe(4);
+    }
+  );
+
+  it('should still block the spare columns when `fixedColumnsEnd` is a fraction that floors to a band', () => {
+    createGrid({ fixedColumnsEnd: 1.5 });
+
+    expect(core.countCols()).toBe(3);
+  });
+
   it('should keep the column count and the end band when data is written into the last end column', () => {
     createGrid({ fixedColumnsEnd: 1 });
 

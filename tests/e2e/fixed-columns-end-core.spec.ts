@@ -134,6 +134,30 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.fixedColumnsEnd()).toBe(2);
       expect(await grid.overlayOf(2, 3)).toBe('inline_end');
     });
+
+    test('treats a fixedColumnsEnd below 1 as no end columns, like the control', async () => {
+      // The renderer floors the option: 0.4 draws no end column, so the spare column exists from the start and
+      // typing into it appends the next one, exactly as in the control above.
+      await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 0.4, cols: 4 });
+
+      const columnsBefore = await grid.countCols();
+
+      expect(columnsBefore).toBe(5);
+      await typeInto(2, columnsBefore - 1);
+      await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
+
+      // Enter moving right off the last column asks for one more column. The keyboard path reads the option
+      // separately from the spare-column guard, and it must floor it the same way.
+      await grid.updateSettings({ enterMoves: { row: 0, col: 1 } });
+
+      const columnsNow = await grid.countCols();
+
+      await grid.selectCell(2, columnsNow - 1);
+      await grid.press('Enter');
+      await expect.poll(() => grid.isEditorOpened()).toBe(true);
+      await grid.press('Enter');
+      await expect.poll(() => grid.countCols()).toBe(columnsNow + 1);
+    });
   });
 }
 

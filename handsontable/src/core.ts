@@ -1916,7 +1916,8 @@ export default function Core(
           // the band instead is not safe: the filler bookkeeping (`DataMap#isTrailingFillerColumn`) tracks a
           // trailing run only, and an `auto` insert skips the cell meta shift, so the meta of the end columns
           // would stay behind. The keyboard navigation guard (`transformation/_base.ts`) follows the same rule.
-          const hasEndColumns = !!tableMeta.fixedColumnsEnd;
+          // Floored like the band the renderer draws: a fraction below 1 or a negative number freezes no column.
+          const hasEndColumns = Math.floor(Number(tableMeta.fixedColumnsEnd)) > 0;
           const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array' &&
             !hasEndColumns;
 

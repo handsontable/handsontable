@@ -59,6 +59,16 @@ describe('`minCols` and the `fixedColumnsEnd` option', () => {
     expect(core.countCols()).toBe(4);
   });
 
+  it.each([0.4, -1, -0.5, NaN, 'abc'])(
+    'should fill the grid up to minCols when `fixedColumnsEnd` (%s) freezes no column',
+    (fixedColumnsEnd) => {
+      // The renderer floors the option, so these values draw no end columns and must not block the filler ones.
+      createGrid({ fixedColumnsEnd, minCols: 8 });
+
+      expect(core.countCols()).toBe(8);
+    }
+  );
+
   it('should resume filling the grid up to minCols once the end columns are released', () => {
     createGrid({ fixedColumnsEnd: 1, minCols: 8 });
 

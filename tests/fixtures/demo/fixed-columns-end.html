@@ -46,6 +46,16 @@
 
       return value;
     };
+    // The option the grid floors may be given a fraction, to pin that a value below 1 freezes nothing.
+    const decimal = (name, fallback) => {
+      const value = Number(htParams.get(name) ?? fallback);
+
+      if (!Number.isFinite(value) || value < 0) {
+        throw new Error('Invalid ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
     const rows = number('rows', 40);
     const cols = number('cols', 30);
     const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
@@ -65,7 +75,7 @@
       data,
       colWidths: 72,
       fixedColumnsStart: number('fixedColumnsStart', 0),
-      fixedColumnsEnd: number('fixedColumnsEnd', 0),
+      fixedColumnsEnd: decimal('fixedColumnsEnd', 0),
       fixedRowsTop: number('fixedRowsTop', 0),
       fixedRowsBottom: number('fixedRowsBottom', 0),
       minSpareCols: number('minSpareCols', 0),
