@@ -305,6 +305,18 @@ interface CoreInternals {
 }
 
 /**
+ * Options holding a frozen row or column count. `alter()` and some plugins lower them directly on the
+ * table meta, which `updateSettings()` has to be able to override afterwards.
+ */
+const FROZEN_COUNT_OPTIONS = new Set([
+  'fixedRowsTop',
+  'fixedRowsBottom',
+  'fixedColumnsStart',
+  'fixedColumnsLeft',
+  'fixedColumnsEnd',
+]);
+
+/**
  * Handsontable constructor.
  *
  * @core
@@ -5043,7 +5055,24 @@ export default function Core(
         const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
 
         if (!isUnpassedEditor && !isUnusableCell) {
+          const previousValue = globalMeta[i];
+
           globalMeta[i] = settings[i];
+
+          // `alter()`, ManualColumnFreeze and UndoRedo change a frozen count directly on the table meta.
+          // That creates an own property which shadows the global value written above, so a later
+          // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
+          // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
+          // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
+          // the theme options) are shadows kept on purpose.
+          if (FROZEN_COUNT_OPTIONS.has(i) && settings[i] !== previousValue) {
+            Reflect.deleteProperty(tableMeta, i);
+
+            // The two column names share the `_fixedColumnsStart` backing field.
+            if (i === 'fixedColumnsStart' || i === 'fixedColumnsLeft') {
+              Reflect.deleteProperty(tableMeta, '_fixedColumnsStart');
+            }
+          }
         }
       }
     }
