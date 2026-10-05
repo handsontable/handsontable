@@ -236,13 +236,18 @@ project. It includes 1 license:
 ```
 
 Pass the whole key string, exactly as you received it, in the same
-[`licenseKey`](@/api/options.md#licensekey) option:
+[`licenseKey`](@/api/options.md#licensekey) option. The key text contains double quotes (around the
+project name) and can contain apostrophes (in a company name), so do not paste it into a quoted
+string or a quoted HTML attribute - the first quote inside the key ends the value there. Read the key
+from your configuration, or write it as a template literal (in backticks), as in the examples below.
+A template literal works as long as the key text contains no backtick and no `${`; if it does, read
+the key from your configuration.
 
 ::: only-for javascript
 
 ```js
 const settings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
   //... other options
 }
 ```
@@ -252,7 +257,9 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+
+<HotTable licenseKey={licenseKey} />
 ```
 
 :::
@@ -263,7 +270,7 @@ const settings = {
 import { GridSettings } from "@handsontable/angular-wrapper";
 
 readonly gridSettings: GridSettings = {
-  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  licenseKey: `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
 };
 ```
 
@@ -272,17 +279,33 @@ readonly gridSettings: GridSettings = {
 ::: only-for vue
 
 ```html
-<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+<script setup>
+const licenseKey = `This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`;
+</script>
+
+<template>
+  <HotTable :licenseKey="licenseKey" />
+</template>
 ```
 
 :::
 
 Keys issued in the 25-character format keep working without any change.
 
-Only the bracketed block is protected by a checksum. You can rewrap the text above it, or paste the
-key through an email client, and the key still works. Keep the block itself on one line, and end the
-key there - the block must be the last thing in the string. Space and newlines around the whole key
-are trimmed for you, so a key pasted with a trailing newline still works.
+The checksum protects the whole key: the text and the bracketed block. If you edit the text, remove
+it, or paste the bracketed block alone, the key is invalid. The checksum ignores spaces and line
+breaks in the text, so you can rewrap it, paste it through an email client, or put the whole key on
+one line, and the key still works. Line breaks saved as the characters `\n`, as some `.env` files
+and CI secret fields store them, work too. Keep the block itself on one line, and end the key
+there - only whitespace, or line breaks saved as `\n`, may follow the block. Space and line
+breaks around the whole key are trimmed for you, so a key pasted with a trailing newline still works.
+
+When you store the key in an environment variable, a `.env` file, or a CI secret, put it on one
+line. In a `.env` file, also wrap the key in single quotes (`'...'`), or in backticks if the key text
+contains an apostrophe. Without quotes, a line break or a ` #` in the key cuts the value short, and
+double quotes end at the first double quote inside the key. Do not escape the quotes inside the key
+(`\"`) - the backslashes stay in the value, and the key becomes invalid. Never change any other
+character of the key, for example by replacing straight quotes with curly ones.
 
 Each license behaves differently around its date:
 
