@@ -154,6 +154,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '无法删除行',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '请求失败',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
+  [C.ROW_SELECTION_SELECT_ROW]: '选择第 [row] 行',
+  [C.ROW_SELECTION_SELECT_ALL]: '选择所有行（已选择 [selected]/[total]）',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: '全选（已勾选 [checked]/[total]）',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '已选择第 [row] 行',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '已取消选择第 [row] 行',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '已选择 [selected]/[total] 行',
+  [C.ROW_SELECTION_MENU_REMOVE]: '删除所选行 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '清除行选择',
 };
 
 export default dictionary;

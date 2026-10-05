@@ -40,6 +40,7 @@ const classicTokens: ThemeTokensConfig = {
   cellVerticalBorderColor: 'tokens.borderColor',
   cellSelectionBorderColor: 'tokens.accentColor',
   cellSelectionBackgroundColor: 'tokens.accentColor',
+  rowSelectionBackgroundColor: ['#5292f71a', '#7aadff33'],
   cellSuccessBackgroundColor: '#37bc6c33',
   cellErrorBackgroundColor: '#fa4d3233',
   cellReadOnlyBackgroundColor: 'colors.transparent',

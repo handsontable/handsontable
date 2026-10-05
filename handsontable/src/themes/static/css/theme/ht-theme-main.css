@@ -85,6 +85,7 @@
   --ht-cell-vertical-border-color: var(--ht-border-color);
   --ht-cell-selection-border-color: var(--ht-accent-color);
   --ht-cell-selection-background-color: light-dark(var(--ht-colors-primary-400), var(--ht-colors-primary-200));
+  --ht-row-selection-background-color: light-dark(#1a42e81a, #4669f633);
   --ht-cell-success-background-color: #37bc6c33;
   --ht-cell-error-background-color: #fa4d3233;
   --ht-cell-read-only-background-color: var(--ht-background-secondary-color);
@@ -508,6 +509,14 @@
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
   -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8L7 10L11 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .htCheckboxRendererInput:indeterminate::after {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.33325 8H11.6666' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 

@@ -3879,6 +3879,35 @@ export const REGISTERED_HOOKS = [
   'afterUnhideRows',
 
   /**
+   * Fired by the {@link RowSelection} plugin before the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled. Returning `false` in the callback cancels the change.
+   *
+   * The lists hold only the rows whose state really changes.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeRowSelectionChange
+   * @param {number[]} rowsToSelect Physical indexes of the rows about to be selected.
+   * @param {number[]} rowsToDeselect Physical indexes of the rows about to be deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, or `'api'`.
+   * @returns {undefined|boolean} If the callback returns `false`, the selection does not change.
+   */
+  'beforeRowSelectionChange',
+
+  /**
+   * Fired by the {@link RowSelection} plugin after the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterRowSelectionChange
+   * @param {number[]} selectedRows Physical indexes of the rows that were selected.
+   * @param {number[]} deselectedRows Physical indexes of the rows that were deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, or `'api'`.
+   */
+  'afterRowSelectionChange',
+
+  /**
    * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *

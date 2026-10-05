@@ -220,6 +220,8 @@ interface HandsontableFactory {
     NestedRows: typeof import('./plugins/nestedRows').NestedRows;
     Notification: typeof import('./plugins/notification').Notification;
     Pagination: typeof import('./plugins/pagination').Pagination;
+    RowSelection: typeof import('./plugins/rowSelection').RowSelection;
+    CheckboxHeader: typeof import('./plugins/checkboxHeader').CheckboxHeader;
     Search: typeof import('./plugins/search').Search;
     SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
@@ -452,6 +454,8 @@ declare namespace Handsontable {
     export type NestedRows = import('./plugins/nestedRows').NestedRows;
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
+    export type RowSelection = import('./plugins/rowSelection').RowSelection;
+    export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;

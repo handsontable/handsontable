@@ -493,6 +493,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | ----------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowSelectionBackgroundColor` </div> | Background color of rows selected with the [`RowSelection`](@/api/rowSelection.md) plugin. Semi-transparent, so it tints the row's own background |
 
 #### Cell autofill variables
 

@@ -30,6 +30,8 @@
 @use "./plugins/sheets-bar";
 @use "./plugins/loading";
 @use "./plugins/empty-data-state";
+@use "./plugins/row-selection";
+@use "./plugins/checkbox-header";
 
 // Renderers
 @use "./renderers/text-renderer";
@@ -99,4 +101,6 @@
   @include sheets-bar.output();
   @include loading.output();
   @include empty-data-state.output();
+  @include row-selection.output();
+  @include checkbox-header.output();
 }

@@ -157,6 +157,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
+  [C.ROW_SELECTION_SELECT_ROW]: '行 [row] を選択',
+  [C.ROW_SELECTION_SELECT_ALL]: 'すべての行を選択 ([total] 件中 [selected] 件を選択済み)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'すべてチェック ([total] 件中 [checked] 件チェック済み)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '行 [row] を選択しました',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '行 [row] の選択を解除しました',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total] 行中 [selected] 行を選択中',
+  [C.ROW_SELECTION_MENU_REMOVE]: '選択した行を削除 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '行の選択を解除',
 };
 
 export default dictionary;

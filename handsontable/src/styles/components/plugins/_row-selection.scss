@@ -1,0 +1,55 @@
+// Handsontable RowSelection
+
+@mixin output {
+  .handsontable {
+    // The plugin's row header column and the corner above it: the whole cell is the hit area.
+    th.htRowSelectionCell,
+    th.htRowSelectionHeader {
+      cursor: pointer;
+    }
+
+    th.htRowSelectionCell .htRowSelectionCheckbox,
+    th.htRowSelectionHeader .htRowSelectionCheckbox {
+      margin-inline: 0;
+    }
+
+    // The checkbox rule's `margin-top: -2px` lifts an inline checkbox onto a text baseline. In a
+    // header the flex container centers it instead, and the margin only pushes it off center.
+    th.htRowSelectionHeader .htRowSelectionCheckbox {
+      margin-block: 0;
+    }
+
+    // A label-less header's container holds only the checkbox (its label is hidden above), so it
+    // would shrink to the checkbox's height and sit at the top of the cell. Filling the cell keeps it centered
+    // vertically at any header height.
+    th.htRowSelectionCheckboxOnly .relative {
+      height: 100%;
+      justify-content: center;
+    }
+
+    // A header with no label - the corner, or a column made only for the checkboxes - holds just the
+    // checkbox. Its label is a non-breaking space (the corner) or empty, and would push the checkbox
+    // off center. Keyed on the plugin's own class, not on `cornerHeader`: core leaves that class on a
+    // reused label, so it would also hide a real column label in the first column location.
+    th.htRowSelectionCheckboxOnly .colHeader {
+      display: none;
+    }
+
+    // Keeps the row's layout when a row shows no checkbox through `checkboxes` or
+    // `hideDisabledCheckboxes`, so the column does not jump between rows.
+    .htRowSelectionCheckbox.htRowSelectionCheckboxHidden {
+      visibility: hidden;
+    }
+
+    // An overlay, not a background color: a selected row keeps its invalid, read-only, and
+    // odd/even colors underneath (the token is semi-transparent), and the cell selection still paints
+    // on top (`td.area::before`).
+    tbody tr > td.htRowSelected,
+    tbody tr > th.htRowSelected {
+      background-image: linear-gradient(
+        var(--ht-row-selection-background-color),
+        var(--ht-row-selection-background-color)
+      );
+    }
+  }
+}

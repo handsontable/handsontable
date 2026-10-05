@@ -159,6 +159,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
+  [C.ROW_SELECTION_SELECT_ROW]: 'انتخاب ردیف [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'انتخاب همه ردیف ها ([selected] از [total] انتخاب شده)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'انتخاب همه ([checked] از [total] انتخاب شده)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'ردیف [row] انتخاب شد',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'انتخاب ردیف [row] لغو شد',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] از [total] ردیف انتخاب شده',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'حذف ردیف های انتخاب شده ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'پاک کردن انتخاب ردیف ها',
 };
 
 export default dictionary;

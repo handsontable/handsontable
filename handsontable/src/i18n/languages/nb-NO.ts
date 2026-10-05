@@ -151,6 +151,14 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Velg rad [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Velg alle rader ([selected] av [total] valgt)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Merk alle ([checked] av [total] merket)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rad [row] valgt',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Rad [row] fravalgt',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] av [total] rader valgt',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Fjern valgte rader ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Fjern radvalg',
 };
 
 export default dictionary;

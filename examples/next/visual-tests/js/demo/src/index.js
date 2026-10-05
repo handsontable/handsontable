@@ -30,6 +30,7 @@ import { init as initNotificationDemo } from './demos/notification';
 import { init as initSelectionHandlesDemo } from './demos/selectionHandles';
 import { init as initMoveCellsDemo } from './demos/moveCells';
 import { init as initSheetsBarDemo } from './demos/sheetsBar';
+import { init as initRowSelectionDemo } from './demos/rowSelection';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -347,6 +348,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initMoveCellsDemo();
+      });
+    },
+    '/row-selection-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initRowSelectionDemo();
       });
     },
   })

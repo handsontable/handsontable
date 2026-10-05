@@ -138,6 +138,8 @@ export type TokenKey =
   // Cell selection
   | 'cellSelectionBorderColor'
   | 'cellSelectionBackgroundColor'
+  // Row selection
+  | 'rowSelectionBackgroundColor'
   // Cell autofill
   | 'cellAutofillSize'
   | 'cellAutofillHitAreaSize'
