@@ -1,5 +1,6 @@
 import { isSafari } from '../../helpers/browser';
-import { sumCellsHeights } from './utils';
+import { empty, getCellContentRoot } from '../../helpers/dom/element';
+import { getFirstRowOfActiveBottomOverlay, sumCellsHeights } from './utils';
 import type { HotInstance } from '../../core/types';
 
 /**
@@ -128,12 +129,30 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       );
     }
 
+    // A bottom overlay never holds the origin of a block that starts above the frozen bottom rows. Its first
+    // row carries the span instead, or the covered cells are all hidden and the row slides out of its columns.
+    const firstRowOfBottomOverlay = getFirstRowOfActiveBottomOverlay(hot);
+
+    const continuesAboveBottomOverlay = notHiddenRow !== null && firstRowOfBottomOverlay !== null &&
+      firstRowOfBottomOverlay > notHiddenRow;
+
+    if (continuesAboveBottomOverlay) {
+      notHiddenRow = firstRowOfBottomOverlay;
+    }
+
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
     const notHiddenColspan = Math.min(origColspan, maxColSpan);
 
     if (notHiddenRow === row && notHiddenColumn === col) {
       TD.setAttribute('rowspan', String(notHiddenRowspan));
       TD.setAttribute('colspan', String(notHiddenColspan));
+
+      if (continuesAboveBottomOverlay) {
+        // The cell only continues a block whose content the master draws. It is painted with the covered
+        // cell's own coordinates, so the renderer's output (a checkbox, a long wrapped text) would act on, or
+        // size the rows of the clone from, a cell the block does not own.
+        empty(getCellContentRoot(TD));
+      }
 
     } else {
       TD.removeAttribute('rowspan');
